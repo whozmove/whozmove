@@ -9,7 +9,12 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to the commit of a release, which can't be moved the way a version tag can; Dependabot
+      # (.github/dependabot.yml) moves the pin when there's a new release. The job never pushes, so it doesn't
+      # keep the token checkout would otherwise leave for later steps.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Build, with warnings as errors
         run: |
           clang -O2 -Wall -Werror -fobjc-arc -framework Cocoa -framework WebKit -framework JavaScriptCore \

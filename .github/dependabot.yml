@@ -1,0 +1,9 @@
+# Keeps the actions CI uses current: when one has a new release, Dependabot opens a pull request that moves its
+# pin to that release's commit, and CI runs on it.
+# Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
