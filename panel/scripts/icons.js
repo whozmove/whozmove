@@ -1,0 +1,51 @@
+// The panel's icons.
+// Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+
+/* The pull-request and branch icons are GitHub's Octicons (git-pull-request, git-branch), from
+   https://github.com/primer/octicons, under this licence:
+
+   MIT License
+
+   Copyright (c) 2026 GitHub Inc.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE. */
+// Octicon git-pull-request.
+const PR_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" '
+  + 'd="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Z'
+  + 'm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5'
+  + 'a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z'
+  + 'M3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z'
+  + 'm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg>';
+// Octicon git-branch.
+const BRANCH_ICON = '<svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" '
+  + 'd="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372'
+  + 'a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Z'
+  + 'm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z'
+  + 'M4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>';
+
+// Desktop / Terminal, as an icon on the details line.
+const DESKTOP_ICON = '<svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" '
+  + 'stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg>';
+const TERMINAL_ICON = '<svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" '
+  + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" '
+  + 'd="M3 4l4 4-4 4M8.5 12H13"/></svg>';
+const CHEVRON_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const PLUS_ICON = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" '
+  + 'stroke-width="1.6" stroke-linecap="round"/></svg>';

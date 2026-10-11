@@ -1,0 +1,7 @@
+# The choices on the "New issue" page: the two forms beside it, and where a security problem goes instead.
+# Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/whozmove/whozmove/security/policy
+    about: Please don't open an issue for it. The security policy says how to report it privately.

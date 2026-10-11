@@ -1,0 +1,27 @@
+/* Motion: the rows' animations, the rebuild's (see morph.js), and reduced motion.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* A row passing others as it moves (see morph) glides over them: on top, frosting what's beneath it as the
+   panel's glass would, so their text never shows through its own. Before and after the move, with nothing
+   beneath it, it looks as it always does. */
+.row.glide { z-index: 2; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.18; } }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(255,107,74,.55); } 100% { box-shadow: 0 0 0 7px rgba(255,107,74,0); } }
+@keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+/* Changes between rebuilds (see morph): new text fades and lifts in; a new row eases in. */
+@keyframes swapIn {
+  from { opacity: 0; transform: translateY(3px); filter: blur(1.5px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes rowIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.swap { animation: swapIn 1s cubic-bezier(.2, .8, .2, 1); }
+.row.arrive { animation: rowIn 1s cubic-bezier(.2, .8, .2, 1); }
+.group.arrive, .project.arrive { animation: rowIn 280ms cubic-bezier(.2, .8, .2, 1); }  /* headers: quicker */
+
+@media (prefers-reduced-motion: reduce) {
+  .busy .dot, .claude.work .who { animation: none; }
+  .claude .shine { animation: none; color: rgba(255, 255, 255, 0.72); -webkit-text-fill-color: currentColor;
+                   background: none; }
+}

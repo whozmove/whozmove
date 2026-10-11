@@ -1,0 +1,328 @@
+
+== Sections, grouped by status
+a request waiting: needs
+Claude waiting on you: needs
+working: busy
+replied 5 min ago, not opened: turn
+replied, opened here since: idle
+replied, open in Claude since: idle
+replied and opened, but the one you are on: turn
+replied 40 min ago: idle
+
+== Sections, grouped by activity
+replied 40 min ago, opened: turn
+replied 2 h ago: idle
+
+== Sorting
+working, your message newer than its reply: now-3m
+working, no new message: now-2m
+idle, by its newest message: now-15m
+
+== A new turn held steady
+says working, but its message is older and replied: idle
+says idle, but a new message is waiting for a reply: busy
+changed over 3 s ago: idle
+
+== Current action: label and colour (the README's table)
+In development: ["In development","dev"]
+Ready to commit: ["Ready to commit","yours"]
+Committed, not pushed: ["Committed","yours"]
+Live in prod: ["Live in prod","done"]
+On staging: ["On staging","wait"]
+Merged this turn: ["Merged","done"]
+CI failing: ["CI failing","urgent"]
+Changes requested: ["Changes requested","urgent"]
+CI running: ["CI running","wait"]
+Draft PR: ["Draft PR","yours"]
+Approved: ["Approved","yours"]
+In review: ["In review","wait"]
+In review, PR just raised: ["In review","wait"]
+the branch's PR, in a worktree: ["CI failing","urgent"]
+Review posted: ["Review posted","done"]
+Exploring: ["Exploring","plain"]
+Planning: ["Planning","plain"]
+Merged, by its PR: ["Merged","done"]
+Pushed, no PR: ["Pushed, no PR","yours"]
+Committed, branch tracks a remote: ["Pushed, no PR","yours"]
+Committed, a remote but no tracking: ["Committed","yours"]
+Committed, no remote: ["Committed","done"]
+Done: ["Done","plain"]
+Done, Claude says completed: ["Done","plain"]
+nothing to say: null
+Waiting on you: ["Waiting on you","yours"]
+blocked, Ready to commit stays: ["Ready to commit","yours"]
+blocked, CI failing stays urgent: ["CI failing","urgent"]
+a chat in a busy checkout doesn't take its state: ["Exploring","plain"]
+a worktree owns its checkout: ["In development","dev"]
+the label as drawn: <span class="stage o-yours">Ready to commit</span>
+no label while working: 
+
+== What the work has been through
+built and tested: <span class="proof" title="Built · Tested">built · tested</span>
+audit, before fixing: <span class="proof" title="Built · Tested · Code review: 15 findings">built · tested · audit: 15 found</span>
+audit, one left: <span class="proof" title="Built · Tested · Code review: 15 findings, 14 settled, 1 left">built · tested · audit: 1 left</span>
+audit, all settled: <span class="proof" title="Built · Tested · Code review: 15 findings, 15 settled, 0 left">built · tested · audit clean</span>
+audit, nothing found: <span class="proof" title="Built · Tested · Code review: 0 findings">built · tested · audit clean</span>
+nothing while working: 
+nothing beside a vague state: 
+
+== Details line
+model name of claude-opus-5-5: Opus 5.5
+model name of claude-sonnet-5-5[1m]: Sonnet 5.5
+model name of claude-haiku-5-5: Haiku 5.5
+model name of claude-fable-5-1: Fable 5.1
+model name of claude-opus-5: Opus 5
+model name of other-model: other-model
+context window, Opus 5.5: 1000000
+context window, Sonnet 5.5: 200000
+context window, Sonnet 5.5 [1m]: 1000000
+context window, Sonnet 5.5 past 200k: 1000000
+auto-compact at, 1M window: 967000
+auto-compact at, your own setting: 150000
+auto-compact at, 200k window: 200000
+tokens 427000: 427k
+tokens 1000000: 1M
+tokens 1500000: 1.5M
+ago 5s: now
+ago 45s: 45s
+ago 300s: 5m
+ago 10800s: 3h
+ago 172800s: 2d
+elapsed 12s: 12s
+elapsed 76s: 1m 16s
+elapsed 3780s: 1h 3m
+ring colour, 10% used: rgba(255, 255, 255, 0.55)
+ring colour, 70% used: #ffc53d
+ring colour, 90% used: #ff6b4a
+
+== Projects
+a worktree counts toward its repo: {"key":"/work/app","name":"app"}
+Claude Desktop's scratch conversations: {"key":"scratch","name":"Scratch","scratch":true}
+a repo: {"key":"/work/app","name":"app"}
+outside git: {"key":"/work/notes","name":"notes"}
+
+== HTML of sample rows
+-- a command waiting for your OK
+<div class="row needs" data-id="p1" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
+        <div class="perm" data-ask="a1"><div class="perm-title">Run a command?</div><div class="perm-why">Run the tests</div>
+      <pre class="perm-detail">npm test</pre>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- an edit waiting for your OK
+<div class="row needs" data-id="p2" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
+        <div class="perm" data-ask="a2"><div class="perm-title">Edit a.ts?</div>
+      <pre class="perm-detail">/work/app/a.ts
+
+<span class="ln-del">− let x = 1;</span>
+<span class="ln-add">+ const x = 1;</span></pre>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- a write too long to show in full
+<div class="row needs" data-id="p3" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
+        <div class="perm" data-ask="a3"><div class="perm-title">Write big.txt?</div>
+      <pre class="perm-detail">/work/app/big.txt
+
+x
+…</pre>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><span class="perm-sent">Too long to show in full: allow it in Claude</span></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- Claude's questions
+<div class="row needs" data-id="p4" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Has a question for you</span></div>
+        <div class="perm quiz" data-ask="a4">
+      <div class="q" data-q="0"><div class="q-top"><span class="q-count">1/2</span><span class="q-head">Which database?</span><button class="q-close" title="Dismiss without answering">×</button></div><div class="q-opts"><button class="opt" data-q="0" data-o="0"><span class="opt-label">Postgres</span><span class="opt-desc">the usual</span></button><button class="opt" data-q="0" data-o="1"><span class="opt-label">SQLite</span></button></div><input class="q-type" data-q="0" placeholder="Or type your own answer" value=""></div><div class="perm-actions"><button class="q-skip">Skip</button><button class="q-next perm-allow" disabled>Next</button></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- working
+<div class="row busy" data-id="w1" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">run the suite</span></div><div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Run the tests</span></span><span class="elapsed">2m 0s</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">high</span> · <span class="pick" data-pick="mode" title="Change mode">Edits</span></span><span class="ctx" data-ctx="w1" title="12% · 120k of 1M tokens in context · 847k left before auto-compact" style="color:rgba(255, 255, 255, 0.55);--fill:12%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.6" stroke-linecap="round"
+              stroke-dasharray="3.77 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
+        
+      </div>
+    </div>
+-- your turn, with PRs, a worktree and an audit
+<div class="row turn" data-id="t1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          <span class="stage o-yours">Ready to commit</span>
+          <span class="time">5m</span>
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
+        
+        <div class="where" title="/work/app
+branch feature
+worktree app-f of app
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>feature</span><span class="sep">·</span><span class="wt">worktree</span><span class="proof" title="Built · Tested · Code review: 3 findings, 2 settled, 1 left">built · tested · audit: 1 left</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:#ffc53d;--fill:75%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" stroke="#ffc53d" stroke-width="1.6" stroke-linecap="round"
+              stroke-dasharray="23.56 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
+        <div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt">Fix the tests</span></div><div class="pr draft " data-url="https://github.com/e/app/pull/2"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#2</span><span class="pt">Draft</span></div></div>
+      </div>
+    </div>
+-- a closed Claude Desktop conversation, open in Claude
+<div class="row idle closed focused" data-id="d1" title="Open in Claude now">
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">Desk chat</span>
+          <span class="stage o-plain">Done</span>
+          <span class="time">5h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/notes
+Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg><span class="proj">notes</span></div>
+        
+      </div>
+    </div>
+-- the Compact card open
+<div class="row idle" data-id="c1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        <div class="perm compact" data-compact="c1"><div class="q-top"><span class="q-head">Compact the conversation</span><span class="c-left" title="before auto-compact">67k left</span><button class="q-close" title="Close">×</button></div><div class="q-opts"><button class="opt" data-level="0"><span class="opt-label">Compact</span><span class="opt-desc">Summarize the conversation so far</span></button><button class="opt" data-level="1"><span class="opt-label">Keep details</span><span class="opt-desc">Older work summarized; the current task kept in detail</span></button><button class="opt" data-level="2"><span class="opt-label">Keep essentials</span><span class="opt-desc">Only decisions, open tasks and key files</span></button></div><input class="q-type c-focus" placeholder="Or your own focus, then Return" value=""></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span></span><span class="ctx open" data-ctx="c1" title="90% · 900k of 1M tokens in context · 67k left before auto-compact" style="color:#ff6b4a;--fill:90%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" stroke="#ff6b4a" stroke-width="1.6" stroke-linecap="round"
+              stroke-dasharray="28.27 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
+        
+      </div>
+    </div>
+
+== HTML of projects
+<div class="project" data-key="/work/app" title="/work/app">
+            <span class="pname">app</span><span class="pchev"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="add" data-folder="/work/app" title="New session in app (⌥: in terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          </div><div class="prows"><div class="row busy" data-id="g2" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          
+        </div>
+        <div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Thinking</span></span><span class="elapsed">1m 0s</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div><div class="row turn" data-id="g1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">5m</span>
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div></div><div class="project collapsed" data-key="/work/other" title="/work/other">
+            <span class="pname">other</span><span class="pchev"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="add" data-folder="/work/other" title="New session in other (⌥: in terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          </div><div class="prows closed"><div class="row idle" data-id="g3" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          <span class="stage o-plain">Done</span>
+          <span class="time">8h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/other
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div></div>
+
+== Command cards
+a command: Run a command?
+in the background: Run a command in the background?
+outside the sandbox: Run a command outside the sandbox?
+both: Run a command in the background, outside the sandbox?
+
+== What the page forgets
+what you read, kept: ["endedJustNow","listed","readRecently"]
+question state, kept: ["askJustAnswered","askWaiting"]
+Compact cards, kept: ["listed"]
+when cards first showed, kept: ["askWaiting"]

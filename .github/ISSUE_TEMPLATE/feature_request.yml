@@ -1,0 +1,23 @@
+# The form for an idea: what the panel could do, and the situation it would help in.
+# Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+name: Idea or feature request
+description: Something Whozmove could do, or do better.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+      description: What you'd see in the panel, and what it would let you do.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: When it would help
+      description: The situation it comes up in, and what you do today instead.
+  - type: markdown
+    attributes:
+      value: |
+        A change to how the panel moves (its animation) is agreed here before anyone builds it, so describe what
+        you'd see and when.

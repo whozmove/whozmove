@@ -1,0 +1,8 @@
+{
+  "name": "whozmove",
+  "owner": { "name": "Satyaraj", "email": "hello@whozmove.com" },
+  "description": "Whozmove's hooks for Claude Code.",
+  "plugins": [
+    { "name": "whozmove", "source": "./" }
+  ]
+}

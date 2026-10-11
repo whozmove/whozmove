@@ -1,0 +1,72 @@
+/* The panel itself: colours, the header, the list, and its group and project headers.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+:root {
+  --text: rgba(255, 255, 255, 0.92);
+  --muted: rgba(255, 255, 255, 0.55);
+  --faint: rgba(255, 255, 255, 0.32);
+  --rule: rgba(255, 255, 255, 0.08);
+  --hover: rgba(255, 255, 255, 0.07);
+  /* Colour says whose move it is: red-orange something's blocked or wrong, amber your move, blue work
+     underway, teal waiting on others, green finished, grey nothing to do. The app icon (make-icon.m) uses
+     --needs, --busy and --turn too: keep them matching. */
+  --needs: #ff6b4a;
+  --busy: #4aa8ff;
+  --turn: #ffc53d;
+  --tint: rgba(16, 16, 18, 0.55);
+  --pr: #56d364;
+  --idle: rgba(255, 255, 255, 0.28);
+  --header: 46px;  /* must match kHeaderHeight in app/PanelWindow.m */
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: transparent; color: var(--text); font: 12px/1.35 -apple-system, BlinkMacSystemFont, sans-serif;
+             -webkit-user-select: none; cursor: default; overflow: hidden; }
+/* Darken the glass so text stays legible over light wallpapers and windows. */
+html { background: var(--tint); min-height: 100vh; }
+
+header { flex: none; height: var(--header); display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; }
+header .title { font-weight: 600; font-size: 13px; letter-spacing: -0.01em; white-space: nowrap; }
+/* The pawn, in "your move" amber: the same shape as the menu-bar symbol (app/MenuBar.m) and the app icon
+   (PawnPath in icon/make-icon.m), as one path running clockwise so it fills as one shape. */
+header .mark { flex: none; color: var(--turn); margin-right: -2px; }
+header .summary { flex: 1; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden;
+                  text-overflow: ellipsis; }
+header .summary b { font-weight: 600; }
+header .chev { width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; color: var(--muted); }
+header .chev.is-hover { background: var(--hover); color: var(--text); }
+header .chev svg { transition: transform .15s ease; }
+body.collapsed header .chev svg { transform: rotate(-90deg); }
+body.collapsed #list { display: none; }
+
+/* Project group header, styled like Claude's sidebar: the name in muted regular weight with a chevron
+   after it, turned sideways while the group is collapsed. */
+.project { display: flex; align-items: center; gap: 5px; padding: 12px 4px 4px 8px; color: rgba(255, 255, 255, 0.5);
+           font-size: 13px; font-weight: 400; }
+.project .pname { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.project .pchev { flex: none; display: grid; place-items: center; color: rgba(255, 255, 255, 0.4); }
+.project .pchev svg { transition: transform .15s ease; }
+.project.collapsed .pchev svg { transform: rotate(-90deg); }
+.project.is-hover .pname, .project.is-hover .pchev { color: var(--text); }
+/* A group's rows. Collapsed groups keep their rows here at zero height, so opening and closing can
+   slide (see slideGroup); the open conversation is pinned below a collapsed group instead. */
+.prows { overflow: hidden; transition: height .2s ease, opacity .2s ease; }
+.prows.closed { height: 0; opacity: 0; }
+.group.toggle .pchev { display: inline-grid; place-items: center; margin-left: 2px; }
+.group.toggle .pchev svg { transition: transform .15s ease; }
+.group.toggle.collapsed .pchev svg { transform: rotate(-90deg); }
+.project .add { margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: 6px; display: grid;
+                place-items: center; color: var(--muted); }
+.project .add.is-hover { background: var(--hover); color: var(--text); }
+
+/* The panel is at most 640pt tall (kMaxHeight); the list takes what the header leaves and scrolls. */
+#root { max-height: 640px; display: flex; flex-direction: column; }
+#list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 6px 6px;
+        border-top: 1px solid var(--rule); }
+#list::-webkit-scrollbar { width: 0; }
+
+.group { padding: 8px 8px 3px; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+         color: var(--faint); display: flex; gap: 6px; }
+.group.toggle.is-hover { color: var(--muted); }
+.group .n { font-weight: 500; }
+
+.empty { padding: 14px 10px; color: var(--faint); text-align: center; }

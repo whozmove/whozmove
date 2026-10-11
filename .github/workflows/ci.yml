@@ -1,0 +1,18 @@
+# Builds the app with every warning an error, and runs all the tests, for each push and pull request.
+# Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, with warnings as errors
+        run: |
+          clang -O2 -Wall -Werror -fobjc-arc -framework Cocoa -framework WebKit -framework JavaScriptCore \
+            app/*.m -o "$RUNNER_TEMP/Whozmove"
+      - name: Tests
+        run: tests/all.sh

@@ -1,0 +1,558 @@
+[
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "auto",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "permissionMode": "auto",
+    "pid": "pid",
+    "procStart": "start-mode-0",
+    "prs": [],
+    "sessionId": "m-auto",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "bypassPermissions",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "permissionMode": "bypassPermissions",
+    "pid": "pid",
+    "procStart": "start-mode-4",
+    "prs": [],
+    "sessionId": "m-bypass",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "dontAsk",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "permissionMode": "dontAsk",
+    "pid": "pid",
+    "procStart": "start-mode-5",
+    "prs": [],
+    "sessionId": "m-dontask",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "auto",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/no-auto",
+    "entrypoint": "cli",
+    "permissionMode": "auto",
+    "pid": "pid",
+    "procStart": "start-mode-3",
+    "prs": [],
+    "sessionId": "m-noauto-in-auto",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "plan",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/no-auto",
+    "entrypoint": "cli",
+    "permissionMode": "plan",
+    "pid": "pid",
+    "procStart": "start-mode-2",
+    "prs": [],
+    "sessionId": "m-noauto-plan",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "plan",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "permissionMode": "plan",
+    "pid": "pid",
+    "procStart": "start-mode-1",
+    "prs": [],
+    "sessionId": "m-plan",
+    "status": "idle",
+    "statusUpdatedAt": "now-50m"
+  },
+  {
+    "activityAt": "now-120m",
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-haiku-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "claude-desktop",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "hostSessionId": "local_closed",
+    "name": "Closed chat",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "s-closed",
+    "status": "closed",
+    "statusUpdatedAt": "now-120m"
+  },
+  {
+    "activityAt": "now-30m",
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "low",
+      "mode": "plan",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "claude-desktop",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "hostSessionId": "local_desk",
+    "pid": "pid",
+    "procStart": "start-3",
+    "prs": [],
+    "sessionId": "s-desk",
+    "status": "idle",
+    "statusUpdatedAt": "now-30m",
+    "summaryStatus": "blocked"
+  },
+  {
+    "activityAt": "now-9m",
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "high",
+      "mode": "acceptEdits",
+      "model": "claude-opus-5-5",
+      "tokens": 424200
+    },
+    "ask": {
+      "at": "now-2m",
+      "cwd": "T/repo",
+      "id": "aaaa1111",
+      "input": {
+        "command": "npm test",
+        "description": "Run the tests"
+      },
+      "pid": "pid",
+      "sessionId": "s-term",
+      "tool": "Bash",
+      "truncated": false
+    },
+    "audit": {
+      "at": "now-9m",
+      "found": 3,
+      "left": 1,
+      "settled": true
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "lastPrompt": "please fix the tests",
+    "lastPromptAt": "now-10m",
+    "lastReply": "All done: the tests pass.",
+    "lastReplyAt": "now-9m",
+    "messageAt": "now-9m",
+    "name": "fix tests",
+    "outcome": "Tested",
+    "outcomeAt": "now-9m",
+    "permissionMode": "acceptEdits",
+    "pid": "pid",
+    "procStart": "start-1",
+    "prs": [
+      {
+        "at": "now-8m",
+        "number": 7,
+        "repo": "example/whozmove",
+        "state": "UNKNOWN",
+        "url": "https://github.com/example/whozmove/pull/7"
+      }
+    ],
+    "sessionId": "s-term",
+    "stageAt": "now-9m",
+    "status": "idle",
+    "statusUpdatedAt": "now-9m",
+    "workSteps": [
+      "Tested"
+    ]
+  },
+  {
+    "activity": "Run the tests",
+    "activityAt": "now-1m",
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "high",
+      "mode": "plan",
+      "model": "claude-opus-5-5",
+      "tokens": 52000
+    },
+    "ask": {
+      "at": "now-1m",
+      "cwd": "T/repo-wt",
+      "id": "bbbb2222",
+      "input": {
+        "content": "<4002 characters, ending 'xxxxxxxxxx\\n…'>",
+        "file_path": "T/repo-wt/big.txt"
+      },
+      "pid": "pid",
+      "sessionId": "s-wt",
+      "tool": "Write",
+      "truncated": true
+    },
+    "checkout": {
+      "ahead": 0,
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/repo-wt",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "feature",
+      "mainRoot": "T/repo",
+      "root": "T/repo-wt",
+      "worktree": "repo-wt",
+      "worktreeOf": "repo"
+    },
+    "lastPrompt": "run the suite",
+    "lastPromptAt": "now-2m",
+    "messageAt": "now-3m",
+    "pid": "pid",
+    "procStart": "start-2",
+    "prs": [],
+    "sessionId": "s-wt",
+    "stageAt": "now-1m",
+    "status": "busy",
+    "statusUpdatedAt": "now-2m",
+    "workGit": {
+      "branch": "main",
+      "root": "T/repo"
+    },
+    "workRoot": "T/repo"
+  }
+]
+requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json 
+== Fields app/Row.m sends that docs/rows.md doesn't describe, or describes but app/Row.m doesn't send
+== macOS permissions the app asks for that README.md doesn't name, and public files naming one it doesn't ask for
+== Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu
+   would type (null: not offered)
+{
+  "m-auto" : {
+    "mode" : "auto",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 2,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : 1,
+      "plan" : 3
+    },
+    "whyNotType" : null
+  },
+  "m-bypass" : {
+    "mode" : "bypassPermissions",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "bypassPermissions",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "bypassPermissions"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : null,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : null
+    },
+    "whyNotType" : null
+  },
+  "m-dontask" : {
+    "mode" : "dontAsk",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 2,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : 1,
+      "plan" : 3
+    },
+    "whyNotType" : null
+  },
+  "m-noauto-in-auto" : {
+    "mode" : "auto",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 2,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : 1,
+      "plan" : 3
+    },
+    "whyNotType" : null
+  },
+  "m-noauto-plan" : {
+    "mode" : "plan",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 2,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : 1,
+      "plan" : null
+    },
+    "whyNotType" : null
+  },
+  "m-plan" : {
+    "mode" : "plan",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : null,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : null
+    },
+    "whyNotType" : null
+  },
+  "s-term" : {
+    "mode" : "acceptEdits",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : null,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 1
+    },
+    "whyNotType" : {
+      "card" : "Claude is waiting for your answer",
+      "log" : "a request is waiting for an answer"
+    }
+  },
+  "s-wt" : {
+    "mode" : "plan",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : null,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : null
+    },
+    "whyNotType" : {
+      "card" : "Claude is working: compact it when it's done",
+      "log" : "session is busy"
+    }
+  }
+}
+== The keys a slash command is typed with, and where typing stops when the session moves on
+{
+  "stays at its prompt" : {
+    "keys" : [
+      "text x",
+      "Ctrl+S ×1",
+      "text \/model claude-opus-5-5",
+      "Return ×1",
+      "Backspace ×1"
+    ],
+    "stopped" : null
+  },
+  "turns busy after two keys" : {
+    "keys" : [
+      "text x",
+      "Ctrl+S ×1"
+    ],
+    "stopped" : "session is busy"
+  }
+}

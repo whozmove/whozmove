@@ -1,0 +1,105 @@
+/* A session's row: its dot, the last exchange, the details line with the context ring, and its PRs.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.row { position: relative; display: flex; gap: 9px; padding: 9px 8px; border-radius: 8px; }
+.row + .row { margin-top: 3px; }  /* so a highlighted row never butts against the next */
+.row.is-hover { background: var(--hover); }
+/* The conversation open in Claude Desktop right now: a warm tint. */
+.row.focused { background: rgba(224, 138, 104, 0.12); }
+.row.focused.is-hover { background: rgba(224, 138, 104, 0.18); }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; background: var(--idle); }
+.needs .dot { background: var(--needs); box-shadow: 0 0 0 0 var(--needs); animation: ping 1.6s ease-out infinite; }
+/* Working: a grey dot fading on and off, as Claude's sidebar shows a conversation it's working in. */
+.busy .dot { background: rgba(255, 255, 255, 0.62); animation: blink 1.4s ease-in-out infinite; }
+.turn .dot { background: var(--turn); }
+/* A Claude Desktop conversation with no running process (e.g. after Claude quits): hollow dot. */
+.idle.closed .dot { background: transparent; border: 1.5px solid var(--idle); }
+.main { min-width: 0; flex: 1; }
+.line1 { display: flex; align-items: baseline; gap: 6px; }
+.name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.idle .name { color: var(--muted); }
+.time { margin-left: auto; flex: none; color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+/* An idle row's current action (stageHTML), as a tag; its colours, by kind, are below. */
+.stage { flex: none; margin-left: auto; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;
+         color: #8cc6ff; background: rgba(74, 168, 255, 0.16); }
+.stage + .time { margin-left: 0; }
+/* The last exchange, as a chat (chatHTML): your message, and under it Claude's line: what it's doing while
+   it works, what it needs from you, or its reply, all in the same place. A label column (You, Claude),
+   wide enough for "Claude", keeps both texts lined up. */
+.you, .claude { display: flex; align-items: flex-start; margin-top: 3px; font-size: 11px; line-height: 15px;
+                color: var(--muted); }
+.you .who, .claude .who { flex: none; width: 42px; color: var(--faint); }
+/* While Claude works, its label is the panel's working blue, fading gently in and out. */
+.claude.work .who { color: var(--busy); animation: breathe 2.8s ease-in-out infinite; }
+.you .what { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.claude .what { min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+                overflow: hidden; }
+.claude.work .what { display: block; white-space: nowrap; text-overflow: ellipsis; font-size: 11.5px;
+                     color: rgba(255, 255, 255, 0.72); }
+.claude.work .elapsed { flex: none; margin-left: 6px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.claude.wait .what { color: #ff9b85; }                /* needs you */
+.claude.read .what { color: rgba(255, 255, 255, 0.42); }  /* a reply you've already opened */
+/* The working text's highlight: a soft band of light crosses it, left to right, every 3s. The gradient is the
+   text's own colour everywhere but the band, and is clipped to the glyphs. */
+.claude .shine {
+  color: transparent; -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.72) 42%, rgba(255, 255, 255, 0.95) 50%,
+                                    rgba(255, 255, 255, 0.72) 58%);
+  background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
+  animation: shine 3s linear infinite;
+}
+/* An idle agent's current action ("Ready to commit", "In review", …), coloured by kind. */
+.stage.o-urgent { color: #ff9b85; background: rgba(255, 107, 74, 0.18); }  /* blocked or broken: fix it */
+.stage.o-yours { color: #ffd166; background: rgba(255, 197, 61, 0.16); }   /* your move: a next step */
+.stage.o-dev { color: #8cc6ff; background: rgba(74, 168, 255, 0.16); }     /* work underway */
+.stage.o-wait { color: #7fd8d0; background: rgba(64, 200, 190, 0.15); }    /* waiting on others / CI */
+.stage.o-done { color: #7ee2a0; background: rgba(76, 217, 123, 0.15); }    /* finished */
+.stage.o-plain { color: var(--muted); background: rgba(255, 255, 255, 0.08); }  /* nothing to do */
+/* The details, last in a row, on two lines: where the session runs (Desktop/Terminal, project, branch,
+   worktree), then how its agent is set up (model · effort · mode) with its context ring at the right.
+   When a line runs short of room, the project and branch names give way; the worktree tag stays whole. */
+.where, .setup { display: flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 11px; color: var(--faint);
+                 white-space: nowrap; }
+.where .kind, .setup .kind { flex: none; color: rgba(255, 255, 255, 0.45); }
+.where .proj, .where .branch, .setup .agent { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.where .branch { color: rgba(255, 255, 255, 0.7); }
+.where .branch svg { vertical-align: -1px; margin-right: 3px; }
+/* What the work has been through (proofHTML), at the end of the where line. */
+.where .proof { flex: none; margin-left: auto; padding-left: 6px; color: var(--muted); }
+.where .sep, .where .wt { flex: none; }
+.where .wt { font-size: 9.5px; font-weight: 600; padding: 0 4px; border-radius: 4px;
+             background: rgba(191, 90, 242, 0.24); color: #dcb0ff; }
+.setup .agent { color: rgba(255, 255, 255, 0.5); }
+.setup .agent .bypass { color: #ff9b85; }
+/* Model, effort and mode open a menu to change them (from the native shell). */
+.setup .pick { padding: 0 3px; margin: 0 -3px; border-radius: 4px; }
+.setup .pick.is-hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
+/* The context ring, which pointed at widens into a Compact button that's the same gauge: its fill is the
+   context in use, in the ring's colour. */
+.setup .ctx { position: relative; flex: none; margin-left: auto; display: inline-flex; align-items: center;
+              height: 16px;
+              border-radius: 8px; padding: 0; transition: padding .25s ease; cursor: default; }
+.ctx::before { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0;
+               transition: opacity .25s ease;
+               background: linear-gradient(to right, color-mix(in srgb, currentColor 30%, transparent) var(--fill),
+                                                     rgba(255, 255, 255, 0.07) var(--fill)); }
+.ctx svg { position: relative; flex: none; width: 12px; transition: width .25s ease, opacity .2s ease; }
+.ctx-label { position: relative; max-width: 0; opacity: 0; overflow: hidden; white-space: nowrap; font-size: 10.5px;
+             font-weight: 600;
+             color: var(--text); transition: max-width .25s ease, opacity .2s ease; }
+.setup .ctx.open { padding: 0 9px; }
+.ctx.open::before { opacity: 1; }
+.ctx.open svg { width: 0; opacity: 0; }
+.ctx.open .ctx-label { max-width: 64px; opacity: 1; }
+.setup .ctx svg { transform: rotate(-90deg); }
+
+.prs { margin-top: 5px; display: flex; flex-direction: column; gap: 1px; }
+.pr { display: flex; align-items: center; gap: 5px; min-width: 0; margin-left: -6px; padding: 2px 6px;
+      border-radius: 5px; font-size: 11px; color: var(--pr); }
+.pr.is-hover { background: rgba(86, 211, 100, 0.14); }
+.pr svg { flex: none; }
+.pr .num { flex: none; font-weight: 600; }
+.pr .pt { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pr.draft { color: var(--muted); }
+.pr.pending { opacity: 0.6; }
+.pr.more { color: var(--faint); }

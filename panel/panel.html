@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- The panel's page: its markup, and the styles and scripts it loads, in order. -->
+<!-- Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/rows.css">
+<link rel="stylesheet" href="styles/cards.css">
+<link rel="stylesheet" href="styles/motion.css">
+</head>
+<body>
+<div id="root">
+  <header>
+    <svg class="mark" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+      <path d="M5.6 3.9A2.4 2.4 0 1 1 10.4 3.9A2.4 2.4 0 1 1 5.6 3.9Z
+               M5.55 6.1H10.45A.65 .65 0 0 1 10.45 7.4H5.55A.65 .65 0 0 1 5.55 6.1Z
+               M9.7 7.3C9.7 9.8 11 11.3 11.6 12.2H4.4C5 11.3 6.3 9.8 6.3 7.3Z
+               M4.35 11.9H11.65A1.15 1.15 0 0 1 11.65 14.2H4.35A1.15 1.15 0 0 1 4.35 11.9Z"/>
+    </svg>
+    <span class="title">Whozmove</span>
+    <span class="summary" id="summary"></span>
+    <span class="chev" title="Collapse">
+      <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+  </header>
+  <div id="list"></div>
+</div>
+<div id="card" hidden></div>
+<div id="ask" hidden></div>
+<script src="scripts/util.js"></script>
+<script src="scripts/state.js"></script>
+<script src="scripts/whose-move.js"></script>
+<script src="scripts/icons.js"></script>
+<script src="scripts/rows.js"></script>
+<script src="scripts/cards.js"></script>
+<script src="scripts/morph.js"></script>
+<script src="scripts/hover.js"></script>
+<script src="scripts/input.js"></script>
+<script src="scripts/panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# How the files are laid out: 4 spaces in Objective-C and Python, 2 in the page and the scripts, lines of 120
+# characters at most, and a newline at the end.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 120
+
+[*.{m,h,py}]
+indent_size = 4
+
+# A table, or a line of text macOS shows as it is (in Info.plist), can't be wrapped.
+[{*.md,*.plist}]
+max_line_length = off
+
+# What a program printed, kept exactly.
+[tests/*.expected.txt]
+trim_trailing_whitespace = false
+max_line_length = off
