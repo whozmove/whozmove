@@ -6,6 +6,7 @@
 # Take it all out again with: ./install.sh --uninstall
 set -euo pipefail
 cd "$(dirname "$0")"
+. modules/claude-code/plugin.sh
 
 # The app's name, bundle id (the login item's label) and executable, from app/Info.plist as build.sh reads them.
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" app/Info.plist; }
@@ -15,8 +16,8 @@ name=$(plist CFBundleName); label=$(plist CFBundleIdentifier); exe=$(plist CFBun
 app="$HOME/Applications/$name.app"
 agent="$HOME/Library/LaunchAgents/$label.plist"
 domain="gui/$(id -u)"
-# Whozmove's own folder (AppDir in app/Files.m), and the plugin's copy in it, which Claude Code runs the hooks
-# from. The plugin and its marketplace are both called whozmove (.claude-plugin/).
+# Whozmove's own folder (AppDir in app/shared/Files.m), and the plugin's copy in it, which Claude Code runs the hooks
+# from. The plugin and its marketplace are both called whozmove (modules/claude-code/plugin/).
 folder="$HOME/Library/Application Support/$name"
 plugin="$folder/plugin"
 id="whozmove@whozmove"
@@ -57,37 +58,23 @@ if [ "${1:-}" = "--uninstall" ]; then
   exit 0
 fi
 
-# Hooks added to ~/.claude/settings.json by hand would run as well as the plugin's, so each would run twice.
-# Only the names of the events they're under are read, with a JSON parser: the file holds secrets.
-if python3 - "$HOME/.claude/settings.json" <<'PY'
-import json, sys
-try:
-    hooks = json.load(open(sys.argv[1])).get("hooks", {})
-    found = sorted(event for event, groups in hooks.items() for group in groups for hook in group.get("hooks", [])
-                   if "whozmove-claude" in str(hook.get("command", "")))
-except (OSError, ValueError, AttributeError, TypeError):
-    found = []
-if found:
-    print("Whozmove's hooks are already in ~/.claude/settings.json, under " + ", ".join(found) + ".")
-    print("Take those entries out first, or each hook would run twice, then run ./install.sh again.")
-sys.exit(0 if found else 1)
-PY
-then
-  exit 1
-fi
-
 [ -d "$app" ] || ./build.sh
 
-# A copy, so that a hook being edited here reaches your sessions only when this runs again.
-mkdir -p "$plugin/.claude-plugin" "$plugin/hooks"
+# A copy, so that a hook being edited here reaches your sessions only when this (or ./build.sh) runs again. Its
+# version names the hooks' contents (modules/claude-code/plugin.sh).
+mkdir -p "$plugin"
 chmod 700 "$folder"
-install -S -m 644 .claude-plugin/plugin.json .claude-plugin/marketplace.json "$plugin/.claude-plugin/"
-install -S -m 644 hooks/hooks.json "$plugin/hooks/"
-install -S -m 755 hooks/whozmove-claude.py hooks/whozmove-claude-permission.py "$plugin/hooks/"
+copy_plugin "$plugin"
 if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace add "$plugin" >/dev/null
   claude plugin install "$id" >/dev/null
-  echo "Added Whozmove's hooks to Claude Code: sessions started from now on use them."
+  # Already installed, Claude Code keeps the copy it made until it's told of a new version. If it can't be told (no
+  # network, say), the hooks it has keep working, so that's said and the install goes on to the login item.
+  if claude plugin marketplace update whozmove >/dev/null && claude plugin update "$id" >/dev/null; then
+    echo "Added Whozmove's hooks to Claude Code: sessions started from now on use them."
+  else
+    echo "Added Whozmove's hooks, but Claude Code couldn't take this version of them yet: run ./install.sh again later."
+  fi
 else
   echo "Claude Code's claude command isn't on PATH, so add the hooks in a Claude Code session:"
   echo "  /plugin marketplace add \"$plugin\""

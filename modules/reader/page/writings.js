@@ -1,0 +1,266 @@
+// What a session wrote for you to read (its plans, prototypes and notes): the tag on its row, and the reader's
+// "writings" mode, where a plan Claude is waiting on can be sent back with your notes, or stopped.
+// Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+
+// Pressing a row's tag opens the reader beside the list (reader.js), with everything the session wrote down its side,
+// newest first. Approving a plan happens in the session, as Claude Code takes a plan's approval only from its own
+// prompt.
+
+const WRITING_WORDS = { plan: ['Plan', 'Plans'], prototype: ['Prototype', 'Prototypes'], notes: ['Notes', 'Notes'] };
+// What a session wrote, on its tag and in the reader's list: a plan (a page with lines), a prototype (a window) and
+// notes (a page of text).
+const WRITING_ICONS = {
+  plan: '<svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h4l2 2v6h-6z M3 5h3 M3 7h3" fill="none" '
+    + 'stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>',
+  prototype: '<svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1.5" width="8" height="7" rx="1.2" '
+    + 'fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 3.8h8" stroke="currentColor" '
+    + 'stroke-width="1.2"/></svg>',
+  notes: '<svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h6v8h-6z M3 3.5h3 M3 5.5h3 M3 7.5h2" fill="none" '
+    + 'stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>',
+};
+// A prototype is shown at a laptop's width, and its height can't be measured (its frame keeps its page to itself), so
+// it takes the height the screen allows.
+const PROTOTYPE_HEIGHT = 2000;
+
+// The listed plan Claude's request is about: one still without an answer, presented just before the request was
+// left (the hook leaves it as Claude asks). An older one without an answer was left when its session moved on, and
+// a plan answered here must be the one you read, so it never stands in for a newer request.
+const ASKED_WITHIN_MS = 5 * 60 * 1000;
+function askedPlan(listed, ask) {
+  return listed.find((w) => w.kind === 'plan' && w.status === 'waiting' && w.at <= ask.at + 60000
+                            && ask.at - w.at < ASKED_WITHIN_MS) || null;
+}
+
+// A session's writings as the reader lists them. A plan Claude has only just asked about is there at once, from
+// its request, before the transcript's next read lists it (`fromAsk`).
+function writingsOf(s) {
+  const listed = s?.writings || [];
+  const ask = s?.ask?.tool === 'ExitPlanMode' ? s.ask : null;
+  if (!ask || askedPlan(listed, ask)) return listed;
+  const plan = String(ask.input?.plan || '');
+  return [{ id: 'ask:' + ask.id, kind: 'plan', title: (plan.match(/^\s*#+\s*(.+)$/m) || [])[1] || 'Plan',
+            path: ask.input?.planFilePath, at: ask.at, status: 'waiting', fromAsk: plan }, ...listed];
+}
+
+// The plan Claude is waiting on now, while its request is up.
+function waitingPlan(s) {
+  if (s?.ask?.tool !== 'ExitPlanMode') return null;
+  const all = writingsOf(s);
+  return all.find((w) => w.id === 'ask:' + s.ask.id) || askedPlan(all, s.ask);
+}
+
+// The row's tag: the plan waiting for you, or else the newest thing written, and how many more there are. It shows
+// as pressed while the reader is open on its session, as pressing it again closes it.
+function writingsTag(s) {
+  const all = writingsOf(s);
+  if (!all.length) return '';
+  const lead = waitingPlan(s) || all[0], more = all.length - 1;
+  const r = state.reading;
+  const on = r?.mode === 'writings' && r.sessionId === s.sessionId && !r.closing ? ' on' : '';
+  return `<span class="wtag k-${lead.kind}${on}" data-writings="${esc(s.sessionId)}" data-wid="${esc(lead.id)}"
+      title="Read what this session wrote">${WRITING_ICONS[lead.kind]}${WRITING_WORDS[lead.kind][0]}`
+    + `${more ? `<span class="more">+${more}</span>` : ''}</span>`;
+}
+
+// How a writing stands, as its line in the list says: for a plan, whether it's waiting on you or how it was
+// answered; a plan with no answer that isn't waiting any more was left when its session moved on.
+function writingStatus(w, s) {
+  if (w.kind !== 'plan') return [base(w.path) || WRITING_WORDS[w.kind][0], ''];
+  const sent = state.reading?.sent?.[w.id];
+  if (sent) return [sent === 'stop' ? 'Stopped' : 'Sent back', 'back'];
+  if (w.status === 'approved') return ['Approved', 'ok'];
+  if (w.status === 'declined') return ['Not approved', 'back'];
+  return waitingPlan(s)?.id === w.id ? ['Waiting for you', 'wait'] : ['No answer', ''];
+}
+
+// A writing's text, read by the app: {text} or {missing}.
+window.showWriting = (sid, wid, read) => {
+  const r = state.reading;
+  if (!r || r.sessionId !== sid || r.mode !== 'writings') return;
+  r.reads[wid] = { ...read, at: r.reads[wid]?.at };
+  if (r.id === wid) drawView();
+};
+
+// ---- Drawing ----
+
+// What the reader shows, from the newest rows: its header, the list and the answer bar each time; what's being
+// read only when it changes, so the page's scroll, a prototype's own state and the notes being typed are kept.
+function drawWritings() {
+  const r = state.reading, s = readerSession();
+  const all = writingsOf(s);
+  if (!all.some((w) => w.id === r.id) && all.length) r.id = (waitingPlan(s) || all[0]).id;
+  const w = all.find((x) => x.id === r.id);
+  // The list's update comes every second: only what changed is put in, so hover effects and the layout aren't redone
+  // each time, and the panel is measured again only then.
+  const head = `<span class="r-title">${esc(s.name || base(s.cwd))}</span>
+    <span class="r-sub">${all.length} written in this session</span>
+    <button class="r-close" title="Close">${CLOSE_ICON}</button>`;
+  let changed = putHTML(reader.querySelector('.r-head'), head);
+  changed = putHTML(reader.querySelector('.r-shelf'), shelfHTML(s, all, r.id)) || changed;
+  const answer = reader.querySelector('.r-answer');
+  if (!answer.contains(document.activeElement)) changed = putHTML(answer, w ? answerHTML(w, s) : '') || changed;
+  drawView();
+  if (!changed) return;
+  fitReader();
+  syncHover();
+}
+
+// The list down the reader's side: plans, then prototypes, then notes, each newest first. A file's name is whatever
+// the session called it, so it goes in as text, like everything else the session wrote.
+function shelfHTML(s, all, current) {
+  const now = state.last.now;
+  return ['plan', 'prototype', 'notes'].map((kind) => {
+    const items = all.filter((w) => w.kind === kind);
+    if (!items.length) return '';
+    return `<div class="r-group">${WRITING_WORDS[kind][1]}</div>` + items.map((w) => {
+      const [label, tone] = writingStatus(w, s);
+      return `<button class="r-item k-${kind}${w.id === current ? ' on' : ''}" data-wid="${esc(w.id)}">
+          <span class="r-icon">${WRITING_ICONS[kind]}</span><span class="r-name">${esc(w.title || base(w.path))}</span>
+          <span class="r-meta"><span class="${tone ? 'st-' + tone : ''}">${esc(label)}</span> · ${ago(now - (w.at || now))}</span>
+        </button>`;
+    }).join('');
+  }).join('');
+}
+
+// What's being read: asked of the app once (again if the file was written since), shown when it's back.
+function drawView() {
+  const r = state.reading, s = readerSession();
+  if (!r || !s) return;
+  const w = writingsOf(s).find((x) => x.id === r.id);
+  const src = reader.querySelector('.r-src'), body = reader.querySelector('.r-body');
+  if (!w) {
+    src.textContent = '';
+    body.innerHTML = '<div class="r-missing">Nothing written in this session yet.</div>';
+    r.shown = null;
+    return;
+  }
+  let read;
+  if (w.fromAsk !== undefined) read = { text: w.fromAsk };
+  else {
+    if (r.reads[w.id]?.at !== w.at) {
+      r.reads[w.id] = { at: w.at };
+      native({ type: 'readWriting', sessionId: s.sessionId, id: w.id });
+    }
+    read = r.reads[w.id];
+    if (read.text === undefined && !read.missing) read = null;  // asked, not back yet
+  }
+  const key = `${w.id}@${w.at}@${read?.text?.length ?? read?.missing ?? 'wait'}`;
+  if (r.shown === key) return;
+  r.shown = key;
+  const published = w.url ? ` · <button class="r-open" data-url="${esc(w.url)}">Open the published page</button>` : '';
+  src.innerHTML = `<span class="r-path">${esc(w.path || '')}</span>${published}`
+    + (w.kind === 'prototype' ? '<div class="r-note">Shown from its own text: pictures and files beside it don\'t load '
+       + 'here, and its scripts can\'t reach the panel.</div>' : '');
+  if (!read) body.innerHTML = '<div class="r-missing">Opening…</div>';
+  else if (read.missing) body.innerHTML = `<div class="r-missing">${esc(read.missing)}</div>`;
+  else if (w.kind === 'prototype')
+    body.innerHTML = `<iframe class="r-frame" sandbox="allow-scripts" srcdoc="${esc(read.text)}"></iframe>`;
+  else body.innerHTML = `<article class="md">${markdownHTML(read.text)}</article>`;
+  body.scrollTop = 0;
+  r.ready = !!read;  // until it's in, the panel keeps the size it has
+  fitReader();
+}
+
+// Under a plan Claude is waiting on: approving happens in the session; sending it back with notes, or stopping it,
+// happens here, through the request the permission hook left (answerAsk).
+function answerHTML(w, s) {
+  const r = state.reading, sent = r.sent[w.id];
+  if (sent) return `<div class="r-done">${sent === 'stop' ? 'Stopped. Claude won\'t carry out this plan.'
+    : 'Sent back to Claude with your notes. It stays in plan mode and writes a new version, which shows up here.'}</div>`;
+  if (waitingPlan(s)?.id !== w.id) return '';
+  if (r.revising) {
+    return `<div class="r-ask"><label class="r-q" for="r-notes">What should change? Claude stays in plan mode and
+        writes a new version.</label>
+      <textarea id="r-notes" class="q-type r-notes" placeholder="Your notes for Claude">${esc(r.notes)}</textarea>
+      <div class="r-buttons"><button class="r-send perm-allow"${r.notes.trim() ? '' : ' disabled'}>Send to Claude</button>
+        <button class="r-cancel">Cancel</button></div></div>`;
+  }
+  return `<div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan.
+      Approving happens in the session.</div>
+    <div class="r-buttons"><button class="r-go perm-allow">Take me there</button><button class="r-revise">Revise…</button>
+      <button class="r-stop">Stop</button></div></div>`;
+}
+
+// ---- Presses ----
+
+function sendPlanAnswer(how) {
+  const r = state.reading, s = readerSession(), w = waitingPlan(s);
+  if (!w || w.id !== r.id || !s.ask) return;
+  const message = r.notes.trim();
+  if (how === 'revise' && !message) return;
+  answered(s.ask.id, 'deny');
+  r.sent[w.id] = how;
+  r.revising = false;
+  r.notes = '';
+  wantKeyboard(false);
+  native({ type: 'answerAsk', id: s.ask.id, allow: false, ...(how === 'stop' ? { stop: true } : { message }) });
+  putHTML(reader.querySelector('.r-answer'), answerHTML(w, s));
+  drawReader();
+}
+
+core.readerPresses.push(
+  ['.r-item[data-wid]', (item) => {
+    state.reading.id = item.dataset.wid;
+    state.reading.revising = false;
+    putHTML(reader.querySelector('.r-answer'), '');
+    drawReader();
+  }],
+  ['.r-open[data-url]', (b) => native({ type: 'openPR', url: b.dataset.url })],
+  ['.r-go', () => { const s = readerSession(); closeReader(); if (s) openSession(s); }],
+  ['.r-revise', () => {
+    state.reading.revising = true;
+    const answer = reader.querySelector('.r-answer'), s = readerSession();
+    putHTML(answer, answerHTML(waitingPlan(s), s));
+    fitReader();
+    wantKeyboard(true);
+    answer.querySelector('textarea')?.focus();
+  }],
+  ['.r-cancel', () => {
+    state.reading.revising = false;
+    wantKeyboard(false);
+    putHTML(reader.querySelector('.r-answer'), '');
+    drawReader();
+  }],
+  ['.r-send', (b) => { if (!b.disabled) sendPlanAnswer('revise'); }],
+  ['.r-stop', () => sendPlanAnswer('stop')],
+);
+
+reader.addEventListener('input', (e) => {
+  if (!e.target.classList.contains('r-notes') || !state.reading) return;
+  state.reading.notes = e.target.value;
+  const send = reader.querySelector('.r-send');
+  if (send) send.disabled = !e.target.value.trim();
+});
+// ⌘Return sends the notes; Return alone starts a new line, as notes can run to several.
+reader.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.metaKey && e.target.classList.contains('r-notes')) {
+    e.preventDefault();
+    sendPlanAnswer('revise');
+  }
+});
+
+// ---- What it plugs into ----
+
+// The reader's mode. What it keeps on the reader (state.reading): the writings' texts as the app read them, by id; the
+// plans answered from here; whether notes are being written for one, and the notes; and what's drawn now (drawView).
+core.readerModes.writings = {
+  draw: drawWritings,
+  wide: (r, s) => writingsOf(s).find((x) => x.id === r.id)?.kind === 'prototype',
+  contentHeight: (page) => (page?.classList.contains('r-frame') ? PROTOTYPE_HEIGHT : undefined),
+  shown(r) {
+    r.reads ??= {};
+    r.sent ??= {};
+    r.notes ??= '';
+    r.revising = false;
+  },
+  reset(r) { r.shown = null; },
+};
+
+// The row's tag, after its name; pressed, the reader opens on that session's writings, or closes.
+core.slots.name.push((row) => writingsTag(row.s));
+core.presses.push(['.wtag[data-writings]', (tag, e) => {
+  e.preventDefault();
+  toggleReader(tag.dataset.writings, tag.dataset.wid);
+}]);
+core.pointerTargets.push('.wtag');
+core.swaps.push('.wtag');

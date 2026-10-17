@@ -1,0 +1,103 @@
+/* The usage strip at the bottom of the panel (strip.js): its two rows, the one row it folds into, Sign in, the wait
+   style's layer, and the line on the collapsed header.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#usage { flex: none; position: relative; }
+#usage[hidden] { display: none; }
+/* Folded to its header, the panel hides the strip, and a line along the header's bottom edge stands in for it
+   (#usage-line, below). */
+body.collapsed #usage { display: none; }
+.u-strip { position: relative; padding: 8px 14px; border-top: 1px solid var(--rule); overflow: hidden; }
+.u-row { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; }
+.u-label { flex: none; width: 50px; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
+.u-track { flex: 1 1 auto; min-width: 0; height: 4px; border-radius: var(--radius-bar);
+           background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.u-fill { display: block; height: 100%; width: 0; border-radius: var(--radius-bar);
+          transition: width .6s cubic-bezier(.2, .8, .2, 1), background-color .4s ease; }
+.u-pct { flex: none; width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+/* Time left, as wide as its text, or in the strip as the wider of its two rows' so they line up (--left-w, lineUpTimes
+   in strip.js). Pointed at, the column widens to the clock time's width (--clock-w) if that's wider, the bar beside it
+   giving way, and the bar's end pushes the clock time in from the left as the time left slides out to the right. It
+   comes in easing out and goes back quicker, with no overshoot either way. */
+.u-time { flex: none; position: relative; height: 15px; overflow: hidden; width: var(--left-w, 0px);
+          font-size: var(--size-small); color: var(--faint); white-space: nowrap; font-variant-numeric: tabular-nums;
+          transition: width .22s cubic-bezier(.4, 0, .2, 1); }
+.u-time > span { position: absolute; top: 0; right: 0; line-height: 15px;
+                 transition: transform .22s cubic-bezier(.4, 0, .2, 1), opacity .22s ease; }
+.u-clock { transform: translateX(-26px); opacity: 0; color: var(--muted); }
+.u-row.is-hover .u-time, .u-mini.is-hover .u-time { width: var(--clock-w, 0px);
+                                                      transition: width .34s cubic-bezier(.2, .8, .2, 1); }
+.u-row.is-hover .u-time > span, .u-mini.is-hover .u-time > span {
+  transition: transform .34s cubic-bezier(.2, .8, .2, 1), opacity .3s ease; }
+.u-row.is-hover .u-left, .u-mini.is-hover .u-left { transform: translateX(26px); opacity: 0; }
+.u-row.is-hover .u-clock, .u-mini.is-hover .u-clock { transform: none; opacity: 1; }
+/* Only when you're on course to run out before the reset, in "your move" amber. */
+.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn); white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; }
+.u-pace[hidden], #usage.is-signin .u-pace { display: none; }
+
+/* The handle that folds the strip, along its top edge while it's pointed at. */
+.u-handle { position: absolute; top: 0; left: 50%; z-index: 1; width: 48px; height: 10px; margin-left: -24px;
+            display: grid; place-items: center; opacity: 0; transition: opacity .2s ease; }
+.u-handle::after { content: ''; width: 26px; height: 3px; border-radius: var(--radius-bar);
+                   background: rgba(255, 255, 255, 0.35); transition: background-color .15s ease; }
+.u-strip.is-hover .u-handle { opacity: 1; }
+.u-handle.is-hover::after { background: rgba(255, 255, 255, 0.7); }
+
+/* Signed out. */
+.u-signin { display: none; align-items: center; gap: 10px; min-height: 26px; }
+#usage.is-signin .u-signin { display: flex; }
+#usage.is-signin .u-row, #usage.is-signin .u-handle { display: none; }
+.u-signin span { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); }
+.u-sign-in { flex: none; font: inherit; font-size: var(--size-small); font-weight: 600; padding: 3px 10px; border: none;
+             border-radius: var(--radius-button); background: var(--light); color: var(--on-light); cursor: default; }
+.u-sign-in.is-hover { background: var(--light-hover); }
+
+/* Waiting for the session limit to reset: the session's line says when it's back, the week's figure at its right;
+   the week row folds away and the wait style draws below, down to the panel's bottom edge. */
+.u-message, .u-right { position: absolute; top: 0; display: none; line-height: 22px; white-space: nowrap;
+                       font-variant-numeric: tabular-nums; }
+.u-message { left: 58px; }
+.u-right { right: 0; font-size: var(--size-small); color: var(--faint); }
+#usage.is-wait .u-message, #usage.is-wait .u-right,
+#usage.is-resetting .u-message, #usage.is-resetting .u-right { display: block; }
+#usage.is-wait .u-strip { height: 84px; }
+#usage.is-wait .u-session .u-track, #usage.is-wait .u-session .u-pct,
+#usage.is-wait .u-session .u-time { visibility: hidden; }
+#usage.is-wait .u-week, #usage.is-wait .u-pace, #usage.is-resetting .u-pace { display: none; }
+.u-layer { position: absolute; left: 0; top: 0; display: none; overflow: visible; pointer-events: none; }
+#usage.is-wait .u-layer, #usage.is-resetting .u-layer { display: block; }
+.u-bud { animation: breathe 2.4s ease-in-out infinite; }
+.u-bud.still { animation: none; }
+
+/* Folded into one row: Session's percent and hours left at the left, the week's at the right. */
+.u-mini { display: none; position: relative; height: 26px; align-items: center; gap: 6px; padding: 0 14px;
+          border-top: 1px solid var(--rule); font-size: var(--size-small); overflow: hidden; }
+#usage.is-folded .u-mini, #usage.is-folding .u-mini { display: flex; }
+#usage.is-folded .u-strip { display: none; }
+.u-mini.is-hover { background: rgba(255, 255, 255, 0.04); }
+.u-mini .u-label { width: auto; }
+.u-mini .u-pct { width: auto; font-size: var(--size-body); }
+.u-mini .u-time > span { left: 0; right: auto; }
+.u-gap { flex: 1; }
+/* What travels between the strip and the row as it folds or opens. */
+.u-ghost { position: absolute; z-index: 2; line-height: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
+           pointer-events: none; }
+.u-ghost-roll { width: 90px; height: 16px; overflow: hidden; }
+.u-ghost-roll span { position: absolute; left: 0; top: 0; }
+
+/* Folded to its header, the panel shows the session as a 2px line along the header's bottom edge, drawn in from the
+   left as it folds. */
+#usage-line { position: absolute; left: 0; right: 0; bottom: 0; display: none; height: 2px;
+              background: var(--track); }
+body.collapsed #usage-line.on { display: block; }
+#usage-line span { display: block; height: 100%; width: var(--used, 0%); background: var(--colour, transparent);
+                   transform-origin: left center;
+                   transition: width .65s cubic-bezier(.2, .8, .2, 1), background-color .4s ease; }
+#usage-line.draw span { animation: usageLineIn .76s cubic-bezier(.2, .8, .2, 1) .2s both; }
+@keyframes usageLineIn { from { transform: scaleX(0); } to { transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .u-fill, .u-time, .u-time > span, .u-handle, #usage-line span { transition: none !important; }
+  .u-bud, #usage-line.draw span { animation: none; }
+}

@@ -1,5 +1,5 @@
-// Whose move it is: which section each session goes in, how sessions sort, and what an idle session's work is
-// waiting on, with the label and colour the panel gives it.
+// Whose move it is: which section each session goes in, how sessions sort, what an idle session's work is waiting
+// on, with the label and colour the panel gives it, and which session speaks for each checkout.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Plain functions: they take what they need and change nothing, so tests/panel.sh can check every case.
@@ -141,36 +141,56 @@ function workProof(s, kind) {
   return steps.length ? { text: steps.join(' · '), tip: tips.join(' · ') } : null;
 }
 
-// The details line.
+// Who speaks for a checkout: the row that shows its island.
 
-// "claude-opus-5-5" -> "Opus 5.5"; "claude-sonnet-5-5[1m]" -> "Sonnet 5.5".
-function modelName(id) {
-  const m = /claude-([a-z]+)-(\d+)(?:-(\d{1,2}))?(?!\d)/.exec(id || '');
-  return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? '.' + m[3] : ''}` : (id || '');
+// When a session last edited files in a checkout (`root`), or null if its edits haven't landed there: the hook notes
+// the checkout its edits last landed in (workRoot) and when (editedAt). An older hook doesn't note when; then the end
+// of its last turn that changed something stands in, or else the start of time.
+function editedAt(s, root) {
+  if (!s.workRoot || s.workRoot !== root) return null;
+  return s.editedAt || (CHANGED.includes(s.outcome) ? s.outcomeAt || 0 : 0);
 }
 
-// The context window: 1M for Opus and Fable 5.x and "[1m]" models, else 200k. A session using more than 200k
-// can only have the larger window, so it gets 1M too.
-function contextWindow(model, tokens) {
-  const large = /\[1m\]/.test(model) || /claude-(opus|fable)-5/.test(model) || tokens > 200000;
-  return large ? 1000000 : 200000;
+// The session that speaks for each checkout (or folder, outside git): of the sessions that run there, the one that
+// edited files there last, running or not, whatever it has done since. A session speaks only for the checkout it runs
+// in (the app sends workGit only for one that runs outside any), so what it edits elsewhere never brings that
+// checkout's island to its row. Only its row shows the island (and Deploy) for the work there, so several chats in one
+// checkout don't all offer the same Commit. When no session there has edited it, the session last active there speaks
+// for it, one still running before a closed one, so work left in a checkout always shows somewhere. Returns their ids.
+function checkoutOwners(sessions) {
+  const editor = {}, fallback = {};
+  const running = (s) => s.status !== 'closed';
+  for (const s of sessions) {
+    const root = (s.workGit || s.git)?.root || s.cwd;
+    if (!root) continue;
+    const at = editedAt(s, root), best = editor[root];
+    if (at !== null && (!best || at > best.at || (at === best.at && lastActive(s) > lastActive(best.s)))) {
+      editor[root] = { s, at };
+    }
+    const f = fallback[root];
+    if (!f || running(s) > running(f) || (running(s) === running(f) && lastActive(s) > lastActive(f))) {
+      fallback[root] = s;
+    }
+  }
+  return new Set(Object.keys(fallback).map((root) => (editor[root]?.s || fallback[root]).sessionId));
 }
 
-// Where auto-compact starts: your own setting (/autocompact), else about 967k with a 1M window (Claude Code's
-// default), else the end of the window.
-const AUTO_COMPACT_1M = 967000;
-function compactLimit(a) {
-  const window = contextWindow(a.model, a.tokens);
-  return a.compactWindow > 0 ? Math.min(a.compactWindow, window) : window >= 1e6 ? AUTO_COMPACT_1M : window;
+// The commits a checkout has that GitHub doesn't: past the upstream when there is one, else past the base branch
+// (GitHub's copy of it, where there is one), as the app lists them (FetchChangeCounts in app/shared/Git.m: keep the two in
+// step). None without a remote, where a commit is finished.
+function unpushedCommits(c) {
+  if (!c || !(c.remotes > 0)) return 0;
+  return (c.upstream ? c.ahead : c.aheadOfBase) || 0;
 }
 
 // A session's project: its repo (a worktree counts toward the repo it came from), or outside git, its folder.
-// `key` is that folder, where ＋ starts a new session. Claude Desktop's scratch conversations share one group.
-const SCRATCH_DIR = '/Library/Application Support/Claude/scratch-workspaces/';
+// `key` is that folder, where ＋ starts a new session. An app may group some of its sessions in a project of its own
+// (core.hosts' project: Claude Desktop's scratch conversations share one group).
 function projectOf(s) {
   const g = s.git;
   if (g?.worktree && g.mainRoot) return { key: g.mainRoot, name: g.worktreeOf };
-  if ((s.cwd || '').includes(SCRATCH_DIR)) return { key: 'scratch', name: 'Scratch', scratch: true };
+  const own = core.hosts.map((host) => host.project?.(s)).find(Boolean);
+  if (own) return own;
   const root = g?.root || s.cwd;
   return { key: root, name: base(root) };
 }

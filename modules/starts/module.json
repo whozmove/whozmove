@@ -1,0 +1,5 @@
+{
+  "order": 60,
+  "scripts": ["page/starts.js"],
+  "styles": ["page/starts.css"]
+}

@@ -7,11 +7,35 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -37,11 +61,35 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -67,11 +115,35 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -133,11 +205,35 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -156,6 +252,51 @@
     "statusUpdatedAt": "now-50m"
   },
   {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "changes": {
+      "added": 15,
+      "files": [],
+      "known": false,
+      "parts": {},
+      "removed": 0,
+      "v": "v"
+    },
+    "checkout": {
+      "ahead": 1,
+      "aheadOfBase": 2,
+      "base": "main",
+      "behind": 0,
+      "changes": 4,
+      "checkedAt": "now-0m",
+      "filesPartly": 1,
+      "filesStaged": 1,
+      "filesUnstaged": 2,
+      "newFiles": 6,
+      "remotes": 1,
+      "upstream": true
+    },
+    "cwd": "T/clone",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "topic",
+      "root": "T/clone"
+    },
+    "messageAt": "now-21m",
+    "name": "review notes",
+    "pid": "pid",
+    "procStart": "start-clone",
+    "prs": [],
+    "sessionId": "s-clone",
+    "status": "idle",
+    "statusUpdatedAt": "now-20m"
+  },
+  {
     "activityAt": "now-120m",
     "agent": {
       "compactWindow": 800000,
@@ -164,11 +305,35 @@
       "model": "claude-haiku-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -187,7 +352,7 @@
     "statusUpdatedAt": "now-120m"
   },
   {
-    "activityAt": "now-30m",
+    "activityAt": "now-5m",
     "agent": {
       "compactWindow": 800000,
       "effort": "low",
@@ -195,11 +360,35 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -246,11 +435,35 @@
       "left": 1,
       "settled": true
     },
+    "changes": {
+      "added": 0,
+      "complete": true,
+      "files": [],
+      "known": true,
+      "parts": {
+        "outside": [
+          2,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 1,
       "remotes": 0,
       "upstream": false
     },
@@ -286,7 +499,141 @@
     "statusUpdatedAt": "now-9m",
     "workSteps": [
       "Tested"
+    ],
+    "writings": [
+      {
+        "at": "now-9m",
+        "id": "T/repo/docs/flow.html",
+        "kind": "prototype",
+        "path": "T/repo/docs/flow.html",
+        "title": "Retry flow, v2"
+      },
+      {
+        "at": "now-9m",
+        "id": "p2",
+        "kind": "plan",
+        "path": "T/.claude/plans/fix.md",
+        "status": "waiting",
+        "title": "Fix the tests, again"
+      },
+      {
+        "at": "now-10m",
+        "id": "T/repo/notes.md",
+        "kind": "notes",
+        "path": "T/repo/notes.md",
+        "title": "Pricing notes"
+      },
+      {
+        "at": "now-10m",
+        "id": "p1",
+        "kind": "plan",
+        "path": "T/.claude/plans/fix.md",
+        "status": "declined",
+        "title": "Fix the tests"
+      }
     ]
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "changes": {
+      "added": 6,
+      "complete": false,
+      "files": [
+        {
+          "added": 1,
+          "at": "now-14m",
+          "created": true,
+          "edits": 1,
+          "path": "notes.txt",
+          "removed": 0,
+          "saved": false
+        },
+        {
+          "added": 1,
+          "at": "now-15m",
+          "created": true,
+          "edits": 1,
+          "path": ".claude/commands/check.md",
+          "removed": 0,
+          "saved": false
+        },
+        {
+          "added": 2,
+          "at": "now-15m",
+          "created": false,
+          "edits": 1,
+          "path": "interrupted.py",
+          "removed": 0,
+          "saved": false
+        },
+        {
+          "added": 2,
+          "at": "now-16m",
+          "created": true,
+          "edits": 2,
+          "path": "retry.py",
+          "removed": 0,
+          "saved": false,
+          "shared": true
+        }
+      ],
+      "known": true,
+      "parts": {
+        "outside": [
+          4,
+          0
+        ],
+        "s-clone": [
+          4,
+          0
+        ],
+        "s-topic": [
+          6,
+          0
+        ],
+        "short": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": "v"
+    },
+    "checkout": {
+      "ahead": 1,
+      "aheadOfBase": 2,
+      "base": "main",
+      "behind": 0,
+      "changes": 4,
+      "checkedAt": "now-0m",
+      "filesPartly": 1,
+      "filesStaged": 1,
+      "filesUnstaged": 2,
+      "newFiles": 6,
+      "remotes": 1,
+      "upstream": true
+    },
+    "cwd": "T/clone",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "topic",
+      "root": "T/clone"
+    },
+    "messageAt": "now-13m",
+    "outcome": "Committed",
+    "outcomeAt": "now-15m",
+    "pid": "pid",
+    "procStart": "start-topic",
+    "prs": [],
+    "sessionId": "s-topic",
+    "status": "busy",
+    "statusUpdatedAt": "now-15m"
   },
   {
     "activity": "Run the tests",
@@ -303,7 +650,7 @@
       "cwd": "T/repo-wt",
       "id": "bbbb2222",
       "input": {
-        "content": "<4002 characters, ending 'xxxxxxxxxx\\n…'>",
+        "content": "<100002 characters, ending 'xxxxxxxxxx\\n…'>",
         "file_path": "T/repo-wt/big.txt"
       },
       "pid": "pid",
@@ -313,9 +660,15 @@
     },
     "checkout": {
       "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
       "behind": 0,
-      "changes": 1,
+      "changes": 0,
       "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 0,
+      "newFiles": 0,
       "remotes": 0,
       "upstream": false
     },
@@ -338,16 +691,166 @@
     "stageAt": "now-1m",
     "status": "busy",
     "statusUpdatedAt": "now-2m",
-    "workGit": {
-      "branch": "main",
-      "root": "T/repo"
-    },
     "workRoot": "T/repo"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
+      "behind": 0,
+      "changes": 1,
+      "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 1,
+      "newFiles": 0,
+      "remotes": 0,
+      "stage": {
+        "count": 3,
+        "edits": 1,
+        "label": "to review",
+        "parts": {
+          "partly": 0,
+          "staged": 0,
+          "unstaged": 1
+        }
+      },
+      "upstream": false
+    },
+    "cwd": "T/allowed",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/allowed"
+    },
+    "pid": "pid",
+    "procStart": "start-stage-0",
+    "prs": [],
+    "sessionId": "x-allowed",
+    "status": "idle",
+    "statusUpdatedAt": "now-40m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
+      "behind": 0,
+      "changes": 0,
+      "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 0,
+      "newFiles": 0,
+      "remotes": 0,
+      "stage": {
+        "ask": "printf '%s' '{\"label\":\"to review\",\"count\":3,\"edits\":1,\"editFiles\":[\"a.txt\"],\"header\":\"3 to review\",\"items\":[\"1  First\"],\"actions\":[{\"title\":\"Send\",\"run\":\"true\"}]}'"
+      },
+      "upstream": false
+    },
+    "cwd": "T/asks",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/asks"
+    },
+    "pid": "pid",
+    "procStart": "start-stage-1",
+    "prs": [],
+    "sessionId": "x-asks",
+    "status": "idle",
+    "statusUpdatedAt": "now-40m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
+      "behind": 0,
+      "changes": 0,
+      "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 0,
+      "newFiles": 0,
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/junk",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/junk"
+    },
+    "pid": "pid",
+    "procStart": "start-stage-3",
+    "prs": [],
+    "sessionId": "x-junk",
+    "status": "idle",
+    "statusUpdatedAt": "now-40m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "checkout": {
+      "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
+      "behind": 0,
+      "changes": 0,
+      "checkedAt": "now-0m",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 0,
+      "newFiles": 0,
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/later",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/later"
+    },
+    "pid": "pid",
+    "procStart": "start-stage-2",
+    "prs": [],
+    "sessionId": "x-later",
+    "status": "idle",
+    "statusUpdatedAt": "now-40m"
   }
 ]
+the usage check listed as a row: False
 requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json 
-== Fields app/Row.m sends that docs/rows.md doesn't describe, or describes but app/Row.m doesn't send
-== macOS permissions the app asks for that README.md doesn't name, and public files naming one it doesn't ask for
+== Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send
+== macOS permissions the app asks for that README.md doesn't name, and repo files naming one it doesn't ask for
 == Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu
    would type (null: not offered)
 {
@@ -368,6 +871,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : 1,
       "plan" : 3
     },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "m-bypass" : {
@@ -394,6 +898,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : null,
       "plan" : null
     },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "m-dontask" : {
@@ -418,6 +923,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : 1,
       "plan" : 3
     },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "m-noauto-in-auto" : {
@@ -437,6 +943,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : 1,
       "plan" : 3
     },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "m-noauto-plan" : {
@@ -455,6 +962,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : 1,
       "plan" : null
     },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "m-plan" : {
@@ -479,6 +987,32 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : null,
       "plan" : null
     },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "s-clone" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
     "whyNotType" : null
   },
   "s-term" : {
@@ -503,9 +1037,38 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : null,
       "plan" : 1
     },
+    "whyNotEditDraft" : "a request is waiting for an answer",
     "whyNotType" : {
       "card" : "Claude is waiting for your answer",
       "log" : "a request is waiting for an answer"
+    }
+  },
+  "s-topic" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : {
+      "card" : "Claude is working: compact it when it's done",
+      "log" : "session is busy"
     }
   },
   "s-wt" : {
@@ -530,10 +1093,111 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "default" : null,
       "plan" : null
     },
+    "whyNotEditDraft" : "a request is waiting for an answer",
     "whyNotType" : {
       "card" : "Claude is working: compact it when it's done",
       "log" : "session is busy"
     }
+  },
+  "x-allowed" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "x-asks" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "x-junk" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "x-later" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
   }
 }
 == The keys a slash command is typed with, and where typing stops when the session moves on
@@ -556,3 +1220,971 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
     "stopped" : "session is busy"
   }
 }
+== Why nothing can go into a session now, as its model, effort and mode menus, its Compact card and its next
+   steps say it (null: something can), with a terminal the panel types into unless said otherwise
+{
+  "as found" : {
+    "m-auto" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "m-bypass" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : "Bypass is in this session's Shift+Tab cycle: change its mode in the terminal",
+      "pick model" : null
+    },
+    "m-dontask" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "m-noauto-in-auto" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "m-noauto-plan" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "m-plan" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-clone" : {
+      "ask" : null,
+      "compact" : null,
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-closed" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : "Send this conversation's first message in Claude first",
+      "pick mode" : "Send this conversation's first message in Claude first",
+      "pick model" : "Send this conversation's first message in Claude first"
+    },
+    "s-desk" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : "Send this conversation's first message in Claude first",
+      "pick mode" : "Send this conversation's first message in Claude first",
+      "pick model" : "Send this conversation's first message in Claude first"
+    },
+    "s-term" : {
+      "ask" : "Claude is waiting for your answer",
+      "compact" : "Claude is waiting for your answer",
+      "pick effort" : "Claude is waiting for your answer in the terminal",
+      "pick mode" : "Claude is waiting for your answer in the terminal",
+      "pick model" : "Claude is waiting for your answer in the terminal"
+    },
+    "s-topic" : {
+      "ask" : "Claude is working: ask again when it's done",
+      "compact" : "Claude is working: compact it when it's done",
+      "pick effort" : "Claude is working in this session: change it when it's done",
+      "pick mode" : "Claude is working in this session: change it when it's done",
+      "pick model" : "Claude is working in this session: change it when it's done"
+    },
+    "s-wt" : {
+      "ask" : "Claude is working: ask again when it's done",
+      "compact" : "Claude is working: compact it when it's done",
+      "pick effort" : "Claude is working in this session: change it when it's done",
+      "pick mode" : "Claude is working in this session: change it when it's done",
+      "pick model" : "Claude is working in this session: change it when it's done"
+    },
+    "x-allowed" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "x-asks" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "x-junk" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "x-later" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    }
+  },
+  "s-clone, another tab like its own" : {
+    "ask" : "Another tab in this folder looks the same: ask there",
+    "compact" : "Another tab in this folder looks the same: compact it there",
+    "pick effort" : "Another tab in this folder looks the same: change it there",
+    "pick mode" : "Another tab in this folder looks the same: change it there",
+    "pick model" : "Another tab in this folder looks the same: change it there"
+  },
+  "s-clone, compacting already" : {
+    "ask" : null,
+    "compact" : "Already compacting",
+    "pick effort" : null,
+    "pick mode" : null,
+    "pick model" : null
+  },
+  "s-clone, its tab not found" : {
+    "ask" : "Couldn't find this session's Ghostty tab",
+    "compact" : "Couldn't find this session's Ghostty tab",
+    "pick effort" : "Couldn't find this session's Ghostty tab",
+    "pick mode" : "Couldn't find this session's Ghostty tab",
+    "pick model" : "Couldn't find this session's Ghostty tab"
+  },
+  "s-clone, no terminal the panel can type into" : {
+    "ask" : "Only sessions running in Ghostty can be asked from here",
+    "compact" : "Only sessions running in Ghostty can be compacted from here",
+    "pick effort" : "Only sessions running in Ghostty can be changed here",
+    "pick mode" : "Only sessions running in Ghostty can be changed here",
+    "pick model" : "Only sessions running in Ghostty can be changed here"
+  },
+  "s-desk, its first message sent" : {
+    "ask" : null,
+    "compact" : null,
+    "pick effort" : null,
+    "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
+    "pick model" : null
+  },
+  "s-desk, its first message sent, Claude not allowed to be controlled" : {
+    "ask" : "Whozmove needs the Accessibility permission for this",
+    "compact" : null,
+    "pick effort" : null,
+    "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
+    "pick model" : null
+  }
+}
+== A command's result as read from a transcript (null: none yet), and what it says: the value now in effect
+   (null: nothing changed), whether the pick was saved as the default, and the Compact card's note (null: it
+   compacted)
+{
+  "compact-done.jsonl" : {
+    "applies" : null,
+    "command" : "\/compact keep the tests",
+    "compactNote" : null,
+    "result" : "\u001b[2mCompacted. ctrl+o to see full summary\u001b[22m",
+    "savedDefault" : false
+  },
+  "compact-no-result.jsonl" : {
+    "applies" : null,
+    "command" : "\/compact",
+    "compactNote" : "",
+    "result" : null,
+    "savedDefault" : false
+  },
+  "compact-refused.jsonl" : {
+    "applies" : null,
+    "command" : "\/compact",
+    "compactNote" : "Error: Not enough messages to compact.",
+    "result" : "\u001b[31mError: Not enough messages to compact.\u001b[39m",
+    "savedDefault" : false
+  },
+  "effort-capped.jsonl" : {
+    "applies" : "xhigh",
+    "command" : "\/effort max",
+    "result" : "Haiku 5.5 doesn't support max: set to 'xhigh' instead (saved as your default for new sessions)",
+    "savedDefault" : true
+  },
+  "effort-set.jsonl" : {
+    "applies" : "high",
+    "command" : "\/effort high",
+    "result" : "Set effort level to high (this session only)",
+    "savedDefault" : false
+  },
+  "model-kept.jsonl" : {
+    "applies" : null,
+    "command" : "\/model claude-opus-5-5",
+    "result" : "Kept model as Sonnet 5.5",
+    "savedDefault" : false
+  },
+  "model-no-result-yet.jsonl" : {
+    "applies" : null,
+    "command" : "\/model claude-haiku-5-5",
+    "result" : null,
+    "savedDefault" : false
+  },
+  "model-set.jsonl" : {
+    "applies" : "claude-opus-5-5",
+    "command" : "\/model claude-opus-5-5",
+    "result" : "Set model to \u001b[1mOpus 5.5\u001b[22m and saved as your default for new sessions",
+    "savedDefault" : true
+  },
+  "plan.jsonl" : {
+    "applies" : "plan",
+    "command" : "\/plan",
+    "result" : "Enabled plan mode",
+    "savedDefault" : false
+  }
+}
+== Each session: why its island's steps and its Deploy wait now (null: they don't), for its own agent or another
+   at work in the same checkout
+{
+  "m-auto" : null,
+  "m-bypass" : null,
+  "m-dontask" : null,
+  "m-noauto-in-auto" : null,
+  "m-noauto-plan" : null,
+  "m-plan" : null,
+  "s-clone" : "These wait until the agent in “clone” is done",
+  "s-closed" : null,
+  "s-desk" : null,
+  "s-term" : "These wait until the agent is done",
+  "s-topic" : "These wait until the agent is done",
+  "s-wt" : "These wait until the agent is done",
+  "x-allowed" : null,
+  "x-asks" : null,
+  "x-junk" : null,
+  "x-later" : null
+}
+== The changes view of two sessions in the clone, of what isn't committed: s-topic's own files, then s-clone's,
+   which aren't known (it ran a shell command Claude Code didn't record), so it gets all sessions', with no line said
+   to be no listed session's;
+   each changed line credited to whoever wrote it (a session or its sub-agent, or unknown), and whether it's staged
+   or committed
+{
+  "complete" : false,
+  "files" : [
+    {
+      "complete" : false,
+      "counts" : {
+        "s-clone" : [
+          1,
+          0
+        ],
+        "s-topic" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              " ",
+              "def schedule(invoice):"
+            ],
+            [
+              " ",
+              "    return queue.put(invoice)"
+            ],
+            [
+              "+",
+              "def on_card(customer):",
+              "s-topic"
+            ],
+            [
+              "+",
+              "    run_now(customer)",
+              "s-topic"
+            ],
+            [
+              " ",
+              "# reviewed by the second session"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 1
+        }
+      ],
+      "path" : "retry.py",
+      "saved" : false,
+      "status" : "changed"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "Check the retry queue.",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : ".claude\/commands\/check.md",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "def written_anyway():",
+              "s-topic"
+            ],
+            [
+              "+",
+              "    return schedule(None) or None",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "interrupted.py",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "Made by its command.",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "notes.txt",
+      "saved" : false,
+      "status" : "new"
+    }
+  ],
+  "scope" : "session",
+  "v" : "v"
+}
+{
+  "complete" : false,
+  "files" : [
+    {
+      "complete" : false,
+      "counts" : {
+        "short" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              " ",
+              "one"
+            ],
+            [
+              "+",
+              "z",
+              "short"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 1
+        }
+      ],
+      "path" : "a.txt",
+      "saved" : false,
+      "status" : "changed"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "outside" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "first",
+              "outside"
+            ],
+            [
+              "+",
+              "again",
+              "outside"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "d.txt",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "outside" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "staged",
+              "outside"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "e.txt",
+      "saved" : true,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-clone" : [
+          1,
+          0
+        ],
+        "s-topic" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              " ",
+              "def schedule(invoice):"
+            ],
+            [
+              " ",
+              "    return queue.put(invoice)"
+            ],
+            [
+              "+",
+              "def on_card(customer):",
+              "s-topic"
+            ],
+            [
+              "+",
+              "    run_now(customer)",
+              "s-topic"
+            ],
+            [
+              "+",
+              "# reviewed by the second session",
+              "s-clone"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 1
+        }
+      ],
+      "path" : "retry.py",
+      "saved" : false,
+      "status" : "changed"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "Check the retry queue.",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : ".claude\/commands\/check.md",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-clone" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "def helper():",
+              "s-clone"
+            ],
+            [
+              "+",
+              "    return schedule(None)",
+              "s-clone"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "helper.py",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "def written_anyway():",
+              "s-topic"
+            ],
+            [
+              "+",
+              "    return schedule(None) or None",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "interrupted.py",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "Made by its command.",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "notes.txt",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "s-clone" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "Looks good to me overall.",
+              "s-clone"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "review.md",
+      "saved" : false,
+      "status" : "new"
+    },
+    {
+      "complete" : false,
+      "counts" : {
+        "outside" : [
+          1,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "typed by hand after all",
+              "outside"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "typed.txt",
+      "saved" : false,
+      "status" : "new"
+    }
+  ],
+  "scope" : "branch",
+  "v" : "v"
+}
+== The island's commits stage pressed, from s-topic's side: what the clone's commits not on its upstream yet changed,
+   each line credited as the rest are, with the commit it's from
+{
+  "complete" : false,
+  "files" : [
+    {
+      "complete" : false,
+      "counts" : {
+        "s-topic" : [
+          2,
+          0
+        ]
+      },
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "def schedule(invoice):",
+              "s-topic"
+            ],
+            [
+              "+",
+              "    return queue.put(invoice)",
+              "s-topic"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "retry.py",
+      "saved" : true,
+      "status" : "new"
+    }
+  ],
+  "scope" : "commits",
+  "v" : "v"
+}
+== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the
+   page is told it
+{
+  "compose": {
+    "run": {
+      "finishedAt": "now-3m",
+      "ok": true,
+      "running": false,
+      "startedAt": "now-10m"
+    },
+    "suggested": "docker compose up -d --build"
+  },
+  "go": {
+    "run": {
+      "finishedAt": "now-4m",
+      "lastLine": "it stopped before it finished",
+      "ok": false,
+      "running": false,
+      "startedAt": "now-10m"
+    },
+    "suggested": "go install ./..."
+  },
+  "make": {
+    "run": {
+      "finishedAt": "now-3m",
+      "lastLine": "make: *** [install] Error 1",
+      "ok": false,
+      "running": false,
+      "startedAt": "now-10m"
+    },
+    "suggested": "make install"
+  },
+  "make-prod": {
+    "suggested": null
+  },
+  "nothing": {
+    "suggested": null
+  },
+  "pkg-bin": {
+    "suggested": "npm install -g ."
+  },
+  "pkg-fly": {
+    "run": {
+      "finishedAt": "now-1m",
+      "lastLine": "it stopped before it finished",
+      "ok": false,
+      "running": false,
+      "startedAt": "now-10m"
+    },
+    "suggested": "npm run install:local"
+  },
+  "pkg-local": {
+    "suggested": "pnpm run deploy:local"
+  },
+  "pkg-prod": {
+    "suggested": null
+  },
+  "pm2": {
+    "run": {
+      "finishedAt": "now-2m",
+      "ok": false,
+      "running": false,
+      "startedAt": "now-10m",
+      "stopped": true
+    },
+    "suggested": "pm2 startOrReload ecosystem.config.js"
+  },
+  "python": {
+    "run": {
+      "running": true,
+      "startedAt": "now-10m"
+    },
+    "suggested": "pipx install --force ."
+  },
+  "rust": {
+    "run": {
+      "running": true,
+      "startedAt": "now-10m"
+    },
+    "suggested": "cargo install --path ."
+  },
+  "whozmove": {
+    "suggested": "./build.sh --now"
+  }
+}
+== What the set-up card is told a command really runs, and whether that looks as if it could reach production
+{
+  "./build.sh --now": {
+    "command": "./build.sh --now",
+    "production": false
+  },
+  "NODE_ENV=dev npm run ship && make install": {
+    "command": "NODE_ENV=dev npm run ship && make install",
+    "production": true,
+    "runs": "vercel --prod\ncc -o tool main.c\ncp tool ~/bin/"
+  },
+  "docker compose up -d --build": {
+    "command": "docker compose up -d --build",
+    "production": false
+  },
+  "kubectl apply -f k8s/": {
+    "command": "kubectl apply -f k8s/",
+    "production": true
+  },
+  "make": {
+    "command": "make",
+    "production": false,
+    "runs": "cc -o tool main.c"
+  },
+  "make deploy-local": {
+    "command": "make deploy-local",
+    "production": true,
+    "runs": "cc -o tool main.c\ngit push origin main\n./tool --install"
+  },
+  "make install": {
+    "command": "make install",
+    "production": false,
+    "runs": "cc -o tool main.c\ncp tool ~/bin/"
+  },
+  "npm run deploy:local": {
+    "command": "npm run deploy:local",
+    "production": true,
+    "runs": "npm run build\nfly deploy --local-only"
+  },
+  "npm run nothing-here": {
+    "command": "npm run nothing-here",
+    "production": false
+  },
+  "pnpm deploy:local": {
+    "command": "pnpm deploy:local",
+    "production": true,
+    "runs": "fly deploy --local-only"
+  },
+  "yarn run install:local": {
+    "command": "yarn run install:local",
+    "production": false,
+    "runs": "node scripts/install.js"
+  }
+}
+== What the usage strip gets from Claude Code's recorded answers (null: none there) and from `claude auth
+   status`, and where `claude` is looked for, best first
+{
+  "candidates" : [
+    "~\/bin\/claude",
+    "~\/Library\/Application Support\/Claude\/claude-code\/2.1.10\/b2\/claude.app\/Contents\/MacOS\/claude",
+    "~\/Library\/Application Support\/Claude\/claude-code\/2.1.9\/a1\/claude.app\/Contents\/MacOS\/claude"
+  ],
+  "files" : {
+    "answer.jsonl" : {
+      "auth" : null,
+      "usage" : {
+        "available" : true,
+        "extraUsage" : false,
+        "limits" : [
+          {
+            "kind" : "session",
+            "percent" : 40,
+            "resetsAt" : 1893474000250,
+            "severity" : "normal"
+          },
+          {
+            "kind" : "weekly_all",
+            "percent" : 10,
+            "resetsAt" : 1893715200000,
+            "severity" : "normal"
+          },
+          {
+            "kind" : "weekly_scoped",
+            "model" : "Opus",
+            "percent" : 80,
+            "resetsAt" : 1893715200000,
+            "severity" : "warning"
+          }
+        ],
+        "plan" : "pro",
+        "session" : {
+          "resetsAt" : 1893474000250,
+          "used" : 40
+        },
+        "week" : {
+          "resetsAt" : 1893715200000,
+          "used" : 10
+        }
+      }
+    },
+    "auth-in.json" : {
+      "auth" : "signedIn",
+      "usage" : null
+    },
+    "auth-out.json" : {
+      "auth" : "signedOut",
+      "usage" : null
+    },
+    "error.jsonl" : {
+      "auth" : null,
+      "usage" : {
+        "error" : "Unknown request"
+      }
+    },
+    "signed-out.jsonl" : {
+      "auth" : null,
+      "usage" : {
+        "available" : false,
+        "extraUsage" : false,
+        "limits" : [
+
+        ]
+      }
+    }
+  }
+}
+== New conversations: the command a terminal start runs in its tab, and Claude Desktop's link
+{
+  "desktop, no words": "claude://code/new",
+  "desktop, words": "claude://code/new?q=Fix%20the%20%22login%22%20page's%20loop:%2050%25%20of%20tickets%20%26%20%3D%20%2B%20%23%20it%0Athen%20test%20it",
+  "desktop, words too long for a link": "claude://code/new",
+  "terminal, no words": "claude --session-id 0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11",
+  "terminal, words": "claude --session-id 0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11 \"$(cat 'T/Library/Application Support/Whozmove/starts/0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11.txt')\""
+}
+== Whether Claude may work in a folder (the folder, its checkout, its repo or a folder above it is trusted)
+{
+  "T/repo": true,
+  "T/repo-wt": true,
+  "T/repo/sub": true,
+  "T/trust": false,
+  "T/trust/lone": false,
+  "T/trust/parent/child": true
+}
+== Trusting one from the card: only that project's key changes, and the file keeps its layout and who may read it
+{
+  "T/trust/lone": true,
+  "trusting": null
+}
+{
+  "T/trust": true,
+  "trusting": null
+}
+project T/trust -> {"allowedTools": [], "disabledMcpjsonServers": [], "enabledMcpjsonServers": [], "hasClaudeMdExternalIncludesApproved": false, "hasClaudeMdExternalIncludesWarningShown": false, "hasTrustDialogAccepted": true, "mcpContextUris": [], "projectOnboardingSeenCount": 0}
+project T/trust/lone -> {"allowedTools": ["Bash(ls)"], "hasTrustDialogAccepted": true}
+two-space indents: True | no new line at the end: True | readable only by you: 0o600 | lock left behind: False
+== …waiting while Claude Code holds its lock (and giving up after 5s), and clearing one a writer left behind
+{
+  "T/fresh": false,
+  "trusting": "Claude was busy saving its settings: try again"
+}
+the lock is still theirs: yes
+{
+  "T/fresh": true,
+  "trusting": null
+}
+the old lock is gone: yes

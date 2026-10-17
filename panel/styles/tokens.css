@@ -1,0 +1,114 @@
+/* The panel's look in one place: each colour, text size and corner that styles use more than once for the same job,
+   named for that job. Styles use these rather than writing a value out: tests/checks.sh fails on a value written out
+   that tests/styles-by-hand.txt doesn't list, and that list only ever gets shorter.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+:root {
+  /* Words on the glass, brightest first. */
+  --bright: #fff;                        /* pointed at (Deploy's mark, the song's title); a mark on a colour */
+  --text: rgba(255, 255, 255, 0.92);
+  --code: rgba(255, 255, 255, 0.86);     /* code, and a tool's input on its card */
+  --play: rgba(255, 255, 255, 0.85);     /* Deploy's round button: its mark and its ring */
+  --work-text: rgba(255, 255, 255, 0.72);  /* what Claude's doing as it works, under its shine */
+  --muted: rgba(255, 255, 255, 0.55);
+  --label: rgba(255, 255, 255, 0.5);     /* a project's name over its group, and how a session's agent is set up */
+  --dim: rgba(255, 255, 255, 0.4);       /* a group's chevron, a file's folder, a comment in code */
+  --faint: rgba(255, 255, 255, 0.32);
+
+  /* Colour says whose move it is: red-orange something's blocked or wrong, amber your move, blue work
+     underway, teal waiting on others, green finished, grey nothing to do. The app icon (make-icon.m) uses
+     --needs, --busy and --turn too: keep them matching. */
+  --needs: #ff6b4a;
+  --busy: #4aa8ff;
+  --turn: #ffc53d;
+  --pr: #56d364;
+  --idle: rgba(255, 255, 255, 0.28);
+  /* The same, for words in a stage's colour, and the soft fill of a tag or stage that holds them. */
+  --needs-text: #ff9b85;
+  --busy-text: #8cc6ff;
+  --busy-fill: rgba(74, 168, 255, 0.16);
+  --turn-text: #ffd166;
+  --turn-fill: rgba(255, 197, 61, 0.16);
+  --wait-text: #7fd8d0;
+  --wait-fill: rgba(64, 200, 190, 0.15);
+  --done-text: #7ee2a0;
+  --done-fill: rgba(76, 217, 123, 0.15);
+  --link: #8cc6ff;
+  /* What a session wrote for you to read. */
+  --plan-text: #d9c8ff;
+  --prototype-text: #9fe3d6;
+  /* Lines put in and taken out, in git's colours. */
+  --added: #3fb950;
+  --added-fill: rgba(63, 185, 80, 0.13);
+  --removed: #f85149;
+  --removed-fill: rgba(248, 81, 73, 0.12);
+
+  /* Lines, edges and fills on the glass. */
+  --rule: rgba(255, 255, 255, 0.08);     /* a line between parts */
+  --edge: rgba(255, 255, 255, 0.12);     /* around a card, a choice, the song's cover */
+  --edge-firm: rgba(255, 255, 255, 0.14);  /* around the Compact card and "Switch model?" */
+  --box-edge: rgba(255, 255, 255, 0.4);  /* an unpicked choice's mark, a task's box */
+  --part-line: rgba(255, 255, 255, 0.4);  /* between the gauge's parts, while it's open */
+  --surface: rgba(255, 255, 255, 0.05);  /* what's set on the glass: the island, a card on a row, the changes switch */
+  --track: rgba(255, 255, 255, 0.06);    /* the empty part of a line or a bar */
+  --tag: rgba(255, 255, 255, 0.08);      /* a grey tag */
+  --picked: rgba(255, 255, 255, 0.13);   /* a picked choice, a pressed switch */
+  /* Pointed at: a row, and firmer for smaller things. */
+  --hover: rgba(255, 255, 255, 0.07);
+  --hover-firm: rgba(255, 255, 255, 0.08);  /* a row's numbers, the box under the list */
+  --hover-strong: rgba(255, 255, 255, 0.1);  /* a pick, a ×, the player's buttons, Open */
+
+  /* Buttons: a card's own, a soft fill with an edge; its main one (Allow once, Switch, Start, Sign in) light, with
+     dark words. */
+  --button: rgba(255, 255, 255, 0.06);
+  --button-edge: rgba(255, 255, 255, 0.16);
+  --button-hover: rgba(255, 255, 255, 0.12);
+  --light: #f2f2f3;                      /* and a ticked box */
+  --light-hover: #fff;
+  --on-light: #18181b;
+  --tick: #3478f6;                       /* a picked choice's mark, a done task: macOS's blue */
+  /* Text boxes, and code. */
+  --field: rgba(0, 0, 0, 0.25);
+  --field-edge: rgba(255, 255, 255, 0.14);
+  --code-fill: rgba(0, 0, 0, 0.3);
+  /* The cards that float over the list: the PR card, the gauge's lists, the commits card, "Switch model?". */
+  --card: #232327;
+  --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+
+  /* Text sizes, smallest first. */
+  --size-chip: 9.5px;                    /* the worktree tag, a question's chip */
+  --size-tag: 10px;                      /* tags, the island's stages, small capitals, the build line */
+  --size-meta: 10.5px;                   /* what's said beside: the Compact label, the shortcut, a writing's details */
+  --size-small: 11px;                    /* a row's details and its chat, a card's help, the strips */
+  --size-card: 11.5px;                   /* a card's sentences, and what Claude's doing */
+  --size-body: 12px;                     /* the panel's words */
+  --size-title: 13px;                    /* the panel's name, a project, a card's title, the reader's */
+  --size-reading: 14px;                  /* what the reader shows */
+  --size-heading: 16px;                  /* a heading in the reader, the changes card's big numbers */
+  --size-close: 16px;                    /* the × that closes a card */
+
+  /* Corners, smallest first. */
+  --radius-bar: 2px;                     /* a bar's ends, a swatch */
+  --radius-tag: 4px;                     /* tags, chips, the picks on a line */
+  --radius-small: 5px;                   /* a line you can press (a PR, a step, the numbers), a ×, the song's cover */
+  --radius-button: 6px;                  /* the buttons in the header, the strips, the reader and the changes view */
+  --radius-control: 7px;                 /* a card's buttons, choices and text boxes; the reader's list */
+  --radius-box: 8px;                     /* a row, a card on a row, the box under the list, a code block, a switch */
+  --radius-menu: 9px;                    /* the gauge's lists, the commits card, Open With */
+  --radius-card: 10px;                   /* the PR card, "Switch model?" */
+  --radius-circle: 50%;
+  --radius-pill: 999px;
+
+  /* The layout. */
+  --header: 46px;  /* must match kHeaderHeight in app/core/PanelWindow.m */
+  /* The page is laid out at one width always, with room for the reader on either side of the list (kReaderRoom in
+     app/core/PanelWindow.m, which shows only the part in use): the list's column starts this far in. */
+  --side: 1254px;
+  --column: 340px;
+
+  /* Motion: the spring the island's gauge opens on, with a slight overshoot, where WebKit has it (motion.css). */
+  --spring: linear(0, .0063, .0255 1.2%, .1006 2.6%, .2161 4.1%, .4237 6.3%, .6366 8.7%, .8137 11.3%,
+                   .9346 13.9%, 1.0098 16.6%, 1.0453 19.3%, 1.0548 21.8%, 1.0491 24.6%, 1.0215 31.5%,
+                   1.0035 38.6%, .9978 45.5%, .9992 61.4%, 1);
+}
+@supports not (transition-timing-function: linear(0, 1)) { :root { --spring: cubic-bezier(.2, .8, .2, 1); } }

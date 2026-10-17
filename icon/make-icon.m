@@ -17,7 +17,7 @@ static void FillRounded(NSRect rect, CGFloat radius, NSColor *color) {
 }
 
 // The pawn on a 16-unit grid with a top-left origin: head, collar, flared body, base. The menu-bar symbol
-// (app/MenuBar.m) and the panel's header mark (panel/panel.html) draw this same shape; keep the
+// (app/core/MenuBar.m) and the panel's header mark (panel/panel.html) draw this same shape; keep the
 // three in step. It's one path, so it fills as one shape: parts filled separately leave a faint seam where
 // their soft edges meet. The parts overlap, so the body runs the same way round as the oval and rounded
 // rectangles; run the other way, the overlaps would cancel out. The body's foot lands on the base's flat
@@ -73,7 +73,7 @@ static void DrawIcon(CGFloat pixelScale) {
     rim.lineWidth = 4;
     [rim stroke];
 
-    // The pawn in the panel's "your move" amber (--turn in panel/styles/base.css), with a faint shadow so it lifts
+    // The pawn in the panel's "your move" amber (--turn in panel/styles/tokens.css), with a faint shadow so it lifts
     // off the tile. The gradient fill is clipped to the pawn, and a clipped fill casts no shadow of its own, so
     // it's drawn into a transparency layer, which casts the shadow for it.
     NSShadow *lift = [NSShadow new];
@@ -95,7 +95,7 @@ static void DrawIcon(CGFloat pixelScale) {
     [lift set];
     FillRounded(pill, 66, Hex(0x2a3047, 0.96));
     [NSGraphicsContext restoreGraphicsState];
-    // The panel's --needs, --busy and --turn (panel/styles/base.css): keep them matching.
+    // The panel's --needs, --busy and --turn (panel/styles/tokens.css): keep them matching.
     NSColor *dots[] = {Hex(0xff6b4a, 1), Hex(0x4aa8ff, 1), Hex(0xffc53d, 1)};
     for (int i = 0; i < 3; i++) {
         NSPoint dot = NSMakePoint(NSMinX(pill) + 72 + i * 96, NSMidY(pill));

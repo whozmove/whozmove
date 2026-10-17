@@ -1,117 +1,180 @@
-/* The cards: a request or question on a row, the Compact card, the PR card and "Switch model?".
+/* The cards: a request or question on a row, the Compact card, Deploy's set-up card, the PR card and "Switch model?".
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* The Compact card (compactHTML): its choices are actions, not picks, so they have no radio marks. */
-.perm.compact { border-color: rgba(255, 255, 255, 0.14); }
+.perm.compact { border-color: var(--edge-firm); }
 .perm.compact .opt-label::before { display: none; }
 .perm.compact .opt-desc { margin-left: 0; }
-.c-left { flex: none; margin-left: auto; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.c-note { margin-top: 6px; font-size: 11px; color: #ff9b85; }
+.c-left { flex: none; margin-left: auto; font-size: var(--size-small); color: var(--muted);
+          font-variant-numeric: tabular-nums; }
+.c-note { margin-top: 6px; font-size: var(--size-small); color: var(--needs-text); }
+
+/* Deploy's set-up card (setupHTML), edged in the pawn's amber as Deploy is. Its command, once confirmed, shows as
+   it will run (.perm-detail); a warning if it looks as if it could reach production, as the Compact card's note. */
+.perm.deploy-setup { border-color: rgba(255, 197, 61, 0.35); }
+/* The extra stage's card (trustHTML): the command shown as it will run, in the stage's colour. */
+.perm.stage-trust { border-color: rgba(64, 200, 190, 0.35); }
+.perm.stage-trust .q-help, .perm.stage-trust .c-note { margin-top: 5px; }
+.perm.deploy-setup .q-help { margin-top: 3px; }
+.perm.deploy-setup .c-note { margin-top: 5px; }
 
 /* The PR card, shown while a PR is pointed at. It takes no pointer events: it must never hide the PRs and rows
    beneath it from the pointer. */
-#card { position: fixed; left: 10px; right: 10px; z-index: 10; pointer-events: none; padding: 10px 12px 11px;
-        border-radius: 10px;
-        background: #232327; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); }
+#card { position: fixed; left: calc(var(--side) + 10px); width: calc(var(--column) - 20px); z-index: 10;
+        pointer-events: none; padding: 10px 12px 11px; border-radius: var(--radius-card); background: var(--card);
+        border: 1px solid var(--edge); box-shadow: var(--card-shadow); }
 #card[hidden] { display: none; }
-.c-top { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
-.pill { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 6px; border-radius: 999px;
-        font-size: 11px; font-weight: 600; }
+/* The files of a part of the island's gauge (filesHTML), while the part or the list itself is pointed at. Unlike the
+   PR card it takes the pointer, so its list can be scrolled; folded away, it takes nothing. */
+#files { position: fixed; top: 0; left: calc(var(--side) + 10px); width: 216px; z-index: 11; padding: 9px 0 6px;
+         border-radius: var(--radius-menu); background: var(--card); border: 1px solid var(--edge);
+         box-shadow: var(--card-shadow); pointer-events: none; }
+#files.on { pointer-events: auto; }
+/* The gap between the gauge and the list counts as the list, so the pointer can go from one to the other without the
+   two closing on the way. */
+#files::before { content: ''; position: absolute; left: 0; right: 0; top: -6px; height: 6px; }
+#files.above::before { top: auto; bottom: -6px; }
+/* The island's commits stage, pointed at (stepsHTML): its commits not on GitHub yet and its steps, as its menu would
+   have them. It takes the pointer, so its steps can be pressed, and the gap above it counts as the card, as the files'
+   list's does. */
+#steps { position: fixed; left: calc(var(--side) + 10px); width: 240px; z-index: 11; padding: 9px 0 7px;
+         border-radius: var(--radius-menu); background: var(--card); border: 1px solid var(--edge);
+         box-shadow: var(--card-shadow); }
+#steps[hidden] { display: none; }
+#steps::before { content: ''; position: absolute; left: 0; right: 0; top: -6px; height: 6px; }
+#steps.above::before { top: auto; bottom: -6px; }
+#steps .f-n { color: var(--turn-text); }
+.st-steps { display: flex; flex-direction: column; padding: 5px 5px 0; margin-top: 4px;
+            border-top: 1px solid var(--rule); }
+/* Plain lines of the card, as a menu's items are, not the system's grey buttons. */
+.st-step { -webkit-appearance: none; appearance: none; display: block; width: 100%; margin: 0; border: 0;
+           background: transparent; text-align: left; padding: 4px 7px; border-radius: var(--radius-small);
+           font: var(--size-body) -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); cursor: default; }
+.st-step.is-hover { background: var(--turn-fill); }
+.st-step:disabled { color: var(--faint); }
+.st-wait { padding: 5px 11px 0; font-size: var(--size-small); color: var(--muted); }
+.st-hint { padding: 5px 11px 0; font-size: var(--size-small); color: var(--faint); }
+.f-head { display: flex; justify-content: space-between; padding: 0 11px; font-size: var(--size-body); font-weight: 600;
+          color: var(--text); }
+.f-n { color: var(--busy-text); font-variant-numeric: tabular-nums; }
+.f-help { padding: 2px 11px 7px; font-size: var(--size-small); color: var(--muted);
+          border-bottom: 1px solid var(--rule); }
+.f-list { max-height: 150px; overflow: auto; padding-top: 4px; }
+.f-file { padding: 2px 11px; font-size: var(--size-small); white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; color: rgba(255, 255, 255, 0.88); }
+.f-dir { color: var(--dim); }
+.f-new { font-size: var(--size-tag); color: var(--done-text); }
+.f-more { padding: 4px 11px 2px; font-size: var(--size-small); color: var(--muted); }
+.c-top { display: flex; align-items: center; gap: 8px; font-size: var(--size-small); color: var(--muted); }
+.pill { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 6px;
+        border-radius: var(--radius-pill); font-size: var(--size-small); font-weight: 600; }
 .pill.open { color: #3fb950; background: rgba(46, 160, 67, 0.15); border: 1px solid rgba(46, 160, 67, 0.45); }
 .pill.draft, .pill.unknown { color: #9198a1; background: rgba(145, 152, 161, 0.12);
                              border: 1px solid rgba(145, 152, 161, 0.35); }
 .c-ref { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .c-time { margin-left: auto; flex: none; color: var(--faint); }
-.c-title { margin: 7px 0 9px; font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--text);
+.c-title { margin: 7px 0 9px; font-size: var(--size-title); font-weight: 600; line-height: 1.3; color: var(--text);
            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.c-foot { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
-.c-foot .avatar { width: 16px; height: 16px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); }
+.c-foot { display: flex; align-items: center; gap: 6px; font-size: var(--size-small); color: var(--muted); }
+.c-foot .avatar { width: 16px; height: 16px; border-radius: var(--radius-circle); background: rgba(255, 255, 255, 0.12); }
 .c-stats { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .c-diff { font-weight: 600; font-variant-numeric: tabular-nums; }
-.c-diff .add { color: #3fb950; }
-.c-diff .del { color: #f85149; }
-.c-files { padding: 1px 6px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 5px; }
+.c-diff .add { color: var(--added); }
+.c-diff .del { color: var(--removed); }
+.c-files { padding: 1px 6px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: var(--radius-small); }
 
 /* A tool waiting for your OK, on its agent's row (see askHTML). */
 /* Long words (a path, a URL) break wherever they must rather than run out of the card. */
-.perm { margin-top: 7px; padding: 9px 10px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.05);
+.perm { margin-top: 7px; padding: 9px 10px 10px; border-radius: var(--radius-box); background: var(--surface);
         border: 1px solid rgba(255, 107, 74, 0.3); overflow-wrap: anywhere; }
 .perm button { overflow-wrap: anywhere; }
-.perm-title { font-size: 12px; font-weight: 600; color: var(--text); }
-.perm-why { margin-top: 2px; font-size: 11px; color: var(--muted); }
+.perm-title { font-size: var(--size-body); font-weight: 600; color: var(--text); }
+.perm-why { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
 .perm-detail { margin-top: 6px; max-height: 140px; overflow: auto; padding: 6px 8px; border-radius: 6px;
-               background: rgba(0, 0, 0, 0.3);
-               font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: rgba(255, 255, 255, 0.86);
+               background: var(--code-fill);
+               font: var(--size-small)/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code);
                white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; cursor: text; }
-.perm-detail .ln-del { color: #f85149; }
-.perm-detail .ln-add { color: #3fb950; }
+.perm-detail .ln-del { color: var(--removed); }
+.perm-detail .ln-add { color: var(--added); }
+/* A tool's input field by field (fieldsHTML): each field's name on a line of its own, above it, in the card's type. */
+.perm-detail .perm-field { display: block; margin-top: 6px;
+                           font: var(--size-small)/1.45 -apple-system, BlinkMacSystemFont,
+                           sans-serif; color: var(--muted); }
+.perm-detail .perm-field:first-child { margin-top: 0; }
+.perm-cut { margin-top: 5px; font-size: var(--size-small); color: var(--muted);
+            }  /* under the box, on a request cut short */
 .perm-actions .q-back { margin-right: auto; }  /* on the left, apart from Skip and Next */
 .perm-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 8px; }
-.perm button { font: inherit; font-size: 12px; padding: 4px 12px; border-radius: 7px; color: var(--text);
-               border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.06); }
-.perm button.is-hover { background: rgba(255, 255, 255, 0.12); }
-.perm button.perm-allow { background: #f2f2f3; border-color: transparent; color: #18181b; font-weight: 600; }
-.perm button.perm-allow.is-hover { background: #ffffff; }
-.perm-sent { font-size: 11.5px; color: var(--muted); }
+.perm button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
+               color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
+.perm button.is-hover { background: var(--button-hover); }
+.perm button.perm-allow { background: var(--light); border-color: transparent; color: var(--on-light); font-weight: 600; }
+.perm button.perm-allow.is-hover { background: var(--light-hover); }
+.perm-sent { font-size: var(--size-card); color: var(--muted); }
 .perm button:disabled { opacity: 0.4; }
 
 /* Claude's questions, on the row (see quizHTML). */
 .quiz .q { margin-top: 2px; }
 .q-top { display: flex; align-items: flex-start; gap: 8px; }
 .q-top .q-head { flex: 1; font-size: 12.5px; font-weight: 600; }
-.q-count { flex: none; font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; color: #ffc53d;
-           background: rgba(255, 197, 61, 0.16); }
-.perm .q-close { flex: none; width: 20px; height: 20px; margin: -2px -4px 0 0; padding: 0; border-radius: 5px;
-                 border: none; background: none; color: var(--muted); font-size: 16px; line-height: 19px;
-                 text-align: center; }
-.perm .q-close.is-hover { background: rgba(255, 255, 255, 0.1); color: var(--text); }
-.q-title { margin-bottom: 6px; font-size: 11px; color: var(--muted); }
-.q-head { display: flex; align-items: baseline; gap: 6px; font-size: 12px; line-height: 1.35; color: var(--text); }
-.q-chip { flex: none; font-size: 9.5px; font-weight: 600; padding: 0 5px; border-radius: 4px;
+.q-count { flex: none; font-size: var(--size-small); font-weight: 600; padding: 0 7px;
+           border-radius: var(--radius-pill); color: #ffc53d; background: var(--turn-fill); }
+.perm .q-close { flex: none; width: 20px; height: 20px; margin: -2px -4px 0 0; padding: 0;
+                 border-radius: var(--radius-small); border: none; background: none; color: var(--muted);
+                 font-size: var(--size-close); line-height: 19px; text-align: center; }
+.perm .q-close.is-hover { background: var(--hover-strong); color: var(--text); }
+.q-title { margin-bottom: 6px; font-size: var(--size-small); color: var(--muted); }
+.q-head { display: flex; align-items: baseline; gap: 6px; font-size: var(--size-body); line-height: 1.35;
+          color: var(--text); }
+.q-chip { flex: none; font-size: var(--size-chip); font-weight: 600; padding: 0 5px; border-radius: var(--radius-tag);
           background: rgba(255, 255, 255, 0.1); color: var(--muted); }
-.q-help { margin-top: 2px; font-size: 11px; color: var(--muted); }
+.q-help { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
 .q-opts { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-.opt { display: block; width: 100%; text-align: left; font: inherit; padding: 5px 8px; border-radius: 7px;
-       color: var(--text);
-       border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(255, 255, 255, 0.04); }
+.opt { display: block; width: 100%; text-align: left; font: inherit; padding: 5px 8px;
+       border-radius: var(--radius-control); color: var(--text); border: 1px solid var(--edge);
+       background: rgba(255, 255, 255, 0.04); }
 .opt.is-hover { background: rgba(255, 255, 255, 0.09); }
-.opt.on { border-color: rgba(242, 242, 243, 0.75); background: rgba(255, 255, 255, 0.13); }
-.opt-label { font-size: 12px; font-weight: 500; }
+.opt.on { border-color: rgba(242, 242, 243, 0.75); background: var(--picked); }
+.opt-label { font-size: var(--size-body); font-weight: 500; }
 /* The pick's mark, as macOS draws them: a round button for one choice (blue with a white dot when
    picked), a rounded box for several (blue with a white tick). */
 .opt-label::before { content: ''; display: inline-block; box-sizing: border-box; width: 13px; height: 13px;
                      margin-right: 7px;
-                     vertical-align: -2px; border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 50%; }
+                     vertical-align: -2px; border: 1.5px solid var(--box-edge); border-radius: var(--radius-circle); }
 .multi .opt-label::before { border-radius: 3.5px; }
-.opt.on .opt-label::before { border-color: #3478f6; background: radial-gradient(circle, #fff 0 2.4px, #3478f6 2.9px); }
+.opt.on .opt-label::before { border-color: var(--tick);
+                             background: radial-gradient(circle, var(--bright) 0 2.4px, var(--tick) 2.9px); }
 .multi .opt.on .opt-label::before {
-  background: #3478f6 no-repeat center / 11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
+  background: var(--tick) no-repeat center / 11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
 viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.3 5 8.6 9.5 3.7' fill='none' stroke='white' stroke-width='1.9' \
 stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.opt-desc { display: block; margin: 1px 0 0 20px; font-size: 11px; color: var(--muted); }
-.q-type { width: 100%; margin-top: 5px; font: inherit; font-size: 12px; padding: 5px 8px; border-radius: 7px;
-          outline: none; color: var(--text);
-          border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(0, 0, 0, 0.25); -webkit-user-select: text;
-          cursor: text; }
+.opt-desc { display: block; margin: 1px 0 0 20px; font-size: var(--size-small); color: var(--muted); }
+.q-type { width: 100%; margin-top: 5px; font: inherit; font-size: var(--size-body); padding: 5px 8px;
+          border-radius: var(--radius-control); outline: none; color: var(--text); border: 1px solid var(--field-edge);
+          background: var(--field); -webkit-user-select: text; cursor: text; }
 .q-type:focus { border-color: rgba(255, 255, 255, 0.45); }
 .q-number { display: flex; align-items: center; gap: 8px; }
 .q-number .q-type { width: 96px; }
-.q-unit { font-size: 11.5px; color: var(--muted); }
+.q-unit { font-size: var(--size-card); color: var(--muted); }
 
 /* Claude's "Switch model?", asked here instead of in Claude (see askSwitch). */
-#ask { position: fixed; left: 10px; right: 10px; z-index: 11; padding: 12px 13px 11px; border-radius: 10px;
-       background: #232327; border: 1px solid rgba(255, 255, 255, 0.14); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); }
+#ask { position: fixed; left: calc(var(--side) + 10px); width: calc(var(--column) - 20px); z-index: 11;
+       padding: 12px 13px 11px; border-radius: var(--radius-card); background: var(--card);
+       border: 1px solid var(--edge-firm); box-shadow: var(--card-shadow); }
 #ask[hidden] { display: none; }
-#ask h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-#ask p { font-size: 11.5px; line-height: 1.4; color: var(--muted); }
-#ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 11.5px; }
+#ask h3 { font-size: var(--size-title); font-weight: 600; margin-bottom: 6px; }
+#ask p { font-size: var(--size-card); line-height: 1.4; color: var(--muted); }
+#ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; font-size: var(--size-card); }
 #ask .box { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255, 255, 255, 0.35); display: grid;
             place-items: center; }
-#ask .never.on .box { background: #f2f2f3; border-color: #f2f2f3; }
-#ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700; color: #18181b; }
+#ask .never.on .box { background: var(--light); border-color: var(--light); }
+#ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700; color: var(--on-light); }
 #ask .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
-#ask button { font: inherit; font-size: 12px; padding: 5px 12px; border-radius: 7px; color: var(--text);
-              border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.06); }
-#ask button.is-hover { background: rgba(255, 255, 255, 0.12); }
-#ask button.go { background: #f2f2f3; border-color: transparent; color: #18181b; font-weight: 600; }
-#ask button.go.is-hover { background: #ffffff; }
+#ask button { font: inherit; font-size: var(--size-body); padding: 5px 12px; border-radius: var(--radius-control);
+              color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
+#ask button.is-hover { background: var(--button-hover); }
+#ask button.go { background: var(--light); border-color: transparent; color: var(--on-light); font-weight: 600; }
+#ask button.go.is-hover { background: var(--light-hover); }
+
+/* A plan waiting for your OK (planAskHTML), edged in the plan tag's colour. */
+.perm.plan-ask { border-color: rgba(170, 140, 255, 0.35); }

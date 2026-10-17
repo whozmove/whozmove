@@ -1,0 +1,107 @@
+== What the now-playing strip gets from what Spotify tells the Mac and answers (null: nothing playing), and
+   whether an Apple event's error is macOS refusing Whozmove control of Spotify; what its token shows, and its side
+{
+  "announce-no-track.json": null,
+  "announce-paused.json": {
+    "album": "Example Album",
+    "artist": "Example Artist",
+    "at": "now-0m",
+    "durationMs": 200000,
+    "playing": false,
+    "positionMs": 90500,
+    "title": "Example Song",
+    "track": "spotify:track:0000000000000000000001"
+  },
+  "announce-playing.json": {
+    "album": "Example Album",
+    "artist": "Example Artist",
+    "at": "now-0m",
+    "durationMs": 200000,
+    "playing": true,
+    "positionMs": 61204,
+    "title": "Example Song",
+    "track": "spotify:track:0000000000000000000001"
+  },
+  "announce-stopped.json": null,
+  "error-not-running.json": {
+    "refused": false
+  },
+  "error-refused.json": {
+    "refused": true
+  },
+  "reply-no-cover.json": {
+    "album": "Example Album",
+    "artist": "Example Artist",
+    "at": "now-0m",
+    "durationMs": 200000,
+    "playing": false,
+    "positionMs": 3000,
+    "title": "Example Song",
+    "track": "spotify:track:0000000000000000000001"
+  },
+  "reply-playing.json": {
+    "album": "Example Album",
+    "artUrl": "https://i.scdn.co/image/ab67616d0000b273",
+    "artist": "Example Artist",
+    "at": "now-0m",
+    "durationMs": 200000,
+    "playing": true,
+    "positionMs": 61250,
+    "title": "Example Song",
+    "track": "spotify:track:0000000000000000000001"
+  },
+  "reply-stopped.json": null,
+  "side-just-past-middle-stays.json": "right",
+  "side-panel-at-left.json": "right",
+  "side-panel-at-right.json": "left",
+  "side-past-leeway-moves.json": "right",
+  "side-within-leeway-stays.json": "left",
+  "token-closed.json": {
+    "state": "ready"
+  },
+  "token-not-installed.json": {
+    "state": "missing"
+  },
+  "token-paused-14-minutes.json": {
+    "state": "hidden",
+    "strip": true
+  },
+  "token-paused-15-minutes.json": {
+    "artUrl": "https://i.scdn.co/image/ab67",
+    "artist": "Example Artist",
+    "folded": false,
+    "progress": 0.25,
+    "state": "paused",
+    "title": "Example Song"
+  },
+  "token-paused-when-found.json": {
+    "artUrl": "https://i.scdn.co/image/ab67",
+    "artist": "Example Artist",
+    "folded": false,
+    "progress": 0.25,
+    "state": "paused",
+    "title": "Example Song"
+  },
+  "token-playing-panel-folded.json": {
+    "artUrl": "https://i.scdn.co/image/ab67",
+    "artist": "Example Artist",
+    "folded": true,
+    "progress": 0.25,
+    "state": "playing",
+    "title": "Example Song"
+  },
+  "token-playing.json": {
+    "state": "hidden",
+    "strip": true
+  },
+  "token-refused-playing.json": {
+    "state": "hidden",
+    "strip": true
+  },
+  "token-refused.json": {
+    "state": "refused"
+  },
+  "token-starting.json": {
+    "state": "hidden"
+  }
+}

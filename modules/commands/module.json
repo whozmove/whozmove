@@ -1,0 +1,5 @@
+{
+  "order": 90,
+  "scripts": ["page/commands.js"],
+  "styles": []
+}

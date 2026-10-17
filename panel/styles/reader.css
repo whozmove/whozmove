@@ -1,0 +1,78 @@
+/* The reader (reader.js): its frame beside the list, sized to what it shows, the list down its side, and Markdown.
+   What a session wrote (the reader module) and the changes view (the changes module) are shown in it.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* The reader sits beside the list's column in the page, which is always laid out at one width (--side): on the
+   column's left, ending where it starts, or on its right. readerOpened places it and gives its width; the panel shows
+   it as it grows (PanelWindow's reshapeTo:), so it's laid out once, before it's uncovered. */
+#reader { display: none; position: absolute; top: 0; height: 100vh; overflow: hidden; }
+body.reading #reader { display: block; border-right: 1px solid var(--rule); }
+body.reading.list-left #reader { border-right: none; border-left: 1px solid var(--rule); }
+body.reading #root { height: 100vh; max-height: none !important; }
+
+.r-in { position: absolute; top: 0; bottom: 0; left: 0; display: flex; flex-direction: column; opacity: 0;
+        transition: opacity .18s ease; }
+/* Drawn before the panel's edge reaches it (PanelWindow's reshapeTo:), so it's simply there as it's uncovered. */
+body.reader-shown .r-in { opacity: 1; transition: opacity .12s ease; }
+
+.r-head { flex: none; height: var(--header); display: flex; align-items: center; gap: 10px; padding: 0 10px 0 18px; }
+.r-title { font-weight: 600; font-size: var(--size-title); white-space: nowrap; overflow: hidden;
+           text-overflow: ellipsis; min-width: 0; }
+.r-sub { flex: 1; min-width: 0; color: var(--faint); font-size: var(--size-small); white-space: nowrap;
+         overflow: hidden; text-overflow: ellipsis; }
+.r-close { flex: none; width: 26px; height: 26px; border-radius: var(--radius-button); display: grid;
+           place-items: center; border: none; background: none; color: var(--muted); }
+.r-close.is-hover { background: var(--hover); color: var(--text); }
+.r-main { flex: 1; min-height: 0; display: flex; border-top: 1px solid var(--rule); }
+
+/* The list down its side: a session's writings (plans, prototypes, notes), or the files it changed. */
+.r-shelf { flex: none; width: 230px; overflow-y: auto; padding: 6px 6px 10px; border-right: 1px solid var(--rule); }
+.r-shelf::-webkit-scrollbar { width: 0; }
+.r-group { padding: 10px 8px 4px; font-size: var(--size-tag); font-weight: 600; letter-spacing: .06em;
+           text-transform: uppercase; color: var(--faint); }
+.r-item { display: grid; grid-template-columns: 14px 1fr; gap: 1px 8px; width: 100%; text-align: left; padding: 7px 8px;
+          border-radius: var(--radius-control); border: none; background: none; color: var(--text); font: inherit; }
+.r-item + .r-item { margin-top: 2px; }
+.r-item.is-hover { background: var(--hover); }
+.r-item.on { background: rgba(255, 255, 255, 0.1); }
+.r-name { min-width: 0; font-size: var(--size-body); font-weight: 500; white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; }
+.r-meta { min-width: 0; font-size: var(--size-meta); color: var(--faint); white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; }
+
+/* What's being read. */
+.r-view { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.r-src { flex: none; padding: 10px 28px 0; font-size: var(--size-small); color: var(--faint); }
+.r-body { position: relative; flex: 1; min-height: 0; overflow-y: auto; }
+.r-body::-webkit-scrollbar { width: 0; }
+.r-missing { padding: 40px 28px; color: var(--muted); font-size: 13px; }
+
+/* A plan or notes, as Markdown (markdownHTML): a column of comfortable reading width, selectable. */
+.md { max-width: 70ch; margin: 0 auto; padding: 14px 28px 24px; font-size: var(--size-reading); line-height: 1.6;
+      color: rgba(255, 255, 255, 0.84); -webkit-user-select: text; cursor: text; overflow-wrap: anywhere; }
+.md h1 { font-size: 22px; line-height: 1.25; letter-spacing: -0.015em; color: var(--text); margin: 4px 0 10px; }
+.md h2 { font-size: var(--size-heading); color: var(--text); margin: 26px 0 8px; }
+.md h3, .md h4, .md h5, .md h6 { font-size: var(--size-reading); color: var(--text); margin: 20px 0 6px; }
+.md p, .md ul, .md ol, .md pre, .md blockquote, .md .md-table { margin: 0 0 12px; }
+.md ul, .md ol { padding-left: 22px; }
+.md li + li { margin-top: 4px; }
+.md li > ul, .md li > ol { margin: 4px 0 0; }
+.md code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1px 5px;
+           border-radius: var(--radius-tag); background: rgba(255, 255, 255, 0.07); color: #e8e2ff; }
+.md pre { padding: 10px 12px; border-radius: var(--radius-box); background: var(--code-fill); overflow-x: auto; }
+.md pre code { padding: 0; background: none; color: var(--code); white-space: pre; }
+.md blockquote { padding-left: 12px; border-left: 3px solid rgba(255, 255, 255, 0.16); color: var(--muted); }
+.md hr { border: none; border-top: 1px solid var(--rule); margin: 20px 0; }
+.md strong { color: var(--text); }
+.md .md-link { color: var(--link); }
+.md .md-table { overflow-x: auto; }
+.md table { border-collapse: collapse; font-size: 13px; }
+.md th { text-align: left; font-weight: 500; color: var(--faint); font-size: var(--size-card); }
+.md th, .md td { padding: 6px 14px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.md .md-task { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px;
+               border: 1.5px solid var(--box-edge); border-radius: 3px; }
+.md .md-task.done { background: var(--tick); border-color: var(--tick); }
+
+/* Under what's being read: the plan's answer (writings.js), or nothing. */
+.r-answer:empty { display: none; }
+.r-answer { flex: none; border-top: 1px solid var(--rule); padding: 10px 16px 12px 28px; }

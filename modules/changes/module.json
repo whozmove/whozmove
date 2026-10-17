@@ -1,0 +1,5 @@
+{
+  "order": 40,
+  "scripts": ["page/changes.js", "page/changes-view.js"],
+  "styles": ["page/changes.css"]
+}

@@ -1,0 +1,43 @@
+// Page: loading panel/panel.html, and every message between it and the app.
+// Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+#import <Cocoa/Cocoa.h>
+#import <WebKit/WebKit.h>
+
+@interface Page : NSObject
+// The view the page shows in, for the panel's window to hold.
+@property (readonly) WKWebView *view;
+// Whether the page has loaded, so it can be called.
+@property (readonly) BOOL ready;
+// Called each time the page has loaded, and for each message it sends (`type` says which).
+@property (copy) void (^onLoad)(void);
+@property (copy) void (^onMessage)(NSString *type, NSDictionary *message);
+
+- (void)load;
+
+// One of the page's functions, called with these arguments, written as JavaScript (JSON is): the only way the app
+// runs anything in the page.
+- (void)call:(NSString *)function arguments:(NSString *)arguments;
+// The same with the arguments as values, each made JSON, so any text in them arrives as it was: the way a module calls
+// its own page functions. Nothing is called when one can't be made JSON.
+- (void)call:(NSString *)function with:(NSArray *)arguments;
+// The functions the page core offers the app, and those of the pieces not moved into a module yet.
+- (void)update:(NSData *)rows;
+- (void)setRoom:(CGFloat)room;
+- (void)hoverAt:(NSPoint)point;
+- (void)hoverEnd;
+- (void)setGroupBy:(NSString *)mode;
+- (void)toggleCollapsed;
+- (void)askSwitch:(NSDictionary *)question;
+- (void)compactNote:(NSString *)sid text:(NSString *)text;
+- (void)setRunningBuild:(NSDictionary *)running;
+- (void)setSwitches:(NSDictionary *)switches;
+- (void)readerOpened:(NSString *)side width:(CGFloat)width;
+- (void)readerClosed;
+// Calls back once the page has been laid out and drawn as it is now (after a change of size, say); at the latest
+// after a quarter of a second.
+- (void)afterPaint:(void (^)(void))done;
+- (void)showWriting:(NSString *)sid id:(NSString *)writingId read:(NSDictionary *)read;
+- (void)stepNote:(NSString *)sid text:(NSString *)text;
+// A quiet note says how something went that worked; the other kind, why something couldn't happen.
+- (void)stepNote:(NSString *)sid text:(NSString *)text quiet:(BOOL)quiet;
+@end

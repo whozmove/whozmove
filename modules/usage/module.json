@@ -1,0 +1,5 @@
+{
+  "order": 50,
+  "scripts": ["page/usage.js", "page/waits.js", "page/wait-vine.js", "page/strip.js"],
+  "styles": ["page/usage.css"]
+}

@@ -1,8 +1,7 @@
-// The panel's icons.
+// The icons the panel's core draws; a module keeps its own.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
-/* The pull-request and branch icons are GitHub's Octicons (git-pull-request, git-branch), from
-   https://github.com/primer/octicons, under this licence:
+/* The branch icon is GitHub's Octicon git-branch, from https://github.com/primer/octicons, under this licence:
 
    MIT License
 
@@ -25,13 +24,6 @@
    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
    SOFTWARE. */
-// Octicon git-pull-request.
-const PR_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" '
-  + 'd="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Z'
-  + 'm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5'
-  + 'a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354Z'
-  + 'M3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z'
-  + 'm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg>';
 // Octicon git-branch.
 const BRANCH_ICON = '<svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" '
   + 'd="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372'
@@ -47,5 +39,5 @@ const TERMINAL_ICON = '<svg class="kind" width="11" height="11" viewBox="0 0 16 
   + 'd="M3 4l4 4-4 4M8.5 12H13"/></svg>';
 const CHEVRON_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" '
   + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const PLUS_ICON = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" '
-  + 'stroke-width="1.6" stroke-linecap="round"/></svg>';
+const CLOSE_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" '
+  + 'stroke-width="1.5" stroke-linecap="round"/></svg>';

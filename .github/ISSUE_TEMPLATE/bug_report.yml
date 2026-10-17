@@ -21,7 +21,7 @@ body:
     attributes:
       label: How to make it happen again
       placeholder: |
-        1. Start a session in Ghostty
+        1. Start a session in Claude Desktop or a terminal
         2. …
   - type: dropdown
     id: where

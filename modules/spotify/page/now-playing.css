@@ -1,0 +1,66 @@
+/* The now-playing strip (np-strip.js): Spotify's song above the usage strip, its line, controls and note.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#nowplaying { flex: none; position: relative; }
+#nowplaying[hidden] { display: none; }
+/* Folded to its header, the panel hides the strip; Spotify's token, unless it's hidden, stands in for it. */
+body.collapsed #nowplaying { display: none; }
+.np-strip { position: relative; display: flex; align-items: center; gap: 9px; padding: 8px 10px 8px 14px;
+            border-top: 1px solid var(--rule); }
+/* How far in the song is: a line along the strip's top edge, over its border. Its hit area runs a little below the
+   line, so it's easy to press; pointed at, the line thickens and brightens. */
+.np-bar { position: absolute; left: 0; right: 0; top: -1px; height: 7px; }
+.np-line { display: block; height: 2px; background: var(--track); transition: height .2s ease; }
+.np-fill { display: block; height: 100%; width: 0; background: rgba(255, 255, 255, 0.45);
+           transition: width 1s linear, background-color .2s ease; }
+.np-fill.jump { transition: background-color .2s ease; }
+.np-strip.is-hover .np-line { height: 3px; }
+.np-strip.is-hover .np-fill { background: rgba(255, 255, 255, 0.8); }
+
+/* The cover: a plain square until it loads, then each new one fades in over the last. */
+.np-art { flex: none; position: relative; width: 28px; height: 28px; border-radius: var(--radius-small);
+          overflow: hidden; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 .5px var(--edge); }
+.np-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;
+          transition: opacity .5s ease, filter .3s ease; }
+.np-img.on { opacity: 1; }
+.np-text { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.np-title, .np-artist { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-title { font-size: var(--size-body); font-weight: 500; line-height: 16px; transition: color .3s ease; }
+.np-artist { font-size: var(--size-small); line-height: 14px; color: var(--muted); }
+.np-text.is-hover .np-title { color: var(--bright); }
+.is-paused .np-title { color: var(--muted); }
+.is-paused .np-img { filter: saturate(.4); }
+
+/* The time and the controls share one place at the right, so the song's text never runs under the controls. Pointed
+   at, the time leaves first, then the controls fade in and lift 3px into its place; going, they leave quicker and the
+   time comes back after them. */
+.np-side { flex: none; position: relative; width: 84px; height: 24px; }
+.np-clock { position: absolute; right: 4px; top: 0; line-height: 24px; font-size: var(--size-small);
+            color: var(--faint); font-variant-numeric: tabular-nums; transition: opacity .15s ease .1s; }
+.np-strip.is-hover .np-clock { opacity: 0; transition-delay: 0s; }
+.np-controls { position: absolute; inset: 0; display: flex; justify-content: flex-end; gap: 2px; opacity: 0;
+               transform: translateY(3px); pointer-events: none; transition: opacity .1s ease, transform .1s ease; }
+.np-strip.is-hover .np-controls { opacity: 1; transform: none; pointer-events: auto;
+                                  transition: opacity .25s ease .12s, transform .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+.np-btn { width: 26px; height: 24px; display: grid; place-items: center; padding: 0; border: none;
+          border-radius: var(--radius-button); background: none; color: var(--muted); }
+.np-btn.np-play { width: 28px; color: var(--text); }
+.np-btn.is-hover { background: var(--hover-strong); color: var(--text); }
+
+/* The note under it: where to hide the strip, the first time; and what to do when Whozmove isn't allowed. */
+.np-note { display: flex; align-items: center; gap: 8px; padding: 0 10px 8px 51px; font-size: var(--size-small);
+           color: var(--muted); }
+.np-note[hidden] { display: none; }
+.np-note-text { flex: 1; min-width: 0; }
+.np-note-btn { flex: none; font: inherit; font-size: var(--size-small); padding: 2px 8px;
+               border-radius: var(--radius-small); color: var(--text); border: 1px solid var(--button-edge);
+               background: var(--button); }
+.np-note-btn.is-hover { background: var(--button-hover); }
+.np-note-btn.np-x { border: none; background: none; padding: 0 4px; font-size: 14px; line-height: 1;
+                     color: var(--faint); }
+.np-note-btn.np-x.is-hover { color: var(--text); background: none; }
+.np-note.refused .np-note-text { color: var(--needs-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .np-fill { transition: none; }
+}

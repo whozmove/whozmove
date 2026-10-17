@@ -157,8 +157,8 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <pre class="perm-detail">/work/app/big.txt
 
 x
-…</pre>
-      <div class="perm-actions"><button class="perm-deny">Deny</button><span class="perm-sent">Too long to show in full: allow it in Claude</span></div></div>
+…</pre><div class="perm-cut">Content too large to show in full</div>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
         <div class="where" title="/work/app
 branch main
 Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
@@ -260,11 +260,13 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         
       </div>
     </div>
+a terminal session that's the one you're on says where it's open: true
+a Claude Desktop conversation just clicked is the only one marked, not the terminal session you were on: [true,false]
 
 == HTML of projects
 <div class="project" data-key="/work/app" title="/work/app">
             <span class="pname">app</span><span class="pchev"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="add" data-folder="/work/app" title="New session in app (⌥: in terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            <span class="add" data-folder="/work/app" title="New conversation in app (⌥: in the terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
           </div><div class="prows"><div class="row busy" data-id="g2" >
       <span class="dot" style="animation-delay:-0ms"></span>
       <div class="main">
@@ -297,7 +299,7 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       </div>
     </div></div><div class="project collapsed" data-key="/work/other" title="/work/other">
             <span class="pname">other</span><span class="pchev"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="add" data-folder="/work/other" title="New session in other (⌥: in terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            <span class="add" data-folder="/work/other" title="New conversation in other (⌥: in the terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
           </div><div class="prows closed"><div class="row idle" data-id="g3" >
       <span class="dot" style=""></span>
       <div class="main">
@@ -321,8 +323,668 @@ in the background: Run a command in the background?
 outside the sandbox: Run a command outside the sandbox?
 both: Run a command in the background, outside the sandbox?
 
+== Tool cards
+<div class="perm" data-ask="w"><div class="perm-title">Use charts: draw chart?</div>
+      <pre class="perm-detail"><span class="perm-field">Title</span>sales_by_month<span class="perm-field">Status notes</span>Gathering the numbers
+Drawing the bars<span class="perm-field">Chart code</span>&lt;style&gt;
+.bars { display: flex; gap: 6px; }
+&lt;/style&gt;
+&lt;div class=&quot;bars&quot;&gt;&lt;/div&gt;</pre>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm" data-ask="e"><div class="perm-title">Use planner: add event?</div>
+      <pre class="perm-detail"><span class="perm-field">Minutes</span>30<span class="perm-field">Guests</span>[]<span class="perm-field">Room</span>null<span class="perm-field">Notify guests</span>false<span class="perm-field">Title</span>Planning call<span class="perm-field">Alerts</span>{
+  &quot;minutesBefore&quot;: 10
+}</pre>
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm" data-ask="n"><div class="perm-title">Use server: list things?</div>
+      
+      <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+
 == What the page forgets
 what you read, kept: ["endedJustNow","listed","readRecently"]
 question state, kept: ["askJustAnswered","askWaiting"]
 Compact cards, kept: ["listed"]
-when cards first showed, kept: ["askWaiting"]
+when cards first showed, kept: ["askWaiting","island:listed","steps:listed"]
+answers about extra stages, kept: ["listed"]
+
+== The running build, in the header
+named, from a worktree: app-fix
+named, from a branch: main
+named, from a detached commit: detached @abc1234
+named, from outside git: tool
+the header, two minutes after the build: app-fix · 2m ago
+the header, just built: main · just now
+
+== Deploy
+a worktree: its project, and the folder it deploys from: ["/work/app","/work/app-fix"]
+outside git: the folder is both: ["/work/notes","/work/notes"]
+what a worktree session knows: {"key":"/work/app","folder":"/work/app-fix","command":"make install","suggested":"make install","at":1999998200000}
+due: built since the last deploy: true
+due: files edited since the last deploy, though the turn ended committing: true
+not due: committed since, with nothing edited after the last deploy: false
+not due: a turn that only ran the tests: false
+due: an older hook (no time noted): the end of its last turn that changed or built something: true
+…but not a turn of its that only committed: false
+not due: deployed since: false
+not due: skipped since: false
+due: never deployed, with only a suggestion: true
+not due: no command saved, and nothing to suggest: false
+not due: the last turn only looked things up: false
+due: the hook noted a build after that turn: true
+due: another session in the folder built since, though this one only committed: true
+not due: deployed since the other session built: false
+not due: what it edited since landed in another checkout, which is nothing new here: false
+due: it built here since, though its edits landed in another checkout (it builds where it runs): true
+when each folder last had files edited or something built, by any session there: {"/work/app":1999999520000,"/work/app-fix":1999998800000}
+…counted where the work landed: edits in another checkout count there, not in the session's own: {"/work/lib":1999999820000}
+…and builds where the session runs, however long ago its edits went elsewhere: {"/work/lib":1999982000000,"/work/app":1999999880000}
+confirmed, nothing new: always there: {"look":"ready","due":false,"running":false}
+confirmed, new work since the last deploy: the dot: {"look":"ready","due":true,"running":false}
+confirmed, no work in the folder at all: still there: {"look":"ready","due":false,"running":false}
+confirmed, the agent working: dimmed: {"look":"off","due":true,"running":false}
+confirmed, the agent asking: dimmed: {"look":"off","due":true,"running":false}
+just pressed: {"look":"going","due":false,"running":false}
+running, whatever the agent does: {"look":"going","due":false,"running":true}
+went through a moment ago: the check: {"look":"done","due":false,"running":false}
+went through 2.5s ago, but the page sees it only now: the check, from now: {"look":"done","due":false,"running":false}
+went through before the page could have seen it: no check: {"look":"ready","due":false,"running":false}
+only a suggestion, after new work: offered: {"look":"ready","due":true,"running":false}
+only a suggestion, deployed since: not offered: null
+only a suggestion, passed on since: not offered: null
+nothing to suggest: never: null
+not the row that speaks for the folder: none: null
+Show Deploy off: none: null
+another agent working in the folder: dimmed, saying which: {"look":"off","due":true,"running":false,"waitsFor":["codegen"]}
+…the row's own agent working as well: its own: {"look":"off","due":true,"running":false}
+…a deploy running: whatever the agents do: {"look":"going","due":false,"running":true}
+the agents at work, by each folder they work in (their own checkout, and the one their edits land in); not one waiting on you, which changes nothing until you answer it: {"/work/app":["working","edited-there-this-turn","edited-there-turns-ago"],"/work/app-fix":["editing-elsewhere"],"/work/lib":["editing-elsewhere","edited-there-this-turn"],"/work/notes":["compacting"]}
+how a wait for other agents is said: ["until the agent in “a” is done","until the agents in “a” and “b” are done","until the agents in “a” and 2 others are done"]
+-- the button, confirmed, nothing new
+<span class="play ready" data-deploy="d1" title="Deploy: runs make install
+Right-click for more" style="--since:-60000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- with new work: the dot
+<span class="play ready new" data-deploy="d1" title="Deploy: runs make install
+Changed since the last deploy
+Right-click for more" style="--since:-60000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- only suggested
+<span class="play ready new" data-deploy="d1" title="Set up Deploy: Whozmove suggests cargo install --path .
+Right-click for more" style="--since:-60000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- the agent working
+<span class="play off new" data-deploy="d1" title="Deploy waits until the agent is done
+Right-click for more" style="--since:-60000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- agents in two other sessions working in the folder
+<span class="play off new" data-deploy="d1" title="Deploy waits until the agents in “codegen” and “formatter” are done
+Right-click for more" style="--since:-60000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- 300ms after the press
+<span class="play going" data-deploy="d1" title="Deploying: runs make install" style="--since:-300ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><rect x="2.4" y="2.4" width="5.2" height="5.2" rx="1.2" fill="currentColor"/></svg></span>
+-- running for 2s
+<span class="play going running" data-deploy="d1" title="Deploying: runs make install
+Press to stop it or see its log" style="--since:-2000ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><rect x="2.4" y="2.4" width="5.2" height="5.2" rx="1.2" fill="currentColor"/></svg></span>
+-- went through 400ms ago: the check
+<span class="play done" data-deploy="d1" title="Deployed" style="--since:-400ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="9" height="9" viewBox="0 0 10 10"><path d="M2 5.3 4.1 7.3 8 2.9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+-- back to play, 300ms after the check
+<span class="play ready" data-deploy="d1" title="Deploy: runs make install
+Right-click for more" style="--since:-300ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+-- didn't go through
+<span class="play ready new" data-deploy="d1" title="Deploy: runs make install
+Changed since the last deploy
+The last deploy didn&#39;t go through: make: *** No rule to make target `install`.
+Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+the line under the row, while it runs: {"text":"Deploying: make install","quiet":true}
+…just pressed: {"text":"Deploying: make install","quiet":true}
+…still running after 3 minutes: {"text":"Still running: press its button to stop it or see its log","quiet":true}
+…after one that didn't go through: {"text":"Couldn't deploy: make: *** No rule to make target `install`."}
+…ten minutes on, nothing more: null
+…after you stopped it: {"text":"You stopped the deploy","quiet":true}
+…nothing after one that went well: null
+-- the set-up card: the suggested command, to change
+<div class="perm deploy-setup" data-setup="d6" data-step="1"><div class="q-top"><span class="q-head">Set up Deploy for app</span><button class="q-close" title="Close">×</button></div><div class="q-help" title="/work/app">What should Deploy run on this Mac? It runs in app, through your login shell, and should finish once it has done its job.</div><input class="q-type d-cmd" placeholder="A command that finishes" maxlength="1000" value="cargo install --path ."><div class="perm-actions"><button class="d-cancel">Cancel</button><button class="perm-allow d-next">Use this</button></div></div>
+-- the set-up card with its box empty: Use this waits
+<div class="perm deploy-setup" data-setup="d6" data-step="1"><div class="q-top"><span class="q-head">Set up Deploy for app</span><button class="q-close" title="Close">×</button></div><div class="q-help" title="/work/app">What should Deploy run on this Mac? It runs in app, through your login shell, and should finish once it has done its job.</div><input class="q-type d-cmd" placeholder="A command that finishes" maxlength="1000" value=""><div class="perm-actions"><button class="d-cancel">Cancel</button><button class="perm-allow d-next" disabled>Use this</button></div></div>
+-- the set-up card, confirming the command as it will run, with what its target really runs (from the app)
+<div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="q-head">Run this every time you press Deploy?</span></div><pre class="perm-detail">make install</pre><div class="q-help">That runs:</div><pre class="perm-detail">cc -o tool main.c
+cp tool ~/bin/</pre><div class="q-help" title="/work/app">In app, on this Mac. Nothing else is sent anywhere.</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
+-- confirming a command the app says looks as if it could reach production
+<div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="q-head">Run this every time you press Deploy?</span></div><pre class="perm-detail">npm run deploy:local</pre><div class="q-help">That runs:</div><pre class="perm-detail">fly deploy --local-only</pre><div class="q-help" title="/work/app">In app, on this Mac. Nothing else is sent anywhere.</div><div class="c-note">This looks as if it could deploy to production.</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
+-- …and one that runs more than the card shows
+<div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="q-head">Run this every time you press Deploy?</span></div><pre class="perm-detail">make</pre><div class="q-help">That runs:</div><pre class="perm-detail">one
+two
+… and 3 more</pre><div class="q-help" title="/work/app">In app, on this Mac. Nothing else is sent anywhere.</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
+the app's answer moves the card on to confirming: 2
+…and the new step waits before it takes a press: true
+…not when the command was changed after it was asked about: 1
+Back goes back to the command: 1
+…and Cancel, where Back was, doesn't take a press at once: true
+…so a double click on Back leaves the card up: true
+
+== The island
+clean: none: null
+changed files: ["files 2 files * → commit","commits 0 commits → push","github GitHub"]
+new files only: ["files 3 files * → commit","commits 0 commits → push","github GitHub"]
+while the agent works: shown all the same: ["files 2 files * → commit","commits 0 commits → push","github GitHub"]
+no remote, with changes: no commits or GitHub: ["files 1 file * → commit"]
+no remote, committed: finished, none: null
+on main, commits not pushed: ["files 0 files → commit","commits 2 commits * → push","github GitHub"]
+on main, never pushed: ["files 0 files → commit","commits 1 commit * → push","github GitHub"]
+on main, all pushed: none: null
+on main, changed files and commits: ["files 1 file → commit","commits 2 commits * → push","github GitHub"]
+a branch not pushed: ["files 0 files → commit","commits 2 commits * → pr","github GitHub"]
+a branch pushed with no PR, as GitHub says: ["files 0 files → commit","commits 0 commits → pr","github no PR * → pr"]
+…GitHub not asked yet (or no gh): not "no PR", none: null
+…a PR the session raised from another branch doesn't count: "no PR": ["files 0 files → commit","commits 0 commits → pr","github no PR * → pr"]
+…one it raised from this branch does: null
+…a PR raised since GitHub last looked: not "no PR", none: null
+a branch with an open PR, nothing new: none: null
+a branch with an open PR and new commits: ["files 0 files → commit","commits 1 commit * → push","github #1"]
+a branch with an open PR and changed files: ["files 2 files * → commit","commits 0 commits → push","github #14"]
+a branch whose PR was merged: none: null
+the extra stage: ["files 1 file → commit","extra 2 to review","commits 1 commit * → push","github GitHub"]
+the extra stage holding every change: ["files 0 files → commit","extra 2 to review *","commits 0 commits → push","github GitHub"]
+the extra stage, empty: ["files 3 files * → commit","extra 0 to review","commits 0 commits → push","github GitHub"]
+the extra stage, with no remote: ["files 0 files → commit","extra 2 to review *"]
+…naming the files outside it: a gauge of those, split as git sees them: ["files 3 files → commit [0 staged, 2 partly, 1 unstaged]","extra 2 to review *","commits 0 commits → push","github GitHub"]
+the extra stage still asking: left out: ["files 3 files * → commit","commits 0 commits → push","github GitHub"]
+git says how the files split: a gauge, new files counted as unstaged: ["files 66 files * → commit [29 staged, 31 partly, 6 unstaged]","commits 0 commits → push","github GitHub"]
+…all of them staged: ["files 5 files * → commit [5 staged, 0 partly, 0 unstaged]","commits 0 commits → push","github GitHub"]
+…but the extra stage counts the files itself: no split: ["files 3 files → commit","extra 2 to review *","commits 0 commits → push","github GitHub"]
+…unless it holds nothing: every change is outside it, so git's count and split: ["files 66 files * → commit [29 staged, 31 partly, 6 unstaged]","extra 0 to review","commits 0 commits → push","github GitHub"]
+big counts, shortened: ["files 12k files → commit [4120 staged, 6930 partly, 1295 unstaged]","extra 140 to review","commits 1.3k commits * → push","github GitHub"]
+not the checkout's owner: null
+outside git: none: null
+tooltips: ["1 file changed","2 to review","No commits waiting","Pushed, with no pull request yet"]
+counts, as the island writes them: ["0","999","1k","1.2k","9.9k","12k","1M"]
+commands that run a file in the checkout: {"./review.sh":true,"python3 scripts/review.py":true,"python3 review.py":true,"sh review.sh":true,"cd tools && node review.js":true,"review --config=./review.toml":true,"make review":true,"npm run review":true,"git review stage":false,"python3 -m review":false,"~/bin/review":false,"/usr/local/bin/review --json":false,"curl -s https://example.com/review":false,"$HOME/review":false}
+who speaks for each checkout or folder: the session that edited files there last: ["notes","tree","worker"]
+…closed or not, and whatever it has done since: ["edited-then-closed"]
+…its edits counted only where they landed: notes written elsewhere don't count: ["did-the-work"]
+…and only for the checkout it runs in: what it edits in another leaves that one's island where it is: ["main-chat","tree"]
+…with an older hook (no time noted): the end of its last turn that changed something: ["built-later"]
+no listed session edited there: the session last active there: ["asked-since"]
+…one still running before a closed one, though the closed one was used later: ["running"]
+…a closed one when none there is running: ["closed-later"]
+-- a row with changed files it didn't change itself: what the work has been through at the end of the details line, the island under it, no tag
+<div class="row idle" data-id="w1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+        
+      </div>
+    </div>
+-- git says how the files split: the files stage is a gauge, with each part's count in words and as a number
+<div class="row idle" data-id="w1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open gauge" data-stage="files" data-count="66" data-step="commit" data-staged="29" data-partly="31" data-unstaged="6"><span class="band st" data-part="staged"><span class="lbl"><span class="w">29 staged</span><span class="n">29</span></span></span><span class="band pt" data-part="partly"><span class="lbl"><span class="w">31 partly</span><span class="n">31</span></span></span><span class="band un" data-part="unstaged"><span class="lbl"><span class="w">6 unstaged</span><span class="n">6</span></span></span><span class="seg-text rest">66 files</span></span><span class="seg commits open move" data-stage="commits" data-count="2" data-step="push"><span class="seg-text">2 commits</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+        
+      </div>
+    </div>
+-- …kept open through a rebuild while it's pointed at
+<div class="island" data-sid="w1"><span class="cap open"><span class="seg files open move gauge" data-stage="files" data-count="66" data-step="commit" data-staged="29" data-partly="31" data-unstaged="6"><span class="band st" data-part="staged"><span class="lbl"><span class="w">29 staged</span><span class="n">29</span></span></span><span class="band pt" data-part="partly"><span class="lbl"><span class="w">31 partly</span><span class="n">31</span></span></span><span class="band un" data-part="unstaged"><span class="lbl"><span class="w">6 unstaged</span><span class="n">6</span></span></span><span class="seg-text rest">66 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+-- no remote: only the files
+<div class="row idle" data-id="w2" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w2"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span></span></div>
+        
+      </div>
+    </div>
+-- a branch pushed with no pull request yet, as GitHub says: that is the move
+<div class="row idle" data-id="w3" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch f
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>f</span></div><div class="island" data-sid="w3"><span class="cap"><span class="seg files" data-stage="files" data-count="0" data-step="commit" title="No changed files"></span><span class="seg commits" data-stage="commits" data-count="0" data-step="pr" title="No commits waiting"></span><span class="seg github open move" data-stage="github" data-count="1" data-step="pr" title="Pushed, with no pull request yet"><span class="seg-text">no PR</span></span></span></div>
+        
+      </div>
+    </div>
+the part of the gauge whose files are listed is drawn lit, so a rebuild doesn't light it afresh: true
+no lines to count (only a binary file changed): what the work has been through, in words: true
+-- the files of a part of the gauge, as its list shows them: each part titled and explained, new ones marked
+<div class="f-head"><span>Staged files</span><span class="f-n">1</span></div><div class="f-help">Ready to commit as they are.</div><div class="f-list"><div class="f-file"><span class="f-dir">app/</span>Git.m</div></div>
+<div class="f-head"><span>Modified staged files</span><span class="f-n">1</span></div><div class="f-help">Staged earlier, then changed again. A commit now takes the staged version; the later changes stay behind.</div><div class="f-list"><div class="f-file"><span class="f-dir">panel/scripts/</span>rows.js</div></div>
+<div class="f-head"><span>Unstaged files</span><span class="f-n">2</span></div><div class="f-help">Changed but not added yet, new files included. A commit now leaves them out.</div><div class="f-list"><div class="f-file"><span class="f-dir"></span>README.md</div><div class="f-file"><span class="f-dir">docs/</span>stages.md <span class="f-new">new</span></div></div>
+…the first 100, and how many more: <div class="f-more">and 50 more
+-- the extra stage, and how a step from its menu went, said quietly under the details
+<div class="row idle" data-id="w4" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open" data-stage="files" data-count="1" data-step="commit" title="1 file changed"><span class="seg-text">1 file</span></span><span class="seg extra open" data-stage="extra" data-count="2" title="2 to review"><span class="seg-text">2 to review</span></span><span class="seg commits open move" data-stage="commits" data-count="1" data-step="push"><span class="seg-text">1 commit</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note quiet">Done, 1 left.</div>
+        
+      </div>
+    </div>
+-- a step that couldn't go in, said under the details
+<div class="row idle" data-id="w4" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Claude is working: ask again when it&#39;s done</div>
+        
+      </div>
+    </div>
+-- asked once whether its extra stage may run, with a warning: it runs a file in the checkout
+<div class="row idle" data-id="w7" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span>
+        </div>
+        
+        <div class="perm stage-trust" data-trust="w7"><div class="q-top"><span class="q-head">Show this checkout's extra stage?</span></div><pre class="perm-detail">python3 ./review.py --json</pre><div class="q-help">Its git config (whozmove.stage) asks Whozmove to run this in app each time it reads the checkout, and show what it prints between your edits and your commits.</div><div class="c-note">It runs a file in this checkout, which an agent working here could change.</div><div class="perm-actions"><button class="t-no">Not now</button><button class="perm-allow t-yes">Allow</button></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w7"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+        
+      </div>
+    </div>
+…not asked again just after an answer: null
+…but asked again when the command changes: review --json
+…and never on a row that doesn't speak for the checkout: null
+…nor while a request waits on the row: null
+…a card that has been up a while takes a press: true
+…one that's back waits again before it does: true
+…as does one now showing another command: true
+-- Deploy's button on the title line, with the dot; the island; why its last deploy didn't go through
+<div class="row idle" data-id="w5" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span><span class="play ready new" data-deploy="w5" title="Deploy: runs make install
+Changed since the last deploy
+The last deploy didn&#39;t go through: make: *** No rule to make target `install`.
+Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
+        
+      </div>
+    </div>
+-- while the agent works: Deploy dimmed, the island shown all the same
+<div class="row busy" data-id="w5" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="play off new" data-deploy="w5" title="Deploy waits until the agent is done
+Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+        </div>
+        <div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Thinking</span></span><span class="elapsed">1h 0m</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
+        
+      </div>
+    </div>
+Deploy's button, gone and back, waits again before it takes a press: true
+what a row's Deploy waits for: the other sessions at work in its folder, by title: ["codegen"]
+the line when a deploy couldn't start: why, for a few seconds, in place of the deploy's own: {"text":"Deploy waits until the agent is done"}
+-- the set-up card on its row
+<div class="row idle" data-id="w5" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          
+          <span class="time">1h</span><span class="play ready new" data-deploy="w5" title="Deploy: runs make install
+Changed since the last deploy
+The last deploy didn&#39;t go through: make: *** No rule to make target `install`.
+Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
+        </div>
+        
+        <div class="perm deploy-setup" data-setup="w5" data-step="1"><div class="q-top"><span class="q-head">Set up Deploy for app</span><button class="q-close" title="Close">×</button></div><div class="q-help" title="/work/app">What should Deploy run on this Mac? It runs in app, through your login shell, and should finish once it has done its job.</div><input class="q-type d-cmd" placeholder="A command that finishes" maxlength="1000" value="make install"><div class="perm-actions"><button class="d-cancel">Cancel</button><button class="perm-allow d-next">Use this</button></div></div>
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
+        
+      </div>
+    </div>
+-- Show Next Steps off: the tag and what the work has been through, as before
+<div class="row idle" data-id="w6" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          <span class="stage o-yours">Ready to commit</span>
+          <span class="time">1h</span>
+        </div>
+        
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div>
+        
+      </div>
+    </div>
+
+== Plan usage, in the strip
+time left, 2h 59m: 2h 59m
+time left, 1d 17h: 1d 17h
+time left, 2h 5m: 2h 05m
+time left, 42m: 42m
+time left, 20 seconds (rounded up): 1m
+time left, none: 
+hours next to Session, 2h 59m: 3h
+hours next to Session, 2h 10m: 2h
+hours next to Session, 42m: 42m
+clock time, within 12 hours: 5:33 AM
+clock time, in two days: Thu 8:33 PM
+clock time, a week off: May 24, 3:33 PM
+Claude Code not signed in: signin
+signed in with an API key or another provider: hidden
+no claude on this Mac: hidden
+not asked yet: hidden
+20% half an hour in: {"state":"ok","session":[20,"normal","rgba(255, 255, 255, 0.55)"],"pace":"At this pace you'll hit the session limit around 5:33 AM."}
+30% three hours in: on course, no note: null
+82% two hours in, Claude says warning: ["warning","#ffc53d","normal"]
+82% two hours in: the pace: At this pace you'll hit the session limit around 3:59 AM.
+82% with no severity from Claude: warning
+90% and a word past warning: limit
+at the session limit: wait
+at the limit with extra usage on: no wait: ok
+the limit has just reset: 0% until the app asks again: ["ok",0,0]
+while waiting, hours off: Back at 5:33 AM
+while waiting, the last hour: Back in 42m
+while waiting, the last minute: Back in 9s
+how far through the wait: [0.5,1]
+
+== The vine's growth and reset (wait-vine.js)
+growth at the limit, halfway, at the reset: [{"leaves":0,"bud":false},{"leaves":4,"bud":true},{"leaves":8,"bud":false}]
+both ends of the stem start moving together (1.1s): [true,true]
+and land together on the bar (2.1s): [[74,20],[276,20]]
+the drain carries on at the speed the stem landed with (px a ms): ["-0.026","-0.027"]
+no leaf flies into the text lane (above y 32): clear
+the session line is clear before the stem rises into it: {"at":1870,"message":0,"right":0}
+the last frame is the normal strip: {"stem":false,"flower":null,"fill":0,"height":61,"week":1,"percent":1,"message":0,"right":0}
+
+== What a session wrote: the tag, the plan card, the reader
+no writings: no tag: 
+the newest thing, and how many more: <span class="wtag k-prototype" data-writings="s" data-wid="/work/app/v.html"
+      title="Read what this session wrote"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1.5" width="8" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 3.8h8" stroke="currentColor" stroke-width="1.2"/></svg>Prototype<span class="more">+2</span></span>
+the plan waiting for you leads, while Claude asks about it: <span class="wtag k-plan" data-writings="s" data-wid="p2"
+      title="Read what this session wrote"><svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h4l2 2v6h-6z M3 5h3 M3 7h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>Plan<span class="more">+3</span></span>
+the tag shows as pressed while the reader is open on its session: true
+a plan only just asked about shows from its request, before the transcript lists it: [["ask:pa","Dark mode, again","waiting"]]
+the plan Claude waits on: p2
+no plan waits once the request is gone: null
+each one's status in the list: [["Waiting for you","wait"],["v.html",""],["Not approved","back"],["n.md",""]]
+a waiting plan whose request has gone: no answer: ["No answer",""]
+a new request with only an old unanswered plan listed: the request's own plan, never the old one: ask:pa
+<div class="r-group">Plans</div><button class="r-item k-plan on" data-wid="p2">
+          <span class="r-icon"><svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h4l2 2v6h-6z M3 5h3 M3 7h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="r-name">Dark mode, again</span>
+          <span class="r-meta"><span class="st-wait">Waiting for you</span> · 2m</span>
+        </button><button class="r-item k-plan" data-wid="p1">
+          <span class="r-icon"><svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h4l2 2v6h-6z M3 5h3 M3 7h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="r-name">Dark mode</span>
+          <span class="r-meta"><span class="st-back">Not approved</span> · 9m</span>
+        </button><div class="r-group">Prototypes</div><button class="r-item k-prototype" data-wid="/work/app/v.html">
+          <span class="r-icon"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1.5" width="8" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M1 3.8h8" stroke="currentColor" stroke-width="1.2"/></svg></span><span class="r-name">Two layouts</span>
+          <span class="r-meta"><span class="">v.html</span> · 5m</span>
+        </button><div class="r-group">Notes</div><button class="r-item k-notes" data-wid="/work/app/n.md">
+          <span class="r-icon"><svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h6v8h-6z M3 3.5h3 M3 5.5h3 M3 7.5h2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="r-name">Notes</span>
+          <span class="r-meta"><span class="">n.md</span> · 20m</span>
+        </button>
+a file named like markup is listed as text: true
+<div class="perm plan-ask" data-ask="pa"><div class="perm-title">Claude wants your OK on its plan</div>
+      <div class="perm-why">Dark mode, again</div><div class="perm-why">Approving happens in the session; from the plan you
+      can send it back with notes, or stop it.</div>
+      <div class="perm-actions"><button class="perm-go">Take me there</button><button class="perm-read perm-allow">Read plan</button></div></div>
+<div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan.
+      Approving happens in the session.</div>
+    <div class="r-buttons"><button class="r-go perm-allow">Take me there</button><button class="r-revise">Revise…</button>
+      <button class="r-stop">Stop</button></div></div>
+<div class="r-ask"><label class="r-q" for="r-notes">What should change? Claude stays in plan mode and
+        writes a new version.</label>
+      <textarea id="r-notes" class="q-type r-notes" placeholder="Your notes for Claude"></textarea>
+      <div class="r-buttons"><button class="r-send perm-allow" disabled>Send to Claude</button>
+        <button class="r-cancel">Cancel</button></div></div>
+<div class="r-done">Sent back to Claude with your notes. It stays in plan mode and writes a new version, which shows up here.</div>
+no answer bar under a plan that was answered: 
+
+== Markdown, as plans and notes are shown
+-- headings, a paragraph over two lines, bold, italic and code
+<h1>Plan</h1><p>Read <strong>this</strong> and <em>that</em>, <code>a &lt;b&gt;</code> next line</p><h2>Steps</h2>
+-- lists, nested, numbered from 3, with a task
+<ul><li>one<ul><li>inner</li></ul></li><li><span class="md-task done"></span>done</li></ul><ol start="3"><li>three</li><li>four</li></ol>
+-- a table and a rule
+<div class="md-table"><table><thead><tr><th>Q</th><th>A</th></tr></thead><tbody><tr><td>colour</td><td>blue</td></tr></tbody></table></div><hr>
+-- a code block keeps its text as it is
+<pre><code>const a = &quot;&lt;b&gt;&quot; &amp;&amp; 1;</code></pre>
+-- HTML in the text stays text, and a link shows its words
+<p>&lt;script&gt;alert(1)&lt;/script&gt; <span class="md-link" title="https://x.dev/a?b=1&amp;c">docs</span> &gt; not a quote</p>
+-- a quote
+<blockquote><p>quoted <strong>line</strong> second</p></blockquote>
+
+== What a session changed: its numbers, their card, the changes view
+-- its numbers end the details line, as a button; the proof goes in their card
+<div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="end"><span class="counts" data-changes="me"><span class="add">+26</span> <span class="del">−13</span></span></span></div>
+pressed while its changes are open: true
+…not while what it wrote is: false
+nothing changed: no numbers: 
+the branch, from its side: itself, the others biggest first, then outside these sessions: {"parts":[{"who":"me","name":"This session","added":26,"removed":13},{"who":"tests","name":"Retry tests","added":24,"removed":1},{"who":"outside","name":"Outside these sessions","added":1464,"removed":123}],"total":{"added":1514,"removed":137},"share":2}
+…from the other session's: ["This session","Retry queue","Outside these sessions"]
+<div class="cc-big"><b class="add">+26</b><b class="del">−13</b>
+      <span>this session, not committed</span></div>
+    <div class="cc-lede">2% of what isn't committed in this checkout</div>
+    <div class="cc-bar"><i style="width:2.36%;background:#4aa8ff"></i><i style="width:1.51%;background:#b69cff"></i><i style="width:96.12%;background:#ffc53d"></i></div><div class="cc-legend"><span class="cc-sw" style="background:#4aa8ff"></span><span class="cc-name me">This session<small> · 2 files</small></span><span class="cc-v">+26 −13</span><span class="cc-sw" style="background:#b69cff"></span><span class="cc-name">Retry tests<small></small></span><span class="cc-v">+24 −1</span><span class="cc-sw" style="background:#ffc53d"></span><span class="cc-name">Outside these sessions<small></small></span><span class="cc-v">+1,464 −123</span></div>
+    <div class="cc-total"><span>All sessions</span>
+      <b>+1,514 −137</b></div>
+    <div class="cc-proof">built · tested</div><div class="cc-hint">Press to see the changes.</div>
+its own files: not staged yet, then staged whole: [["Not staged",["billing/retry.py"]],["Staged",["docs/retries.md"]]]
+the branch's: by whose, a file under the first to change it: [["This session","me",["billing/retry.py","docs/retries.md"]],["Retry tests","tests",["tests/test_retry.py"]],["Outside these sessions","outside",["config/settings.py"]],["Short or repeated lines","short",["billing/queue.py"]]]
+a file's count: its own lines in its view, everyone's in the branch's: [[20,0],[21,0]]
+its line in the list: ["Created, then edited once · 1m · shared","Edited once · 40m","this session, Retry tests"]
+…and its group in the branch's list is just other changes: ["This session","Retry tests","Other changes","Short or repeated lines"]
+-- a session whose changes aren't known: the branch's numbers on its row, quieter, and a card saying why
+<span class="end"><span class="counts branch" data-changes="me"><span class="add">+1,514</span> <span class="del">−137</span></span></span>
+<div class="cc-big"><b class="add">+1,514</b><b class="del">−137</b><span>not committed, all sessions</span></div>
+      <div class="cc-lede">Claude Code didn&#39;t record what one of this session&#39;s shell commands changed (it records them in auto mode), so which lines this session changed isn&#39;t known.</div>
+      <div class="cc-proof">built</div><div class="cc-hint">Press to see the changes.</div>
+…its branch switch has the branch's total: {"added":1514,"removed":137}
+…and its view names no one: files by how far they've got, each just new or changed: [[["Not staged",4],["Staged",1]],"New"]
+side by side: taken-out lines beside the ones put in after them: [["10 ","10 "],["11-","11+"],["12-",null],["13 ","12 "],[null,"13+"]]
+unchanged lines before a hunk, and between two: [9,16]
+where Open in Editor opens it: the first line the session put in, or anyone in the branch's view: [11,13,1]
+a little colour for code: ["  <span class=\"c-cm\">// a &lt;note&gt;</span>","say(<span class=\"c-str\">&quot;hi&quot;</span>) + <span class=\"c-str\">&#39;x&#39;</span>","<span class=\"c-cm\"># heading</span>"]
+…and none for prose: ["# Claude&#39;s own &quot;words&quot;","it&#39;s Claude&#39;s"]
+-- the list of its files, the first lit
+<div class="r-group">Not staged<span class="c-count">1</span></div><button class="r-item c-file on" data-path="billing/retry.py" title="billing/retry.py">
+          <span class="c-mark new">A</span>
+          <span class="r-name">retry.py<span class="c-dir">billing</span></span>
+          <span class="c-nums"><span class="add">+20</span><span class="del">−0</span></span>
+          <span class="r-meta">Created, then edited once · 1m · shared</span>
+        </button><div class="r-group">Staged<span class="c-count">1</span></div><button class="r-item c-file" data-path="docs/retries.md" title="docs/retries.md">
+          <span class="c-mark changed">M</span>
+          <span class="r-name">retries.md<span class="c-dir">docs</span></span>
+          <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span>
+          <span class="r-meta">Edited once · 40m</span>
+        </button>
+-- its changes inline: another session's line quiet, under whose it is; the file's head with Open in Editor
+<section class="c-block" data-block="billing/retry.py"><div class="c-fhead">
+      <span class="c-path"><i>billing/</i>retry.py</span>
+      <span class="c-nums"><span class="add">+20</span><span class="del">−0</span></span><span class="c-chip new">New</span><span class="c-chip shared">Also changed by Retry tests</span>
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button></span></div><table class="c-lines"><tr class="c-gap"><td colspan="5"><b>9 lines</b> unchanged</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">10</td><td class="c-ln">10</td><td class="c-sg"></td><td class="c-code">def a():</td></tr><tr class="del"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln">11</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    old()</td></tr><tr class="del"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln">12</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    older()</td></tr><tr class="add"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln"></td><td class="c-ln">11</td><td class="c-sg">+</td><td class="c-code">    new()</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">13</td><td class="c-ln">12</td><td class="c-sg"></td><td class="c-code"></td></tr><tr class="add"><td class="c-who" style="--who:#b69cff"></td><td class="c-ln"></td><td class="c-ln">13</td><td class="c-sg">+</td><td class="c-code"><span class="c-cm"># tested</span></td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
+      <span class="c-path"><i>docs/</i>retries.md</span>
+      <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Editor</button></span></div><table class="c-lines"></table></section>
+-- side by side, and the first Open in Editor asking which editor; a line new since the last view lit
+<section class="c-block" data-block="billing/retry.py"><div class="c-fhead">
+      <span class="c-path"><i>billing/</i>retry.py</span>
+      <span class="c-nums"><span class="add">+20</span><span class="del">−0</span></span><span class="c-chip new">New</span><span class="c-chip shared">Also changed by Retry tests</span>
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button><div class="c-picker"><div class="c-pq">Open files with</div><button class="c-app" data-editor="com.microsoft.VSCode" data-path="billing/retry.py">Visual Studio Code</button><div class="c-later">Kept for next time. Change it in the pawn menu, Open With.</div></div></span></div><table class="c-lines split"><tr class="c-gap"><td colspan="7"><b>9 lines</b> unchanged</td></tr><tr><td class="c-who"></td><td class="c-ln ">10</td><td class="c-sg "></td><td class="c-code ">def a():</td><td class="c-ln  mid">10</td><td class="c-sg "></td><td class="c-code ">def a():</td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln del">11</td><td class="c-sg del">−</td><td class="c-code del">    old()</td><td class="c-ln add mid">11</td><td class="c-sg add">+</td><td class="c-code add">    new()</td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln del">12</td><td class="c-sg del">−</td><td class="c-code del">    older()</td><td class="c-ln blank mid"></td><td class="c-sg blank"></td><td class="c-code blank"></td></tr><tr><td class="c-who"></td><td class="c-ln ">13</td><td class="c-sg "></td><td class="c-code "></td><td class="c-ln  mid">12</td><td class="c-sg "></td><td class="c-code "></td></tr><tr><td class="c-who" style="--who:#b69cff"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">13</td><td class="c-sg add">+</td><td class="c-code add"><span class="c-cm"># tested</span></td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">14</td><td class="c-sg add">+</td><td class="c-code add live">def later():</td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
+      <span class="c-path"><i>docs/</i>retries.md</span>
+      <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Editor</button></span></div><table class="c-lines split"></table></section>
+-- once an editor is chosen, it's named on the button
+<section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
+      <span class="c-path"><i>docs/</i>retries.md</span>
+      <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Visual Studio Code</button></span></div><table class="c-lines"></table></section>
+
+== New conversations
+the folders a card offers, newest first (a worktree counts as its repo; scratch is left out): [{"folder":"/work/app","name":"app"},{"folder":"/work/api","name":"api"}]
+where a card starts: the session marked as the one you're on, in Claude or Ghostty: {"folder":"/work/api","name":"api"}
+…else the one the list keeps in place for you: {"folder":"/work/api","name":"api"}
+…else the newest: {"folder":"/work/app","name":"app"}
+…nowhere with nothing listed: null
+the card while the app is asked about its folder: {"help":"","warn":false,"go":""}
+…a folder Claude has worked in, with no words: {"help":"","warn":false,"go":"Open"}
+…with words: {"help":"","warn":false,"go":"Start"}
+…a folder Claude hasn't worked in: {"help":"Claude hasn't worked in app before. Trusting it lets Claude Code read, edit and run files there.","warn":true,"go":"Trust and start","trust":true}
+…a folder that has gone: {"help":"app isn't there any more: choose another folder.","warn":true,"go":""}
+…no folder yet: {"help":"Choose the folder it starts in.","warn":false,"go":""}
+…why the last one didn't start, still asking about trust: {"help":"Claude was busy saving its settings: try again","warn":true,"go":"Trust and open","trust":true}
+-- the card in Claude, with Ghostty to switch to, asking about trust
+<div class="row compose" data-card="card1">
+      <span class="dot"></span>
+      <div class="main">
+        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?">Add &lt;b&gt;dark&lt;/b&gt; mode</textarea></div>
+        <div class="c-help warn">Claude hasn&#39;t worked in app before. Trusting it lets Claude Code read, edit and run files there.</div>
+        <div class="where c-where"><span class="w-app" title="Starts in Claude: press for Ghostty"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg></span><span class="proj w-proj" title="/work/app
+Press to start it in another folder">app<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Trust and start</span><span class="alt"> + next</span></button></div>
+      </div>
+    </div>
+-- in Ghostty, in a worktree
+<div class="row compose" data-card="card1">
+      <span class="dot"></span>
+      <div class="main">
+        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?"></textarea></div>
+        
+        <div class="where c-where"><span class="w-app" title="Starts in Ghostty: press for Claude"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg></span><span class="proj w-proj" title="/work/app-wt
+Press to start it in another folder">app-wt<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>feat</span><span class="sep">·</span><span class="wt">worktree</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Open</span><span class="alt"> + next</span></button></div>
+      </div>
+    </div>
+-- with no terminal to switch to: only its icon
+<div class="row compose" data-card="card1">
+      <span class="dot"></span>
+      <div class="main">
+        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?"></textarea></div>
+        
+        <div class="where c-where"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg><span class="proj w-proj" title="/work/app
+Press to start it in another folder">app<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Open</span><span class="alt"> + next</span></button></div>
+      </div>
+    </div>
+-- a start not listed yet, as a working row
+<div class="row busy" data-id="u-1" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">New conversation</span>
+          
+          
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Starting in Ghostty</span></span><span class="elapsed">0s</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- one in Claude that waits on you, and one that didn't start
+<div class="row busy" data-id="u-1" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">New conversation</span>
+          
+          
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Your words are in Claude&#39;s message box: press Send there</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+<div class="row busy" data-id="u-1" >
+      <span class="dot" style="animation-delay:-0ms"></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">New conversation</span>
+          
+          
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Nothing started in Ghostty: look there for what Claude Code says</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+one still handing over in the box isn't drawn yet: 0
+one Claude has listed isn't drawn again: 0
+its row stays hidden while its card hands over: true
+…and while its copy rises to it: true
+…but not once it has landed: false
+a start Claude has listed is let go once its row has landed: []
+…not while its copy is still rising: ["s1"]
+a new session's id, where WebKit has no randomUUID: version 4, in lower case: abababab-abab-4bab-abab-abababababab

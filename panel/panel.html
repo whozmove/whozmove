@@ -4,12 +4,16 @@
 <html>
 <head>
 <meta charset="utf-8">
+<link rel="stylesheet" href="styles/tokens.css">
 <link rel="stylesheet" href="styles/base.css">
 <link rel="stylesheet" href="styles/rows.css">
 <link rel="stylesheet" href="styles/cards.css">
+<link rel="stylesheet" href="styles/reader.css">
+<!-- each module's styles: tools/page.sh lists them here, in their module.json order -->
 <link rel="stylesheet" href="styles/motion.css">
 </head>
 <body>
+<div id="reader"></div>
 <div id="root">
   <header>
     <svg class="mark" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
@@ -18,26 +22,43 @@
                M9.7 7.3C9.7 9.8 11 11.3 11.6 12.2H4.4C5 11.3 6.3 9.8 6.3 7.3Z
                M4.35 11.9H11.65A1.15 1.15 0 0 1 11.65 14.2H4.35A1.15 1.15 0 0 1 4.35 11.9Z"/>
     </svg>
-    <span class="title">Whozmove</span>
+    <span class="titles"><span class="title">Whozmove</span><span class="build" id="build" hidden></span></span>
     <span class="summary" id="summary"></span>
+    <span class="add-new" title="New conversation (⌃⌥N)">
+      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round"/></svg>
+    </span>
     <span class="chev" title="Collapse">
       <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor"
            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </span>
+    <div id="usage-line"><span></span></div>
   </header>
   <div id="list"></div>
+  <div id="dock"></div>
+  <div id="nowplaying" hidden></div>
+  <div id="usage" hidden></div>
+  <div id="flight"></div>
 </div>
 <div id="card" hidden></div>
+<div id="files"></div>
+<div id="steps" hidden></div>
 <div id="ask" hidden></div>
 <script src="scripts/util.js"></script>
 <script src="scripts/state.js"></script>
+<script src="scripts/modules.js"></script>
+<script src="scripts/fresh.js"></script>
 <script src="scripts/whose-move.js"></script>
 <script src="scripts/icons.js"></script>
-<script src="scripts/rows.js"></script>
-<script src="scripts/cards.js"></script>
+<script src="scripts/markdown.js"></script>
+<script src="scripts/builds.js"></script>
 <script src="scripts/morph.js"></script>
+<script src="scripts/strips.js"></script>
+<script src="scripts/rows.js"></script>
 <script src="scripts/hover.js"></script>
 <script src="scripts/input.js"></script>
+<script src="scripts/reader.js"></script>
+<!-- each module's scripts: tools/page.sh lists them here, in their module.json order -->
 <script src="scripts/panel.js"></script>
 </body>
 </html>

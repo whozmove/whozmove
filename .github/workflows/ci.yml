@@ -1,4 +1,4 @@
-# Builds the app with every warning an error, and runs all the tests, for each push and pull request.
+# Builds the app with every warning an error, and runs all the tests on that build, for each push and pull request.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 name: CI
 on: [push, pull_request]
@@ -16,8 +16,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Build, with warnings as errors
-        run: |
-          clang -O2 -Wall -Werror -fobjc-arc -framework Cocoa -framework WebKit -framework JavaScriptCore \
-            app/*.m -o "$RUNNER_TEMP/Whozmove"
-      - name: Tests
-        run: tests/all.sh
+        run: tools/compile.sh "$RUNNER_TEMP/Whozmove" -Werror
+      - name: Tests, on that build
+        run: WHOZMOVE_APP="$RUNNER_TEMP/Whozmove" tests/all.sh

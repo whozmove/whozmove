@@ -23,7 +23,7 @@
   <key>LSUIElement</key>
   <true/>
   <key>NSAppleEventsUsageDescription</key>
-  <string>Whozmove asks your terminal which tab an agent's session is in, so clicking it can bring that tab forward.</string>
+  <string>Whozmove asks your terminal which tab an agent's session is in, so clicking it can bring that tab forward, and which tab you're looking at, so the list can mark that session; and Spotify what it's playing, so the panel can show the song and its controls.</string>
   <key>NSHighResolutionCapable</key>
   <true/>
 </dict>

@@ -1,0 +1,118 @@
+/* The changes view (changes-view.js): what a session changed, in the reader's place, beside the list.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.r-in.k-changes .r-answer { display: none; }
+.r-in.k-changes .r-shelf { width: 260px; }
+
+/* The bar over the changes (in the reader's .r-src): whose changes are shown, and how files and lines are laid out. */
+.r-in.k-changes .r-src { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 18px;
+                         border-bottom: 1px solid var(--rule); }
+.c-switch { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-box);
+            background: var(--surface); }
+.c-switch button { display: flex; gap: 6px; align-items: baseline; padding: 3px 9px; border: none;
+                   border-radius: var(--radius-button); background: none; font: inherit; font-size: var(--size-card);
+                   color: var(--muted); white-space: nowrap; }
+.c-switch button.is-hover { color: var(--text); }
+.c-switch button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
+.c-scopes button[data-scope="session"][aria-pressed="true"] { box-shadow: inset 2px 0 0 #4aa8ff; }
+.c-scopes button:disabled { opacity: 0.45; cursor: default; }
+.c-nums { display: inline-flex; gap: 4px; font-size: var(--size-meta); font-variant-numeric: tabular-nums; }
+.c-nums .add { color: var(--added); }
+.c-nums .del { color: var(--removed); }
+
+/* The files, grouped. */
+.r-group .c-swatch { display: inline-block; width: 7px; height: 7px; border-radius: var(--radius-bar);
+                     margin-right: 6px; }
+.r-group .c-count { float: right; font-weight: 500; letter-spacing: 0; text-transform: none; }
+.c-file { grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; }
+.c-file .r-meta { grid-column: 2 / 4; }
+.c-mark { grid-row: span 2; align-self: start; margin-top: 2px; width: 14px; height: 14px;
+          border-radius: var(--radius-tag); display: grid; place-items: center; font-size: 9px; font-weight: 600; }
+.c-mark.changed { color: #e3b341; background: rgba(227, 179, 65, 0.14); }
+.c-mark.new { color: var(--added); background: rgba(63, 185, 80, 0.14); }
+.c-mark.gone { color: var(--removed); background: rgba(248, 81, 73, 0.14); }
+.c-dir { margin-left: 5px; font: 400 var(--size-meta) ui-monospace, SFMono-Regular, Menlo, monospace;
+         color: var(--faint); }
+
+/* Each file: its head, which stays at the top while its lines scroll under it, then its lines. */
+.c-blocks { padding-bottom: 30px; }
+.c-block + .c-block { margin-top: 16px; }
+.c-fhead { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 18px;
+           background: rgba(30, 30, 35, 0.96); border-bottom: 1px solid var(--rule); }
+.c-path { min-width: 0; font: var(--size-body) ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; cursor: text; }
+.c-path i { font-style: normal; color: var(--faint); }
+.c-chip { flex: none; font-size: var(--size-tag); font-weight: 600; padding: 1px 6px; border-radius: var(--radius-tag);
+          color: var(--muted); background: var(--tag); }
+.c-chip.new { color: var(--added); background: rgba(63, 185, 80, 0.12); }
+.c-chip.gone { color: var(--removed); background: var(--removed-fill); }
+.c-chip.shared { color: #b69cff; background: rgba(182, 156, 255, 0.13); }
+.c-grow { flex: 1; }
+.c-edwrap { position: relative; flex: none; }
+.c-open { font: inherit; font-size: var(--size-small); color: var(--muted); padding: 3px 9px; border: none;
+          border-radius: var(--radius-button); background: var(--button); white-space: nowrap; }
+.c-open.is-hover { color: var(--text); background: var(--hover-strong); }
+.c-picker { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; width: 240px; padding: 6px;
+            border-radius: var(--radius-menu); background: rgba(34, 34, 40, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45); }
+.c-pq { padding: 4px 8px 6px; font-size: var(--size-small); color: var(--muted); }
+.c-app { display: block; width: 100%; text-align: left; padding: 5px 8px; border: none;
+         border-radius: var(--radius-button); background: none; font: inherit; font-size: var(--size-body);
+         color: var(--text); }
+.c-app.is-hover { background: rgba(74, 168, 255, 0.25); }
+.c-later { margin-top: 4px; padding: 6px 8px 3px; font-size: var(--size-meta); color: var(--faint);
+           border-top: 1px solid var(--rule); }
+.c-aside { padding: 14px 18px; font-size: var(--size-body); color: var(--muted); }
+
+/* The lines: who changed each (a thin stripe in their colour), the old and new line numbers, the sign, the text. */
+.c-lines { width: 100%; border-collapse: collapse;
+          font: var(--size-body)/19px ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 4;
+          -webkit-user-select: text; cursor: text; }
+.c-lines td { padding: 0; vertical-align: top; }
+.c-lines .c-who { width: 3px; background: var(--who, transparent); }
+.c-lines .c-ln { width: 1%; min-width: 34px; padding: 0 8px 0 10px; text-align: right; color: rgba(255, 255, 255, 0.22);
+                white-space: nowrap; -webkit-user-select: none; }
+.c-lines .c-sg { width: 14px; text-align: center; color: rgba(255, 255, 255, 0.3); -webkit-user-select: none; }
+.c-lines .c-code { white-space: pre; padding-right: 24px; color: rgba(255, 255, 255, 0.82); }
+.c-lines tr.add td:not(.c-who), .c-lines td.add { background: var(--added-fill); }
+.c-lines tr.del td:not(.c-who), .c-lines td.del { background: var(--removed-fill); }
+.c-lines tr.add .c-sg, .c-lines td.c-sg.add { color: var(--added); }
+.c-lines tr.del .c-sg, .c-lines td.c-sg.del { color: var(--removed); }
+.c-lines tr.c-gap td { padding: 5px 0 5px 18px; font: var(--size-small) -apple-system, BlinkMacSystemFont, sans-serif;
+                      color: var(--faint); background: rgba(255, 255, 255, 0.025);
+                      border-block: 1px solid rgba(255, 255, 255, 0.04); }
+.c-lines tr.c-gap b { font-weight: 500; color: var(--muted); }
+.c-lines.split .c-code { width: 50%; white-space: pre-wrap; overflow-wrap: anywhere; }
+.c-lines.split td.blank { background: rgba(255, 255, 255, 0.02); }
+.c-lines.split .mid { border-left: 1px solid var(--rule); }
+.c-cm { color: var(--dim); font-style: italic; }
+.c-str { color: #a5d6ff; }
+/* A line the agent has just written lights up once, then settles to the added green. */
+@keyframes justWritten { 0%, 35% { background: rgba(63, 185, 80, 0.34); } 100% { background: var(--added-fill); } }
+.c-lines tr.live td:not(.c-who), .c-lines td.live { animation: justWritten 2s ease; }
+
+/* The card a row's numbers show when pointed at (changesCardHTML), in the PR card's place (#card). */
+.cc-big { display: flex; align-items: baseline; gap: 8px; }
+.cc-big b { font-size: var(--size-heading); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cc-big .add { color: var(--added); }
+.cc-big .del { color: var(--removed); }
+.cc-big span { color: var(--muted); font-size: var(--size-card); }
+.cc-lede { margin: 2px 0 10px; font-size: var(--size-card); color: var(--faint); }
+.cc-bar { display: flex; gap: 1px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--track); }
+.cc-bar i { display: block; min-width: 3px; }
+.cc-legend { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 5px 8px; align-items: center;
+             margin-top: 10px; font-size: var(--size-card); }
+.cc-sw { width: 8px; height: 8px; border-radius: var(--radius-bar); }
+.cc-name { min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-name.me { color: var(--text); font-weight: 500; }
+.cc-name small { font-size: var(--size-meta); font-weight: 400; color: var(--faint); }
+.cc-v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-total { display: flex; justify-content: space-between; margin-top: 9px; padding-top: 8px;
+            border-top: 1px solid var(--rule); font-size: var(--size-card); color: var(--muted); }
+.cc-total b { font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+.cc-proof { margin-top: 8px; font-size: var(--size-small); color: var(--muted); }
+.cc-hint { margin-top: 6px; font-size: var(--size-meta); color: var(--faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  .c-lines tr.live td, .c-lines td.live { animation: none !important; transition: none !important; }
+}

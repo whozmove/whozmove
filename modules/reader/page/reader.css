@@ -1,0 +1,33 @@
+/* What a session wrote, in the reader (writings.js): each writing's icon and how it stands, where it is, a prototype's
+   frame, and the answer under a plan Claude is waiting on. The reader's frame, its list and Markdown are the core's
+   (panel/styles/reader.css).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.r-icon { grid-row: span 2; margin-top: 2px; color: var(--plan-text); }
+.r-item.k-prototype .r-icon { color: var(--prototype-text); }
+.r-item.k-notes .r-icon { color: var(--muted); }
+.r-meta .st-wait { color: var(--needs-text); }
+.r-meta .st-ok { color: var(--done-text); }
+.r-meta .st-back { color: var(--turn-text); }
+.r-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; -webkit-user-select: text;
+          cursor: text; }
+.r-note { margin-top: 3px; }
+.r-open { border: none; background: none; padding: 0; font: inherit; color: var(--link); }
+.r-open.is-hover { text-decoration: underline; }
+.r-frame { display: block; width: 100%; height: 100%; border: none; margin-top: 10px; background: #fff; }
+
+/* Under a plan Claude is waiting on. */
+.r-ask { display: grid; gap: 9px; }
+.r-q { display: flex; align-items: center; gap: 8px; font-size: var(--size-body); color: var(--muted); }
+.r-q .dot { margin-top: 0; background: var(--needs); }
+.r-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.r-buttons button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
+                    color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
+.r-buttons button.is-hover { background: var(--button-hover); }
+.r-buttons button.perm-allow { background: var(--light); border-color: transparent; color: var(--on-light);
+                               font-weight: 600; }
+.r-buttons button.perm-allow.is-hover { background: var(--light-hover); }
+.r-buttons button:disabled { opacity: 0.4; }
+.r-buttons .r-stop { color: var(--needs-text); }
+.r-notes { min-height: 64px; resize: vertical; line-height: 1.45; }
+.r-done { font-size: var(--size-body); color: var(--muted); }

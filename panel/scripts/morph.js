@@ -35,15 +35,37 @@ function keptInOrder(moves) {
   for (let i = end; i >= 0; i = prev[i]) kept.add(moves[i].row);
   return kept;
 }
-const PARTS = ['.line1', '.you', '.claude', '.perm', '.where', '.setup', '.prs'];  // a row's lines, top to bottom
-// The text that counts as a change for each line (the live line's timer ticks every second; that doesn't).
+// A row's lines, top to bottom (rowHTML): the core's, with the lines the modules draw in its places put where those
+// are (core.lines, each with its `place`: the island under the details' first line, the pull requests at the end).
+// Listed once the modules start, when every line they draw is there (they add them as their scripts load).
+function listLines() {
+  const placed = (place) => Object.keys(core.lines).filter((sel) => core.lines[sel].place === place);
+  return ['.line1', '.you', '.claude', '.perm', '.where', ...placed('underWhere'), '.step-note', '.setup',
+          ...placed('after')];
+}
+let lineOrder = null;
+core.starts.push(() => { lineOrder = listLines(); });
+function rowParts() { return lineOrder ?? listLines(); }
+// The text that counts as a change for each line (the live line's timer ticks every second; that doesn't, and nor do
+// Deploy's button changing, which animates by itself, on the title line, the counts at the end of the details line,
+// which swap by themselves, or a line that animates by itself, as the island does each of its stages). A card is
+// another one when its data attributes are (which request, session or step it's for), or it shows another question, or
+// it was answered. The modules say what counts in their lines (core.lines' `text`).
 // (`:scope > .what`: a line's own text, not that of the copies rolling inside it.)
 const PART_TEXT = { '.you': (el) => el.querySelector(':scope > .what')?.textContent,
                     '.claude': (el) => el.dataset.mode + ' ' + el.querySelector(':scope > .what')?.textContent,
-                    '.perm': (el) => el.dataset.ask + ' ' + (el.querySelector('.q')?.dataset.q ?? '')
+                    '.perm': (el) => Object.values(el.dataset).join('') + ' '
+                                     + (el.querySelector('.q')?.dataset.q ?? '')
                                      + (el.querySelector('.perm-sent') ? ' sent' : ''),
-                    '.where': (el) => el.textContent, '.setup': (el) => el.querySelector('.agent')?.textContent,
-                    '.prs': (el) => el.textContent };
+                    '.where': (el) => [...el.childNodes].map((n) => (n.classList?.contains('end') ? '#' : n.textContent))
+                                     .join(''),
+                    '.step-note': (el) => el.textContent };
+const partText = (sel) => PART_TEXT[sel] ?? core.lines[sel]?.text;
+// Bits of a row that cross-fade when their text changes: its tag on the title line, and the modules' (core.swaps).
+const SWAPS = ['.stage'];
+let swapList = null;
+core.starts.push(() => { swapList = [...SWAPS, ...core.swaps]; });
+const swapsOf = () => swapList ?? [...SWAPS, ...core.swaps];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
 function rowKey(row) { return row.dataset.id + (row.closest('.pinned') ? ':pinned' : ''); }
@@ -61,12 +83,14 @@ function snapshot(list) {
   rows.heads = heads;
   for (const row of list.querySelectorAll('.row[data-id]')) {
     const parts = {};
-    for (const sel of PARTS) {
+    for (const sel of rowParts()) {
       const el = row.querySelector(':scope > .main > ' + sel);
-      if (el) parts[sel] = { el, text: PART_TEXT[sel]?.(el), height: el.offsetHeight };
+      // `shape`: where a line that animates by itself had its parts (the island's segments), to animate from.
+      const line = core.lines[sel];
+      if (el) parts[sel] = { el, text: partText(sel)?.(el), height: el.offsetHeight, shape: line?.shape?.(el) };
     }
     rows.set(rowKey(row), { ...place(list, row), height: row.offsetHeight, parts, el: row,
-                            stage: row.querySelector('.stage')?.textContent,
+                            swaps: swapsOf().map((sel) => row.querySelector(sel)?.textContent),
                             // in a folded group
                             hidden: !!row.closest('.closed') || (row.closest('.prows')?.offsetHeight ?? 2) < 2 });
   }
@@ -74,12 +98,12 @@ function snapshot(list) {
 }
 
 // Animates an element's inline styles from `from` to `to` over `ms`, then clears them.
-function tween(el, from, to, done, ms = MORPH_MS) {
+function tween(el, from, to, done, ms = MORPH_MS, ease = MORPH_EASE) {
   el.style.transition = 'none';
   Object.assign(el.style, from);
   el.offsetHeight;  // apply the start before animating from it
   el.style.transition = Object.keys(to)
-    .map((k) => `${k.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())} ${ms}ms ${MORPH_EASE}`).join(', ');
+    .map((k) => `${k.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase())} ${ms}ms ${ease}`).join(', ');
   Object.assign(el.style, to);
   setTimeout(() => {
     el.style.transition = '';
@@ -133,36 +157,54 @@ function fadeAway(list, old, ms = MORPH_MS) {
         { opacity: '0', transform: 'translateY(-4px) scale(0.98)' }, () => ghost.remove(), ms);
 }
 
+// Which card on the list a box is in, by the card's data attributes (which request, session or step it's for), so the
+// rebuild finds it again: to leave a box being read where it was scrolled to (a request, the extra stage's command,
+// which has to be read to its end), and to keep the box being typed in with its caret. Null outside a card.
+function cardOf(box) {
+  const card = box.closest('.perm');
+  return card ? Object.entries(card.dataset).map(([key, value]) => `${key}:${value}`).join(' ') : null;
+}
+
+// The list's own box easing from its old height to its new one (morph), kept so that a rebuild or a group's slide
+// during it can stop it where it is.
+let listResize = null;
+
 function morph(list, html) {
   const before = state.morphed && !calm.matches ? snapshot(list) : null;
-  const scrolled = new Map([...list.querySelectorAll('.perm[data-ask] .perm-detail')]
-    .map((d) => [d.closest('.perm').dataset.ask, d.scrollTop]));
-  const typing = document.activeElement?.closest?.('.q-type');  // keep focus and caret in an answer box being typed in
-  const typedIn = typing?.closest('.perm');
-  const caret = typing && { card: typedIn.dataset.ask ? `.perm[data-ask="${typedIn.dataset.ask}"]`
-                                                      : `.perm[data-compact="${typedIn.dataset.compact}"]`,
-                            q: typing.dataset.q, start: typing.type === 'number' ? null : typing.selectionStart,
-                            end: typing.type === 'number' ? null : typing.selectionEnd };
+  const wasHeight = before ? list.offsetHeight : 0;  // as it shows now, even partway through easing
+  const scrolled = new Map([...list.querySelectorAll('.perm .perm-detail')].map((d) => [cardOf(d), d.scrollTop]));
+  // Keep focus and caret in an answer box on the list being typed in (not one beside it, as the reader's).
+  const typing = document.activeElement?.closest?.('.perm .q-type'), typedIn = typing && list.contains(typing);
+  const caret = typedIn && { card: cardOf(typing), q: typing.dataset.q,
+                             start: typing.type === 'number' ? null : typing.selectionStart,
+                             end: typing.type === 'number' ? null : typing.selectionEnd };
   list.innerHTML = html;
-  for (const d of list.querySelectorAll('.perm[data-ask] .perm-detail'))
-    d.scrollTop = scrolled.get(d.closest('.perm').dataset.ask) || 0;
+  listResize?.cancel();
+  for (const drawn of core.drawn) drawn(list);  // what the modules size from the new HTML (the island's gauges)
+  for (const d of list.querySelectorAll('.perm .perm-detail')) d.scrollTop = scrolled.get(cardOf(d)) || 0;
   if (caret) {
-    const box = [...list.querySelectorAll(`${caret.card} .q-type${caret.q != null ? `[data-q="${caret.q}"]` : ''}`)]
-      .find((b) => !b.closest('.closed'));
+    const box = [...list.querySelectorAll(`.perm .q-type${caret.q != null ? `[data-q="${caret.q}"]` : ''}`)]
+      .find((b) => cardOf(b) === caret.card && !b.closest('.closed'));
     if (box) { box.focus(); if (caret.start != null) box.setSelectionRange(caret.start, caret.end); }
   }
   state.morphed = true;
   if (!before) return;
+  const height = list.offsetHeight;  // as rebuilt, before the lines below are given their starting sizes
   let changed = false;
   const rows = [];
   for (const row of list.querySelectorAll('.row[data-id]')) {
     const old = before.get(rowKey(row));
-    if (!old) { row.classList.add('arrive'); changed = true; continue; }
+    if (!old) {
+      if (!row.classList.contains('landing')) row.classList.add('arrive');  // a new conversation's row arrives by rising
+      changed = true;
+      continue;
+    }
     if (old.hidden || row.closest('.closed')) continue;  // in a collapsed group: its own slide handles it
     const main = row.querySelector(':scope > .main');
     let grewOrShrank = false;
-    PARTS.forEach((sel, i) => {
-      const el = main.querySelector(':scope > ' + sel), was = old.parts[sel];
+    const lines = rowParts();
+    lines.forEach((sel, i) => {
+      const el = main.querySelector(':scope > ' + sel), was = old.parts[sel], line = core.lines[sel];
       if (el && !was) {  // a new line: grow it in
         const h = el.offsetHeight, cs = getComputedStyle(el), box = {};
         for (const k of BOX_KEYS) box[k] = cs[k];
@@ -170,17 +212,19 @@ function morph(list, html) {
         tween(el, { height: '0px', ...FLAT, opacity: '0', transform: 'translateY(-4px)' },
                   { height: h + 'px', ...box, opacity: '1', transform: 'translateY(0)' },
                   () => { el.style.overflow = ''; });
+        line?.grow?.(el);  // how a module's line comes in, beside growing (the island's capsule springs open)
         grewOrShrank = changed = true;
       } else if (!el && was) {  // a line that's gone: a copy folds away where it was
         const ghost = was.el.cloneNode(true);
-        const next = PARTS.slice(i + 1).map((s) => main.querySelector(':scope > ' + s)).find(Boolean);
+        const next = lines.slice(i + 1).map((s) => main.querySelector(':scope > ' + s)).find(Boolean);
         main.insertBefore(ghost, next || null);
         ghost.style.overflow = 'hidden';
         ghost.style.pointerEvents = 'none';
         tween(ghost, { height: was.height + 'px', opacity: '1' },
                      { height: '0px', ...FLAT, opacity: '0' }, () => ghost.remove());
+        line?.fold?.(ghost);  // and how it goes
         grewOrShrank = changed = true;
-      } else if (el && was && PART_TEXT[sel] && PART_TEXT[sel](el) !== was.text) {  // new text in the same line
+      } else if (el && was && partText(sel) && partText(sel)(el) !== was.text) {  // new text in the same line
         // Your message (rolling up), and Claude's line turning from one thing to another (its reply arriving where
         // it was working, or the start of a turn, rolling down) roll like a ticker; the next step while it works
         // cross-fades.
@@ -188,13 +232,16 @@ function morph(list, html) {
         if (sel === '.you' || (sel === '.claude' && !step)) {
           rollLine(row, el, was, sel === '.claude');
           grewOrShrank = true;
-        } else (step ? el.querySelector(':scope > .what') : sel === '.setup' ? el.querySelector('.agent') : el)
-          ?.classList.add('swap');
+        } else (step ? el.querySelector(':scope > .what') : line?.swap ? line.swap(el) : el)?.classList.add('swap');
+        changed = true;
+      } else if (el && was && line?.morph?.(el, was.shape)) {  // a line that animates by itself (the island)
         changed = true;
       }
     });
-    const stage = row.querySelector('.stage');
-    if (stage && stage.textContent !== old.stage) { stage.classList.add('swap'); changed = true; }
+    swapsOf().forEach((sel, i) => {
+      const bit = row.querySelector(sel);
+      if (bit && bit.textContent !== old.swaps[i]) { bit.classList.add('swap'); changed = true; }
+    });
     // A row whose height changed for another reason (a reply that now wraps to two lines) resizes.
     const height = row.offsetHeight, from = {}, to = {};
     if (!grewOrShrank && Math.abs(height - old.height) > 1) {
@@ -229,6 +276,13 @@ function morph(list, html) {
     tween(row, from, to, () => { row.style.overflow = ''; row.classList.remove('glide'); }, ms);
     changed = true;
   }
+  // The list's own box eases between its heights with the rows, so what's below it (the usage strip) and the panel's
+  // bottom edge move with them, rather than jumping to where they end up while the rows are still on their way.
+  if (Math.abs(height - wasHeight) > 1) {
+    listResize = list.animate([{ height: `${wasHeight}px` }, { height: `${height}px` }],
+                              { duration: MORPH_MS, easing: MORPH_EASE });
+    changed = true;
+  }
   if (changed) {  // the panel follows the list's height while it animates; rebuilds wait till it's done
     const started = performance.now();
     state.settleUntil = started + MORPH_MS + 40;
@@ -239,6 +293,16 @@ function morph(list, html) {
   }
 }
 
+// Keeps the panel's window the height of its page, frame by frame, for `ms`: for motion outside the list (the usage
+// strip's), which changes the page's height as it goes.
+function followHeight(ms) {
+  const until = performance.now() + ms;
+  (function follow() {
+    reportHeight();
+    if (performance.now() < until) requestAnimationFrame(follow);
+  })();
+}
+
 // Opens or closes a group in place: the chevron turns and the body slides between zero and its full
 // height, with the panel following frame by frame. The list isn't rebuilt meanwhile (render waits
 // for `sliding`), or the slide would be cut short; the render after it settles the final state.
@@ -246,6 +310,7 @@ const SLIDE_MS = 200;
 function slideGroup(header, collapse) {
   const body = header?.nextElementSibling;
   if (!body?.classList.contains('prows')) return render();
+  listResize?.cancel();  // the list's height follows the slide instead
   header.classList.toggle('collapsed', collapse);
   if (!collapse && body.nextElementSibling?.classList.contains('pinned')) body.nextElementSibling.remove();
   const full = body.scrollHeight;

@@ -1,0 +1,16 @@
+
+== Now playing (now-playing.js)
+playing, as the app found it: {"state":"playing","track":"spotify:track:1","title":"Example Song","artist":"Example Artist","art":null,"progress":0.3,"clock":"1:00","note":null}
+playing, 7s later: the line and the time move on: {"state":"playing","track":"spotify:track:1","title":"Example Song","artist":"Example Artist","art":null,"progress":0.335,"clock":"1:07","note":null}
+never past the end: 3:20
+paused just now: the time stands still, and says so: {"state":"paused","track":"spotify:track:1","title":"Example Song","artist":"Example Artist","art":null,"progress":0.3,"clock":"Paused","note":null}
+paused 14 minutes: still in the strip: paused
+paused 15 minutes: folded into the token: hidden
+found paused (Whozmove just started): in the token: hidden
+nothing playing: hidden
+with a cover: https://i.scdn.co/image/ab67
+no title or length: {"state":"playing","track":"spotify:track:1","title":"Unknown song","artist":"Example Artist","art":null,"progress":0,"clock":"1:00","note":null}
+the first note, until seen: first
+not allowed: the note says what to do, even before the first is seen: refused
+allowed: null
+an hour-long song: 1:02:05

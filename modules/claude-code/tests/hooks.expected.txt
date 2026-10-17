@@ -1,0 +1,284 @@
+== 1 prompt
+exit=0
+   activity = "Thinking"
+   activityAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = []
+== 2 pre bash with description
+exit=0
+   activity = "Run the tests"
+   activityAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = []
+== 3 post bash tests
+exit=0
+   activity = "Run the tests"
+   activityAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = ["Tested"]
+   workSteps = ["Tested"]
+== 4 pre edit
+exit=0
+   activity = "Editing a.py"
+   activityAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = ["Tested"]
+   workSteps = ["Tested"]
+== 5 post edit
+exit=0
+   activity = "Editing a.py"
+   activityAt = "ms"
+   editedAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = ["Tested", "Implemented"]
+   workRoot = "T/repo"
+   workSteps = ["Tested"]
+== 6 post git commit (heredoc message mentions deploy to prod)
+exit=0
+   activity = "Editing a.py"
+   activityAt = "ms"
+   editedAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = null
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = ["Tested", "Implemented", "Committed"]
+   workCommitted = true
+   workRoot = "T/repo"
+   workSteps = ["Tested"]
+== 7 notification
+exit=0
+   activity = "Editing a.py"
+   activityAt = "ms"
+   editedAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   notice = "Claude needs your permission to use Bash"
+   noticeAt = "ms"
+   noticeType = "permission_prompt"
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = ["Tested", "Implemented", "Committed"]
+   workCommitted = true
+   workRoot = "T/repo"
+   workSteps = ["Tested"]
+== 8 stop
+exit=0
+   activity = null
+   activityAt = "ms"
+   editedAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   lastReply = "All done."
+   lastReplyAt = "ms"
+   notice = null
+   noticeAt = "ms"
+   noticeType = "permission_prompt"
+   outcome = "Committed"
+   outcomeAt = "ms"
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = []
+   workCommitted = true
+   workRoot = "T/repo"
+   workSteps = ["Tested"]
+== 9 subagent pre (agent_id)
+exit=0
+   activity = null
+   activityAt = "ms"
+   editedAt = "ms"
+   lastPrompt = "please fix the tests"
+   lastPromptAt = "ms"
+   lastReply = "All done."
+   lastReplyAt = "ms"
+   notice = null
+   noticeAt = "ms"
+   noticeType = "permission_prompt"
+   outcome = "Committed"
+   outcomeAt = "ms"
+   permissionMode = "auto"
+   stageAt = "ms"
+   turnReached = []
+   workCommitted = true
+   workRoot = "T/repo"
+   workSteps = ["Tested"]
+== 10 mcp + webfetch + agent
+exit=0
+   activity = "Docs: get page content"
+   activityAt = "ms"
+   stageAt = "ms"
+exit=0
+   activity = "Calendar: list events"
+   activityAt = "ms"
+   stageAt = "ms"
+exit=0
+   activity = "Search pages"
+   activityAt = "ms"
+   stageAt = "ms"
+exit=0
+   activity = "Reading docs.example.com"
+   activityAt = "ms"
+   stageAt = "ms"
+exit=0
+   activity = "Reading docs.example.com"
+   activityAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Researched"]
+== 11 malformed input
+exit=0
+exit=0
+exit=0
+== 12 deploy to prod via kubectl
+exit=0
+exit=0
+   activity = null
+   activityAt = "ms"
+   lastReply = "deployed"
+   lastReplyAt = "ms"
+   notice = null
+   outcome = "Deployed"
+   outcomeAt = "ms"
+   stageAt = "ms"
+   turnReached = []
+== 13 a build: when it was built is noted
+exit=0
+   builtAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Built"]
+   workSteps = ["Built"]
+== P1 panel not running
+exit=0
+0
+== P0 stale panel.pid (another process)
+exit=0
+0
+== P2 allow
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow"}}}
+exit=0
+   left in asks: 0
+== P3 deny
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}
+exit=0
+   left in asks: 0
+== P4 question answers
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool AskUserQuestion session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {"questions": [{"question": "Q1?", "options": [{"label": "a"}, {"label": "b"}]}], "answers": {"Q1?": "a"}}}}}
+exit=0
+   left in asks: 0
+== P5 answers ignored for other tools
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow"}}}
+exit=0
+   left in asks: 0
+== P6 question dismissed
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool AskUserQuestion session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user chose not to answer these questions."}}}
+exit=0
+   left in asks: 0
+== P7 cancelled by Claude (SIGTERM)
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+exit=0
+   left in asks: 0
+== P7a plan sent back with notes
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool ExitPlanMode session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user wants changes to the plan: Split step 2."}}}
+exit=0
+   left in asks: 0
+== P7b plan stopped
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool ExitPlanMode session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "interrupt": true, "message": "The user stopped here and doesn't want this plan carried out."}}}
+exit=0
+   left in asks: 0
+== P7c plan dismissed without notes
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool ExitPlanMode session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}
+exit=0
+   left in asks: 0
+== P7d a plan is never allowed from the panel
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool ExitPlanMode session s1
+   still waiting
+exit=0
+   left in asks: 0
+== P7e notes and stop ignored for other tools
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}
+exit=0
+   left in asks: 0
+== P8 malformed input
+exit=0
+== P9 sub-agent request
+exit=0
+0
+== P11 non-interactive session
+exit=0
+0
+== P12 unknown session
+exit=0
+0
+== P13 list input
+exit=0
+0
+== perms
+700 T/Library/Application Support/Whozmove
+700 T/Library/Application Support/Whozmove/sessions
+600 T/Library/Application Support/Whozmove/sessions/s1.json
+== S1 answered in Claude (result written)
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S2 call written to the transcript only after the hook started
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S3 Claude Code gives the call id
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S4 a hook-progress line and another call's result don't count; the panel's answer still does
+   request shown: 1
+   still waiting after 3s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user chose not to answer these questions."}}}] exit=0, requests left: 0
+== S5 the session ends
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== the plugin's hooks
+   Notification: python3 hooks/whozmove-claude.py async
+   PermissionRequest: python3 hooks/whozmove-claude-permission.py timeout 3600
+   PostToolUse: python3 hooks/whozmove-claude.py async
+   PostToolUseFailure: python3 hooks/whozmove-claude.py async
+   PreToolUse: python3 hooks/whozmove-claude.py async
+   Stop: python3 hooks/whozmove-claude.py async
+   UserPromptSubmit: python3 hooks/whozmove-claude.py async
+   the permission hook stops waiting first: True
+   the plugin's version is the app's: True

@@ -1,0 +1,5 @@
+{
+  "order": 80,
+  "scripts": ["page/claude-desktop.js", "page/switch-model.js"],
+  "styles": []
+}

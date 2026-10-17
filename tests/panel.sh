@@ -9,12 +9,7 @@
 # Needs nothing beyond macOS. Takes under a second.
 cd "$(dirname "$0")/.." || exit 1
 REPO=$PWD
-JSC=/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc
-[ -x "$JSC" ] || { echo "Couldn't find macOS's jsc at $JSC"; exit 1; }
-
-# The page's scripts, in the order it loads them: each <script src> in panel/panel.html.
-srcs=$(sed -n 's|^<script src="\(.*\)"></script>$|panel/\1|p' panel/panel.html)
-
-out=$("$JSC" tests/panel-cases.js -- $srcs 2>&1)
+. "$REPO/tests/lib.sh"
 . "$REPO/tests/compare.sh"
+out=$(page_cases tests/panel-cases.js) || { echo "$out"; exit 1; }
 compare Panel "$REPO/tests/panel.expected.txt" "$out" "${1:-}"

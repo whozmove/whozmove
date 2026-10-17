@@ -1,0 +1,75 @@
+== 1 an agent, with no deploy command saved: straight into ~/Applications, and nothing else is restarted
+<work>/Whozmove.app: replacing existing signature
+Built T/Applications/Whozmove.app
+installed: branch=main changes=False claude=T/bin/claude root=T/repo commit: 40 digits
+the app in ~/Applications: replaced
+== 2 an agent, with Whozmove's deploy command saved and the panel running: it only compiles
+<work>/Whozmove.app: replacing existing signature
+Built, not put in place: press Deploy on this session's row in Whozmove, or run ./build.sh in a terminal outside Claude Code.
+the app in ~/Applications: as it was
+== 3 an agent in a worktree (the repo's command covers it), even with --now: it only compiles
+<work>/Whozmove.app: replacing existing signature
+--now is for running it yourself; leaving it to Deploy in Whozmove instead.
+Built, not put in place: press Deploy on this session's row in Whozmove, or run ./build.sh in a terminal outside Claude Code.
+the app in ~/Applications: as it was
+== 3b the same with Show Deploy off in the panel, so no row has the button to press: straight in
+<work>/Whozmove.app: replacing existing signature
+Built T/Applications/Whozmove.app
+the app in ~/Applications: replaced
+== 4 you, in your terminal: straight in
+<work>/Whozmove.app: replacing existing signature
+Built T/Applications/Whozmove.app
+installed: branch=fix-hover changes=False claude=T/bin/claude mainRoot=T/repo root=T/fix-hover worktree=fix-hover worktreeOf=repo commit: 40 digits
+the app in ~/Applications: replaced
+== 5 an agent, with the command saved but the panel not running: straight in
+<work>/Whozmove.app: replacing existing signature
+Built T/Applications/Whozmove.app
+installed: branch=main changes=False claude=T/bin/claude root=T/repo commit: 40 digits
+the app in ~/Applications: replaced
+== 6 with the plugin installed (older hooks): the hooks go in too, and Claude Code is told
+<work>/Whozmove.app: replacing existing signature
+Hooks updated (0.1.0+<hash>): sessions started from now on use them
+Built T/Applications/Whozmove.app
+hooks installed: 0.1.0+<hash>
+claude was asked:
+claude plugin marketplace update whozmove
+claude plugin update whozmove@whozmove
+== 7 the same hooks again: Claude Code isn't asked again
+<work>/Whozmove.app: replacing existing signature
+Built T/Applications/Whozmove.app
+claude was asked:
+claude plugin marketplace update whozmove
+claude plugin update whozmove@whozmove
+== 7b an agent's build, with the panel not running, and other hooks installed: the app goes in, the hooks don't
+<work>/Whozmove.app: replacing existing signature
+The app is in place, but its hooks aren't, as an agent built it: run ./build.sh in your terminal, or press Deploy, to put them in place too
+Built T/Applications/Whozmove.app
+the app in ~/Applications: replaced
+hooks installed: 0.0.2+<hash>
+claude was asked: nothing
+== 8 restarting: the app running from ~/Applications is, the stand-in running from elsewhere isn't; the new copy
+   starts with nothing of the environment of what restarted it (an agent's, here) but who and where you are
+exit=0
+Restarted Whozmove (the copy running from T/Applications/Whozmove.app)
+exit=0
+the old one has stopped
+a new one is running from T/Applications
+it started with: HOME LOGNAME PATH USER (HOME=T)
+== 9 one that doesn't quit when asked is made to, and only then started again
+Restarted Whozmove (the copy running from T/Applications/Whozmove.app)
+exit=0
+the old one has stopped
+a new one is running from T/Applications
+== 10 the login item runs the app, but the copy running is one opened another way (after Quit): that copy is
+   stopped first, as the login item's new one would bow out to it, then the login item is restarted
+Restarted Whozmove (its login item)
+exit=0
+the copy opened another way has stopped
+launchctl was asked:
+launchctl kickstart -k gui/<uid>/com.whozmove.app
+== 11 the login item's own copy is the one running: just the login item is restarted
+Restarted Whozmove (its login item)
+exit=0
+its copy is left to launchctl to restart
+launchctl was asked:
+launchctl kickstart -k gui/<uid>/com.whozmove.app

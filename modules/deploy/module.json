@@ -1,0 +1,5 @@
+{
+  "order": 20,
+  "scripts": ["page/deploys.js", "page/deploy-row.js"],
+  "styles": []
+}

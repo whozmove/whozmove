@@ -1,0 +1,165 @@
+// ClaudeCodePrints: the Claude Code module's print modes, which the tests check: --print-mode-moves, --print-typing,
+// --print-results, --print-usage and --print-trust.
+// Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+#import "ClaudeCode.h"
+#import "Core.h"
+#import "Modules.h"
+#import "Row.h"
+#import "Files.h"
+#import "Printing.h"
+#import "ClaudeCodeFacts.h"
+#import "AgentDetails.h"
+#import "ClaudeUsage.h"
+#import "Prompt.h"
+#import "Results.h"
+#import "Trust.h"
+
+// The module in a print run's core.
+static ClaudeCode *AgentIn(Core *core) {
+    for (id module in core.modules.all)
+        if ([module isKindOfClass:ClaudeCode.class]) return module;
+    return nil;
+}
+
+// `Whozmove --print-mode-moves`: for each terminal session in $HOME, why keys can't go into it now (null when they
+// can), why the one Backspace a request may press while Claude works can't go in now (WhyNotEditDraft), and the
+// Shift+Tabs its mode menu would type to reach each mode (null where it offers none), as JSON, then quit.
+// tests/rows.sh checks them: a wrong answer types into a session that isn't safe to type into, and a wrong count
+// lands a session in another mode.
+static int PrintModeMoves(Core *core) {
+    ClaudeCode *agent = AgentIn(core);
+    NSMutableDictionary *sessions = [NSMutableDictionary dictionary];
+    for (Row *row in SettledRows(core)) {
+        if ([core hostHolding:row] || !row.sessionId)  // a conversation an app keeps (Claude Desktop's) has no tab
+            continue;
+        NSArray *cycles = [agent.details modeCyclesFor:row];
+        NSMutableDictionary *moves = [NSMutableDictionary dictionary];
+        for (NSArray<NSString *> *choice in ModeChoices()) {
+            NSInteger presses = [agent.details shiftTabsFrom:row.agent[@"mode"] to:choice[0] cycles:cycles];
+            moves[choice[0]] = presses > 0 ? @(presses) : NSNull.null;
+        }
+        Reason *why = WhyNotTypeInto(row.sessionId, row.pid), *edit = WhyNotEditDraft(row.sessionId, row.pid);
+        sessions[row.sessionId] = @{@"mode": row.agent[@"mode"] ?: @"", @"possibleCycles": cycles,
+                                        @"presses": moves,
+                                        @"whyNotType": why ? @{@"log": why.description, @"card": why.onCard}
+                                                           : NSNull.null,
+                                        @"whyNotEditDraft": edit ? edit.description : NSNull.null};
+    }
+    return PrintJSON(sessions);
+}
+
+// A terminal that writes down every key it's asked to put in, for --print-typing.
+@interface RecordingTerminal : NSObject <TypingHost>
+@property (strong) NSMutableArray<NSString *> *keys;
+@end
+
+@implementation RecordingTerminal
+- (NSString *)appId { return @"test"; }
+- (NSString *)name { return @"Test"; }
+- (NSString *)tabFor:(Row *)row unique:(BOOL *)unique { *unique = YES; return @"tab"; }
+- (BOOL)open:(Row *)row { return YES; }
+- (void)type:(NSString *)text inTab:(NSString *)tab { [self.keys addObject:[@"text " stringByAppendingString:text]]; }
+- (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab {
+    NSString *name = @[@"Return", @"Backspace", @"Shift+Tab", @"Ctrl+S"][key];
+    [self.keys addObject:[NSString stringWithFormat:@"%@ ×%ld", name, (long)times]];
+}
+@end
+
+// `Whozmove --print-typing`: the keys a slash command is typed with, once into a session that stays at its prompt
+// and once into one that turns busy after two keys, as JSON, then quit. tests/rows.sh checks them: a key out of
+// place, or one more after the session has moved on, could answer a prompt.
+static int PrintTyping(void) {
+    NSMutableDictionary *runs = [NSMutableDictionary dictionary];
+    for (NSString *run in @[@"stays at its prompt", @"turns busy after two keys"]) {
+        RecordingTerminal *terminal = [RecordingTerminal new];
+        terminal.keys = [NSMutableArray array];
+        __block NSUInteger checked = 0;
+        NSUInteger safe = [run hasPrefix:@"stays"] ? NSUIntegerMax : 2;
+        TypeCommand(terminal, @"tab", @"/model claude-opus-5-5",
+                    ^{ return checked++ < safe ? nil : [Reason status:@"busy"]; },
+                    ^(Reason *why, NSUInteger typed, NSUInteger steps) {
+            if (!why) DeleteFiller(terminal, @"tab");
+            runs[run] = @{@"keys": terminal.keys, @"stopped": why ? why.description : NSNull.null};
+        });
+    }
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5];
+    while (deadline.timeIntervalSinceNow > 0 && runs.count < 2)
+        [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.02]];
+    return PrintJSON(runs);
+}
+
+// `Whozmove --print-results <command> <transcript>…`: for each pair, by the transcript's name, what's read from it as
+// the command's result, all of it being new (CommandResult), and what the panel takes that result to say: the value
+// now in effect for the field the command changes (null: it changed nothing), whether the pick was saved as the default
+// for new sessions, and for /compact, what its card says (null: it compacted). As JSON, then quit. tests/rows.sh
+// checks them against results written the way Claude Code writes them.
+static int PrintResults(NSArray<NSString *> *arguments) {
+    NSMutableDictionary *out = [NSMutableDictionary dictionary];
+    for (NSUInteger i = 0; i + 1 < arguments.count; i += 2) {
+        NSString *command = arguments[i], *file = arguments[i + 1];
+        NSString *name = [[command componentsSeparatedByString:@" "].firstObject substringFromIndex:1];
+        NSString *rest = [command substringFromIndex:MIN(command.length, name.length + 2)];
+        NSString *field = [name isEqual:@"plan"] ? @"mode" : name, *value = [name isEqual:@"plan"] ? @"plan" : rest;
+        NSString *result = CommandResult(file, 0, command);
+        NSMutableDictionary *read = [@{@"command": command, @"result": result ?: NSNull.null,
+                                       @"applies": ResultApplies(field, value, result) ?: NSNull.null,
+                                       @"savedDefault": @(ResultSavedDefault(result))} mutableCopy];
+        if ([field isEqual:@"compact"]) read[@"compactNote"] = CompactNote(result) ?: NSNull.null;
+        out[file.lastPathComponent] = read;
+    }
+    return PrintJSON(out);
+}
+
+// `Whozmove --print-usage <file>…`: for each file, by its name, what the usage strip would take from it as Claude
+// Code's output (the usage request's answer, read line by line, or null) and as `claude auth status`'s (signedIn,
+// signedOut or null); then where `claude` is looked for, for the PATH in $USAGE_PATH and the home folder in $HOME; as
+// JSON, then quit. tests/rows.sh checks them against recorded answers and sample installs.
+static int PrintUsage(NSArray<NSString *> *files) {
+    MachineFilesInHome = YES;
+    NSMutableDictionary *read = [NSMutableDictionary dictionary];
+    for (NSString *file in files) {
+        NSData *data = [NSData dataWithContentsOfFile:file] ?: NSData.data;
+        id usage = NSNull.null;
+        for (NSString *line in [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]
+                                componentsSeparatedByString:@"\n"]) {
+            NSDictionary *answer = line.length ? UsageFromReply([line dataUsingEncoding:NSUTF8StringEncoding]) : nil;
+            if (answer) {
+                usage = answer;
+                break;
+            }
+        }
+        read[file.lastPathComponent] = @{@"usage": usage, @"auth": AuthStateFrom(data) ?: NSNull.null};
+    }
+    NSString *path = NSProcessInfo.processInfo.environment[@"USAGE_PATH"] ?: @"";
+    NSMutableArray *candidates = [NSMutableArray array];  // from the home folder, so they read the same everywhere
+    for (NSString *claude in ClaudeCandidates(path))
+        [candidates addObject:[claude hasPrefix:Home()]
+                                  ? [@"~" stringByAppendingString:[claude substringFromIndex:Home().length]]
+                                  : claude];
+    return PrintJSON(@{@"files": read, @"candidates": candidates});
+}
+
+// `Whozmove --print-trust [--trust <folder>] <folder>…`: whether Claude may work in each folder, as Claude Code's state
+// file in $HOME has it, as JSON, then quit. With --trust, it's recorded for that folder first, and the result shows as
+// "trusting": null once done, else why not.
+static int PrintTrust(NSArray<NSString *> *arguments) {
+    NSMutableDictionary *out = [NSMutableDictionary dictionary];
+    NSMutableArray *folders = [arguments mutableCopy];
+    NSUInteger at = [folders indexOfObject:@"--trust"];
+    if (at != NSNotFound && at + 1 < folders.count) {
+        out[@"trusting"] = TrustFolder(folders[at + 1]) ?: NSNull.null;
+        [folders removeObjectsInRange:NSMakeRange(at, 2)];
+    }
+    for (NSString *folder in folders) out[folder] = @(FolderTrusted(folder));
+    return PrintJSON(out);
+}
+
+NSDictionary<NSString *, PrintMode> *ClaudeCodePrintModes(void) {
+    return @{
+        @"--print-mode-moves": ^(Core *core, NSArray *a) { return PrintModeMoves(core); },
+        @"--print-typing": ^(Core *core, NSArray *a) { return PrintTyping(); },
+        @"--print-results": ^(Core *core, NSArray *a) { return PrintResults(a); },
+        @"--print-usage": ^(Core *core, NSArray *a) { return PrintUsage(a); },
+        @"--print-trust": ^(Core *core, NSArray *a) { return PrintTrust(a); },
+    };
+}
