@@ -21,11 +21,12 @@ built_app() {
   echo "$1/Whozmove"
 }
 
-# JSON with its times (ms since 1970) as "now-<minutes>m", so it reads the same on every run.
+# JSON with its times (ms since 1970) as "now-<minutes>m", so it reads the same on every run. Given when its samples
+# were written (seconds since 1970), it counts from then, so a slow machine can't move them by a minute.
 in_minutes() {
 python3 -c '
 import json, sys, time
-now = time.time()
+now = float(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1] else time.time()
 def stable(value):
     if isinstance(value, dict):
         return {k: stable(v) for k, v in value.items()}
@@ -33,7 +34,7 @@ def stable(value):
         return "now-%dm" % round((now - value / 1000) / 60)
     return value
 print(json.dumps(stable(json.load(sys.stdin)), indent=2, sort_keys=True, ensure_ascii=False))
-'
+' "${1:-}"
 }
 
 # A file of the page's cases, run as tests/panel.sh runs the core's: with macOS's JavaScriptCore, in UTC so the clock

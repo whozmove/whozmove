@@ -180,6 +180,7 @@ stage_command = sys.argv[9]
 run_pid = int(sys.argv[10])
 clone_pid = int(sys.argv[11])
 now = time.time()
+open(os.path.join(T, "written-at"), "w").write(repr(now))  # what Deploy's sample runs are counted from (in_minutes)
 
 def ms(minutes_ago):
     return int((now - minutes_ago * 60) * 1000)
@@ -615,7 +616,8 @@ echo "   each line credited as the rest are, with the commit it's from"
 HOME="$T" "$APP" --print-changes s-topic commits | sed -E 's/"v" : [0-9]+/"v" : "v"/'
 echo "== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the"
 echo "   page is told it"
-HOME="$T" "$APP" --print-deploys "$T"/projects/* | in_minutes
+# Their times count from when the runs were written, however long the tests above took.
+HOME="$T" "$APP" --print-deploys "$T"/projects/* | in_minutes "$(cat "$T/written-at")"
 echo "== What the set-up card is told a command really runs, and whether that looks as if it could reach production"
 HOME="$T" "$APP" --print-deploy-checks "$T/check-project" "make install" "make deploy-local" "make" \
   "npm run deploy:local" "pnpm deploy:local" "yarn run install:local" "NODE_ENV=dev npm run ship && make install" \
