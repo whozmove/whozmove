@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **A line under the header says when setting up needs you**, with the button that does it: **Install** for Apple's
+  command line developer tools, which your sessions are followed with (the line stays until they're in, says so while
+  macOS installs them, and carries on by itself once they are); **Get Claude Code** when it isn't on this Mac; **Add
+  Back** or **Turn On** when Whozmove's plugin was taken out of Claude Code or turned off there; **Try Again** when
+  connecting failed; and that it's connected, with a tick, for a few seconds once it is. It eases open under the header, the rows moving down with
+  it, and its × puts it away until things change. What it asks stays on the panel's back: Git's page says how the
+  developer tools stand, with Install, Show Next Steps waiting for them, and Claude's page says how Whozmove's plugin
+  stands, with the same buttons.
+- **Claude's page on the panel's back is there on every Mac**, for Claude as a whole: Claude Code's settings are
+  there, and **Track Claude Desktop app sessions**, which, turned off, leaves Claude Desktop's conversations out of the
+  list and has new conversations start only in a terminal. On a Mac without Claude Desktop, **Get Claude Desktop**
+  opens its download page. The card for a new conversation no longer offers Claude Desktop where there isn't one.
 - Click a request or a question on a row and the keys work on it: 1 to 9, or ↓ and ↑, pick an option, Return goes on,
   submits or allows once, and Esc leaves it, answering nothing. Its edge shows it has the keyboard, which goes back to
   the app you were in once you answer. Before, Return went to the app in front, where it could answer Claude's own copy

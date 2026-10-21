@@ -185,8 +185,8 @@ static int PrintKept(Core *core) {
 
 // `Whozmove --print-plugin-install [--answer <press>] [--before] <hooks>`: puts the hooks in the folder `hooks` into
 // Claude Code as the app does as it opens (ConnectPlugin), with `claude` looked for on $INSTALL_PATH first and in the
-// home folder in $HOME, and prints what it reached, as JSON, then quits. `--answer` is your press on the line (addBack
-// or turnOn), `--before` that they were put in once already. modules/claude-code/tests/test.sh runs it for each case,
+// home folder in $HOME, and prints what it reached, as JSON, then quits. `--answer` is your press on the line (addBack,
+// turnOn or retry), `--before` that they were put in once already. modules/claude-code/tests/test.sh runs it for each case,
 // with a stand-in claude that writes down what it's asked. It changes Whozmove's folder there and runs the `claude` it
 // finds, so it refuses to run in your own home folder.
 static int PrintPluginInstall(NSArray<NSString *> *arguments) {
@@ -206,7 +206,7 @@ static int PrintPluginInstall(NSArray<NSString *> *arguments) {
     BOOL before = [rest containsObject:@"--before"];
     [rest removeObject:@"--before"];
     if (rest.count != 1) {
-        fprintf(stderr, "usage: --print-plugin-install [--answer addBack|turnOn] [--before] <hooks>\n");
+        fprintf(stderr, "usage: --print-plugin-install [--answer addBack|turnOn|retry] [--before] <hooks>\n");
         return 2;
     }
     NSString *path = NSProcessInfo.processInfo.environment[@"INSTALL_PATH"] ?: @"";

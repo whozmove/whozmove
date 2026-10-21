@@ -56,7 +56,7 @@ Then whatever it has, each optional:
 | `working` | whether it's still working something out off the main thread, which a print run waits for |
 | `messages` | the page's messages it answers, by type: each type has one module |
 | `menuEntries` | its items in the pawn menu, each with its section and its order there (`MenuEntry`) |
-| `appEntries` | the apps it works with, as the panel's back lists them, each with what Whozmove does with it, the permission macOS has to give and its switches (`AppEntry`, `AppSwitch`); or switches it adds to another module's app |
+| `appEntries` | the apps it works with, as the panel's back lists them, each with what Whozmove does with it, the permission macOS has to give, its switches and its cards, each saying how something it needs there stands, with a button for it (`AppEntry`, `AppSwitch`, `AppStatus`); or switches and cards it adds to another module's app |
 | `printModes` | its print modes for the tests, by flag (`--print-<name>`): what `Whozmove --print-<name> …` prints |
 
 The core finds the class at launch through the Objective-C runtime, and `tools/compile.sh` compiles every `.m` in the

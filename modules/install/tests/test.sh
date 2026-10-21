@@ -1,7 +1,9 @@
 #!/bin/bash
 # The install module's tests: Whozmove setting itself up as it opens (Whozmove --print-install), with stand-ins for
-# where it runs from, whether an agent made it, Apple's developer tools and the agent, against a throwaway HOME (never
-# your real Whozmove folder), compared with install.expected.txt beside this file.
+# where it runs from, whether an agent made it, Apple's developer tools, macOS's installer for them and the agent,
+# against a throwaway HOME (never your real Whozmove folder), and what the panel's back says of it
+# (--print-install-cards), compared with install.expected.txt beside this file; and what the line under the header says
+# (page-cases.js, run with macOS's jsc in UTC with the page's scripts), compared with page.expected.txt.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -26,5 +28,20 @@ echo "== Waiting for the agent, then for Apple's developer tools, then carrying 
 HOME="$T" "$APP" --print-install no-agent-yet tools-later neither-yet no-command-yet
 echo "== Hooks taken out of the agent, or turned off in it, and two presses on the line one after the other"
 HOME="$T" "$APP" --print-install taken-out turned-off presses
+echo "== Opened again while it's still so: since when it has been so is kept, so a × on the line still holds"
+HOME="$T" "$APP" --print-install turned-off-again
+echo "== Install: macOS's installer opens, and while it's open, and once after, macOS is asked again at each look;"
+echo "   closed without them, they're missing again; and once they're in, Install asks for nothing"
+HOME="$T" "$APP" --print-install install-pressed installer-closed tools-in-first
+echo "== Install without the agent, and from outside an Applications folder: for Git's page, it opens the installer all"
+echo "   the same"
+HOME="$T" "$APP" --print-install install-without-agent install-outside
+echo "== What the panel's back says: on Git's page, of the developer tools; on the agent's, of its hooks"
+HOME="$T" "$APP" --print-install-cards
 )
-compare "Install" "$HERE/install.expected.txt" "$out" "${1:-}"
+status=0
+compare "Install" "$HERE/install.expected.txt" "$out" "${1:-}" || status=1
+
+page=$(page_cases "$HERE/page-cases.js") || { echo "$page"; exit 1; }
+compare "The line" "$HERE/page.expected.txt" "$page" "${1:-}" || status=1
+exit $status

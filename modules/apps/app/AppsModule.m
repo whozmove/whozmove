@@ -15,8 +15,9 @@
 #import "Log.h"
 #import "BackPage.h"
 
-// While the panel is turned over, what macOS lets Whozmove do with each app is looked at again this often, in ticks
-// (one a second), as it's changed in System Settings, not here.
+// While the panel is turned over, what it shows is looked at again each tick (one a second), as the modules' cards
+// change while it's open (Install pressed on one); what macOS lets Whozmove do with each app this often, in ticks, as
+// it's changed in System Settings, not here, and asking can take a moment.
 static const NSInteger kCheckEvery = 3;
 // The size each app's icon is taken at, in pixels: twice the largest it's shown at on the back.
 static const CGFloat kIconPixels = 96;
@@ -29,10 +30,11 @@ static NSString *PermissionKind(AppPermission permission) {
          : permission == AppPermissionAutomation ? @"automation" : nil;
 }
 
-// One app as the back lists it: its module's entry, and its switches, with those other modules add to it.
+// One app as the back lists it: its module's entry, and its switches and cards, with those other modules add to it.
 @interface ListedApp : NSObject
 @property (strong) AppEntry *entry;
 @property (copy) NSArray<AppSwitch *> *switches;
+@property (copy) NSArray<AppStatus *> *statuses;
 @end
 
 @implementation ListedApp
@@ -109,22 +111,25 @@ static NSString *PermissionKind(AppPermission permission) {
 }
 
 - (void)tick {
-    if (!self.core.window.turned || ++self.ticks % kCheckEvery) return;
+    if (!self.core.window.turned) return;
     [self tell];
-    [self check];
+    if (++self.ticks % kCheckEvery == 0) [self check];
 }
 
 #pragma mark The apps
 
-// Every module's apps, in their order, each with its switches and those other modules add to it.
+// Every module's apps, in their order, each with its switches and cards, and those other modules add to it.
 - (NSArray<ListedApp *> *)listed {
     NSMutableArray<AppEntry *> *apps = [NSMutableArray array];
     NSMutableDictionary<NSString *, NSMutableArray<AppSwitch *> *> *added = [NSMutableDictionary dictionary];
+    NSMutableDictionary<NSString *, NSMutableArray<AppStatus *> *> *cards = [NSMutableDictionary dictionary];
     for (AppEntry *entry in self.core.modules.appEntries) {
         if (entry.name) [apps addObject:entry];
         else if (entry.appId) {
             if (!added[entry.appId]) added[entry.appId] = [NSMutableArray array];
+            if (!cards[entry.appId]) cards[entry.appId] = [NSMutableArray array];
             [added[entry.appId] addObjectsFromArray:entry.switches ?: @[]];
+            [cards[entry.appId] addObjectsFromArray:entry.statuses ?: @[]];
         }
     }
     [apps sortUsingComparator:^NSComparisonResult(AppEntry *a, AppEntry *b) {
@@ -136,6 +141,7 @@ static NSString *PermissionKind(AppPermission permission) {
         ListedApp *each = [ListedApp new];
         each.entry = app;
         each.switches = [app.switches ?: @[] arrayByAddingObjectsFromArray:added[app.appId] ?: @[]];
+        each.statuses = [app.statuses ?: @[] arrayByAddingObjectsFromArray:cards[app.appId] ?: @[]];
         [listed addObject:each];
     }
     return listed;
@@ -158,7 +164,7 @@ static NSString *PermissionKind(AppPermission permission) {
 }
 
 // What the back shows of each app on this Mac: its name, what Whozmove does with it, its icon, whether it opens, its
-// switches showing now, and its permission, as last checked.
+// switches showing now, its cards with something to say now, as they stand, and its permission, as last checked.
 - (NSArray<NSDictionary *> *)shown {
     NSMutableArray *out = [NSMutableArray array];
     for (ListedApp *listed in self.listed) {
@@ -171,13 +177,22 @@ static NSString *PermissionKind(AppPermission permission) {
                                   @"on": @(each.on()), @"enabled": @(each.enabled ? each.enabled() : YES),
                                   @"group": each.group ?: NSNull.null}];
         }
+        NSMutableArray *statuses = [NSMutableArray array];
+        for (AppStatus *each in listed.statuses) {
+            NSMutableDictionary *status = [(each.now ? each.now() : nil) mutableCopy];
+            if (!status) continue;  // nothing to say now
+            status[@"key"] = each.key;
+            status[@"title"] = each.title;
+            status[@"section"] = each.section ?: NSNull.null;
+            [statuses addObject:status];
+        }
         // What macOS lets Whozmove do with it only once it's installed: there's nothing to allow before.
         NSString *kind = [self urlOf:app] ? PermissionKind(app.permission) : nil;
         NSDictionary *permission = kind ? @{@"kind": kind, @"use": app.permissionFor ?: @"",
                                             @"state": [self permissionOf:app] ?: @"unknown"} : nil;
         [out addObject:@{@"id": app.appId, @"name": app.name, @"does": app.does ?: @"",
                          @"icon": [self iconOf:app] ?: NSNull.null, @"open": @([self urlOf:app] != nil),
-                         @"switches": switches, @"permission": permission ?: NSNull.null}];
+                         @"switches": switches, @"statuses": statuses, @"permission": permission ?: NSNull.null}];
     }
     return out;
 }
@@ -276,8 +291,8 @@ static NSString *PermissionKind(AppPermission permission) {
 
 #pragma mark Its messages
 
-// The back's presses: turning back to the list, or back and then folding into the cat; a switch; Open; and System
-// Settings, at the pane where the app's permission is changed.
+// The back's presses: turning back to the list, or back and then folding into the cat; a switch; a card's button; Open;
+// and System Settings, at the pane where the app's permission is changed.
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
     __weak typeof(self) weakSelf = self;
     return @{
@@ -286,6 +301,7 @@ static NSString *PermissionKind(AppPermission permission) {
             [weakSelf.core.window turnOver:NO then:^{ [weakSelf.core.page toggleCollapsed]; }];
         },
         @"appsSwitch": ^(NSDictionary *msg) { [weakSelf flip:msg]; },
+        @"appsAction": ^(NSDictionary *msg) { [weakSelf act:msg]; },
         @"appsOpen": ^(NSDictionary *msg) { [weakSelf open:msg]; },
         @"appsPrivacy": ^(NSDictionary *msg) { [weakSelf privacy:msg]; },
     };
@@ -299,8 +315,8 @@ static NSString *PermissionKind(AppPermission permission) {
 }
 
 // A switch pressed: the module whose switch it is sets it, and the back is told how everything is now, the other
-// switches in its group among it. Told even when nothing changed (a press refused, as Show Deploy's while the next
-// steps are off), as the page has already moved the switch and must be put right.
+// switches in its group among it. Told even when nothing changed (a press refused, as Show Next Steps' while Apple's
+// developer tools aren't in), as the page has already moved the switch and must be put right.
 - (void)flip:(NSDictionary *)msg {
     ListedApp *app = [self appFor:msg[@"app"]];
     id key = msg[@"key"], on = msg[@"on"];
@@ -309,6 +325,21 @@ static NSString *PermissionKind(AppPermission permission) {
         if (![each.key isEqualToString:key]) continue;
         if ((each.shown && !each.shown()) || (each.enabled && !each.enabled())) break;
         if (!(each.group && each.on())) each.set([on boolValue]);
+        break;
+    }
+    self.told = nil;
+    [self tell];
+}
+
+// A card's button pressed: the module whose card it is does what it does, and the back is told how things stand, its
+// button waiting while what the press set going is under way.
+- (void)act:(NSDictionary *)msg {
+    ListedApp *app = [self appFor:msg[@"app"]];
+    id key = msg[@"key"];
+    if (!app || ![key isKindOfClass:NSString.class]) return;
+    for (AppStatus *each in app.statuses) {
+        if (![each.key isEqualToString:key]) continue;
+        if (each.press) each.press();
         break;
     }
     self.told = nil;
@@ -332,9 +363,9 @@ static NSString *PermissionKind(AppPermission permission) {
 
 #pragma mark For the tests
 
-// The apps every module lists for the back, in their order, each with what it says, its permission and its switches,
-// those other modules add among them: whether each is on this Mac, and how each switch is set, are left out, as they
-// depend on the Mac.
+// The apps every module lists for the back, in their order, each with what it says, its permission, its switches and
+// its cards, those other modules add among them: whether each is on this Mac, how each switch is set and what each
+// card says now are left out, as they depend on the Mac.
 + (NSDictionary<NSString *, PrintMode> *)printModes {
     return @{@"--print-apps": ^int(Core *core, NSArray<NSString *> *arguments) {
         AppsModule *apps = [[AppsModule alloc] initWithCore:core];
@@ -345,11 +376,15 @@ static NSString *PermissionKind(AppPermission permission) {
             for (AppSwitch *each in listed.switches)
                 [switches addObject:@{@"key": each.key, @"title": each.title, @"help": each.help ?: @"",
                                       @"group": each.group ?: NSNull.null}];
+            NSMutableArray *statuses = [NSMutableArray array];
+            for (AppStatus *each in listed.statuses)
+                [statuses addObject:@{@"key": each.key, @"title": each.title,
+                                      @"section": each.section ?: NSNull.null}];
             [out addObject:@{@"id": app.appId, @"name": app.name, @"does": app.does ?: @"", @"order": @(app.order),
                              @"permission": PermissionKind(app.permission) ?: NSNull.null,
                              @"for": app.permissionFor ?: NSNull.null,
                              @"listed": app.present ? @"always" : @"when on this Mac",
-                             @"switches": switches}];
+                             @"switches": switches, @"statuses": statuses}];
         }
         return PrintJSON(out);
     }};

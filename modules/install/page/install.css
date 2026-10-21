@@ -1,0 +1,9 @@
+/* The line under the header while Whozmove sets itself up (install-line.js): the panel's one-line message, its button
+   and its × (controls.css, cards.css), in the header's room, its words lined up with the name's. Where it goes, and how
+   it fades with the list as the panel folds, are the core's (base.css).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#install { flex: none; position: relative; }
+body.collapsed #install { display: none; }
+.in-line { padding: 0 8px 10px 14px; }
+.in-line .q-close { margin: 0 -2px 0 -4px; }

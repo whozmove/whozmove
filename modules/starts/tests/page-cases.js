@@ -37,6 +37,13 @@ print(startCardHTML({ ...startCard, text: 'Add <b>dark</b> mode' }, startable));
 print('-- in Ghostty, in a worktree');
 state.folders = { '/work/app-wt': { trusted: true } };
 print(startCardHTML({ ...startCard, folder: '/work/app-wt', name: 'app-wt', app: 'terminal' }, startable));
+print('-- with Claude Desktop’s sessions not tracked: Ghostty, and no menu');
+state.startOptions = { terminal: 'Ghostty', desktop: false, choice: false };
+state.folders = { '/work/app': { trusted: true } };
+print(startCardHTML(startCard, startable));
+print('-- …with another terminal to pick: the menu stays');
+state.startOptions = { terminal: 'Ghostty', desktop: false, choice: true };
+print(startCardHTML(startCard, startable));
 print('-- with no terminal to choose: Claude, and no menu');
 state.startOptions = { terminal: null };
 state.folders = { '/work/app': { trusted: true } };
@@ -111,6 +118,9 @@ const freeHello = { name: 'hello', base: 'usage', path: '/work/app-worktrees/hel
 show('the app: as chosen, in its own folder', startApp(startCard2({})));
 show('…the terminal for anything in a worktree', startApp(startCard2({ target: { kind: 'open', branch: 'usage' } })));
 show('…Claude with no terminal to choose', (state.startOptions = { terminal: null }, startApp(startCard2({ app: 'terminal' }))));
+show('…the terminal while Claude Desktop’s sessions aren’t tracked',
+     (state.startOptions = { terminal: 'Ghostty', desktop: false }, startApp(startCard2({}))));
+show('…nowhere, with no terminal either', (state.startOptions = { terminal: null, desktop: false }, cardState(startCard2({}))));
 state.startOptions = { terminal: 'Ghostty' };
 show('a new worktree waits for git to say it can be made', cardState(startCard2({ target: { ...fresh } })));
 show('…an answer for another base is let go', cardState(startCard2({ target: { ...fresh, check: { ...freeHello, base: 'main' } } })));

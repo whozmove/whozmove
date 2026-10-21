@@ -1,6 +1,6 @@
 /* Controls that more than one part of the panel draws, each styled once here: the switch, which Spotify's lyrics and
-   the apps' settings on the panel's back show, and a button (the back's page loads this file too). Their colours and
-   corners are tokens.css's.
+   the apps' settings on the panel's back show, a button (the back's page loads this file too), and a one-line message
+   with the one thing it asks of you (the usage card's page loads it too). Their colours and corners are tokens.css's.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* A switch: its track, blue while it's on, and its knob, which slides across (SWITCH, in scripts/util.js). It's on
@@ -20,3 +20,20 @@
 .button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
           color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
 .button.is-hover { background: var(--button-hover); }
+
+/* A one-line message with its button for the one thing it asks of you: the line under the header while Whozmove sets
+   itself up (the install module's), and the usage card's Sign in. Its words take the room its button and a × (cards.css's
+   .q-close) leave. */
+.notice { display: flex; align-items: center; gap: 10px; min-height: 26px; }
+.notice-text { flex: 1; min-width: 0; font-size: var(--size-small); line-height: 15px; color: var(--muted); }
+.notice-button { flex: none; font: inherit; font-size: var(--size-small); font-weight: 600; padding: 3px 10px;
+                 border: none; border-radius: var(--radius-button); background: var(--main-button);
+                 color: var(--on-main-button); cursor: default; }
+.notice-button.is-hover { background: var(--main-button-hover); }
+/* While what its press set going is under way, it waits. */
+.notice-button:disabled { opacity: .45; }
+
+/* A tick in a ring (icons.js's DONE_ICON), green, as what's finished is: a code review with nothing left to fix, and
+   the one-line message saying all went well, where it sits a little closer to its words. */
+.done-tick { flex: none; color: var(--done-text); }
+.notice .done-tick { margin-right: -4px; }

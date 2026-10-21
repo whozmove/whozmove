@@ -1,6 +1,6 @@
 // The panel's back, a page of its own on the back of the glass (app/BackPage.m): the apps Whozmove works with, four
-// across, and each one's page: what Whozmove does with it, its switches, what macOS lets Whozmove do with it, and
-// Open.
+// across, and each one's page: what Whozmove does with it, its switches, its cards (how something Whozmove needs there
+// stands, with a button for it), what macOS lets Whozmove do with it, and Open.
 // Pressing an app brings its page in, and ‹ goes back to the apps. The header has the list's buttons in the same places:
 // rows where the four squares are, which turn the panel back to the list, and the chevron, which folds it into the cat,
 // turning back first. The app says which apps there are and how each is set (setApps), that the panel is back on its
@@ -8,7 +8,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 const bk = {
-  apps: [],        // as the app sends them: { id, name, does, icon, open, permission: { kind, use, state }, switches }
+  apps: [],        // as the app sends them: { id, name, does, icon, open, permission: { kind, use, state }, switches,
+                   // statuses }
   page: null,      // the app whose page shows, by its id, or null for the apps
   pointer: null,   // where the pointer is on the page, or null
 };
@@ -60,10 +61,20 @@ function homeHTML() {
   return `<div class="b-grid">${tiles}</div>`;
 }
 
+// One of an app's cards (statusView): its heading over it where it has one, how it stands, and its button.
+function statusHTML(v) {
+  return (v.section ? `<div class="b-sec">${esc(v.section)}</div>` : '')
+    + `<div class="b-card"><div class="b-perm${v.ok ? ' ok' : ''}"><span class="b-words"><b>${esc(v.title)}</b>`
+    + (v.note ? `<i>${esc(v.note)}</i>` : '') + `</span><span class="b-state">${v.ok ? TICK_ICON : ''}${esc(v.said)}`
+    + '</span></div>' + (v.button ? `<div class="b-more"><button class="button" data-status="${esc(v.key)}"`
+    + `${v.waits ? ' disabled' : ''}>${esc(v.button)}</button></div>` : '') + '</div>';
+}
+
 function appHTML(app) {
   const switches = app.switches.map((s) => `<div class="b-switch${s.enabled === false ? ' off' : ''}" `
     + `data-key="${esc(s.key)}" role="switch" aria-checked="${!!s.on}"><span class="b-words"><b>${esc(s.title)}</b>`
     + `<i>${esc(s.help)}</i></span>${SWITCH}</div>`).join('');
+  const statuses = (app.statuses || []).map(statusView).filter(Boolean).map(statusHTML).join('');
   const p = permissionView(app);
   const permission = p ? `<div class="b-sec">Privacy &amp; Security</div><div class="b-card"><div class="b-perm `
     + `${p.state}"><span class="b-words"><b>${esc(p.name)}</b><i>${esc(p.use)}</i></span><span class="b-state">`
@@ -74,7 +85,7 @@ function appHTML(app) {
   const open = app.open ? `<div class="b-more"><button class="button" data-open="1">Open ${esc(app.name)}</button>`
     + '</div>' : '';
   return `<div class="b-hero">${iconHTML(app, 40)}<p class="b-does">${esc(app.does)}</p></div>`
-    + `${switches ? `<div class="b-card">${switches}</div>` : ''}${permission}${open}`;
+    + `${switches ? `<div class="b-card">${switches}</div>` : ''}${statuses}${permission}${open}`;
 }
 
 // Drawn again only where it changed. What a switch's press changes (its state, and whether the others can be pressed)
@@ -105,6 +116,10 @@ function draw() {
       bodyEl.dataset.drawn = body;
     }
   }
+  // A card's button set waiting by its press waits only for as long as the app says it does.
+  const app = appOf(bk.page);
+  for (const el of bodyEl.querySelectorAll('[data-status]'))
+    el.disabled = !!statusView(app?.statuses?.find((s) => s.key === el.dataset.status))?.waits;
   markPointed();
 }
 
@@ -120,7 +135,7 @@ function go(page) {
 }
 
 // What the pointer is on, marked as the panel's are (.is-hover): only what a press does something on.
-const POINTED = '.b-tile, .b-switch:not(.off), .button, .b-back, header .apps, header .chev';
+const POINTED = '.b-tile, .b-switch:not(.off), .button:not(:disabled), .b-back, header .apps, header .chev';
 function markPointed() {
   const at = bk.pointer, on = at ? document.elementFromPoint(at.x, at.y)?.closest(POINTED) : null;
   document.querySelectorAll('.is-hover').forEach((el) => { if (el !== on) el.classList.remove('is-hover'); });
@@ -151,6 +166,12 @@ backEl.addEventListener('mousedown', (e) => {
   if (hit('[data-home]')) return go(null);
   if ((el = hit('.b-tile[data-app]'))) return go(el.dataset.app);
   if ((el = hit('.b-switch[data-key]'))) return press(el.dataset.key);
+  // A card's button waits from the press until the app says how it went.
+  if ((el = hit('[data-status]'))) {
+    if (el.disabled) return;
+    el.disabled = true;
+    return native({ type: 'appsAction', app: bk.page, key: el.dataset.status });
+  }
   if (hit('[data-open]')) return native({ type: 'appsOpen', app: bk.page });
   if (hit('[data-privacy]')) return native({ type: 'appsPrivacy', app: bk.page });
 });

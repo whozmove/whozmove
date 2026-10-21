@@ -18,10 +18,11 @@
 // yet listed, by start id, { id, key, sessionId, folder, name, app, words, worktree, path, makes, at, trust, terminal,
 // drawn, flying, note, why }; what Claude may do in each folder, as the app last said, { trusted } or { gone }
 // ({ trusted, here } once you trusted it on the card); what each folder's repo has, for `#` (branchesListed); the
-// terminal a start opens in, the one picked on the card's menu (setStartOptions), null when there's none; and the app
-// last chosen or started in, which the next card starts with.
+// terminal a start opens in, the one picked on the card's menu, null when there's none, whether Claude Desktop's
+// sessions are tracked, without which nothing starts there, and whether Start's menu has another app to pick
+// (setStartOptions); and the app last chosen or started in, which the next card starts with.
 moduleState({ dock: null, startDraft: store.get('startDraft', null), starts: {}, folders: {}, repos: {},
-              startOptions: { terminal: null }, startApp: store.get('startApp', 'desktop') });
+              startOptions: { terminal: null, desktop: true }, startApp: store.get('startApp', 'desktop') });
 
 // A plus, on a project's header.
 const PLUS_ICON = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" '
@@ -82,15 +83,24 @@ function startState(card, folders) {
 // ---- Where in its project it starts ----
 
 // The app a card starts in: the terminal for anything in a worktree (Claude Desktop starts only in the folders it
-// lists), else the one chosen, which is Claude Desktop when there's no terminal to choose.
+// lists) and while Claude Desktop's sessions aren't tracked, else the one chosen, which is Claude Desktop when there's
+// no terminal to choose.
+const desktopTracked = () => state.startOptions.desktop !== false;
+// Whether Start's menu has another app to pick: Claude Desktop and a terminal, or two terminals, as the app says.
+const startChoice = () => state.startOptions.choice ?? (!!state.startOptions.terminal && desktopTracked());
 function startApp(card) {
-  return state.startOptions.terminal && (inWorktree(card.target) || card.app === 'terminal') ? 'terminal' : 'desktop';
+  return state.startOptions.terminal && (!desktopTracked() || inWorktree(card.target) || card.app === 'terminal')
+    ? 'terminal' : 'desktop';
 }
 const appLabel = (app) => (app === 'terminal' ? state.startOptions.terminal || 'the terminal' : 'Claude');
 
-// What the card says, and whether it can start (`go`, '' while it can't): about its folder (startState), else about a
-// new worktree, which starts once git has said it can be made there (worktreeNameChecked).
+// What the card says, and whether it can start (`go`, '' while it can't): that there's nowhere to start it, with no
+// terminal and Claude Desktop's sessions not tracked; about its folder (startState); else about a new worktree, which
+// starts once git has said it can be made there (worktreeNameChecked).
 function cardState(card) {
+  if (!state.startOptions.terminal && !desktopTracked())
+    return { help: 'There’s nowhere to start it: Claude Desktop’s sessions aren’t tracked, and there’s no terminal here.',
+             warn: true, go: '' };
   const said = startState(card, state.folders), t = card.target;
   if (said.help || t?.kind !== 'new') return said;
   if (!t.name) return { help: 'Name the new worktree: #name.', warn: true, go: '' };
@@ -297,7 +307,7 @@ function startCardHTML(card, sessions) {
   const button = `<span class="c-split"><button class="c-go${empty ? ' empty' : ''}"${go ? '' : ' disabled'} title="⌘Return starts it">`
     + `${app === 'terminal' ? TERMINAL_ICON : DESKTOP_ICON}<span class="go-label"><span class="go-verb">${esc(goVerb(go))}</span>`
     + `${esc(appLabel(app))}</span></button>`
-    + `${state.startOptions.terminal ? `<button class="st-app" title="Start it in another app">${CHEVRON_ICON}</button>` : ''}</span>`;
+    + `${startChoice() ? `<button class="st-app" title="Start it in another app">${CHEVRON_ICON}</button>` : ''}</span>`;
   return `<div class="row compose" data-card="${esc(card.id)}">
       <span class="dot"></span>
       <div class="main">
@@ -1070,9 +1080,11 @@ window.startAppChosen = (app) => {
 };
 
 // What a start can open in: the terminal picked on the card's menu (its name), told again as you pick another, or null
-// when there's none, and the card offers Claude only.
+// when there's none, and the card offers Claude only; whether Claude Desktop's sessions are tracked, told again as that
+// changes, without which the card offers only the terminal; and whether Start's menu has another app to pick.
 window.setStartOptions = (options) => {
-  state.startOptions = { terminal: options?.terminal || null };
+  state.startOptions = { terminal: options?.terminal || null, desktop: options?.desktop !== false,
+                         choice: typeof options?.choice === 'boolean' ? options.choice : undefined };
   if (!state.startOptions.terminal && state.dock?.target) state.dock.target = null;
   if (state.dock?.app === 'terminal' && !state.startOptions.terminal) state.dock.app = 'desktop';
   refreshStartCard();

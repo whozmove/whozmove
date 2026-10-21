@@ -39,4 +39,4 @@ between the page and the app, and its rules.
 | [usage](../modules/usage/README.md) | your plan's usage, on a card under the panel |
 | [starts](../modules/starts/README.md) | new conversations from the panel's card, and ⌃⌥N |
 | [spotify](../modules/spotify/README.md) | the song Spotify is playing, in its strip, its lyrics, and Spotify's token |
-| [install](../modules/install/README.md) | Whozmove setting itself up as it opens: where it runs from, Apple's developer tools, and its hooks in the agent |
+| [install](../modules/install/README.md) | Whozmove setting itself up as it opens: where it runs from, Apple's developer tools, and its hooks in the agent; the line under the header that says what it needs from you, and its cards on the panel's back |

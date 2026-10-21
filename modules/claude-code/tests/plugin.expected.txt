@@ -97,3 +97,25 @@
      claude plugin marketplace add ~/Library/Application Support/Whozmove/plugin
      claude plugin install whozmove@whozmove
    the copy in Whozmove's folder: 0.1.0+<hash>
+== 13 Try Again while it can't load: the hooks copied in again whatever their version, the marketplace and the plugin brought up to date, and the list asked again: it loads now
+{
+  "state" : "added"
+}
+   asked:
+     claude plugin list --json
+     claude plugin marketplace update whozmove
+     claude plugin update whozmove@whozmove
+     claude plugin list --json
+   the copy in Whozmove's folder: 0.1.0+<hash>
+   its hooks.json: there again
+== 14 Try Again, and it still can't load: what it says now
+{
+  "detail" : "Plugin whozmove failed to load: hooks\/hooks.json is missing",
+  "state" : "failed"
+}
+   asked:
+     claude plugin list --json
+     claude plugin marketplace update whozmove
+     claude plugin update whozmove@whozmove
+     claude plugin list --json
+   the copy in Whozmove's folder: 0.1.0+<hash>

@@ -1,7 +1,8 @@
 // ClaudeDesktop: Claude Desktop, the app that keeps sessions as conversations of its own: its part of the rows, opening
 // a conversation, and through its pieces, sending in one (DesktopMessageBox), starting one (DesktopNewConversation) and
-// answering "Switch model?" (DesktopSwitchModel). Its log and its conversation files are read by DesktopLog and
-// DesktopConversations, and what it relies on about Claude Desktop is in ClaudeDesktopFacts.
+// answering "Switch model?" (DesktopSwitchModel); and Claude's page on the panel's back, where you say whether its
+// sessions are tracked. Its log and its conversation files are read by DesktopLog and DesktopConversations, and what it
+// relies on about Claude Desktop is in ClaudeDesktopFacts.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ClaudeDesktop.h"
 #import "ClaudeDesktopFacts.h"
@@ -15,13 +16,24 @@
 #import "PanelWindow.h"
 #import "Accessibility.h"
 #import "Files.h"
+#import "Links.h"
 #import "Log.h"
+#import "Menus.h"
 
 // Conversations with no running process are listed if active this recently.
 static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
+// Whether its sessions are tracked, as its switch on Claude's page on the panel's back sets it; and how often it's
+// looked for on this Mac, as you may install it, or take it off, while Whozmove runs.
+static NSString *const kTrackDesktop = @"trackClaudeDesktop";
+static const NSTimeInterval kLookEvery = 10;
 
 @interface ClaudeDesktop ()
 @property (weak) Core *core;
+// Whether it's on this Mac, and its sessions tracked: as if it were, and they were, until the app looks (a print run
+// never does), so what a print run lists doesn't depend on the Mac it runs on.
+@property (atomic) BOOL installed;
+@property (atomic) BOOL tracked;
+@property NSTimeInterval lookedAt;
 // Its conversation files, read on the sessions' queue as the rows are; its log, which both sides read; and its pieces.
 @property (strong) DesktopConversations *conversations;
 @property (strong) DesktopLog *log;
@@ -43,7 +55,28 @@ static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
     self.log = [DesktopLog new];
     self.messageBox = [[DesktopMessageBox alloc] initWithLog:self.log];
     self.starts = [[DesktopNewConversation alloc] initWithCore:core log:self.log messageBox:self.messageBox];
+    self.installed = self.tracked = YES;
+    [NSUserDefaults.standardUserDefaults registerDefaults:@{kTrackDesktop: @YES}];
     return self;
+}
+
+- (void)launch {
+    [self lookAgain];
+}
+
+- (void)tick {
+    if (NSDate.timeIntervalSinceReferenceDate - self.lookedAt >= kLookEvery) [self lookAgain];
+}
+
+// Its sessions are tracked while it's on this Mac and its switch is on; the log says when that changes.
+- (void)lookAgain {
+    self.lookedAt = NSDate.timeIntervalSinceReferenceDate;
+    self.installed = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:kClaudeDesktopAppId] != nil;
+    BOOL tracked = self.installed && SwitchedOn(kTrackDesktop);
+    if (tracked == self.tracked) return;
+    self.tracked = tracked;
+    PanelLog(@"Claude Desktop's sessions: %@", tracked ? @"tracked"
+             : self.installed ? @"not tracked, as its switch is off" : @"not tracked, as it isn't on this Mac");
 }
 
 - (NSString *)appId {
@@ -239,14 +272,42 @@ static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
 
 #pragma mark On the panel's back
 
-// Claude on the panel's back: what Whozmove does with it, and macOS's Accessibility, which its message box needs.
+// Claude on the panel's back, listed on every Mac, as the page for Claude as a whole: Claude Code's settings go on it
+// too (the install module's card for Whozmove's plugin). With Claude Desktop on this Mac, its switch says whether its
+// sessions are tracked, and while they are, macOS's Accessibility shows, which its message box needs; without it, a
+// card offers to get it.
 - (NSArray<AppEntry *> *)appEntries {
+    __weak typeof(self) weakSelf = self;
     AppEntry *claude = [AppEntry appWithId:self.appId name:self.name
-                                      does:@"Lists its Claude Code conversations and opens them, puts your words in "
-                                           @"its message box, and starts new conversations in it."
+                                      does:@"Claude Code runs your sessions, in a terminal or in Claude Desktop. "
+                                           @"Whozmove's plugin in it says what each one is doing and last said, and "
+                                           @"brings its requests to the panel."
                                      order:10];
-    claude.permission = AppPermissionAccessibility;
-    claude.permissionFor = @"Puts your words in its message box, and presses its buttons";
+    claude.present = ^BOOL { return YES; };
+    AppSwitch *track = [AppSwitch switchWithKey:@"track" title:@"Track Claude Desktop app sessions"
+                                           help:@"Lists its conversations and opens them, puts your words in its "
+                                                @"message box, and starts new ones in it"
+                                             on:^BOOL { return SwitchedOn(kTrackDesktop); }
+                                            set:^(BOOL on) {
+                                                SetSwitch(kTrackDesktop, on);
+                                                [weakSelf lookAgain];
+                                            }];
+    track.shown = ^BOOL { return weakSelf.installed; };
+    claude.switches = @[track];
+    AppStatus *get = [AppStatus statusWithKey:@"desktop" title:@"Claude Desktop"
+                                          now:^NSDictionary * {
+                                              return weakSelf.installed ? nil
+                                                  : @{@"said": @"Not installed",
+                                                      @"note": @"Install it if you'd like Whozmove to track its sessions "
+                                                               @"too.",
+                                                      @"button": @"Get Claude Desktop"};
+                                          }
+                                        press:^{ OpenLink(kClaudeDesktopDownloadPage); }];
+    claude.statuses = @[get];
+    if (self.tracked) {
+        claude.permission = AppPermissionAccessibility;
+        claude.permissionFor = @"Puts your words in its message box, and presses its buttons";
+    }
     return @[claude];
 }
 

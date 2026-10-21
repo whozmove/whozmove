@@ -1,15 +1,32 @@
 == The apps every module lists for the panel's back, in their order, with the switches other modules add
 [
   {
-    "does" : "Lists its Claude Code conversations and opens them, puts your words in its message box, and starts new conversations in it.",
+    "does" : "Claude Code runs your sessions, in a terminal or in Claude Desktop. Whozmove's plugin in it says what each one is doing and last said, and brings its requests to the panel.",
     "for" : "Puts your words in its message box, and presses its buttons",
     "id" : "com.anthropic.claudefordesktop",
-    "listed" : "when on this Mac",
+    "listed" : "always",
     "name" : "Claude",
     "order" : 10,
     "permission" : "accessibility",
+    "statuses" : [
+      {
+        "key" : "desktop",
+        "section" : null,
+        "title" : "Claude Desktop"
+      },
+      {
+        "key" : "plugin",
+        "section" : "Claude Code",
+        "title" : "Whozmove's plugin"
+      }
+    ],
     "switches" : [
-
+      {
+        "group" : null,
+        "help" : "Lists its conversations and opens them, puts your words in its message box, and starts new ones in it",
+        "key" : "track",
+        "title" : "Track Claude Desktop app sessions"
+      }
     ]
   },
   {
@@ -20,6 +37,9 @@
     "name" : "Ghostty",
     "order" : 20,
     "permission" : "automation",
+    "statuses" : [
+
+    ],
     "switches" : [
       {
         "group" : "startTerminal",
@@ -37,6 +57,9 @@
     "name" : "iTerm2",
     "order" : 30,
     "permission" : "automation",
+    "statuses" : [
+
+    ],
     "switches" : [
       {
         "group" : null,
@@ -60,6 +83,9 @@
     "name" : "Terminal",
     "order" : 40,
     "permission" : null,
+    "statuses" : [
+
+    ],
     "switches" : [
 
     ]
@@ -72,6 +98,9 @@
     "name" : "Spotify",
     "order" : 50,
     "permission" : "automation",
+    "statuses" : [
+
+    ],
     "switches" : [
       {
         "group" : null,
@@ -101,6 +130,13 @@
     "name" : "Git",
     "order" : 60,
     "permission" : null,
+    "statuses" : [
+      {
+        "key" : "tools",
+        "section" : "Developer tools",
+        "title" : "Apple's command line developer tools"
+      }
+    ],
     "switches" : [
       {
         "group" : null,

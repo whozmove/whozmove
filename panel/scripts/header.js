@@ -2,14 +2,14 @@
 // the list's top, has folded all it can there (sticky.js): scrolling on, that pushes it up and away, point for point,
 // for the list to have its room. It stays as far as it was pushed, part-way too, until the list has scrolled back to
 // its very top, which brings it back with it. It's all there while the list is too short to scroll, the reader is open
-// or a card is under it; folded, it stays as it was, out of sight, until the panel opens, when it's all there
+// or a card or the setup line is under it; folded, it stays as it was, out of sight, until the panel opens, when it's all there
 // (toggleCollapsed, panel.js). The app hears how much of it shows, for the drag strip over it, and when it has gone,
 // for Whozmove beside the panel (app/core/PanelWindow.m). What it keeps between rebuilds is state.header (state.js).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // How tall the header is with its line: --header (tokens.css, kHeaderHeight in app/core/PanelWindow.m) and 1.
 const HEADER_TALL = 47;
-// How long it takes to come back where it can't go (the reader opening, a card under it).
+// How long it takes to come back where it can't go (the reader opening, a card or the setup line under it).
 const HEADER_GLIDE = 200;
 
 // How far the header has gone after the list has scrolled by `d` to `top`, the held row's copy having gone `push`
@@ -26,8 +26,8 @@ function headerGone(off, wasGone, tall = HEADER_TALL) {
   return wasGone ? off > tall - 6 : off >= tall - 0.5;
 }
 
-// Whether the header may slide away: not while the panel is folded, the reader is open or a card is under it, nor while
-// the list has less than a point to scroll.
+// Whether the header may slide away: not while the panel is folded, the reader is open or a card or the setup line is
+// under it, nor while the list has less than a point to scroll.
 function headerMayGo({ folded, reading, carded, room }) {
   return !folded && !reading && !carded && room > 1;
 }
@@ -44,7 +44,9 @@ function headerOff() {
   return state.header.off;
 }
 
-const headerCarded = () => !!document.getElementById('dock').firstElementChild;
+// A new conversation's card (#dock), or the line under the header while Whozmove sets itself up (#install).
+const headerCarded = () => !!document.getElementById('dock').firstElementChild
+  || !document.getElementById('install').hidden;
 const headerList = () => document.getElementById('list');
 // Folded, or with the folded cat's list out (peek.js), whose head stands in for the header and stays where it is.
 const headerFolded = () => document.body.classList.contains('collapsed') || document.body.classList.contains('peeking');
@@ -124,10 +126,11 @@ function headerGlideTo(to) {
 
 core.starts.push(() => {
   headerList().addEventListener('scroll', headerScrolled, { passive: true });
-  // A card opening under the header (a new conversation's) takes the header's room, and brings it back with a slide if
-  // it had gone; one closing gives the room back to the list.
-  new MutationObserver(() => (headerCarded() ? headerGlideTo(0) : headerShow(state.header.off, true)))
-    .observe(document.getElementById('dock'), { childList: true });
+  // A card opening under the header (a new conversation's), or the setup line, takes the header's room, and brings it
+  // back with a slide if it had gone; one closing gives the room back to the list.
+  const carded = new MutationObserver(() => (headerCarded() ? headerGlideTo(0) : headerShow(state.header.off, true)));
+  carded.observe(document.getElementById('dock'), { childList: true });
+  carded.observe(document.getElementById('install'), { attributes: true, attributeFilter: ['hidden'] });
   headerShow(0, true);
 });
 // A list that has become too short to scroll, or the reader opening, brings it back.

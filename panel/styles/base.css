@@ -50,11 +50,16 @@ header { position: relative; }
                         background: var(--rule); opacity: var(--line, 1); }
 #dock:not(:empty) { margin-top: var(--header); }
 #root:has(#dock:not(:empty)) > header::after { display: none; }
+/* The line under the header while Whozmove sets itself up (the install module's) takes that room the same way, with
+   the header's line under it instead, and a card under the header comes under the line. */
+#install:not([hidden]) { margin-top: var(--header); border-bottom: 1px solid var(--rule); }
+#install:not([hidden]) ~ #dock:not(:empty) { margin-top: 0; padding-top: 6px; }
+#root:has(#install:not([hidden])) > header::after { display: none; }
 /* Folded, the panel is the cat at its list's top-right corner (cat.css): the header and the list fade as the app closes
    the glass in on it, and come back as it opens, the row you're on held at the list's edge (#sticky, #sticky-under)
    with the list. The strips under the list go at once (their modules' styles). */
-header, #list, #dock, #sticky, #sticky-under { transition: opacity .2s ease .1s; }
-body.collapsed header, body.collapsed #list, body.collapsed #dock, body.collapsed #sticky,
+header, #list, #install, #dock, #sticky, #sticky-under { transition: opacity .2s ease .1s; }
+body.collapsed header, body.collapsed #list, body.collapsed #install, body.collapsed #dock, body.collapsed #sticky,
 body.collapsed #sticky-under { opacity: 0; visibility: hidden;
   transition: opacity .15s ease, visibility 0s linear .15s; }
 
@@ -76,8 +81,8 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
 .project .add.is-hover { background: var(--hover); color: var(--text); }
 
 /* The header and the list are at most 640pt tall together: the list keeps the header's room at its top, under it, and
-   scrolls; with a card under the header, the card has that room, and the list takes what the header leaves. A new
-   conversation's card and the strips under the list come on top of that, and the panel grows to fit them, down to where
+   scrolls; with a card or the setup line under the header, they have that room, and the list takes what the header
+   leaves. The setup line, a new conversation's card and the strips under the list come on top of that, and the panel grows to fit them, down to where
    the screen ends (setRoom), where the list gives way. A new conversation moves from its card down to its row over the
    list, on a layer of its own (#flight), and never crosses the strips. */
 #root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); margin-top: var(--above);
@@ -86,6 +91,7 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
         padding: calc(var(--header) + 1px) 6px 6px; }
 #dock:not(:empty) ~ #list { padding-top: 0; border-top: 1px solid var(--rule);
                             max-height: calc(640px - var(--header)); }
+#install:not([hidden]) ~ #list { padding-top: 0; max-height: calc(640px - var(--header)); }
 #list::-webkit-scrollbar { width: 0; }
 
 .empty { padding: 14px 10px; color: var(--faint); text-align: center; }

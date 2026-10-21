@@ -5,6 +5,7 @@
 
 NSString *const kClaudeDesktopAppId = @"com.anthropic.claudefordesktop";
 NSString *const kClaudeDesktopEntrypoint = @"claude-desktop";
+NSString *const kClaudeDesktopDownloadPage = @"https://claude.com/download";
 
 NSString *const kClaudeDesktopConversations = @"Library/Application Support/Claude/claude-code-sessions";
 NSString *const kClaudeDesktopLog = @"Library/Logs/Claude/main.log";

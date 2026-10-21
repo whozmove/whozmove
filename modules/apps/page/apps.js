@@ -1,5 +1,5 @@
 // What the panel's back shows of the apps, from what the app sends (app/AppsModule.m): what an app's permission says,
-// and the apps' switches once one is pressed. Plain functions, checked by modules/apps/tests/test.sh.
+// its cards, and the apps' switches once one is pressed. Plain functions, checked by modules/apps/tests/test.sh.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // Where in System Settings ▸ Privacy & Security each permission is.
@@ -20,6 +20,16 @@ function permissionView(app) {
   const turnOn = p.kind === 'accessibility' ? 'Turn on Whozmove there.' : `Turn on ${app.name} under Whozmove there.`;
   const note = state === 'ask' ? 'macOS asks the first time Whozmove needs it.' : state === 'denied' ? turnOn : '';
   return { name: PERMISSION_NAMES[p.kind], use: p.use || '', state, said, note, settings: state === 'denied' };
+}
+
+// What one of an app's cards shows (a module's AppStatus, as the app sends it): its heading, and over the card the
+// heading of its part of the page where it has one; a word or two on how it stands, with a tick while all's well; a
+// line under its heading; and its button, if it has one now, which waits while what a press set going is under way.
+// Null for one with no heading.
+function statusView(s) {
+  if (!s || !s.key || !s.title) return null;
+  return { key: String(s.key), title: String(s.title), section: s.section || null, said: s.said || '',
+           note: s.note || '', ok: !!s.ok, button: s.button || null, waits: !!(s.button && s.busy) };
 }
 
 // The apps after one of their switches is pressed: it turns on or off; one in a group (the terminal new conversations

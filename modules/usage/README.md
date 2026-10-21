@@ -18,7 +18,8 @@ and open with its two rows, its wait at the session limit, and its Sign in.
   page, cut to what's outside the panel, so the panel's shadow doesn't fall on the card. It tells the page where the pointer is (the window
   is never key, so it gets no mouse moves), takes clicks only on the part of the card that shows, and never the
   keyboard.
-- `page/card.html`, the card's page: the panel's tokens and `util`, then `page/usage.js` (what the card shows: plain
+- `page/card.html`, the card's page: the panel's tokens, its controls (`styles/controls.css`, whose one-line message
+  with its button the card's Sign in line is) and `util`, then `page/usage.js` (what the card shows: plain
   functions), `page/waits.js` (its wait styles, chosen by name), `page/wait-vine.js` (the first, whose shape and reset
   are plain numbers too) and `page/card.js` (drawing the card folded, slid out and open, opening and folding it, the
   pointer and presses on it, and the functions the app calls), with `page/usage.css`, its style, with its reduced

@@ -57,3 +57,8 @@ const CLOSE_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 
 const PIN_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path class="pin-head" '
   + 'd="M4 1.5h4l-.6 3.2L9.6 7H2.4l2.2-2.3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>'
   + '<path d="M6 7.2v3.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+// A tick in a ring, in the colour of what's finished (controls.css's .done-tick): a code review with nothing left to
+// fix, and Whozmove connected to its agent.
+const DONE_ICON = '<svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle '
+  + 'cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" '
+  + 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';

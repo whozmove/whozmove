@@ -97,7 +97,9 @@ static NSString *Folder(id value) {
 }
 
 - (NSDictionary *)options {
-    return @{@"terminal": self.terminal.name ?: NSNull.null};
+    BOOL desktop = self.desktop.tracked;
+    return @{@"terminal": self.terminal.name ?: NSNull.null, @"desktop": @(desktop),
+             @"choice": @((desktop ? 1 : 0) + self.terminals.count > 1)};
 }
 
 #pragma mark The card
@@ -147,19 +149,20 @@ static NSString *Folder(id value) {
     });
 }
 
-// The card's small menus, opened from what was pressed: `app`, the app it starts in (Claude Desktop or one of the
-// terminals; a worktree starts in a terminal); `places`, where a repo's new worktrees go; `choose`, a folder chooser
-// for any other folder.
+// The card's small menus, opened from what was pressed: `app`, the app it starts in (Claude Desktop, while its
+// sessions are tracked, or one of the terminals; a worktree starts in a terminal); `places`, where a repo's new
+// worktrees go; `choose`, a folder chooser for any other folder.
 - (void)menu:(NSDictionary *)msg {
     NSString *kind = AsText(msg[@"kind"]);
     if ([kind isEqual:@"choose"]) return [self choose:nil];
     NSMenu *menu = [NSMenu new];
     menu.autoenablesItems = NO;
     if ([kind isEqual:@"app"]) {
-        BOOL worktree = [msg[@"worktree"] isEqual:@YES];
+        BOOL worktree = [msg[@"worktree"] isEqual:@YES], desktop = self.desktop.tracked;
         NSArray<id<CommandHost>> *terminals = self.terminals;
-        NSString *ticked = [msg[@"app"] isEqual:@"terminal"] ? self.terminal.appId : @"desktop";
-        NSMutableArray<NSArray *> *apps = [NSMutableArray arrayWithObject:@[@"desktop", @"Claude Desktop"]];
+        NSString *ticked = [msg[@"app"] isEqual:@"terminal"] || !desktop ? self.terminal.appId : @"desktop";
+        NSMutableArray<NSArray *> *apps = [NSMutableArray array];
+        if (desktop) [apps addObject:@[@"desktop", @"Claude Desktop"]];
         for (id<CommandHost> terminal in terminals) [apps addObject:@[terminal.appId, terminal.name]];
         SayInMenu(menu, @"Start It In");
         for (NSArray *app in apps) {
@@ -277,9 +280,10 @@ static NSString *Folder(id value) {
     if (target && ![@[@"open", @"branch", @"new"] containsObject:kind ?: @""]) return refuse(@"Whozmove can't start one there");
     if (target && !sessionId) return refuse(@"Worktrees start in the terminal");
     // A session is started, trusted and listed by its agent, and a conversation in Claude Desktop is that app's: with
-    // either missing, nothing starts, rather than waiting for a row that can't come.
+    // either missing, or Claude Desktop's sessions not tracked, nothing starts, rather than waiting for a row that
+    // can't come.
     if (!self.agent) return refuse(@"There's no agent here to start it with");
-    if (!sessionId && !self.desktop) return refuse(@"There's no Claude Desktop here to start it in");
+    if (!sessionId && !self.desktop.tracked) return refuse(@"Whozmove doesn't track Claude Desktop's sessions here");
     // A Claude Desktop conversation with no words only opens: it's Claude's to list once something is sent in it, so
     // there's nothing to wait for, and the page shows no row for it.
     BOOL watch = sessionId || words.length;

@@ -38,6 +38,32 @@ the card while the app is asked about its folder: {"help":"","warn":false,"go":"
         <div class="st-foot"><span class="c-split"><button class="c-go empty" disabled title="⌘Return starts it"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="go-label"><span class="go-verb">Start in </span>Ghostty</span></button><button class="st-app" title="Start it in another app"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></div>
       </div>
     </div>
+-- with Claude Desktop’s sessions not tracked: Ghostty, and no menu
+<div class="row compose" data-card="card1">
+      <span class="dot"></span>
+      <div class="main">
+        <div class="line1"><span class="name">New conversation</span></div>
+        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="2"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree"></textarea></div>
+        <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span></div>
+        
+        
+        <div class="st-foot"><span class="c-split"><button class="c-go empty" disabled title="⌘Return starts it"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="go-label"><span class="go-verb">Start in </span>Ghostty</span></button></span></div>
+      </div>
+    </div>
+-- …with another terminal to pick: the menu stays
+<div class="row compose" data-card="card1">
+      <span class="dot"></span>
+      <div class="main">
+        <div class="line1"><span class="name">New conversation</span></div>
+        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="2"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree"></textarea></div>
+        <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span></div>
+        
+        
+        <div class="st-foot"><span class="c-split"><button class="c-go empty" disabled title="⌘Return starts it"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="go-label"><span class="go-verb">Start in </span>Ghostty</span></button><button class="st-app" title="Start it in another app"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></div>
+      </div>
+    </div>
 -- with no terminal to choose: Claude, and no menu
 <div class="row compose" data-card="card1">
       <span class="dot"></span>
@@ -127,6 +153,8 @@ in a worktree: one that’s there, a branch, a new one: [false,false,true,true,t
 the app: as chosen, in its own folder: desktop
 …the terminal for anything in a worktree: terminal
 …Claude with no terminal to choose: desktop
+…the terminal while Claude Desktop’s sessions aren’t tracked: terminal
+…nowhere, with no terminal either: {"help":"There’s nowhere to start it: Claude Desktop’s sessions aren’t tracked, and there’s no terminal here.","warn":true,"go":""}
 a new worktree waits for git to say it can be made: {"help":"","warn":false,"go":""}
 …an answer for another base is let go: {"help":"","warn":false,"go":""}
 …a name that’s taken: {"help":"There's a branch named hello already: pick it with #hello, or rename this one","warn":true,"go":""}

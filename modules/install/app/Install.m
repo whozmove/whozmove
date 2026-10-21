@@ -6,8 +6,14 @@
 #import "Printing.h"
 
 // How often it looks again while it waits for the agent or for Apple's developer tools, which macOS is asked about at
-// most every 5 minutes (DeveloperToolsGit).
+// most every 5 minutes (DeveloperToolsGit), unless its installer for them is open.
 static const NSTimeInterval kLookAgain = 10;
+// How often it looks again once the agent has said how its hooks stand: you may turn them off or take them out there,
+// or back on, while Whozmove runs, and the line says so within minutes. Each look runs the agent's own command, so not
+// often.
+static const NSTimeInterval kLookAgainSettled = 5 * 60;
+// How long Install waits for macOS's installer to show, after asking for it, and how often it looks meanwhile.
+static const NSTimeInterval kInstallerWait = 5, kInstallerLook = 0.25;
 
 BOOL InApplications(NSString *app) {
     NSString *path = app.stringByStandardizingPath;
@@ -29,7 +35,8 @@ static NSString *NoteApp(NSString *app) {
 }
 
 // The module's own record, in Whozmove's folder (install.json) rather than the app's preferences, which a print run's
-// $HOME doesn't reach: when the hooks were first found in the agent, so ones you take out later aren't put back.
+// $HOME doesn't reach: when the hooks were first found in the agent, so ones you take out later aren't put back; and
+// what the last check found and since when, so that time holds across launches while it stays so.
 static NSDictionary *Record(void) {
     return AsRecord(ReadJSON(AppDir(@"install.json"))) ?: @{};
 }
@@ -44,26 +51,20 @@ static void KeepRecord(NSDictionary *record) {
 @interface Install ()
 @property (copy) NSString *app, *hooks;
 @property (assign) BOOL agentBuild;
-@property (copy) BOOL (^agentHere)(void);
-@property (copy) BOOL (^tools)(void);
-@property (copy) ConnectHooks connect;
 @property (strong) dispatch_queue_t queue;
 @property (assign) NSInteger queued;  // checks queued or under way, counted on the main thread
 @property (strong) NSDictionary *found;
 @property (assign) NSTimeInterval checkedAt;
 @property (copy) NSString *said;  // the outcome last said in the log, on the queue
+@property (assign) BOOL wasInstalling;  // on the queue: macOS's installer was open at the last look, the tools not in
 @end
 
 @implementation Install
 
-- (instancetype)initWithApp:(NSString *)app builtByAgent:(BOOL)agentBuild agentHere:(BOOL (^)(void))agentHere
-                      tools:(BOOL (^)(void))tools connect:(ConnectHooks)connect hooks:(NSString *)hooks {
+- (instancetype)initWithApp:(NSString *)app builtByAgent:(BOOL)agentBuild hooks:(NSString *)hooks {
     if (!(self = [super init])) return nil;
     self.app = app;
     self.agentBuild = agentBuild;
-    self.agentHere = agentHere;
-    self.tools = tools;
-    self.connect = connect;
     self.hooks = hooks;
     self.queue = dispatch_queue_create("whozmove.install", DISPATCH_QUEUE_SERIAL);
     return self;
@@ -88,38 +89,71 @@ static void KeepRecord(NSDictionary *record) {
 
 - (void)tick {
     NSString *state = self.found[@"state"];
-    if (self.queued || !([state isEqualToString:@"noTools"] || [state isEqualToString:@"noCommand"])) return;
-    if (NSDate.date.timeIntervalSince1970 - self.checkedAt < kLookAgain) return;
+    BOOL waiting = [@[@"noTools", @"installing", @"noCommand"] containsObject:state ?: @""]
+                || [self.found[@"tools"] isEqualToString:@"installing"];
+    BOOL settled = [@[@"ready", @"added", @"updated", @"turnedOff", @"removed", @"failed"] containsObject:state ?: @""];
+    if (self.queued || !(waiting || settled)) return;
+    if (NSDate.date.timeIntervalSince1970 - self.checkedAt < (waiting ? kLookAgain : kLookAgainSettled)) return;
     [self check:nil];
 }
 
-// On the queue: each step in turn, as the module's README lays them out, each one's outcome said in the log. A copy
-// running from anywhere but an Applications folder changes nothing, as it may be gone tomorrow and the hooks would
-// record nothing then; the agent is looked for before Apple's developer tools, which only its sessions need; and
-// nothing of Whozmove's runs the agent before the tools are in, as it may run git.
+// On the queue: each step in turn, as the module's README lays them out, each one's outcome said in the log. How
+// Apple's developer tools stand is looked at first, wherever this copy runs from, for Git's page on the panel's back,
+// where Install works whatever else stands. A copy running from anywhere but an Applications folder changes nothing
+// more, as it may be gone tomorrow and the hooks would record nothing then.
 - (NSDictionary *)go:(NSString *)answer {
+    NSString *tools = [self lookForTools:answer];
     if (!InApplications(self.app)) {
         [self say:[NSString stringWithFormat:@"install: running from %@, not an Applications folder, so nothing is "
                                               "set up", self.app]];
-        return @{@"state": @"notInApplications"};
+        return @{@"state": @"notInApplications", @"tools": tools};
     }
     NSString *why = NoteApp(self.app);
     if (why) LogProblem([@"install: " stringByAppendingString:why]);
+    NSMutableDictionary *record = [Record() mutableCopy];
+    return [self stamp:[self setUp:answer tools:tools record:record] tools:tools record:record];
+}
+
+// Apple's developer tools: in, missing, or installing while macOS's installer for them is open. While it's open, and at
+// the look after it closes, macOS is asked again at each look (every 10 seconds), rather than at most every 5 minutes,
+// so they're found as soon as they're in; closed without them, they're missing again, and Install is offered again.
+// Install (`tools`) has macOS open it, unless it's open already or they're in, and waits a moment for it to show.
+- (NSString *)lookForTools:(NSString *)answer {
+    BOOL open = self.installer();
+    if ([answer isEqualToString:@"tools"] && !open && !self.tools(YES)) {
+        self.askTools();
+        for (NSTimeInterval waited = 0; !open && waited < kInstallerWait; waited += kInstallerLook) {
+            [NSThread sleepForTimeInterval:kInstallerLook];
+            open = self.installer();
+        }
+        if (!open) LogProblem(@"install: macOS's installer for the developer tools didn't open");
+    }
+    BOOL in = self.tools(open || self.wasInstalling);
+    self.wasInstalling = open && !in;
+    return in ? @"in" : open ? @"installing" : @"missing";
+}
+
+// The rest, from an Applications folder: the agent is looked for before Apple's developer tools are asked for, as only
+// its sessions need them, and nothing of Whozmove's runs the agent before the tools are in, as it may run git.
+- (NSDictionary *)setUp:(NSString *)answer tools:(NSString *)tools record:(NSMutableDictionary *)record {
     if (!self.agentHere()) {
         [self say:@"install: waiting for the agent, which isn't on this Mac"];
         return @{@"state": @"noCommand"};
     }
-    if (!self.tools()) {
-        [self say:@"install: waiting for Apple's command line developer tools"];
-        return @{@"state": @"noTools"};
+    if (![tools isEqualToString:@"in"]) {
+        BOOL installing = [tools isEqualToString:@"installing"];
+        [self say:installing ? @"install: waiting for macOS's installer to put Apple's developer tools in"
+                             : @"install: waiting for Apple's command line developer tools"];
+        return @{@"state": installing ? @"installing" : @"noTools"};
     }
     if (self.agentBuild) {
         [self say:@"install: an agent made this build, so its hooks are left as they are"];
         return @{@"state": @"agentBuild"};
     }
-    NSMutableDictionary *record = [Record() mutableCopy];
+    // Only the agent's own presses are its business: Install has been done with by now.
+    NSString *press = [@[@"addBack", @"turnOn", @"retry"] containsObject:answer ?: @""] ? answer : nil;
     BOOL before = record[@"connectedAt"] != nil;
-    NSDictionary *found = (self.connect ? self.connect(answer, before, self.hooks) : nil)
+    NSDictionary *found = (self.connect ? self.connect(press, before, self.hooks) : nil)
         ?: @{@"state": @"failed", @"detail": @"There's no agent to put the hooks into"};
     NSString *state = AsText(found[@"state"]) ?: @"failed";
     if (!before && [@[@"ready", @"added", @"updated", @"turnedOff"] containsObject:state]) {
@@ -132,6 +166,25 @@ static void KeepRecord(NSDictionary *record) {
     return found;
 }
 
+// What was found, with since when it has been so: kept in the record while it stays so, across launches too, and the
+// time now once it changes. A × on the line holds for that time (the page keeps it), so a message you've put away
+// comes back only once something has changed and changed back.
+- (NSDictionary *)stamp:(NSDictionary *)found tools:(NSString *)tools record:(NSMutableDictionary *)record {
+    NSString *state = AsText(found[@"state"]) ?: @"failed";
+    NSNumber *since = AsNumber(record[@"since"]);
+    if (!since || ![AsText(record[@"state"]) isEqualToString:state]) {
+        since = @((long long)(NSDate.date.timeIntervalSince1970 * 1000));
+        record[@"state"] = state;
+        record[@"since"] = since;
+        KeepRecord(record);
+    }
+    NSMutableDictionary *stamped = [found mutableCopy];
+    stamped[@"state"] = state;
+    stamped[@"since"] = since;
+    stamped[@"tools"] = tools;
+    return stamped;
+}
+
 // An outcome in the log, unless it's the one said last: while it waits, it looks every 10 seconds, and the log is
 // cleared once it's full (Log.m), with everything else in it.
 - (void)say:(NSString *)line {
@@ -142,12 +195,71 @@ static void KeepRecord(NSDictionary *record) {
 
 @end
 
-#pragma mark The print mode
+#pragma mark What the panel's back says
+
+// A card on the panel's back: a word or two on how it stands, a line under its heading, whether all's well, and its
+// button with what a press asks, if it has one.
+static NSDictionary *Card(NSString *said, NSString *note, BOOL ok, NSString *button, NSString *action, BOOL busy) {
+    NSMutableDictionary *card = [@{@"said": said, @"note": note, @"ok": @(ok), @"busy": @(busy)} mutableCopy];
+    if (button) {
+        card[@"button"] = button;
+        card[@"action"] = action;
+    }
+    return card;
+}
+
+NSDictionary *ToolsCard(NSString *tools, BOOL busy) {
+    if ([tools isEqualToString:@"in"]) return Card(@"Installed", @"Git runs from them.", YES, nil, nil, busy);
+    if ([tools isEqualToString:@"installing"])
+        return Card(@"Installing…", @"macOS's installer is putting them in.", NO, nil, nil, busy);
+    return Card(@"Not installed", @"Git needs them, and macOS installs them in a few minutes.", NO, @"Install",
+                @"tools", busy);
+}
+
+// What went wrong, as the agent said it, made a sentence of.
+static NSString *Sentence(NSString *text) {
+    text = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    return [text hasSuffix:@"."] || [text hasSuffix:@"!"] || [text hasSuffix:@"?"] ? text
+                                                                                   : [text stringByAppendingString:@"."];
+}
+
+NSDictionary *PluginCard(NSDictionary *found, BOOL busy) {
+    NSString *state = AsText(found[@"state"]), *detail = AsText(found[@"detail"]);
+    if (!state) return Card(@"Checking…", @"", NO, nil, nil, busy);
+    if ([@[@"ready", @"added", @"updated"] containsObject:state])
+        return Card(@"Connected", @"Sessions you start record what they do, for their rows here.", YES, nil, nil,
+                    busy);
+    if ([state isEqualToString:@"noTools"])
+        return Card(@"Waiting", @"It runs on Apple's developer tools: install them to see what each session is doing.",
+                    NO, @"Install", @"tools", busy);
+    if ([state isEqualToString:@"installing"])
+        return Card(@"Waiting", @"Waiting for Apple's developer tools to finish installing.", NO, nil, nil, busy);
+    if ([state isEqualToString:@"turnedOff"])
+        return Card(@"Off", @"Turn it on to see what each session is doing, and answer its requests here.", NO,
+                    @"Turn On", @"turnOn", busy);
+    if ([state isEqualToString:@"removed"])
+        return Card(@"Not added", @"Add it back to see what each session is doing, and answer its requests here.", NO,
+                    @"Add Back", @"addBack", busy);
+    if ([state isEqualToString:@"noCommand"])
+        return Card(@"Not found", @"Claude Code isn't on this Mac.", NO, @"Get Claude Code", @"getAgent", busy);
+    if ([state isEqualToString:@"notInApplications"])
+        return Card(@"Not set up", @"Whozmove sets it up once it runs from your Applications folder.", NO, nil, nil,
+                    busy);
+    if ([state isEqualToString:@"agentBuild"])
+        return Card(@"Left as it is", @"An agent made this build of Whozmove, so it leaves the plugin as it is.", NO,
+                    nil, nil, busy);
+    return Card(@"Not connected", detail ? [@"Couldn't connect: " stringByAppendingString:Sentence(detail)]
+                                         : @"Couldn't connect to Claude Code.",
+                NO, @"Try Again", @"retry", busy);
+}
+
+#pragma mark The print modes
 
 // What each case sets up: where the app runs from (~ for $HOME), whether an agent made it, the answers in turn (the
-// last one standing) to whether the agent is on this Mac (`here`) and the developer tools are, and the agent's own,
-// whether the hooks went in before, how many times it looks in all (the ticks' looks after the first), and your
-// presses on the line, made one straight after the other.
+// last one standing) to whether the agent is on this Mac (`here`), whether the developer tools are and whether macOS's
+// installer for them is open, and the agent's own; whether the hooks went in before, how many times it looks in all
+// (the ticks' looks after the first), your presses on the line, made one straight after the other, and whether it's
+// opened again after (`again`, the next launch, from what it recorded).
 static NSDictionary<NSString *, NSDictionary *> *InstallCases(void) {
     return @{
         @"applications": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"added"]},
@@ -161,14 +273,26 @@ static NSDictionary<NSString *, NSDictionary *> *InstallCases(void) {
                            @"looks": @2},
         @"tools-later": @{@"app": @"~/Applications/Whozmove.app", @"tools": @[@NO, @YES], @"agent": @[@"added"],
                           @"looks": @2},
-        @"neither-yet": @{@"app": @"~/Applications/Whozmove.app", @"here": @[@NO, @YES], @"tools": @[@NO, @YES],
+        @"neither-yet": @{@"app": @"~/Applications/Whozmove.app", @"here": @[@NO, @YES], @"tools": @[@NO, @NO, @YES],
                           @"agent": @[@"added"], @"looks": @3},
         @"no-command-yet": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"noCommand", @"added"],
                              @"looks": @2},
         @"taken-out": @{@"app": @"~/Applications/Whozmove.app", @"before": @YES, @"agent": @[@"removed"]},
         @"turned-off": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"turnedOff"]},
+        @"turned-off-again": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"turnedOff"], @"again": @YES},
         @"presses": @{@"app": @"~/Applications/Whozmove.app", @"before": @YES,
                       @"agent": @[@"removed", @"added", @"ready"], @"presses": @[@"addBack", @"retry"]},
+        @"install-pressed": @{@"app": @"~/Applications/Whozmove.app", @"tools": @[@NO, @NO, @NO, @NO, @YES],
+                              @"installer": @[@NO, @NO, @YES, @YES, @NO], @"agent": @[@"added"],
+                              @"presses": @[@"tools"], @"looks": @3},
+        @"installer-closed": @{@"app": @"~/Applications/Whozmove.app", @"tools": @[@NO],
+                               @"installer": @[@NO, @NO, @YES, @NO], @"presses": @[@"tools"], @"looks": @3},
+        @"tools-in-first": @{@"app": @"~/Applications/Whozmove.app", @"tools": @[@NO, @YES],
+                             @"agent": @[@"added"], @"presses": @[@"tools"]},
+        @"install-without-agent": @{@"app": @"~/Applications/Whozmove.app", @"here": @[@NO], @"tools": @[@NO],
+                                    @"installer": @[@NO, @NO, @YES], @"presses": @[@"tools"]},
+        @"install-outside": @{@"app": @"~/Downloads/Whozmove.app", @"tools": @[@NO],
+                              @"installer": @[@NO, @NO, @YES], @"presses": @[@"tools"]},
     };
 }
 
@@ -179,11 +303,22 @@ static void Settle(Install *install) {
         [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
 }
 
+// The next of a stand-in's answers, the last one standing once the others are used up.
+static id Next(NSMutableArray *answers, NSObject *lock) {
+    @synchronized (lock) {
+        id answer = answers.firstObject;
+        if (answers.count > 1) [answers removeObjectAtIndex:0];
+        return answer;
+    }
+}
+
 // `Whozmove --print-install <case>…`: each case set up with stand-ins for where the app runs from, whether an agent
-// made it, the agent and Apple's developer tools, and checked as the app checks as it opens; then, as JSON, what each
-// look found, what the agent was asked, in order (each call's start and end, so two never overlap), and what was
-// noted in Whozmove's folder in $HOME, which each case starts without. modules/install/tests/test.sh checks it. It
-// writes in Whozmove's folder there, so it refuses to run in your own home folder.
+// made it, the agent, Apple's developer tools and macOS's installer for them, and checked as the app checks as it
+// opens; then, as JSON, what each look found (how the developer tools stood, and whether since when it had been so was
+// new or kept), what the agent was asked, in order (each call's start and end, so two never overlap), how macOS was
+// asked about the tools, and what was noted in Whozmove's folder in $HOME, which each case starts without.
+// modules/install/tests/test.sh checks it. It writes in Whozmove's folder there, so it refuses to run in your own home
+// folder.
 int PrintInstall(NSArray<NSString *> *cases) {
     if (HomeIsYourOwn()) {
         fprintf(stderr, "--print-install writes into Whozmove's folder in $HOME: run it with a throwaway HOME, as "
@@ -201,36 +336,53 @@ int PrintInstall(NSArray<NSString *> *cases) {
         [NSFileManager.defaultManager removeItemAtPath:AppDir(@"app") error:nil];
         [NSFileManager.defaultManager removeItemAtPath:AppDir(@"install.json") error:nil];
         if ([setup[@"before"] boolValue]) KeepRecord(@{@"connectedAt": @1});
+        NSObject *lock = [NSObject new];
         NSMutableArray *here = [setup[@"here"] ?: @[@YES] mutableCopy];
         NSMutableArray *tools = [setup[@"tools"] ?: @[@YES] mutableCopy];
+        NSMutableArray *installer = [setup[@"installer"] ?: @[@NO] mutableCopy];
         NSMutableArray *answers = [setup[@"agent"] ?: @[] mutableCopy];
-        NSMutableArray *asked = [NSMutableArray array], *looks = [NSMutableArray array];
-        NSObject *lock = [NSObject new];
+        NSMutableArray *asked = [NSMutableArray array], *toolsAsked = [NSMutableArray array];
+        NSMutableArray *looks = [NSMutableArray array], *since = [NSMutableArray array];
+        NSMutableArray *toolsFound = [NSMutableArray array];
+        // Since when the last look's state had been so: kept only for the same state, as two looks can fall in one
+        // millisecond.
+        __block NSNumber *lastSince = nil;
+        __block NSString *lastState = nil;
         NSString *app = setup[@"app"];
         if ([app hasPrefix:@"~/"]) app = [Home() stringByAppendingPathComponent:[app substringFromIndex:2]];
-        Install *install = [[Install alloc] initWithApp:app builtByAgent:[setup[@"agentBuild"] boolValue]
-            agentHere:^BOOL {
-                BOOL there = [here.firstObject boolValue];
-                if (here.count > 1) [here removeObjectAtIndex:0];
-                return there;
-            }
-            tools:^BOOL {
-                BOOL ready = [tools.firstObject boolValue];
-                if (tools.count > 1) [tools removeObjectAtIndex:0];
-                return ready;
-            }
-            connect:^NSDictionary *(NSString *answer, BOOL before, NSString *hooks) {
+        Install *(^opening)(void) = ^Install * {
+            Install *install = [[Install alloc] initWithApp:app builtByAgent:[setup[@"agentBuild"] boolValue]
+                                                      hooks:@"<the hooks this app carries>"];
+            install.agentHere = ^BOOL { return [Next(here, lock) boolValue]; };
+            install.tools = ^BOOL (BOOL now) {
+                @synchronized (lock) { [toolsAsked addObject:now ? @"asked now" : @"as last asked"]; }
+                return [Next(tools, lock) boolValue];
+            };
+            install.installer = ^BOOL { return [Next(installer, lock) boolValue]; };
+            install.askTools = ^{
+                @synchronized (lock) { [toolsAsked addObject:@"asked to install them"]; }
+            };
+            install.connect = ^NSDictionary *(NSString *answer, BOOL before, NSString *hooks) {
                 NSString *call = [NSString stringWithFormat:@"%@, before %@", answer ?: @"at launch",
                                                             before ? @"yes" : @"no"];
                 @synchronized (lock) { [asked addObject:[@"start: " stringByAppendingString:call]]; }
                 [NSThread sleepForTimeInterval:0.05];
-                NSString *state = answers.firstObject ?: @"ready";
-                if (answers.count > 1) [answers removeObjectAtIndex:0];
+                NSString *state = Next(answers, lock) ?: @"ready";
                 @synchronized (lock) { [asked addObject:[@"end: " stringByAppendingString:call]]; }
                 return @{@"state": state};
-            }
-            hooks:@"<the hooks this app carries>"];
-        install.onFound = ^(NSDictionary *found) { [looks addObject:found[@"state"]]; };
+            };
+            install.onFound = ^(NSDictionary *found) {
+                [looks addObject:found[@"state"]];
+                [toolsFound addObject:found[@"tools"] ?: NSNull.null];
+                NSNumber *at = found[@"since"];
+                BOOL kept = [at isEqual:lastSince] && [found[@"state"] isEqual:lastState];
+                [since addObject:!at ? @"none" : kept ? @"kept" : @"new"];
+                if (at) lastSince = at;
+                lastState = found[@"state"];
+            };
+            return install;
+        };
+        Install *install = opening();
         [install check:nil];
         for (NSString *press in setup[@"presses"] ?: @[]) [install check:press];
         Settle(install);
@@ -238,13 +390,37 @@ int PrintInstall(NSArray<NSString *> *cases) {
             [install check:nil];
             Settle(install);
         }
+        if ([setup[@"again"] boolValue]) {
+            Install *next = opening();
+            [next check:nil];
+            Settle(next);
+        }
         NSString *noted = [NSString stringWithContentsOfFile:AppDir(@"app") encoding:NSUTF8StringEncoding error:nil];
         noted = [[noted stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
                  stringByReplacingOccurrencesOfString:Home() withString:@"~"];
         NSDictionary *record = Record();
-        [printed addObject:@{@"case": name, @"found": looks, @"asked": asked,
-                             @"noted": noted ?: NSNull.null,
+        [printed addObject:@{@"case": name, @"found": looks, @"since": since, @"tools": toolsFound,
+                             @"tools asked": toolsAsked, @"asked": asked, @"noted": noted ?: NSNull.null,
                              @"connected": record[@"connectedAt"] ? @"recorded" : @"not recorded"}];
     }
     return PrintJSON(printed);
+}
+
+// `Whozmove --print-install-cards`: what the panel's back says on Git's page for each way the developer tools can
+// stand, and on the agent's for each state of its hooks (a failure with what the agent said, and with nothing), with
+// a press under way for one of them.
+int PrintInstallCards(void) {
+    NSMutableArray *git = [NSMutableArray array], *agent = [NSMutableArray array];
+    for (NSString *tools in @[@"in", @"missing", @"installing"])
+        [git addObject:@{@"tools": tools, @"card": ToolsCard(tools, NO)}];
+    [git addObject:@{@"tools": @"missing, Install pressed", @"card": ToolsCard(@"missing", YES)}];
+    NSArray *states = @[@"ready", @"added", @"updated", @"noTools", @"installing", @"turnedOff", @"removed",
+                        @"noCommand", @"notInApplications", @"agentBuild"];
+    [agent addObject:@{@"state": @"not looked yet", @"card": PluginCard(nil, NO)}];
+    for (NSString *state in states) [agent addObject:@{@"state": state, @"card": PluginCard(@{@"state": state}, NO)}];
+    NSDictionary *failed = @{@"state": @"failed", @"detail": @"Marketplace whozmove failed to load: cache-miss"};
+    [agent addObject:@{@"state": @"failed, with what it said", @"card": PluginCard(failed, NO)}];
+    [agent addObject:@{@"state": @"failed, saying nothing", @"card": PluginCard(@{@"state": @"failed"}, NO)}];
+    [agent addObject:@{@"state": @"removed, Add Back pressed", @"card": PluginCard(@{@"state": @"removed"}, YES)}];
+    return PrintJSON(@{@"git": git, @"agent": agent});
 }

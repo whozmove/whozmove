@@ -375,8 +375,9 @@ if [ -x /usr/bin/python3 ] && [ "$(python3 -c 'import sys; print(sys.executable)
 fi
 
 # Whozmove's plugin, put into Claude Code as the app does as it opens: a stand-in claude, found through
-# $INSTALL_PATH, writes down what it's asked, answers `plugin list --json` from list.json in its home folder, and
-# fails the command its home folder's `fail` names, saying why, as Claude Code does.
+# $INSTALL_PATH, writes down what it's asked, answers `plugin list --json` from list.json in its home folder (from
+# list-after.json once the plugin has been brought up to date, where there is one), and fails the command its home
+# folder's `fail` names, saying why, as Claude Code does.
 plugin_cases() {
   . modules/claude-code/plugin.sh
   copy_plugin "$T/hooks"
@@ -393,6 +394,9 @@ if [ -f "$HOME/fail" ] && [ "$*" = "$(cat "$HOME/fail")" ]; then
   echo "Installing plugin \"whozmove@whozmove\"..."
   echo "Error: Failed to install plugin \"whozmove@whozmove\": marketplace not reachable" >&2
   exit 1
+fi
+if [ "$*" = "plugin update whozmove@whozmove" ] && [ -f "$HOME/list-after.json" ]; then
+  mv "$HOME/list-after.json" "$HOME/list.json"
 fi
 if [ "$*" = "plugin list --json" ]; then cat "$HOME/list.json" 2>/dev/null || echo "[]"
 else echo '{"outcome":"ok"}'; fi
@@ -438,6 +442,18 @@ SH
   desktop="$T/home/Library/Application Support/Claude/claude-code/2.1.302/0/claude.app/Contents/MacOS"
   mkdir -p "$desktop" && cp "$T/bin/claude" "$desktop/claude"
   WHERE= connect
+  local copy="$T/home/Library/Application Support/Whozmove/plugin" failing
+  failing="[{\"id\": \"whozmove@whozmove\", \"version\": \"$new\", \"enabled\": true,
+    \"errors\": [\"Plugin whozmove failed to load: hooks/hooks.json is missing\"]}]"
+  echo "== 13 Try Again while it can't load: the hooks copied in again whatever their version, the marketplace and" \
+       "the plugin brought up to date, and the list asked again: it loads now"
+  case_home "$failing"
+  mkdir -p "$(dirname "$copy")" && cp -R "$T/hooks" "$copy" && rm "$copy/hooks/hooks.json"
+  printf '%s\n' "[$mine]" > "$T/home/list-after.json"
+  connect --before --answer retry
+  echo "   its hooks.json: $([ -f "$copy/hooks/hooks.json" ] && echo "there again" || echo missing)"
+  echo "== 14 Try Again, and it still can't load: what it says now"
+  case_home "$failing"; connect --before --answer retry
 }
 . "$REPO/tests/lib.sh"
 APP=$(built_app "$T") || exit 1

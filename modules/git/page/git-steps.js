@@ -26,10 +26,6 @@ const STEP_ICONS = {
 };
 const PICKED_ICON = '<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" '
   + 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-// A tick in a ring: a code review with nothing left to fix, in the colour of what's finished.
-const REVIEWED_ICON = '<svg class="review-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle '
-  + 'cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" '
-  + 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 // A step's icon on the work line, with the count of commits to push, and its word, which comes in beside it while it's
 // pointed at. While the row's agent works or asks, the work line isn't there (workHTML).
@@ -62,7 +58,7 @@ function outgoingHTML(row) {
     const opens = !row.steps.commit && (row.steps.push || row.steps.publish);
     const press = opens ? ` outgoing" data-outgoing="${esc(row.s.sessionId)}` : '';
     return `<div class="nopr review${press}" title="${esc(opens ? `${tip}. See the commits not on GitHub yet` : tip)}">`
-      + `${done ? REVIEWED_ICON : ''}<span class="pt">${esc(word)}</span>`
+      + `${done ? DONE_ICON : ''}<span class="pt">${esc(word)}</span>`
       + `${left ? `<span class="out-n">${esc(left)}</span>` : ''}</div>`;
   }
   const words = outgoingWords(row.s.checkout, row.steps);

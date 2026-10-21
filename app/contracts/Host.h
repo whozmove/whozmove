@@ -81,6 +81,10 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 // rows for the conversations it keeps that aren't running, and which of them all it shows now (`focused`). Returns the
 // rows it adds.
 - (NSArray<Row *> *)readRows:(NSArray<Row *> *)running;
+// Whether its sessions are tracked: while it's on this Mac and its page on the panel's back has them tracked. While
+// they aren't, the core doesn't ask it for its rows and lists none of the sessions it holds, and nothing starts in it.
+// Read on the sessions' queue and the main thread.
+@property (readonly) BOOL tracked;
 // Makes sure it shows a conversation, in front: opened if it shows another one, else brought forward.
 - (void)show:(Row *)row;
 // Whether Whozmove may control it; when it may not, macOS is asked to offer the Accessibility permission.

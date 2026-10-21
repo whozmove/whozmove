@@ -18,7 +18,9 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   changes in the sessions' folders (every 5s); then each session's last message and writings; then its details, with
   a pick from the panel the session hasn't confirmed yet; and once the rows are whole,
   it forgets the launch flags of sessions that have ended, and keeps each running terminal session's record
-  (`KeptSessions.m`).
+  (`KeptSessions.m`). Its settings on the panel's back are on Claude's page, which the app that keeps its sessions as
+  conversations of its own lists on every Mac (Claude Desktop's module): that page's id is the agent's `appId`, where
+  the install module adds how Whozmove's plugin stands.
 - `app/KeptSessions.m`: the terminal sessions it ran lately, kept so their rows stay once they've ended, as Claude
   Desktop keeps its conversations: a file for each in Whozmove's folder (`conversations/<id>.json`: its folder, name,
   the terminal it runs in, its process, its transcript and when its conversation last moved), written on a queue of
@@ -57,7 +59,9 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   module calls as the app opens): copied from the app into Whozmove's folder (`plugin`) when their version differs or
   the folder has gone, then, as `claude plugin list --json` finds them, added (the marketplace from that folder, then
   the plugin), brought up to date (a marketplace update, then a plugin update), turned on again at your press, or left
-  as they are, each with Claude Code's own command.
+  as they are, each with Claude Code's own command. Try Again puts it all in again from the start: the hooks copied
+  whatever their version, then the marketplace and the plugin brought up to date and the list asked again, so Claude
+  Code reads them afresh and says how they stand now.
 - `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things, its
   command and what it's run with, the marks its tab titles show while it works, how its registry marks a session run
   from a terminal, the `claude plugin` commands that keep Whozmove's plugin, where Claude Code is installed from, and

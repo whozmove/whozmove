@@ -9,6 +9,8 @@ extern NSString *const kClaudeDesktopAppId;
 extern NSString *const kClaudeDesktopEntrypoint;
 pid_t ClaudeDesktopPid(void);
 void ActivateClaudeDesktop(void);
+// Where to get it, for Get Claude Desktop on Claude's page on the panel's back, while it isn't on this Mac.
+extern NSString *const kClaudeDesktopDownloadPage;
 
 // Its conversation files and its log, both in the home folder.
 extern NSString *const kClaudeDesktopConversations;

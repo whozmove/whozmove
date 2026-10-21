@@ -88,19 +88,28 @@
     });
 }
 
-// On the queue: each agent's running sessions; then what the apps that keep sessions as conversations of their own add
-// (Claude Desktop: its own record of each conversation, which goes on the row before the agent's hooks', and its
-// conversations that aren't running, which come back with status "closed"); then each agent's terminal sessions that
-// have ended, which come back the same way, after those, so a conversation the app keeps is listed once, as its; then
-// what each session's agent's hooks recorded and the checkout it runs in; and the requests waiting on them.
+// On the queue: each agent's running sessions; then what the apps that keep sessions as conversations of their own add,
+// those whose sessions you track (Claude Desktop: its own record of each conversation, which goes on the row before the
+// agent's hooks', and its conversations that aren't running, which come back with status "closed"); then each agent's
+// terminal sessions that have ended, which come back the same way, after those, so a conversation the app keeps is
+// listed once, as its; then, with the sessions of an app whose sessions you don't track taken out, what each session's
+// agent's hooks recorded and the checkout it runs in; and the requests waiting on them.
 - (NSArray<Row *> *)sessions {
     NSMutableArray<Row *> *rows = [NSMutableArray array];
     for (id<Agent> agent in self.core.agents) [rows addObjectsFromArray:[agent readSessions]];
     NSArray<Row *> *running = [rows copy];
-    for (id<ConversationHost> host in [self.core hostsThat:@protocol(ConversationHost)])
-        [rows addObjectsFromArray:[host readRows:running]];
+    NSMutableArray<id<Host>> *untracked = [NSMutableArray array];
+    for (id<ConversationHost> host in [self.core hostsThat:@protocol(ConversationHost)]) {
+        if (host.tracked) [rows addObjectsFromArray:[host readRows:running]];
+        else [untracked addObject:host];
+    }
     NSArray<Row *> *listed = [rows copy];
     for (id<Agent> agent in self.core.agents) [rows addObjectsFromArray:[agent readEndedSessions:listed]];
+    if (untracked.count)
+        [rows filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(Row *row, id bindings) {
+            id<Host> host = [self.core hostOf:row];
+            return !host || ![untracked containsObject:host];
+        }]];
     for (Row *row in rows) {
         [[self.core agentOf:row] addRecordTo:row];
         [self addCheckoutTo:row];

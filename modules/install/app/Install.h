@@ -10,20 +10,28 @@
 typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *hooks);
 
 @interface Install : NSObject
-// What it goes by, given as they are: where this app runs from, whether an agent built it, whether the agent is on this
-// Mac and Apple's developer tools are there now, the agent's part, and the hooks this app carries.
-- (instancetype)initWithApp:(NSString *)app builtByAgent:(BOOL)agentBuild agentHere:(BOOL (^)(void))agentHere
-                      tools:(BOOL (^)(void))tools connect:(ConnectHooks)connect hooks:(NSString *)hooks;
-// Goes through it all, after any check still under way, with your press on the line (addBack, turnOn, retry) as
-// `answer`, or nil.
+// What it goes by, given as it is: where this app runs from, whether an agent built it, and the hooks this app carries.
+- (instancetype)initWithApp:(NSString *)app builtByAgent:(BOOL)agentBuild hooks:(NSString *)hooks;
+// What it asks, each answered by a stand-in in its print mode: whether the agent is on this Mac; whether Apple's
+// developer tools are there, asked of macOS again `now`, or as last asked (at most every 5 minutes, DeveloperToolsGit);
+// whether macOS's installer for them is open, and asking macOS to open it; and the agent's part.
+@property (copy) BOOL (^agentHere)(void);
+@property (copy) BOOL (^tools)(BOOL now);
+@property (copy) BOOL (^installer)(void);
+@property (copy) void (^askTools)(void);
+@property (copy) ConnectHooks connect;
+// Goes through it all, after any check still under way, with your press on the line or the panel's back as `answer`:
+// tools (Install: macOS's installer opened), addBack, turnOn or retry; else nil.
 - (void)check:(NSString *)answer;
-// Each tick: while it waits for the agent or for the developer tools, it looks again every 10 seconds (macOS is asked
-// about the tools at most every 5 minutes, DeveloperToolsGit).
+// Each tick: while it waits for the agent or for the developer tools, it looks again every 10 seconds; once the agent
+// has said how its hooks stand, every 5 minutes, as you may turn them off there meanwhile.
 - (void)tick;
-// Whether a check is queued or under way: its print mode waits until none is.
+// Whether a check is queued or under way: its print mode waits until none is, and a press waits meanwhile.
 @property (readonly) BOOL working;
-// What the last check found, {state, detail}, on the main thread: state is notInApplications, noTools, agentBuild, or
-// the agent's (AgentInstall). `onFound` hears of each.
+// What the last check found, on the main thread: {state, detail, since, tools}. state is notInApplications, noTools,
+// installing (macOS's installer for the developer tools is open), agentBuild, or the agent's (AgentInstall); since
+// when it has been so, in ms since 1970, kept across launches (a × on the line holds until it changes); and tools how
+// the developer tools stand: in, missing or installing. `onFound` hears of each.
 @property (readonly) NSDictionary *found;
 @property (copy) void (^onFound)(NSDictionary *found);
 @end
@@ -31,5 +39,12 @@ typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *h
 // Whether an app at this path runs from an Applications folder, /Applications or ~/Applications, at any depth: never
 // from a disk image, a download, a build's folder, or the copy of one macOS runs it from instead (App Translocation).
 BOOL InApplications(NSString *app);
-// The print mode, `--print-install <case>…`, for the module's tests.
+// What the panel's back says of it, on Git's page (the developer tools, as `tools` stands) and on the agent's (its
+// hooks, as `found` stands, or nil before the first check has ended): {said, note, ok, button, action, busy}, where
+// action is what its button's press asks, as the line's does (InstallModule). `busy` while a press is under way.
+NSDictionary *ToolsCard(NSString *tools, BOOL busy);
+NSDictionary *PluginCard(NSDictionary *found, BOOL busy);
+// The print modes, for the module's tests: `--print-install <case>…`, and `--print-install-cards`, every card the
+// panel's back can show.
 int PrintInstall(NSArray<NSString *> *cases);
+int PrintInstallCards(void);

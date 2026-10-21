@@ -136,13 +136,16 @@
 // {state, detail}. `state` is ready (as they were), added (the first time, or back after your press), updated (a new
 // version), noCommand (the agent isn't on this Mac), removed (taken out of the agent since they were put in, so they're
 // left out), turnedOff (turned off in it) or failed, with what went wrong as `detail` (the agent's own last line, when
-// it said one). `answer` is your press on the line (addBack, turnOn or retry), else nil; `before` says whether they
-// were ever put in on this Mac, as the install module records it, so the agent keeps nothing. It blocks: call it off
-// the main thread. Nil in a print run, where it's never asked.
+// it said one). `answer` is your press on the line (addBack, turnOn, or retry, which puts them in again from the
+// start), else nil; `before` says whether they were ever put in on this Mac, as the install module records it, so the
+// agent keeps nothing. It blocks: call it off the main thread. Nil in a print run, where it's never asked.
 - (NSDictionary *)connect:(NSString *)answer before:(BOOL)before from:(NSString *)hooks;
 // Whether the agent is on this Mac, found without running anything, not even your shell, whose startup files may run
 // git before Apple's developer tools are in: asked before the tools, which only its sessions need.
 @property (readonly) BOOL onThisMac;
 // Where to get the agent, for the line's Get Claude Code.
 @property (readonly) NSURL *installPage;
+// The page on the panel's back its settings go on (an AppEntry's id: Claude Code's are on Claude's), where the install
+// module adds how its hooks stand; nil for none.
+@property (readonly) NSString *appId;
 @end

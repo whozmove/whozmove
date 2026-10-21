@@ -10,7 +10,16 @@
     "found" : [
       "added"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -22,7 +31,16 @@
     "found" : [
       "ready"
     ],
-    "noted" : "\/Applications\/Tools\/Whozmove.app"
+    "noted" : "\/Applications\/Tools\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -33,7 +51,16 @@
     "found" : [
       "notInApplications"
     ],
-    "noted" : null
+    "noted" : null,
+    "since" : [
+      "none"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -44,7 +71,16 @@
     "found" : [
       "notInApplications"
     ],
-    "noted" : null
+    "noted" : null,
+    "since" : [
+      "none"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -55,7 +91,16 @@
     "found" : [
       "notInApplications"
     ],
-    "noted" : null
+    "noted" : null,
+    "since" : [
+      "none"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -66,7 +111,16 @@
     "found" : [
       "notInApplications"
     ],
-    "noted" : null
+    "noted" : null,
+    "since" : [
+      "none"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   }
 ]
 == A build an agent made: where it runs from is noted, its hooks are left as they are
@@ -80,7 +134,16 @@
     "found" : [
       "agentBuild"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   }
 ]
 == Waiting for the agent, then for Apple's developer tools, then carrying on at the next look
@@ -96,7 +159,19 @@
       "noCommand",
       "added"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -109,7 +184,19 @@
       "noTools",
       "added"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "missing",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -123,7 +210,22 @@
       "noTools",
       "added"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "missing",
+      "missing",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked",
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -138,7 +240,19 @@
       "noCommand",
       "added"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked"
+    ]
   }
 ]
 == Hooks taken out of the agent, or turned off in it, and two presses on the line one after the other
@@ -153,7 +267,16 @@
     "found" : [
       "removed"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -165,7 +288,16 @@
     "found" : [
       "turnedOff"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ]
   },
   {
     "asked" : [
@@ -183,6 +315,393 @@
       "added",
       "ready"
     ],
-    "noted" : "~\/Applications\/Whozmove.app"
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "in",
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked",
+      "as last asked"
+    ]
   }
 ]
+== Opened again while it's still so: since when it has been so is kept, so a × on the line still holds
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no",
+      "start: at launch, before yes",
+      "end: at launch, before yes"
+    ],
+    "case" : "turned-off-again",
+    "connected" : "recorded",
+    "found" : [
+      "turnedOff",
+      "turnedOff"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "as last asked"
+    ]
+  }
+]
+== Install: macOS's installer opens, and while it's open, and once after, macOS is asked again at each look;
+   closed without them, they're missing again; and once they're in, Install asks for nothing
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "install-pressed",
+    "connected" : "recorded",
+    "found" : [
+      "noTools",
+      "installing",
+      "installing",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new",
+      "kept",
+      "new"
+    ],
+    "tools" : [
+      "missing",
+      "installing",
+      "installing",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "asked now",
+      "asked to install them",
+      "asked now",
+      "asked now",
+      "asked now"
+    ]
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "installer-closed",
+    "connected" : "not recorded",
+    "found" : [
+      "noTools",
+      "installing",
+      "noTools",
+      "noTools"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new",
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "missing",
+      "installing",
+      "missing",
+      "missing"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "asked now",
+      "asked to install them",
+      "asked now",
+      "asked now",
+      "as last asked"
+    ]
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "tools-in-first",
+    "connected" : "recorded",
+    "found" : [
+      "noTools",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "new"
+    ],
+    "tools" : [
+      "missing",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "asked now",
+      "as last asked"
+    ]
+  }
+]
+== Install without the agent, and from outside an Applications folder: for Git's page, it opens the installer all
+   the same
+[
+  {
+    "asked" : [
+
+    ],
+    "case" : "install-without-agent",
+    "connected" : "not recorded",
+    "found" : [
+      "noCommand",
+      "noCommand"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "missing",
+      "installing"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "asked now",
+      "asked to install them",
+      "asked now"
+    ]
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "install-outside",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications",
+      "notInApplications"
+    ],
+    "noted" : null,
+    "since" : [
+      "none",
+      "none"
+    ],
+    "tools" : [
+      "missing",
+      "installing"
+    ],
+    "tools asked" : [
+      "as last asked",
+      "asked now",
+      "asked to install them",
+      "asked now"
+    ]
+  }
+]
+== What the panel's back says: on Git's page, of the developer tools; on the agent's, of its hooks
+{
+  "agent" : [
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "",
+        "ok" : false,
+        "said" : "Checking…"
+      },
+      "state" : "not looked yet"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Sessions you start record what they do, for their rows here.",
+        "ok" : true,
+        "said" : "Connected"
+      },
+      "state" : "ready"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Sessions you start record what they do, for their rows here.",
+        "ok" : true,
+        "said" : "Connected"
+      },
+      "state" : "added"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Sessions you start record what they do, for their rows here.",
+        "ok" : true,
+        "said" : "Connected"
+      },
+      "state" : "updated"
+    },
+    {
+      "card" : {
+        "action" : "tools",
+        "busy" : false,
+        "button" : "Install",
+        "note" : "It runs on Apple's developer tools: install them to see what each session is doing.",
+        "ok" : false,
+        "said" : "Waiting"
+      },
+      "state" : "noTools"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Waiting for Apple's developer tools to finish installing.",
+        "ok" : false,
+        "said" : "Waiting"
+      },
+      "state" : "installing"
+    },
+    {
+      "card" : {
+        "action" : "turnOn",
+        "busy" : false,
+        "button" : "Turn On",
+        "note" : "Turn it on to see what each session is doing, and answer its requests here.",
+        "ok" : false,
+        "said" : "Off"
+      },
+      "state" : "turnedOff"
+    },
+    {
+      "card" : {
+        "action" : "addBack",
+        "busy" : false,
+        "button" : "Add Back",
+        "note" : "Add it back to see what each session is doing, and answer its requests here.",
+        "ok" : false,
+        "said" : "Not added"
+      },
+      "state" : "removed"
+    },
+    {
+      "card" : {
+        "action" : "getAgent",
+        "busy" : false,
+        "button" : "Get Claude Code",
+        "note" : "Claude Code isn't on this Mac.",
+        "ok" : false,
+        "said" : "Not found"
+      },
+      "state" : "noCommand"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Whozmove sets it up once it runs from your Applications folder.",
+        "ok" : false,
+        "said" : "Not set up"
+      },
+      "state" : "notInApplications"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "An agent made this build of Whozmove, so it leaves the plugin as it is.",
+        "ok" : false,
+        "said" : "Left as it is"
+      },
+      "state" : "agentBuild"
+    },
+    {
+      "card" : {
+        "action" : "retry",
+        "busy" : false,
+        "button" : "Try Again",
+        "note" : "Couldn't connect: Marketplace whozmove failed to load: cache-miss.",
+        "ok" : false,
+        "said" : "Not connected"
+      },
+      "state" : "failed, with what it said"
+    },
+    {
+      "card" : {
+        "action" : "retry",
+        "busy" : false,
+        "button" : "Try Again",
+        "note" : "Couldn't connect to Claude Code.",
+        "ok" : false,
+        "said" : "Not connected"
+      },
+      "state" : "failed, saying nothing"
+    },
+    {
+      "card" : {
+        "action" : "addBack",
+        "busy" : true,
+        "button" : "Add Back",
+        "note" : "Add it back to see what each session is doing, and answer its requests here.",
+        "ok" : false,
+        "said" : "Not added"
+      },
+      "state" : "removed, Add Back pressed"
+    }
+  ],
+  "git" : [
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "Git runs from them.",
+        "ok" : true,
+        "said" : "Installed"
+      },
+      "tools" : "in"
+    },
+    {
+      "card" : {
+        "action" : "tools",
+        "busy" : false,
+        "button" : "Install",
+        "note" : "Git needs them, and macOS installs them in a few minutes.",
+        "ok" : false,
+        "said" : "Not installed"
+      },
+      "tools" : "missing"
+    },
+    {
+      "card" : {
+        "busy" : false,
+        "note" : "macOS's installer is putting them in.",
+        "ok" : false,
+        "said" : "Installing…"
+      },
+      "tools" : "installing"
+    },
+    {
+      "card" : {
+        "action" : "tools",
+        "busy" : true,
+        "button" : "Install",
+        "note" : "Git needs them, and macOS installs them in a few minutes.",
+        "ok" : false,
+        "said" : "Not installed"
+      },
+      "tools" : "missing, Install pressed"
+    }
+  ]
+}

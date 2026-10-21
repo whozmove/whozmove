@@ -47,26 +47,45 @@ typedef NS_ENUM(NSInteger, AppPermission) {
 @property (readonly, copy) NSString *key, *title, *help;
 @property (readonly, copy) BOOL (^on)(void);
 @property (readonly, copy) void (^set)(BOOL on);
-// Shown only while `shown` says so (Lyrics, while the song shows), and pressable only while `enabled` does (Show
-// Deploy, while the next steps show); nil for always.
+// Shown only while `shown` says so (Lyrics, while the song shows), and pressable only while `enabled` does (Show Next
+// Steps, while Apple's developer tools are in); nil for always.
 @property (copy) BOOL (^shown)(void);
 @property (copy) BOOL (^enabled)(void);
 @property (copy) NSString *group;
 @end
 
+// One of the cards on an app's page on the panel's back, under its switches: how something Whozmove needs there stands
+// (Apple's command line developer tools, on Git's page), with a button for what you can do about it. Its heading is
+// fixed; `now`, read as the back is drawn, says the rest: {said, note, ok, button, busy}, where said is a word or two
+// on its right ("Installed"), note a line under its heading, ok whether all's well (its tick), button its button's
+// title, if it has one now, and busy whether what a press set going is still under way (the button waits meanwhile);
+// or nil while it has nothing to say, which leaves the card out. A press runs `press`.
+@interface AppStatus : NSObject
++ (instancetype)statusWithKey:(NSString *)key title:(NSString *)title now:(NSDictionary *(^)(void))now
+                        press:(void (^)(void))press;
+@property (readonly, copy) NSString *key, *title;
+@property (readonly, copy) NSDictionary *(^now)(void);
+@property (readonly, copy) void (^press)(void);
+// The heading over its card, where it needs telling apart from the switches above it ("Developer tools"); nil for none.
+@property (copy) NSString *section;
+@end
+
 // One of the apps a module works with, as the panel's back lists it (the apps module): its id (the app's bundle id, or
 // a name of Whozmove's own for a tool that isn't an app, as git), its name, a line on what Whozmove does with it, its
-// place among the others (lower first), what macOS has to allow, and its switches. An entry made with only an app's id
-// and switches adds them to the app another module lists: starts adds "Open new conversations here" to each terminal.
+// place among the others (lower first), what macOS has to allow, its switches and its cards. An entry made with only an
+// app's id and switches or cards adds them to the app another module lists: starts adds "Open new conversations here"
+// to each terminal, and install the developer tools' card to Git's page.
 @interface AppEntry : NSObject
 + (instancetype)appWithId:(NSString *)appId name:(NSString *)name does:(NSString *)does order:(NSInteger)order;
 + (instancetype)switches:(NSArray<AppSwitch *> *)switches forApp:(NSString *)appId;
++ (instancetype)statuses:(NSArray<AppStatus *> *)statuses forApp:(NSString *)appId;
 @property (readonly, copy) NSString *appId, *name, *does;
 @property (readonly) NSInteger order;
 @property AppPermission permission;
 // What it needs that permission for, in a few words: "Finds each session's tab, and types into it".
 @property (copy) NSString *permissionFor;
 @property (copy) NSArray<AppSwitch *> *switches;
+@property (copy) NSArray<AppStatus *> *statuses;
 // Whether it's listed, for a tool that isn't an app (git) or an app listed whether it's installed or not (Spotify,
 // whose token offers to get it); nil for an app listed while macOS finds it by its id.
 @property (copy) BOOL (^present)(void);

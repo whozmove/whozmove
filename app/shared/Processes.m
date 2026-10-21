@@ -492,55 +492,73 @@ static NSString *DeveloperGit(void) {
     return [NSFileManager.defaultManager isExecutableFileAtPath:git] ? git : nil;
 }
 
+// What DeveloperToolsGit keeps: the git found, while it's there; when xcode-select was last asked, by the Mac's uptime
+// (0: never, or ask now); whether an ask is under way, and whether one has answered yet. Changed only under the guard.
+static NSString *toolsGit;
+static NSTimeInterval toolsAskedAt;
+static BOOL toolsAsking, toolsAnswered;
+static NSObject *toolsGuard;
+static dispatch_queue_t toolsQueue;
+
+static void ToolsSetUp(void) {
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        toolsGuard = [NSObject new];
+        toolsQueue = dispatch_queue_create("whozmove.developer-tools", DISPATCH_QUEUE_SERIAL);
+    });
+}
+
 // The git in Apple's command line developer tools, or Xcode, once they're installed, else nil. Until they are,
 // /usr/bin/git (and the other stand-ins there) offers to install them each time it's run, so Whozmove runs no git of
 // its own before this names one: git itself runs from here (RunGit), never through the stand-in, and gh, which runs
 // git, a new worktree's git and the claude asked about your plan's usage, which may run it, wait for it too
 // (DeveloperToolsReady). The git found is checked on every call, which starts nothing, so tools taken away while
 // Whozmove runs are noticed at once. Until they're there, it asks xcode-select again at most every 5 minutes, timed by
-// the Mac's uptime, which is never set back, one ask at a time, on a queue of its own. Every call waits for the first
-// answer, wherever it's made; after that, a call off the main thread waits for an ask under way, and one on it never
-// waits.
+// the Mac's uptime, which is never set back, one ask at a time, on a queue of its own (DeveloperToolsLookNow asks
+// sooner). Every call waits for the first answer, wherever it's made; after that, a call off the main thread waits
+// for an ask under way, and one on it never waits.
 NSString *DeveloperToolsGit(void) {
-    static NSString *git;            // the git found, while it's there
-    static NSTimeInterval askedAt;   // when xcode-select was last asked, by the Mac's uptime (0: never, or ask now)
-    static BOOL asking, answered;
-    static NSObject *guard;
-    static dispatch_queue_t queue;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        guard = [NSObject new];
-        queue = dispatch_queue_create("whozmove.developer-tools", DISPATCH_QUEUE_SERIAL);
-    });
-    @synchronized (guard) {
-        if (git && access(git.fileSystemRepresentation, X_OK) != 0) {
-            git = nil;
-            askedAt = 0;
+    ToolsSetUp();
+    @synchronized (toolsGuard) {
+        if (toolsGit && access(toolsGit.fileSystemRepresentation, X_OK) != 0) {
+            toolsGit = nil;
+            toolsAskedAt = 0;
         }
         NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
-        if (!git && !asking && (!askedAt || now - askedAt >= 5 * 60)) {
-            askedAt = now;
-            asking = YES;
+        if (!toolsGit && !toolsAsking && (!toolsAskedAt || now - toolsAskedAt >= 5 * 60)) {
+            toolsAskedAt = now;
+            toolsAsking = YES;
             // Set going while the guard is held, so a call that waits for the answer is queued behind it.
-            dispatch_async(queue, ^{
+            dispatch_async(toolsQueue, ^{
                 NSString *found = DeveloperGit();
-                @synchronized (guard) {
-                    git = found;
-                    asking = NO;
-                    answered = YES;
+                @synchronized (toolsGuard) {
+                    toolsGit = found;
+                    toolsAsking = NO;
+                    toolsAnswered = YES;
                 }
             });
         }
-        if (!asking || (answered && NSThread.isMainThread)) return git;
+        if (!toolsAsking || (toolsAnswered && NSThread.isMainThread)) return toolsGit;
     }
-    dispatch_sync(queue, ^{});
-    @synchronized (guard) {
-        return git;
+    dispatch_sync(toolsQueue, ^{});
+    @synchronized (toolsGuard) {
+        return toolsGit;
     }
 }
 
 // Whether Apple's command line developer tools, or Xcode, are installed (DeveloperToolsGit).
 BOOL DeveloperToolsReady(void) {
+    return DeveloperToolsGit() != nil;
+}
+
+// The same, asked of xcode-select again now rather than once 5 minutes have passed, while macOS's installer puts them
+// in (the install module, every 10 seconds then); everything else hears the answer too. Off the main thread, as it
+// waits for it.
+BOOL DeveloperToolsLookNow(void) {
+    ToolsSetUp();
+    @synchronized (toolsGuard) {
+        if (!toolsGit && !toolsAsking) toolsAskedAt = 0;
+    }
     return DeveloperToolsGit() != nil;
 }
 

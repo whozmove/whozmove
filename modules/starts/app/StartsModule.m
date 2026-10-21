@@ -66,6 +66,7 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
 @property (strong) Starts *starts;      // made as the app starts: it clears the words left from earlier starts
 @property (strong) Shortcut *shortcut;
 @property (strong) NSMenuItem *shortcutItem;
+@property BOOL toldDesktop;  // whether the card was last told Claude Desktop's sessions are tracked
 @end
 
 @implementation StartsModule
@@ -100,7 +101,21 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
 }
 
 - (void)pageLoaded {
-    if (self.starts) [self.core.page call:@"setStartOptions" with:@[self.starts.options ?: @{}]];
+    [self tellOptions];
+}
+
+// The card is told again once Claude Desktop's sessions are tracked or not, as you turn them on or off on Claude's
+// page, or Claude Desktop comes or goes.
+- (void)tick {
+    id<ConversationHost> desktop = [self.core hostsThat:@protocol(ConversationHost)].firstObject;
+    if (self.starts && desktop.tracked != self.toldDesktop) [self tellOptions];
+}
+
+- (void)tellOptions {
+    if (!self.starts) return;
+    NSDictionary *options = self.starts.options;
+    self.toldDesktop = [options[@"desktop"] boolValue];
+    [self.core.page call:@"setStartOptions" with:@[options]];
 }
 
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
@@ -177,7 +192,7 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
 // The terminal starts open in from now on; the page is told its name, for the card.
 - (void)startIn:(NSString *)appId {
     [self.core pickStartTerminal:appId];
-    if (self.starts) [self.core.page call:@"setStartOptions" with:@[self.starts.options]];
+    [self tellOptions];
 }
 
 @end

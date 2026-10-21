@@ -11,12 +11,23 @@ accessibility, denied: {"name":"Accessibility","use":"","state":"denied","said":
 nothing to allow: null
 a permission the page doesn’t know: null
 
+== Cards
+with its button: {"key":"tools","title":"Apple’s command line developer tools","section":"Developer tools","said":"Not installed","note":"Git needs them.","ok":false,"button":"Install","waits":false}
+all’s well: its tick, and no button: {"key":"tools","title":"Apple’s command line developer tools","section":"Developer tools","said":"Installed","note":"Git needs them.","ok":true,"button":null,"waits":false}
+a press under way: its button waits: {"key":"tools","title":"Apple’s command line developer tools","section":"Developer tools","said":"Not installed","note":"Git needs them.","ok":false,"button":"Install","waits":true}
+under way with no button: nothing waits: {"key":"tools","title":"Apple’s command line developer tools","section":"Developer tools","said":"Not installed","note":"Git needs them.","ok":false,"button":null,"waits":false}
+no heading over it: {"key":"tools","title":"Apple’s command line developer tools","section":null,"said":"Not installed","note":"Git needs them.","ok":false,"button":"Install","waits":false}
+nothing more than its heading: {"key":"plugin","title":"Whozmove’s plugin","section":null,"said":"","note":"","ok":false,"button":null,"waits":false}
+no heading: not drawn: null
+nothing: null
+
 == Switches
 turning lyrics on: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics on","git: nextSteps off, deploy on"]
 turning the song off: ["ghostty: startHere on","iterm2: startHere off","spotify: song off, lyrics off","git: nextSteps off, deploy on"]
 the other terminal picked: the first goes off: ["ghostty: startHere off","iterm2: startHere on","spotify: song on, lyrics off","git: nextSteps off, deploy on"]
 the picked terminal pressed again: it stays: null
-Show Deploy while the next steps are off: nothing: null
+Show Next Steps without Apple’s developer tools: nothing: null
+Show Deploy, pressable while the next steps are off: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics off","git: nextSteps off, deploy off"]
 a switch that isn’t there: null
 an app that isn’t there: null
 the apps it was given are left as they were: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics off","git: nextSteps off, deploy on"]

@@ -92,7 +92,6 @@
 /* There too, while none shows (outgoingHTML): how the last code review went, or, while commits wait to go to GitHub,
    where the branch stands, which opens those commits. */
 .nopr .out-n { color: var(--faint); }
-.review .review-tick { flex: none; color: var(--done-text); }  /* nothing left to fix: green, as what's finished is */
 .outgoing.is-hover { background: var(--hover-firm); }
 .outgoing.is-hover .pt { color: var(--text); }
 

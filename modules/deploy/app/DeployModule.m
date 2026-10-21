@@ -7,6 +7,7 @@
 #import "Rows.h"
 #import "Row.h"
 #import "Printing.h"
+#import "Processes.h"
 #import "Deploys.h"
 #import "DeployMenu.h"
 
@@ -94,16 +95,23 @@ static int PrintDeployChecks(NSArray<NSString *> *arguments) {
 
 #pragma mark On the panel's back
 
-// Show Deploy, on Git's page on the panel's back, with the next steps it's one of: it can be changed only while they
-// show.
+// Show Deploy, on Git's page on the panel's back. Its round button sits among a row's next steps, so it's on only
+// while they show, and turning it on turns them on too; turned off with them, it keeps its own choice for when they're
+// back. Like them, it waits for Apple's developer tools (DeveloperToolsReady).
 - (NSArray<AppEntry *> *)appEntries {
     __weak typeof(self) weakSelf = self;
     AppSwitch *deploy = [AppSwitch switchWithKey:@"deploy" title:@"Show Deploy"
                                             help:@"The round button on a row, among its next steps, that puts your "
                                                  @"project's build in place"
-                                              on:^BOOL { return weakSelf.core.menuBar.showsDeploy; }
-                                             set:^(BOOL on) { weakSelf.core.menuBar.showsDeploy = on; }];
-    deploy.enabled = ^BOOL { return weakSelf.core.menuBar.showsNextSteps; };
+                                              on:^BOOL {
+                                                  return weakSelf.core.menuBar.showsDeploy
+                                                      && weakSelf.core.menuBar.showsNextSteps;
+                                              }
+                                             set:^(BOOL on) {
+                                                 if (on) weakSelf.core.menuBar.showsNextSteps = YES;
+                                                 weakSelf.core.menuBar.showsDeploy = on;
+                                             }];
+    deploy.enabled = ^BOOL { return DeveloperToolsReady(); };
     return @[[AppEntry switches:@[deploy] forApp:@"git"]];
 }
 

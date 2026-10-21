@@ -129,10 +129,13 @@
 .q-top .q-head { flex: 1; font-size: 12.5px; font-weight: 600; }
 .q-count { flex: none; font-size: var(--size-small); font-weight: 600; padding: 0 7px;
            border-radius: var(--radius-pill); color: var(--turn-words); background: var(--turn-fill); }
-.perm .q-close { flex: none; width: 20px; height: 20px; margin: -2px -4px 0 0; padding: 0;
+/* The × that puts a card away (a question's, the Compact card), or a line (the setup line under the header): any part
+   of the panel can use it. Named with its element and written after a card's buttons (.perm button), it keeps its own
+   look in a card too. */
+button.q-close { flex: none; width: 20px; height: 20px; margin: -2px -4px 0 0; padding: 0;
                  border-radius: var(--radius-small); border: none; background: none; color: var(--muted);
-                 font-size: var(--size-close); line-height: 19px; text-align: center; }
-.perm .q-close.is-hover { background: var(--hover-strong); color: var(--text); }
+                 font: inherit; font-size: var(--size-close); line-height: 19px; text-align: center; }
+button.q-close.is-hover { background: var(--hover-strong); color: var(--text); }
 .q-title { margin-bottom: 6px; font-size: var(--size-small); color: var(--muted); }
 .q-head { display: flex; align-items: baseline; gap: 6px; font-size: var(--size-body); line-height: 1.35;
           color: var(--text); }

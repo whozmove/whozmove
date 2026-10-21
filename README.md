@@ -286,10 +286,15 @@ with what each is doing, so you can see at a glance which one needs you.
   strip, words without timings show beside the list only, and when LRCLIB is busy, Whozmove asks again, a little later
   each time. A song you've played before shows its lyrics at once, as they're kept on this Mac
 - **the panel's back**: the four squares in the header turn the whole panel over, and behind the list are the apps
-  Whozmove works with, those on your Mac: Claude, Ghostty, iTerm2, Terminal, Spotify and Git. Press one for its page:
-  what Whozmove does with it, its switches (the terminal new conversations open in, Spotify's song, lyrics and icon,
-  Git's next steps and Deploy), what macOS lets Whozmove do with it (Accessibility or Automation, with **Open System
-  Settings** when it isn't allowed) and **Open**. The back is the panel's size, scrolling when there's more; its rows,
+  Whozmove works with: Claude, Ghostty, iTerm2, Terminal, Spotify and Git (the terminals when they're on your Mac).
+  Press one for its page: what Whozmove does with it, its switches (whether Claude Desktop's sessions are tracked, the
+  terminal new conversations open in, Spotify's song, lyrics and icon, Git's next steps and Deploy), how what Whozmove
+  needs there stands, with its button (Whozmove's plugin on Claude's, with **Add Back**, **Turn On**, **Try Again** or
+  **Get Claude Code**, and **Get Claude Desktop** on a Mac without it; Apple's command line developer tools on Git's
+  page, with **Install**), what macOS lets Whozmove do with it (Accessibility or Automation, with **Open System
+  Settings** when it isn't allowed) and **Open**. Claude's page is for Claude as a whole, Claude Code and Claude
+  Desktop alike: with **Track Claude Desktop app sessions** off, Claude Desktop's conversations leave the list, and
+  new conversations start only in a terminal. The back is the panel's size, scrolling when there's more; its rows,
   where the four squares were, turn the panel back to the list, and its chevron folds it into the cat. An open reader
   folds back first, and ⌃⌥N turns the panel back to start a conversation
 - a pawn in the menu bar with a count of sessions waiting on you; its menu switches the grouping, has **New
@@ -324,12 +329,14 @@ are listed too, but a click only brings their app forward (not the exact tab), t
 you're on, and their model, effort and mode can't be changed from the panel.
 
 Tested with Claude Code 2.1.304 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
-1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
+1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API, and macOS 26.2's installer for Apple's
+command line developer tools. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
 all, and asks Claude Code for your plan's usage a way it doesn't document either, so an update to one of them can
 break part of the panel until Whozmove catches up. The fix goes in the module of the app that changed
 (`modules/claude-code/app/ClaudeCodeFacts.h`, `modules/claude-desktop/app/ClaudeDesktopFacts.h`,
-`modules/ghostty/app/GhosttyFacts.h`, `modules/iterm2/app/ITerm2Facts.h`, `modules/spotify/app/SpotifyFacts.h`, and
-for LRCLIB `modules/spotify/app/LRCLIBFacts.h`).
+`modules/ghostty/app/GhosttyFacts.h`, `modules/iterm2/app/ITerm2Facts.h`, `modules/spotify/app/SpotifyFacts.h`, for
+LRCLIB `modules/spotify/app/LRCLIBFacts.h`, and for macOS's installer of Apple's developer tools
+`modules/install/app/ToolsFacts.h`).
 
 ```bash
 git clone https://github.com/whozmove/whozmove
@@ -344,6 +351,14 @@ commands, so there's nothing to edit in `~/.claude/settings.json`. It finds `cla
 Claude Desktop's own copy. Once Claude Code is there, it waits for Apple's command line developer tools, which the
 hooks run on, and if you take the hooks out of Claude Code, it leaves them out. Sessions pick up hooks when they
 start, so they apply to sessions started (or restarted) after this.
+
+When setting up needs something from you, a line under the header says what, with the button that does it:
+**Install** for the developer tools (macOS installs them in its own window; the line stays until they're in, and
+carries on by itself once they are), **Get Claude Code** when it isn't on this Mac, **Add Back** or **Turn On** when
+Whozmove's plugin was taken out of Claude Code or turned off there, and **Try Again** when connecting failed; and
+once it's connected, it says so with a tick for a few seconds, then folds away. Whozmove's plugin turned off or taken out of Claude Code while Whozmove runs shows there
+within a few minutes. The line's × puts it away until things change, and Git's and Claude's pages on the
+panel's back keep the same buttons.
 
 macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to change settings,
 compact, focus the message box and send a new conversation's first message in Claude Desktop), and **Automation** of

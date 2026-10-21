@@ -27,13 +27,13 @@ static NSString *VersionOf(NSString *plugin) {
 }
 
 // The copy Claude Code reads, made again from `hooks` when its version differs or it has gone (which also clears the
-// "failed to load" Claude Code lists a plugin with while its folder is missing): copied beside it, then swapped in, so
-// Claude Code never reads half of one. Whozmove's folder is yours alone, as Claude Code's own is. Nil once it's there,
-// else why not.
-static NSString *CopyHooks(NSString *hooks) {
+// "failed to load" Claude Code lists a plugin with while its folder is missing), or `again` (Try Again): copied beside
+// it, then swapped in, so Claude Code never reads half of one. Whozmove's folder is yours alone, as Claude Code's own
+// is. Nil once it's there, else why not.
+static NSString *CopyHooks(NSString *hooks, BOOL again) {
     NSString *plugin = PluginFolder(), *want = VersionOf(hooks);
     if (!want) return @"This copy of Whozmove carries no hooks";
-    if ([VersionOf(plugin) isEqualToString:want]) return nil;
+    if (!again && [VersionOf(plugin) isEqualToString:want]) return nil;
     NSFileManager *files = NSFileManager.defaultManager;
     [files createDirectoryAtPath:AppDir(nil) withIntermediateDirectories:YES
                       attributes:@{NSFilePosixPermissions: @0700} error:nil];
@@ -96,8 +96,12 @@ static NSArray<NSDictionary *> *Listed(NSDictionary *run) {
     return plugins;
 }
 
+// Try Again puts it all in again from the start: the hooks copied whatever their version, then, where Claude Code lists
+// the plugin, its marketplace and the plugin brought up to date, so Claude Code reads them again, and its list asked
+// once more for what it says now.
 NSDictionary *ConnectPlugin(NSString *answer, BOOL before, NSString *hooks, NSString *path) {
-    NSString *why = CopyHooks(hooks);
+    BOOL again = [answer isEqualToString:@"retry"];
+    NSString *why = CopyHooks(hooks, again);
     if (why) return @{@"state": @"failed", @"detail": why};
     NSString *want = VersionOf(PluginFolder());
     NSArray<NSString *> *candidates = ClaudeCandidates(path);
@@ -146,13 +150,15 @@ NSDictionary *ConnectPlugin(NSString *answer, BOOL before, NSString *hooks, NSSt
         if (!Succeeded(run)) return @{@"state": @"failed", @"detail": LastLine(run)};
         turnedOn = YES;
     }
-    if (![AsText(mine[@"version"]) isEqualToString:want]) {
+    if (again || ![AsText(mine[@"version"]) isEqualToString:want]) {
         NSDictionary *run = Claude(claude, PluginMarketplaceUpdateArguments(), environment, YES);
         if (Succeeded(run)) run = Claude(claude, PluginUpdateArguments(), environment, YES);
         if (!Succeeded(run)) return @{@"state": @"failed", @"detail": LastLine(run)};
-        return @{@"state": turnedOn ? @"added" : @"updated"};
+        if (!again) return @{@"state": turnedOn ? @"added" : @"updated"};
+        for (NSDictionary *plugin in Listed(Claude(claude, PluginListArguments(), environment, NO)) ?: @[])
+            if ([AsText(plugin[@"id"]) isEqualToString:kWhozmovePlugin]) mine = plugin;
     }
     NSString *error = AsText(AsList(mine[@"errors"]).firstObject);
     if (error) return @{@"state": @"failed", @"detail": Clip(error, 200)};
-    return @{@"state": turnedOn ? @"added" : @"ready"};
+    return @{@"state": turnedOn || again ? @"added" : @"ready"};
 }

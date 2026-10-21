@@ -1,0 +1,29 @@
+
+== What the line says
+added: {"text":"Connected to Claude Code: sessions you start from now on show here in full.","button":null,"action":null,"close":true,"done":true,"busy":false}
+notInApplications: {"text":"Move Whozmove into your Applications folder, then open it again, to finish setting it up.","button":null,"action":null,"close":false,"done":false,"busy":false}
+noTools: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false}
+installing: {"text":"Waiting for Apple's developer tools to finish installing.","button":null,"action":null,"close":false,"done":false,"busy":false}
+noCommand: {"text":"Install Claude Code, or open Claude Desktop's Code tab once, to see your sessions here.","button":"Get Claude Code","action":"getAgent","close":true,"done":false,"busy":false}
+removed: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false}
+turnedOff: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false}
+failed: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
+failed, with what Claude Code said: {"text":"Couldn't connect to Claude Code (Marketplace whozmove failed to load: cache-miss), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
+failed, with a sentence of its own: {"text":"Couldn't connect to Claude Code (Claude Code took too long to answer), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
+failed, with nothing said: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
+a press under way: its button waits: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":true}
+
+== No line
+ready: null
+updated: null
+agentBuild: null
+something new: null
+nothing found yet: null
+
+== Put away
+a × keeps the state, as the time it began: {"turnedOff":1000}
+…so the line stays away while it stays so: null
+…and comes back once it has changed and come back: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false}
+…other states still show: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false}
+a line with no × can't be put away: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false}
+nothing to keep without a state: {"turnedOff":1000}

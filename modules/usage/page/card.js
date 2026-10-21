@@ -92,8 +92,8 @@ function buildCard() {
             ${w === 'session' ? '<span class="u-message"></span><span class="u-right"></span>' : ''}
           </div>`).join('')}
           <div class="u-pace" hidden></div>
-          <div class="u-signin"><span>See your session and weekly usage here</span>
-            <button class="u-sign-in">Sign in</button></div>
+          <div class="u-signin notice"><span class="notice-text">See your session and weekly usage here</span>
+            <button class="u-sign-in notice-button">Sign in</button></div>
           <svg class="u-layer" width="340" height="${WAITS.vine.height}" viewBox="0 0 340 ${WAITS.vine.height}"
                aria-hidden="true"></svg>
         </div>

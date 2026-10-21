@@ -421,4 +421,10 @@ static NSString *ResumeCommand(NSString *sessionId) {
     return [NSURL URLWithString:kClaudeCodeInstallPage];
 }
 
+// Its settings on the panel's back are on Claude's page, which the app that keeps its sessions as conversations of its
+// own (Claude Desktop) lists on every Mac, with the rest of Claude's; nil without one.
+- (NSString *)appId {
+    return [[self.core hostsThat:@protocol(ConversationHost)].firstObject appId];
+}
+
 @end

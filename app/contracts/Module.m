@@ -41,6 +41,26 @@
 
 @end
 
+@interface AppStatus ()
+@property (copy) NSString *key, *title;
+@property (copy) NSDictionary *(^now)(void);
+@property (copy) void (^press)(void);
+@end
+
+@implementation AppStatus
+
++ (instancetype)statusWithKey:(NSString *)key title:(NSString *)title now:(NSDictionary *(^)(void))now
+                        press:(void (^)(void))press {
+    AppStatus *each = [self new];
+    each.key = key;
+    each.title = title;
+    each.now = now;
+    each.press = press;
+    return each;
+}
+
+@end
+
 @interface AppEntry ()
 @property (copy) NSString *appId, *name, *does;
 @property NSInteger order;
@@ -55,6 +75,7 @@
     entry.does = does;
     entry.order = order;
     entry.switches = @[];
+    entry.statuses = @[];
     return entry;
 }
 
@@ -62,6 +83,15 @@
     AppEntry *entry = [self new];
     entry.appId = appId;
     entry.switches = switches;
+    entry.statuses = @[];
+    return entry;
+}
+
++ (instancetype)statuses:(NSArray<AppStatus *> *)statuses forApp:(NSString *)appId {
+    AppEntry *entry = [self new];
+    entry.appId = appId;
+    entry.switches = @[];
+    entry.statuses = statuses;
     return entry;
 }
 

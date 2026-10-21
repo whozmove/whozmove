@@ -26,5 +26,6 @@ NSString *LoginShell(void);
 NSString *LoginPath(void);
 NSString *DeveloperToolsGit(void);
 BOOL DeveloperToolsReady(void);
+BOOL DeveloperToolsLookNow(void);
 NSDictionary *RunInCheckout(NSString *command, NSString *folder, NSTimeInterval seconds, BOOL errors,
                             NSArray<NSString *> *marks);

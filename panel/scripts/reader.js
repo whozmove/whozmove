@@ -70,14 +70,15 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
 // How tall the panel is with the list alone: as reportHeight measures it once the reader has closed (the header and the
 // list's rows, together at most 640pt as base.css keeps them, and the strips on top of that, within the room it has),
 // measured now, so the panel folds straight to it. The header lies over the list's top, in room the list keeps for it
-// (base.css), which its rows' places count from, unless a card under the header takes that room above the list; the
-// card comes on top of the 640pt, as the strips do.
+// (base.css), which its rows' places count from, unless the setup line or a card under the header takes that room
+// above the list; they're strips too (core.strips), so they come on top of the 640pt with the others.
 function listHeight() {
-  const list = document.getElementById('list'), last = list.lastElementChild, dock = document.getElementById('dock');
-  const rows = last ? last.offsetTop + last.offsetHeight : 0, card = dock.firstElementChild ? dock.offsetHeight : 0;
+  const list = document.getElementById('list'), last = list.lastElementChild;
+  const rows = last ? last.offsetTop + last.offsetHeight : 0;
+  const under = ['install', 'dock'].reduce((sum, id) => sum + (document.getElementById(id)?.offsetHeight || 0), 0);
   const strips = core.strips.reduce((sum, id) => sum + (document.getElementById(id)?.offsetHeight || 0), 0);
-  const head = list.offsetTop - card + list.clientTop;
-  return Math.min(Math.ceil(Math.min(head + rows + 6, 640) + card + strips), state.panelMax || 640);
+  const head = list.offsetTop - under + list.clientTop;
+  return Math.min(Math.ceil(Math.min(head + rows + 6, 640) + strips), state.panelMax || 640);
 }
 
 // A row's tag (or its numbers, for its changes) opens the reader on that session, or, where it's open already in that

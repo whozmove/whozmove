@@ -123,15 +123,10 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .u-strip.is-hover .u-handle { opacity: 1; }
 .u-handle.is-hover::after { background: var(--handle-pointed); }
 
-/* Signed out. */
-.u-signin { display: none; align-items: center; gap: 10px; min-height: 26px; }
+/* Signed out: the panel's one-line message (controls.css), only while signed out. */
+.u-signin { display: none; }
 #usage.is-signin .u-signin { display: flex; }
 #usage.is-signin .u-row, #usage.is-signin .u-handle { display: none; }
-.u-signin span { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); }
-.u-sign-in { flex: none; font: inherit; font-size: var(--size-small); font-weight: 600; padding: 3px 10px; border: none;
-             border-radius: var(--radius-button); background: var(--main-button); color: var(--on-main-button);
-             cursor: default; }
-.u-sign-in.is-hover { background: var(--main-button-hover); }
 
 /* Waiting for the session limit to reset: the session's line says when it's back, the week's figure at its right;
    the week row folds away and the wait style draws below, down to the panel's bottom edge. */

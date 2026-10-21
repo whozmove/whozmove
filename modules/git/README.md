@@ -9,7 +9,8 @@ commits wait to go, and the PRs a session made or worked on.
 
 - `app/GitModule.m`: its face for the core (contracts/Module.h): each row's checkout, read first, as what's counted
   of its changes goes by it; its PRs; and the page's messages. It lists Git for the panel's back, with Show Next Steps
-  (`appEntries`).
+  (`appEntries`), which waits, dimmed, until Apple's developer tools are in, as git does (the install module's card
+  on that page says how they stand, with Install).
 - `app/Checkouts.m`: each listed checkout's git status, base branch, new files, staged files and when its last commit
   was made, read on a queue of its own: every 20s, and within 2s of any activity by a session working there.
 - `app/NextSteps.m`: the steps, Commit and its ways (the changes view's ⌄ menu), Push, Publish and Create PR into a
