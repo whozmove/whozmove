@@ -11,6 +11,10 @@ const base = (p) => (p || '').split('/').filter(Boolean).pop() || p || '';
 // A message to the app (each type is answered by the module that names it; app/core/Modules.m routes it).
 const native = (msg) => window.webkit?.messageHandlers?.panel?.postMessage(msg);
 
+// A switch's track and knob (styles/controls.css), inside what's pressed, whose aria-checked says whether it's on:
+// Spotify's lyrics, and the apps' settings on the panel's back.
+const SWITCH = '<span class="switch"><i></i></span>';
+
 // What the page keeps across launches, in its local storage: `d` when there's nothing kept, or it can't be read.
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
@@ -23,8 +27,11 @@ const store = {
 const phase = (periodMs) => `animation-delay:-${Math.round(performance.now() % periodMs)}ms`;
 
 // The colours a gauge goes through as it fills: a session's context ring (commands.js) and the usage strip's bars
-// (usage.js). Red-orange is the limit, as it's what blocks you.
-const GAUGE = { normal: 'rgba(255, 255, 255, 0.55)', warning: '#ffc53d', limit: '#ff6b4a' };
+// (usage.js). Red-orange is the limit, as it's what blocks you. Each is tokens.css's, so it follows the panel's look.
+const GAUGE = { normal: 'var(--level-normal)', warning: 'var(--level-warning)', limit: 'var(--level-limit)' };
+
+// A colour of tokens.css's as the panel's look has it now, for what can't take a var(): an animation's keyframes.
+const tokenColour = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 // "427k", "1M".
 const kTokens = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : Math.round(n / 1000) + 'k';

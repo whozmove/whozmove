@@ -237,4 +237,17 @@ static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
     return AnswerClaudeSwitchBox(switchModel, dontAskAgain);
 }
 
+#pragma mark On the panel's back
+
+// Claude on the panel's back: what Whozmove does with it, and macOS's Accessibility, which its message box needs.
+- (NSArray<AppEntry *> *)appEntries {
+    AppEntry *claude = [AppEntry appWithId:self.appId name:self.name
+                                      does:@"Lists its Claude Code conversations and opens them, puts your words in "
+                                           @"its message box, and starts new conversations in it."
+                                     order:10];
+    claude.permission = AppPermissionAccessibility;
+    claude.permissionFor = @"Puts your words in its message box, and presses its buttons";
+    return @[claude];
+}
+
 @end

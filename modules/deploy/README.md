@@ -7,7 +7,8 @@ menu.
 ## Its pieces
 
 - `app/DeployModule.m`: its face for the core (contracts/Module.h): the round button's presses, the set-up card's
-  messages, each row's project and folder kept fresh, and the print modes the tests check.
+  messages, each row's project and folder kept fresh, and the print modes the tests check. It adds Show Deploy to Git's
+  page on the panel's back (`appEntries`).
 - `app/Deploys.m`: the commands you've saved, by project, in Whozmove's own folder (`deploy.json`), never in the
   project; the one it suggests, from the project's own files; running one detached with a log; each folder's last run.
 - `app/DeployMenu.m`: the menu behind the round button: what it runs, changing or forgetting that, passing on it,

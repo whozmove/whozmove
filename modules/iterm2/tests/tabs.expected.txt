@@ -1,0 +1,55 @@
+== A new conversation, through zsh
+-- its file of commands
+rm -f -- '/private/var/folders/ab/cdef0123_gh/T/whozmove-iterm2/0B6F6B9E-3C0F-4F53-8E2A-6E1F0D8B2C11.sh'
+cd -- '/work/app' && claude --session-id 0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11 "$(cat '/Users/you/Library/Application Support/Whozmove/starts/0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11.txt')"
+while jobs %% >/dev/null 2>&1; do fg %% >/dev/null 2>&1 || break; done
+exec '/bin/zsh' -l
+-- what iTerm2 is told
+set tabCommand to "/bin/zsh -l -i /private/var/folders/ab/cdef0123_gh/T/whozmove-iterm2/0B6F6B9E-3C0F-4F53-8E2A-6E1F0D8B2C11.sh"
+set w to missing value
+if (count of windows) > 0 then
+  set hotkeys to is hotkey window of windows
+  repeat with i from 1 to count of hotkeys
+    if not (item i of hotkeys) then
+      set w to window i
+      exit repeat
+    end if
+  end repeat
+end if
+if w is missing value then
+  create window with default profile command tabCommand
+else
+  if miniaturized of w then set miniaturized of w to false
+  tell w to create tab with default profile command tabCommand
+  select w
+end if
+activate
+== Sign in, through bash, from a folder whose name has a space, quotes, a backslash and $$ in it
+-- its file of commands
+[ -r /etc/profile ] && . /etc/profile
+for f in ~/.bash_profile ~/.bash_login ~/.profile; do [ -r "$f" ] && { . "$f"; break; }; done
+unset f
+rm -f -- '/private/var/folders/ab/cdef0123_gh/T/whozmove-iterm2/5A1E9C2D-7B44-4E0A-9F3B-2C8D6E1A4B70.sh'
+cd -- '/Users/you/Dad'\''s "new" app\v2 $$' && claude auth login
+-- what iTerm2 is told
+set tabCommand to "/opt/homebrew/bin/bash --rcfile /private/var/folders/ab/cdef0123_gh/T/whozmove-iterm2/5A1E9C2D-7B44-4E0A-9F3B-2C8D6E1A4B70.sh -i"
+set w to missing value
+if (count of windows) > 0 then
+  set hotkeys to is hotkey window of windows
+  repeat with i from 1 to count of hotkeys
+    if not (item i of hotkeys) then
+      set w to window i
+      exit repeat
+    end if
+  end repeat
+end if
+if w is missing value then
+  create window with default profile command tabCommand
+else
+  if miniaturized of w then set miniaturized of w to false
+  tell w to create tab with default profile command tabCommand
+  select w
+end if
+activate
+== A temporary folder whose path iTerm2 wouldn't take as it is
+(not given to iTerm2: the shell's path or the file's isn't plain)

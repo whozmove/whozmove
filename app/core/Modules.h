@@ -23,6 +23,7 @@
 - (void)tick;
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase;
 - (NSArray<MenuEntry *> *)menuEntries;
+- (NSArray<AppEntry *> *)appEntries;
 // Whether any module is still working something out (Module's working).
 - (BOOL)working;
 // The print mode with this flag, from the module that has it, or nil.

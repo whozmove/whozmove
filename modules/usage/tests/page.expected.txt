@@ -14,9 +14,9 @@ Claude Code not signed in: signin
 signed in with an API key or another provider: hidden
 no claude on this Mac: hidden
 not asked yet: hidden
-20% half an hour in: {"state":"ok","session":[20,"normal","rgba(255, 255, 255, 0.55)"],"pace":"At this pace you'll hit the session limit around 5:33 AM."}
+20% half an hour in: {"state":"ok","session":[20,"normal","var(--level-normal)"],"pace":"At this pace you'll hit the session limit around 5:33 AM."}
 30% three hours in: on course, no note: null
-82% two hours in, Claude says warning: ["warning","#ffc53d","normal"]
+82% two hours in, Claude says warning: ["warning","var(--level-warning)","normal"]
 82% two hours in: the pace: At this pace you'll hit the session limit around 3:59 AM.
 82% with no severity from Claude: warning
 90% and a word past warning: limit
@@ -27,13 +27,13 @@ while waiting, hours off: Back at 5:33 AM
 while waiting, the last hour: Back in 42m
 while waiting, the last minute: Back in 9s
 how far through the wait: [0.5,1]
-folded, both windows calm: the session: {"window":"session","label":"Session","used":34,"colour":"rgba(255, 255, 255, 0.55)","detail":"4h 10m left","other":{"label":"Week","used":12}}
-folded, the session getting close: {"window":"session","label":"Session","used":82,"colour":"#ffc53d","detail":"2h 59m left","other":{"label":"Week","used":30}}
-folded, the week the one running low: {"window":"week","label":"Week","used":92,"colour":"#ffc53d","detail":"1d 4h left","other":{"label":"Session","used":20}}
-folded, both close: the session: {"window":"session","label":"Session","used":80,"colour":"#ffc53d","detail":"2h 00m left","other":{"label":"Week","used":90}}
-folded, at the session limit: {"window":"session","label":"Session","used":100,"colour":"#ff6b4a","detail":"back at 5:33 AM","other":{"label":"Week","used":61}}
+folded, both windows calm: the session: {"window":"session","label":"Session","used":34,"colour":"var(--level-normal)","detail":"4h 10m left","other":{"label":"Week","used":12}}
+folded, the session getting close: {"window":"session","label":"Session","used":82,"colour":"var(--level-warning)","detail":"2h 59m left","other":{"label":"Week","used":30}}
+folded, the week the one running low: {"window":"week","label":"Week","used":92,"colour":"var(--level-warning)","detail":"1d 4h left","other":{"label":"Session","used":20}}
+folded, both close: the session: {"window":"session","label":"Session","used":80,"colour":"var(--level-warning)","detail":"2h 00m left","other":{"label":"Week","used":90}}
+folded, at the session limit: {"window":"session","label":"Session","used":100,"colour":"var(--level-limit)","detail":"back at 5:33 AM","other":{"label":"Week","used":61}}
 folded, at the limit, the last hour: back in 42m
-folded, a window just reset: no time left: {"window":"session","label":"Session","used":0,"colour":"rgba(255, 255, 255, 0.55)","detail":"","other":{"label":"Week","used":30}}
+folded, a window just reset: no time left: {"window":"session","label":"Session","used":0,"colour":"var(--level-normal)","detail":"","other":{"label":"Week","used":30}}
 
 == The vine's growth and reset (wait-vine.js)
 growth at the limit, halfway, at the reset: [{"leaves":0,"bud":false},{"leaves":4,"bud":true},{"leaves":8,"bud":false}]

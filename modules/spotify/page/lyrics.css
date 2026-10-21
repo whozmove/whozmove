@@ -40,17 +40,11 @@
 .ly-switch { display: inline-flex; align-items: center; gap: 9px; padding: 3px 4px 3px 0; border: none;
              background: none; font: inherit; font-size: var(--size-body); color: var(--text); }
 .ly-switch.is-hover { color: var(--bright); }
-.ly-sw { position: relative; flex: none; width: 26px; height: 15px; border-radius: var(--radius-pill);
-         background: var(--switch-off); transition: background-color .2s ease; }
-.ly-sw i { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: var(--radius-circle);
-           background: var(--bright); transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
-.ly-switch[aria-checked="true"] .ly-sw { background: var(--tick); }
-.ly-switch[aria-checked="true"] .ly-sw i { transform: translateX(11px); }
 .ly-open { margin-left: auto; flex: none; font: inherit; font-size: var(--size-small); padding: 3px 9px;
            border-radius: var(--radius-small); border: 1px solid var(--button-edge); background: var(--button);
            color: var(--text); }
 .ly-open.is-hover { background: var(--button-hover); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ly-col, .ly-line, .ly-sw, .ly-sw i { transition: none; }
+  .ly-col, .ly-line { transition: none; }
 }

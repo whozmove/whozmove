@@ -91,8 +91,8 @@ copy_plugin "$work/plugin"
 # runs without that mark, so it puts the build in place.
 project=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
 case "$project" in */.git) project=$(dirname "$project") ;; "") project=$(pwd -P) ;; esac
-# Whether a switch in the pawn menu is on, as the panel keeps it in its preferences under this home folder: one never
-# changed is on.
+# Whether one of the panel's switches is on (Git's page on the panel's back has them), as the panel keeps it in its
+# preferences under this home folder: one never changed is on.
 switch_on() { [ "$(defaults read "$HOME/Library/Preferences/$bundle_id.plist" "$1" 2>/dev/null)" != 0 ]; }
 leaves_it_to_deploy() {
   [ -n "${CLAUDECODE:-}" ] || return 1

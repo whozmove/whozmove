@@ -44,8 +44,9 @@ function nowPlayingView(song, now, noteSeen, askLyrics = false) {
 // The note's words and its button, by kind, and a × beside it (`close`, saying what it does: `closeTitle`) for one that
 // has two answers.
 const SONG_NOTES = {
-  first: { text: 'Spotify’s song shows here while it plays. The pawn menu’s Spotify can remove it.', button: '×', does: 'dismiss' },
+  first: { text: 'Spotify’s song shows here while it plays. Spotify, on the panel’s back, can turn it off.',
+           button: '×', does: 'dismiss' },
   refused: { text: 'Whozmove isn’t allowed to control Spotify.', button: 'Open Settings', does: 'settings' },
   lyrics: { text: 'Show lyrics as they’re sung? Whozmove finds them on LRCLIB.', button: 'Show Lyrics', does: 'lyrics',
-            close: 'nolyrics', closeTitle: 'Don’t show lyrics. The pawn menu’s Spotify can turn them on.' },
+            close: 'nolyrics', closeTitle: 'Don’t show lyrics. Spotify, on the panel’s back, can turn them on.' },
 };

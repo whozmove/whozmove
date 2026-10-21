@@ -10,7 +10,9 @@
 #     restyle the other's elements;
 #   - each module has its README, with its pieces and its rules (docs/guides/adding-a-module.md has its shape);
 #   - the page's styles take their colours, text sizes and corners from panel/styles/tokens.css: one written out in a
-#     style is one that tests/styles-by-hand.txt lists, as often as it lists it, and that list only gets shorter.
+#     style is one that tests/styles-by-hand.txt lists, as often as it lists it, and that list only gets shorter;
+#   - each colour in tokens.css has its light value too, in the block the light panel takes, and nothing is there that
+#     the dark panel doesn't have.
 #
 #   tests/checks.sh            run the checks
 #   tests/checks.sh --update   once a style writes out fewer values, take them off tests/styles-by-hand.txt (it never
@@ -191,6 +193,22 @@ for name in sorted(os.listdir("modules")) if os.path.isdir("modules") else []:
     for needed in ("Its pieces", "Rules"):
         if needed not in headings:
             problems.append("%s has no \"## %s\" (docs/guides/adding-a-module.md has its shape)" % (readme, needed))
+
+# Each colour token, dark and light: the first :root block is the dark panel's, the one under
+# @media (prefers-color-scheme: light) the light panel's.
+TOKENS = "panel/styles/tokens.css"
+if os.path.isfile(TOKENS):
+    text = re.sub(r"/\*.*?\*/", "", open(TOKENS, encoding="utf-8").read(), flags=re.S)
+    light = re.search(r"@media\s*\(prefers-color-scheme:\s*light\)\s*\{\s*:root\s*\{([^}]*)\}", text)
+    dark = re.search(r"^:root\s*\{([^}]*)\}", text, re.M)
+    values = lambda block: dict(re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", block.group(1))) if block else {}
+    dark, light = values(dark), values(light)
+    for name, value in dark.items():
+        if COLOUR.search(value) and name not in light:
+            problems.append("%s: the colour %s has no light value: add one to its light block" % (TOKENS, name))
+    for name in light:
+        if name not in dark:
+            problems.append("%s: %s has a light value but no dark one" % (TOKENS, name))
 
 BY_HAND = "tests/styles-by-hand.txt"
 heading, listed = [], collections.Counter()

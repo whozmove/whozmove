@@ -7,12 +7,14 @@ works with, and each feature, is a module of its own: a folder that holds its na
 and its README.
 
 ```
-               Claude Code      Claude Desktop     Ghostty, Terminal     git, gh       Spotify, LRCLIB
+               Claude Code      Claude Desktop     Ghostty, iTerm2,      git, gh       Spotify, LRCLIB
+                                                   Terminal
                     │                  │                   │                 │             │
                     ▼                  ▼                   ▼                 ▼             ▼
  modules/      claude-code      claude-desktop      ghostty,            island,       spotify, usage,
-               the agent        a host              terminal-app        changes,      starts, commands,
-                                                    hosts               deploy        reader
+               the agent        a host              iterm2,             changes,      starts, commands,
+                                                    terminal-app        deploy        reader
+                                                    hosts
                     │ Agent.h          │ Host.h            │ Host.h          │ Module.h    │ Module.h
                     └──────────────────┴───────────────────┴─────────────────┴─────────────┘
                                                     │
@@ -34,7 +36,8 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
   why they can't go in now),
   `Work` (who's at work in a checkout), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing` (what the tests' print
   runs share). On the page: the rows and their places for the modules' parts, sorting, the animation (`morph`), the
-  pointer, presses and typing, the reader's frame, and `modules.js`, every list a module plugs into.
+  row you're on held at the list's edge as the list scrolls past it (`sticky`), the pointer, presses and typing, the
+  reader's frame, and `modules.js`, every list a module plugs into.
 - **The contracts**, in `app/contracts`: what a module fills in and what it passes. `Module.h` is every module's;
   `Agent.h` is the agent's, with what it can do in small protocols of their own (`AgentWork`, `AgentCommands`,
   `AgentPrompt`, `AgentUsage`, `AgentStarts`); `Host.h` is an app sessions run in (`Host`, and `TypingHost`,
@@ -42,7 +45,7 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
   [reference/rows.md](../reference/rows.md) describes it field by field; and `Reason` says why keys can't go into a
   session now.
 - **The shared helpers**, in `app/shared`: plain functions that know no app. `Log`, `Files`, `Processes`, `Git`,
-  `Text`, `AppleEvents`, `AppleScript`, `Accessibility`, `Links` and `Menus`.
+  `Text`, `AppleEvents`, `AppleScript`, `Accessibility`, `Links`, `Menus` and `Appearance`.
 - **The modules**, in `modules/`: the agent, the hosts and the features, each with its README (the table in
   [the docs' map](../README.md#the-modules)).
 
@@ -51,7 +54,8 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
 1. Each module's `tick` runs, for what it checks that often.
 2. On a queue of their own, the sessions are read: each agent's running sessions; then what each app that keeps
    conversations of its own knows of them (Claude Desktop's record, and its conversations that aren't running); then
-   what the agent's hooks recorded of each, and the checkout it runs in; and last, the requests waiting for your
+   the agent's terminal sessions that have ended, from the record Whozmove keeps of each while it runs, for 3 days;
+   then what the agent's hooks recorded of each, and the checkout it runs in; and last, the requests waiting for your
    answer.
 3. On the main thread, every module adds its part of each row, phase by phase (`RowPhase` in `Module.h`): the
    checkout's state first, then the session's work, then its agent's details, and last, once the rows are whole, what

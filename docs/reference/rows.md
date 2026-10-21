@@ -1,7 +1,7 @@
 # What a row holds
 
 Each session the panel lists reaches the page as one row, in `update(rows, now)`: a JSON object that
-`app/Row.m` builds from four places. This page is the list of its fields. A field that's unknown is left out,
+`app/Row.m` builds from five places. This page is the list of its fields. A field that's unknown is left out,
 never sent as `null`. Times are milliseconds since 1970.
 
 `Whozmove --print-rows` prints the rows for the home folder in `$HOME`. `tests/rows.sh` checks those against a
@@ -23,13 +23,13 @@ one started last). One paused in its terminal (Ctrl+Z) never speaks for it while
 |---|---|
 | `sessionId` | Claude Code's id for the session |
 | `hostSessionId` | for a session in Claude Desktop, the conversation's own id there (`local_…`) |
-| `pid` | the session's process; 0 for a closed Claude Desktop conversation |
+| `pid` | the session's process; 0 for a conversation with no process (a closed Claude Desktop conversation, or a terminal session that has ended) |
 | `procStart` | when that process started; with `pid`, it tells a process from a later one given the same pid |
 | `cwd` | the folder the session runs in |
 | `name` | the session's name, if it was given one |
 | `entrypoint` | `cli` for a terminal, `claude-desktop` for Claude Desktop |
 | `status` | `idle`, `busy` or `waiting` (asking something); `closed` for a conversation with no process |
-| `statusUpdatedAt` | when the status last changed |
+| `statusUpdatedAt` | when the status last changed; for a terminal session that has ended, when its conversation last moved |
 | `alsoOpen` | the conversation's other copies, when it runs in more than one process: each `{entrypoint, paused, busy, hostSessionId}`, `paused` for one stopped in its terminal, `busy` for one at work, and `hostSessionId` for one in Claude Desktop |
 
 ## From Claude Desktop
@@ -46,6 +46,21 @@ A conversation with no process, active in the last three days (or shown in Claud
 alone: `sessionId` (the terminal session's id if it was resumed in one), `hostSessionId`, `name` (its title, or
 "Untitled"), `cwd`, `entrypoint` `claude-desktop`, `status` `closed`, `pid` 0, and its last activity as both
 `statusUpdatedAt` and `activityAt`.
+
+## From Whozmove's record of terminal sessions
+
+`~/Library/Application Support/Whozmove/conversations/<sessionId>.json`: one file per terminal session, written by the
+Claude Code module while the session runs (its id, folder, name, the terminal it runs in, its process, its transcript
+and when its conversation last moved; no prompts or replies), as Claude Desktop keeps one per conversation. A session
+that has ended, whose conversation moved in the last three days, gets a row from this file alone, while Claude Code
+still has its transcript and its folder is there, and no other row has it (Claude Desktop's own comes first): its
+`sessionId`, `name`, `cwd`, `entrypoint` `cli`, `status` `closed`, `pid` 0, and when its conversation last moved as
+`statusUpdatedAt`. A session whose process went on to another conversation (`/clear`, or `/resume` of another) isn't
+kept.
+
+| Field | What it is |
+|---|---|
+| `opensIn` | the terminal a press on its row opens it again in, carrying the conversation on under the same id: the one it ran in while that's on the Mac and Whozmove can open a tab there, else the one New Conversation starts in, else macOS's Terminal |
 
 ## From the hook
 
@@ -81,5 +96,5 @@ alone: `sessionId` (the terminal session's id if it was resumed in one), `hostSe
 | `writings` | what the session wrote for you to read, from its transcript, newest first (at most 50): each `{id, kind, title, path, at}`. `kind` is `plan` (each time Claude presented a plan for your OK, with `status`: `waiting`, `approved` or `declined`), `prototype` (an `.html` page it created, or published, with its `url`) or `notes` (a `.md` file it created). Files it only rewrote, and Claude Code's own files, aren't listed. What each says is read only when it's opened in the reader |
 | `changes` | what the session itself changed in its checkout that isn't committed yet, line by line, as git status sees it: `{known, added, removed, files, parts, complete, v}`. The checkout's uncommitted change (staged or not, new files included) is read from git, and each changed line is credited to the listed session whose edits (Edit, MultiEdit and Write, from its transcript and its sub-agents' records) put it in or took it out, its shell commands' included (what Claude Code records each one changed, in auto mode); a plain or repeated line (`}`, a blank, a text there twice) goes with the lines around it. `files` are the session's, newest edit first: each `{path, added, removed, edits, at, created, saved, shared}` (`path` within the checkout; `saved`: nothing in it left unstaged; `shared`: someone else changed it too). `parts` is the checkout's uncommitted change by whose its lines are, `{who: [added, removed]}`: a session's id; `outside` (no listed session's record has it: your own, a closed session's, what git brought in); or `short` (a short or repeated line with nothing around it to tell whose it is by). `known` is false while what the session changed isn't known, as it ran a shell command Claude Code didn't record (or recorded only in part): then `added` and `removed` are the whole checkout's, and `files` and `parts` are empty. `complete`: every listed session in the checkout is known, so `outside` is no listed session's. `v` changes when any of it might have. Missing until the checkout has been counted (`added` and `removed` are 0 while the session has nothing uncommitted there), and in a checkout no listed session edited in; the lines themselves reach the page only when the changes view asks |
 | `compacting` | when a `/compact` sent from the panel began |
-| `focused` | `true` for the session you're on: the conversation Claude Desktop shows now, or the session in the tab Ghostty shows, whichever of the two was in front last. Claude Desktop's stays while Ghostty's tab holds none of the sessions listed, and while it can't be told which one it holds, the mark stays where it was |
-| `seenAt` | when you were last looking at the session: on it for 2 seconds or more, in Claude Desktop or Ghostty in front, while at the Mac (the screen awake and unlocked, the keyboard or the mouse used in the last 5 minutes). A reply from before then counts as read. Missing until you've looked at it since the app started |
+| `focused` | `true` for the session you're on: the conversation Claude Desktop shows now, or the session in the tab a terminal shows (Ghostty or iTerm2), whichever was in front last. Claude Desktop's stays while the terminal's tab holds none of the sessions listed, and while it can't be told which one it holds, the mark stays where it was |
+| `seenAt` | when you were last looking at the session: on it for 2 seconds or more, in Claude Desktop, Ghostty or iTerm2 in front, while at the Mac (the screen awake and unlocked, the keyboard or the mouse used in the last 5 minutes). A reply from before then counts as read. Missing until you've looked at it since the app started |

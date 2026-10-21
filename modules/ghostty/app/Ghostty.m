@@ -23,19 +23,12 @@ static NSString *BareTitle(NSString *title) {
 }
 
 // What a property of every terminal in `container` (all of Ghostty's when nil) holds, in their order, or nil without
-// an answer. Ghostty is asked with Apple events of Whozmove's own (AskQuietly): to its process, so a Ghostty that has
+// an answer. Ghostty is asked with Apple events of Whozmove's own (AskEvery): to its process, so a Ghostty that has
 // just quit isn't started again, as AppleScript's `tell` would, and never asking you anything: until you've let Whozmove
 // control Ghostty (macOS asks the first time a row is clicked) there's just no answer. Each waits a second at most, and
 // blocks only the thread it's on, so it can run off the main thread, which AppleScript isn't promised to.
 static NSArray<NSString *> *AskEveryTerminal(pid_t pid, OSType property, NSAppleEventDescriptor *container) {
-    NSAppleEventDescriptor *list =
-        AskQuietly(pid, AppleEventProperty(property, AppleEventEvery(kGhosttyTerminalClass, container)), 1);
-    if (!list) return nil;
-    if (list.descriptorType != typeAEList) return @[list.stringValue ?: @""];
-    NSMutableArray *values = [NSMutableArray array];
-    for (NSInteger i = 1; i <= list.numberOfItems; i++)
-        [values addObject:[list descriptorAtIndex:i].stringValue ?: @""];
-    return values;
+    return AskEvery(pid, kGhosttyTerminalClass, property, container, 1);
 }
 
 // Every terminal, as [its id, its folder, its bare title, its whole title], or nil without an answer. The lists are
@@ -297,29 +290,32 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
                                               @"end tell", tab, body]);
 }
 
-// Text as an AppleScript string literal's inside.
-static NSString *AppleScriptText(NSString *text) {
-    return [[text stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"]
-            stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
-}
-
 // Typed in as the tab's first input; Ghostty shows no name for it.
-- (void)newTabIn:(NSString *)folder running:(NSString *)command named:(NSString *)name forward:(BOOL)forward {
-    // `nl` is bound outside the tell block, where `linefeed` can't be shadowed by Ghostty's terms.
-    RunAppleScript([NSString stringWithFormat:@"set nl to linefeed\n"
-                                              @"tell application \"Ghostty\"\n"
-                                              @"  set cfg to new surface configuration\n"
-                                              @"  set initial working directory of cfg to \"%@\"\n"
-                                              @"  set initial input of cfg to \"%@\" & nl\n"
-                                              @"  if (count of windows) > 0 then\n"
-                                              @"    new tab in front window with configuration cfg\n"
-                                              @"  else\n"
-                                              @"    new window with configuration cfg\n"
-                                              @"  end if\n"
-                                              @"%@"
-                                              @"end tell", AppleScriptText(folder), AppleScriptText(command),
-                                              forward ? @"  activate\n" : @""]);
+- (void)newTabIn:(NSString *)folder running:(NSString *)command named:(NSString *)name forward:(BOOL)forward
+            done:(void (^)(NSString *why))done {
+    // `nl` is bound outside the tell block, where `linefeed` can't be shadowed by Ghostty's terms. It went through only
+    // if the script got to its end.
+    NSString *opened = RunAppleScript([NSString stringWithFormat:@"set nl to linefeed\n"
+                                                                 @"tell application \"Ghostty\"\n"
+                                                                 @"  set cfg to new surface configuration\n"
+                                                                 @"  set initial working directory of cfg to \"%@\"\n"
+                                                                 @"  set initial input of cfg to \"%@\" & nl\n"
+                                                                 @"  if (count of windows) > 0 then\n"
+                                                                 @"    new tab in front window with configuration cfg\n"
+                                                                 @"  else\n"
+                                                                 @"    new window with configuration cfg\n"
+                                                                 @"  end if\n"
+                                                                 @"%@"
+                                                                 @"end tell\n"
+                                                                 @"return \"opened\"", AppleScriptText(folder),
+                                                                 AppleScriptText(command),
+                                                                 forward ? @"  activate\n" : @""]);
+    if (!opened) {
+        PanelLog(@"new terminal session in %@ -> Ghostty didn't open a tab for it", folder);
+        return done(@"Ghostty didn't open a tab for it");
+    }
     PanelLog(@"new terminal session in %@", folder);
+    done(nil);
 }
 
 - (void)type:(NSString *)text inTab:(NSString *)tab {
@@ -337,6 +333,21 @@ static NSString *AppleScriptText(NSString *text) {
                                                             @"  delay 0.05\n"
                                                             @"end repeat", (long)times, once]
         inTab:tab];
+}
+
+#pragma mark On the panel's back
+
+// Ghostty on the panel's back: what Whozmove does with it, and macOS's Automation, which finding its tabs and typing
+// into them needs.
+- (NSArray<AppEntry *> *)appEntries {
+    AppEntry *ghostty = [AppEntry appWithId:self.appId name:self.name
+                                       does:@"Lists the Claude Code sessions in its tabs and opens them, types the "
+                                            @"panel's commands while a session waits at its prompt, and starts new "
+                                            @"conversations in a new tab."
+                                      order:20];
+    ghostty.permission = AppPermissionAutomation;
+    ghostty.permissionFor = @"Finds each session's tab, and types into it";
+    return @[ghostty];
 }
 
 @end

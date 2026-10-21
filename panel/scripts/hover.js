@@ -5,7 +5,7 @@
 // Everything hover-related follows one pointer position that the app polls and sends (hoverAt, hoverEnd).
 // Neither :hover nor mouse events are used: the panel is rarely the focused window, so WebKit's own hover goes
 // stale, and the list is rebuilt every second.
-const HOVER_TARGETS = ['.row', '.chev', '.group.toggle', '.project', '.perm button', '.opt', '.q-close',
+const HOVER_TARGETS = ['.row', '.chev', '.apps', '.group.toggle', '.project', '.perm button', '.opt', '.q-close',
                        '#reader button', '#card button'];
 
 // The card shown while something is pointed at, below it. The modules say what has one (core.cards): each { selector,
@@ -71,9 +71,16 @@ function hideCard() {
   setTimeout(reportHeight, 420);
 }
 
+// What the pointer is on: the copy of the row you're on, held at the list's edge over what it hides there (stickyAt),
+// or else what's under it on the page.
+function pointedAt() {
+  const p = state.pointer;
+  return p && (stickyAt(p.x, p.y) || document.elementFromPoint(p.x, p.y));
+}
+
 function cardUnderPointer() {
   // The card itself isn't found: it takes no pointer events.
-  return cardAnchor(state.pointer && document.elementFromPoint(state.pointer.x, state.pointer.y));
+  return cardAnchor(pointedAt());
 }
 
 // What the pointer can point at, the core's and the modules' (core.pointerTargets), joined the first time it's needed,
@@ -84,7 +91,7 @@ function syncHover() {
   // What's under the pointer is found first, then only what changed gains or loses .is-hover. Taking it off everything
   // and putting it back restarted every hover transition each time the pointer moved: the look in between made the page
   // apply the state without it.
-  const el = state.pointer && document.elementFromPoint(state.pointer.x, state.pointer.y);
+  const el = pointedAt();
   allTargets ??= [...HOVER_TARGETS, ...core.pointerTargets];
   const hovered = new Set(allTargets.map((target) => el?.closest(target)).filter(Boolean));
   document.querySelectorAll('.is-hover').forEach((n) => { if (!hovered.has(n)) n.classList.remove('is-hover'); });

@@ -29,11 +29,26 @@
 - (id<Host>)hostFor:(NSString *)appId;
 // The host that holds a session as its own (a conversation of Claude Desktop's), or nil.
 - (id<Host>)hostHolding:(Row *)row;
-// The host a session runs in: one that holds it as its own, else the one whose app owns its process; nil when that's an
-// app no module knows.
+// The host a session runs in: one that holds it as its own, else the one whose app is up its process tree, else, with
+// no app there, one that says it runs the process (Host's runsProcess:); nil when that's an app no module knows.
 - (id<Host>)hostOf:(Row *)row;
+// The app a session's process runs in, found the same way: the first ordinary app up its process tree, else the app of
+// the host that says it runs the process, while it's running; nil when there's neither.
+- (NSRunningApplication *)appOf:(pid_t)pid;
 // The hosts that can do what `capability` says (TypingHost, CommandHost, ConversationHost), in the modules' order.
 - (NSArray *)hostsThat:(Protocol *)capability;
+// Whether a row is a terminal session that has ended: no process, and no app keeps it as a conversation of its own
+// (Claude Desktop's are its own). A press opens it again in a new tab, and nothing goes into it till then.
+- (BOOL)hasEnded:(Row *)row;
+// Whether a host's app is on this Mac. In a print run every host's is, so what it prints never depends on the Mac.
+- (BOOL)hasApp:(id<Host>)host;
+// The terminals new sessions start in from the panel (New Conversation's) and ended ones open again in when the one
+// they ran in can't: those on this Mac that run a command in a new tab and say which tab they show, so the panel can
+// tell which tab shows the session it opened, in the modules' order (Ghostty, then iTerm2). The one used is the one
+// picked on New Conversation's menu while it's on this Mac, else the first; a print run follows no pick.
+@property (readonly) NSArray<id<CommandHost>> *startTerminals;
+@property (readonly) id<CommandHost> startTerminal;
+- (void)pickStartTerminal:(NSString *)appId;
 // The agents that run sessions (the modules that adopt Agent), in the modules' order.
 @property (readonly) NSArray<id<Agent>> *agents;
 // The agent that runs a session. Every session listed is Claude Code's for now, the one agent there is; another would
@@ -44,7 +59,8 @@
 // The marks every agent puts on the commands its sessions run (Agent's environmentMarks), to take off a command that's
 // yours; nil with no agent to say, so nothing that must be yours runs before they're known.
 @property (readonly) NSArray<NSString *> *agentMarks;
-// The page's messages the core itself answers, by type: the panel's size, the keyboard, the pawn's count, and opening a
+// The page's messages the core itself answers, by type: the panel's size, turning it over, the keyboard, the pawn's
+// count, and opening a
 // session.
 - (NSDictionary<NSString *, void (^)(NSDictionary *message)> *)messages;
 @end

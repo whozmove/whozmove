@@ -16,6 +16,8 @@
 @property (readonly) BOOL mayControl;
 // Its first message is sent: it has a transcript.
 @property (readonly) BOOL started;
+// It ran in a terminal and has ended: nothing goes in until it's opened again from its row.
+@property (readonly) BOOL ended;
 // Its conversation runs in another process as well, not paused (the row's alsoOpen); and one of those runs in a
 // terminal while this one does too, where a key for one could land in the other's tab, so nothing goes in.
 @property (readonly) BOOL openElsewhere;
@@ -50,14 +52,16 @@
 - (id<TypingHost>)terminalOf:(Row *)row;
 - (id<ConversationHost>)conversationHostOf:(Row *)row;
 @property (readonly) NSString *terminalNames;
+// Whether a session ran in a terminal and has ended (the core's hasEnded:, which a press on its row goes by too).
+- (BOOL)hasEnded:(Row *)row;
 // The session's agent asked in words, as you'd type them, while it's idle: a step chosen from one of a row's island
 // menus. The row says it's asking, or why they can't go in (stepNote).
 - (void)ask:(NSString *)words row:(Row *)row;
 @end
 
-// Why no words can be typed into the session's tab: there's no terminal the panel can type into, its tab isn't found,
-// its conversation is open in another terminal too, or another tab fits as well. `here` and `there` end the sentences
-// ("can be changed here", "change it there").
+// Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, its tab
+// isn't found, its conversation is open in another terminal too, or another tab fits as well. `here` and `there` end
+// the sentences ("can be changed here", "change it there").
 NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there);
 // Why its agent can't be asked in words now, as the row's note says it, or nil.
 NSString *WhyNoAsk(id<Reach> reach);

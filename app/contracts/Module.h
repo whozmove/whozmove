@@ -17,7 +17,7 @@ typedef NS_ENUM(NSInteger, RowPhase) {
 // Where in the pawn menu an item of a module's goes.
 typedef NS_ENUM(NSInteger, MenuSection) {
     MenuSectionTop,       // above Show / Hide Panel
-    MenuSectionFeatures,  // after the grouping, as Next Steps ▸, Spotify ▸ and Open With ▸ are
+    MenuSectionFeatures,  // after the grouping, as Open With ▸ is
     MenuSectionWhozmove,  // in Working on Whozmove ▸, which shows only while ⌥ is held as the menu opens
 };
 
@@ -29,6 +29,47 @@ typedef NS_ENUM(NSInteger, MenuSection) {
 @property (readonly) NSMenuItem *item;
 // Run each time the menu opens, for a title that changes or an item that shows only sometimes.
 @property (copy) void (^willOpen)(void);
+@end
+
+// What macOS has to let Whozmove do for it to work with an app, which the app's page on the panel's back shows.
+typedef NS_ENUM(NSInteger, AppPermission) {
+    AppPermissionNone,           // nothing to allow
+    AppPermissionAccessibility,  // Privacy & Security ▸ Accessibility: its windows read, and its buttons pressed
+    AppPermissionAutomation,     // Privacy & Security ▸ Automation: asked things, and told what to do
+};
+
+// One of the switches on an app's page on the panel's back: its name, a line on what it does, whether it's on now, and
+// what turning it on or off does. Switches in a group are a choice of one among apps (the terminal new conversations
+// open in): pressed, it's the one, and the others in its group go off; pressed again, it stays.
+@interface AppSwitch : NSObject
++ (instancetype)switchWithKey:(NSString *)key title:(NSString *)title help:(NSString *)help on:(BOOL (^)(void))on
+                          set:(void (^)(BOOL on))set;
+@property (readonly, copy) NSString *key, *title, *help;
+@property (readonly, copy) BOOL (^on)(void);
+@property (readonly, copy) void (^set)(BOOL on);
+// Shown only while `shown` says so (Lyrics, while the song shows), and pressable only while `enabled` does (Show
+// Deploy, while the next steps show); nil for always.
+@property (copy) BOOL (^shown)(void);
+@property (copy) BOOL (^enabled)(void);
+@property (copy) NSString *group;
+@end
+
+// One of the apps a module works with, as the panel's back lists it (the apps module): its id (the app's bundle id, or
+// a name of Whozmove's own for a tool that isn't an app, as git), its name, a line on what Whozmove does with it, its
+// place among the others (lower first), what macOS has to allow, and its switches. An entry made with only an app's id
+// and switches adds them to the app another module lists: starts adds "Open new conversations here" to each terminal.
+@interface AppEntry : NSObject
++ (instancetype)appWithId:(NSString *)appId name:(NSString *)name does:(NSString *)does order:(NSInteger)order;
++ (instancetype)switches:(NSArray<AppSwitch *> *)switches forApp:(NSString *)appId;
+@property (readonly, copy) NSString *appId, *name, *does;
+@property (readonly) NSInteger order;
+@property AppPermission permission;
+// What it needs that permission for, in a few words: "Finds each session's tab, and types into it".
+@property (copy) NSString *permissionFor;
+@property (copy) NSArray<AppSwitch *> *switches;
+// Whether it's listed, for a tool that isn't an app (git) or an app listed whether it's installed or not (Spotify,
+// whose token offers to get it); nil for an app listed while macOS finds it by its id.
+@property (copy) BOOL (^present)(void);
 @end
 
 // What a print run (for the tests) prints from its arguments, those after its flag; its result is the exit status.
@@ -56,6 +97,8 @@ typedef int (^PrintMode)(Core *core, NSArray<NSString *> *arguments);
 - (NSDictionary<NSString *, void (^)(NSDictionary *message)> *)messages;
 // Its items in the pawn menu.
 - (NSArray<MenuEntry *> *)menuEntries;
+// The apps it works with, as the panel's back lists them, and the switches it adds to other modules' apps.
+- (NSArray<AppEntry *> *)appEntries;
 // Its print modes, by flag ("--print-spotify"), for the tests.
 + (NSDictionary<NSString *, PrintMode> *)printModes;
 @end

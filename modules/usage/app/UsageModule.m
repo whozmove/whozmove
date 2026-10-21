@@ -39,6 +39,7 @@
         [weakSelf.card glassAt:glass list:list duration:duration];
     }];
     [self.core.window followPointer:^(NSPoint point) { [weakSelf.card pointerAt:point]; }];
+    [self.core.window followTurn:^(BOOL turned) { weakSelf.card.away = turned; }];
     self.answers = [self messages];
     self.card.onMessage = ^(NSString *type, NSDictionary *message) {
         void (^answer)(NSDictionary *) = weakSelf.answers[type];
@@ -56,7 +57,8 @@
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
     __weak typeof(self) weakSelf = self;
     return @{
-        // In the first terminal on this Mac that runs a command in a new tab: Ghostty, else macOS's Terminal.
+        // In the first terminal on this Mac that runs a command in a new tab: Ghostty, else iTerm2, else macOS's
+        // Terminal.
         @"usageSignIn": ^(NSDictionary *msg) {
             id<CommandHost> terminal = nil;
             for (id<CommandHost> host in [weakSelf.core hostsThat:@protocol(CommandHost)])

@@ -1,0 +1,10 @@
+{
+  "order": 60,
+  "pages": {
+    "back": {
+      "page": "page/back.html",
+      "scripts": ["page/apps.js", "page/back.js"],
+      "styles": ["page/back.css"]
+    }
+  }
+}

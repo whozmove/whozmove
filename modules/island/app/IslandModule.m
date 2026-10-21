@@ -128,4 +128,24 @@
     [self.core.page call:@"setCheckoutFiles" with:@[files]];
 }
 
+#pragma mark On the panel's back
+
+// Git on the panel's back: what Whozmove does with it, and whether each row shows its next steps (Deploy adds its own
+// switch). It's always listed, as every session's checkout is read with it.
+- (NSArray<AppEntry *> *)appEntries {
+    __weak typeof(self) weakSelf = self;
+    AppEntry *git = [AppEntry appWithId:@"git" name:@"Git"
+                                   does:@"Reads each session's checkout: what's changed, committed and on GitHub, for "
+                                        @"the next steps on its row, the changes view and Deploy; and makes worktrees "
+                                        @"for new conversations."
+                                  order:60];
+    git.present = ^BOOL { return YES; };
+    git.switches = @[[AppSwitch switchWithKey:@"nextSteps" title:@"Show Next Steps"
+                                         help:@"On each row: what's changed, committed and on GitHub, and the step "
+                                              @"that's next"
+                                           on:^BOOL { return weakSelf.core.menuBar.showsNextSteps; }
+                                          set:^(BOOL on) { weakSelf.core.menuBar.showsNextSteps = on; }]];
+    return @[git];
+}
+
 @end

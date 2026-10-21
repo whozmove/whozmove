@@ -120,6 +120,13 @@ static NSArray<Class> *ModuleClasses(void) {
     return entries;
 }
 
+- (NSArray<AppEntry *> *)appEntries {
+    NSMutableArray *entries = [NSMutableArray array];
+    for (id<Module> module in self.all)
+        if ([module respondsToSelector:@selector(appEntries)]) [entries addObjectsFromArray:module.appEntries];
+    return entries;
+}
+
 - (PrintMode)printMode:(NSString *)flag {
     return self.printModes[flag];
 }

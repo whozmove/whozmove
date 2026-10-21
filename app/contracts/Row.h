@@ -38,6 +38,9 @@
 @property (copy) NSArray<NSDictionary *> *prs, *writings;
 @property (strong) NSNumber *messageAt, *compacting, *seenAt;
 @property (assign) BOOL focused;
+// For a terminal session that has ended: the app id of the terminal it last ran in, as its agent kept it (not sent),
+// and the name of the terminal a press on its row opens it again in.
+@property (copy) NSString *ranIn, *opensIn;
 // What was picked for it in the panel and the session hasn't confirmed yet, {field: value, <field>At: when}, which its
 // details show until it does. Not sent.
 @property (copy) NSDictionary *chosen;

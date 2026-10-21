@@ -83,6 +83,7 @@
     json[@"messageAt"] = self.messageAt;
     json[@"compacting"] = self.compacting;
     json[@"seenAt"] = self.seenAt;
+    json[@"opensIn"] = self.opensIn;
     if (self.focused) json[@"focused"] = @YES;
     return json;
 }

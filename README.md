@@ -8,17 +8,23 @@ with what each is doing, so you can see at a glance which one needs you.
   alt="The Whozmove panel: a session asking to run a command, one working, and one with a reply waiting for you"></p>
 
 - group by **status** (Your turn / Working / Seen / Idle) or by **project**, with a ＋ per project that starts a new
-  conversation there (⌥-click: in Ghostty)
+  conversation there (⌥-click: in the terminal)
 - **Your turn** comes first: the sessions waiting on you, with a request or question (a pulsing red-orange dot) or a
   reply you haven't read (an amber dot), first come, first served. One that comes in joins the end, so nothing above
   it moves, and a reply waits there until you've read it. A reply you've read gets an empty amber dot and stays where
   it is while you're on its session, and for 10 minutes after you were last on it; then its row goes to **Seen**,
   below **Working**, and to **Idle** an hour after the last message (Claude's or yours) or the last time you were on
   it, whichever is later. Once it's in Seen, being on it again leaves it there until something new comes. Opening a
-  session here, being on it in Claude or Ghostty for a couple of seconds after it replied (watching the reply come in
-  counts), or writing to it counts as reading its reply, and as being on it; for a session in another terminal, only
-  opening it here or writing to it does. The header's line counts what the sections show ("2 your turn · 1 working",
-  in red-orange while a request waits), or with neither, how many are in Seen and Idle
+  session here, being on it in Claude, Ghostty or iTerm2 for a couple of seconds after it replied (watching the reply
+  come in counts), or writing to it counts as reading its reply, and as being on it; for a session in another terminal,
+  only opening it here or writing to it does. The header's line counts what the sections show ("2 your turn · 1
+  working", in red-orange while a request waits), or with neither, how many are in Seen and Idle
+- **the row you're on stays in view**: scroll the list past the session you're on, or let the list move its row out of
+  sight (down to Working as it starts on your message, say), and the row holds on at the top of the list (or at its
+  bottom, while it's further down), folding a line at a time until its name, Claude's line and where it runs are left,
+  and the rest of the list goes under it. Back in view it opens out into its place again; press it to scroll back to
+  it. Switch to another session and its tint moves over to that one's row as it slides away. A row you're typing in,
+  or one too tall to show whole, goes out of sight as any row does
 - **start a conversation** from the ＋ in the panel's header, or ⌃⌥N from any app: a card opens at the top of the
   panel, under the header; write what Claude should do and press ⌘Return (Return starts a new line). The card is
   shaped like the row it becomes.
@@ -26,28 +32,32 @@ with what each is doing, so you can see at a glance which one needs you.
   repository, where in it; type **@** in your words, or press the project's chip, to choose another project (or any
   folder), and the line under the box says where it runs. The Start button shows the app it starts in, its icon and,
   once you've written something, its name, saying **Start in Claude** while you hold ⌘; the arrow beside it switches
-  between Claude Desktop and Ghostty, and the next card starts with the one you chose last. Once started, the card turns
-  into that row and moves down to its place in the list, where it says it's starting until Claude lists the
-  conversation. A folder Claude hasn't worked in before is asked about on the
+  between Claude Desktop, Ghostty and iTerm2 (those on your Mac), and the next card starts with the one you chose last.
+  Once started, the card turns into that row and moves down to its place in the list, where it says it's starting until
+  Claude lists the conversation. A folder Claude hasn't worked in before is asked about on the
   card (**Trust and start**), so neither Claude Desktop nor Claude Code stops to ask again. In Claude Desktop your
   words go into the new conversation's message box, Whozmove chooses the folder's environment among the recent ones
   Claude lists (when Claude hasn't already) and presses Send once Claude shows it. This needs the Accessibility
   permission; without it, if the folder's environment isn't among Claude's recent ones, or if Claude doesn't take the
   press, your words wait there for you to choose it and send. If Claude starts it in another folder anyway, the row
-  follows it there and says so. In Ghostty, a new tab runs `claude` with them.
+  follows it there and says so. In Ghostty or iTerm2, a new tab runs `claude` with them.
   In a git repository, type **#** (or press the branch's chip) to choose where in it: its own folder, a worktree
   that's there, or a new worktree, a folder of its own, for a branch that's there or a new branch named from your
   words (**#name** names it, and **#name from release** starts it from that branch, else from the repo's main branch as
   this Mac has it, which it then follows). A new worktree is in the worktree colour, with the branch it starts from
-  beside it; anything in a worktree starts in Ghostty. Nothing ever switches the branch of a folder in use: a branch
+  beside it; anything in a worktree starts in a terminal. Nothing ever switches the branch of a folder in use: a branch
   is only checked out in a new folder. When another agent is at work in the project's folder, or changes there aren't
   committed, the card says so, with **Use a new worktree**. A new worktree goes in a folder beside the repo, named after
   it (`~/code/shop-worktrees` for `~/code/shop`), never inside it, or in a folder you choose from the line under the box,
   kept for that repo. Close a card before it starts and the next one comes back as you left it: your words, where it
   starts and the app
-- Claude Desktop conversations stay listed after Claude quits (those active in the last 3 days)
+- Claude Desktop conversations stay listed after Claude quits (those active in the last 3 days), and so do terminal
+  sessions once they've ended (their tab closed, the terminal quit, the Mac restarted): grey, with what they last said.
+  Click one and it carries on where it was, in a new tab of the terminal it ran in (else the one New Conversation
+  starts in), in its folder, under the same conversation; if Claude Code doesn't carry it on there, the row says so.
+  One you left with `/clear` stays gone
 - the session **you're on** is marked, and scrolled into view as you switch: the conversation open in Claude, or
-  the session in the Ghostty tab you're looking at, whichever of the two apps you were in last
+  the session in the Ghostty or iTerm2 tab you're looking at, whichever of those apps you were in last
 - a conversation open in two places at once (resumed in a second tab while it still runs, or open in Claude Desktop
   and a terminal) is one row, which follows the copy that needs you: one asking you something, then one at work, and
   otherwise the one it followed already. Pressing it opens that copy (in Ghostty, a tab at work is told from one that
@@ -147,8 +157,8 @@ with what each is doing, so you can see at a glance which one needs you.
   all show the same island. Notes it wrote elsewhere don't count, and a row is always about the checkout its session
   runs in: one that edits files in another checkout doesn't take that checkout's island or Deploy (which wait while
   its agent works there). When no session there has edited it, the session you used last there speaks for it, one
-  still running first, so work left in a checkout keeps its island. The pawn menu's **Next Steps ▸** turns the island
-  and Deploy, or just Deploy, off
+  still running first, so work left in a checkout keeps its island. **Git**, on the panel's back, turns the island and
+  Deploy, or just Deploy, off
 - what the session itself changed that isn't committed yet, at the end of that line ("+26 −13"), as git status sees
   it: its own lines, even when other sessions or you work in the same checkout. Once it's all committed, the numbers
   go. Each changed line is credited to whoever wrote it: the session whose edits put it there (its sub-agents'
@@ -191,8 +201,10 @@ with what each is doing, so you can see at a glance which one needs you.
   option (or several), type your own answer, or enter a number, then Skip, Next, Submit, or × to dismiss
 - the session's **branch**, in purple with a worktree icon when it runs in a worktree
 - **open PRs** the session created or worked on, with a hover card (state, author, `+/−`, files)
-- click a session to jump to it: Claude Desktop opens it (launching Claude if needed), and Ghostty switches to
-  its tab (and its split, in a tab with several)
+- click a session to jump to it: Claude Desktop opens it (launching Claude if needed), Ghostty switches to its
+  tab (and its split, in a tab with several), and iTerm2 to its window, tab and pane, its hotkey window too (but not
+  one that floats over every Space, which iTerm2 doesn't let scripts reach). When iTerm2 has quit while its sessions
+  live on, the click starts it, and the next one, once it has taken them back, goes to the session
 - your Claude plan's **usage**, on a card under the panel, as wide as it: the same numbers as Claude's own Usage
   page, for the session (five hours) and the week, each with how long until it resets ("2h 59m"; point at it for the
   clock time), coloured as Claude colours them for how close you are, and a note when you're on course to run out
@@ -217,20 +229,31 @@ with what each is doing, so you can see at a glance which one needs you.
   thin line along the top) and the time. Point at it for back, pause and next, and press the line to jump; press the
   strip to bring Spotify forward (once lyrics are on, to read them). A new song rolls in place; paused, it greys and
   offers Play, and after 15 minutes it folds into the token; with the panel folded to its header, the token stands in
-  for the strip. The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon** and **Remove
-  Spotify** (the token and the strip go, and Whozmove leaves Spotify alone; **Add Spotify** brings them back). macOS's
-  Allow stays in System Settings → Privacy & Security → Automation
-- **lyrics**, once you say yes to the strip's question (or turn on **Show Lyrics**): while a line is sung, it takes the
-  place of the song's name in the strip, rolling in as the singer starts it, and the name comes back between verses.
-  Press the strip to read the whole song beside the list, the line being sung lit as it plays; press a line to jump
-  there. Pressed before a song's lyrics are here, the strip says "Loading lyrics…" or "Lyrics not available" for a
-  moment instead, and they open if they come meanwhile. At their foot, **Show lyrics in the strip**, turned off, keeps
-  the strip on the song's name, and **Open Spotify** brings Spotify forward. They come from LRCLIB (lrclib.net), a free
-  library of lyrics that says when each line is sung: a song it doesn't have keeps its name in the strip, words without
-  timings show beside the list only, and when LRCLIB is busy, Whozmove asks again, a little later each time. A song
-  you've played before shows its lyrics at once, as they're kept on this Mac
+  for the strip. **Spotify**, on the panel's back, has **Show the song** (off, the token and the strip go, and
+  Whozmove leaves Spotify alone), **Lyrics**, **Its icon at the panel's corner** and **Open Spotify**. macOS's Allow
+  stays in System Settings → Privacy & Security → Automation
+- **lyrics**, once you say yes to the strip's question (or turn on **Lyrics** on Spotify's page): while a line is sung,
+  it takes the place of the song's name in the strip, rolling in as the singer starts it, with the lyrics mark over the
+  cover, and the name and the cover come back between verses. Press the strip to read the whole song beside the list,
+  the line being sung lit as it plays; press a line to jump there. Pressed before a song's lyrics are here, the strip says "Loading lyrics…" or "Lyrics not
+  available" for a moment instead, and they open if they come meanwhile. At their foot, **Show lyrics in the strip**,
+  turned off, keeps the strip on the song's name, and **Open Spotify** brings Spotify forward. They come from LRCLIB
+  (lrclib.net), a free library of lyrics that says when each line is sung: a song it doesn't have keeps its name in the
+  strip, words without timings show beside the list only, and when LRCLIB is busy, Whozmove asks again, a little later
+  each time. A song you've played before shows its lyrics at once, as they're kept on this Mac
+- **the panel's back**: the four squares in the header turn the whole panel over, and behind the list are the apps
+  Whozmove works with, those on your Mac: Claude, Ghostty, iTerm2, Terminal, Spotify and Git. Press one for its page:
+  what Whozmove does with it, its switches (the terminal new conversations open in, Spotify's song, lyrics and icon,
+  Git's next steps and Deploy), what macOS lets Whozmove do with it (Accessibility or Automation, with **Open System
+  Settings** when it isn't allowed) and **Open**. The back is the panel's size, scrolling when there's more; its rows,
+  where the four squares were, turn the panel back to the list, and its chevron folds it into the cat. An open reader
+  folds back first, and ⌃⌥N turns the panel back to start a conversation
 - a pawn in the menu bar with a count of sessions waiting on you; its menu switches the grouping, has **New
   Conversation** (⌃⌥N), and turns ⌃⌥N off for other apps (**Use ⌃⌥N in Any App**)
+- **Look ▸** in that menu: the panel **Grey** (until you pick otherwise), **Black** (**White** on a light panel), or
+  **Glass**, showing what's behind it, blurred; and **Match System**, **Light** or **Dark**. The panel, its cards, the
+  usage card and Spotify's token all follow it. While Reduce Transparency is on in System Settings, Glass is grey and
+  can't be picked
 - for working on Whozmove itself, **Working on Whozmove ▸** in that menu, shown only while you hold ⌥ (Option) as
   you open it: **Show Build in Header** puts, under "Whozmove", which worktree (or branch) the running build came
   from and when it was built, with its folder and commit when you point at it; **Preview the Wait** plays the usage
@@ -250,18 +273,18 @@ A label's colour says whose move it is:
 
 Needs macOS, Xcode Command Line Tools (`clang`, and the `python3` the hooks run on) and Claude Code.
 Optional: `gh`, signed in, for PR status; Claude Desktop and Ghostty, for jumping to and controlling their
-sessions; the `claude` command, signed in to a Claude plan, for your plan's usage (Claude Desktop's own copy will
-do). Sessions in other terminals are listed too, but a click only brings their app forward (not the
-exact tab), they aren't marked as the one you're on, and their model, effort and mode can't be changed from
-the panel.
+sessions, and iTerm2, for jumping to its sessions and starting new ones; the `claude` command, signed in to a Claude
+plan, for your plan's usage (Claude Desktop's own copy will do). Sessions in other terminals are listed too, but a
+click only brings their app forward (not the exact tab), they aren't marked as the one you're on, and their model,
+effort and mode can't be changed from the panel.
 
 Tested with Claude Code 2.1.302 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
-1.3.1 and Spotify 1.3.5, with lyrics from LRCLIB's API. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
+1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
 all, and asks Claude Code for your plan's usage a way it doesn't document either, so an update to one of them can
 break part of the panel until Whozmove catches up. The fix goes in the module of the app that changed
 (`modules/claude-code/app/ClaudeCodeFacts.h`, `modules/claude-desktop/app/ClaudeDesktopFacts.h`,
-`modules/ghostty/app/GhosttyFacts.h`, `modules/spotify/app/SpotifyFacts.h`, and for LRCLIB
-`modules/spotify/app/LRCLIBFacts.h`).
+`modules/ghostty/app/GhosttyFacts.h`, `modules/iterm2/app/ITerm2Facts.h`, `modules/spotify/app/SpotifyFacts.h`, and
+for LRCLIB `modules/spotify/app/LRCLIBFacts.h`).
 
 ```bash
 git clone https://github.com/whozmove/whozmove
@@ -277,9 +300,10 @@ pick up hooks when they start, so they apply to sessions started (or restarted) 
 
 macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to
 change settings, compact, focus the message box and send a new conversation's first message in Claude Desktop), and
-**Automation** of Ghostty (to switch to and type into its tabs, open new ones, and see which one you're looking at)
-and of Spotify (to show its song's cover and control it, asked at the first Play or the first song it plays). Both
-can be granted later in System Settings → Privacy & Security.
+**Automation** of Ghostty (to switch to and type into its tabs, open new ones, and see which one you're looking at),
+of iTerm2 (to switch to its tabs, open new ones, and see which one you're looking at) and of Spotify (to show its
+song's cover and control it, asked at the first Play or the first song it plays). Both can be granted later in System
+Settings → Privacy & Security.
 
 After changing anything in `app/`, `modules/`, `panel/`, `icon/` or the hooks, run `./build.sh` again in your
 terminal. It puts the app in place and restarts it, with the hooks too once they're installed as the plugin (a hook
@@ -295,11 +319,13 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 |---|---|
 | Running sessions and status | `~/.claude/sessions/<pid>.json`, Claude Code's live session registry |
 | Claude Desktop conversations, running or not | `~/Library/Application Support/Claude/claude-code-sessions/*/*/local_*.json` |
+| Terminal sessions that have ended | `~/Library/Application Support/Whozmove/conversations/<id>.json`, which Whozmove writes while each runs (its folder, name, terminal, transcript and when it last moved; no prompts or replies), listed for 3 days while Claude Code still has its transcript; a click runs `claude --resume <id>` in a new tab there |
 | Conversation open in Claude | `setFocusedSession` lines in Claude's `main.log` (instant), else the newest `lastFocusedAt` |
 | Session in the Ghostty tab you're looking at | Ghostty's Apple events, once a second while it's in front: the terminals in its front window's selected tab (and the one with the keyboard, when the tab is split), matched to sessions by their folder and tab title, the way a click finds a session's tab. While that can't tell which session it is, the mark stays where it was |
+| Session in the iTerm2 tab you're looking at | iTerm2's Apple events, once a second while it's in front: the terminal devices (ttys) of the sessions in its current window's current tab (and of the one with the keyboard, when the tab is split), matched to each session's own, the one iTerm2 gave it, while its `claude` is in its terminal's foreground, the way a click finds a session's tab. A session is iTerm2's when iTerm2, or the server it runs its sessions under (`iTermServer-…`, which keeps them running when iTerm2 quits or crashes), is up its process tree |
 | Last prompt / reply / notice | `~/Library/Application Support/Whozmove/sessions/<id>.json`, written by the hook (the folder is yours only: 700) |
 | Live line | the same file: the hook describes each tool call as it starts (a command's own description, the file, the query, …) |
-| Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude or Ghostty (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
+| Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude, Ghostty or iTerm2 (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
 | Permission requests | `~/Library/Application Support/Whozmove/asks/<id>.json`, left by the permission hook while it waits; your answer goes back in `<id>.answer.json` |
 | Branch and worktree | the session folder's `.git`, read directly (no `git` process) |
 | Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
@@ -312,12 +338,12 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | Now playing | what Spotify tells the whole Mac each time the song or its state changes (`com.spotify.client.PlaybackStateChanged`); the cover and the controls through Apple events to Spotify, only while it's running; Spotify is opened only when you press its token's Play |
 | Lyrics | once you've said yes, LRCLIB (`lrclib.net/api/get`, then `/api/search`), asked about each song once it has played a moment, one request at a time, with its name, artist, album and length, then without the album, with its name tidied of what Spotify adds to say which version it is, and by its name and artist (only that, for a song over an hour); asked again when LRCLIB is busy, never sooner than it says; what it finds is kept in `~/Library/Application Support/Whozmove/lyrics/`, for the last 1,000 songs (a song without timed lyrics for a week, then it's asked about again); and while a song's lines follow it, where it is, asked of Spotify every 5 seconds |
 | Plan usage | Claude Code itself: every 3 minutes (and just after a reset) Whozmove runs `claude` for a second, with nothing of yours loaded and nothing saved (`--safe-mode --no-session-persistence`), and asks it what its own `/usage` shows (its `get_usage` request); Claude Code signs in and asks Anthropic. When it has no plan to report, `claude auth status` says whether it's signed in |
-| New conversations | in Ghostty, a new tab running `claude --session-id <id>` (an id the panel chooses, so the conversation's row is known from the start), with your words read from a file in Whozmove's folder rather than typed; in Claude Desktop, its `claude://code/new?q=…` link (without `folder=`, which Claude loses), then the environment its button beside Send names, the recent environments its page lists (which is which folder from its `ccd-session-presets.json`, only read) and its Send button via the Accessibility API (on its older screen, its folder button and its folder list's Recent folders, by path), and which conversation it started and where from the `LocalSessions.start:` and `Starting local session <id> in <folder>` lines in its `main.log`; whether Claude may work in the folder, from `projects[<folder>].hasTrustDialogAccepted` in Claude Code's `~/.claude.json` |
+| New conversations | in Ghostty or iTerm2, a new tab running `claude --session-id <id>` (an id the panel chooses, so the conversation's row is known from the start), with your words read from a file in Whozmove's folder rather than typed (in iTerm2, the tab's own program, through `create tab with default profile command`, is your shell running a file of commands in your temporary folder, which removes itself as it runs, so nothing is typed into the tab for Broadcast Input to copy, and iTerm2 is given only plain words; with zsh, a Claude paused there with Ctrl+Z comes straight back, as only that shell could bring it back); in Claude Desktop, its `claude://code/new?q=…` link (without `folder=`, which Claude loses), then the environment its button beside Send names, the recent environments its page lists (which is which folder from its `ccd-session-presets.json`, only read) and its Send button via the Accessibility API (on its older screen, its folder button and its folder list's Recent folders, by path), and which conversation it started and where from the `LocalSessions.start:` and `Starting local session <id> in <folder>` lines in its `main.log`; whether Claude may work in the folder, from `projects[<folder>].hasTrustDialogAccepted` in Claude Code's `~/.claude.json` |
 
 | File | Role |
 |---|---|
 | `app/` | the native app's core, one file per job (`core/`: the floating `NSPanel`, the menu bar item, the bridge to the page, the rows, the session you're on, and words typed into a session or sent to Claude Desktop), what modules fill in (`contracts/`) and the helpers that know no app (`shared/`) |
-| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `island/` (each row's checkout, its stages and their menus, and its PRs), `deploy/`, `changes/` (a session's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
+| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `island/` (each row's checkout, its stages and their menus, and its PRs), `deploy/`, `changes/` (a session's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
 | `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), and `page.sh`, which puts the page together with each module's page files |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
@@ -353,9 +379,10 @@ Debug log: `~/Library/Application Support/Whozmove/panel.log`.
   message and Claude's last reply (their first 280 characters), what it's doing at the moment (a command, a file's
   name, a search) and how far each turn took the work, requests while they wait for your OK, the deploy command
   you've confirmed for each project, with each deploy's log, your answer about each repo's extra-stage command, the
-  words of a conversation you start in Ghostty until it has started, the lyrics found for the last 1,000 songs you
+  words of a conversation you start in a terminal until it has started, the lyrics found for the last 1,000 songs you
   played, until you turn lyrics off, and a small log, which can hold folder paths, repository and conversation names,
-  and text typed into sessions.
+  and text typed into sessions. A new tab in iTerm2 runs from a file of commands in your own temporary folder, which
+  only you can read and which removes itself as it runs.
 - Trusting a folder on the new conversation card records exactly that, the one key for that folder
   (`hasTrustDialogAccepted`), in Claude Code's `~/.claude.json`, where Claude Code and Claude Desktop both look, under
   the same lock Claude Code takes to write it. Nothing else in that file is changed, and only that key is ever read

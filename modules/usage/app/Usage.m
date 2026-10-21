@@ -113,8 +113,11 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
 
 - (void)signInWith:(id<CommandHost>)terminal {
     if (!self.signIn || !terminal) return;
+    NSString *where = terminal.name;
     [terminal newTabIn:Home() running:self.signIn named:[@"Sign in to " stringByAppendingString:self.agent.name]
-               forward:YES];
+               forward:YES done:^(NSString *why) {
+        if (why) PanelLog(@"plan usage: Sign in didn't open in %@: %@", where, why);
+    }];
     PanelLog(@"plan usage: signing in, in %@", terminal.name);
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
     self.signingInUntil = now + kSignInFor;

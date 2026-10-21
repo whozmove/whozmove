@@ -15,7 +15,7 @@
 // while it plays, which the lyrics follow line by line; pausedSince is when a paused song was paused (0 for one found
 // paused, as when Whozmove starts); artUrl is the cover once known; allowed is NO once macOS has refused Whozmove
 // control of Spotify, YES once it has allowed it. Nothing (null) while Spotify plays nothing, isn't running, or Spotify
-// is removed from Whozmove (the pawn menu's Spotify ▸).
+// is turned off in Whozmove (Show the song, on its page on the panel's back).
 #import "Spotify.h"
 #import "Page.h"
 #import "Files.h"

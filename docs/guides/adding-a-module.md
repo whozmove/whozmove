@@ -13,9 +13,11 @@ its line in the docs' map, and an empty container in the page if it needs a plac
   of its small protocols it can: `AgentWork` (what a session did: its PRs and its edits), `AgentCommands` (the words
   of a slash command and what its result says), `AgentPrompt` (typing into a session's prompt, and when that's safe),
   `AgentUsage` (your plan's usage) and `AgentStarts` (a new session's command, and folder trust).
-- **A host** is an app sessions run in (Ghostty, Claude Desktop). It fills in `app/contracts/Host.h`: `Host`, and
-  `TypingHost` if keys can go into a session there, `CommandHost` if it can open a tab running a command, or
-  `ConversationHost` if it keeps conversations of its own.
+- **A host** is an app sessions run in (Ghostty, iTerm2, Claude Desktop). It fills in `app/contracts/Host.h`: `Host`,
+  and `TypingHost` if keys can go into a session there, `CommandHost` if it can open a tab running a command, or
+  `ConversationHost` if it keeps conversations of its own. A terminal whose sessions can have no ordinary app above them
+  (under a server of its own, which outlives the app, or with the app kept out of the Dock) says which processes it
+  runs (`runsProcess:`, as iTerm2's does).
 - **A feature** (the island, Deploy) fills in only `app/contracts/Module.h`, and reaches the agents and the hosts
   through the core (`app/core/Core.h`).
 
@@ -51,6 +53,7 @@ Then whatever it has, each optional:
 | `working` | whether it's still working something out off the main thread, which a print run waits for |
 | `messages` | the page's messages it answers, by type: each type has one module |
 | `menuEntries` | its items in the pawn menu, each with its section and its order there (`MenuEntry`) |
+| `appEntries` | the apps it works with, as the panel's back lists them, each with what Whozmove does with it, the permission macOS has to give and its switches (`AppEntry`, `AppSwitch`); or switches it adds to another module's app |
 | `printModes` | its print modes for the tests, by flag (`--print-<name>`): what `Whozmove --print-<name> …` prints |
 
 The core finds the class at launch through the Objective-C runtime, and `tools/compile.sh` compiles every `.m` in the
@@ -78,8 +81,8 @@ acts before the page is there and never names another module.
   its native face answers. `tests/checks.sh` fails on a call or a message with no other end.
 - `module.json` lists its scripts and styles in the order they load. `order` places them among the other modules'
   (lower first); today's run from 10 (the island) to 100 (Spotify).
-- Its styles take their colours, text sizes and corners from the tokens, and its classes have names of its own
-  ([reference/tokens.md](../reference/tokens.md)).
+- Its styles take their colours, text sizes and corners from the tokens, so they follow the panel's look, light or
+  dark, and its classes have names of its own ([reference/tokens.md](../reference/tokens.md)).
 - Something that needs a place of its own on the page, a strip under the list say, gets an empty container in
   `panel/panel.html`, which the module fills.
 

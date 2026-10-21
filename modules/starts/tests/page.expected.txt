@@ -67,6 +67,7 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         
       </div>
     </div>
+…in the terminal it started in, though another is picked since: Starting in iTerm2
 -- one in Claude that waits on you, and one that didn't start
 <div class="row busy" data-id="u-1" >
       <span class="dot" style="animation-delay:-0ms"></span>

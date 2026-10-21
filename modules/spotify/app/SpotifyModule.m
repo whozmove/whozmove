@@ -1,6 +1,6 @@
 // SpotifyModule: Spotify's face for the core (Module). It makes Spotify, its token and its lyrics when the app starts,
 // holds the token under the panel and follows the glass and the pointer for it, answers the now-playing strip's
-// presses, puts Spotify ▸ in the pawn menu, and has the print mode the tests check.
+// presses, has Spotify's page on the panel's back, with its switches, and the print mode the tests check.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Module.h"
 #import "Core.h"
@@ -9,13 +9,14 @@
 #import "Menus.h"
 #import "Printing.h"
 #import "Spotify.h"
+#import "SpotifyFacts.h"
 #import "SpotifyToken.h"
 #import "Lyrics.h"
 #import "LyricsStore.h"
 
-// Its switches in the pawn menu, kept in the app's preferences: Spotify itself (its token and song) and its side icon,
-// each on until removed or hidden; and lyrics, off until you say yes to the strip's question (or Show Lyrics in the
-// pawn menu), with whether you've answered that question.
+// Its switches on its page on the panel's back, kept in the app's preferences: Spotify itself (its token and song) and
+// its token, each on until turned off; and lyrics, off until you say yes to the strip's question (or turn them on
+// there), with whether you've answered that question.
 static NSString *const kSpotifyOn = @"showNowPlaying", *const kSpotifySideIcon = @"spotifySideIcon";
 static NSString *const kSpotifyLyrics = @"spotifyLyrics", *const kSpotifyLyricsAsked = @"spotifyLyricsAsked";
 
@@ -116,10 +117,7 @@ static int PrintSpotify(NSArray<NSString *> *files) {
 @property (strong) Spotify *spotify;
 @property (strong) SpotifyToken *token;
 @property (strong) Lyrics *lyrics;
-@property (strong) NSMenuItem *openItem;        // Spotify ▸ Open Spotify
-@property (strong) NSMenuItem *lyricsItem;      // Spotify ▸ Show Lyrics, ticked while they're on
-@property (strong) NSMenuItem *sideIconItem;    // Spotify ▸ Hide Side Icon, or Show Side Icon
-@property (strong) NSMenuItem *removeItem;      // Spotify ▸ Remove Spotify, or Add Spotify
+@property (assign) BOOL turned;  // the panel is turned over to its back, so the token stays out of sight
 @end
 
 @implementation SpotifyModule
@@ -151,6 +149,17 @@ static int PrintSpotify(NSArray<NSString *> *files) {
         [weakSelf.token glassAt:glass list:list screen:screen duration:duration];
     }];
     [self.core.window followPointer:^(NSPoint point) { [weakSelf.token pointerAt:point]; }];
+    // As the panel turns over, the token goes from sight, as the panel's edge would otherwise turn away from over it;
+    // once it's back on its list side, it comes out from under the glass again.
+    [self.core.window followTurn:^(BOOL turned) {
+        weakSelf.turned = turned;
+        if (turned)
+            [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+                context.duration = 0.15;
+                weakSelf.token.window.animator.alphaValue = 0;
+            }];
+        [weakSelf applySwitches];
+    }];
     self.spotify.onToken = ^(NSDictionary *token) { [weakSelf.token show:token]; };
     self.token.onPress = ^(NSString *state) {
         Spotify *spotify = weakSelf.spotify;
@@ -172,16 +181,17 @@ static int PrintSpotify(NSArray<NSString *> *files) {
 // away before the lyrics beside the list close.
 - (void)applySwitches {
     BOOL on = SwitchedOn(kSpotifyOn);
-    self.token.shown = on && SwitchedOn(kSpotifySideIcon);
+    self.token.shown = on && SwitchedOn(kSpotifySideIcon) && !self.turned;
     if (!on) self.spotify.shown = NO;
     [self.lyrics shown:on on:SwitchedOn(kSpotifyLyrics) asked:SwitchedOn(kSpotifyLyricsAsked)];
     self.spotify.shown = on;
 }
 
-// Your answer about lyrics, from the strip's question or the pawn menu: either way, the question has been answered.
+// Your answer about lyrics, from the strip's question or Spotify's page on the panel's back: either way, the question
+// has been answered.
 - (void)answerLyrics:(BOOL)on {
-    [NSUserDefaults.standardUserDefaults setBool:on forKey:kSpotifyLyrics];
-    [NSUserDefaults.standardUserDefaults setBool:YES forKey:kSpotifyLyricsAsked];
+    SetSwitch(kSpotifyLyrics, on);
+    SetSwitch(kSpotifyLyricsAsked, YES);
     [self applySwitches];
 }
 
@@ -206,51 +216,37 @@ static int PrintSpotify(NSArray<NSString *> *files) {
     }};
 }
 
-// Spotify ▸ in the pawn menu: Open Spotify (once lyrics are on, pressing the strip opens them instead), Show Lyrics
-// (ticked while they're on) and Hide Side Icon (or Show) while it's on; Remove Spotify, or Add Spotify once it's
-// removed.
-- (NSArray<MenuEntry *> *)menuEntries {
-    NSMenu *menu = [NSMenu new];
-    menu.autoenablesItems = NO;
-    self.openItem = [menu addItemWithTitle:@"Open Spotify" action:@selector(openSpotify) keyEquivalent:@""];
-    self.openItem.target = self;
-    self.lyricsItem = [menu addItemWithTitle:@"Show Lyrics" action:@selector(toggleLyrics) keyEquivalent:@""];
-    self.lyricsItem.target = self;
-    self.sideIconItem = [menu addItemWithTitle:@"Hide Side Icon" action:@selector(toggleSideIcon) keyEquivalent:@""];
-    self.sideIconItem.target = self;
-    self.removeItem = [menu addItemWithTitle:@"Remove Spotify" action:@selector(toggleSpotify) keyEquivalent:@""];
-    self.removeItem.target = self;
-    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"Spotify" action:nil keyEquivalent:@""];
-    item.submenu = menu;
-    MenuEntry *entry = [MenuEntry entryIn:MenuSectionFeatures order:20 item:item];
+// Spotify on the panel's back: what Whozmove does with it, macOS's Automation, which reading and playing the song
+// needs, and its switches: the song under your sessions, and while that's on, its lyrics and its token. Listed whether
+// it's on this Mac or not, as its token offers to get it.
+- (NSArray<AppEntry *> *)appEntries {
     __weak typeof(self) weakSelf = self;
-    entry.willOpen = ^{
-        BOOL on = SwitchedOn(kSpotifyOn);
-        weakSelf.openItem.hidden = !on || !SpotifyInstalled();
-        weakSelf.lyricsItem.hidden = !on;
-        weakSelf.lyricsItem.state = SwitchedOn(kSpotifyLyrics) ? NSControlStateValueOn : NSControlStateValueOff;
-        weakSelf.sideIconItem.hidden = !on;
-        weakSelf.sideIconItem.title = SwitchedOn(kSpotifySideIcon) ? @"Hide Side Icon" : @"Show Side Icon";
-        weakSelf.removeItem.title = on ? @"Remove Spotify" : @"Add Spotify";
-    };
-    return @[entry];
+    AppEntry *spotify = [AppEntry appWithId:kSpotifyAppId name:@"Spotify"
+                                       does:@"Shows the song playing under your sessions, with its buttons, and its "
+                                            @"lyrics line by line, once they're on."
+                                      order:50];
+    spotify.present = ^BOOL { return YES; };
+    spotify.permission = AppPermissionAutomation;
+    spotify.permissionFor = @"Reads the song, and plays, pauses and skips";
+    AppSwitch *song = [AppSwitch switchWithKey:@"song" title:@"Show the song"
+                                          help:@"Under your sessions, with its buttons"
+                                            on:^BOOL { return SwitchedOn(kSpotifyOn); }
+                                           set:^(BOOL on) { [weakSelf set:kSpotifyOn on:on]; }];
+    AppSwitch *lyrics = [AppSwitch switchWithKey:@"lyrics" title:@"Lyrics"
+                                            help:@"Line by line as they're sung, in the strip and beside the list"
+                                              on:^BOOL { return SwitchedOn(kSpotifyLyrics); }
+                                             set:^(BOOL on) { [weakSelf answerLyrics:on]; }];
+    AppSwitch *token = [AppSwitch switchWithKey:@"token" title:@"Its icon at the panel's corner"
+                                           help:@"To play a song, or carry on a paused one, while none shows"
+                                             on:^BOOL { return SwitchedOn(kSpotifySideIcon); }
+                                            set:^(BOOL on) { [weakSelf set:kSpotifySideIcon on:on]; }];
+    lyrics.shown = token.shown = ^BOOL { return SwitchedOn(kSpotifyOn); };
+    spotify.switches = @[song, lyrics, token];
+    return @[spotify];
 }
 
-- (void)openSpotify {
-    [self.spotify open];
-}
-
-- (void)toggleLyrics {
-    [self answerLyrics:!SwitchedOn(kSpotifyLyrics)];
-}
-
-- (void)toggleSideIcon {
-    FlipSwitch(kSpotifySideIcon);
-    [self applySwitches];
-}
-
-- (void)toggleSpotify {
-    FlipSwitch(kSpotifyOn);
+- (void)set:(NSString *)key on:(BOOL)on {
+    SetSwitch(key, on);
     [self applySwitches];
 }
 

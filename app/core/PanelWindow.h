@@ -16,6 +16,9 @@
 - (void)toggle;
 // Whether the panel is on screen (not hidden from the menu bar).
 @property (readonly) BOOL shown;
+// How the panel looks, from the Look menu (MenuBar): "grey" or "black" (white on the light panel), solid, or "glass",
+// what's behind it showing through, blurred and tinted. Light or dark as the app is, which the Look menu sets too.
+@property (nonatomic, copy) NSString *look;
 // Brings the panel back if it was hidden, and leaves it as it is if it's showing (⌃⌥N).
 - (void)bringUp;
 - (void)resetPosition;
@@ -27,6 +30,17 @@
 // and the height of the whole panel), within the screen; asked again as what it shows changes. Then folds back.
 - (void)expandReader:(CGFloat)width height:(CGFloat)height;
 - (void)collapse:(CGFloat)height;
+// The panel's other side: a view (the apps module's page) on the back of the glass, as wide as the list and as tall as
+// the panel, which shows while the panel is turned over.
+- (void)holdBack:(NSView *)view;
+// Turns the panel over to its back, or back to its list: about its middle, the glass with its shadow and both sides
+// as one. `then` runs once it has, or at once if it's that way already. Not while the reader is open, nor folded.
+- (void)turnOver:(BOOL)over then:(void (^)(void))then;
+// Whether it's turned over, or on its way to or from there.
+@property (readonly) BOOL turned;
+// Each told in the frame the panel starts turning over (YES), and in the frame it lands back on its list side (NO):
+// what's held over or under the panel goes with the turn, and stays out of sight meanwhile.
+- (void)followTurn:(void (^)(BOOL turned))observer;
 // Folded, the panel is the cat in a small round glass where the name's o is in its header (panel/scripts/cat.js); the
 // page says when it folds and opens, moving, or at once as it loads.
 - (void)fold:(BOOL)on instant:(BOOL)instant;

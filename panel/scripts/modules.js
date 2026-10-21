@@ -52,7 +52,9 @@ const core = {
   readerPresses: [],
 
   // How the list moves (morph.js): the lines the modules draw on a row, by selector ({ place, text, swap, shape,
-  // morph, grow, fold }), and the bits of a row that cross-fade when their text changes.
+  // morph, grow, fold, still }: `still(el)` takes out of a copy of the line what's only there while it moves, for the
+  // copy of the row you're on held at the list's edge, sticky.js), and the bits of a row that cross-fade when their
+  // text changes.
   lines: {},
   swaps: [],
 
@@ -68,7 +70,8 @@ const core = {
   agent: {},
 
   // The apps sessions run in, as the page names them, each a module's (hostOf in rows.js): { holds(s), name, icon,
-  // openNow, inName, marksOpenAtOnce, project(s) }. A session none holds runs in a terminal.
+  // openNow, inName, closedTip(s) (what a row that isn't running says a press does), project(s) }. A session none
+  // holds runs in a terminal.
   hosts: [],
 };
 

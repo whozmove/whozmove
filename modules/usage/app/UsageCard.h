@@ -20,6 +20,9 @@
 // seconds, or at once. The card is there only under the open panel at rest: not while the glass moves, while the
 // reader is open beside the list, or while the panel is folded into the cat.
 - (void)glassAt:(NSRect)glass list:(NSRect)list duration:(NSTimeInterval)duration;
+// While the panel is turned over to its back, the card stays out of sight: it fades as the panel starts turning, and
+// comes back once it's on its list side again.
+@property (nonatomic) BOOL away;
 // The pointer, wherever it is: its page is told where it is while it's near the card (it slides out, or shows what
 // the pointer is on), and the window takes clicks only while it's on the part of the card that shows.
 - (void)pointerAt:(NSPoint)point;

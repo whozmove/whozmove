@@ -9,9 +9,10 @@ message box and sent, new conversations started there with your words, and its "
 - `app/ClaudeDesktop.m`: its face for the core (contracts/Module.h), and the host it is (contracts/Host.h): a
   ConversationHost, an app that keeps sessions as conversations of its own. It holds the rows Claude Code's registry
   marks as Claude Desktop's. As the rows are read, on the sessions' queue, it adds what Claude knows that Claude Code
-  doesn't (its own record of each conversation: when it last did something and was last looked at, and its model,
-  effort and mode), the conversations it keeps that aren't running, and which one it shows now (from its files and its
-  log, whichever is newer).
+  doesn't (its own record of each conversation: when it last did something and was last looked at, and its model, effort
+  and mode), the conversations it keeps that aren't running, and which one it shows now (from its files and its log,
+  whichever is newer). It lists Claude for the panel's back, with the Accessibility permission its message box needs
+  (`appEntries`).
 - `app/DesktopConversations.m`: its conversation files, each parsed only when it changes. `app/DesktopLog.m`: its log,
   which says at once when it shows another conversation, and which conversations it starts.
 - `app/DesktopMessageBox.m`: a conversation's message box: a command written there through the Accessibility API

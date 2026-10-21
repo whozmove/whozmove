@@ -12,7 +12,7 @@
 // song's name, or a line) roll in place as the cover cross-fades; and the time leaves its lane before the controls come
 // into it.
 
-// The strip's controls: back, pause or play, and next; and the microphone on the cover once lyrics are on.
+// The strip's controls: back, pause or play, and next; and the lyrics mark on the cover once lyrics are on.
 const SONG_ICONS = {
   previous: '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="2" width="1.6" height="8" rx=".6" '
     + 'fill="currentColor"/><path fill="currentColor" d="M10.5 2.6v6.8a.6.6 0 0 1-.92.5L4.4 6.5a.6.6 0 0 1 '
@@ -24,9 +24,11 @@ const SONG_ICONS = {
     + 'fill="currentColor"/><rect x="7.1" y="1.8" width="2.4" height="8.4" rx=".7" fill="currentColor"/></svg>',
   play: '<svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M3 2.1v7.8a.6.6 0 0 0 '
     + '.9.52l6.3-3.9a.6.6 0 0 0 0-1.04L3.9 1.58A.6.6 0 0 0 3 2.1Z"/></svg>',
-  mic: '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="4.1" y="1" width="3.8" height="6.2" rx="1.9" '
-    + 'fill="currentColor"/><path d="M2.4 5.6a3.6 3.6 0 0 0 7.2 0M6 9.3v1.7" fill="none" stroke="currentColor" '
-    + 'stroke-width="1.2" stroke-linecap="round"/></svg>',
+  lyrics: '<svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" fill-rule="evenodd" d="M3 '
+    + '1.2h6a2 2 0 0 1 2 2v3.6a2 2 0 0 1-2 2H5.2L2.6 10.8a.4.4 0 0 1-.66-.3V8.6A2 2 0 0 1 1 6.8V3.2a2 2 0 0 1 '
+    + '2-2ZM4.1 3.4a1 1 0 0 0-1 1 1 1 0 0 0 1 1h.05c-.08.4-.35.75-.8.95l.25.45c1.1-.4 1.55-1.2 1.55-2.2V4.4a1 1 0 0 '
+    + '0-1.05-1Zm3.1 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1h.05c-.08.4-.35.75-.8.95l.25.45c1.1-.4 1.55-1.2 1.55-2.2V4.4a1 1 0 '
+    + '0 0-1.05-1Z"/></svg>',
 };
 
 const npEl = document.getElementById('nowplaying');
@@ -49,7 +51,8 @@ function npParts() {
   npEl.innerHTML = `
     <div class="np-strip" title="Open Spotify">
       <span class="np-bar" title="Jump"><span class="np-line"><span class="np-fill"></span></span></span>
-      <span class="np-art"><img class="np-img" alt=""><img class="np-img" alt=""><span class="np-mic">${SONG_ICONS.mic}</span></span>
+      <span class="np-art"><img class="np-img" alt=""><img class="np-img" alt=""><span
+        class="np-lyrics-mark">${SONG_ICONS.lyrics}</span></span>
       <span class="np-text"></span>
       <span class="np-side">
         <span class="np-clock"></span>
@@ -69,12 +72,12 @@ function npParts() {
                note: q('.np-note'), noteText: q('.np-note-text'), noteButton: q('.np-note-btn:not(.np-close)'),
                noteClose: q('.np-close') };
   // A cover fades in once it has loaded, on top of the one before, which goes only once it's covered; one that
-  // doesn't load leaves the plain square. The microphone stays above them both.
+  // doesn't load leaves the plain square. The lyrics mark stays above them both.
   for (const img of np.parts.imgs) {
     img.addEventListener('load', () => {
       if (img.dataset.want !== np.art) return;
       const other = np.parts.imgs.find((o) => o !== img);
-      img.parentNode.insertBefore(img, img.parentNode.querySelector('.np-mic'));
+      img.parentNode.insertBefore(img, img.parentNode.querySelector('.np-lyrics-mark'));
       img.classList.add('on');
       clearTimeout(np.coverSwap);
       np.coverSwap = setTimeout(() => other.classList.remove('on'), 520);
@@ -123,7 +126,8 @@ function npDraw(view, fresh, now) {
     p.play.innerHTML = SONG_ICONS[icon];
     p.play.title = icon === 'pause' ? 'Pause' : 'Play';
   }
-  // Once lyrics are on, the strip opens them (and the cover shows a microphone while it's pointed at).
+  // Once lyrics are on, the strip opens them (and the cover shows the lyrics mark while it's pointed at, as it does
+  // while a line is sung in the strip and while they're open).
   const lyrics = lyricsOn();
   npEl.classList.toggle('lyrics-on', lyrics);
   p.strip.title = lyrics ? 'Lyrics' : 'Open Spotify';
@@ -146,6 +150,9 @@ function npWords(want, view, fresh) {
   const was = np.words;
   let how = lyricsRoll(was, want);
   np.words = want;
+  // While a sung line is in the strip, the cover shows the lyrics mark, as it does while the lyrics are open, so what
+  // stands beside the words says what they are; it fades as they roll.
+  npEl.classList.toggle('lyric-shown', !!want.text && !want.say);
   if (how === 'none') {
     // The same words: a song's name is kept as Spotify gives it (its title can come a moment after the song).
     if (!want.text) {

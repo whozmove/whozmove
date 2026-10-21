@@ -19,14 +19,17 @@
 #import "Worktrees.h"
 
 // How long a start is waited for before the page is told it didn't come (Claude may have to open first); how long once
-// its words are left in Claude's box for you to press Send there; and the most words that go with one.
-static const NSTimeInterval kStartWait = 45, kSendWait = 120;
+// its words are left in Claude's box for you to press Send there; how long a terminal's new tab is waited for, as macOS
+// may first ask you whether Whozmove may control the terminal; and the most words that go with one.
+static const NSTimeInterval kStartWait = 45, kSendWait = 120, kTabWait = 300;
 static const NSUInteger kWordsMax = 50000;
 
 // A start that hasn't shown up yet: what it opened, where, and the Claude Desktop conversations already in that folder
 // then, so the new one can be told apart.
 @interface Start : NSObject
 @property (copy) NSString *startId, *sessionId, *folder, *app, *wordsFile;
+@property (strong) id<CommandHost> terminal;  // the one it starts in, when it's a terminal's
+@property (assign) BOOL tabOpened;             // and whether its tab has opened there
 @property (copy) NSString *conversation;  // the Claude Desktop conversation Claude's log says it became
 @property (assign) NSTimeInterval at, until;  // when it was started, and when it's given up on
 @property (copy) NSSet<NSString *> *known;
@@ -73,14 +76,14 @@ static NSString *Folder(id value) {
     return self;
 }
 
-// The terminal a start can open in: the first on this Mac that runs a command in a new tab and that the panel can type
-// into, so it can tell which tab shows the session it started.
+// The terminals a start can open in, and the one it opens in: the one you picked on the card's menu while it's on this
+// Mac, else the first (the core's, as an ended session opens again there too).
+- (NSArray<id<CommandHost>> *)terminals {
+    return self.core.startTerminals;
+}
+
 - (id<CommandHost>)terminal {
-    for (id terminal in [self.core hostsThat:@protocol(CommandHost)])
-        if ([terminal conformsToProtocol:@protocol(TypingHost)]
-            && [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:[terminal appId]])
-            return terminal;
-    return nil;
+    return self.core.startTerminal;
 }
 
 // The agent a start runs (Claude Code): its command in a terminal, and whether it may work in the folder.
@@ -144,8 +147,9 @@ static NSString *Folder(id value) {
     });
 }
 
-// The card's small menus, opened from what was pressed: `app`, the app it starts in (a worktree starts in the
-// terminal); `places`, where a repo's new worktrees go; `choose`, a folder chooser for any other folder.
+// The card's small menus, opened from what was pressed: `app`, the app it starts in (Claude Desktop or one of the
+// terminals; a worktree starts in a terminal); `places`, where a repo's new worktrees go; `choose`, a folder chooser
+// for any other folder.
 - (void)menu:(NSDictionary *)msg {
     NSString *kind = AsText(msg[@"kind"]);
     if ([kind isEqual:@"choose"]) return [self choose:nil];
@@ -153,16 +157,21 @@ static NSString *Folder(id value) {
     menu.autoenablesItems = NO;
     if ([kind isEqual:@"app"]) {
         BOOL worktree = [msg[@"worktree"] isEqual:@YES];
-        NSString *terminal = self.terminal.name;
+        NSArray<id<CommandHost>> *terminals = self.terminals;
+        NSString *ticked = [msg[@"app"] isEqual:@"terminal"] ? self.terminal.appId : @"desktop";
+        NSMutableArray<NSArray *> *apps = [NSMutableArray arrayWithObject:@[@"desktop", @"Claude Desktop"]];
+        for (id<CommandHost> terminal in terminals) [apps addObject:@[terminal.appId, terminal.name]];
         SayInMenu(menu, @"Start It In");
-        for (NSArray *app in terminal ? @[@[@"desktop", @"Claude Desktop"], @[@"terminal", terminal]] : @[@[@"desktop", @"Claude Desktop"]]) {
+        for (NSArray *app in apps) {
             NSMenuItem *item = [menu addItemWithTitle:app[1] action:@selector(pickApp:) keyEquivalent:@""];
             item.target = self;
             item.representedObject = app[0];
             item.enabled = !(worktree && [app[0] isEqual:@"desktop"]);
-            if ([app[0] isEqual:msg[@"app"]]) item.state = NSControlStateValueOn;
+            if ([app[0] isEqual:ticked]) item.state = NSControlStateValueOn;
         }
-        if (worktree && terminal) SayInMenu(menu, [NSString stringWithFormat:@"Worktrees start in %@", terminal]);
+        if (worktree && terminals.count)
+            SayInMenu(menu, [NSString stringWithFormat:@"Worktrees start in %@",
+                                                       terminals.count > 1 ? @"a terminal" : self.terminal.name]);
     } else if ([kind isEqual:@"places"]) {
         NSString *repo = Folder(msg[@"repo"]);
         if (!repo) return;
@@ -171,8 +180,15 @@ static NSString *Folder(id value) {
     [self.core.window popUpMenu:menu atPagePoint:NSMakePoint([msg[@"x"] doubleValue], [msg[@"y"] doubleValue])];
 }
 
+// Claude Desktop or a terminal, picked on the card's menu. A terminal is where starts in a terminal open from now on,
+// so the page is told its name first.
 - (void)pickApp:(NSMenuItem *)item {
-    [self.core.page call:@"startAppChosen" with:@[item.representedObject ?: @"desktop"]];
+    NSString *app = item.representedObject ?: @"desktop";
+    if (![app isEqual:@"desktop"]) {
+        [self.core pickStartTerminal:app];
+        [self.core.page call:@"setStartOptions" with:@[self.options]];
+    }
+    [self.core.page call:@"startAppChosen" with:@[[app isEqual:@"desktop"] ? @"desktop" : @"terminal"]];
 }
 
 // Where a repo's new worktrees go: the folder beside it, or a folder you chose, with the one in use ticked.
@@ -272,6 +288,7 @@ static NSString *Folder(id value) {
     start.sessionId = sessionId;
     start.folder = RealPath(folder);
     start.app = app;
+    start.terminal = sessionId ? self.terminal : nil;
     start.at = NSDate.date.timeIntervalSince1970;
     start.until = start.at + kStartWait;
     NSMutableSet *known = [NSMutableSet set];
@@ -339,13 +356,25 @@ static NSString *Folder(id value) {
     return path;
 }
 
+// The start's wait for its session begins once its tab has opened, as macOS may first ask you whether Whozmove may
+// control the terminal, and until then its words are kept. A tab that didn't open says why at once, and only an open
+// tab is taken for the one you're on.
 - (void)openTerminal:(Start *)start {
-    id<CommandHost> terminal = self.terminal;
-    if (!terminal) return [self giveUp:start.startId why:@"There's no terminal to start it in: Whozmove starts them in Ghostty"];
+    id<CommandHost> terminal = start.terminal;
+    if (!terminal)
+        return [self giveUp:start.startId
+                        why:@"There's no terminal to start it in: Whozmove starts them in Ghostty or iTerm2"];
     NSString *command = [self.agent startCommand:start.sessionId wordsFile:start.wordsFile];
     if (!command) return [self giveUp:start.startId why:@"There's no agent here to start it with"];
-    [terminal newTabIn:start.folder running:command named:nil forward:YES];
-    if (self.onTabForward) self.onTabForward(terminal, start.sessionId);
+    NSString *startId = start.startId;
+    start.until = NSDate.date.timeIntervalSince1970 + kTabWait;
+    [terminal newTabIn:start.folder running:command named:nil forward:YES done:^(NSString *why) {
+        if (self.waiting[startId] != start) return;  // given up on meanwhile
+        if (why) return [self giveUp:startId why:why];
+        start.tabOpened = YES;
+        start.until = NSDate.date.timeIntervalSince1970 + kStartWait;
+        if (self.onTabForward) self.onTabForward(terminal, start.sessionId);
+    }];
 }
 
 - (void)giveUp:(NSString *)startId why:(NSString *)why {
@@ -407,9 +436,12 @@ static NSString *Folder(id value) {
             NSString *elsewhere = [self whereElse:found for:start];
             if (elsewhere) [self.core.page stepNote:found.sessionId text:elsewhere];
         } else if (now > start.until) {
-            [self giveUp:start.startId why:[start.app isEqual:@"terminal"]
-                ? [NSString stringWithFormat:@"Nothing started in %@: look there for what Claude Code says", self.terminal.name ?: @"the terminal"]
-                : @"Claude didn't start the conversation: look in Claude for why"];
+            NSString *terminal = start.terminal.name ?: @"the terminal";
+            [self giveUp:start.startId why:![start.app isEqual:@"terminal"]
+                ? @"Claude didn't start the conversation: look in Claude for why"
+                : start.tabOpened ? [NSString stringWithFormat:@"Nothing started in %@: look there for what Claude "
+                                                               @"Code says", terminal]
+                : [NSString stringWithFormat:@"%@ didn't open a tab for it", terminal]];
         }
     }
 }

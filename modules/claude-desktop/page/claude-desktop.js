@@ -9,7 +9,6 @@ const SCRATCH_DIR = '/Library/Application Support/Claude/scratch-workspaces/';
 core.hosts.push({
   holds: (s) => s.entrypoint === 'claude-desktop',
   name: 'Claude Desktop', icon: DESKTOP_ICON, openNow: 'Open in Claude now', inName: ' in Claude',
-  // Claude's log says which conversation it shows a second or so after a click, so a click here marks it at once.
-  marksOpenAtOnce: true,
+  closedTip: () => 'Not running: click to open it in Claude',
   project: (s) => ((s.cwd || '').includes(SCRATCH_DIR) ? { key: 'scratch', name: 'Scratch', scratch: true } : null),
 });

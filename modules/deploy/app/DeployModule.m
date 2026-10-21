@@ -3,6 +3,7 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Module.h"
 #import "Core.h"
+#import "MenuBar.h"
 #import "Rows.h"
 #import "Row.h"
 #import "Printing.h"
@@ -89,6 +90,21 @@ static int PrintDeployChecks(NSArray<NSString *> *arguments) {
 // Each session's work: Deploy's runs and suggestions for its folder are read alongside, and sent when they change.
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase {
     if (phase == RowPhaseWork) [self.deploys refreshFor:rows];
+}
+
+#pragma mark On the panel's back
+
+// Show Deploy, on Git's page on the panel's back, with the next steps it's one of: it can be changed only while they
+// show.
+- (NSArray<AppEntry *> *)appEntries {
+    __weak typeof(self) weakSelf = self;
+    AppSwitch *deploy = [AppSwitch switchWithKey:@"deploy" title:@"Show Deploy"
+                                            help:@"The round button on a row, among its next steps, that puts your "
+                                                 @"project's build in place"
+                                              on:^BOOL { return weakSelf.core.menuBar.showsDeploy; }
+                                             set:^(BOOL on) { weakSelf.core.menuBar.showsDeploy = on; }];
+    deploy.enabled = ^BOOL { return weakSelf.core.menuBar.showsNextSteps; };
+    return @[[AppEntry switches:@[deploy] forApp:@"git"]];
 }
 
 @end

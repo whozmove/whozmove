@@ -612,7 +612,7 @@ function ucPlayReset(view, now) {
                 y: track.top + track.height / 2 - layer.top };
   const heights = { wait: style.height, normal: p.strip.offsetHeight };
   ucSetText(p.message, 'Your move');
-  p.message.style.color = 'var(--turn)';
+  p.message.style.color = 'var(--turn-words)';
   const stage = { strip: p.strip, message: p.message, right: p.right, track: p.session.track, fill: p.session.fill,
                   percent: p.session.pct, week: p.week.row, weekFill: p.week.fill, weekUsed: view.week.used,
                   bar, heights };

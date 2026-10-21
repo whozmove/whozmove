@@ -1,0 +1,26 @@
+
+== Permissions
+automation, allowed: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"allowed","said":"Allowed","note":"","settings":false}
+automation, denied: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"denied","said":"Not allowed","note":"Turn on Example Terminal under Whozmove there.","settings":true}
+automation, ask: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"ask","said":"Not asked yet","note":"macOS asks the first time Whozmove needs it.","settings":false}
+automation, closed: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"closed","said":"Open Example Terminal to check","note":"","settings":false}
+automation, unknown: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"unknown","said":"","note":"","settings":false}
+automation, something else: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"unknown","said":"","note":"","settings":false}
+accessibility, allowed: {"name":"Accessibility","use":"Presses its buttons","state":"allowed","said":"Allowed","note":"","settings":false}
+accessibility, denied: {"name":"Accessibility","use":"","state":"denied","said":"Not allowed","note":"Turn on Whozmove there.","settings":true}
+nothing to allow: null
+a permission the page doesn’t know: null
+
+== Switches
+turning lyrics on: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics on","git: nextSteps off, deploy on"]
+turning the song off: ["ghostty: startHere on","iterm2: startHere off","spotify: song off, lyrics off","git: nextSteps off, deploy on"]
+the other terminal picked: the first goes off: ["ghostty: startHere off","iterm2: startHere on","spotify: song on, lyrics off","git: nextSteps off, deploy on"]
+the picked terminal pressed again: it stays: null
+Show Deploy while the next steps are off: nothing: null
+a switch that isn’t there: null
+an app that isn’t there: null
+the apps it was given are left as they were: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics off","git: nextSteps off, deploy on"]
+
+== A tile’s letter
+a name: G
+no name: ?

@@ -38,6 +38,17 @@ NSAppleEventDescriptor *AskQuietly(pid_t pid, NSAppleEventDescriptor *specifier,
     return [reply paramDescriptorForKeyword:keyDirectObject];
 }
 
+NSArray<NSString *> *AskEvery(pid_t pid, FourCharCode cls, FourCharCode property, NSAppleEventDescriptor *of,
+                              NSTimeInterval timeout) {
+    NSAppleEventDescriptor *list = AskQuietly(pid, AppleEventProperty(property, AppleEventEvery(cls, of)), timeout);
+    if (!list) return nil;
+    if (list.descriptorType != typeAEList) return @[list.stringValue ?: @""];
+    NSMutableArray<NSString *> *values = [NSMutableArray array];
+    for (NSInteger i = 1; i <= list.numberOfItems; i++)
+        [values addObject:[list descriptorAtIndex:i].stringValue ?: @""];
+    return values;
+}
+
 NSAppleEventDescriptor *SendAppleEvent(pid_t pid, AEEventClass eventClass, AEEventID eventId,
                                        NSAppleEventDescriptor *object, NSAppleEventDescriptor *data,
                                        NSTimeInterval timeout, OSStatus *status) {

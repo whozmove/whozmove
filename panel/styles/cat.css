@@ -29,7 +29,8 @@ body.arriving header .name-cat, body.departing header .name-cat { opacity: 0; }
 body.arriving header { transition: none; }
 /* Nothing of the header but the cat shows, nor the list, until the cat starts to shrink (.name-in, catOpening). */
 body.arriving:not(.name-in) header .add-new, body.arriving:not(.name-in) header .chev,
-body.arriving:not(.name-in) #list, body.arriving:not(.name-in) #dock { opacity: 0; transition: none; }
+body.arriving:not(.name-in) #list, body.arriving:not(.name-in) #dock, body.arriving:not(.name-in) #sticky,
+body.arriving:not(.name-in) #sticky-under { opacity: 0; transition: none; }
 body.arriving.name-in header .add-new, body.arriving.name-in header .chev { animation: cat-fade-in .2s ease .15s both; }
 @keyframes cat-fade-in { from { opacity: 0; } to { opacity: 1; } }
 body.arriving header .name-before, body.arriving header .name-after { opacity: 0; }
@@ -37,7 +38,7 @@ body.arriving header .name-before { transform: translateX(-12.36px); }
 body.arriving header .name-after { transform: translateX(12.36px); }
 body.arriving.name-in header .name-before, body.arriving.name-in header .name-after {
   opacity: 1; transform: none; transition: transform .3s cubic-bezier(.4, 0, .2, 1), opacity .12s ease; }
-body.arriving #list, body.arriving #dock { transition-delay: .3s; }
+body.arriving #list, body.arriving #dock, body.arriving #sticky, body.arriving #sticky-under { transition-delay: .3s; }
 /* Folding, the cat grows back from the name's o at once, as the click lands (catFolding), "Wh" and "zmove" going out
    at its sides as they came in, fading, while the header's buttons and the list fade and the panel closes in round
    it. Once it has grown, the name stays out of sight until the header has gone (.name-out). */

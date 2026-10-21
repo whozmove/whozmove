@@ -34,7 +34,7 @@ body.reader-shown .r-in { opacity: 1; transition: opacity .12s ease; }
           border-radius: var(--radius-control); border: none; background: none; color: var(--text); font: inherit; }
 .r-item + .r-item { margin-top: 2px; }
 .r-item.is-hover { background: var(--hover); }
-.r-item.on { background: rgba(255, 255, 255, 0.1); }
+.r-item.on { background: var(--shelf-picked); }
 .r-name { min-width: 0; font-size: var(--size-body); font-weight: 500; white-space: nowrap; overflow: hidden;
           text-overflow: ellipsis; }
 .r-meta { min-width: 0; font-size: var(--size-meta); color: var(--faint); white-space: nowrap; overflow: hidden;
@@ -58,10 +58,10 @@ body.reader-shown .r-in { opacity: 1; transition: opacity .12s ease; }
 .md li + li { margin-top: 4px; }
 .md li > ul, .md li > ol { margin: 4px 0 0; }
 .md code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1px 5px;
-           border-radius: var(--radius-tag); background: rgba(255, 255, 255, 0.07); color: #e8e2ff; }
+           border-radius: var(--radius-tag); background: var(--inline-code-fill); color: var(--inline-code); }
 .md pre { padding: 10px 12px; border-radius: var(--radius-box); background: var(--code-fill); overflow-x: auto; }
 .md pre code { padding: 0; background: none; color: var(--code); white-space: pre; }
-.md blockquote { padding-left: 12px; border-left: 3px solid rgba(255, 255, 255, 0.16); color: var(--muted); }
+.md blockquote { padding-left: 12px; border-left: 3px solid var(--quote-line); color: var(--muted); }
 .md hr { border: none; border-top: 1px solid var(--rule); margin: 20px 0; }
 .md strong { color: var(--text); }
 .md .md-link { color: var(--link); }

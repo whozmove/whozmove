@@ -1,0 +1,52 @@
+/* The panel's back (back.js): the list's header (base.css), with the same buttons in the same places, then the apps
+   four across, or one app's page, scrolling under it. Its colours, sizes and corners are tokens.css's; its switches and
+   buttons are the panel's (controls.css).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#back { display: flex; flex-direction: column; height: 100vh; }
+#back header .b-title { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px;
+                        font-size: var(--size-title); color: var(--text); }
+#back header .b-title b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#back header .b-slot { visibility: hidden; }
+.b-back { flex: none; width: 24px; height: 24px; margin-left: -6px; border: none; border-radius: var(--radius-button);
+          background: none; color: var(--muted); display: grid; place-items: center; }
+.b-back.is-hover { background: var(--hover); color: var(--text); }
+.b-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 16px; }
+.b-body::-webkit-scrollbar { width: 0; }
+
+/* The apps, four across: each its icon and its name. */
+.b-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 4px; padding-top: 4px; }
+.b-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 8px 2px 7px;
+          border-radius: var(--radius-box); }
+.b-tile.is-hover { background: var(--hover); }
+.b-tile b { max-width: 100%; font-size: var(--size-small); font-weight: 400; color: var(--text); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
+.b-icon { display: block; flex: none; }
+/* The tile for an app with no icon of its own, as big as an app's icon is within its square. */
+.b-mark { flex: none; display: grid; place-items: center; }
+.b-mark i { width: 82%; height: 82%; display: grid; place-items: center; border-radius: var(--radius-icon);
+            background: var(--app-tile); color: var(--app-tile-mark); font-style: normal; font-weight: 600; }
+.b-mark svg { width: 50%; height: 50%; }
+
+/* An app's page: what Whozmove does with it, beside its icon (its name is the header's), its switches, what macOS lets
+   Whozmove do with it, and Open. */
+.b-hero { display: flex; align-items: center; gap: 12px; padding: 6px 2px 14px; }
+.b-does { flex: 1; min-width: 0; font-size: var(--size-body); line-height: 1.45; color: var(--muted); }
+.b-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.b-words b { font-size: var(--size-body); font-weight: 500; color: var(--text); }
+.b-words i { font-style: normal; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
+.b-sec { padding: 14px 4px 6px; font-size: var(--size-tag); letter-spacing: .04em; text-transform: uppercase;
+         color: var(--label); }
+.b-card { overflow: hidden; border-radius: var(--radius-box); background: var(--surface); }
+.b-switch, .b-perm { display: flex; align-items: center; gap: 12px; padding: 9px 12px; }
+.b-switch + .b-switch { border-top: 1px solid var(--rule); }
+.b-switch.is-hover { background: var(--hover); }
+.b-switch.off { opacity: .45; }
+.b-state { flex: none; display: flex; align-items: center; gap: 4px; font-size: var(--size-small);
+           color: var(--muted); }
+.b-perm.allowed .b-state { color: var(--done-text); }
+.b-perm.denied .b-state { color: var(--needs-text); }
+.b-note { padding: 0 12px 10px; font-size: var(--size-small); line-height: 1.4; color: var(--faint); }
+.b-more { display: flex; padding-top: 14px; }
+.b-card .b-more { padding: 0 12px 12px; }
+.b-more .button { font-size: var(--size-small); }

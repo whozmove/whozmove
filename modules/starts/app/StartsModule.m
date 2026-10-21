@@ -20,7 +20,8 @@ static NSString *const kNewShortcut = @"newConversationShortcut";
 // `Whozmove --print-starts`: what sample starts would run, as JSON, then quit: a terminal start's command, with and
 // without words, and the link the app that keeps conversations opens a new one with (Claude Desktop's), with words of
 // every kind (quotes, a new line, the characters a link's query gives meaning to) and with words too long for a link,
-// which go into its box another way.
+// which go into its box another way; and the command an ended session is opened again with, for one of the agent's
+// ids and for something else (which it never runs).
 static int PrintStarts(Core *core) {
     NSString *sid = @"0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11";
     NSString *file = [AppDir(@"starts") stringByAppendingPathComponent:[sid stringByAppendingPathExtension:@"txt"]];
@@ -33,7 +34,9 @@ static int PrintStarts(Core *core) {
                        @"desktop, no words": [desktop newConversationLink:@""].absoluteString ?: NSNull.null,
                        @"desktop, words": [desktop newConversationLink:words].absoluteString ?: NSNull.null,
                        @"desktop, words too long for a link":
-                           [desktop newConversationLink:long_].absoluteString ?: NSNull.null});
+                           [desktop newConversationLink:long_].absoluteString ?: NSNull.null,
+                       @"terminal, an ended session carried on": [agent resumeCommand:sid] ?: NSNull.null,
+                       @"terminal, not a session's id": [agent resumeCommand:@"x; echo hi"] ?: NSNull.null});
 }
 
 // `Whozmove --print-worktrees [--make] <folder> <target>…`: what the repo the folder is in has (its own folder, its
@@ -138,13 +141,43 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
     self.shortcut.on = SwitchedOn(kNewShortcut);
 }
 
-// New Conversation in the pawn menu, or ⌃⌥N from any app: the panel comes up (if it was hidden), with the keyboard,
-// and opens its box for a new conversation. You give the keyboard back as you start it or close the box.
+// New Conversation in the pawn menu, or ⌃⌥N from any app: the panel comes up (if it was hidden), turned back to its
+// list if it was turned over, with the keyboard, and opens its box for a new conversation. You give the keyboard back
+// as you start it or close the box.
 - (void)openStart {
     if (!self.core.page.ready) return;
     [self.core.window bringUp];
-    [self.core.window takeKeyboard:YES];
-    [self.core.page call:@"openStart" with:@[NSNull.null, NSNull.null]];
+    __weak typeof(self) weakSelf = self;
+    [self.core.window turnOver:NO then:^{
+        [weakSelf.core.window takeKeyboard:YES];
+        [weakSelf.core.page call:@"openStart" with:@[NSNull.null, NSNull.null]];
+    }];
+}
+
+#pragma mark On the panel's back
+
+// "Open new conversations here" on each terminal's page on the panel's back: where a start in a terminal opens, as
+// New Conversation's menu picks it. One terminal at a time; with only one, it's that one.
+- (NSArray<AppEntry *> *)appEntries {
+    __weak typeof(self) weakSelf = self;
+    NSMutableArray<AppEntry *> *entries = [NSMutableArray array];
+    for (id<CommandHost> terminal in self.core.startTerminals) {
+        NSString *appId = terminal.appId;
+        AppSwitch *here = [AppSwitch switchWithKey:@"startHere" title:@"Open new conversations here"
+                                              help:@"In a new tab, from the new conversation card"
+                                                on:^BOOL { return [weakSelf.core.startTerminal.appId isEqual:appId]; }
+                                               set:^(BOOL on) { if (on) [weakSelf startIn:appId]; }];
+        here.group = @"startTerminal";
+        here.enabled = ^BOOL { return weakSelf.core.startTerminals.count > 1; };
+        [entries addObject:[AppEntry switches:@[here] forApp:appId]];
+    }
+    return entries;
+}
+
+// The terminal starts open in from now on; the page is told its name, for the card.
+- (void)startIn:(NSString *)appId {
+    [self.core pickStartTerminal:appId];
+    if (self.starts) [self.core.page call:@"setStartOptions" with:@[self.starts.options]];
 }
 
 @end

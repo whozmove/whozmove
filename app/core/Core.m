@@ -22,7 +22,14 @@
 @property Send *send;
 @property (copy) NSArray<id<Host>> *hosts;
 @property (copy) NSArray<id<Agent>> *agents;
+// Whether each app is on this Mac, by its app id, and when that was looked up: {found, at}.
+@property (strong) NSMutableDictionary<NSString *, NSArray *> *apps;
 @end
+
+// The terminal picked on New Conversation's menu, by its app id: new sessions start there from then on.
+static NSString *const kStartTerminal = @"startTerminal";
+// How long whether an app is on this Mac is taken as known: it's asked every second for the ended sessions' rows.
+static const NSTimeInterval kAppsKnownFor = 30;
 
 @implementation Core
 
@@ -70,13 +77,67 @@
 }
 
 - (id<Host>)hostOf:(Row *)row {
-    return [self hostHolding:row] ?: [self hostFor:OwningApp(row.pid).bundleIdentifier];
+    id<Host> own = [self hostHolding:row];
+    if (own) return own;
+    NSRunningApplication *app = OwningApp(row.pid);
+    return app ? [self hostFor:app.bundleIdentifier] : [self hostRunning:row.pid];
+}
+
+- (NSRunningApplication *)appOf:(pid_t)pid {
+    NSRunningApplication *app = OwningApp(pid);
+    if (app) return app;
+    id<Host> host = [self hostRunning:pid];
+    return host ? [NSRunningApplication runningApplicationsWithBundleIdentifier:host.appId].firstObject : nil;
+}
+
+// The host that says it runs a process no app is above (Host's runsProcess:), or nil.
+- (id<Host>)hostRunning:(pid_t)pid {
+    if (pid <= 0) return nil;
+    for (id<Host> host in self.hosts)
+        if ([host respondsToSelector:@selector(runsProcess:)] && [host runsProcess:pid]) return host;
+    return nil;
 }
 
 - (NSArray *)hostsThat:(Protocol *)capability {
     return [self.hosts filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id host, id _) {
         return [host conformsToProtocol:capability];
     }]];
+}
+
+- (BOOL)hasEnded:(Row *)row {
+    return [row.status isEqualToString:@"closed"] && row.pid <= 0 && ![self hostHolding:row];
+}
+
+- (BOOL)hasApp:(id<Host>)host {
+    if (self.printing) return host != nil;
+    if (!host.appId.length) return NO;
+    NSTimeInterval now = NSDate.timeIntervalSinceReferenceDate;
+    NSArray *known = self.apps[host.appId];
+    if (known && now - [known[1] doubleValue] < kAppsKnownFor) return [known[0] boolValue];
+    BOOL found = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:host.appId] != nil;
+    if (!self.apps) self.apps = [NSMutableDictionary dictionary];
+    self.apps[host.appId] = @[@(found), @(now)];
+    return found;
+}
+
+- (NSArray<id<CommandHost>> *)startTerminals {
+    NSMutableArray<id<CommandHost>> *terminals = [NSMutableArray array];
+    for (id<CommandHost> terminal in [self hostsThat:@protocol(CommandHost)])
+        if ([terminal respondsToSelector:@selector(whichShows:done:)] && [self hasApp:terminal])
+            [terminals addObject:terminal];
+    return terminals;
+}
+
+- (id<CommandHost>)startTerminal {
+    NSArray<id<CommandHost>> *terminals = self.startTerminals;
+    NSString *picked = self.printing ? nil : [NSUserDefaults.standardUserDefaults stringForKey:kStartTerminal];
+    for (id<CommandHost> terminal in terminals)
+        if ([terminal.appId isEqualToString:picked]) return terminal;
+    return terminals.firstObject;
+}
+
+- (void)pickStartTerminal:(NSString *)appId {
+    if (appId.length) [NSUserDefaults.standardUserDefaults setObject:appId forKey:kStartTerminal];
 }
 
 - (id<Agent>)agentOf:(Row *)row {
@@ -104,6 +165,7 @@
             [weakSelf.window expandReader:[msg[@"width"] doubleValue] height:[msg[@"height"] doubleValue]];
         },
         @"collapse": ^(NSDictionary *msg) { [weakSelf.window collapse:[msg[@"height"] doubleValue]]; },
+        @"turn": ^(NSDictionary *msg) { [weakSelf.window turnOver:[msg[@"on"] boolValue] then:nil]; },
         @"fold": ^(NSDictionary *msg) {
             [weakSelf.window fold:[msg[@"on"] boolValue] instant:[msg[@"instant"] boolValue]];
         },

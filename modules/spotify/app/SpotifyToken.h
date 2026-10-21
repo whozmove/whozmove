@@ -7,7 +7,7 @@
 @interface SpotifyToken : NSObject
 // Its own small window, which the panel holds under itself (PanelWindow attachBelow:).
 @property (readonly) NSWindow *window;
-// Off (Spotify ▸ Hide Side Icon, or Remove Spotify), the token tucks away and stays away.
+// Off (its switch, or Show the song, on Spotify's page on the panel's back), the token tucks away and stays away.
 @property (nonatomic) BOOL shown;
 // What to show, as TokenFor gives it; a state of hidden tucks it under the glass.
 - (void)show:(NSDictionary *)token;

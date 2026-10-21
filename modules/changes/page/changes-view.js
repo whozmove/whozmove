@@ -16,8 +16,8 @@ const UNRECORDED = 'Claude Code didn\'t record what one of this session\'s shell
 
 // Who's who, by colour: this session, another session, changed outside these sessions, short or repeated lines, and
 // no one named (a session not known sees).
-const WHO_COLOURS = { me: '#4aa8ff', other: '#b69cff', outside: '#ffc53d', short: 'rgba(255, 255, 255, 0.2)',
-                      none: 'rgba(255, 255, 255, 0.28)' };
+const WHO_COLOURS = { me: 'var(--who-me)', other: 'var(--who-other)', outside: 'var(--who-outside)',
+                      short: 'var(--who-short)', none: 'var(--who-none)' };
 const whoColour = (who, sid) => WHO_COLOURS[who === sid ? 'me' : who in WHO_COLOURS ? who : 'other'];
 
 // The editors a file can open in, and the one chosen (Editors.m), sent when the page loads and when it changes; the

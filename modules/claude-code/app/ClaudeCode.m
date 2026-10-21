@@ -20,6 +20,8 @@
 #import "ClaudeUsage.h"
 #import "Prompt.h"
 #import "Results.h"
+#import "KeptSessions.h"
+#import "Processes.h"
 
 // The words are read from their file as the command runs, so they never pass through your shell's line editor, its
 // quoting or its history.
@@ -27,6 +29,12 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
     NSString *command = [NSString stringWithFormat:@"%@ --session-id %@", kClaudeCodeCommand, sessionId];
     if (wordsFile) command = [command stringByAppendingFormat:@" \"$(cat %@)\"", ShellWord(wordsFile)];
     return command;
+}
+
+// Run in the session's own folder, where the terminal's new tab opens. Its id is one Claude Code made, a UUID, so it
+// goes in as it is.
+static NSString *ResumeCommand(NSString *sessionId) {
+    return [NSString stringWithFormat:@"%@ %@ %@", kClaudeCodeCommand, kClaudeCodeResumeFlag, sessionId];
 }
 
 // Where a command's result will be written: the session's transcript, and how long it was as the command went in.
@@ -44,6 +52,7 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
 @property AgentDetails *details;
 @property (strong) SettingsFile *settingsFile;
 @property (strong) ClaudeUsage *usage;
+@property (strong) KeptSessions *kept;  // its terminal sessions, kept so they're listed once they've ended
 @property (assign) NSTimeInterval lastRead;  // when the transcripts were last read
 // Whether Claude Code is set to record shell commands' changes (ShellDiffSetting), for each folder a listed session
 // runs in and for none, as last read on the queue, when that was, and whether a read is out.
@@ -67,8 +76,14 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
     self.details = [AgentDetails new];
     self.settingsFile = [SettingsFile new];
     self.usage = [ClaudeUsage new];
+    self.kept = [KeptSessions new];
     self.queue = dispatch_queue_create("whozmove.claude-code", DISPATCH_QUEUE_SERIAL);
     return self;
+}
+
+// Its terminal sessions are kept from now on: a print run reads what's kept, and never writes any.
+- (void)launch {
+    [self.kept start];
 }
 
 + (NSDictionary<NSString *, PrintMode> *)printModes {
@@ -112,8 +127,23 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
         case RowPhaseCheckout: return [self readNewFor:rows];
         case RowPhaseWork: return [self workOf:rows];
         case RowPhaseDetails: return [self detailsOf:rows];
-        case RowPhaseListed: return [self.details keepFlagsOf:rows];
+        case RowPhaseListed:
+            [self.details keepFlagsOf:rows];
+            [self keep:rows];
+            return;
     }
+}
+
+// Each running terminal session's record, kept so its row stays once it ends: the terminal it runs in, the app above
+// it, else the host that says it runs it (an iTerm2 session's app can be gone while it runs on); and its transcript as
+// the reads found it, never looked for here among every project's, which would be on the main thread, every second.
+- (void)keep:(NSArray<Row *> *)rows {
+    __weak typeof(self) weakSelf = self;
+    [self.kept keep:rows transcriptOf:^NSString *(Row *row) {
+        return [weakSelf.transcripts stateOf:row.sessionId][@"path"];
+    } terminalOf:^NSString *(Row *row) {
+        return OwningApp(row.pid).bundleIdentifier ?: [weakSelf.core hostOf:row].appId;
+    }];
 }
 
 // In the first phase, so the reads start as soon as the rows are known: what's new in the listed sessions'
@@ -186,6 +216,10 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
 
 - (NSArray<Row *> *)readSessions {
     return RunningSessions();
+}
+
+- (NSArray<Row *> *)readEndedSessions:(NSArray<Row *> *)listed {
+    return [self.kept endedBesides:listed];
 }
 
 - (void)addRecordTo:(Row *)row {
@@ -322,6 +356,11 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
 
 - (NSString *)startCommand:(NSString *)sessionId wordsFile:(NSString *)wordsFile {
     return StartCommand(sessionId, wordsFile);
+}
+
+- (NSString *)resumeCommand:(NSString *)sessionId {
+    return [sessionId isKindOfClass:NSString.class] && [[NSUUID alloc] initWithUUIDString:sessionId]
+        ? ResumeCommand(sessionId) : nil;
 }
 
 - (BOOL)folderTrusted:(NSString *)folder {

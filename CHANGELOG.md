@@ -2,10 +2,32 @@
 
 ## Unreleased
 
+- **The panel turns over to the apps Whozmove works with.** The four squares in the header turn the whole panel over,
+  about its middle, with its back already there as it comes round, at the panel's size. Behind the list are Claude,
+  Ghostty, iTerm2, Terminal, Spotify and Git, those on your Mac, each with its own icon; press one for what Whozmove
+  does with it, its switches, what macOS lets Whozmove do with it (with Open System Settings when it isn't allowed),
+  and Open. The terminal new conversations open in, Spotify's song, lyrics and icon, and Git's next steps and Deploy
+  are switched there now: Spotify ▸ and Next Steps ▸ have left the pawn menu. Rows, where the four squares were, turn
+  the panel back; its chevron folds it into the cat. With reduced motion, one side fades into the other.
+- **Terminal sessions stay listed once they've ended**, as Claude Desktop's conversations do: close a session's tab,
+  quit the terminal or restart the Mac, and its row stays, grey, with its last message and reply, for 3 days after its
+  conversation last moved. Click it and it carries on in a new tab of the terminal it ran in (Ghostty, iTerm2 or
+  Terminal; else the one New Conversation starts in), in its folder, as the same conversation, and the row turns back
+  into the running one. Until then its menus say "It isn't running: press its row to open it again", and, like a
+  closed Claude Desktop conversation's, its row keeps its checkout's island and its share of the changes. Clicked
+  while it's still closing, it says it's opening and opens once it has closed. If Claude Code doesn't carry it on in
+  the new tab within half a minute, the row says so, and nothing tries again until you click. One you left with
+  `/clear`, or whose transcript Claude Code has cleared away, isn't listed.
+- **The row of the session you're on stays in view**, whether you scroll the list past it or the list moves it out of
+  sight (down to Working as it starts on your message): it holds on at the top of the list, or at its bottom while it's
+  further down, folding a line at a time, the row next to it touching it all the way, until its name, Claude's line and
+  where it runs are left. The rest of the list goes under it as under the header. Back in view it opens out into its
+  place, and pressing it scrolls back to it. Switch to another session and its tint moves over to that one's row as
+  it slides away. A row you're typing in, or one too tall to show whole, goes out of sight as any row does.
 - **Your turn** now comes first in the list: the sessions waiting on you, a request or question (a pulsing red-orange
   dot) and a reply you haven't read (amber), first come, first served, so one that comes in joins the end and nothing
-  above it moves. A reply waits there until you've read it: opened it here, been on it in Claude or Ghostty for a
-  couple of seconds since it came (watching it come in counts), or written to it. One you've read gets an empty dot
+  above it moves. A reply waits there until you've read it: opened it here, been on it in Claude, Ghostty or iTerm2 for
+  a couple of seconds since it came (watching it come in counts), or written to it. One you've read gets an empty dot
   and stays there while you're on its session, and for 10 minutes after you were last on it; then its row goes to
   **Seen**, below **Working**, and to **Idle** an hour after the last message or the last time you were on it; before,
   a reply went to Idle after 30 minutes, or as soon as you'd read it. A row you press, to answer it, say, stays where
@@ -32,10 +54,10 @@
   list, saying it's starting until Claude lists it. Chips under your words say where it starts: **@** in your words (or
   the project's chip) chooses the project, and **#** where in it, its own folder, a worktree that's there, or a new
   worktree, for a branch that's there or a new one (**#name from release** starts it from that branch), in a folder
-  beside the repo (`shop-worktrees` for `shop`) or one you choose. Anything in a worktree starts in Ghostty, and
-  nothing switches the branch of a folder in use. Start names the app, Claude Desktop or Ghostty, with an arrow to
-  switch it. A card closed before it starts comes back as you left it. A folder Claude hasn't worked in before is
-  asked about on the card, once, for both apps.
+  beside the repo (`shop-worktrees` for `shop`) or one you choose. Anything in a worktree starts in a terminal, and
+  nothing switches the branch of a folder in use. Start names the app, Claude Desktop, Ghostty or iTerm2, with an
+  arrow to switch it. A card closed before it starts comes back as you left it. A folder Claude hasn't worked in
+  before is asked about on the card, once, for both apps.
 - Under each row's details line, while there's work in flight, is the **island**: a glass capsule with a stage for
   each place the work can be, the files changed, commits not on GitHub yet and GitHub, each with its count, the one
   where your next move is brighter. The files stage is a gauge, filled as far as its files are staged; pointing at it
@@ -109,6 +131,11 @@
   Lyrics** in the pawn menu's Spotify ▸ turns them on or off. Nothing is looked up before you say yes; when LRCLIB is
   busy, Whozmove asks again, a little later each time; and the lyrics found are kept on this Mac, so a song played again
   shows them at once, until you turn lyrics off.
+- **Light mode**: the panel, its cards, the usage card and Spotify's token follow the Mac's Light or Dark appearance,
+  or the one picked in the pawn menu's new **Look ▸**, with colours of their own for each: on a light panel, the stages'
+  colours are deeper so their words read, and a card's main button is dark. **Look ▸** also picks the panel's own
+  colour: **Grey**, now how it starts, **Black** (white on a light panel), or **Glass**, the see-through panel it was,
+  showing what's behind it, blurred. While Reduce Transparency is on in System Settings, Glass is grey.
 - The header and the list keep to 640pt, and what opens with them (a new conversation's card, the now-playing strip)
   comes on top: the panel grows to fit it, as far down as the screen goes, and only there does the list give way and
   scroll.
@@ -123,6 +150,10 @@
   terminal tabs. The panel types nothing into it while another copy runs in a terminal, and doesn't change its mode
   while one is open in Claude Desktop. Deploy and next steps wait while any copy is at work.
 - Nothing is typed into a session paused in its terminal (Ctrl+Z), where the keys would go to the shell.
+- **iTerm2**: a click on a session's row brings forward its window, its tab and its pane, found by the session's own
+  terminal, and the session in the iTerm2 tab you're looking at is marked as the one you're on. When iTerm2 has gone
+  while its sessions live on (after a crash), the click starts it. A conversation started in iTerm2 opens in a new tab
+  of its front window, and the usage card's Sign in goes there too on a Mac without Ghostty.
 - When a row comes or goes, the panel's bottom edge eases with the rows instead of jumping to its new height, and the
   panel no longer flashes lighter at its bottom edge as it grows. Moving the pointer over something no longer restarts
   its hover effect with every move.

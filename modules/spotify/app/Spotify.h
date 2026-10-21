@@ -7,8 +7,8 @@
 
 @interface Spotify : NSObject
 - (instancetype)initWithPage:(Page *)page;
-// The pawn menu's Spotify ▸ Remove Spotify turns it off, Add Spotify on. While it's off the page gets nothing and Spotify is never asked anything, so
-// macOS never asks whether Whozmove may control it.
+// Show the song, on Spotify's page on the panel's back, turns it on and off. While it's off the page gets nothing and
+// Spotify is never asked anything, so macOS never asks whether Whozmove may control it.
 @property (nonatomic) BOOL shown;
 // A freshly loaded page gets what's known.
 - (void)resend;
@@ -23,7 +23,7 @@
 @property (nonatomic) BOOL collapsed;
 // Spotify's download page, in your browser: Whozmove installs nothing itself, and notices once Spotify is installed.
 - (void)getSpotify;
-// Spotify comes forward, opening if it isn't running (the pawn menu's Spotify ▸ Open Spotify).
+// Spotify comes forward, opening if it isn't running (the now-playing strip's press).
 - (void)open;
 // What the token shows, as TokenFor gives it, each time that changes; and looked at again now (the strip has folded).
 @property (copy) void (^onToken)(NSDictionary *token);

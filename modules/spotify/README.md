@@ -3,16 +3,18 @@
 The song the Spotify app on this Mac is playing, in the now-playing strip at the panel's bottom; its lyrics from LRCLIB,
 once you've said yes, each line in the strip in place of the song's name while it's sung, and the whole song beside the
 list when the strip is pressed, once they're here; and Spotify's round token, tucked half under the panel at its
-corner, which plays, resumes or gets Spotify. Spotify ▸ in the pawn menu brings Spotify forward (Open Spotify, as the
-strip opens the lyrics once they're on), turns the lyrics on or off (Show Lyrics), hides the token (Hide Side Icon) or
-takes the whole module out of the panel (Remove Spotify).
+corner, which plays, resumes or gets Spotify. Its page on the panel's back (the apps module) takes the whole module
+out of the panel (Show the song), turns the lyrics on or off (Lyrics), hides the token (Its icon at the panel's corner)
+and brings Spotify forward (Open Spotify, as the strip opens the lyrics once they're on). As the panel turns over, the
+token goes from sight, and comes back out from under the glass once the panel is on its list side again.
 
 ## Its pieces
 
 - `app/SpotifyModule.m`: its face for the core (contracts/Module.h). It makes Spotify, its lyrics and the token when
   the app starts, holds the token under the panel and follows the glass and the pointer for it (PanelWindow's
-  `attachBelow:`, `followGlass:`, `followPointer:`), answers the page's `spotify` messages, puts Spotify ▸ in the pawn
-  menu, and has the print mode the tests check (`--print-spotify`).
+  `attachBelow:`, `followGlass:`, `followPointer:`, `followTurn:`), answers the page's `spotify` messages, lists
+  Spotify for the panel's back with its switches (`appEntries`), and has the print mode the tests check
+  (`--print-spotify`).
 - `app/Spotify.m`: the song, from what Spotify tells the whole Mac when it changes; its cover and its controls through
   Apple events (app/shared/AppleEvents.h) on a queue of its own, not AppleScript, which may run only on the main
   thread. They're sent to its running process, so it's never started but by the token's Play, and nothing at all is
@@ -32,7 +34,8 @@ takes the whole module out of the panel (Remove Spotify).
   `lyrics/` in Whozmove's folder, for the last 1,000 songs played. Lyrics without times, or none, count for a week,
   then the song is asked about again. Read and written on a queue of its own.
 - `app/SpotifyToken.m`: the token, a small window of its own that the panel holds under itself; it takes clicks only
-  over its disc.
+  over its disc. Its ring, edges and label are the panel's colours, light or dark as the panel is, painted again when
+  that changes.
 - `app/SpotifyFacts.h`: everything the module relies on about Spotify that Spotify could change: its app id, what it
   announces and in which fields, how a song's track id starts, the codes in its scripting dictionary, and where to get
   it. When Spotify changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
@@ -73,7 +76,7 @@ page's, kept with its own.
 ## Rules
 
 - Spotify is never started but by its token's Play: everything else is sent to the process already running, and
-  nothing at all is asked of it while it's removed (Spotify ▸ Remove Spotify).
+  nothing at all is asked of it while it's removed (Show the song, off, on its page on the panel's back).
 - Its controls go through Apple events on a queue of its own, never AppleScript, which may run only on the main thread.
 - LRCLIB is asked nothing before you've said yes, nothing while Spotify is removed, and nothing in a print run (the
   Lyrics object is made only when the module launches). It's told only a song's name, artist, album and length, with
@@ -103,10 +106,11 @@ words keep two rows' room whatever they are, so the strip never changes height: 
 smaller when it needs more). New words roll in place, the old leaving one way as the new come from the other: up as the
 song moves on (and for a new song, or the lines coming into the strip or leaving it), down when it goes back a line;
 for a jump, the old go before the new come, so the two never share the room. From one song's name to the next, the
-title and the artist each roll on their own, and only the one that has changed. Words that come while others roll
-wait, then roll on from what's shown. One timer, set for the next change by the song's own clock, moves them; nothing
-runs every frame, and nothing at all while the panel is folded into the cat: its words change at once, out of sight,
-and the panel opened again shows what's true then.
+title and the artist each roll on their own, and only the one that has changed. While a line is in the strip, the
+lyrics mark (a speech bubble with quote marks) shows over the cover, fading in as the line rolls in and out as the
+song's name rolls back. Words that come while others roll wait, then roll on from what's shown. One timer, set for the
+next change by the song's own clock, moves them; nothing runs every frame, and nothing at all while the panel is folded
+into the cat: its words change at once, out of sight, and the panel opened again shows what's true then.
 
 Pressed before the song's lyrics are here, the strip says why in the same place: "Loading lyrics…" while they're on
 their way, or "Lyrics not available". It rolls up in place of the song's name, as a new line does, stays two and a half

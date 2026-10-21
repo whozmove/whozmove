@@ -1,7 +1,7 @@
-// Host: an app sessions run in (Claude Desktop, Ghostty, Terminal), and what the panel can do there. A host is a module
-// that adopts Host; what more it can do, it says by the protocols it adopts beside it: TypingHost (a session's tab found,
-// and keys typed into it), CommandHost (a command run in a new tab) and ConversationHost (an app that keeps sessions as
-// conversations of its own, Claude Desktop's). The core finds the host a row runs in (Core's hostOf:).
+// Host: an app sessions run in (Claude Desktop, Ghostty, iTerm2, Terminal), and what the panel can do there. A host is
+// a module that adopts Host; what more it can do, it says by the protocols it adopts beside it: TypingHost (a session's
+// tab found, and keys typed into it), CommandHost (a command run in a new tab) and ConversationHost (an app that keeps
+// sessions as conversations of its own, Claude Desktop's). The core finds the host a row runs in (Core's hostOf:).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -15,6 +15,12 @@
 // Whether a session is one it holds as its own, whatever process runs it (a conversation of Claude Desktop's). A host
 // without this holds the sessions whose process its app owns.
 - (BOOL)holds:(Row *)row;
+// Whether a process with no ordinary app up its tree runs in it: a terminal that keeps its sessions under a server of
+// its own, which can outlive the app, or one kept out of the Dock, which isn't an ordinary app. It's asked only when
+// there's no ordinary app above the process, so an ordinary terminal started from another's shell keeps its own
+// sessions; one kept out of the Dock and started that way has its sessions taken for the other's. A host without this
+// runs the processes its app owns.
+- (BOOL)runsProcess:(pid_t)pid;
 // Brings a session forward in it. YES once it shows the session, or is bringing it forward; NO when it can't find it
 // (then only the app comes forward).
 - (BOOL)open:(Row *)row;
@@ -46,12 +52,14 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 - (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab;
 @end
 
-// A terminal that can run a command in a new tab, in a folder (a new conversation, or the usage strip's Sign in:
+// A terminal that can run a command in a new tab, in a folder (a new conversation, or the usage card's Sign in:
 // `claude auth login`), so it runs in your shell as you'd type it, with your PATH. `name` says what it runs ("Sign in
 // to Claude Code"), or nil, for a terminal that shows that (macOS's Terminal names its window so). The terminal comes
-// forward with it, or, not `forward`, opens it behind the app you're in.
+// forward with it, or, not `forward`, opens it behind the app you're in. `done` gets, on the main thread, nil once the
+// tab has opened, or why it couldn't, as the panel says it, which may take a while (macOS may ask you first).
 @protocol CommandHost <Host>
-- (void)newTabIn:(NSString *)folder running:(NSString *)command named:(NSString *)name forward:(BOOL)forward;
+- (void)newTabIn:(NSString *)folder running:(NSString *)command named:(NSString *)name forward:(BOOL)forward
+            done:(void (^)(NSString *why))done;
 @end
 
 // An app that keeps sessions as conversations of its own, which it lists, shows and sends messages in.

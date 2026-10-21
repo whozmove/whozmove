@@ -1,5 +1,5 @@
 // ClaudeCodePrints: the Claude Code module's print modes, which the tests check: --print-mode-moves, --print-typing,
-// --print-results, --print-usage and --print-trust.
+// --print-results, --print-usage, --print-trust and --print-kept.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ClaudeCode.h"
 #import "Core.h"
@@ -13,6 +13,8 @@
 #import "Prompt.h"
 #import "Results.h"
 #import "Trust.h"
+#import "Transcripts.h"
+#import "KeptSessions.h"
 
 // The module in a print run's core.
 static ClaudeCode *AgentIn(Core *core) {
@@ -154,8 +156,26 @@ static int PrintTrust(NSArray<NSString *> *arguments) {
     return PrintJSON(out);
 }
 
+// `Whozmove --print-kept`: what would be kept of each running terminal session in $HOME, so its row stays once it ends,
+// with a stand-in for the terminal it runs in ("sample"), so it reads the same on every Mac; then which of the sessions
+// kept there would be dropped, as their process has gone on to another conversation (`left`) or they've gone
+// (`stale`), as JSON, then quit. Nothing is written: a print run keeps nothing. tests/rows.sh checks it.
+static int PrintKept(Core *core) {
+    ClaudeCode *agent = AgentIn(core);
+    NSArray<Row *> *rows = SettledRows(core);
+    NSMutableDictionary *keeps = [NSMutableDictionary dictionary];
+    for (Row *row in rows) {
+        NSDictionary *record = KeptRecord(row, [agent.transcripts stateOf:row.sessionId][@"path"], @"sample");
+        if (record) keeps[row.sessionId] = record;
+    }
+    NSDictionary *kept = KeptIn(KeptFolder());
+    return PrintJSON(@{@"keeps": keeps, @"left": LeftBehind(kept, rows),
+                       @"stale": Stale(kept, [NSSet setWithArray:keeps.allKeys], NSDate.date.timeIntervalSince1970)});
+}
+
 NSDictionary<NSString *, PrintMode> *ClaudeCodePrintModes(void) {
     return @{
+        @"--print-kept": ^(Core *core, NSArray *a) { return PrintKept(core); },
         @"--print-mode-moves": ^(Core *core, NSArray *a) { return PrintModeMoves(core); },
         @"--print-typing": ^(Core *core, NSArray *a) { return PrintTyping(); },
         @"--print-results": ^(Core *core, NSArray *a) { return PrintResults(a); },

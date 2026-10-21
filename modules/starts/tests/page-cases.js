@@ -45,6 +45,8 @@ const startOf = (fields) => ({ id: 's1', key: 'u-1', folder: '/work/app', name: 
                                words: 'write the tests', at: NOW, drawn: true, ...fields });
 print('-- a start not listed yet, as a working row');
 print(rowHTML(pendingSessions({ s1: startOf({}) }, startable, 'Ghostty')[0], 'busy', NOW));
+show('…in the terminal it started in, though another is picked since',
+     pendingSessions({ s1: startOf({ terminal: 'iTerm2' }) }, startable, 'Ghostty')[0].activity);
 print("-- one in Claude that waits on you, and one that didn't start");
 print(rowHTML(pendingSessions({ s1: startOf({ app: 'desktop', note: "Your words are in Claude's message box: press Send there" }) },
                               startable, 'Ghostty')[0], 'busy', NOW));

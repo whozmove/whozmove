@@ -1,5 +1,5 @@
-// MenuBar: Whozmove's mark in the menu bar, its count, and its menu: the grouping, Next Steps, Working on Whozmove, and
-// the modules' items, each in its section.
+// MenuBar: Whozmove's mark in the menu bar, its count, and its menu: the look, the grouping, Working on Whozmove, and
+// the modules' items, each in its section; and the panel's switches, which Git's page on the panel's back sets.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "MenuBar.h"
 #import "PanelWindow.h"
@@ -8,12 +8,17 @@
 #import "Menus.h"
 #import "Builds.h"
 #import "Module.h"
+#import "Appearance.h"
 
-// The menu's switches, kept in the app's preferences as the grouping is: Show Next Steps (each row's island, with
-// its menus) and Show Deploy (its Deploy step), on until unticked; and Show Build in Header, for working on Whozmove
-// itself, off until ticked.
+// The panel's switches, kept in the app's preferences as the grouping is: Show Next Steps (each row's island, with its
+// menus) and Show Deploy (its Deploy step), on until turned off on Git's page on the panel's back; and the menu's Show
+// Build in Header, for working on Whozmove itself, off until ticked.
 static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @"showDeploy",
                 *const kShowBuild = @"showBuild";
+// The panel's look, kept the same way: grey until Black (white on the light panel) or Glass is picked, and light or dark
+// as the Mac is until Light or Dark is. While macOS's Reduce Transparency is on, Glass is grey, and can't be picked, as
+// macOS's own Liquid Glass choice can't.
+static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appearance";
 
 // The mark in the menu bar: the folded cat alone, its head and folded ears in one colour with its eyes and nose cut
 // out, as the name's o has it, a template image so it takes the menu bar's tint. Its shapes are in the cat's own units
@@ -93,9 +98,8 @@ static NSImage *MenuBarMark(void) {
 @property (strong) NSStatusItem *statusItem;
 @property (strong) NSMenuItem *groupByStatusItem;
 @property (strong) NSMenuItem *groupByProjectItem;
-@property (strong) NSMenuItem *showNextStepsItem;
-@property (strong) NSMenuItem *showDeployItem;
 @property (strong) NSMenuItem *showBuildItem;
+@property (strong) NSMenuItem *lookItem, *blackItem, *greyItem, *glassItem, *systemItem, *lightItem, *darkItem;
 @property (copy) NSArray<NSMenuItem *> *wozItems;  // Working on Whozmove, and the line above it
 @property (strong) NSMutableArray<MenuEntry *> *entries;  // its own items and the modules', by section
 @end
@@ -114,22 +118,29 @@ static NSImage *MenuBarMark(void) {
     // Its own items, in the sections modules' items go in too (addEntries:), each with its order there.
     self.groupByStatusItem = [self item:@"Group by Status" action:@selector(groupByStatus) key:@""];
     self.groupByProjectItem = [self item:@"Group by Project" action:@selector(groupByProject) key:@""];
-    NSMenu *steps = [NSMenu new];
-    steps.autoenablesItems = NO;
-    self.showNextStepsItem = [steps addItemWithTitle:@"Show Next Steps" action:@selector(toggleNextSteps)
-                                       keyEquivalent:@""];
-    self.showNextStepsItem.target = self;
-    self.showDeployItem = [steps addItemWithTitle:@"Show Deploy" action:@selector(toggleDeploy) keyEquivalent:@""];
-    self.showDeployItem.target = self;
-    NSMenuItem *stepsItem = [self item:@"Next Steps" action:nil key:@""];
-    stepsItem.submenu = steps;
     self.showBuildItem = [self item:@"Show Build in Header" action:@selector(toggleShowBuild) key:@""];
-    self.entries = [@[[MenuEntry entryIn:MenuSectionFeatures order:10 item:stepsItem],
-                      [MenuEntry entryIn:MenuSectionWhozmove order:10 item:self.showBuildItem]] mutableCopy];
+    NSMenu *look = [NSMenu new];
+    look.autoenablesItems = NO;
+    self.blackItem = [self item:@"Black" action:@selector(pickBlack) key:@""];
+    self.greyItem = [self item:@"Grey" action:@selector(pickGrey) key:@""];
+    self.glassItem = [self item:@"Glass" action:@selector(pickGlass) key:@""];
+    self.systemItem = [self item:@"Match System" action:@selector(pickSystem) key:@""];
+    self.lightItem = [self item:@"Light" action:@selector(pickLight) key:@""];
+    self.darkItem = [self item:@"Dark" action:@selector(pickDark) key:@""];
+    for (NSMenuItem *item in @[self.greyItem, self.blackItem, self.glassItem, NSMenuItem.separatorItem, self.systemItem,
+                               self.lightItem, self.darkItem])
+        [look addItem:item];
+    self.lookItem = [self item:@"Look" action:nil key:@""];
+    self.lookItem.submenu = look;
+    self.entries = [@[[MenuEntry entryIn:MenuSectionWhozmove order:10 item:self.showBuildItem]] mutableCopy];
     NSMenu *menu = [NSMenu new];
     menu.delegate = self;
     self.statusItem.menu = menu;
     [self layOut];
+    [self applySavedLook];
+    NSNotificationCenter *workspace = NSWorkspace.sharedWorkspace.notificationCenter;
+    [workspace addObserver:self selector:@selector(applySavedLook)
+                      name:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:nil];
     return self;
 }
 
@@ -145,9 +156,9 @@ static NSImage *MenuBarMark(void) {
     [self layOut];
 }
 
-// The menu, from the top: the top section (with a line under it), the panel's own items, the grouping, the features,
-// Working on Whozmove (shown only while ⌥ is held: menuNeedsUpdate:) and Quit. Each section's items, its own and the
-// modules', in their order there.
+// The menu, from the top: the top section (with a line under it), the panel's own items and its look, the grouping,
+// the features, Working on Whozmove (shown only while ⌥ is held: menuNeedsUpdate:) and Quit. Each section's items, its
+// own and the modules', in their order there.
 - (void)layOut {
     NSMenu *menu = self.statusItem.menu;
     [menu removeAllItems];
@@ -169,6 +180,7 @@ static NSImage *MenuBarMark(void) {
     if (top.count) [menu addItem:NSMenuItem.separatorItem];
     [menu addItemWithTitle:@"Show / Hide Panel" action:@selector(toggle) keyEquivalent:@""].target = self.window;
     [menu addItemWithTitle:@"Reset Position" action:@selector(resetPosition) keyEquivalent:@""].target = self.window;
+    put(self.lookItem, menu);
     [menu addItem:NSMenuItem.separatorItem];
     for (NSMenuItem *item in @[self.groupByStatusItem, self.groupByProjectItem]) put(item, menu);
     [menu addItem:NSMenuItem.separatorItem];
@@ -186,9 +198,10 @@ static NSImage *MenuBarMark(void) {
 }
 
 // Working on Whozmove is only for people working on Whozmove itself, so it shows only while ⌥ is held as the menu
-// opens.
+// opens. The Look menu's Black says White if the Mac has turned light since.
 - (void)menuNeedsUpdate:(NSMenu *)menu {
     if (menu != self.statusItem.menu) return;
+    [self nameLook];
     BOOL option = (NSEvent.modifierFlags & NSEventModifierFlagOption) != 0;
     for (NSMenuItem *item in self.wozItems) item.hidden = !option;
     for (MenuEntry *entry in self.entries)
@@ -217,15 +230,65 @@ static NSImage *MenuBarMark(void) {
     self.groupByProjectItem.state = [mode isEqual:@"project"] ? NSControlStateValueOn : NSControlStateValueOff;
 }
 
-// The switches: each flips its preference, and the page is told.
-- (void)toggleNextSteps { [self flip:kShowNextSteps]; }
+// The panel's look, from the Look menu: grey, black or glass, and light, dark or as the Mac is.
+- (void)pickBlack { [self save:@"black" as:kPanelLook]; }
 
-- (void)toggleDeploy { [self flip:kShowDeploy]; }
+- (void)pickGrey { [self save:@"grey" as:kPanelLook]; }
 
-- (void)toggleShowBuild { [self flip:kShowBuild]; }
+- (void)pickGlass { [self save:@"glass" as:kPanelLook]; }
 
-- (void)flip:(NSString *)key {
-    FlipSwitch(key);
+- (void)pickSystem { [self save:@"system" as:kAppearance]; }
+
+- (void)pickLight { [self save:@"light" as:kAppearance]; }
+
+- (void)pickDark { [self save:@"dark" as:kAppearance]; }
+
+- (void)save:(NSString *)choice as:(NSString *)key {
+    [NSUserDefaults.standardUserDefaults setObject:choice forKey:key];
+    [self applySavedLook];
+}
+
+// The look last picked, on the panel and the app's other windows (the page's colours follow, panel/styles/tokens.css),
+// and ticked in the menu; asked again when macOS's display settings change, for Reduce Transparency.
+- (void)applySavedLook {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    BOOL plain = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceTransparency;
+    NSString *look = self.look;
+    self.window.look = look;
+    self.blackItem.state = [look isEqual:@"black"] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.greyItem.state = [look isEqual:@"grey"] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.glassItem.state = [look isEqual:@"glass"] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.glassItem.enabled = !plain;
+    self.glassItem.toolTip = plain ? @"Off while Reduce Transparency is on in System Settings" : nil;
+    NSString *appearance = [defaults stringForKey:kAppearance];
+    if (![appearance isEqual:@"light"] && ![appearance isEqual:@"dark"]) appearance = @"system";
+    NSApp.appearance = [appearance isEqual:@"light"] ? [NSAppearance appearanceNamed:NSAppearanceNameAqua]
+                     : [appearance isEqual:@"dark"] ? [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua] : nil;
+    self.systemItem.state = [appearance isEqual:@"system"] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.lightItem.state = [appearance isEqual:@"light"] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.darkItem.state = [appearance isEqual:@"dark"] ? NSControlStateValueOn : NSControlStateValueOff;
+    [self nameLook];
+    [self applySavedSwitches];
+}
+
+// The panel's look as it is: the one picked (grey until another is), and grey for Glass while Reduce Transparency is
+// on.
+- (NSString *)look {
+    NSString *look = [NSUserDefaults.standardUserDefaults stringForKey:kPanelLook];
+    if (![look isEqual:@"black"] && ![look isEqual:@"glass"]) look = @"grey";
+    if ([look isEqual:@"glass"] && NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceTransparency)
+        look = @"grey";
+    return look;
+}
+
+// Black is white on the light panel, and the menu says which, as the app looks now.
+- (void)nameLook {
+    self.blackItem.title = IsDark(NSApp.effectiveAppearance) ? @"Black" : @"White";
+}
+
+// The switches: each changes its preference, and the page is told.
+- (void)toggleShowBuild {
+    FlipSwitch(kShowBuild);
     [self applySavedSwitches];
 }
 
@@ -233,14 +296,25 @@ static NSImage *MenuBarMark(void) {
     return SwitchedOn(kShowNextSteps);
 }
 
+- (void)setShowsNextSteps:(BOOL)on {
+    SetSwitch(kShowNextSteps, on);
+    [self applySavedSwitches];
+}
+
+- (BOOL)showsDeploy {
+    return SwitchedOn(kShowDeploy);
+}
+
+- (void)setShowsDeploy:(BOOL)on {
+    SetSwitch(kShowDeploy, on);
+    [self applySavedSwitches];
+}
+
 - (void)applySavedSwitches {
-    self.showNextStepsItem.state = SwitchedOn(kShowNextSteps) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.showDeployItem.state = SwitchedOn(kShowDeploy) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.showDeployItem.enabled = SwitchedOn(kShowNextSteps);  // Deploy is one of the next steps
     self.showBuildItem.state = SwitchedOn(kShowBuild) ? NSControlStateValueOn : NSControlStateValueOff;
     self.window.headerTip = SwitchedOn(kShowBuild) ? RunningBuildTip() : nil;
     [self.page setSwitches:@{@"nextSteps": @(SwitchedOn(kShowNextSteps)), @"deploy": @(SwitchedOn(kShowDeploy)),
-                             @"build": @(SwitchedOn(kShowBuild))}];
+                             @"build": @(SwitchedOn(kShowBuild)), @"look": self.look}];
 }
 
 @end

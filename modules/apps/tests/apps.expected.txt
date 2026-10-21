@@ -1,0 +1,113 @@
+== The apps every module lists for the panel's back, in their order, with the switches other modules add
+[
+  {
+    "does" : "Lists its Claude Code conversations and opens them, puts your words in its message box, and starts new conversations in it.",
+    "for" : "Puts your words in its message box, and presses its buttons",
+    "id" : "com.anthropic.claudefordesktop",
+    "listed" : "when on this Mac",
+    "name" : "Claude",
+    "order" : 10,
+    "permission" : "accessibility",
+    "switches" : [
+
+    ]
+  },
+  {
+    "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt, and starts new conversations in a new tab.",
+    "for" : "Finds each session's tab, and types into it",
+    "id" : "com.mitchellh.ghostty",
+    "listed" : "when on this Mac",
+    "name" : "Ghostty",
+    "order" : 20,
+    "permission" : "automation",
+    "switches" : [
+      {
+        "group" : "startTerminal",
+        "help" : "In a new tab, from the new conversation card",
+        "key" : "startHere",
+        "title" : "Open new conversations here"
+      }
+    ]
+  },
+  {
+    "does" : "Lists the Claude Code sessions in its tabs and opens them, and starts new conversations in a new tab.",
+    "for" : "Finds each session's tab, and opens new ones",
+    "id" : "com.googlecode.iterm2",
+    "listed" : "when on this Mac",
+    "name" : "iTerm2",
+    "order" : 30,
+    "permission" : "automation",
+    "switches" : [
+      {
+        "group" : "startTerminal",
+        "help" : "In a new tab, from the new conversation card",
+        "key" : "startHere",
+        "title" : "Open new conversations here"
+      }
+    ]
+  },
+  {
+    "does" : "Brings a session that runs in it forward. On a Mac without Ghostty or iTerm2, it runs Sign in, and carries on a conversation that has ended, in a new window.",
+    "for" : null,
+    "id" : "com.apple.Terminal",
+    "listed" : "when on this Mac",
+    "name" : "Terminal",
+    "order" : 40,
+    "permission" : null,
+    "switches" : [
+
+    ]
+  },
+  {
+    "does" : "Shows the song playing under your sessions, with its buttons, and its lyrics line by line, once they're on.",
+    "for" : "Reads the song, and plays, pauses and skips",
+    "id" : "com.spotify.client",
+    "listed" : "always",
+    "name" : "Spotify",
+    "order" : 50,
+    "permission" : "automation",
+    "switches" : [
+      {
+        "group" : null,
+        "help" : "Under your sessions, with its buttons",
+        "key" : "song",
+        "title" : "Show the song"
+      },
+      {
+        "group" : null,
+        "help" : "Line by line as they're sung, in the strip and beside the list",
+        "key" : "lyrics",
+        "title" : "Lyrics"
+      },
+      {
+        "group" : null,
+        "help" : "To play a song, or carry on a paused one, while none shows",
+        "key" : "token",
+        "title" : "Its icon at the panel's corner"
+      }
+    ]
+  },
+  {
+    "does" : "Reads each session's checkout: what's changed, committed and on GitHub, for the next steps on its row, the changes view and Deploy; and makes worktrees for new conversations.",
+    "for" : null,
+    "id" : "git",
+    "listed" : "always",
+    "name" : "Git",
+    "order" : 60,
+    "permission" : null,
+    "switches" : [
+      {
+        "group" : null,
+        "help" : "On each row: what's changed, committed and on GitHub, and the step that's next",
+        "key" : "nextSteps",
+        "title" : "Show Next Steps"
+      },
+      {
+        "group" : null,
+        "help" : "The round button on a row, among its next steps, that puts your project's build in place",
+        "key" : "deploy",
+        "title" : "Show Deploy"
+      }
+    ]
+  }
+]

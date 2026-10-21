@@ -46,6 +46,14 @@ extern NSString *const kClaudeCodeTerminalEntrypoint;
 // Claude Code's command. A new session takes the id it's given (--session-id <uuid>, checked with 2.1.300), which is
 // how the panel knows its row before it's listed, and its first message as its last argument.
 extern NSString *const kClaudeCodeCommand;
+// What carries an ended session on, under its own id (--resume <id>, checked with 2.1.302): only in the folder it ran
+// in, as its transcript is kept with that folder's (elsewhere it says the conversation is from a different directory),
+// and only while Claude Code still has its transcript, which it clears away after cleanupPeriodDays (30 by default). A
+// session still running elsewhere gets a second process. A process's registry file follows it: rewritten in place with
+// the new id when it goes on to another conversation (/clear, /resume of another), and with the new folder when the
+// folder its conversation is kept with changes; and gone when it exits. `claude -p` registers as sdk-cli, never as a
+// terminal's.
+extern NSString *const kClaudeCodeResumeFlag;
 // Claude Code's state file in the home folder. Among much else, it records each folder you've trusted Claude to work
 // in, as projects[<folder>].<kClaudeCodeTrustKey>: Claude Code and Claude Desktop both read and write it there, and
 // both ask once before working in a folder that neither it, its repo nor any folder above it has. While either writes

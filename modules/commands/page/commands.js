@@ -38,8 +38,8 @@ function contextRing(s) {
   return `<span class="ctx${open}" data-ctx="${esc(s.sessionId)}" title="${title}"`
     + ` style="color:${color};--fill:${pct}%">
       <svg width="12" height="12" viewBox="0 0 12 12">`
-    + `<circle cx="6" cy="6" r="${r}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
-      <circle cx="6" cy="6" r="${r}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round"
+    + `<circle cx="6" cy="6" r="${r}" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="${r}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="${(length * pct / 100).toFixed(2)} ${length.toFixed(2)}"/></svg>`
     + '<span class="ctx-label">Compact</span></span>';
 }

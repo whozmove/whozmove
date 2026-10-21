@@ -199,6 +199,11 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
 
 #pragma mark Whether it's there
 
+- (void)setAway:(BOOL)away {
+    _away = away;
+    [self update];
+}
+
 - (void)glassAt:(NSRect)glass list:(NSRect)list duration:(NSTimeInterval)duration {
     self.glass = glass;
     self.list = list;
@@ -219,13 +224,14 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
     if (self.showing) [self place];
 }
 
-// It's there while its page has a card to show and the panel is open and still, with no reader beside the list. As the
-// glass changes shape, it goes at once; as its page stops showing one, it fades.
+// It's there while its page has a card to show and the panel is open and still, on its list side, with no reader
+// beside the list. As the glass changes shape, it goes at once; as the panel turns over, or its page stops showing one,
+// it fades.
 - (void)update {
-    BOOL open = !self.glassMoving && fabs(NSWidth(self.glass) - kPanelWidth) < 1
+    BOOL open = !self.away && !self.glassMoving && fabs(NSWidth(self.glass) - kPanelWidth) < 1
                 && NSEqualRects(self.glass, self.list);
     if (!open) {
-        if (self.showing) [self hide:NO];
+        if (self.showing) [self hide:self.away];
     } else if (self.wanted && !self.showing) {
         self.showing = YES;
         [self place];

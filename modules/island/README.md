@@ -7,7 +7,8 @@ card, the extra stage's question, and the PRs a session made or worked on.
 ## Its pieces
 
 - `app/IslandModule.m`: its face for the core (contracts/Module.h): each row's checkout, read first, as what's counted
-  of its changes goes by it; its PRs; the checkouts' file lists, sent only when they change; and the page's messages.
+  of its changes goes by it; its PRs; the checkouts' file lists, sent only when they change; and the page's messages. It
+  lists Git for the panel's back, with Show Next Steps (`appEntries`).
 - `app/Checkouts.m`: each listed checkout's git status, base branch, new files and staged files, and its extra stage,
   read on a queue of its own: every 20s, and within 2s of any activity by a session working there. The file lists and
   commit subjects its menus show are kept here, not sent with the rows.

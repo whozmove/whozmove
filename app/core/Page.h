@@ -28,6 +28,8 @@
 - (void)hoverEnd:(BOOL)still;
 // The panel no longer has the keyboard: another app took it, or the panel gave it back.
 - (void)keyboardGone;
+// The panel is turning over to its back (YES), or is back on its list side (NO): PanelWindow's turnOver:then:.
+- (void)turned:(BOOL)on;
 // Where the pointer is from the folded cat's glass, in points with y running down, while it's near; and that it has
 // gone (cat.js).
 - (void)catPointer:(NSPoint)offset;

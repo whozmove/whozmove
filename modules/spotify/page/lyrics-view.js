@@ -10,9 +10,10 @@
 
 // The lyrics beside the list: this wide, with at least this much room for their lines.
 const LYRICS_READER_WIDTH = 380, LYRICS_VIEW_HEIGHT = 330;
-// Their foot: whether the lines show in the strip too (its state is set on it, so its knob slides), and Spotify.
-const LYRICS_FOOT = '<button class="ly-switch" role="switch" aria-checked="true"><span class="ly-sw"><i></i></span>'
-  + 'Show lyrics in the strip</button><button class="ly-open">Open Spotify</button>';
+// Their foot: whether the lines show in the strip too (its state is set on it, so its knob slides: the panel's switch,
+// controls.css), and Spotify.
+const LYRICS_FOOT = `<button class="ly-switch" role="switch" aria-checked="true">${SWITCH}Show lyrics in the strip`
+  + '</button><button class="ly-open">Open Spotify</button>';
 const ly = {
   timer: null,  // the next change of the words
   dots: null,   // the dots counting in to the next line beside the list: {line, animations}
@@ -278,7 +279,7 @@ core.readerPresses.push(
   }],
   ['.ly-open', () => native({ type: 'spotify', action: 'open' })],
 );
-// While the lyrics are open, the strip's cover keeps its microphone; it goes once they've closed.
+// While the lyrics are open, the strip's cover keeps the lyrics mark; it goes once they've closed.
 core.afterDraw.push(() => npEl.classList.toggle('lyrics-open', lyricsReading()));
 // The panel changing height beside the lyrics changes theirs: the line being sung goes back to its place about a third
 // of the way down. As the panel grows for them, that's at once, before they show (reader.css); after, it glides there.

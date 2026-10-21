@@ -141,10 +141,11 @@ function rollLine(row, el, was, down) {
         { transform: 'translateY(0)', opacity: '1' });
 }
 
-// A copy of what was there, laid over the list where it was, fading out.
+// A copy of what was there, laid over the list where it was, fading out (.fading, so nothing takes it for the row).
 function fadeAway(list, old, ms = MORPH_MS) {
   const ghost = old.el.cloneNode(true);
   ghost.classList.remove('is-hover', 'arrive', 'glide');
+  ghost.classList.add('fading');
   Object.assign(ghost.style, { position: 'absolute', top: old.top - list.clientTop + 'px', left: old.left + 'px',
                                width: old.width + 'px', margin: '0', pointerEvents: 'none', zIndex: '1' });
   list.appendChild(ghost);
@@ -218,8 +219,9 @@ function morph(list, html) {
                   () => { el.style.overflow = ''; });
         line?.grow?.(el);  // how a module's line comes in, beside growing (the island's capsule springs open)
         grewOrShrank = changed = true;
-      } else if (!el && was) {  // a line that's gone: a copy folds away where it was
+      } else if (!el && was) {  // a line that's gone: a copy folds away where it was (.folding)
         const ghost = was.el.cloneNode(true);
+        ghost.classList.add('folding');
         const next = lines.slice(i + 1).map((s) => main.querySelector(':scope > ' + s)).find(Boolean);
         main.insertBefore(ghost, next || null);
         ghost.style.overflow = 'hidden';

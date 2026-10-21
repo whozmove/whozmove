@@ -35,7 +35,7 @@ function isRead(s, view) {
   return (s.lastReplyAt || 0) <= read;
 }
 
-// When the app and Claude last saw you on a session: on it in Claude or Ghostty (the app's `seenAt`, and Claude
+// When the app and Claude last saw you on a session: on it in Claude, Ghostty or iTerm2 (the app's `seenAt`, and Claude
 // Desktop's own `lastFocusedAt`), or writing to it.
 function onItAt(s) {
   return Math.max(s.seenAt || 0, s.lastFocusedAt || 0, s.lastPromptAt || 0);

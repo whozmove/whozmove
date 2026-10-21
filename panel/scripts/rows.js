@@ -6,7 +6,11 @@
 const SECTION_NAMES = { turn: 'Your turn', busy: 'Working', seen: 'Seen', idle: 'Idle' };
 
 // The app a session runs in, as a row names it (core.hosts): the module's that holds it (Claude Desktop), else a terminal.
-const TERMINAL_HOST = { name: 'Terminal', icon: TERMINAL_ICON, openNow: 'Open in your terminal now', inName: '' };
+// A terminal session that has ended opens again in the terminal the app names (opensIn).
+const TERMINAL_HOST = {
+  name: 'Terminal', icon: TERMINAL_ICON, openNow: 'Open in your terminal now', inName: '',
+  closedTip: (s) => (s.opensIn ? `Not running: click to open it in ${s.opensIn}` : 'Not running'),
+};
 function hostOf(s) {
   return core.hosts.find((host) => host.holds(s)) || TERMINAL_HOST;
 }
@@ -194,9 +198,10 @@ function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
   const time = ago(now - since);
   const closed = s.status === 'closed' ? ' closed' : '';
   const focused = s.focused ? ' focused' : '';
-  const tip = s.focused ? hostOf(s).openNow : closed ? 'Not running: click to open in Claude' : '';
+  const tip = s.focused ? hostOf(s).openNow : closed ? hostOf(s).closedTip?.(s) || '' : '';
+  const title = tip ? `title="${esc(tip)}"` : '';
   const marks = slot('rowClass', row);  // a module's own classes (a new conversation's row, still landing)
-  return `<div class="row ${kind}${closed}${focused}${marks}" data-id="${esc(s.sessionId)}" ${tip ? `title="${tip}"` : ''}>
+  return `<div class="row ${kind}${closed}${focused}${marks}" data-id="${esc(s.sessionId)}" ${title}>
       <span class="dot" style="${kind === 'needs' ? phase(1600) : kind === 'busy' ? phase(1400) : ''}"></span>
       <div class="main">
         <div class="line1">

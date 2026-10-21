@@ -5,3 +5,5 @@
 
 // Runs `source`, and returns what it returns, as text (nil if it failed: why goes in the log).
 NSString *RunAppleScript(NSString *source);
+// Text as the inside of an AppleScript string literal: its backslashes and quotes escaped.
+NSString *AppleScriptText(NSString *text);

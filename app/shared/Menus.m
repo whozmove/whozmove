@@ -7,7 +7,11 @@ BOOL SwitchedOn(NSString *key) {
 }
 
 void FlipSwitch(NSString *key) {
-    [NSUserDefaults.standardUserDefaults setBool:!SwitchedOn(key) forKey:key];
+    SetSwitch(key, !SwitchedOn(key));
+}
+
+void SetSwitch(NSString *key, BOOL on) {
+    [NSUserDefaults.standardUserDefaults setBool:on forKey:key];
 }
 
 void SayInMenu(NSMenu *menu, NSString *text) {

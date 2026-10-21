@@ -31,6 +31,7 @@ body:
       options:
         - Claude Desktop
         - Ghostty
+        - iTerm2
         - Another terminal
   - type: input
     id: macos
@@ -60,6 +61,12 @@ body:
       label: Ghostty version
       description: Ghostty → About Ghostty, if the session runs there.
       placeholder: "1.3.1"
+  - type: input
+    id: iterm2
+    attributes:
+      label: iTerm2 version
+      description: iTerm2 → About iTerm2, if the session runs there.
+      placeholder: "3.7.6"
   - type: input
     id: whozmove
     attributes:

@@ -9,3 +9,8 @@ NSString *RunAppleScript(NSString *source) {
     if (!result) PanelLog(@"AppleScript failed: %@", error);
     return result.stringValue;
 }
+
+NSString *AppleScriptText(NSString *text) {
+    return [[text stringByReplacingOccurrencesOfString:@"\\" withString:@"\\\\"]
+            stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+}

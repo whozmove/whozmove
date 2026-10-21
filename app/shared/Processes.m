@@ -1,6 +1,9 @@
 // Processes: running processes, the app each belongs to, the flags it started with, and running tools.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Processes.h"
+#include <libproc.h>
+#include <sys/param.h>
+#include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -44,9 +47,9 @@ NSString *ProcessKey(pid_t pid, NSString *procStart) {
     return [NSString stringWithFormat:@"%d %@", pid, procStart ?: @""];
 }
 
-// sysctl, not proc_pidinfo: the latter is refused for root-owned ancestors such as `login`,
-// which sits between every terminal app and its shell.
-static pid_t ParentOf(pid_t pid) {
+// A process's parent, or 0 when it can't be read. sysctl, not proc_pidinfo: the latter is refused for root-owned
+// ancestors such as `login`, which sits between every terminal app and its shell.
+pid_t ProcessParent(pid_t pid) {
     struct kinfo_proc info;
     size_t size = sizeof(info);
     int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
@@ -54,9 +57,44 @@ static pid_t ParentOf(pid_t pid) {
     return info.kp_eproc.e_ppid;
 }
 
+// The program a process runs, by its path, or nil when there's no such process. Root-owned ones, such as `login`, can
+// be read too.
+NSString *ProcessPath(pid_t pid) {
+    char path[PROC_PIDPATHINFO_MAXSIZE];
+    int length = pid > 0 ? proc_pidpath(pid, path, sizeof path) : 0;
+    return length > 0 ? [[NSString alloc] initWithBytes:path length:(NSUInteger)length encoding:NSUTF8StringEncoding]
+                      : nil;
+}
+
+// The terminal device a process has, as a number (NODEV for none). With `foregroundOnly`, only while the process is in
+// its terminal's foreground, so a `claude` suspended with Ctrl+Z while its shell has the terminal has none.
+dev_t ProcessTerminal(pid_t pid, BOOL foregroundOnly) {
+    struct kinfo_proc info;
+    size_t size = sizeof(info);
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
+    if (pid <= 0 || sysctl(mib, 4, &info, &size, NULL, 0) != 0 || size == 0) return NODEV;
+    if (foregroundOnly && info.kp_eproc.e_pgid != info.kp_eproc.e_tpgid) return NODEV;
+    return info.kp_eproc.e_tdev;
+}
+
+// A terminal device's path ("/dev/ttys012"), or nil. It's looked for through /dev, which takes most of a millisecond,
+// so devices are compared as numbers, and a path is found only for a script that names one.
+NSString *TerminalPath(dev_t device) {
+    char name[64];
+    if (device == NODEV || !devname_r(device, S_IFCHR, name, (int)sizeof name)) return nil;
+    return [@"/dev/" stringByAppendingString:@(name)];
+}
+
+// The terminal device at a path ("/dev/ttys012"), as a number, or NODEV.
+dev_t TerminalAt(NSString *path) {
+    struct stat info;
+    if (!path.length || stat(path.fileSystemRepresentation, &info) != 0 || !S_ISCHR(info.st_mode)) return NODEV;
+    return info.st_rdev;
+}
+
 // The app a terminal session runs in: the first ordinary app up its process tree.
 NSRunningApplication *OwningApp(pid_t pid) {
-    for (; pid > 1; pid = ParentOf(pid)) {
+    for (; pid > 1; pid = ProcessParent(pid)) {
         NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
         if (app && app.activationPolicy == NSApplicationActivationPolicyRegular) return app;
     }

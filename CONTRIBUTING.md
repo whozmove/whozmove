@@ -51,20 +51,23 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   - `main.m` starts the app, or runs one of the print modes the tests check. `AppDelegate` makes the page, the panel's
     window, the pawn and the core, and starts them.
   - The core's pieces each keep only their own state: `Page` (loading the page; every call into it), `PanelWindow`
-    (FloatingPanel, DragStrip, size, hover, growing beside the list to fit the reader, and back), `MenuBar` (the pawn,
-    grouping, Next Steps' switches, and the modules' items), `Rows` (the rows read once a second, each module adding its
-    part), `Focus` (the session you're on, when you last looked at each, and opening a session from its row), `Send`
-    (words into a session, and why they can't go in now), `Work` (who's at work in a checkout), `Builds` (the running
-    build, for the header) and `Printing` (what the print runs share).
-  - The agent that runs the sessions is a module: `claude-code` (its sessions and its hooks' records, what's new in each
-    transcript, a session's details, the words of the panel's commands and what their results say, typing into a
-    session's prompt while keeping its draft, your plan's usage asked of `claude`, folder trust, a new session's
-    command, and its hooks plugin).
+    (FloatingPanel, DragStrip, size, hover, growing beside the list to fit the reader, and back, turning over to the
+    panel's back, which a module's view shows, its tint: grey, black or glass, light or dark, and its shadow, in a
+    window of its own under it), `MenuBar` (the pawn, grouping, the Look menu, the modules' items, and the panel's
+    switches, Show Next Steps and Show Deploy, which Git's page on the panel's back sets), `Rows` (the rows read once a second, each module adding its part), `Focus` (the session you're on, when
+    you last looked at each, and opening a session from its row), `Send` (words into a session, and why they can't go
+    in now), `Work` (who's at work in a checkout), `Builds` (the running build, for the header) and `Printing` (what the
+    print runs share).
+  - The agent that runs the sessions is a module: `claude-code` (its sessions and its hooks' records, its terminal
+    sessions kept once they've ended, what's new in each transcript, a session's details, the words of the panel's
+    commands and what their results say, typing into a session's prompt while keeping its draft, your plan's usage
+    asked of `claude`, folder trust, a new session's command and an ended one's, and its hooks plugin).
   - The apps sessions run in are hosts, each a module too: `ghostty` (finding a session's tab, typing into it, which tab
-    it shows), `claude-desktop` (its conversations, its message box, new conversations, "Switch model?") and
-    `terminal-app` (macOS's Terminal, which only runs a command: Sign in, on a Mac without Ghostty). A session in any
-    other terminal app opens by bringing that app forward. Another terminal is one new module that fills in the host
-    contract.
+    it shows), `iterm2` (finding a session's tab by its terminal device, which tab it shows, and a command in a new tab;
+    its sessions can outlive the app, under a server of its own, so it says which processes it runs), `claude-desktop`
+    (its conversations, its message box, new conversations, "Switch model?") and `terminal-app` (macOS's Terminal,
+    which only runs a command: Sign in, on a Mac without Ghostty or iTerm2). A session in any other terminal app opens
+    by bringing that app forward. Another terminal is one new module that fills in the host contract.
   - Each feature is a module: `island` (`Checkouts`: git status, each checkout's base branch and new files, which of its
     files are staged, and its extra stage, with the file lists and commit subjects its menus show kept here, not sent
     with the rows; `Stages`: the extra stage, the command a repo's git config names, run only once you've allowed it,
@@ -83,30 +86,33 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     your words, and watched for until it's listed; `Worktrees`: a worktree of its own for one; `Shortcut`: ⌃⌥N),
     `commands` (the model, effort and mode menus and the Compact card, from the menu to the command's result) and
     `spotify` (the now-playing strip, with its lyrics from LRCLIB, which open beside the list, and Spotify's token).
+    And `apps`, the panel's back (`AppsModule`: the apps every module works with, each one's page with its switches and
+    what macOS lets Whozmove do with it; `BackPage`: the back's web view, on the back of the glass).
   - The data has a shape: `Row` (app/contracts) is one listed session, field by field as **`docs/reference/rows.md`**
     describes it (the contract between the hooks, the app and the page; `tests/rows.sh` keeps the two in step).
     `Command` (the commands module's) is one slash command sent from the panel, with its stage (asking, going in,
     waiting, done, abandoned), and `Reason` (app/contracts) names why keys can't go into a session right now.
   - Plain functions with a header each, in `shared/`: `Log`, `Files`, `Processes`, `Git`, `Text`, `AppleEvents`,
-    `AppleScript`, `Accessibility`, `Links`, `Menus`.
+    `AppleScript`, `Accessibility`, `Links`, `Menus`, `Appearance`.
   - Nothing slow runs on the main thread. The sessions' files, transcripts, git and gh are read on serial queues,
-    and Ghostty is asked which tab it shows on one, and what they find is handed to the main thread, where all the
-    state is kept (Ghostty's answer is matched to a session there, from what's already been read). The one thing
-    read from both sides is Claude Desktop's log (`DesktopLog`'s `catchUp`), and they take turns.
+    and each terminal is asked which tab it shows on one of its own, and what they find is handed to the main thread,
+    where all the state is kept (a terminal's answer is matched to a session there, from what's already been read).
+    The one thing read from both sides is Claude Desktop's log (`DesktopLog`'s `catchUp`), and they take turns.
 - **Facts**: everything Whozmove relies on about another program that it could change is in that program's module
   (`ClaudeCodeFacts.h`: where Claude Code keeps things, its command, the model and mode choices; `ClaudeDesktopFacts.h`,
-  `GhosttyFacts.h`, `SpotifyFacts.h`, and beside it `LRCLIBFacts.h`, for the lyrics' web service), and what it knows of
-  the editors Open With offers is in the changes module's
-  `Editors.m`. The
-  versions they were last checked with are in the README. When one of them changes, the fix goes there.
+  `GhosttyFacts.h`, `ITerm2Facts.h`, `SpotifyFacts.h`, and beside it `LRCLIBFacts.h`, for the lyrics' web service), and
+  what it knows of the editors Open With offers is in the changes module's `Editors.m`. The versions they were last
+  checked with are in the README. When one of them changes, the fix goes there.
 - **`panel/`**: HTML, CSS and plain `<script>` files: no modules, no build step, no libraries.
   `update()` → `render()` → `morph()`.
   - `panel.html` is the markup, and loads the rest in order: `styles/` (`tokens`, the panel's colours, text sizes and
-    corners by name; `base`, `rows`, `cards`, `reader`, its frame; the modules' styles; and `motion`) and `scripts/`, the
+    corners by name; `base`, `rows`, `cards`, `controls` (what more than one part draws: the switch, a button),
+    `reader`, its frame; the modules' styles; and `motion`) and `scripts/`, the
     modules' scripts last but for `panel`. `tools/page.sh` lists the modules' at the two lines the page marks for them.
   - `scripts/`, one job each. The page's core first: `util` (the bridge's send, storage, escaping, measuring text),
     `state` (everything the page keeps between rebuilds, in one object), `modules` (what the modules plug into the page
-    with: see Modules below), `fresh` (whether a card or button has only just been shown, and a request answered here),
+    with: see Modules below), `fresh` (whether a card or button has only just been shown, a row's again once it's back
+    in view, and a request answered here),
     `whose-move` (what each session is, where its row goes, and which session speaks for each checkout: plain
     functions, checked by `tests/panel.sh`), `icons`, `markdown` (plans and notes as HTML, everything escaped:
     a plain function), `builds` (the header's name for the running build), `morph` (the animation), `strips`
@@ -114,14 +120,15 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     list), `rows` (a row's template, with its places for the modules' parts, and the group and project headers), `hover`
     (what's pointed at, and the card something pointed at shows), `input` (presses, typing and the keyboard), `reader`
     (the reader beside the list, which its modes fill, each about a session, or, like Spotify's lyrics, about none),
-    and `panel` (`render`, and the functions the app calls on the
-    core). Then each module's, from its `page/`, one per job, each plugging into the core as it loads: Claude Code's
-    `agent` (what a Claude Code session's model, mode and context mean) and `requests` (its requests, questions and
-    plans on a row); Claude Desktop's `switch-model` (Claude's "Switch model?"); the commands module's `commands` (the
-    model, effort and mode labels, the context ring and the Compact card); the island (`stages`: its stages, `stagesOf`,
-    plain functions; `island`: the capsule, its gauge and how it moves; `island-files`: the gauge's file lists;
-    `island-steps`: the commits stage's card; `stage-trust`: the extra stage's question; `prs`: the pull requests and
-    their card); Deploy (`deploys`: whether a row has its round button, how it looks, and the set-up card, plain
+    `sticky` (the row you're on, held at the list's edge as the list scrolls past it, folded down: see Animation; how
+    it folds is plain functions, checked by `tests/panel.sh`), and `panel` (`render`, and the functions the app calls
+    on the core). Then each module's, from its `page/`, one per job, each plugging into the core as it loads: Claude
+    Code's `agent` (what a Claude Code session's model, mode and context mean) and `requests` (its requests, questions
+    and plans on a row); Claude Desktop's `switch-model` (Claude's "Switch model?"); the commands module's `commands`
+    (the model, effort and mode labels, the context ring and the Compact card); the island (`stages`: its stages,
+    `stagesOf`, plain functions; `island`: the capsule, its gauge and how it moves; `island-files`: the gauge's file
+    lists; `island-steps`: the commits stage's card; `stage-trust`: the extra stage's question; `prs`: the pull requests
+    and their card); Deploy (`deploys`: whether a row has its round button, how it looks, and the set-up card, plain
     functions; `deploy-row`: the button, the line and the card on a row); the reader's `writings` (what a session wrote:
     its tag, and the reader's `writings` mode, where a plan is sent back or stopped); `changes` (a session's numbers,
     their card's parts of the branch, how the changes view groups files and lays lines side by side: plain functions)
@@ -138,6 +145,10 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     own `usage` (what the card shows, plain functions), `waits` (its wait styles, chosen by name, each a file of its
     own, `wait-vine` the first, whose shape and reset are plain numbers too) and `card` (drawing the card folded,
     slid out and open, opening and folding it, the pointer and presses on it, and the functions the app calls).
+    And the apps module's `back.html` (modules/apps/page/), the panel's back, in a web view of its own on the back of
+    the glass: the panel's tokens, `base` (so its header is the list's) and `controls`, `util` and `icons`, then its
+    own `apps` (what an app's permission says, and the switches once one is pressed: plain functions) and `back`
+    (drawing the apps and each one's page, the pointer and presses, and the functions the app calls).
 
 Bridge, page → native (`type`): `height`, `open`, `pick`, `compact`, `switchAnswer`,
 `answerAsk`, `openPR`, `keyboard`, `badge`, `stageMenu` (a stage of a row's island, `{stage, step, count, pr}`: the app
@@ -147,7 +158,8 @@ app asks it only if the card offers it now), `stageTrust` (your answer about an 
 `{command, allow}`), `stepMenu` (Deploy's menu, as `step: "deploy"`), `deploy`, `checkDeployCommand` (a command on
 Deploy's set-up card, about to be confirmed), `saveDeployCommand`, `expand`
 (the reader's size, `{width, height}`: the panel grows beside the list to fit it, and is asked again as what's shown
-changes) and `collapse` (back to the list), `readWriting` (one of a session's writings, `{sessionId, id}`),
+changes) and `collapse` (back to the list), `turn` (`{on}`: the header's four squares turn the panel over to its
+back), `readWriting` (one of a session's writings, `{sessionId, id}`),
 `closeCopy` (from an "open twice" card: the conversation's other copies in terminals closed, `{sessionId}`),
 `readChanges` (a session's changes for the changes view, `{sessionId, scope}`, asked for ahead as its numbers or its
 island's commits stage are pointed at, so the view opens at once, `scope` being `session` or `branch`, of
@@ -165,7 +177,8 @@ that answers it: `Modules`).
 `answerAsk` for a plan carries `message` (your notes) or `stop`. Native → page:
 `update(rows, now)`, `setRoom`, `hoverAt`/`hoverEnd` (with `still` while the pointer is off the panel without having
 moved there: the panel's edge went past it, or one of its menus closed there; `hoverEnd` comes again once it moves),
-`keyboardGone` (the panel no longer has the keyboard), `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
+`keyboardGone` (the panel no longer has the keyboard), `turned` (the panel is turning over to its back, or back on its
+list side), `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
 it says how something went that worked), `setRunningBuild` and `setSwitches` (the core's, in
 `panel/scripts/panel.js`); `readerOpened(side, width)` (which side the list stays on, and the reader's width) and
 `readerClosed` (in `reader.js`); and each feature's, in its own script: `askSwitch` (`switch-model.js`),
@@ -200,6 +213,12 @@ percent, severity, resetsAt, model}], extraUsage, checkedAt}`, where `state` is 
 its top-left corner, while it's near, or null once it has gone: its window is never key, so it gets no mouse moves) and
 `cardAppear` (its window has come back into sight) (`card.js`).
 
+The panel's back (modules/apps/page/back.html) has a bridge of its own too, in its web view (`BackPage`): it sends
+`appsTurnBack`, `appsFold`, `appsSwitch` (`{app, key, on}`), `appsOpen` and `appsPrivacy` (`{app}`), which the apps
+module answers; and the app calls its `setApps(apps, look)` (each app `{id, name, does, icon, open, switches,
+permission}`), `turned(false)` and `backPointer` (`{x, y}` from its top-left corner while the panel is turned over and
+the pointer is on it, or null) (`back.js`). modules/apps/README.md has each one's shape.
+
 ## Modules
 
 Each outside program Whozmove works with, and each feature, is a module in a folder of its own, so a change in one
@@ -208,16 +227,17 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
 `cards.css` and `motion.css`: the island's, Deploy's and the requests' among them).
 
 - **`app/core/`** is the panel itself: start-up (`AppDelegate`, `main.m`), the registry (`Modules`), the services a
-  module gets (`Core`: the page, the window, the menu bar, the rows, the hosts, the agents), `Rows` (the rows read once
-  a second, each module adding its part in the phase it belongs to, and sent), `Focus` (the session you're on, when you
-  last looked at each, and opening a session from its row), `Send` (words into a session through its host and its
+  module gets (`Core`: the page, the window, the menu bar, the rows, the hosts, the agents, the terminal new sessions
+  start in), `Rows` (the rows read once a second, each module adding its part in the phase it belongs to, and sent),
+  `Focus` (the session you're on, when you last looked at each, and opening a session from its row, an ended terminal
+  session's in a new tab), `Send` (words into a session through its host and its
   agent, and why they can't go in now, worded as the menus, cards and steps say it), `Work` (who's at work in a
   checkout, which the island's steps and Deploy wait for), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing`
   (what the print runs share: the rows read, and read once what's worked out alongside them has come back).
   **`app/contracts/`** holds what modules fill in
   (`Module.h`, `Host.h`, `Agent.h`) and what they pass (`Row`, `Reason`), and **`app/shared/`** the helpers that know no
   app (`Log`, `Files`, `Processes`, `Git`, `Text`, `AppleEvents`, `AppleScript`, `Accessibility`, `Links`,
-  `Menus`).
+  `Menus`, `Appearance`).
 - **`modules/<name>/`** is one module: `app/` (its native code), `page/` (its scripts and styles), `module.json` (its
   page files in order, for tools/page.sh, and its own pages, if it has any: `pages`), `tests/` (its `test.sh`, which
   tests/all.sh runs, and what it compares with) and `README.md` (its pieces, the facts about its program, its
@@ -226,7 +246,9 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
   page's scripts (tests/page-harness.js has their stand-ins and helpers).
 - A module's face is a class that adopts `Module` (app/contracts/Module.h). The core finds it at launch, so nothing
   lists it. It names the page messages it answers (each type has one; two modules answering one fail the tests), its
-  items in the pawn menu and where they go, its print modes, its part of each tick, its part of each row, in the
+  items in the pawn menu and where they go, the apps it works with as the panel's back lists them (each with what
+  Whozmove does with it, the permission macOS has to give, and its switches, or switches it adds to another module's
+  app), its print modes, its part of each tick, its part of each row, in the
   phase it belongs to (the checkout's state, the session's work, its agent's details, and once the rows are whole), and
   whether it's still working something out off the main thread, which a print run waits for. Setting up only prepares
   data, since the tests' print runs make every module too; windows, observers and timers start in `launch`.
@@ -236,16 +258,19 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
   Desktop's). The core finds the host a row runs in (`hostOf:`), so nothing else asks which app it is. On the page,
   each host names its rows (`core.hosts`: its icon, its name, "Open in … now").
 - The agent that runs the sessions is a module that adopts `Agent` (app/contracts/Agent.h). As the rows are read, on
-  their queue, it lists the sessions it runs; the hosts add what they know; it adds what its hooks recorded and the
-  requests waiting; the core adds each session's checkout. It gives each session a title (a terminal finds its tab by
-  it, and by whether the tab's title shows it at work), and names the marks it puts on its commands. A conversation
-  running in more than one process at once is one row, the copy that needs you most, which names the others (`alsoOpen`,
-  with whether each is at work, which Deploy and the island's steps wait for). What more it does, it says by the
-  protocols it adopts beside it, one for each part of the panel that uses it: `AgentWork` (what a session edited, and
-  its PRs), `AgentCommands` (its menus' choices, the commands that make them, and whether one took), `AgentPrompt` (a
-  command typed into a session's prompt while keeping your draft, and when that's safe), `AgentUsage` (your plan's
-  usage) and `AgentStarts` (a new session's command, and folder trust). The core finds the agent that runs a row
-  (`agentOf:`), so nothing else reaches into one: there's one, Claude Code, for now.
+  their queue, it lists the sessions it runs; the hosts add what they know (and Claude Desktop its conversations,
+  running or not); it adds its terminal sessions that have ended, as closed rows no other row has, which Focus opens
+  again in a new tab (`resumeCommand:`, in the terminal it ran in, else the core's `startTerminal`); it adds what its
+  hooks recorded and the requests waiting; the core adds each session's checkout. It gives each session a title (a
+  terminal finds its tab by it, and by whether the tab's title shows it at work), and names the marks it puts on its
+  commands. A conversation running in more than one process at once is one row, the copy that needs you most, which
+  names the others (`alsoOpen`, with whether each is at work, which Deploy and the island's steps wait for). What more
+  it does, it says by the protocols it adopts beside it, one for each part of the panel that uses it: `AgentWork` (what
+  a session edited, and its PRs), `AgentCommands` (its menus' choices, the commands that make them, and whether one
+  took), `AgentPrompt` (a command typed into a session's prompt while keeping your draft, and when that's safe),
+  `AgentUsage` (your plan's usage) and `AgentStarts` (a new session's command, an ended one's, and folder trust). The
+  core finds the agent that runs a row (`agentOf:`), so nothing else reaches into one: there's one, Claude Code, for
+  now.
 - On the page, a module's scripts only register as they load, in the lists panel/scripts/modules.js keeps, and the
   core runs them; a module never calls another's functions or reads its state. Its own state goes on the page's state
   with `moduleState`, which refuses a key another has. What it can plug in:
@@ -268,7 +293,7 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
 - A module keeps the facts about its own program (Spotify's are in modules/spotify/app/SpotifyFacts.h, Claude Code's
   in modules/claude-code/app/ClaudeCodeFacts.h).
 - Preference keys keep their names: build.sh reads `showNextSteps` and `showDeploy`, and every switch keeps its choice
-  across launches.
+  across launches, as the Look menu's do (`panelLook`, `appearance`).
 
 ## Build, install, debug
 
@@ -330,6 +355,8 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   answers nothing in a print run).
 - To see the usage card's wait and reset without a limit to wait for: hold ⌥ as you open the pawn menu, Working on
   Whozmove ▸ Preview the Wait.
+- `Whozmove --print-apps` prints the apps every module lists for the panel's back, in their order, each with what it
+  says, its permission and its switches (those other modules add among them); the apps module's tests check it.
 - `Whozmove --print-starts` prints what sample starts would run (a terminal tab's command, Claude Desktop's link), and
   `Whozmove --print-trust [--trust <folder>] <folder>…` whether Claude may work in each folder, as the state file in
   `$HOME` says, recording your yes for one first with `--trust`. The starts module's tests check the first, and
@@ -441,12 +468,12 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   request, working, a reply you haven't read, however old, one you have, or idle an hour after the last message or the
   last time you were on it) is kept apart from where its row is shown, its section and its place there. The page keeps
   when you were last on each session while it's yours, across launches (`noteOnIt`): you opened it here, wrote to it,
-  or were on it for 2 seconds in Claude or Ghostty in front while at the Mac (the app's `seenAt`). A reply from before
-  then is read. Your turn holds the requests, the replies you haven't read, and the ones you have until you've moved
-  on, away from the session for 10 minutes; once you have, being on it again leaves its row in Seen until something new
-  comes (a reply, or your message). Your turn is first come, first served: a row that comes into it joins the end and
-  keeps its place there, so nothing above it moves; a working row sorts by when its turn began, so two working agents
-  don't trade places with every step. Only a row you've
+  or were on it for 2 seconds in Claude, Ghostty or iTerm2 in front while at the Mac (the app's `seenAt`). A reply from
+  before then is read. Your turn holds the requests, the replies you haven't read, and the ones you have until you've
+  moved on, away from the session for 10 minutes; once you have, being on it again leaves its row in Seen until
+  something new comes (a reply, or your message). Your turn is first come, first served: a row that comes into it joins
+  the end and keeps its place there, so nothing above it moves; a working row sorts by when its turn began, so two
+  working agents don't trade places with every step. Only a row you've
   pressed (`keepInPlace`) keeps the place it was last shown in, and its project's, showing what it is now there, until
   you've moved on from the panel: the pointer off it and moved (`hoverEnd`), no box with the keyboard. These are
   deliberate: read the comments in whose-move.js before changing them.
@@ -462,6 +489,39 @@ Rows that keep their order slide underneath; one that passes others glides over 
 (`.row.glide`, `keptInOrder`). The island animates stage by stage (`morphIsland` in island.js): a segment springs to
 its new width and tint, a changed count blurs out upward as the new one blurs in from below, and a light sweeps once
 across the stage that has just become where your next move is. Reduced motion (`calm`) skips it all.
+
+The row you're on never leaves the list's visible part (`sticky.js`): whatever takes it past an edge, your scrolling or
+the list moving it (to another section as its session starts working, rows above it growing, a shorter list), it holds
+on there, at the list's top past its top, at its bottom past its bottom (`stickyHold`). A row that only grows past the
+bottom edge, its top staying where it was (a card opening on it), stays as it is, still in view. It never holds on while
+one of its boxes is typed in, nor when it's taller than the list's visible part. The row stays in the list, keeping its
+place, so nothing in the list moves; a copy of it, laid over the edge, is what holds on, made as the row starts holding
+on and gone once it lets go. The copy is as tall as the part of the row's place still in view, so the row next to it
+stays touching it, and every point you scroll folds a point off it (`stickyFold`): one line at a time, the one nearest
+the moving edge first (from the bottom up at the top edge, so Claude's line comes up under the title last; from the top
+down at the bottom edge), until its title line, Claude's line and where it runs are left. A folding line keeps its size
+and gives up its room, the line beside it covering it as it fades (`stickyLineFold`), so nothing in it moves or squeezes
+and nothing passes through text. As it attaches, its tint spreads to the list's sides and squares off against the edge;
+what's under it is hidden by a mask on the list, as under the header, and once rows are under it a line shows along its
+edge. The row itself is hidden too (`.row.sticky-away`): WebKit scrolls the list a frame or so ahead of the page laying
+out the copy and the mask, and in a quick scroll the row's place would otherwise show past the mask's edge, the row
+there twice. It follows the scroll position, and every frame anything else moves the list or the row in it
+(`reportHeight`), so scrolling back runs it backwards. Back in view, it hands back to the row at once, however far the
+row came in a frame: a quick scroll moves it tens of points from one frame to the next, and the row is where the list
+put it. Where it can't take over from the row in place (it starts holding on with the row already past the edge, or the
+row's session ends), it fades in or out, the mask fading the other way. When the session you're on changes while it
+holds on (you press another row, or switch to another session in Claude or a terminal), it hands its tint over
+(`stickyHandOff`): the copy slides off at its edge, out of sight, fading, the list under it uncovered as it moves off,
+while its tint goes to the new session's row, where that is in each frame, whose own tint takes over as it lands. The
+tint is on a layer of its own under the list (`#sticky-under`), so as it goes it's drawn behind the rows' text, as a
+row's own tint is. It takes no pointer events, so a scroll over it scrolls the list, and what the pointer is on there is
+found by where it is (`stickyAt`); a press on it scrolls back to the row, which keeps its place meanwhile. Back in view,
+what's on the row counts as only just shown (`showAgain`), so a card that came while it was away can't take a press
+meant for the copy. The copy is inert and has none of the data the page finds a row by, and leaves out what a module's
+line has only while it moves (`core.lines`' `still`). Its lines change as the row's do: what cross-fades on the row does
+on the copy too, a reply rolls in, and a copy of other lines cross-fades in. It fades with the list as the panel folds
+into the cat. Under reduced motion it still follows the scroll, which is your own motion, while its fades, text changes
+and the move back to the row happen at once.
 
 The files gauge opening and closing as it's pointed at is CSS (`motion.css`), from the sizes `layoutIslands` gives it:
 its total goes into the point where its parts meet, then the parts' counts come out of that point, and nothing fades.
@@ -488,6 +548,17 @@ which would flash the whole panel. Only its height follows the window. Don't cov
 the page either: WebKit draws its pictures on white, which shows through the panel's tint as a pale flash. The tint
 itself is in the glass, so it moves with the glass's edges.
 
+The panel turns over natively too (`turnOver:then:` in PanelWindow.m), as one card about its middle: the glass, the
+list's page, the back's page (a module's view, `holdBack:`) and the panel's shadow are turned together by Core
+Animation, as the folded glass's breath is, so nothing is laid out or drawn again on the way. Both sides are always
+drawn, so the back is already there as it comes round; each shows only while it faces you, and they swap edge-on, where
+a thin edge in the panel's colour stands across its side. Turning back carries on the same way round, so over and back
+make one whole turn. The window first takes in room above and below for the near edge, which comes toward you and is
+seen taller than the panel, the glass and the page staying where they are, and is the panel again once it has turned.
+What's held over or under the panel (the usage card, Spotify's token) goes from sight in the same frame the turn starts
+(`followTurn:`), and comes back in the frame it lands on its list side; an open reader folds back first. Reduced motion
+fades one side into the other.
+
 The style: motion is quiet and continuous. A row never vanishes and reappears; no lifted cards, shadows or
 dimming of other rows. Every animation also keeps to these rules, which the vine's tests check:
 
@@ -511,6 +582,9 @@ For a new motion idea, open an issue describing it before building it.
 - A style takes its colours, text sizes and corners from `panel/styles/tokens.css`, where each is named for its job:
   use one there, or add one for a new job, rather than writing a value out. tests/checks.sh fails on one written out
   that `tests/styles-by-hand.txt` doesn't list; that list is the ones still written out, and only ever gets shorter.
+- Each colour token has a dark value and a light one, so the panel follows the Look menu: add both, and try both.
+  tests/checks.sh fails on a colour without its light value. A colour a script sets is a token too, as `var(--…)`,
+  or read with `tokenColour` where a `var()` can't go (an animation's keyframes).
 
 ## Pull requests
 

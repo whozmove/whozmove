@@ -194,6 +194,8 @@ core.lines['.island'] = {
     if (cap) tween(cap, { transform: 'scaleX(1)', opacity: '1' }, { transform: 'scaleX(.2)', opacity: '0' }, null,
                    SPRING_MS);
   },
+  // A copy of the row, as it ends up, leaves out a segment on its way out and the light sweeping across a stage.
+  still(island) { island.querySelectorAll('.seg-leaving, .sheen').forEach((el) => el.remove()); },
 };
 
 // The gauges are sized as soon as the list's HTML is in, before anything below measures them; and as the panel opens

@@ -3,6 +3,88 @@
     "agent": {
       "compactWindow": 800000,
       "effort": "medium",
+      "mode": "acceptEdits",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/ended",
+    "entrypoint": "cli",
+    "lastPrompt": "carry on with k-ghostty",
+    "lastPromptAt": "now-121m",
+    "lastReply": "Done: the page loads again.",
+    "lastReplyAt": "now-120m",
+    "messageAt": "now-120m",
+    "name": "the k-ghostty one",
+    "opensIn": "Ghostty",
+    "permissionMode": "acceptEdits",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-ghostty",
+    "stageAt": "now-120m",
+    "status": "closed",
+    "statusUpdatedAt": "now-120m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/ended",
+    "entrypoint": "cli",
+    "messageAt": "now-200m",
+    "name": "the k-iterm one",
+    "opensIn": "iTerm2",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-iterm",
+    "status": "closed",
+    "statusUpdatedAt": "now-200m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/ended",
+    "entrypoint": "cli",
+    "messageAt": "now-300m",
+    "name": "the k-terminal one",
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-terminal",
+    "status": "closed",
+    "statusUpdatedAt": "now-300m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/ended",
+    "entrypoint": "cli",
+    "messageAt": "now-400m",
+    "name": "the k-vscode one",
+    "opensIn": "Ghostty",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-vscode",
+    "status": "closed",
+    "statusUpdatedAt": "now-400m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
       "mode": "auto",
       "model": "claude-sonnet-5-5",
       "tokens": 0
@@ -997,11 +1079,227 @@
 ]
 the usage check listed as a row: False
 requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json 
+== What's kept of each running terminal session so its row stays once it ends (with a stand-in for its terminal),
+   and which of those kept are dropped: their process went on to another conversation (left), or they've gone
+   (stale)
+{
+  "keeps": {
+    "s-ask": {
+      "activeAt": "now-60m",
+      "cwd": "T/ask",
+      "name": "plan the trip",
+      "pid": "pid",
+      "procStart": "start-s-ask-0",
+      "sessionId": "s-ask",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-ask.jsonl"
+    },
+    "s-both": {
+      "activeAt": "now-60m",
+      "cwd": "T/both",
+      "name": "draft the invite",
+      "pid": "pid",
+      "procStart": "start-s-both-1",
+      "sessionId": "s-both",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-both.jsonl"
+    },
+    "s-clone": {
+      "activeAt": "now-21m",
+      "cwd": "T/clone",
+      "name": "review notes",
+      "pid": "pid",
+      "procStart": "start-clone",
+      "sessionId": "s-clone",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-clone.jsonl"
+    },
+    "s-halt": {
+      "activeAt": "now-40m",
+      "cwd": "T/idle",
+      "name": "rest a while",
+      "pid": "pid",
+      "procStart": "start-halt",
+      "sessionId": "s-halt",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-halt.jsonl"
+    },
+    "s-idle": {
+      "activeAt": "now-60m",
+      "cwd": "T/idle",
+      "name": "sort the photos",
+      "pid": "pid",
+      "procStart": "start-s-idle-0",
+      "sessionId": "s-idle",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-idle.jsonl"
+    },
+    "s-term": {
+      "activeAt": "now-9m",
+      "cwd": "T/repo",
+      "name": "fix tests",
+      "pid": "pid",
+      "procStart": "start-1",
+      "sessionId": "s-term",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-term.jsonl"
+    },
+    "s-topic": {
+      "activeAt": "now-13m",
+      "cwd": "T/clone",
+      "pid": "pid",
+      "procStart": "start-topic",
+      "sessionId": "s-topic",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-topic.jsonl"
+    },
+    "s-twice": {
+      "activeAt": "now-30m",
+      "cwd": "T/twice",
+      "name": "tidy the docs",
+      "pid": "pid",
+      "procStart": "start-twice-busy",
+      "sessionId": "s-twice",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-twice.jsonl"
+    },
+    "s-wt": {
+      "activeAt": "now-2m",
+      "cwd": "T/repo-wt",
+      "pid": "pid",
+      "procStart": "start-2",
+      "sessionId": "s-wt",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-wt.jsonl"
+    }
+  },
+  "left": [
+    "k-cleared"
+  ],
+  "stale": [
+    "k-no-transcript",
+    "k-old",
+    "s-closed"
+  ]
+}
+files kept in the sample home after the runs: broken.json k-cleared.json k-folder-gone.json k-ghostty.json k-iterm.json k-misnamed.json k-no-transcript.json k-old.json k-terminal.json k-vscode.json s-closed.json s-term.json 
 == Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send
 == macOS permissions the app asks for that README.md doesn't name, and repo files naming one it doesn't ask for
 == Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu
    would type (null: not offered)
 {
+  "k-ghostty" : {
+    "mode" : "acceptEdits",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : null,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 1
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-iterm" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-terminal" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-vscode" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
   "m-auto" : {
     "mode" : "auto",
     "possibleCycles" : [
@@ -1534,6 +1832,34 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
    steps say it (null: something can), with a terminal the panel types into unless said otherwise
 {
   "as found" : {
+    "k-ghostty" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-iterm" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-terminal" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-vscode" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
     "m-auto" : {
       "ask" : "Send this conversation's first message first",
       "compact" : "Send this conversation's first message first",
@@ -1825,6 +2151,10 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
 == Each session: why its island's steps and its Deploy wait now (null: they don't), for its own agent or another
    at work in the same checkout
 {
+  "k-ghostty" : null,
+  "k-iterm" : null,
+  "k-terminal" : null,
+  "k-vscode" : null,
   "m-auto" : null,
   "m-bypass" : null,
   "m-dontask" : null,

@@ -11,9 +11,9 @@
 
 /* Deploy's set-up card (setupHTML), edged in the pawn's amber as Deploy is. Its command, once confirmed, shows as
    it will run (.perm-detail); a warning if it looks as if it could reach production, as the Compact card's note. */
-.perm.deploy-setup { border-color: rgba(255, 197, 61, 0.35); }
+.perm.deploy-setup { border-color: var(--turn-edge); }
 /* The extra stage's card (trustHTML): the command shown as it will run, in the stage's colour. */
-.perm.stage-trust { border-color: rgba(64, 200, 190, 0.35); }
+.perm.stage-trust { border-color: var(--wait-edge); }
 .perm.stage-trust .q-help, .perm.stage-trust .c-note { margin-top: 5px; }
 .perm.deploy-setup .q-help { margin-top: 3px; }
 .perm.deploy-setup .c-note { margin-top: 5px; }
@@ -66,22 +66,22 @@
           border-bottom: 1px solid var(--rule); }
 .f-list { max-height: 150px; overflow: auto; padding-top: 4px; }
 .f-file { padding: 2px 11px; font-size: var(--size-small); white-space: nowrap; overflow: hidden;
-          text-overflow: ellipsis; color: rgba(255, 255, 255, 0.88); }
+          text-overflow: ellipsis; color: var(--file-text); }
 .f-dir { color: var(--dim); }
 .f-new { font-size: var(--size-tag); color: var(--done-text); }
 .f-more { padding: 4px 11px 2px; font-size: var(--size-small); color: var(--muted); }
 .c-top { display: flex; align-items: center; gap: 8px; font-size: var(--size-small); color: var(--muted); }
 .pill { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 6px;
         border-radius: var(--radius-pill); font-size: var(--size-small); font-weight: 600; }
-.pill.open { color: #3fb950; background: rgba(46, 160, 67, 0.15); border: 1px solid rgba(46, 160, 67, 0.45); }
-.pill.draft, .pill.unknown { color: #9198a1; background: rgba(145, 152, 161, 0.12);
-                             border: 1px solid rgba(145, 152, 161, 0.35); }
+.pill.open { color: var(--pr-open-text); background: var(--pr-open-fill); border: 1px solid var(--pr-open-edge); }
+.pill.draft, .pill.unknown { color: var(--pr-draft-text); background: var(--pr-draft-fill);
+                             border: 1px solid var(--pr-draft-edge); }
 .c-ref { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .c-time { margin-left: auto; flex: none; color: var(--faint); }
 .c-title { margin: 7px 0 9px; font-size: var(--size-title); font-weight: 600; line-height: 1.3; color: var(--text);
            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .c-foot { display: flex; align-items: center; gap: 6px; font-size: var(--size-small); color: var(--muted); }
-.c-foot .avatar { width: 16px; height: 16px; border-radius: var(--radius-circle); background: rgba(255, 255, 255, 0.12); }
+.c-foot .avatar { width: 16px; height: 16px; border-radius: var(--radius-circle); background: var(--avatar); }
 .c-stats { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 /* The card a row's "open twice" shows (twiceCardHTML): how many times, where else, and what that means. */
 .tw-head { font-size: var(--size-body); font-weight: 600; color: var(--text); }
@@ -93,12 +93,12 @@
 .c-diff { font-weight: 600; font-variant-numeric: tabular-nums; }
 .c-diff .add { color: var(--added); }
 .c-diff .del { color: var(--removed); }
-.c-files { padding: 1px 6px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: var(--radius-small); }
+.c-files { padding: 1px 6px; border: 1px solid var(--outline); border-radius: var(--radius-small); }
 
 /* A tool waiting for your OK, on its agent's row (see askHTML). */
 /* Long words (a path, a URL) break wherever they must rather than run out of the card. */
 .perm { margin-top: 7px; padding: 9px 10px 10px; border-radius: var(--radius-box); background: var(--surface);
-        border: 1px solid rgba(255, 107, 74, 0.3); overflow-wrap: anywhere; }
+        border: 1px solid var(--needs-edge); overflow-wrap: anywhere; }
 .perm button { overflow-wrap: anywhere; }
 .perm-title { font-size: var(--size-body); font-weight: 600; color: var(--text); }
 .perm-why { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
@@ -120,8 +120,9 @@
 .perm button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
                color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
 .perm button.is-hover { background: var(--button-hover); }
-.perm button.perm-allow { background: var(--light); border-color: transparent; color: var(--on-light); font-weight: 600; }
-.perm button.perm-allow.is-hover { background: var(--light-hover); }
+.perm button.perm-allow { background: var(--main-button); border-color: transparent; color: var(--on-main-button);
+                           font-weight: 600; }
+.perm button.perm-allow.is-hover { background: var(--main-button-hover); }
 .perm-sent { font-size: var(--size-card); color: var(--muted); }
 .perm button:disabled { opacity: 0.4; }
 
@@ -130,7 +131,7 @@
 .q-top { display: flex; align-items: flex-start; gap: 8px; }
 .q-top .q-head { flex: 1; font-size: 12.5px; font-weight: 600; }
 .q-count { flex: none; font-size: var(--size-small); font-weight: 600; padding: 0 7px;
-           border-radius: var(--radius-pill); color: #ffc53d; background: var(--turn-fill); }
+           border-radius: var(--radius-pill); color: var(--turn-words); background: var(--turn-fill); }
 .perm .q-close { flex: none; width: 20px; height: 20px; margin: -2px -4px 0 0; padding: 0;
                  border-radius: var(--radius-small); border: none; background: none; color: var(--muted);
                  font-size: var(--size-close); line-height: 19px; text-align: center; }
@@ -139,14 +140,14 @@
 .q-head { display: flex; align-items: baseline; gap: 6px; font-size: var(--size-body); line-height: 1.35;
           color: var(--text); }
 .q-chip { flex: none; font-size: var(--size-chip); font-weight: 600; padding: 0 5px; border-radius: var(--radius-tag);
-          background: rgba(255, 255, 255, 0.1); color: var(--muted); }
+          background: var(--chip); color: var(--muted); }
 .q-help { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
 .q-opts { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .opt { display: block; width: 100%; text-align: left; font: inherit; padding: 5px 8px;
        border-radius: var(--radius-control); color: var(--text); border: 1px solid var(--edge);
-       background: rgba(255, 255, 255, 0.04); }
-.opt.is-hover { background: rgba(255, 255, 255, 0.09); }
-.opt.on { border-color: rgba(242, 242, 243, 0.75); background: var(--picked); }
+       background: var(--choice); }
+.opt.is-hover { background: var(--choice-pointed); }
+.opt.on { border-color: var(--picked-edge); background: var(--picked); }
 .opt-label { font-size: var(--size-body); font-weight: 500; }
 /* The pick's mark, as macOS draws them: a round button for one choice (blue with a white dot when
    picked), a rounded box for several (blue with a white tick). */
@@ -155,7 +156,7 @@
                      vertical-align: -2px; border: 1.5px solid var(--box-edge); border-radius: var(--radius-circle); }
 .multi .opt-label::before { border-radius: 3.5px; }
 .opt.on .opt-label::before { border-color: var(--tick);
-                             background: radial-gradient(circle, var(--bright) 0 2.4px, var(--tick) 2.9px); }
+                             background: radial-gradient(circle, var(--on-colour) 0 2.4px, var(--tick) 2.9px); }
 .multi .opt.on .opt-label::before {
   background: var(--tick) no-repeat center / 11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
 viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.3 5 8.6 9.5 3.7' fill='none' stroke='white' stroke-width='1.9' \
@@ -164,7 +165,7 @@ stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .q-type { width: 100%; margin-top: 5px; font: inherit; font-size: var(--size-body); padding: 5px 8px;
           border-radius: var(--radius-control); outline: none; color: var(--text); border: 1px solid var(--field-edge);
           background: var(--field); -webkit-user-select: text; cursor: text; }
-.q-type:focus { border-color: rgba(255, 255, 255, 0.45); }
+.q-type:focus { border-color: var(--field-focus); }
 .q-number { display: flex; align-items: center; gap: 8px; }
 .q-number .q-type { width: 96px; }
 .q-unit { font-size: var(--size-card); color: var(--muted); }
@@ -177,16 +178,17 @@ stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 #ask h3 { font-size: var(--size-title); font-weight: 600; margin-bottom: 6px; }
 #ask p { font-size: var(--size-card); line-height: 1.4; color: var(--muted); }
 #ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; font-size: var(--size-card); }
-#ask .box { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255, 255, 255, 0.35); display: grid;
+#ask .box { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--tickbox-edge); display: grid;
             place-items: center; }
-#ask .never.on .box { background: var(--light); border-color: var(--light); }
-#ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700; color: var(--on-light); }
+#ask .never.on .box { background: var(--main-button); border-color: var(--main-button); }
+#ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700; color: var(--on-main-button); }
 #ask .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 #ask button { font: inherit; font-size: var(--size-body); padding: 5px 12px; border-radius: var(--radius-control);
               color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
 #ask button.is-hover { background: var(--button-hover); }
-#ask button.go { background: var(--light); border-color: transparent; color: var(--on-light); font-weight: 600; }
-#ask button.go.is-hover { background: var(--light-hover); }
+#ask button.go { background: var(--main-button); border-color: transparent; color: var(--on-main-button);
+                 font-weight: 600; }
+#ask button.go.is-hover { background: var(--main-button-hover); }
 
 /* A plan waiting for your OK (planAskHTML), edged in the plan tag's colour. */
-.perm.plan-ask { border-color: rgba(170, 140, 255, 0.35); }
+.perm.plan-ask { border-color: var(--plan-edge); }

@@ -138,6 +138,11 @@ window.readerClosed = () => {
   document.body.classList.remove('reading', 'list-left', 'reader-shown');
   reader.innerHTML = '';
   render();
+  // The header's four squares were pressed with the reader open: the panel turns over now that it has folded back.
+  if (state.turnAfterReader) {
+    state.turnAfterReader = false;
+    native({ type: 'turn', on: true });
+  }
 };
 
 // ---- Drawing ----

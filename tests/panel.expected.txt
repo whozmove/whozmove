@@ -19,6 +19,8 @@ replied 61 min ago, and you wrote to it 30 min ago: seen
 a turn you stopped long after its reply, its transcript moving until 5 min ago: seen
 never replied: idle
 a closed conversation that replied 5 min ago, not opened: turn
+a terminal session that has ended, its reply 5 min ago not read: turn
+…its reply 2 h ago read then: idle
 replied 3 h ago, before the page first kept the replies you had not read, not opened: idle
 your turn since, a request: true
 …Claude waiting on you, from when its status changed: true
@@ -73,6 +75,57 @@ projects by their newest row: [/work/one] (rows) a1.turn [/work/two] (rows) b1.s
 …but a row you pressed keeps its project where it was, as it starts work: [/work/one] (rows) a1.turn [/work/two] (rows) b1.busy
 …until you've moved on: [/work/two] (rows) b1.busy [/work/one] (rows) a1.turn
 
+== The row you're on, held at the edge
+in view: null
+just past the top: under the header: top
+just past the bottom: above the bottom edge: bottom
+wholly above, and wholly below: ["top","bottom"]
+right at either edge: still in view: [null,null]
+at the top edge, 0 points past it: 151 tall | nothing folded | attached 0, under 0
+at the top edge, 12 points past it: 139 tall | pr −12 | attached 0.5, under 0
+at the top edge, 30 points past it: 121 tall | setup −11, pr −19 | attached 1, under 0
+at the top edge, 52 points past it: 99 tall | island −14, setup −19, pr −19 | attached 1, under 0
+at the top edge, 74 points past it: 77 tall | you −13, island −23, setup −19, pr −19 | attached 1, under 0
+at the top edge, 96 points past it: 72 tall | you −18, island −23, setup −19, pr −19 | attached 1, under 1
+at the top edge, 130 points past it: 72 tall | you −18, island −23, setup −19, pr −19 | attached 1, under 1
+at the bottom edge, 12 points past it: 139 tall | you −12 | attached 0.5, under 0
+at the bottom edge, 30 points past it: 121 tall | you −18, island −12 | attached 1, under 0
+at the bottom edge, 52 points past it: 99 tall | you −18, island −23, setup −11 | attached 1, under 0
+at the bottom edge, 74 points past it: 77 tall | you −18, island −23, setup −19, pr −14 | attached 1, under 0
+at the bottom edge, 96 points past it: 72 tall | you −18, island −23, setup −19, pr −19 | attached 1, under 1
+as tall as what of its place is in view, so the row next to it stays touching it: true
+…what has gone all folded off the lines that go: true
+…and never less than the lines that stay: 72
+a place still taller than the copy (a line it lost folding away there): as tall as the place, nothing folded: 165 tall | nothing folded | attached 0, under 0
+a line folding 0 points at the top edge: its foot goes under: margins 3/0, cut 0/0, faded to 1
+a line folding 2 points at the top edge: its foot goes under: margins 3/-2, cut 0/2, faded to 0.94
+a line folding 8 points at the top edge: its foot goes under: margins 3/-8, cut 0/8, faded to 0.34
+a line folding 22 points at the top edge: its foot goes under: margins 3/-22, cut 0/19, faded to 0
+…and at the bottom edge: its margin, then its head: margins 1/0, cut 0/0, faded to 0.94
+…and at the bottom edge: its margin, then its head: margins -5/0, cut 5/0, faded to 0.34
+…and at the bottom edge: its margin, then its head: margins -19/0, cut 19/0, faded to 0
+taken just past the top (scrolled, or moved by the list): holds on in place, no fade: {"edge":"top","fade":false}
+…past the bottom (moved to a section further down as it starts working): {"edge":"bottom","fade":false}
+only grown past the bottom, its top where it was (a card opening on it): stays as it is, in view: {"edge":null,"fade":false}
+…until something takes it further: then it fades in: {"edge":"bottom","fade":true}
+…but not when it's brought back toward view: {"edge":null,"fade":false}
+one of its boxes typed in: never: {"edge":null,"fade":false}
+taller than the list: never: {"edge":null,"fade":false}
+holding on, the list moving it further or back: still holds on: {"edge":"top","fade":false}
+back in view: hands back at once, however far it came in one frame: {"edge":null,"fade":false} {"edge":null,"fade":false} {"edge":null,"fade":false}
+…and from the bottom edge: {"edge":null,"fade":false} {"edge":null,"fade":false}
+still past the edge but now typed in, or too tall: fades out: {"edge":null,"fade":true} {"edge":null,"fade":true}
+from one edge to the other at once: fades in there: {"edge":"bottom","fade":true}
+a row 150 tall, shown from the top and from the bottom: [4,346]
+…about as tall as the list: no gap that would push it out at the other edge: [2,0]
+…clear of the copy held at the top (72) or the bottom (80): [76,266]
+what the copy would cover once the list has scrolled: still past the top, at least its lines that stay: [72,0]
+…past the top, more of its place in view than that: [130,0]
+…back in view, nothing: [0,0]
+…past the bottom: [0,80]
+…taller than the list, nothing: [0,0]
+the row back in view: its cards and its request count as just shown, another row's don't: compact:s now, island:other before, ask1 now
+
 == Sorting
 working, your message newer than its reply: now-3m
 working, no new message: now-2m
@@ -109,9 +162,9 @@ ago 172800s: 2d
 elapsed 12s: 12s
 elapsed 76s: 1m 16s
 elapsed 3780s: 1h 3m
-ring colour, 10% used: rgba(255, 255, 255, 0.55)
-ring colour, 70% used: #ffc53d
-ring colour, 90% used: #ff6b4a
+ring colour, 10% used: var(--level-normal)
+ring colour, 70% used: var(--level-warning)
+ring colour, 90% used: var(--level-limit)
 
 == Projects
 a worktree counts toward its repo: {"key":"/work/app","name":"app"}
@@ -209,9 +262,9 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">high</span> · <span class="pick" data-pick="mode" title="Change mode">Edits</span></span><span class="ctx" data-ctx="w1" title="12% · 120k of 1M tokens in context · 847k left before auto-compact" style="color:rgba(255, 255, 255, 0.55);--fill:12%">
-      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
-      <circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255, 255, 255, 0.55)" stroke-width="1.6" stroke-linecap="round"
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">high</span> · <span class="pick" data-pick="mode" title="Change mode">Edits</span></span><span class="ctx" data-ctx="w1" title="12% · 120k of 1M tokens in context · 847k left before auto-compact" style="color:var(--level-normal);--fill:12%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--level-normal)" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="3.77 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
         
       </div>
@@ -229,9 +282,9 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         <div class="where" title="/work/app
 branch feature
 worktree app-f of app
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="wt branch"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">feature</span></span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:#ffc53d;--fill:75%">
-      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
-      <circle cx="6" cy="6" r="5" fill="none" stroke="#ffc53d" stroke-width="1.6" stroke-linecap="round"
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="wt branch"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">feature</span></span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:var(--level-warning);--fill:75%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--level-warning)" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="23.56 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
         <div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt">Fix the tests</span></div><div class="pr draft " data-url="https://github.com/e/app/pull/2"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#2</span><span class="pt">Draft</span></div></div>
       </div>
@@ -283,6 +336,21 @@ Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><pa
         
       </div>
     </div>
+-- a terminal session that has ended, which a press opens again in Ghostty
+<div class="row turn closed" data-id="k1" title="Not running: click to open it in Ghostty">
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">Fix the page</span>
+          <span class="time">2h</span>
+        </div>
+        <div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Done.</span></div>
+        
+        <div class="where" title="/work/site
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">site</span></div>
+        
+      </div>
+    </div>
 -- the Compact card open
 <div class="row idle" data-id="c1" >
       <span class="dot" style=""></span>
@@ -295,15 +363,20 @@ Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><pa
         <div class="perm compact" data-compact="c1"><div class="q-top"><span class="q-head">Compact the conversation</span><span class="c-left" title="before auto-compact">67k left</span><button class="q-close" title="Close">×</button></div><div class="q-opts"><button class="opt" data-level="0"><span class="opt-label">Compact</span><span class="opt-desc">Summarize the conversation so far</span></button><button class="opt" data-level="1"><span class="opt-label">Keep details</span><span class="opt-desc">Older work summarized; the current task kept in detail</span></button><button class="opt" data-level="2"><span class="opt-label">Keep essentials</span><span class="opt-desc">Only decisions, open tasks and key files</span></button></div><input class="q-type c-focus" placeholder="Or your own focus, then Return" value=""></div>
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span></span><span class="ctx open" data-ctx="c1" title="90% · 900k of 1M tokens in context · 67k left before auto-compact" style="color:#ff6b4a;--fill:90%">
-      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
-      <circle cx="6" cy="6" r="5" fill="none" stroke="#ff6b4a" stroke-width="1.6" stroke-linecap="round"
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span></span><span class="ctx open" data-ctx="c1" title="90% · 900k of 1M tokens in context · 67k left before auto-compact" style="color:var(--level-limit);--fill:90%">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
+      <circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--level-limit)" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="28.27 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
         
       </div>
     </div>
 a terminal session that's the one you're on says where it's open: true
+a terminal session that has ended says where a press opens it again: Not running: click to open it in iTerm2
+…with no terminal to name: Not running
+…its terminal's name escaped: Not running: click to open it in My &quot;Term&quot; &lt;1&gt;
+a closed Claude Desktop conversation says a press opens it in Claude: Not running: click to open it in Claude
 a Claude Desktop conversation just clicked is the only one marked, not the terminal session you were on: [true,false]
+…and so is a terminal session just clicked, before the app has read its tab: [true,false]
 
 == Open twice
 its details line: <div class="where" title="/work/app
@@ -840,7 +913,7 @@ the branch, from its side: itself, the others biggest first, then outside these 
 <div class="cc-big"><b class="add">+26</b><b class="del">−13</b>
       <span>this session, not committed</span></div>
     <div class="cc-lede">2% of what isn't committed in this checkout</div>
-    <div class="cc-bar"><i style="width:2.36%;background:#4aa8ff"></i><i style="width:1.51%;background:#b69cff"></i><i style="width:96.12%;background:#ffc53d"></i></div><div class="cc-legend"><span class="cc-sw" style="background:#4aa8ff"></span><span class="cc-name me">This session<small> · 2 files</small></span><span class="cc-v">+26 −13</span><span class="cc-sw" style="background:#b69cff"></span><span class="cc-name">Retry tests<small></small></span><span class="cc-v">+24 −1</span><span class="cc-sw" style="background:#ffc53d"></span><span class="cc-name">Outside these sessions<small></small></span><span class="cc-v">+1,464 −123</span></div>
+    <div class="cc-bar"><i style="width:2.36%;background:var(--who-me)"></i><i style="width:1.51%;background:var(--who-other)"></i><i style="width:96.12%;background:var(--who-outside)"></i></div><div class="cc-legend"><span class="cc-sw" style="background:var(--who-me)"></span><span class="cc-name me">This session<small> · 2 files</small></span><span class="cc-v">+26 −13</span><span class="cc-sw" style="background:var(--who-other)"></span><span class="cc-name">Retry tests<small></small></span><span class="cc-v">+24 −1</span><span class="cc-sw" style="background:var(--who-outside)"></span><span class="cc-name">Outside these sessions<small></small></span><span class="cc-v">+1,464 −123</span></div>
     <div class="cc-total"><span>All sessions</span>
       <b>+1,514 −137</b></div>
     <div class="cc-hint">Press to see the changes.</div>
@@ -877,7 +950,7 @@ a little colour for code: ["  <span class=\"c-cm\">// a &lt;note&gt;</span>","sa
 <section class="c-block" data-block="billing/retry.py"><div class="c-fhead">
       <span class="c-path"><i>billing/</i>retry.py</span>
       <span class="c-nums"><span class="add">+20</span><span class="del">−0</span></span><span class="c-chip new">New</span><span class="c-chip shared">Also changed by Retry tests</span>
-      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button></span></div><table class="c-lines"><tr class="c-gap"><td colspan="5"><b>9 lines</b> unchanged</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">10</td><td class="c-ln">10</td><td class="c-sg"></td><td class="c-code">def a():</td></tr><tr class="del"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln">11</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    old()</td></tr><tr class="del"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln">12</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    older()</td></tr><tr class="add"><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln"></td><td class="c-ln">11</td><td class="c-sg">+</td><td class="c-code">    new()</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">13</td><td class="c-ln">12</td><td class="c-sg"></td><td class="c-code"></td></tr><tr class="add"><td class="c-who" style="--who:#b69cff"></td><td class="c-ln"></td><td class="c-ln">13</td><td class="c-sg">+</td><td class="c-code"><span class="c-cm"># tested</span></td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button></span></div><table class="c-lines"><tr class="c-gap"><td colspan="5"><b>9 lines</b> unchanged</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">10</td><td class="c-ln">10</td><td class="c-sg"></td><td class="c-code">def a():</td></tr><tr class="del"><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln">11</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    old()</td></tr><tr class="del"><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln">12</td><td class="c-ln"></td><td class="c-sg">−</td><td class="c-code">    older()</td></tr><tr class="add"><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln"></td><td class="c-ln">11</td><td class="c-sg">+</td><td class="c-code">    new()</td></tr><tr class=""><td class="c-who"></td><td class="c-ln">13</td><td class="c-ln">12</td><td class="c-sg"></td><td class="c-code"></td></tr><tr class="add"><td class="c-who" style="--who:var(--who-other)"></td><td class="c-ln"></td><td class="c-ln">13</td><td class="c-sg">+</td><td class="c-code"><span class="c-cm"># tested</span></td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
       <span class="c-path"><i>docs/</i>retries.md</span>
       <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
       <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Editor</button></span></div><table class="c-lines"></table></section>
@@ -885,7 +958,7 @@ a little colour for code: ["  <span class=\"c-cm\">// a &lt;note&gt;</span>","sa
 <section class="c-block" data-block="billing/retry.py"><div class="c-fhead">
       <span class="c-path"><i>billing/</i>retry.py</span>
       <span class="c-nums"><span class="add">+20</span><span class="del">−0</span></span><span class="c-chip new">New</span><span class="c-chip shared">Also changed by Retry tests</span>
-      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button><div class="c-picker"><div class="c-pq">Open files with</div><button class="c-app" data-editor="com.microsoft.VSCode" data-path="billing/retry.py">Visual Studio Code</button><div class="c-later">Kept for next time. Change it in the pawn menu, Open With.</div></div></span></div><table class="c-lines split"><tr class="c-gap"><td colspan="7"><b>9 lines</b> unchanged</td></tr><tr><td class="c-who"></td><td class="c-ln ">10</td><td class="c-sg "></td><td class="c-code ">def a():</td><td class="c-ln  mid">10</td><td class="c-sg "></td><td class="c-code ">def a():</td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln del">11</td><td class="c-sg del">−</td><td class="c-code del">    old()</td><td class="c-ln add mid">11</td><td class="c-sg add">+</td><td class="c-code add">    new()</td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln del">12</td><td class="c-sg del">−</td><td class="c-code del">    older()</td><td class="c-ln blank mid"></td><td class="c-sg blank"></td><td class="c-code blank"></td></tr><tr><td class="c-who"></td><td class="c-ln ">13</td><td class="c-sg "></td><td class="c-code "></td><td class="c-ln  mid">12</td><td class="c-sg "></td><td class="c-code "></td></tr><tr><td class="c-who" style="--who:#b69cff"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">13</td><td class="c-sg add">+</td><td class="c-code add"><span class="c-cm"># tested</span></td></tr><tr><td class="c-who" style="--who:#4aa8ff"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">14</td><td class="c-sg add">+</td><td class="c-code add live">def later():</td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
+      <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="billing/retry.py">Open in Editor</button><div class="c-picker"><div class="c-pq">Open files with</div><button class="c-app" data-editor="com.microsoft.VSCode" data-path="billing/retry.py">Visual Studio Code</button><div class="c-later">Kept for next time. Change it in the pawn menu, Open With.</div></div></span></div><table class="c-lines split"><tr class="c-gap"><td colspan="7"><b>9 lines</b> unchanged</td></tr><tr><td class="c-who"></td><td class="c-ln ">10</td><td class="c-sg "></td><td class="c-code ">def a():</td><td class="c-ln  mid">10</td><td class="c-sg "></td><td class="c-code ">def a():</td></tr><tr><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln del">11</td><td class="c-sg del">−</td><td class="c-code del">    old()</td><td class="c-ln add mid">11</td><td class="c-sg add">+</td><td class="c-code add">    new()</td></tr><tr><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln del">12</td><td class="c-sg del">−</td><td class="c-code del">    older()</td><td class="c-ln blank mid"></td><td class="c-sg blank"></td><td class="c-code blank"></td></tr><tr><td class="c-who"></td><td class="c-ln ">13</td><td class="c-sg "></td><td class="c-code "></td><td class="c-ln  mid">12</td><td class="c-sg "></td><td class="c-code "></td></tr><tr><td class="c-who" style="--who:var(--who-other)"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">13</td><td class="c-sg add">+</td><td class="c-code add"><span class="c-cm"># tested</span></td></tr><tr><td class="c-who" style="--who:var(--who-me)"></td><td class="c-ln blank"></td><td class="c-sg blank"></td><td class="c-code blank"></td><td class="c-ln add mid">14</td><td class="c-sg add">+</td><td class="c-code add live">def later():</td></tr></table></section><section class="c-block" data-block="docs/retries.md"><div class="c-fhead">
       <span class="c-path"><i>docs/</i>retries.md</span>
       <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
       <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Editor</button></span></div><table class="c-lines split"></table></section>

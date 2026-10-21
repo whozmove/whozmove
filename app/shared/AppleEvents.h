@@ -11,6 +11,10 @@ NSAppleEventDescriptor *AppleEventEvery(FourCharCode cls, NSAppleEventDescriptor
 // without your leave to control it (macOS asks the first time a script tells it something), there's just no answer.
 // Its answer, or nil. It blocks only the thread it's on, so it can run off the main thread.
 NSAppleEventDescriptor *AskQuietly(pid_t pid, NSAppleEventDescriptor *specifier, NSTimeInterval timeout);
+// Asks the process `pid` the same way for a property of every element of a class in `of` (the app itself when nil):
+// each as text, in their order, or nil without an answer.
+NSArray<NSString *> *AskEvery(pid_t pid, FourCharCode cls, FourCharCode property, NSAppleEventDescriptor *of,
+                              NSTimeInterval timeout);
 // One Apple event to the process `pid`, waiting `timeout` seconds at most: its answer (the null descriptor when it
 // gives none), or nil with why in `status`.
 NSAppleEventDescriptor *SendAppleEvent(pid_t pid, AEEventClass eventClass, AEEventID eventId,

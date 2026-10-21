@@ -19,12 +19,12 @@ const state = {
   closedProjects: store.get('closedProjects', {}),  // project folder -> true while folded
   sliding: 0,
 
-  // The session you're on (goTo) and the one the app last marked as shown, in Claude Desktop or Ghostty
+  // The session you're on (goTo) and the one the app last marked as shown, in Claude Desktop or a terminal
   // (followClaude); the rows you've pressed, until you've moved on from the panel (keepInPlace); what each session was
   // at the last render (needs, busy, turn, seen or idle: classify), and where its row was shown, { section, key, tie,
   // latest } (placeRows); when you were last on each session while it was yours, which reads its replies (noteOnIt),
   // and when that was last written down, and the time before which every reply counts as read (isRead), the first and
-  // the last kept across launches; a Claude Desktop conversation just clicked, { sessionId, at } (openedNow); and the
+  // the last kept across launches; a session just clicked, { sessionId, at } (openedNow); and the
   // session marked as shown at the last render (revealOpenConversation).
   current: null,
   claudeShowed: null,
@@ -44,7 +44,11 @@ const state = {
   // minute after it has gone from the list (forgetGone).
   listedAt: {}, loadedAt: Date.now(),
 
-  // The pawn menu's switches (setSwitches): Show Next Steps, Show Deploy, and Show Build in Header; and the build of
+  // Whether the panel is turned over to the apps on its back, or on its way (turned), and whether it turns over once
+  // the reader beside the list has folded back (the header's four squares, input.js).
+  turned: false, turnAfterReader: false,
+
+  // The panel's switches (setSwitches): Show Next Steps, Show Deploy, and Show Build in Header; and the build of
   // Whozmove running now (setRunningBuild), which the header names while that's on.
   switches: { nextSteps: true, deploy: true, build: false }, running: null,
   // The sessions that speak for their checkouts, from the last render (checkoutOwners), whose rows show their
@@ -54,6 +58,17 @@ const state = {
 
   // Whether the list has been drawn before, and until when the next rebuild waits for an animation to finish.
   morphed: false, settleUntil: 0, settleTimer: null,
+
+  // The row you're on, held at the list's edge as it would leave the list's visible part (sticky.js): the row in the
+  // list and its session; the edge it holds on at (top, bottom or null); whether its place was in view, and where it
+  // and the list's bottom edge were, when last looked at; the copy that holds on while it does, with its chat line's
+  // text, its lines' kinds, each line as measured and its height; what it was last laid out for, and how many copies
+  // have been made; the part of the list it covers and the list's border above that; how far it has faded in, the timer
+  // of its fade or of its tint going to another row, and whether it's going; and the scroll back to the row after a
+  // press.
+  sticky: { row: null, sid: null, edge: null, inView: false, lastT: null, lastV: 0, copy: null, chat: null, shape: '',
+            lines: [], full: 0, drawn: '', copies: 0, band: [0, 0], clientTop: 0, fade: 1, ramp: 0, leaving: false,
+            mover: 0 },
 
   // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd);
   // the card it opened (and what a press on one of its buttons does, for one that has them), where that ends, and

@@ -16,6 +16,7 @@
 #import "SpotifyToken.h"
 #import "Spotify.h"
 #import "SpotifyFacts.h"
+#import "Appearance.h"
 #import <QuartzCore/QuartzCore.h>
 
 // The disc, the box it's drawn in (with its ring and shadow), and the window: the box, then room for the label.
@@ -92,11 +93,16 @@ static CGFloat Bounced(CGFloat t) {
 
 @interface TokenView : NSView
 @property (copy) void (^onDown)(void);
+@property (copy) void (^onLook)(void);  // the app has turned light or dark
 @end
 
 @implementation TokenView
 - (BOOL)acceptsFirstMouse:(NSEvent *)event { return YES; }
 - (void)mouseDown:(NSEvent *)event { if (self.onDown) self.onDown(); }
+- (void)viewDidChangeEffectiveAppearance {
+    [super viewDidChangeEffectiveAppearance];
+    if (self.onLook) self.onLook();
+}
 @end
 
 @interface SpotifyToken ()
@@ -154,7 +160,12 @@ static CGFloat Bounced(CGFloat t) {
     self.panel.contentView = self.view;
     __weak typeof(self) weakSelf = self;
     self.view.onDown = ^{ [weakSelf pressed]; };
+    self.view.onLook = ^{
+        [weakSelf paint];
+        [weakSelf drawLabel];
+    };
     [self buildLayers];
+    [self paint];
     self.out = self.outTo = kTucked;
     self.state = @"hidden";
     return self;
@@ -185,8 +196,6 @@ static CGFloat Bounced(CGFloat t) {
         [self.box addSublayer:each];
     }
     CGPathRelease(ringPath);
-    self.ringTrack.strokeColor = [NSColor colorWithWhite:1 alpha:0.12].CGColor;
-    self.ring.strokeColor = [NSColor colorWithWhite:1 alpha:0.85].CGColor;
     // Clockwise from the top, as a clock's hand goes.
     self.ring.transform = CATransform3DMakeRotation(M_PI_2, 0, 0, 1);
     self.ring.transform = CATransform3DScale(self.ring.transform, 1, -1, 1);
@@ -194,7 +203,6 @@ static CGFloat Bounced(CGFloat t) {
     self.holder = [CALayer layer];
     self.holder.frame = CGRectMake(c - kDisc / 2, c - kDisc / 2, kDisc, kDisc);
     self.holder.shadowColor = NSColor.blackColor.CGColor;
-    self.holder.shadowOpacity = 0.4;
     self.holder.shadowRadius = 6;
     self.holder.shadowOffset = CGSizeMake(0, -3);
     CGPathRef discPath = CGPathCreateWithEllipseInRect(self.holder.bounds, NULL);
@@ -207,7 +215,6 @@ static CGFloat Bounced(CGFloat t) {
     self.disc.cornerRadius = kDisc / 2;
     self.disc.masksToBounds = YES;
     self.disc.borderWidth = 0.5;
-    self.disc.borderColor = [NSColor colorWithWhite:1 alpha:0.18].CGColor;
     [self.holder addSublayer:self.disc];
     // An app's icon has a margin round its picture: drawn larger than the disc, the picture fills it.
     self.icon = [CALayer layer];
@@ -228,7 +235,6 @@ static CGFloat Bounced(CGFloat t) {
     self.badge.cornerRadius = 7;
     self.badge.masksToBounds = YES;
     self.badge.borderWidth = 1.5;
-    self.badge.borderColor = [NSColor colorWithSRGBRed:0.12 green:0.12 blue:0.15 alpha:1].CGColor;
     self.badge.contentsGravity = kCAGravityResizeAspectFill;
     self.badge.contentsScale = scale;
     self.badge.opacity = 0;
@@ -236,15 +242,38 @@ static CGFloat Bounced(CGFloat t) {
 
     // The label: what a press does, beside the token, outside the panel.
     self.label = [CALayer layer];
-    self.label.backgroundColor = [NSColor colorWithSRGBRed:0.08 green:0.08 blue:0.106 alpha:0.94].CGColor;
     self.label.cornerRadius = 7;
     self.label.borderWidth = 0.5;
-    self.label.borderColor = [NSColor colorWithWhite:1 alpha:0.14].CGColor;
     self.label.opacity = 0;
     self.labelText = [CATextLayer layer];
     self.labelText.contentsScale = scale;
     [self.label addSublayer:self.labelText];
     [self.view.layer addSublayer:self.label];
+}
+
+// Whether the token is on the dark panel or the light one (the panel's Look menu, app/core/MenuBar.m).
+- (BOOL)dark {
+    return IsDark(self.view.effectiveAppearance);
+}
+
+// Its colours, the panel's: its ring, the disc's edge and its colour behind Spotify's icon, the badge's edge (the
+// panel's dark, or its light, setting it apart from the disc), the label's colour and edge, and its shadow, softer on
+// the light panel. Painted again whenever the panel turns light or dark.
+- (void)paint {
+    BOOL dark = self.dark;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.ringTrack.strokeColor = [NSColor colorWithWhite:dark ? 1 : 0 alpha:0.12].CGColor;
+    self.ring.strokeColor = [NSColor colorWithWhite:dark ? 1 : 0 alpha:dark ? 0.85 : 0.6].CGColor;
+    self.holder.shadowOpacity = dark ? 0.4 : 0.22;
+    self.disc.borderColor = [NSColor colorWithWhite:dark ? 1 : 0 alpha:dark ? 0.18 : 0.12].CGColor;
+    self.disc.backgroundColor = [NSColor colorWithWhite:dark ? 0.12 : 0.95 alpha:1].CGColor;
+    self.badge.borderColor = (dark ? [NSColor colorWithSRGBRed:0.12 green:0.12 blue:0.15 alpha:1]
+                                   : [NSColor colorWithSRGBRed:0.96 green:0.96 blue:0.97 alpha:1]).CGColor;
+    self.label.backgroundColor = (dark ? [NSColor colorWithSRGBRed:0.08 green:0.08 blue:0.106 alpha:0.94]
+                                       : [NSColor colorWithWhite:1 alpha:0.96]).CGColor;
+    self.label.borderColor = [NSColor colorWithWhite:dark ? 1 : 0 alpha:dark ? 0.14 : 0.1].CGColor;
+    [CATransaction commit];
 }
 
 // Spotify's mark, drawn, for when there's no app on this Mac to take its icon from: the same green disc and three
@@ -355,7 +384,6 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     [CATransaction setAnimationDuration:fade && !Calm() ? 0.4 : 0];
     self.icon.contents = (__bridge id)ImageOf(icon, 96);
     self.icon.opacity = coverReady ? 0 : 1;
-    self.disc.backgroundColor = [NSColor colorWithWhite:0.12 alpha:1].CGColor;
     self.cover.opacity = coverReady ? 1 : 0;
     self.ringTrack.opacity = self.ring.opacity = song ? 1 : 0;
     self.ring.strokeEnd = song ? [self.token[@"progress"] doubleValue] : 0;
@@ -401,13 +429,15 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     else if ([state isEqual:@"refused"]) { what = @"Allow in Settings"; more = @"to control Spotify"; }
     if (!what) return;
     NSFont *font = [NSFont systemFontOfSize:11];
+    BOOL dark = self.dark;
+    NSColor *words = [NSColor colorWithWhite:dark ? 0.93 : 0.13 alpha:1];
     NSMutableAttributedString *text = [[NSMutableAttributedString alloc] initWithString:what attributes:@{
-        NSFontAttributeName: font, NSForegroundColorAttributeName: [NSColor colorWithWhite:0.93 alpha:1]}];
+        NSFontAttributeName: font, NSForegroundColorAttributeName: words}];
     if (more.length)
         [text appendAttributedString:[[NSAttributedString alloc]
             initWithString:[@" · " stringByAppendingString:more]
                 attributes:@{NSFontAttributeName: font,
-                             NSForegroundColorAttributeName: [NSColor colorWithWhite:0.62 alpha:1]}]];
+                             NSForegroundColorAttributeName: [NSColor colorWithWhite:dark ? 0.62 : 0.42 alpha:1]}]];
     CGFloat width = MIN(kLabelRoom - 10, ceil(text.size.width)), height = 20;
     [CATransaction begin];
     [CATransaction setDisableActions:YES];

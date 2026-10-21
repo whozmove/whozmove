@@ -38,6 +38,10 @@ show('a turn you stopped long after its reply, its transcript moving until 5 min
 show('never replied', classify(session({}), NOW, unread));
 show('a closed conversation that replied 5 min ago, not opened',
   classify(session({ ...reply, status: 'closed', entrypoint: 'claude-desktop', pid: 0 }), NOW, unread));
+show('a terminal session that has ended, its reply 5 min ago not read', classify(session({ ...reply,
+  status: 'closed', pid: 0, opensIn: 'Ghostty' }), NOW, unread));
+show('…its reply 2 h ago read then', classify(session({ ...repliedAt(min(120)), sessionId: 'k1', status: 'closed',
+  pid: 0, opensIn: 'Ghostty' }), NOW, readHere('k1', min(119))));
 show('replied 3 h ago, before the page first kept the replies you had not read, not opened',
   classify(session(repliedAt(min(180))), NOW, { seen: {}, readBefore: min(120) }));
 show('your turn since, a request', turnSince(session({ ask: { id: 'a', tool: 'Bash', input: {}, at: min(3) } }),
@@ -260,6 +264,86 @@ show('…but a row you pressed keeps its project where it was, as it starts work
 show("…until you've moved on", outline(projectsHTML(placeOnce([one, twoAtWork]), NOW)));
 state.groupBy = 'status';
 
+section("The row you're on, held at the edge");
+show('in view', stickyEdge(10, 150, 500));
+show('just past the top: under the header', stickyEdge(-1, 150, 500));
+show('just past the bottom: above the bottom edge', stickyEdge(360, 150, 500));
+show('wholly above, and wholly below', [stickyEdge(-400, 150, 500), stickyEdge(900, 150, 500)]);
+show('right at either edge: still in view', [stickyEdge(0, 150, 500), stickyEdge(350, 150, 500)]);
+// A row of seven lines with its padding (9 and 9): its title, your message, Claude's line, where it runs, the island,
+// the setup line and a pull request. The title, Claude's line and where it runs stay.
+const rowLines = [['title', 17, true], ['you', 18, false], ['claude', 18, true], ['where', 19, true],
+                  ['island', 23, false], ['setup', 19, false], ['pr', 19, false]]
+  .map(([name, extent, keep]) => ({ name, extent, keep }));
+const rowFull = 18 + rowLines.reduce((sum, l) => sum + l.extent, 0);
+// The copy `past` points past the edge: its height, what has folded off which line, how attached it is, and how far
+// rows are under it.
+const foldAt = (past, edge) => {
+  const f = stickyFold(rowLines, rowFull, rowFull - past, edge);
+  const folded = rowLines.map((l, i) => (f.folds[i] ? `${l.name} −${f.folds[i]}` : '')).filter(Boolean);
+  return `${f.height} tall | ${folded.join(', ') || 'nothing folded'} | attached ${+f.attach.toFixed(2)}, `
+    + `under ${+f.under.toFixed(2)}`;
+};
+for (const past of [0, 12, 30, 52, 74, 96, 130]) show(`at the top edge, ${past} points past it`, foldAt(past, 'top'));
+for (const past of [12, 30, 52, 74, 96]) show(`at the bottom edge, ${past} points past it`, foldAt(past, 'bottom'));
+show('as tall as what of its place is in view, so the row next to it stays touching it',
+  [0, 12, 30, 52, 74].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'top').height === rowFull - past));
+show('…what has gone all folded off the lines that go',
+  [12, 30, 52, 74].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'bottom').folds
+    .reduce((sum, f) => sum + f, 0) === past));
+show('…and never less than the lines that stay', stickyFold(rowLines, rowFull, 10, 'top').height);
+show('a place still taller than the copy (a line it lost folding away there): as tall as the place, nothing folded',
+  foldAt(-14, 'top'));
+// A line of the copy 19 tall under a margin of 3, folding by f.
+const lineAt = (f, edge) => {
+  const fold = stickyLineFold({ h: 19, m: 3 }, f, edge);
+  return `margins ${fold.marginTop}/${fold.marginBottom}, cut ${fold.clip.join('/')}, `
+    + `faded to ${+fold.opacity.toFixed(2)}`;
+};
+for (const f of [0, 2, 8, 22])
+  show(`a line folding ${f} points at the top edge: its foot goes under`, lineAt(f, 'top'));
+for (const f of [2, 8, 22]) show(`…and at the bottom edge: its margin, then its head`, lineAt(f, 'bottom'));
+// Whether it holds on: the row 150 tall in a list showing 500, with how it was till now and whether its top has moved
+// toward the edge it's past.
+const holdAt = (t, how) => JSON.stringify(stickyHold(t, 150, 500, { was: null, inView: true, away: true,
+                                                                     typing: false, ...how }));
+show('taken just past the top (scrolled, or moved by the list): holds on in place, no fade', holdAt(-2));
+show('…past the bottom (moved to a section further down as it starts working)', holdAt(352));
+show('only grown past the bottom, its top where it was (a card opening on it): stays as it is, in view',
+  holdAt(352, { away: false }));
+show('…until something takes it further: then it fades in', holdAt(360, { inView: false }));
+show('…but not when it\'s brought back toward view', holdAt(356, { inView: false, away: false }));
+show('one of its boxes typed in: never', holdAt(-2, { typing: true }));
+show('taller than the list: never', JSON.stringify(stickyHold(-2, 520, 500, { away: true, inView: true })));
+show('holding on, the list moving it further or back: still holds on', holdAt(-40, { was: 'top', away: false }));
+show('back in view: hands back at once, however far it came in one frame',
+  [0.5, 30, 120].map((t) => holdAt(t, { was: 'top' })).join(' '));
+show('…and from the bottom edge', [349.6, 200].map((t) => holdAt(t, { was: 'bottom' })).join(' '));
+show('still past the edge but now typed in, or too tall: fades out',
+  [holdAt(-20, { was: 'top', typing: true }), JSON.stringify(stickyHold(-20, 520, 500, { was: 'top' }))].join(' '));
+show('from one edge to the other at once: fades in there', holdAt(400, { was: 'top' }));
+// Where a row goes to be shown whole, and how far the list scrolls for that.
+show('a row 150 tall, shown from the top and from the bottom', [showAt(150, 500, 'top'), showAt(150, 500, 'bottom')]);
+show('…about as tall as the list: no gap that would push it out at the other edge',
+  [showAt(498, 500, 'top'), showAt(498, 500, 'bottom')]);
+show('…clear of the copy held at the top (72) or the bottom (80)',
+  [showAt(150, 500, 'top', 72, 0), showAt(150, 500, 'bottom', 0, 80)]);
+show('what the copy would cover once the list has scrolled: still past the top, at least its lines that stay',
+  stickyCovers(-100, 150, 500, 72, 20));
+show('…past the top, more of its place in view than that', stickyCovers(-30, 150, 500, 72, -10));
+show('…back in view, nothing', stickyCovers(-30, 150, 500, 72, -40));
+show('…past the bottom', stickyCovers(420, 150, 500, 72, 0));
+show('…taller than the list, nothing', stickyCovers(-100, 520, 500, 72, 0));
+// Back in view, what came on the row while it was away counts as only just shown.
+state.shownAt = { 'compact:s': NOW - 5000, 'island:other': NOW - 5000, ask1: NOW - 5000 };
+const realNow = Date.now;
+Date.now = () => NOW;
+showAgain(session({ sessionId: 's', ask: { id: 'ask1' } }));
+Date.now = realNow;
+show('the row back in view: its cards and its request count as just shown, another row\'s don\'t',
+  Object.entries(state.shownAt).map(([key, at]) => `${key} ${at === NOW ? 'now' : 'before'}`).join(', '));
+state.shownAt = {};
+
 section('Sorting');
 const since = (t) => `now-${Math.round((NOW - t) / 60000)}m`;
 show('working, your message newer than its reply',
@@ -338,6 +422,9 @@ const rows = [
   ['a closed Claude Desktop conversation, open in Claude', session({ sessionId: 'd1', status: 'closed',
     entrypoint: 'claude-desktop', focused: true, name: 'Desk chat', pid: 0, lastReply: 'Done.', lastReplyAt: min(300),
     lastPromptAt: min(301), lastFocusedAt: min(299), outcome: 'Answered', git: null, cwd: '/work/notes' })],
+  ['a terminal session that has ended, which a press opens again in Ghostty', session({ sessionId: 'k1',
+    status: 'closed', pid: 0, opensIn: 'Ghostty', name: 'Fix the page', lastReply: 'Done.', lastReplyAt: min(120),
+    lastPromptAt: min(121), git: null, cwd: '/work/site' })],
 ];
 for (const [name, s] of rows) print(`-- ${name}\n${rowHTML(s, classify(s, NOW, view()), NOW)}`);
 state.compactOpen.c1 = true;
@@ -346,10 +433,19 @@ print(`-- the Compact card open\n${rowHTML(compacting, classify(compacting, NOW,
 delete state.compactOpen.c1;
 show("a terminal session that's the one you're on says where it's open",
      /title="Open in your terminal now"/.test(rowHTML(session({ sessionId: 'f1', focused: true }), 'idle', NOW)));
+const tipOf = (fields) => /title="([^"]*)"/.exec(rowHTML(session({ sessionId: 'k2', status: 'closed', pid: 0,
+  ...fields }), 'idle', NOW))?.[1];
+show('a terminal session that has ended says where a press opens it again', tipOf({ opensIn: 'iTerm2' }));
+show('…with no terminal to name', tipOf({}));
+show('…its terminal\'s name escaped', tipOf({ opensIn: 'My "Term" <1>' }));
+show('a closed Claude Desktop conversation says a press opens it in Claude', tipOf({ entrypoint: 'claude-desktop' }));
 state.opening = { sessionId: 'd2', at: NOW };
 show('a Claude Desktop conversation just clicked is the only one marked, not the terminal session you were on',
      [session({ sessionId: 'd2', entrypoint: 'claude-desktop' }), session({ sessionId: 'f1', focused: true })]
        .map((s) => openedNow(s).focused));
+state.opening = { sessionId: 't2', at: NOW };
+show('…and so is a terminal session just clicked, before the app has read its tab',
+     [session({ sessionId: 't2' }), session({ sessionId: 'f1', focused: true })].map((s) => openedNow(s).focused));
 state.opening = null;
 
 section('Open twice');

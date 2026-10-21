@@ -122,6 +122,10 @@ static NSString *JSONText(id value) {
     [self call:@"keyboardGone" arguments:nil];
 }
 
+- (void)turned:(BOOL)on {
+    [self call:@"turned" arguments:on ? @"true" : @"false"];
+}
+
 - (void)catPointer:(NSPoint)offset {
     [self call:@"catPointer" arguments:[NSString stringWithFormat:@"%.1f, %.1f", offset.x, offset.y]];
 }

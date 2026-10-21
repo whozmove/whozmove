@@ -18,7 +18,7 @@ body.collapsed #dock { display: none; }
 #flight .row { position: absolute; margin: 0; }
 .row.landing { visibility: hidden; }  /* a new row, while its copy is still rising to it */
 .row.compose, .row.compose.is-hover { background: var(--surface); }
-.row.compose > .dot { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.5); }
+.row.compose > .dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--compose-dot); }
 .row.compose .name { color: var(--muted); }
 /* Where it starts, on chips under the box, where the row's details line will be: the project, then where in it. A worktree is the core's chip (.wt), at the
    card's size, and a new one's branch to start from is on an outlined chip before it. Pressing a chip opens what @ or
@@ -43,8 +43,8 @@ body.collapsed #dock { display: none; }
          color: var(--text); background: var(--field); border: 1px solid var(--field-edge);
          border-radius: var(--radius-control); outline: none; -webkit-user-select: text; user-select: text;
          cursor: text; }
-.c-box:focus { border-color: rgba(255, 255, 255, 0.42); }
-.c-box::placeholder { color: rgba(255, 255, 255, 0.32); }
+.c-box:focus { border-color: var(--compose-focus); }
+.c-box::placeholder { color: var(--faint); }
 /* What @ or # offers, under the box, the one picked lit, with a word under it when there's more to say. */
 .c-list { margin-top: 6px; padding: 3px; border-radius: var(--radius-control); background: var(--field); }
 .c-lhead { padding: 3px 7px 4px; color: var(--faint); font-size: var(--size-meta); }
@@ -77,7 +77,7 @@ body.collapsed #dock { display: none; }
 .c-split { display: inline-flex; }
 .c-go { flex: none; display: inline-flex; align-items: center; padding: 2px 9px; border: 0;
         border-radius: var(--radius-control); font: inherit; font-size: var(--size-small); line-height: 17px;
-        font-weight: 600; color: var(--on-light); background: var(--light); }
+        font-weight: 600; color: var(--on-main-button); background: var(--main-button); }
 .c-go svg { flex: none; }
 /* The app's name once there are words, and "Start in" before it while ⌘ is held: each opens to the left, as Start's
    right edge stays put, eased to its own width (easeButton in starts.js). */
@@ -90,8 +90,8 @@ body.cmd .c-go:enabled .go-verb { max-width: none; opacity: 1; }
 .st-app { display: inline-flex; align-items: center; padding: 0 6px; border: 0;
          border-radius: var(--radius-control); border-top-left-radius: 0; border-bottom-left-radius: 0;
          box-shadow: inset 1px 0 0 var(--field);
-         color: var(--on-light); background: var(--light); }
-.c-go.is-hover, .st-app.is-hover, body.cmd .c-go:enabled { background: var(--light-hover); }
+         color: var(--on-main-button); background: var(--main-button); }
+.c-go.is-hover, .st-app.is-hover, body.cmd .c-go:enabled { background: var(--main-button-hover); }
 .c-go:disabled { opacity: .4; }
 
 /* The cat in the name hops once as a conversation starts from the panel. It's drawn in its own units, about 17 to a

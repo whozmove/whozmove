@@ -9,23 +9,23 @@ native({ type: 'fold', on: document.body.classList.contains('collapsed'), instan
 
 // ---- Keeping rows in place ----
 
-// The session you're on: last opened from here, or switched to in Claude Desktop or in Ghostty's tabs, where a new
-// conversation starts unless you choose another place (starts.js). Its row goes where it belongs, as every row does
+// The session you're on: last opened from here, or switched to in Claude Desktop or in a terminal's tabs, where a
+// new conversation starts unless you choose another place (starts.js). Its row goes where it belongs, as every row does
 // but one you've pressed.
 function goTo(sid) { state.current = sid; }
 // The app marks the session you're on (`focused`): the conversation Claude Desktop shows, or the session in the
-// Ghostty tab you're looking at, whichever of the two apps you were in last. When the mark moves, so does goTo's: as
-// the page shows it, so a conversation just opened in Claude counts at once (openedNow).
+// terminal tab you're looking at (Ghostty's or iTerm2's), whichever of those apps you were in last. When the mark
+// moves, so does goTo's: as the page shows it, so a session just opened here counts at once (openedNow).
 function followClaude() {
   const sid = state.last.sessions.map(openedNow).find((s) => s.focused)?.sessionId || null;
   if (sid && sid !== state.claudeShowed) goTo(sid);
   state.claudeShowed = sid;
 }
 // When you were last on each session while it was yours (stillOnIt in whose-move.js): you opened it here, the app saw
-// you on it in Claude or Ghostty (its seenAt, which it forgets when it restarts), or you wrote to it. What it replied
-// before then is read (classify), and a reply you've read stays in Your turn until you've moved on (sectionOf). Kept
-// across launches: written down at once when it moves past something new (a reply, or your message), and otherwise at
-// most once a minute while you stay on it, so a restart loses no more than that.
+// you on it in Claude, Ghostty or iTerm2 (its seenAt, which it forgets when it restarts), or you wrote to it. What it
+// replied before then is read (classify), and a reply you've read stays in Your turn until you've moved on (sectionOf).
+// Kept across launches: written down at once when it moves past something new (a reply, or your message), and otherwise
+// at most once a minute while you stay on it, so a restart loses no more than that.
 function noteOnIt(s, at, now) {
   const kept = state.seen[s.sessionId] || 0, next = stillOnIt(s, kept, at, now, state.readBefore);
   if (next === kept) return;
@@ -52,10 +52,11 @@ function view() { return { seen: state.seen, readBefore: state.readBefore }; }
 
 // ---- Rendering ----
 
-// A conversation in an app that marks it as shown only once its own record says so (Claude Desktop's, a host with
-// marksOpenAtOnce), clicked here, shows as the one open at once, rather than a second or so later when Claude's log
-// says so (later still if the list is mid-move), until the data agrees, or for 4s. Meanwhile it's the only one marked:
-// until Claude is in front, the session you were on in your terminal still is.
+// A session clicked here shows as the one you're on at once, rather than when the app says so: a second or so later for
+// Claude Desktop, whose log says which conversation it shows; once the rows have been read again for a terminal's tab;
+// later still while the list is mid-move, as the rows wait for it. So the row you're on takes its tint as you press
+// it. It stays so until the data agrees, or for 4s (a terminal the app can't follow never does). Meanwhile it's the
+// only one marked: until its app is in front, the session you were on in the other still is.
 function openedNow(s) {
   if (!state.opening) return s;
   const it = s.sessionId === state.opening.sessionId;
@@ -126,19 +127,12 @@ function nameRunningBuild() {
   if (!el.querySelector('.roll-copy') && el.textContent !== text) el.textContent = text;  // not mid-roll
 }
 
-// When the session you're on changes (the conversation open in Claude, or the Ghostty tab you're looking at), the
-// list scrolls just enough to show its row. Only on a change, so it never fights a scroll of the list by hand.
+// When the session you're on changes (the conversation open in Claude, or the terminal tab you're looking at), the
+// list scrolls just enough to show its row (showInList). Only on a change, so it never fights a scroll of the list by
+// hand.
 function revealOpenConversation() {
-  const list = document.getElementById('list');
-  const row = [...list.querySelectorAll('.row.focused')].find((r) => !r.closest('.prows.closed'));
-  const id = row?.dataset.id || null;
-  if (row && id !== state.lastOpenId) {
-    requestAnimationFrame(() => {
-      const r = row.getBoundingClientRect(), view = list.getBoundingClientRect();
-      if (r.top < view.top) list.scrollTop -= view.top - r.top + 4;
-      else if (r.bottom > view.bottom) list.scrollTop += r.bottom - view.bottom + 4;
-    });
-  }
+  const row = focusedRow(document.getElementById('list')), id = row?.dataset.id || null;
+  if (row && id !== state.lastOpenId) requestAnimationFrame(() => showInList(row));
   state.lastOpenId = id;
 }
 
@@ -146,6 +140,7 @@ function revealOpenConversation() {
 // the island's commits stage, say).
 function reportHeight() {
   requestAnimationFrame(() => {
+    stickyPlace();  // the row you're on, held at the list's edge, goes with whatever has moved the list
     // The reader sizes the panel until it closes (fitReader), the list's column as it changes included.
     if (state.reading) { fitReader(); return; }
     const content = Math.ceil(document.getElementById('root').getBoundingClientRect().height);
@@ -175,9 +170,7 @@ function forgetGone(sessions) {
     for (const id of Object.keys(state[key])) if (gone(id)) delete state[key][id];
   // A card, island or button first shown for a session ('compact:<id>', 'island:<id>', …) goes with it, as does a
   // request's card, kept by the request's id.
-  const shown = new RegExp(`^(${core.forgotten.prefixes.join('|')}):`);
-  const ofKey = (key) => key.replace(shown, '').replace(/:.*$/, '');
-  for (const key of Object.keys(state.shownAt)) if (gone(ofKey(key))) delete state.shownAt[key];
+  for (const key of Object.keys(state.shownAt)) if (gone(shownFor(key))) delete state.shownAt[key];
   const read = Object.keys(state.seen).filter((id) => gone(id) && now - state.seen[id] > IDLE_AFTER_MS);
   for (const id of read) delete state.seen[id];
   if (read.length) store.set('seen', state.seen);
@@ -266,16 +259,27 @@ window.keyboardGone = () => {
   if (state.pressedRows.size) renderWhenSettled();
 };
 
+// The panel turning over to the apps on its back, or back on its list side (app/core/PanelWindow.m): meanwhile the
+// pointer isn't on the list, and no box here has the keyboard.
+window.turned = (on) => {
+  state.turned = !!on;
+  if (!on) return;
+  pointerGone();
+  if (document.activeElement?.closest?.(textBoxes())) document.activeElement.blur();
+};
+
 // The build of Whozmove running now, as build.sh recorded it (app/core/Builds.m), or null: the header's name for it.
 window.setRunningBuild = (running) => {
   state.running = running;
   render();
 };
 
-// The pawn menu's switches: Show Next Steps (each row's island, and Deploy's button), Show Deploy (Deploy's round
-// button), and Show Build in Header.
+// The panel's switches: Show Next Steps (each row's island, and Deploy's button), Show Deploy (Deploy's round
+// button), and Show Build in Header; and the panel's look from its Look menu, grey, black or glass, for the colours
+// that match the panel's own (tokens.css).
 window.setSwitches = (switches) => {
   state.switches = { nextSteps: !!switches.nextSteps, deploy: !!switches.deploy, build: !!switches.build };
+  document.documentElement.dataset.look = switches.look || 'grey';
   render();
 };
 

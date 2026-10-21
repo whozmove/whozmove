@@ -1,11 +1,12 @@
 # Claude Code
 
-The agent that runs the sessions the panel lists: its running sessions and what its hooks recorded of each, what's new
+The agent that runs the sessions the panel lists: its running sessions, its terminal sessions kept once they've ended,
+and what its hooks recorded of each, what's new
 in each session's transcript (its PRs, what it wrote for you to read, what it edited, its context, its mode), each
 session's details, the words of the commands the panel sends (`/model`, `/effort`, `/plan`, `/compact`) and what their
 results say, typing a command into a session's prompt while keeping your draft, the requests waiting for your answer in
-the panel, your plan's usage asked of `claude`, whether Claude may work in a folder, a new session's command, and its
-hooks plugin.
+the panel, your plan's usage asked of `claude`, whether Claude may work in a folder, a new session's command and an
+ended one's, and its hooks plugin.
 
 ## Its pieces
 
@@ -14,7 +15,13 @@ hooks plugin.
   row: in the first phase, it starts reading what's new in the transcripts (every 10s) and whether Claude Code records
   shell commands' changes in the sessions' folders (every 5s); then each session's last message and writings; then its
   details, with a pick from the panel the session hasn't confirmed yet; and once the rows are whole, it forgets the
-  launch flags of sessions that have ended.
+  launch flags of sessions that have ended, and keeps each running terminal session's record (`KeptSessions.m`).
+- `app/KeptSessions.m`: the terminal sessions it ran lately, kept so their rows stay once they've ended, as Claude
+  Desktop keeps its conversations: a file for each in Whozmove's folder (`conversations/<id>.json`: its folder, name,
+  the terminal it runs in, its process, its transcript and when its conversation last moved), written on a queue of
+  its own when one changes, from launch on; read back on the rows' queue as rows with status `closed` and no process,
+  for 3 days after the conversation last moved; pruned once the sessions running now are known, then every hour. A
+  press on one runs the agent's `resumeCommand:` (`claude --resume <id>`) in a new tab, which the core's Focus opens.
 - `app/ClaudeSessions.m`: the running sessions, from Claude Code's registry (leaving out its own usage check), and what
   the hooks recorded of each. A conversation running in more than one process at once (resumed in a second tab while
   it still runs, or open in Claude Desktop and a terminal) is one row: the copy that needs you most, else the one it
@@ -54,7 +61,8 @@ hooks plugin.
 `tests/hooks.expected.txt`. tests/rows.sh checks the rest in its sample home: the rows (`--print-rows`), when keys may
 go into each session and the Shift+Tabs its mode menu would type (`--print-mode-moves`), the keys a command is typed
 with (`--print-typing`), how a command's result is read (`--print-results`), what the usage strip gets from Claude
-Code's answers (`--print-usage`), and folder trust (`--print-trust`).
+Code's answers (`--print-usage`), folder trust (`--print-trust`), and what's kept of each terminal session and what's
+dropped (`--print-kept`).
 
 ## Between the page and the app
 
@@ -82,3 +90,9 @@ Code's answers (`--print-usage`), and folder trust (`--print-trust`).
   folder you trusted on the card, under the lock Claude Code takes.
 - The plugin's contents decide its version: a changed hook gets a new one, and reaches only sessions started after it
   goes in.
+- A kept session's record holds no prompt or reply (those stay in the hooks' own record), only you may read it, and
+  it's written only from launch on, never in a print run. Only sessions started in a terminal (`cli`) that have a
+  transcript are kept; one whose process has gone on to another conversation (`/clear`, or `/resume` of another) is
+  dropped, as you left it there; and one goes 3 days after its conversation last moved, or once Claude Code no longer
+  has its transcript. One is listed only while no other row has it (Claude Desktop's own row comes first) and its
+  folder is there, and a press carries it on only in that folder, as the same conversation.

@@ -57,8 +57,8 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .uc-light { color: var(--muted); }
 .uc-light b { font-weight: 600; color: var(--text); }
 .uc-light .uc-d { color: var(--dim); }
-.uc-ink { top: 76px; color: var(--on-light-soft); }
-.uc-ink b { font-weight: 600; color: var(--on-light); }
+.uc-ink { top: 76px; color: var(--on-gauge-soft); }
+.uc-ink b { font-weight: 600; color: var(--on-gauge); }
 .uc-gap { flex: 1; }
 /* The card's shape, as the card is wherever it is (card.js moves it with the card as it opens and folds): its colour is
    cut to it, so where the colour ends in one of the card's round corners it follows the corner. */
@@ -92,7 +92,7 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .u-row { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; }
 .u-label { flex: none; width: 50px; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
 .u-track { flex: 1 1 auto; min-width: 0; height: 4px; border-radius: var(--radius-bar);
-           background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+           background: var(--usage-track); overflow: hidden; }
 .u-fill { display: block; height: 100%; width: 0; border-radius: var(--radius-bar);
           transition: width .6s cubic-bezier(.2, .8, .2, 1), background-color .4s ease; }
 .u-pct { flex: none; width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -111,7 +111,7 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .u-row.is-hover .u-left { transform: translateX(26px); opacity: 0; }
 .u-row.is-hover .u-clock { transform: none; opacity: 1; }
 /* Only when you're on course to run out before the reset, in "your move" amber. */
-.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn); text-align: center;
+.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn-words); text-align: center;
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .u-pace[hidden], #usage.is-signin .u-pace { display: none; }
 
@@ -119,9 +119,9 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .u-handle { position: absolute; top: 0; left: 50%; z-index: 1; width: 48px; height: 10px; margin-left: -24px;
             display: grid; place-items: center; opacity: 0; transition: opacity .2s ease; }
 .u-handle::after { content: ''; width: 26px; height: 3px; border-radius: var(--radius-bar);
-                   background: rgba(255, 255, 255, 0.35); transition: background-color .15s ease; }
+                   background: var(--handle); transition: background-color .15s ease; }
 .u-strip.is-hover .u-handle { opacity: 1; }
-.u-handle.is-hover::after { background: rgba(255, 255, 255, 0.7); }
+.u-handle.is-hover::after { background: var(--handle-pointed); }
 
 /* Signed out. */
 .u-signin { display: none; align-items: center; gap: 10px; min-height: 26px; }
@@ -129,8 +129,9 @@ html, body { margin: 0; background: transparent; color: var(--text);
 #usage.is-signin .u-row, #usage.is-signin .u-handle { display: none; }
 .u-signin span { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); }
 .u-sign-in { flex: none; font: inherit; font-size: var(--size-small); font-weight: 600; padding: 3px 10px; border: none;
-             border-radius: var(--radius-button); background: var(--light); color: var(--on-light); cursor: default; }
-.u-sign-in.is-hover { background: var(--light-hover); }
+             border-radius: var(--radius-button); background: var(--main-button); color: var(--on-main-button);
+             cursor: default; }
+.u-sign-in.is-hover { background: var(--main-button-hover); }
 
 /* Waiting for the session limit to reset: the session's line says when it's back, the week's figure at its right;
    the week row folds away and the wait style draws below, down to the panel's bottom edge. */

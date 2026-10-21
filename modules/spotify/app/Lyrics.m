@@ -2,11 +2,11 @@
 // list.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
-// LRCLIB is asked only once you've said yes (on the strip, or Spotify ▸ Show Lyrics in the pawn menu), and only with
-// what it needs to find the song: its name, artist, album and length. Its connection keeps nothing on disk (no cookies,
-// no cache). What it finds is kept on this Mac (LyricsStore), so a song played again needs no asking: lyrics with times
-// for as long as the song is among the last 1,000 played, and lyrics without times, or none, for a week, as LRCLIB may
-// have them by then. Turning lyrics off forgets it all.
+// LRCLIB is asked only once you've said yes (on the strip, or Lyrics on Spotify's page on the panel's back), and only
+// with what it needs to find the song: its name, artist, album and length. Its connection keeps nothing on disk (no
+// cookies, no cache). What it finds is kept on this Mac (LyricsStore), so a song played again needs no asking: lyrics
+// with times for as long as the song is among the last 1,000 played, and lyrics without times, or none, for a week, as
+// LRCLIB may have them by then. Turning lyrics off forgets it all.
 //
 // A song is asked about once it has played a moment, so songs skipped past aren't, and one ask at a time, each only if
 // the ones before found no lyrics with times (LyricsAsksFor). An answer that comes once the song has changed, or lyrics

@@ -8,10 +8,15 @@ New Conversation and ⌃⌥N in the pawn menu.
 ## Its pieces
 
 - `app/StartsModule.m`: its face for the core (contracts/Module.h): the card's messages, the starts still waiting
-  matched to the sessions they became, New Conversation and its shortcut, and the print modes the tests check.
-- `app/Starts.m`: a start, from the card to its row: in a terminal the panel types into, with the session id the page
-  chose and the command its agent gives (AgentStarts), or in the app that keeps conversations of its own (Claude
-  Desktop's ConversationHost).
+  matched to the sessions they became, New Conversation and its shortcut, and the print modes the tests check. It adds
+  Open new conversations here to each terminal's page on the panel's back, and turns the panel back to its list before
+  the card opens (`appEntries`).
+- `app/Starts.m`: a start, from the card to its row: in a terminal that says which tab it shows (Ghostty or iTerm2,
+  the one you picked on the card's menu, kept from then on by the core, where an ended terminal session opens again
+  when the one it ran in can't open it: Core's `startTerminal`), with the session id the page chose and the command its
+  agent gives (AgentStarts), or in the app that keeps conversations of its own (Claude Desktop's ConversationHost). A
+  terminal says once its tab has opened, which can wait on macOS asking whether Whozmove may control it: only then is
+  the start the session you're on, and its wait for the session begins; a tab that can't open says why at once.
 - `app/Worktrees.m`: a start's folder in a repo: what the repo has (its own folder, its worktrees, its branches with no
   folder; `git worktree list`, `git for-each-ref`), whether a worktree can be made (no branch or folder there already;
   the branch it starts from there), where a repo's worktrees go (a folder you chose, kept in worktrees.json in

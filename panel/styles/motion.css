@@ -6,7 +6,7 @@
    beneath it, it looks as it always does. */
 .row.glide { z-index: 2; -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.18; } }
-@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(255,107,74,.55); } 100% { box-shadow: 0 0 0 7px rgba(255,107,74,0); } }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 var(--needs-glow); } 100% { box-shadow: 0 0 0 7px var(--needs-glow-gone); } }
 @keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
 @keyframes shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
@@ -38,7 +38,7 @@
 @keyframes sheen { 0% { opacity: 0; transform: translateX(-14px); } 30% { opacity: 1; }
                    100% { opacity: 0; transform: translateX(var(--across, 80px)); } }
 .seg .sheen { position: absolute; top: 0; bottom: 0; left: 0; width: 12px; pointer-events: none;
-              background: rgba(255, 255, 255, 0.5); filter: blur(4px); animation: sheen .7s ease-out .2s both; }
+              background: var(--sheen); filter: blur(4px); animation: sheen .7s ease-out .2s both; }
 .seg .seg-leaving { position: absolute; left: 7px; pointer-events: none; }
 .gauge .seg-leaving { left: 0; right: 0; text-align: center; }
 

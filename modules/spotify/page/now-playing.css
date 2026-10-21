@@ -12,22 +12,24 @@ body.collapsed #nowplaying { display: none; }
    line, so it's easy to press; pointed at, the line thickens and brightens. */
 .np-bar { position: absolute; left: 0; right: 0; top: -1px; height: 7px; }
 .np-line { display: block; height: 2px; background: var(--track); transition: height .2s ease; }
-.np-fill { display: block; height: 100%; width: 0; background: rgba(255, 255, 255, 0.45);
+.np-fill { display: block; height: 100%; width: 0; background: var(--song-played);
            transition: width 1s linear, background-color .2s ease; }
 .np-fill.jump { transition: background-color .2s ease; }
 .np-strip.is-hover .np-line { height: 3px; }
-.np-strip.is-hover .np-fill { background: rgba(255, 255, 255, 0.8); }
+.np-strip.is-hover .np-fill { background: var(--song-played-pointed); }
 
-/* The cover: a plain square until it loads, then each new one fades in over the last. Once lyrics are on, a microphone
+/* The cover: a plain square until it loads, then each new one fades in over the last. Once lyrics are on, their mark
    shows on it while the strip is pointed at (pressing the strip opens them), and stays while they're open. */
 .np-art { flex: none; position: relative; width: 28px; height: 28px; border-radius: var(--radius-small);
           overflow: hidden; background: var(--cover); box-shadow: inset 0 0 0 .5px var(--edge); }
 .np-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;
           transition: opacity .5s ease, filter .3s ease; }
 .np-img.on { opacity: 1; }
-.np-mic { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: var(--scrim);
-          color: var(--bright); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
-#nowplaying.lyrics-on .np-strip.is-hover .np-mic, #nowplaying.lyrics-open .np-mic { opacity: 1; }
+.np-lyrics-mark { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center;
+                  background: var(--scrim); color: var(--on-colour); opacity: 0; pointer-events: none;
+                  transition: opacity .2s ease; }
+#nowplaying.lyrics-on .np-strip.is-hover .np-lyrics-mark, #nowplaying.lyrics-open .np-lyrics-mark,
+#nowplaying.lyric-shown .np-lyrics-mark { opacity: 1; }
 /* Its words: the song's name, or the line being sung, in the same two rows' room, so the strip never changes height.
    A line that needs more is a size smaller (np-measure measures it unclamped, as tall as its words). */
 .np-text { position: relative; min-width: 0; flex: 1; height: 30px; display: flex; flex-direction: column;
@@ -78,5 +80,5 @@ body.collapsed #nowplaying { display: none; }
 .np-note.refused .np-note-text { color: var(--needs-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  .np-fill, .np-mic { transition: none; }
+  .np-fill, .np-lyrics-mark { transition: none; }
 }

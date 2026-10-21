@@ -3,7 +3,8 @@
 // the panel that uses it, so none of them reaches into the whole agent: AgentWork (what a session did: its edits and
 // its PRs), AgentCommands (its menus' choices, the commands that make them, and whether one took), AgentPrompt (a
 // command put into a session's prompt while keeping your draft), AgentUsage (your plan's usage) and AgentStarts (a new
-// session, and whether it may work in a folder). The core finds the agent that runs a row's session (Core's agentOf:).
+// session, an ended one carried on, and whether it may work in a folder). The core finds the agent that runs a row's
+// session (Core's agentOf:).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -14,10 +15,13 @@
 // Its name, as the panel says it ("Claude Code").
 @property (readonly) NSString *name;
 // As the rows are read, on their queue (Rows, in the core): the sessions it runs now, as rows, leaving out its own (its
-// usage check); then, once the hosts have added what they know of them, what its hooks recorded of each, which goes on
-// the row after the host's own record (where both say when the session last moved, the later time stands); and last,
-// the requests waiting for your answer.
+// usage check); then, once the hosts have added theirs (Claude Desktop's conversations, running or not), the sessions
+// it ran in a terminal lately that have ended, and that no row in `listed` has, as rows with status "closed" and no
+// process (a press on one opens it again: AgentStarts' resumeCommand:); then what its hooks recorded of each, which
+// goes on the row after the host's own record (where both say when the session last moved, the later time stands);
+// and last, the requests waiting for your answer.
 - (NSArray<Row *> *)readSessions;
+- (NSArray<Row *> *)readEndedSessions:(NSArray<Row *> *)listed;
 - (void)addRecordTo:(Row *)row;
 - (void)addRequestsTo:(NSArray<Row *> *)rows;
 // The title it gives a session, which it also puts in the session's terminal tab (Claude Code's topic), or nil: as the
@@ -101,10 +105,13 @@
 - (NSDictionary *)askUsage;
 @end
 
-// A new session started from the panel, and whether the agent may work in a folder.
+// A new session started from the panel, an ended one carried on, and whether the agent may work in a folder.
 @protocol AgentStarts <Agent>
 // The command a terminal runs for a new session with this id, its first message read from `wordsFile` (nil: none).
 - (NSString *)startCommand:(NSString *)sessionId wordsFile:(NSString *)wordsFile;
+// The command a terminal runs, in the session's own folder, to carry on an ended session under its own id, or nil when
+// that isn't one of its sessions' ids.
+- (NSString *)resumeCommand:(NSString *)sessionId;
 // Whether it may work in a folder (it, its checkout, its repo or a folder above it is trusted), and recording your yes
 // to that: nil once done, else why it couldn't be, as the panel says it. Both block: call them off the main thread.
 - (BOOL)folderTrusted:(NSString *)folder;

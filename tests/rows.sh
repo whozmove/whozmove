@@ -470,6 +470,40 @@ put(f"{desktop}/local_arch.json", {"sessionId": "local_arch", "title": "Archived
                                    "lastActivityAt": ms(60), "isArchived": True})
 put(f"{desktop}/other.json", {"sessionId": "nope"})
 
+# Terminal sessions Whozmove kept (modules/claude-code/app/KeptSessions.m), in a folder outside the checkouts: ended in
+# Ghostty (with what its hooks recorded), in iTerm2, in Terminal and in an app no module knows (which opens again in the
+# first terminal: a print run follows no pick), each a row; and ones that mustn't show: too old, its transcript gone,
+# its folder gone, one cleared while its process went on as s-clone, s-term (running) and s-closed (Claude Desktop's
+# own), and files that aren't records.
+ended, kept = os.path.join(T, "ended"), f"{app}/conversations"
+os.makedirs(ended, exist_ok=True)
+def keep(sid, terminal, minutes_ago, cwd=ended, transcript=True, **more):
+    path = os.path.join(T, f".claude/projects/p/{sid}.jsonl")
+    if transcript:
+        put(path, [{"type": "user", "message": {"role": "user", "content": f"carry on with {sid}"},
+                    "timestamp": iso(minutes_ago + 1), "isSidechain": False},
+                   {"type": "assistant", "message": {"model": "claude-opus-5-5",
+                                                     "content": [{"type": "text", "text": "Done."}]},
+                    "timestamp": iso(minutes_ago), "isSidechain": False}])
+    put(f"{kept}/{sid}.json", {"sessionId": sid, "cwd": cwd, "terminal": terminal, "pid": 4242,
+                               "procStart": f"start-{sid}", "transcript": path, "activeAt": ms(minutes_ago),
+                               "name": f"the {sid} one", **more})
+keep("k-ghostty", "com.mitchellh.ghostty", 120)
+put(f"{app}/sessions/k-ghostty.json", {"lastPrompt": "carry on with k-ghostty", "lastPromptAt": ms(121),
+                                       "lastReply": "Done: the page loads again.", "lastReplyAt": ms(120),
+                                       "permissionMode": "acceptEdits", "stageAt": ms(120)})
+keep("k-iterm", "com.googlecode.iterm2", 200)
+keep("k-terminal", "com.apple.Terminal", 300)
+keep("k-vscode", "com.microsoft.VSCode", 400)
+keep("k-old", "com.mitchellh.ghostty", 4 * 24 * 60)
+keep("k-no-transcript", "com.mitchellh.ghostty", 60, transcript=False)
+keep("k-folder-gone", "com.mitchellh.ghostty", 60, cwd=os.path.join(T, "never-made"))
+keep("k-cleared", "com.mitchellh.ghostty", 30, pid=clone_pid, procStart="start-clone")
+keep("s-term", "com.mitchellh.ghostty", 9, cwd=repo, transcript=False, name="old name")
+keep("s-closed", "com.mitchellh.ghostty", 120, cwd=repo, transcript=False)
+put(f"{kept}/broken.json", "not json")
+put(f"{kept}/k-misnamed.json", {"sessionId": "k-other", "cwd": ended})
+
 # Projects, each with what Whozmove looks for to suggest a deploy command (modules/deploy/app/Deploys.m), in the order
 # it looks: one per kind; scripts and targets that look as if they could reach production, by what they run (never
 # suggested: the next that fits is); and one with nothing to go on (no Deploy).
@@ -589,6 +623,12 @@ print(json.dumps(stable(rows), indent=2, sort_keys=True, ensure_ascii=False))
 print("the usage check listed as a row:", any(row.get("sessionId") == "s-usage-check" for row in rows))
 '
 echo "requests left in asks: $(ls "$T/Library/Application Support/Whozmove/asks" | sort | tr '\n' ' ')"
+echo "== What's kept of each running terminal session so its row stays once it ends (with a stand-in for its terminal),"
+echo "   and which of those kept are dropped: their process went on to another conversation (left), or they've gone"
+echo "   (stale)"
+HOME="$T" "$APP" --print-kept | in_minutes | sed -E 's/"pid": [0-9]+/"pid": "pid"/'
+echo "files kept in the sample home after the runs: $(ls "$T/Library/Application Support/Whozmove/conversations" \
+  | sort | tr '\n' ' ')"
 echo "== Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send"
 python3 - "$REPO" <<'PY'
 import os, re, sys

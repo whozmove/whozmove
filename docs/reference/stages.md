@@ -34,7 +34,7 @@ the fact; after Not now, the files stage's menu offers **Ask About the Extra Sta
 - As yours, not an agent's: the marks Claude Code puts on an agent's commands (`CLAUDECODE`,
   `CLAUDE_CODE_SESSION_ID`) are taken off.
 - Each time Whozmove reads the checkout: every 20 seconds, and within 2 seconds of a session working there. Not while
-  the pawn menu's **Next Steps ▸** is off.
+  **Show Next Steps**, on Git's page on the panel's back, is off.
 - For 3 seconds at most (one that takes longer is left alone for a minute), printing 64KB at most, and it must exit
   with status 0. Otherwise the stage isn't shown, and what went wrong is in
   `~/Library/Application Support/Whozmove/panel.log`.

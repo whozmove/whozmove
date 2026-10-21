@@ -25,7 +25,8 @@ const VINE_PATH = `M ${VINE_CURVES[0][0].join(' ')}`
 const VINE_LEAVES = [0.08, 0.19, 0.3, 0.41, 0.52, 0.63, 0.74, 0.85];
 const VINE_FLIGHTS = [-125, 125, -100, 100, -75, 75, -55, 55];  // degrees; negative is up
 const VINE_LANE = 32;  // the text lane's bottom edge, with room: nothing of the vine goes above it
-const VINE_GREEN = '#7ee2a0', VINE_LEAF = '#56d364', VINE_PETAL = '#ffd166', VINE_HEART = '#c98a12';
+const VINE_GREEN = 'var(--vine-green)', VINE_LEAF = 'var(--vine-leaf)', VINE_PETAL = 'var(--vine-petal)',
+  VINE_HEART = 'var(--vine-heart)';
 
 // The reset: Bloom 0-0.8s, Joy 0.7-1.77s (the leaves, in a wave from the flower back to the corner), Pull taut
 // 1.1-2.1s (both ends on one curve: they start and land together, the stem straightening as it rises into the bar),
@@ -163,9 +164,13 @@ WAITS.vine = {
 
   build(layer) {
     const shape = vineShape(), svg = 'http://www.w3.org/2000/svg';
+    // Its colours are tokens.css's, which only a style takes, not an SVG's own fill and stroke.
     const make = (tag, attrs, parent = layer) => {
       const el = document.createElementNS(svg, tag);
-      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === 'fill' || k === 'stroke') el.style[k] = v;
+        else el.setAttribute(k, v);
+      }
       parent.appendChild(el);
       return el;
     };
@@ -244,8 +249,8 @@ WAITS.vine = {
       this.flower.setAttribute('transform', `translate(${fl.x.toFixed(2)}, ${fl.y.toFixed(2)})`);
       this.bloom.style.transform = `scale(${fl.scale.toFixed(3)}) rotate(${fl.turn.toFixed(1)}deg)`;
       const petal = mixColour(VINE_PETAL, VINE_GREEN, fl.closed), heart = mixColour(VINE_HEART, VINE_GREEN, fl.closed);
-      this.petals.forEach((p) => p.setAttribute('fill', petal));
-      this.heart.setAttribute('fill', heart);
+      this.petals.forEach((p) => { p.style.fill = petal; });
+      this.heart.style.fill = heart;
     } else this.flower.setAttribute('opacity', 0);
     applyFade(stage.message, f.message);
     applyFade(stage.right, f.right);
@@ -265,9 +270,7 @@ WAITS.vine = {
   },
 };
 
-// A colour part of the way from one hex colour to another.
+// A colour part of the way from one colour to another, as the panel's look has them.
 function mixColour(from, to, p) {
-  const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  const a = rgb(from), b = rgb(to);
-  return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], p))).join(', ')})`;
+  return `color-mix(in srgb, ${to} ${(clamp01(p) * 100).toFixed(1)}%, ${from})`;
 }

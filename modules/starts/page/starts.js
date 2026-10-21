@@ -15,11 +15,11 @@
 // new, name, base, named, check }), and `list`, what `@` or `#` offers under the box ({ kind, head, items, sel, token,
 // foot }), and `picked` once you chose its project. What a card not sent yet holds (startDraft: its project, where in
 // it, the app and your words), kept as it changes, across restarts too, for the next card to open with; the starts sent but not
-// yet listed, by start id, { id, key, sessionId, folder, name, app, words, worktree, path, makes, at, trust,
+// yet listed, by start id, { id, key, sessionId, folder, name, app, words, worktree, path, makes, at, trust, terminal,
 // drawn, flying, note, why }; what Claude may do in each folder, as the app last said, { trusted } or { gone }
 // ({ trusted, here } once you trusted it on the card); what each folder's repo has, for `#` (branchesListed); the
-// terminal a start can open in (setStartOptions), null when there's none; and the app last chosen or started in, which
-// the next card starts with.
+// terminal a start opens in, the one picked on the card's menu (setStartOptions), null when there's none; and the app
+// last chosen or started in, which the next card starts with.
 moduleState({ dock: null, startDraft: store.get('startDraft', null), starts: {}, folders: {}, repos: {},
               startOptions: { terminal: null }, startApp: store.get('startApp', 'desktop') });
 
@@ -51,7 +51,7 @@ function startProjects(sessions) {
 }
 
 // Where a new conversation starts unless you choose: the project of the session marked as the one you're on (the
-// conversation Claude shows, or the session in the tab Ghostty shows), else of the one you were last on (goTo), else
+// conversation Claude shows, or the session in the tab a terminal shows), else of the one you were last on (goTo), else
 // the one most recently active; null with nothing listed.
 function defaultStartFolder(sessions, current) {
   const on = sessions.find((s) => s.focused) || sessions.find((s) => s.sessionId === current);
@@ -312,9 +312,9 @@ function startCardHTML(card, sessions) {
     </div>`;
 }
 
-// The starts not listed yet, as sessions for the list: working rows that say they're starting, or what they wait for,
-// or why they didn't start. Each is keyed by the session id it will be listed under, once that's known. One still
-// handing over in the box isn't drawn yet.
+// The starts not listed yet, as sessions for the list: working rows that say they're starting (in the terminal each
+// started in, else `terminal`), or what they wait for, or why they didn't start. Each is keyed by the session id it
+// will be listed under, once that's known. One still handing over in the box isn't drawn yet.
 function pendingSessions(starts, sessions, terminal) {
   const listed = new Set(sessions.map((s) => s.sessionId));
   return Object.values(starts).filter((start) => start.drawn && !listed.has(start.key)).map((start) => {
@@ -323,13 +323,14 @@ function pendingSessions(starts, sessions, terminal) {
     const g = start.worktree ? { branch: start.worktree, root: start.path, worktree: start.worktree,
                                  worktreeOf: base(repo?.mainRoot || start.folder), mainRoot: repo?.mainRoot || start.folder }
       : repo;
+    const where = start.terminal || terminal || 'the terminal';
     return {
       sessionId: start.key, pending: true, name: 'New conversation', cwd: start.worktree ? start.path : start.folder,
       prs: [], agent: {},
       entrypoint: start.app === 'desktop' ? 'claude-desktop' : 'cli', status: 'busy', statusUpdatedAt: start.at,
       lastPromptAt: start.at, ...(start.words ? { lastPrompt: start.words } : {}), ...(g ? { git: g } : {}),
       activity: start.why || start.note || (start.makes ? `Making the worktree ${start.worktree}, then starting in `
-        + `${terminal || 'the terminal'}` : `Starting in ${start.app === 'desktop' ? 'Claude' : terminal || 'the terminal'}`),
+        + where : `Starting in ${start.app === 'desktop' ? 'Claude' : where}`),
       ...(start.why || start.note ? { startProblem: true } : {}),
     };
   });
@@ -549,7 +550,7 @@ function sendStart() {
   const worktree = t ? (t.kind === 'open' ? t.branch : t.name) : null;
   const path = !t ? null : t.kind === 'open' ? t.path : t.check?.path || `${repo?.folderPath}/${t.name.replace(/\//g, '-')}`;
   const start = { id, key: id, folder: card.folder, name: card.name, app, words, worktree, path, makes: !!t && t.kind !== 'open',
-                  at: Date.now(), trust: !!trust };
+                  at: Date.now(), trust: !!trust, terminal: app === 'terminal' ? state.startOptions.terminal : null };
   if (app === 'terminal') start.key = start.sessionId = newSessionId();
   const target = !t ? null : t.kind === 'open' ? { kind: 'open', path: t.path } : t.kind === 'branch'
     ? { kind: 'branch', name: t.name } : { kind: 'new', name: t.name, ...(t.base ? { base: t.base } : {}) };
@@ -594,13 +595,15 @@ function handOverStart(el, start) {
   box.readOnly = true;
   box.blur();
   if (!D_START(1)) return Promise.resolve();
-  // The box's edge and padding go as it settles, so the words end where the row's own words are.
+  // The box's edge and padding go as it settles, so the words end where the row's own words are. Its words, the row's
+  // name and its dot change to the row's own colours, as the panel's look has them now.
+  const text = tokenColour('--text'), muted = tokenColour('--muted');
   const gone = { borderColor: 'rgba(255, 255, 255, 0)', backgroundColor: 'rgba(0, 0, 0, 0)',
                  clipPath: 'inset(0px 0px 0px 0px)' };
   const flat = { padding: '0px', borderWidth: '0px' };
-  motions.push(animateStart(box, [{ ...from, color: 'rgba(255, 255, 255, 0.92)', height: box.offsetHeight + 'px',
+  motions.push(animateStart(box, [{ ...from, color: text, height: box.offsetHeight + 'px',
                                     padding: look.padding, borderWidth: look.borderWidth, clipPath: 'inset(0px 0px 0px 0px)' },
-                                  { ...gone, offset: 0.4 }, { ...gone, ...flat, color: 'rgba(255, 255, 255, 0.55)', height: '15px' }],
+                                  { ...gone, offset: 0.4 }, { ...gone, ...flat, color: muted, height: '15px' }],
                             300, { fill: 'forwards' }));
   motions.push(animateStart(you, [{ marginTop: '6px' }, { marginTop: '3px' }], 300, { fill: 'forwards' }));
   if (start.words) {
@@ -611,16 +614,18 @@ function handOverStart(el, start) {
   for (const part of main.querySelectorAll(':scope > .c-list, :scope > .c-under, :scope > .c-busy, :scope > .c-help, '
                                          + ':scope > .st-foot'))
     motions.push(foldPart(part, 320, 0.4));
-  motions.push(animateStart(el.querySelector('.name'), [{ color: 'rgba(255, 255, 255, 0.55)' }, { color: 'rgba(255, 255, 255, 0.92)' }],
+  motions.push(animateStart(el.querySelector('.name'), [{ color: muted }, { color: text }],
                             320, { fill: 'forwards' }));
-  motions.push(animateStart(el, [{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }, { backgroundColor: 'rgba(255, 255, 255, 0)' }],
+  motions.push(animateStart(el, [{ backgroundColor: tokenColour('--surface') }, { backgroundColor: 'rgba(255, 255, 255, 0)' }],
                             420, { fill: 'forwards' }));
   // In step with every working row's dot (phase in util.js).
   const dot = el.querySelector(':scope > .dot');
   Object.assign(dot.style, { animation: 'blink 1.4s ease-in-out infinite',
                              animationDelay: `-${Math.round(performance.now() % 1400)}ms` });
-  motions.push(animateStart(dot, [{ backgroundColor: 'rgba(255, 255, 255, 0)', boxShadow: 'inset 0 0 0 1.5px rgba(255, 255, 255, 0.5)' },
-                                  { backgroundColor: 'rgba(255, 255, 255, 0.62)', boxShadow: 'inset 0 0 0 0 rgba(255, 255, 255, 0)' }],
+  motions.push(animateStart(dot, [{ backgroundColor: 'rgba(255, 255, 255, 0)',
+                                    boxShadow: `inset 0 0 0 1.5px ${tokenColour('--compose-dot')}` },
+                                  { backgroundColor: tokenColour('--working-dot'),
+                                    boxShadow: 'inset 0 0 0 0 rgba(255, 255, 255, 0)' }],
                             320, { fill: 'forwards' }));
   const row = rowFrom(rowHTML(pendingSessions({ [start.id]: { ...start, drawn: true } }, state.last.sessions,
                                               state.startOptions.terminal)[0], 'busy', state.last.now));
@@ -700,11 +705,11 @@ function chipsBecome(chips, where) {
 // The row moves from the card's place down to its place in the list, gliding over the rows as they make room, while
 // the card's place eases shut behind it (or takes the card waiting for the next one) and the list moves up to meet it.
 // The row is drawn in the list from the start, hidden until the copy moving to it lands. Where it lands is measured as
-// the page will be once all that has eased (asItEnds), with the list scrolled first to show it there, so the copy lands
-// exactly on it; and it catches up with whatever moves the row while it's on its way (catchUp).
+// the page will be once all that has eased (asItEnds), with the list scrolled first to show it there, clear of the row
+// you're on if that holds on at the list's edge (showInList), so the copy lands exactly on it; and it catches up with
+// whatever moves the row while it's on its way (catchUp).
 function moveToRow(el, start) {
   const root = document.getElementById('root').getBoundingClientRect(), from = el.getBoundingClientRect();
-  const list = document.getElementById('list');
   start.drawn = true;
   start.flying = true;
   render();
@@ -717,9 +722,7 @@ function moveToRow(el, start) {
     to = asItEnds(() => {
       const row = rowAt(start.key);
       if (!row) return null;
-      const r = row.getBoundingClientRect(), view = list.getBoundingClientRect();
-      if (r.top < view.top) list.scrollTop -= view.top - r.top + 4;
-      else if (r.bottom > view.bottom) list.scrollTop += r.bottom - view.bottom + 4;
+      showInList(row);
       return row.getBoundingClientRect();
     });
   });
@@ -1064,7 +1067,8 @@ window.startAppChosen = (app) => {
   focusStart();
 };
 
-// What a start can open in: the terminal (its name), or null when there's none, and the card offers Claude only.
+// What a start can open in: the terminal picked on the card's menu (its name), told again as you pick another, or null
+// when there's none, and the card offers Claude only.
 window.setStartOptions = (options) => {
   state.startOptions = { terminal: options?.terminal || null };
   if (!state.startOptions.terminal && state.dock?.target) state.dock.target = null;

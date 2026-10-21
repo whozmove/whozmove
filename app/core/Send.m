@@ -9,9 +9,11 @@
 #import "Log.h"
 #import "Text.h"
 
-// Why no words can be typed into the session's tab: there's no terminal the panel can type into, its tab isn't found,
-// or another tab fits as well. `here` and `there` end the sentences ("can be changed here", "change it there").
+// Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, its tab
+// isn't found, or another tab fits as well. `here` and `there` end the sentences ("can be changed here", "change it
+// there").
 NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there) {
+    if (reach.ended) return @"It isn't running: press its row to open it again";
     if (!reach.terminal)
         return [NSString stringWithFormat:@"Only sessions running in %@ can be %@", reach.terminals, here];
     if (!reach.hasTab) return [NSString stringWithFormat:@"Couldn't find this session's %@ tab", reach.terminal];
@@ -64,6 +66,10 @@ NSString *WhyNoAsk(id<Reach> reach) {
 - (BOOL)started {
     if (!_started) _started = @([[_send agentOf:_row] hasStarted:_row.sessionId]);
     return _started.boolValue;
+}
+
+- (BOOL)ended {
+    return [_send hasEnded:_row];
 }
 
 - (BOOL)openElsewhere {
@@ -153,6 +159,10 @@ NSString *WhyNoAsk(id<Reach> reach) {
 - (id<TypingHost>)terminalOf:(Row *)row {
     id host = [self.core hostOf:row];
     return [host conformsToProtocol:@protocol(TypingHost)] ? host : nil;
+}
+
+- (BOOL)hasEnded:(Row *)row {
+    return [self.core hasEnded:row];
 }
 
 // The app that keeps a session as a conversation of its own (Claude Desktop), or nil.

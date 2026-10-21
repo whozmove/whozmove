@@ -131,8 +131,8 @@ function drawCat(counts, sessions, kinds) {
   const names = sessions.map((s) => s.name || base(s.cwd));
   state.cat.drawn = { counts, sessions, kinds };
   const right = state.cat.right;
-  // Each label's dot, as the list draws it for its kind (rows.css): a Claude Desktop conversation that isn't running
-  // has a hollow one.
+  // Each label's dot, as the list draws it for its kind (rows.css): a conversation that isn't running (Claude
+  // Desktop's, or a terminal session that has ended) has a hollow one.
   const kindOf = (i) => kinds[i].kind + (sessions[i].status === 'closed' ? ' closed' : '');
   const dot = (i) => `<span class="cat-mark ${kindOf(i)}"><span class="dot"></span></span>`;
   const key = (right ? 'right\n' : '')

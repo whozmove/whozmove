@@ -27,19 +27,22 @@ header .build[hidden] { display: none; }
 header .chev { width: 24px; height: 24px; border-radius: var(--radius-button); display: grid; place-items: center;
                color: var(--muted); }
 /* The ＋ for a new conversation, which opens its card under the header (starts.js); it turns into a × while that's
-   open. */
-header .add-new { flex: none; width: 24px; height: 24px; border-radius: var(--radius-button); display: grid;
-                  place-items: center; color: var(--muted); }
-header .add-new.is-hover, header .add-new.open { background: var(--hover); color: var(--text); }
+   open. And the four squares that turn the panel over to the apps on its back (input.js). */
+header .add-new, header .apps { flex: none; width: 24px; height: 24px; border-radius: var(--radius-button);
+                                display: grid; place-items: center; color: var(--muted); }
+header .apps svg { fill: currentColor; }
+header .add-new.is-hover, header .add-new.open, header .apps.is-hover { background: var(--hover); color: var(--text); }
 header .add-new svg { transition: transform .4s var(--spring); }
 header .add-new.open svg { transform: rotate(45deg); }
 header .chev.is-hover { background: var(--hover); color: var(--text); }
 header .chev svg { transition: transform .15s ease; }
 header { position: relative; }
 /* Folded, the panel is the cat at its list's top-right corner (cat.css): the header and the list fade as the app closes
-   the glass in on it, and come back as it opens. The strips under the list go at once (their modules' styles). */
-header, #list, #dock { transition: opacity .2s ease .1s; }
-body.collapsed header, body.collapsed #list, body.collapsed #dock { opacity: 0; visibility: hidden;
+   the glass in on it, and come back as it opens, the row you're on held at the list's edge (#sticky, #sticky-under)
+   with the list. The strips under the list go at once (their modules' styles). */
+header, #list, #dock, #sticky, #sticky-under { transition: opacity .2s ease .1s; }
+body.collapsed header, body.collapsed #list, body.collapsed #dock, body.collapsed #sticky,
+body.collapsed #sticky-under { opacity: 0; visibility: hidden;
   transition: opacity .15s ease, visibility 0s linear .15s; }
 
 /* Project group header, styled like Claude's sidebar: the name in muted regular weight with a chevron

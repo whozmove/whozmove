@@ -2,11 +2,12 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "PanelWindow.h"
 #import "Page.h"
+#import "Appearance.h"
 #import <QuartzCore/QuartzCore.h>
 
 // The panel's width; its header's height (--header in panel/styles/tokens.css) and the buttons at the header's right
 // end, which the drag strip leaves to the page.
-static const CGFloat kWidth = 340, kHeaderHeight = 46, kButtonsWidth = 72;
+static const CGFloat kWidth = 340, kHeaderHeight = 46, kButtonsWidth = 104;
 // The reader's ✕, at its header's right end (.r-close in panel/styles/reader.css, with the header's padding), which
 // the reader's drag strip leaves to the page.
 static const CGFloat kCloseWidth = 46;
@@ -34,6 +35,15 @@ static const CGFloat kCatSees = 520;
 static const NSTimeInterval kPointerEvery = 0.04, kPointerEveryWatched = 1.0 / 60;
 // Whether the panel was folded when it was left, so it comes back folded before its page has loaded.
 static NSString *const kFoldedKey = @"panelFolded";
+// The panel's shadow is its own, in a window held under the panel (shadeGlass), with this much room round the glass.
+static const CGFloat kShadeRoom = 80;
+// Turning over (turnOver:then:) takes kTurn. It's seen from kTurnDepth away, the prototype's perspective, and its edge
+// is kEdge thick, kEdgeInset in from the glass's top and bottom, where its corners round off.
+static const NSTimeInterval kTurn = 0.7;
+static const CGFloat kTurnDepth = 1100, kEdge = 6, kEdgeInset = 12;
+// Turned over, the back's header leaves its left end to its page, for the ‹ back to its apps; the drag strip covers the
+// rest, up to its buttons, as on the list's.
+static const CGFloat kBackLead = 44;
 
 // Clicking the panel doesn't take the keyboard from the app being typed in (a click on a row, say, leaves it with
 // Claude's message box): the panel becomes the key window only while one of its own text boxes is being typed in
@@ -88,6 +98,69 @@ static NSString *const kFoldedKey = @"panelFolded";
 }
 @end
 
+// A side of the panel: the page's clip, or the panel's back (holdBack:). The side turned away from you takes no
+// clicks, and while the panel turns, neither does.
+@interface SideView : NSView
+@property (assign) BOOL away;
+@end
+
+@implementation SideView
+- (NSView *)hitTest:(NSPoint)point { return self.away ? nil : [super hitTest:point]; }
+@end
+
+// The tint over the glass, which makes the panel its look (the Look menu, app/core/MenuBar.m): grey or black, solid,
+// in the page's own colour for it (--panel in panel/styles/tokens.css), or glass. On the dark panel, glass is the HUD's
+// dark glass, darkened; on the light one, a popover's light glass, lightened, and black is white. It has no edge of its
+// own, only the panel's shadow. It's painted again whenever the panel turns light or dark, with the Mac or from the
+// Look menu, light or dark as the window is: the glass gives what's in it a look of its own, which may stay dark.
+@interface Tint : NSView
+@property (nonatomic, copy) NSString *look;
+- (void)paint;
+@end
+
+@implementation Tint
+- (void)setLook:(NSString *)look {
+    _look = [look copy];
+    [self paint];
+}
+
+- (void)viewDidChangeEffectiveAppearance {
+    [super viewDidChangeEffectiveAppearance];
+    [self paint];
+}
+
+- (void)paint {
+    BOOL dark = IsDark(self.window.effectiveAppearance ?: NSApp.effectiveAppearance);
+    ((NSVisualEffectView *)self.superview).material = dark ? NSVisualEffectMaterialHUDWindow
+                                                           : NSVisualEffectMaterialPopover;
+    BOOL glass = [self.look isEqual:@"glass"], black = [self.look isEqual:@"black"];
+    // Its red, green and blue, out of 255, and how much of it covers the glass.
+    CGFloat r, g, b, cover = glass ? (dark ? 0.55 : 0.5) : 1;
+    if (dark && glass) r = g = 16, b = 18;
+    else if (dark && black) r = g = 14, b = 17;
+    else if (dark) r = g = 32, b = 35;
+    else if (black) r = g = b = 255;
+    else r = g = 245, b = 247;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.layer.backgroundColor = [NSColor colorWithSRGBRed:r / 255 green:g / 255 blue:b / 255 alpha:cover].CGColor;
+    [CATransaction commit];
+}
+@end
+
+// What the panel's shadow is drawn in (shadeGlass), told when the app turns light or dark: the shadow is softer on the
+// light panel.
+@interface ShadeView : NSView
+@property (copy) void (^onLook)(void);
+@end
+
+@implementation ShadeView
+- (void)viewDidChangeEffectiveAppearance {
+    [super viewDidChangeEffectiveAppearance];
+    if (self.onLook) self.onLook();
+}
+@end
+
 @interface PanelWindow ()
 @property (strong) Page *page;
 @property (strong) FloatingPanel *panel;
@@ -105,10 +178,24 @@ static NSString *const kFoldedKey = @"panelFolded";
 // The panel's shape, apart from the window's: the glass and the page's clip (rounded, over it) normally fill the
 // window, and while the panel changes size they show only part of it (reshapeTo:).
 @property (strong) NSVisualEffectView *glass;
-@property (strong) NSView *tint;
-// The folded glass's own shadow while the cat's tags are out, when the window has none (catFan:).
-@property (strong) NSView *catShadow;
-@property (strong) NSView *clip;
+@property (strong) Tint *tint;
+// The panel's shadow (shadeGlass): the window held under the panel, and in it the shadow, where the glass is.
+@property (strong) NSPanel *shade;
+@property (strong) CALayer *shadow;
+@property (strong) SideView *clip;
+// The panel's other side (holdBack:), and the edge that shows between the two while it turns (turnOver:then:).
+@property (strong) SideView *back;
+@property (strong) NSView *edge;
+@property (strong) CAGradientLayer *edgeShade;
+// Turned over, or on the way to or from it; turning; a turn asked for meanwhile, and what to do after it, taken next;
+// the height the page asked for meanwhile; and who's told as it turns over and once it's back.
+@property (assign) BOOL turned;
+@property (assign) BOOL turning;
+@property (strong) NSNumber *pendingTurn;
+@property (copy) void (^pendingTurnThen)(void);
+@property (assign) CGFloat heightAfterTurn;
+@property (assign) NSRect turnFrame;    // where the panel is as it turns, the window having taken in room round it
+@property (strong) NSMutableArray *turnObservers;
 @property (assign) BOOL reshaping;
 @property (assign) BOOL hasPending;     // a size asked for while the panel was changing size, taken next
 @property (assign) NSRect pendingFrame;
@@ -177,6 +264,32 @@ static NSRect Between(NSRect a, NSRect b, CGFloat along) {
                       NSHeight(a) + (NSHeight(b) - NSHeight(a)) * along);
 }
 
+// Turning over: gentle at both ends and quickest where the panel is edge-on, as the prototype's.
+static CGFloat TurnEased(CGFloat x) {
+    x = MAX(0, MIN(1, x));
+    return x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
+}
+
+// Where a view's layer has its anchor point, in its superview's coordinates, which its layer's transform turns about.
+static CGPoint AnchorOf(NSView *view) {
+    CGPoint anchor = view.layer.anchorPoint;
+    NSRect frame = view.frame;
+    return CGPointMake(NSMinX(frame) + anchor.x * NSWidth(frame), NSMinY(frame) + anchor.y * NSHeight(frame));
+}
+
+// The turn by `angle` about the upright line through `middle`, seen from kTurnDepth away, as a layer's transform for a
+// layer whose anchor point is at `anchor`, after `own` (its own turn about its own `centre`; identity for none).
+static CATransform3D TurnAbout(CGPoint middle, CGPoint anchor, CGFloat angle, CATransform3D own, CGPoint centre) {
+    CATransform3D eye = CATransform3DIdentity;
+    eye.m34 = -1 / kTurnDepth;
+    CATransform3D turn = CATransform3DConcat(CATransform3DMakeRotation(angle, 0, 1, 0), eye);
+    CATransform3D m = CATransform3DMakeTranslation(anchor.x - centre.x, anchor.y - centre.y, 0);
+    m = CATransform3DConcat(m, own);
+    m = CATransform3DConcat(m, CATransform3DMakeTranslation(centre.x - middle.x, centre.y - middle.y, 0));
+    m = CATransform3DConcat(m, turn);
+    return CATransform3DConcat(m, CATransform3DMakeTranslation(middle.x - anchor.x, middle.y - anchor.y, 0));
+}
+
 static NSImage *RoundedMask(CGFloat radius) {
     CGFloat edge = radius * 2 + 1;
     NSImage *mask = [NSImage imageWithSize:NSMakeSize(edge, edge) flipped:NO drawingHandler:^BOOL(NSRect rect) {
@@ -227,6 +340,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     if (!(self = [super init])) return nil;
     self.page = page;
     self.glassObservers = [NSMutableArray array];
+    self.turnObservers = [NSMutableArray array];
     self.catAt = kCatAt;
     self.pointerObservers = [NSMutableArray array];
     NSRect screen = NSScreen.mainScreen.visibleFrame;
@@ -242,9 +356,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.panel.hidesOnDeactivate = NO;
     self.panel.opaque = NO;
     self.panel.backgroundColor = NSColor.clearColor;
-    self.panel.hasShadow = YES;
-    // The page is styled for dark glass.
-    self.panel.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantDark];
+    // Its shadow is its own (shadeGlass): macOS's draws a light line round a window's edge on the dark panel.
+    self.panel.hasShadow = NO;
     self.panel.frameAutosaveName = @"Whozmove";
 
     // The glass, and over it the page in a clip of the same shape. They're apart so that the panel can change size by
@@ -260,7 +373,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     glass.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [root addSubview:glass];
     self.glass = glass;
-    NSView *clip = [[NSView alloc] initWithFrame:root.bounds];
+    SideView *clip = [[SideView alloc] initWithFrame:root.bounds];
     clip.wantsLayer = YES;
     clip.layer.masksToBounds = YES;
     clip.layer.cornerRadius = kCorner;
@@ -271,27 +384,36 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     // The tint over the glass is the window's, under the page (whose own background is clear, panel/styles/base.css):
     // as the panel grows, the page paints the new space at its bottom a frame or two late, and until then bare glass
     // would show there, lighter, like a flicker. Rounded itself, as the glass's mask doesn't reach its subviews; it
-    // follows the glass's edges as they move (reshapeTo:).
-    NSView *tint = [[NSView alloc] initWithFrame:glass.bounds];
+    // follows the glass's edges as they move (reshapeTo:). Grey until the Look menu says otherwise.
+    Tint *tint = [[Tint alloc] initWithFrame:glass.bounds];
     tint.wantsLayer = YES;
-    tint.layer.backgroundColor = [NSColor colorWithSRGBRed:16 / 255.0 green:16 / 255.0 blue:18 / 255.0
-                                                     alpha:0.55].CGColor;
     tint.layer.cornerRadius = kCorner;
     tint.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [glass addSubview:tint];
+    tint.look = @"grey";
     self.tint = tint;
 
-    // While the folded cat's tags are out, the window's own shadow would outline the cat and the tags as one shape, the
-    // tags' soft shadows joining them up; so the window has none then, and the glass this one of its own.
-    NSView *catShadow = [[NSView alloc] initWithFrame:NSZeroRect];
-    catShadow.wantsLayer = YES;
-    catShadow.layer.shadowColor = NSColor.blackColor.CGColor;
-    catShadow.layer.shadowOpacity = 0.38;
-    catShadow.layer.shadowRadius = 9;
-    catShadow.layer.shadowOffset = CGSizeMake(0, -6);
-    catShadow.hidden = YES;
-    [root addSubview:catShadow positioned:NSWindowBelow relativeTo:glass];
-    self.catShadow = catShadow;
+    // The panel's shadow, in a window of its own under it that takes no clicks, with room round the glass for it.
+    self.shade = [[NSPanel alloc] initWithContentRect:NSInsetRect(frame, -kShadeRoom, -kShadeRoom)
+                                            styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
+                                              backing:NSBackingStoreBuffered
+                                                defer:NO];
+    self.shade.level = self.panel.level;
+    self.shade.collectionBehavior = self.panel.collectionBehavior;
+    self.shade.hidesOnDeactivate = NO;
+    self.shade.opaque = NO;
+    self.shade.backgroundColor = NSColor.clearColor;
+    self.shade.hasShadow = NO;
+    self.shade.ignoresMouseEvents = YES;
+    ShadeView *shadeView = [[ShadeView alloc] initWithFrame:NSMakeRect(0, 0, NSWidth(self.shade.frame),
+                                                                       NSHeight(self.shade.frame))];
+    shadeView.wantsLayer = YES;
+    self.shade.contentView = shadeView;
+    self.shadow = [CALayer layer];
+    self.shadow.shadowColor = NSColor.blackColor.CGColor;
+    self.shadow.mask = [CAShapeLayer layer];
+    ((CAShapeLayer *)self.shadow.mask).fillRule = kCAFillRuleEvenOdd;
+    [shadeView.layer addSublayer:self.shadow];
 
     // The clip rounds the page with the panel's corners, so what it draws up to its edges (the usage strip's vine)
     // meets them.
@@ -305,7 +427,11 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     DragStrip *strip = [[DragStrip alloc]
         initWithFrame:NSMakeRect(0, frame.size.height - kHeaderHeight, kWidth - kButtonsWidth, kHeaderHeight)];
     strip.autoresizingMask = NSViewMinYMargin | NSViewWidthSizable;
-    strip.onClick = ^{ if (!weakSelf.expanded) [weakSelf.page toggleCollapsed]; };
+    // Turned over, it turns back first.
+    strip.onClick = ^{
+        if (weakSelf.turned) [weakSelf turnOver:NO then:^{ [weakSelf.page toggleCollapsed]; }];
+        else if (!weakSelf.expanded) [weakSelf.page toggleCollapsed];
+    };
     DragStrip *readerStrip = [[DragStrip alloc] initWithFrame:NSZeroRect];
     readerStrip.autoresizingMask = NSViewMinYMargin;
     readerStrip.hidden = YES;
@@ -332,10 +458,32 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         weakSelf.panel.wantsKeyboard = NO;
         [weakSelf.page keyboardGone];
     }];
+    // The edge between the panel's two sides, seen only while it turns: a strip of the panel's own colour, lighter in
+    // its middle as a rounded edge would catch the light (paintEdge). It's see-through but while its animation runs
+    // (spin:then:), so it's never left lying flat at the panel's side once that has ended, not even for a frame.
+    NSView *edge = [[NSView alloc] initWithFrame:NSZeroRect];
+    edge.wantsLayer = YES;
+    edge.alphaValue = 0;
+    self.edgeShade = [CAGradientLayer layer];
+    self.edgeShade.startPoint = CGPointMake(0, 0.5);
+    self.edgeShade.endPoint = CGPointMake(1, 0.5);
+    self.edgeShade.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+    [edge.layer addSublayer:self.edgeShade];
+    [root addSubview:edge];
+    self.edge = edge;
     [root addSubview:strip];
     [root addSubview:readerStrip];
     self.strip = strip;
     self.readerStrip = readerStrip;
+    // The shadow follows the window wherever it's moved or resized to. Once the panel turns light or dark, the tint is
+    // painted again and the shadow is softer or firmer: the shadow's window hears of it, as nothing in it is under glass.
+    for (NSNotificationName name in @[NSWindowDidResizeNotification, NSWindowDidMoveNotification])
+        [NSNotificationCenter.defaultCenter addObserverForName:name object:self.panel queue:NSOperationQueue.mainQueue
+                                                    usingBlock:^(NSNotification *note) { [weakSelf shadeGlass]; }];
+    shadeView.onLook = ^{
+        [weakSelf.tint paint];
+        [weakSelf shadeGlass];
+    };
 
     [self pollPointerEvery:kPointerEvery];
     return self;
@@ -349,12 +497,15 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     // open for a moment first.
     self.folded = [NSUserDefaults.standardUserDefaults boolForKey:kFoldedKey];
     [self placeAtOnce];
-    self.panel.alphaValue = 0;
+    self.panel.alphaValue = self.shade.alphaValue = 0;
     [self.panel orderFrontRegardless];
+    [self holdShade];
+    [self shadeGlass];
     [self tellGlass:[self glassOnScreen] over:0];
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
         context.duration = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion ? 0 : 0.2;
         self.panel.animator.alphaValue = 1;
+        self.shade.animator.alphaValue = 1;
     }];
 }
 
@@ -370,15 +521,26 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 // children, as long as they're left attached.
 - (void)toggle {
     if (self.panel.isVisible) [self.panel orderOut:nil];
-    else [self.panel orderFrontRegardless];
+    else [self bringUp];
 }
 
 - (BOOL)shown {
     return self.panel.isVisible;
 }
 
+- (NSString *)look {
+    return self.tint.look;
+}
+
+- (void)setLook:(NSString *)look {
+    self.tint.look = look;
+}
+
+// Back on the screen, the shadow is held just under it again, over what was held under it while it was away.
 - (void)bringUp {
-    if (!self.panel.isVisible) [self.panel orderFrontRegardless];
+    if (self.panel.isVisible) return;
+    [self.panel orderFrontRegardless];
+    [self holdShade];
 }
 
 - (void)resetPosition {
@@ -416,12 +578,20 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 - (void)resendRoom {
     self.room = 0;
-    // A page loaded afresh hasn't heard which way the folded cat's tags go either.
+    // A page loaded afresh hasn't heard which way the folded cat's tags go either, nor that the panel is turned over.
     self.toldSide = nil;
     [self updateRoom];
+    if (self.turned) [self.page turned:YES];
 }
 
 - (void)fitHeight:(CGFloat)height {
+    // Turned over, or on its way there or back, the panel keeps the size it turned at, so the back stays the list's size
+    // as it was then rather than following the list out of sight: the height the list asks for meanwhile is taken once
+    // the panel is back on its list side.
+    if (self.turned || self.turning) {
+        self.heightAfterTurn = height;
+        return;
+    }
     if (self.expanded || self.reshaping || self.folded) return;
     height = MIN(height, self.room ?: [self roomFor:self.panel.frame]);
     NSRect frame = self.panel.frame;
@@ -434,6 +604,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 - (void)attachBelow:(NSWindow *)window {
     [self.panel addChildWindow:window ordered:NSWindowBelow];
+    if (self.panel.isVisible) [self holdShade];
 }
 
 - (void)attachAbove:(NSWindow *)window {
@@ -464,7 +635,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 // (16pt from its edges; a longer page scrolls). The page is told which side its list is on, and how wide the reader
 // is, before the panel starts to grow, so what's in it is laid out once at that size and the growing only uncovers it.
 - (void)expandReader:(CGFloat)width height:(CGFloat)height {
-    if (self.folded) return;  // the reader opens from a row, and there are none to see while it's folded
+    // The reader opens from a row, and there are none to see while it's folded or turned over.
+    if (self.folded || self.turned) return;
     NSScreen *screen = self.panel.screen ?: NSScreen.mainScreen;
     NSRect visible = NSInsetRect(screen.visibleFrame, 16, 16);
     if (!self.expanded) {
@@ -561,6 +733,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 - (NSPoint)rootAt {
     if (self.holdsPage) return self.pageAt;
     if (self.folded) return [self rootAround:[self catBoxIn:self.panel.frame]];
+    // Turning over, the window has taken in room round the panel to turn in: the page stays where the panel is.
+    if (self.turning) return NSMakePoint(NSMinX(self.turnFrame), NSMaxY(self.turnFrame));
     return NSMakePoint(self.expanded ? NSMinX(self.listFrame) : NSMinX(self.panel.frame), NSMaxY(self.panel.frame));
 }
 
@@ -582,6 +756,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     NSPoint at = [self rootAt];
     CGFloat tall = at.y - NSMinY(frame);
     if (self.folded || self.holdsPage) tall = MAX(tall, self.openHeight ?: 200);
+    // Turning over, it keeps the panel's height, so it isn't laid out again for the room taken in below the panel.
+    if (self.turning) tall = NSHeight(self.turnFrame);
     return NSMakeRect(at.x - kReaderRoom - NSMinX(frame) - NSMinX(local), at.y - tall - NSMinY(frame) - NSMinY(local),
                       kPageWidth, tall);
 }
@@ -612,14 +788,15 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.glass.frame = [self inWindow:glass];
     self.clip.frame = local;
     self.page.view.frame = [self pageFrameIn:frame clip:local];
+    [self placeBack];
     [CATransaction commit];
-    [self.panel invalidateShadow];
+    [self shadeGlass];
     [self tellGlass:glass over:0];
     [self.page afterPaint:then];
 }
 
 // The glass and the page's clip move to `target` (on the screen) within the window, the page staying put; the
-// window's shadow follows them.
+// panel's shadow follows them.
 - (void)moveEdgesTo:(NSRect)target then:(void (^)(void))then {
     [self moveGlassTo:target clip:target corner:kCorner glassCorner:kCorner over:0.5 easing:kSettle then:then];
 }
@@ -659,7 +836,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
                                                  page.y - window.y - NSMinY(clipNow))];
         [CATransaction commit];
         [me roundGlass:round((glassCornerFrom + (glassCorner - glassCornerFrom) * along) * 2) / 2];
-        [me.panel invalidateShadow];
+        [me shadeGlass];
     };
     [self.moveTimer invalidate];
     self.moveTimer = nil;
@@ -697,7 +874,6 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     } else {
         self.fanOpen = NO;
     }
-    [self shadeForFan];
     // Back to the cat's corner from the tags' room, which was never saved, it's saved as itself again.
     if (!self.fanOpen && !self.expanded && !self.panel.frameAutosaveName.length) {
         [self.panel saveFrameUsingName:@"Whozmove"];
@@ -710,14 +886,20 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     }
     self.clip.frame = root.bounds;
     self.page.view.frame = [self pageFrameIn:self.panel.frame clip:self.clip.frame];
+    [self placeBack];
     [self placeStrips];
     root.autoresizesSubviews = YES;
     self.clip.autoresizesSubviews = YES;
     self.reshaping = NO;
-    [self.panel invalidateShadow];
+    [self shadeGlass];
     [self tellGlass:[self glassOnScreen] over:0];
     // Folded again while sessions still work, the glass breathes again.
     [self startBreathing];
+    // A turn asked for while it changed shape is taken now; a turn of its own takes it itself once it's done.
+    if (self.pendingTurn && !self.turning) {
+        __weak typeof(self) weakSelf = self;
+        dispatch_async(dispatch_get_main_queue(), ^{ [weakSelf takePendingTurn]; });
+    }
 }
 
 // The drag strips over the headers' empty parts: the list's, up to its buttons; and while the reader is open, the
@@ -733,7 +915,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         return;
     }
     if (!self.expanded) {
-        self.strip.frame = NSMakeRect(0, top, NSWidth(bounds) - kButtonsWidth, kHeaderHeight);
+        CGFloat lead = self.turned ? kBackLead : 0;
+        self.strip.frame = NSMakeRect(lead, top, NSWidth(bounds) - kButtonsWidth - lead, kHeaderHeight);
         self.strip.hidden = NO;
         self.readerStrip.hidden = YES;
         return;
@@ -753,19 +936,45 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     return self.folded ? [self foldedGlassIn:self.panel.frame] : self.panel.frame;
 }
 
-// While the folded cat's tags are out, the window has no shadow of its own (it would outline the cat and the tags as
-// one shape) and the glass has its own instead; otherwise the window's, as ever.
-- (void)shadeForFan {
-    BOOL fan = self.folded && (self.fanOpen || self.breathing);
-    self.catShadow.hidden = !fan;
-    if (fan) {
-        self.catShadow.frame = self.glass.frame;
-        CGPathRef circle = CGPathCreateWithEllipseInRect(self.catShadow.bounds, NULL);
-        self.catShadow.layer.shadowPath = circle;
-        CGPathRelease(circle);
-    }
-    if (self.panel.hasShadow == fan) self.panel.hasShadow = !fan;
-    [self.panel invalidateShadow];
+// The panel's shadow, its own rather than the window's: macOS draws a light line round a window's edge with the
+// window's shadow on the dark panel. It's under the glass wherever the glass is (opening the reader, folding into the
+// cat and back, breathing), with its corners, in the window held under the panel, so whatever else is held under it
+// (Spotify's token) has the panel's shadow fall on it, as before. Nothing is under the glass itself, which may be
+// see-through. The open panel's is as wide as the prototypes'; round the folded cat it's smaller, and on the light
+// panel softer.
+- (void)shadeGlass {
+    if (!self.shade) return;
+    NSRect window = self.panel.frame, room = NSInsetRect(window, -kShadeRoom, -kShadeRoom);
+    if (!NSEqualRects(room, self.shade.frame)) [self.shade setFrame:room display:NO];
+    NSRect glass = NSOffsetRect(self.glass.frame, kShadeRoom, kShadeRoom);
+    CGFloat radius = MIN(self.glassRadius ?: kCorner, MIN(NSWidth(glass), NSHeight(glass)) / 2);
+    // How far it is from the open panel's corners to the folded cat's circle.
+    CGFloat circle = MAX(0, MIN(1, (radius - kCorner) / (kFoldGlass / 2 - kCorner)));
+    BOOL dark = IsDark(self.panel.effectiveAppearance);
+    CGRect bounds = CGRectMake(0, 0, NSWidth(glass), NSHeight(glass));
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.shadow.frame = glass;
+    CGPathRef shape = CGPathCreateWithRoundedRect(bounds, radius, radius, NULL);
+    self.shadow.shadowPath = shape;
+    CGPathRelease(shape);
+    self.shadow.shadowRadius = 22 + (9 - 22) * circle;
+    self.shadow.shadowOffset = CGSizeMake(0, -14 + (14 - 6) * circle);
+    self.shadow.shadowOpacity = (0.5 + (0.38 - 0.5) * circle) * (dark ? 1 : 0.45);
+    CAShapeLayer *outside = (CAShapeLayer *)self.shadow.mask;
+    outside.frame = CGRectInset(bounds, -kShadeRoom, -kShadeRoom);
+    CGMutablePathRef cut = CGPathCreateMutable();
+    CGPathAddRect(cut, NULL, outside.bounds);
+    CGPathAddRoundedRect(cut, NULL, CGRectOffset(bounds, kShadeRoom, kShadeRoom), radius, radius);
+    outside.path = cut;
+    CGPathRelease(cut);
+    [CATransaction commit];
+}
+
+// The shadow's window, held just under the panel, over anything else held under it.
+- (void)holdShade {
+    [self.panel removeChildWindow:self.shade];
+    [self.panel addChildWindow:self.shade ordered:NSWindowBelow];
 }
 
 // The folded glass in a window that's `frame`: round, in the middle of the cat's square, whatever room the tags have
@@ -823,6 +1032,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 // the reader is open (the page doesn't fold then). Asked again while it's moving, the newest is taken once it's done.
 - (void)fold:(BOOL)on instant:(BOOL)instant {
     if (self.expanded) return;
+    // It folds from its list side: turned over (a page loaded afresh says how it was left), it's put back at once.
+    if (self.turned && !self.turning) [self turnBackAtOnce];
     [NSUserDefaults.standardUserDefaults setBool:on forKey:kFoldedKey];
     if (self.reshaping) {
         self.pendingFold = @(on);
@@ -901,7 +1112,6 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         || NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion)
         return;
     self.breathing = YES;
-    [self shadeForFan];
     [self breathe:++self.breathRun];
 }
 
@@ -913,9 +1123,9 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         return;
     }
     Breath breath = BreathFor(self.breathWorking);
-    // The glass's own shadow breathes with it.
-    for (NSView *view in @[self.glass, self.catShadow])
-        [view.layer addAnimation:[self breath:breath of:view.layer] forKey:@"breath"];
+    // The panel's shadow breathes with it.
+    for (CALayer *layer in @[self.glass.layer, self.shadow])
+        [layer addAnimation:[self breath:breath of:layer] forKey:@"breath"];
     __weak typeof(self) weakSelf = self;
     dispatch_time_t next = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(breath.seconds * NSEC_PER_SEC));
     dispatch_after(next, dispatch_get_main_queue(), ^{ [weakSelf breathe:run]; });
@@ -947,8 +1157,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.breathRun++;
     if (!self.breathing) return;
     self.breathing = NO;
-    for (NSView *view in @[self.glass, self.catShadow]) [view.layer removeAnimationForKey:@"breath"];
-    [self shadeForFan];
+    for (CALayer *layer in @[self.glass.layer, self.shadow]) [layer removeAnimationForKey:@"breath"];
 }
 
 // The panel as it is now, folded or open, with nothing moving: at launch, from the frame saved last, either way.
@@ -1010,7 +1219,6 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         self.pageAt = [self rootAround:box];
         self.holdsPage = YES;
         self.fanOpen = NO;
-        [self shadeForFan];
         NSRect open = [self openFrameFrom:box];
         // While the tags are out, the page's clip keeps them in as they fade (cat.css), until the glass starts.
         [CATransaction begin];
@@ -1043,6 +1251,253 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.clip.frame = local;
     self.clip.layer.cornerRadius = corner;
     [self.page.view setFrameOrigin:NSMakePoint(page.x - window.x - NSMinX(local), page.y - window.y - NSMinY(local))];
+    [CATransaction commit];
+}
+
+#pragma mark Turning over
+
+- (void)holdBack:(NSView *)view {
+    NSView *root = self.panel.contentView;
+    // As wide as the list always, so its page is never laid out at another width; as tall as the panel.
+    SideView *back = [[SideView alloc] initWithFrame:NSMakeRect(0, 0, kWidth, MAX(NSHeight(root.bounds), 200))];
+    back.wantsLayer = YES;
+    back.layer.masksToBounds = YES;
+    back.layer.cornerRadius = kCorner;
+    back.autoresizingMask = NSViewHeightSizable | NSViewMaxXMargin;
+    back.alphaValue = 0;
+    back.away = YES;
+    view.frame = back.bounds;
+    view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    [back addSubview:view];
+    [root addSubview:back positioned:NSWindowAbove relativeTo:self.clip];
+    self.back = back;
+    [self placeBack];
+}
+
+// The back where the list is, as tall as the panel: while it turns, where the panel was before the window took in room
+// round it. Folded, it stays as it was, out of sight, so its page isn't laid out at the cat's size.
+- (void)placeBack {
+    if (!self.back || self.folded || self.holdsPage) return;
+    NSRect list = self.turning ? self.turnFrame : self.expanded ? self.listFrame : self.panel.frame;
+    self.back.frame = [self inWindow:list];
+}
+
+- (void)followTurn:(void (^)(BOOL))observer {
+    [self.turnObservers addObject:observer];
+}
+
+// Turned over from the moment it starts turning, and back as it lands on its list side: the list's page and whoever
+// follows the turn are told each, in the same frame the turn starts or ends, so what's held over or under the panel
+// goes and comes back with it.
+- (void)becomeTurned:(BOOL)on {
+    if (on == self.turned) return;
+    self.turned = on;
+    [self.page turned:on];
+    for (void (^observer)(BOOL) in self.turnObservers) observer(on);
+}
+
+// Turning over, the box that had the keyboard lets go of it, and the window takes in room round the panel for its near
+// edge, which comes toward you and is seen taller and a little wider than the panel; then it turns, what's held over or
+// under the panel going from sight as it starts, and the window is the panel again. Turning back carries on the same
+// way round, so over and back make one whole turn, and what was held comes back as it lands. With reduced motion, one
+// side fades into the other. Asked again on the way, or while the panel changes shape (opening out of the cat, the
+// reader folding), the newest is taken once that's done, and what was to come after each runs in turn.
+- (void)turnOver:(BOOL)over then:(void (^)(void))then {
+    if (self.turning || (self.reshaping && over != self.turned)) {
+        void (^earlier)(void) = self.pendingTurnThen;
+        self.pendingTurn = @(over);
+        self.pendingTurnThen = ^{ if (earlier) earlier(); if (then) then(); };
+        return;
+    }
+    if (!self.back || over == self.turned || (over && (self.expanded || self.folded))) {
+        if (then) then();
+        return;
+    }
+    self.turning = YES;
+    self.reshaping = YES;  // nothing else changes the panel's size or shape meanwhile
+    NSRect panel = self.panel.frame;
+    self.turnFrame = panel;
+    // The room it turns in mustn't be what the panel comes back at next launch (settle saves it as itself again).
+    self.panel.frameAutosaveName = @"";
+    if (over) [self takeKeyboard:NO];
+    self.clip.away = self.back.away = YES;
+    self.strip.hidden = self.readerStrip.hidden = YES;
+    __weak typeof(self) weakSelf = self;
+    void (^done)(void) = ^{ [weakSelf doneTurning:over then:then]; };
+    if (NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion) {
+        if (over) [self becomeTurned:YES];
+        [self fadeSides:over then:done];
+        return;
+    }
+    CGFloat grows = kTurnDepth / (kTurnDepth - kWidth / 2) - 1;
+    NSRect room = NSInsetRect(panel, -4, -(ceil(NSHeight(panel) / 2 * grows) + 2));
+    [self setWindowFrame:room glass:panel clip:panel then:^{
+        [weakSelf spin:over then:^{ [weakSelf setWindowFrame:panel showing:panel then:done]; }];
+    }];
+}
+
+// Done turning: the side facing you takes clicks, and once it's back on its list side, the panel is told, and takes the
+// height its page asked for meanwhile; then what was to come after, and what was asked for on the way.
+- (void)doneTurning:(BOOL)over then:(void (^)(void))then {
+    self.turning = NO;
+    self.clip.away = over;
+    self.back.away = !over;
+    if (!over) [self becomeTurned:NO];
+    [self settle];
+    if (!over && self.heightAfterTurn > 0) {
+        CGFloat height = self.heightAfterTurn;
+        self.heightAfterTurn = 0;
+        [self fitHeight:height];
+    }
+    if (then) then();
+    [self takePending];
+    [self takePendingTurn];
+}
+
+// A turn asked for while the panel was turning or changing shape, once it's done: not while it's changing shape again
+// (the next settle asks once more).
+- (void)takePendingTurn {
+    NSNumber *next = self.pendingTurn;
+    if (!next || self.turning || self.reshaping) return;
+    void (^after)(void) = self.pendingTurnThen;
+    self.pendingTurn = nil;
+    self.pendingTurnThen = nil;
+    [self turnOver:next.boolValue then:after];
+}
+
+// The turn, played by Core Animation, as the folded glass's breath is: the glass, both sides and the panel's shadow
+// turn as one about the panel's middle, the back coming round as the list goes, so each side shows as it is all the
+// way; they swap where the panel is edge-on, and its edge shows there. Only what's drawn moves, so nothing is laid out
+// or drawn again on the way.
+- (void)spin:(BOOL)over then:(void (^)(void))then {
+    NSRect local = [self inWindow:self.turnFrame];
+    CGPoint middle = CGPointMake(NSMidX(local), NSMidY(local));
+    // It always turns the same way round: over takes it half a turn, and back carries on round the other half, rather
+    // than going back the way it came.
+    CGFloat from = over ? 0 : M_PI, to = over ? M_PI : 2 * M_PI;
+    // The edge is on the side that comes toward you, halfway through: on the list's one side turning over, and on its
+    // other turning back, as that's the side facing the same way by then.
+    CATransform3D halfway = CATransform3DMakeRotation((from + to) / 2, 0, 1, 0);
+    BOOL left = (NSMinX(local) - middle.x) * halfway.m13 > (NSMaxX(local) - middle.x) * halfway.m13;
+    CGFloat side = left ? NSMinX(local) : NSMaxX(local);
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.edge.frame = NSMakeRect(side - kEdge / 2, NSMinY(local) + kEdgeInset, kEdge, NSHeight(local) - 2 * kEdgeInset);
+    self.edgeShade.frame = CGRectMake(0, 0, kEdge, NSHeight(local) - 2 * kEdgeInset);
+    [CATransaction commit];
+    [self paintEdge];
+    CGPoint glassAt = AnchorOf(self.glass), frontAt = AnchorOf(self.clip), backAt = AnchorOf(self.back);
+    CGPoint edgeAt = AnchorOf(self.edge), edgeMiddle = CGPointMake(NSMidX(self.edge.frame), NSMidY(self.edge.frame));
+    CGPoint shadowAt = self.shadow.position;
+    // Finely enough for every frame the screen draws; each a little turn from the last.
+    const int samples = 96;
+    NSMutableArray *times = [NSMutableArray array], *glass = [NSMutableArray array], *front = [NSMutableArray array],
+                   *back = [NSMutableArray array], *edge = [NSMutableArray array], *shadow = [NSMutableArray array];
+    for (int i = 0; i <= samples; i++) {
+        CGFloat along = (CGFloat)i / samples, angle = from + (to - from) * TurnEased(along);
+        // The edge stands across the panel's side, as thick as the panel is turned from you, so it's never seen flat.
+        CATransform3D across = CATransform3DConcat(CATransform3DMakeScale(MAX(0.001, fabs(sin(angle))), 1, 1),
+                                                   CATransform3DMakeRotation(M_PI_2, 0, 1, 0));
+        [times addObject:@(along)];
+        [glass addObject:[NSValue valueWithCATransform3D:TurnAbout(middle, glassAt, angle, CATransform3DIdentity,
+                                                                   glassAt)]];
+        [front addObject:[NSValue valueWithCATransform3D:TurnAbout(middle, frontAt, angle, CATransform3DIdentity,
+                                                                   frontAt)]];
+        // The back is the other way round, so it reads as it should once it has come round.
+        [back addObject:[NSValue valueWithCATransform3D:TurnAbout(middle, backAt, angle - M_PI, CATransform3DIdentity,
+                                                                  backAt)]];
+        [edge addObject:[NSValue valueWithCATransform3D:TurnAbout(middle, edgeAt, angle, across, edgeMiddle)]];
+        [shadow addObject:[NSValue valueWithCATransform3D:TurnAbout(shadowAt, shadowAt, angle, CATransform3DIdentity,
+                                                                    shadowAt)]];
+    }
+    CAKeyframeAnimation *(^turning)(NSArray *) = ^CAKeyframeAnimation *(NSArray *values) {
+        CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
+        animation.values = values;
+        animation.keyTimes = times;
+        animation.duration = kTurn;
+        return animation;
+    };
+    // Each side shows only while it faces you: they swap halfway, where the panel is edge-on.
+    CAKeyframeAnimation *(^swap)(BOOL) = ^CAKeyframeAnimation *(BOOL showsAfter) {
+        CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+        animation.values = showsAfter ? @[@0, @0, @1, @1] : @[@1, @1, @0, @0];
+        animation.keyTimes = @[@0, @0.499, @0.501, @1];
+        animation.duration = kTurn;
+        return animation;
+    };
+    __weak typeof(self) weakSelf = self;
+    if (over) [self becomeTurned:YES];
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    [CATransaction setCompletionBlock:^{
+        if (!over) [weakSelf becomeTurned:NO];
+        then();
+    }];
+    // The edge shows only while it turns: once its animation has gone, it's see-through again.
+    CAKeyframeAnimation *showing = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+    showing.values = @[@1, @1];
+    showing.duration = kTurn;
+    [self.glass.layer addAnimation:turning(glass) forKey:@"turn"];
+    [self.clip.layer addAnimation:turning(front) forKey:@"turn"];
+    [self.back.layer addAnimation:turning(back) forKey:@"turn"];
+    [self.edge.layer addAnimation:turning(edge) forKey:@"turn"];
+    [self.edge.layer addAnimation:showing forKey:@"side"];
+    [self.shadow addAnimation:turning(shadow) forKey:@"turn"];
+    [self.clip.layer addAnimation:swap(!over) forKey:@"side"];
+    [self.back.layer addAnimation:swap(over) forKey:@"side"];
+    self.clip.alphaValue = over ? 0 : 1;
+    self.back.alphaValue = over ? 1 : 0;
+    [CATransaction commit];
+}
+
+// With reduced motion, the side going fades as the one coming in does, in place.
+- (void)fadeSides:(BOOL)over then:(void (^)(void))then {
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    [CATransaction setCompletionBlock:then];
+    for (SideView *side in @[self.clip, self.back]) {
+        BOOL shows = (side == self.back) == over;
+        CABasicAnimation *fade = [CABasicAnimation animationWithKeyPath:@"opacity"];
+        fade.fromValue = @(shows ? 0 : 1);
+        fade.toValue = @(shows ? 1 : 0);
+        fade.duration = 0.25;
+        [side.layer addAnimation:fade forKey:@"side"];
+        side.alphaValue = shows ? 1 : 0;
+    }
+    [CATransaction commit];
+}
+
+// Back on its list side at once, as it folds (fold:instant:).
+- (void)turnBackAtOnce {
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.clip.alphaValue = 1;
+    self.back.alphaValue = 0;
+    [CATransaction commit];
+    self.clip.away = NO;
+    self.back.away = YES;
+    [self becomeTurned:NO];
+    [self placeStrips];
+    // It's folding: the page says how tall it is again once it opens.
+    self.heightAfterTurn = 0;
+}
+
+// The edge in the panel's own colour, from the tint's: a little lighter on the dark panel and darker on the light one,
+// most in its middle, as a rounded edge catches the light.
+- (void)paintEdge {
+    BOOL dark = IsDark(self.panel.effectiveAppearance);
+    NSColor *tint = [[NSColor colorWithCGColor:self.tint.layer.backgroundColor]
+                        colorUsingColorSpace:NSColorSpace.sRGBColorSpace] ?: NSColor.grayColor;
+    CGFloat r = tint.redComponent, g = tint.greenComponent, b = tint.blueComponent;
+    NSMutableArray *colours = [NSMutableArray array];
+    for (NSNumber *by in @[@0.04, @0.11, @0.02]) {
+        CGFloat k = dark ? by.doubleValue : -by.doubleValue;
+        [colours addObject:(__bridge id)[NSColor colorWithSRGBRed:MAX(0, MIN(1, r + k)) green:MAX(0, MIN(1, g + k))
+                                                             blue:MAX(0, MIN(1, b + k)) alpha:1].CGColor];
+    }
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.edgeShade.colors = colours;
     [CATransaction commit];
 }
 
@@ -1083,6 +1538,14 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.lastScreen = screen;
     if (self.panel.isVisible)
         for (void (^observer)(NSPoint) in self.pointerObservers) observer(screen);
+    // Turned over, the list isn't what the pointer is on: the back's page follows it (followPointer:).
+    if (self.turned) {
+        if (self.hovering) {
+            self.hovering = NO;
+            [self.page hoverEnd:NO];
+        }
+        return;
+    }
     NSRect frame = self.panel.frame;
     if (self.folded && !self.reshaping) {
         [self tellCatPointer:screen];
