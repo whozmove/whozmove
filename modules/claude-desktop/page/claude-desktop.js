@@ -8,7 +8,7 @@ const SCRATCH_DIR = '/Library/Application Support/Claude/scratch-workspaces/';
 
 core.hosts.push({
   holds: (s) => s.entrypoint === 'claude-desktop',
-  name: 'Claude Desktop', icon: DESKTOP_ICON, openNow: 'Open in Claude now', inName: ' in Claude',
+  name: 'Claude Desktop', openNow: 'Open in Claude now', inName: ' in Claude',
   closedTip: () => 'Not running: click to open it in Claude',
   project: (s) => ((s.cwd || '').includes(SCRATCH_DIR) ? { key: 'scratch', name: 'Scratch', scratch: true } : null),
 });

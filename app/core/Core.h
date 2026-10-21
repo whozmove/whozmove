@@ -5,7 +5,8 @@
 #import "Host.h"
 #import "Agent.h"
 
-@class Page, PanelWindow, MenuBar, Modules, Rows, Focus, Send, Row;
+@class Page, PanelWindow, MenuBar, Modules, Rows, Focus, Send, Row, Browser, BrowserSetup;
+@protocol BrowserOwner;
 
 @interface Core : NSObject
 // For the app, once its page, window and menu bar are made; then its modules are found and made.
@@ -59,6 +60,9 @@
 // The marks every agent puts on the commands its sessions run (Agent's environmentMarks), to take off a command that's
 // yours; nil with no agent to say, so nothing that must be yours runs before they're known.
 @property (readonly) NSArray<NSString *> *agentMarks;
+// Web pages that aren't the panel's own, for a module to show in the panel's window (Browser.h): a Browser of this
+// setup, which tells `owner` what changes and asks it what only you can answer. Nil in a print run.
+- (Browser *)browserWith:(BrowserSetup *)setup owner:(id<BrowserOwner>)owner;
 // The page's messages the core itself answers, by type: the panel's size, turning it over, the keyboard, the pawn's
 // count, and opening a
 // session.

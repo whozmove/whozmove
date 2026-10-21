@@ -17,7 +17,6 @@
   /* Words on the panel, brightest first. */
   --bright: #fff;                        /* pointed at (Deploy's mark, the song's title), a song's line now */
   --text: rgba(255, 255, 255, 0.92);
-  --file-text: rgba(255, 255, 255, 0.88);  /* a file in the gauge's lists */
   --code: rgba(255, 255, 255, 0.86);     /* code, and a tool's input on its card */
   --play: rgba(255, 255, 255, 0.85);     /* Deploy's round button: its mark and its ring */
   --reading-text: rgba(255, 255, 255, 0.84);  /* what the reader shows to read: a plan, notes, a song's lyrics */
@@ -28,7 +27,6 @@
   --muted: rgba(255, 255, 255, 0.55);
   --label: rgba(255, 255, 255, 0.5);     /* a project's name over its group, how a session's agent is set up, a song's
                                             lines still to come */
-  --kind: rgba(255, 255, 255, 0.45);     /* where a session runs: Desktop, Terminal */
   --read-text: rgba(255, 255, 255, 0.42);  /* a reply you've already opened */
   --dim: rgba(255, 255, 255, 0.4);       /* a group's chevron, a file's folder, a comment in code */
   --faint: rgba(255, 255, 255, 0.32);
@@ -49,26 +47,16 @@
   /* Words in your move's own amber, where the dark panel has them as bright as its mark: a question's count, the
      usage card's pace. */
   --turn-words: #ffc53d;
-  /* The same, for words in a stage's colour, and the soft fill of a tag or stage that holds them; stronger where your
-     next move is, and an edge in the colour around a card that's about it. */
+  /* The same, for words in a state's colour, and the soft fill of a tag that holds them, and an edge in the colour
+     around a card that's about it. */
   --needs-text: #ff9b85;
   --needs-edge: rgba(255, 107, 74, 0.3);
   --needs-glow: rgba(255, 107, 74, 0.55);  /* the ring a needs-you dot sends out, and where it fades to */
   --needs-glow-gone: rgba(255, 107, 74, 0);
-  --busy-text: #8cc6ff;
-  --busy-fill: rgba(74, 168, 255, 0.16);
-  --busy-fill-strong: rgba(74, 168, 255, 0.32);
   --turn-text: #ffd166;
   --turn-fill: rgba(255, 197, 61, 0.16);
-  --turn-fill-strong: rgba(255, 197, 61, 0.32);
   --turn-edge: rgba(255, 197, 61, 0.35);  /* Deploy's set-up card */
-  --wait-text: #7fd8d0;
-  --wait-fill: rgba(64, 200, 190, 0.15);
-  --wait-fill-strong: rgba(64, 200, 190, 0.32);
-  --wait-edge: rgba(64, 200, 190, 0.35);  /* the extra stage's card */
   --done-text: #7ee2a0;
-  --done-fill: rgba(76, 217, 123, 0.15);
-  --done-fill-strong: rgba(76, 217, 123, 0.32);
   --pr-pointed: rgba(86, 211, 100, 0.14);  /* a PR, pointed at */
   --link: #8cc6ff;
   --worktree-text: #d2a8f7;              /* a worktree, its chip wherever it shows (worktreeChip) */
@@ -81,7 +69,6 @@
   --plan-fill: rgba(170, 140, 255, 0.18);
   --plan-edge: rgba(170, 140, 255, 0.35);
   --prototype-text: #9fe3d6;
-  --prototype-fill: rgba(64, 200, 190, 0.16);
   /* A PR's state on its card, in GitHub's colours: open, or a draft (or not known). */
   --pr-open-text: #3fb950;
   --pr-open-fill: rgba(46, 160, 67, 0.15);
@@ -98,14 +85,6 @@
   --changed-text: #e3b341;
   --changed-fill: rgba(227, 179, 65, 0.14);
   --code-string: #a5d6ff;                /* a string, in a changed file's lines */
-  /* Who changed each line, in the changes view: the session it's about, another session, someone outside them, and
-     lines too few to say or not known; and another session's chip. */
-  --who-me: #4aa8ff;
-  --who-other: #b69cff;
-  --who-other-fill: rgba(182, 156, 255, 0.13);
-  --who-outside: #ffc53d;
-  --who-short: rgba(255, 255, 255, 0.2);
-  --who-none: rgba(255, 255, 255, 0.28);
   /* How full a gauge is: a session's context ring and the usage card's bars (GAUGE, panel/scripts/util.js), with the
      ring's empty part, and the words on the usage card's colour. */
   --level-normal: rgba(255, 255, 255, 0.55);
@@ -116,32 +95,15 @@
   --on-gauge: #18181b;
   --on-gauge-soft: rgba(24, 24, 27, 0.68);  /* what says less on it: its labels */
 
-  /* The island's files gauge: its words, its fill and edge (firmer pointed at), each part's fill (stronger pointed
-     at) and its count's words. */
-  --gauge-text: #e3f0ff;
-  --gauge-fill: rgba(140, 198, 255, 0.07);
-  --gauge-edge: rgba(140, 198, 255, 0.28);
-  --gauge-edge-pointed: rgba(140, 198, 255, 0.45);
-  --gauge-staged: rgba(74, 168, 255, 0.45);
-  --gauge-staged-on: rgba(74, 168, 255, 0.58);
-  --gauge-staged-text: #eef6ff;
-  --gauge-partly: rgba(74, 168, 255, 0.22);
-  --gauge-partly-on: rgba(74, 168, 255, 0.34);
-  --gauge-partly-text: #d4e9ff;
-  --gauge-unstaged-on: rgba(140, 198, 255, 0.12);
-  --island-edge: rgba(255, 255, 255, 0.09);
-  --sheen: rgba(255, 255, 255, 0.5);     /* the light that sweeps across the stage your next move has become */
-
   /* Lines, edges and fills on the panel. */
   --rule: rgba(255, 255, 255, 0.08);     /* a line between parts */
   --edge: rgba(255, 255, 255, 0.12);     /* around a card, a choice, the song's cover */
   --edge-firm: rgba(255, 255, 255, 0.14);  /* around the Compact card and "Switch model?" */
   --box-edge: rgba(255, 255, 255, 0.4);  /* an unpicked choice's mark, a task's box */
   --tickbox-edge: rgba(255, 255, 255, 0.35);  /* "Don't ask again"'s box, unticked */
-  --part-line: rgba(255, 255, 255, 0.4);  /* between the gauge's parts, while it's open */
   --quote-line: rgba(255, 255, 255, 0.16);  /* beside a quote, in the reader */
   --outline: rgba(255, 255, 255, 0.16);  /* around a count on the PR card */
-  --surface: rgba(255, 255, 255, 0.05);  /* what's set on the panel: the island, a card on a row, the changes switch */
+  --surface: rgba(255, 255, 255, 0.05);  /* what's set on the panel: a card on a row, the changes view's tabs */
   --track: rgba(255, 255, 255, 0.06);    /* the empty part of a line or a bar */
   --usage-track: rgba(255, 255, 255, 0.1);  /* the usage card's bars' */
   --song-played: rgba(255, 255, 255, 0.45);  /* how far in the song is, firmer pointed at */
@@ -170,7 +132,6 @@
   --hover: rgba(255, 255, 255, 0.07);
   --hover-firm: rgba(255, 255, 255, 0.08);  /* a row's numbers */
   --hover-strong: rgba(255, 255, 255, 0.1);  /* a pick, a ×, the player's buttons, Open */
-  --pointed-edge: rgba(255, 255, 255, 0.28);  /* an island stage */
   --pointed-filter: brightness(1.3);     /* a writing's tag */
   --play-fill: rgba(255, 255, 255, 0.08);
   --play-fill-pointed: rgba(255, 255, 255, 0.16);
@@ -195,8 +156,6 @@
   --compose-focus: rgba(255, 255, 255, 0.42);
   --compose-dot: rgba(255, 255, 255, 0.5);  /* the new conversation's dot, a ring */
   --code-fill: rgba(0, 0, 0, 0.3);
-  /* A prototype in the reader, on the white page it was made for. */
-  --frame: #fff;
   /* The folded panel's cat (cat.js) and the name in the header; and the cat's eyes and nose, the panel's own colour
      showing through. The app icon (icon/make-icon.m) draws its cat in the dark --cream too: keep them matching. */
   --cream: #f3ebe2;
@@ -206,7 +165,7 @@
   --cat-tag-edge: rgba(255, 255, 255, 0.09);
   --cat-tag-pointed: #34343c;
   --cat-tag-shadow: rgba(10, 12, 20, 0.35);
-  /* The cards that float over the list: the PR card, the gauge's lists, the commits card, "Switch model?". */
+  /* The cards that float over the list: a PR's, Create PR's, where a session runs, "Switch model?". */
   --card: #232327;
   --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
   /* On the panel's back (modules/apps), the tile drawn for an app with no icon of its own (git), and its mark. */
@@ -231,7 +190,7 @@
 
   /* Text sizes, smallest first. */
   --size-chip: 9.5px;                    /* a question's chip */
-  --size-tag: 10px;                      /* tags, the island's stages, small capitals, the build line */
+  --size-tag: 10px;                      /* tags, small capitals, the build line */
   --size-meta: 10.5px;                   /* what's said beside: the Compact label, the shortcut, a writing's details */
   --size-small: 11px;                    /* a row's details and its chat, a card's help, the strips */
   --size-card: 11.5px;                   /* a card's sentences, and what Claude's doing */
@@ -249,7 +208,7 @@
   --radius-button: 6px;                  /* the buttons in the header, the strips, the reader and the changes view */
   --radius-control: 7px;                 /* a card's buttons, choices and text boxes; the reader's list */
   --radius-box: 8px;                     /* a row, a card on a row, a code block, a switch */
-  --radius-menu: 9px;                    /* the gauge's lists, the commits card, Open With */
+  --radius-menu: 9px;                    /* Open With's list of editors */
   --radius-card: 10px;                   /* the PR card, "Switch model?" */
   --radius-panel: 24px;                  /* the panel's own corners, and the usage card's under it (kCorner) */
   --radius-icon: 22.5%;                  /* an app's tile on the panel's back, rounded as macOS's app icons are */
@@ -263,7 +222,7 @@
   --side: 1254px;
   --column: 340px;
 
-  /* Motion: the spring the island's gauge opens on, with a slight overshoot, where WebKit has it (motion.css). */
+  /* Motion: a spring, with a slight overshoot, where WebKit has it (the header's ＋ turning, in base.css). */
   --spring: linear(0, .0063, .0255 1.2%, .1006 2.6%, .2161 4.1%, .4237 6.3%, .6366 8.7%, .8137 11.3%,
                    .9346 13.9%, 1.0098 16.6%, 1.0453 19.3%, 1.0548 21.8%, 1.0491 24.6%, 1.0215 31.5%,
                    1.0035 38.6%, .9978 45.5%, .9992 61.4%, 1);
@@ -271,7 +230,7 @@
 @supports not (transition-timing-function: linear(0, 1)) { :root { --spring: cubic-bezier(.2, .8, .2, 1); } }
 
 /* The light panel: the same jobs, in the same order. Words and lines are black where the dark panel's are white, each
-   as far from the panel as it is there; the stages' colours are deeper, so their words read on the light panel; the
+   as far from the panel as it is there; the status colours are deeper, so their words read on the light panel; the
    main button is dark, with light words; the cards that float over the list are white. */
 @media (prefers-color-scheme: light) {
   :root {
@@ -279,7 +238,6 @@
 
     --bright: rgba(0, 0, 0, 0.92);
     --text: rgba(0, 0, 0, 0.85);
-    --file-text: rgba(0, 0, 0, 0.83);
     --code: rgba(0, 0, 0, 0.82);
     --play: rgba(0, 0, 0, 0.8);
     --reading-text: rgba(0, 0, 0, 0.8);
@@ -289,7 +247,6 @@
     --branch-text: rgba(0, 0, 0, 0.72);
     --muted: rgba(0, 0, 0, 0.6);
     --label: rgba(0, 0, 0, 0.58);
-    --kind: rgba(0, 0, 0, 0.54);
     --read-text: rgba(0, 0, 0, 0.51);
     --dim: rgba(0, 0, 0, 0.49);
     --faint: rgba(0, 0, 0, 0.41);
@@ -308,20 +265,10 @@
     --needs-edge: rgba(201, 52, 18, 0.35);
     --needs-glow: rgba(201, 52, 18, 0.45);
     --needs-glow-gone: rgba(201, 52, 18, 0);
-    --busy-text: #0a5cb3;
-    --busy-fill: rgba(11, 107, 203, 0.1);
-    --busy-fill-strong: rgba(11, 107, 203, 0.2);
     --turn-text: #7f5300;
     --turn-fill: rgba(214, 150, 0, 0.14);
-    --turn-fill-strong: rgba(214, 150, 0, 0.28);
     --turn-edge: rgba(191, 131, 0, 0.45);
-    --wait-text: #0c6b64;
-    --wait-fill: rgba(13, 112, 105, 0.1);
-    --wait-fill-strong: rgba(13, 112, 105, 0.2);
-    --wait-edge: rgba(13, 112, 105, 0.35);
     --done-text: #17702f;
-    --done-fill: rgba(26, 127, 55, 0.1);
-    --done-fill-strong: rgba(26, 127, 55, 0.2);
     --pr-pointed: rgba(26, 127, 55, 0.1);
     --link: #0a5cb3;
     --worktree-text: #7d3ab8;
@@ -332,7 +279,6 @@
     --plan-fill: rgba(106, 63, 196, 0.1);
     --plan-edge: rgba(106, 63, 196, 0.35);
     --prototype-text: #0c6b62;
-    --prototype-fill: rgba(13, 112, 105, 0.1);
     --pr-open-text: #1a7f37;
     --pr-open-fill: rgba(31, 136, 61, 0.1);
     --pr-open-edge: rgba(31, 136, 61, 0.4);
@@ -347,12 +293,6 @@
     --changed-text: #8a5c00;
     --changed-fill: rgba(154, 103, 0, 0.1);
     --code-string: #0a3069;
-    --who-me: #0b6bcb;
-    --who-other: #7a48d6;
-    --who-other-fill: rgba(122, 72, 214, 0.1);
-    --who-outside: #bf8300;
-    --who-short: rgba(0, 0, 0, 0.2);
-    --who-none: rgba(0, 0, 0, 0.26);
     --level-normal: rgba(0, 0, 0, 0.5);
     --level-warning: #9a6700;
     --level-limit: #c93412;
@@ -361,26 +301,11 @@
     --on-gauge: #fff;
     --on-gauge-soft: rgba(255, 255, 255, 0.8);
 
-    --gauge-text: #0b4f9c;
-    --gauge-fill: rgba(11, 107, 203, 0.06);
-    --gauge-edge: rgba(11, 107, 203, 0.3);
-    --gauge-edge-pointed: rgba(11, 107, 203, 0.5);
-    --gauge-staged: rgba(11, 107, 203, 0.4);
-    --gauge-staged-on: rgba(11, 107, 203, 0.52);
-    --gauge-staged-text: #063a75;
-    --gauge-partly: rgba(11, 107, 203, 0.18);
-    --gauge-partly-on: rgba(11, 107, 203, 0.28);
-    --gauge-partly-text: #0a4a8f;
-    --gauge-unstaged-on: rgba(11, 107, 203, 0.1);
-    --island-edge: rgba(0, 0, 0, 0.09);
-    --sheen: rgba(255, 255, 255, 0.85);
-
     --rule: rgba(0, 0, 0, 0.08);
     --edge: rgba(0, 0, 0, 0.1);
     --edge-firm: rgba(0, 0, 0, 0.13);
     --box-edge: rgba(0, 0, 0, 0.4);
     --tickbox-edge: rgba(0, 0, 0, 0.35);
-    --part-line: rgba(255, 255, 255, 0.8);
     --quote-line: rgba(0, 0, 0, 0.14);
     --outline: rgba(0, 0, 0, 0.16);
     --surface: rgba(0, 0, 0, 0.035);
@@ -408,7 +333,6 @@
     --hover: rgba(0, 0, 0, 0.05);
     --hover-firm: rgba(0, 0, 0, 0.06);
     --hover-strong: rgba(0, 0, 0, 0.07);
-    --pointed-edge: rgba(0, 0, 0, 0.25);
     --pointed-filter: brightness(0.92);
     --play-fill: rgba(0, 0, 0, 0.06);
     --play-fill-pointed: rgba(0, 0, 0, 0.12);
@@ -429,7 +353,6 @@
     --compose-focus: rgba(0, 0, 0, 0.4);
     --compose-dot: rgba(0, 0, 0, 0.45);
     --code-fill: rgba(0, 0, 0, 0.045);
-    --frame: #fff;
     --cream: #2a2420;
     --cat-tag: #fff;
     --cat-tag-edge: rgba(0, 0, 0, 0.1);

@@ -1,0 +1,49 @@
+Setups: [1] the web; [2] the web, staying on google.com, links out; [3] a folder; [4] a folder, links
+out; [5] a folder, links out, with the web's parts
+                                   [1]      [2]      [3]      [4]      [5]      address (page or frame, pressed)
+the folder's page                  refused  refused  loads    loads    loads    file://T/home/work/site/page.html (page)
+a # link on the same page          refused  refused  loads    loads    loads    file://T/home/work/site/page.html#top (page, pressed)
+a hash route                       refused  refused  loads    loads    loads    file://T/home/work/site/page.html#/settings/2 (page, pressed)
+a file beside it                   refused  refused  loads    loads    loads    file://T/home/work/site/beside.html (page, pressed)
+a file in a folder in it           refused  refused  loads    loads    loads    file://T/home/work/site/sub/inner.html (page, pressed)
+a file that isn't there yet        refused  refused  loads    loads    loads    file://T/home/work/site/later.html (page)
+../ out of the folder              refused  refused  refused  outside  outside  file://T/home/work/site/../outside/secret.html (page, pressed)
+../ out of it, by itself           refused  refused  refused  refused  refused  file://T/home/work/site/../outside/secret.html (page)
+a link in it leading out           refused  refused  refused  outside  outside  file://T/home/work/site/link/secret.html (page, pressed)
+a folder named like it             refused  refused  refused  outside  outside  file://T/home/work/site-other/page.html (page, pressed)
+a file elsewhere, pressed          refused  refused  refused  refused  refused  file:///etc/hosts (page, pressed)
+about:blank, a frame               loads    loads    loads    loads    loads    about:blank (frame)
+about:srcdoc, a frame              loads    loads    loads    loads    loads    about:srcdoc (frame)
+about:blank, a window              loads    loads    loads    loads    loads    about:blank (page)
+data:, a frame                     loads    loads    loads    loads    loads    data:text/html,<p>hi</p> (frame)
+data:, as the page                 refused  refused  refused  refused  refused  data:text/html,<p>hi</p> (page)
+blob:, a frame                     loads    loads    loads    loads    loads    blob:null/6f2c1a5e-0000-4000-8000-000000000001 (frame)
+javascript:, pressed               loads    loads    loads    loads    loads    javascript:void(0) (page, pressed)
+a site, as the page                loads    loads    refused  refused  refused  https://mail.google.com/mail/u/0/ (page)
+a site's link to itself, pressed   loads    loads    refused  outside  outside  https://mail.google.com/mail/u/0/#inbox (page, pressed)
+a link to another of its sites     loads    loads    refused  outside  outside  https://accounts.google.com/Logout (page, pressed)
+a link to another site, pressed    loads    outside  refused  outside  outside  https://news.example.com/story (page, pressed)
+a sign-in going to another site    loads    loads    refused  refused  refused  https://login.example.com/oauth (page)
+a plain http site                  loads    loads    refused  refused  refused  http://example.com/ (page)
+a frame of another site            loads    loads    refused  refused  loads    https://www.youtube.com/embed/abc (frame)
+an email link, pressed             asks     asks     asks     asks     asks     mailto:someone@example.com (page, pressed)
+an email link, by itself           refused  refused  refused  refused  refused  mailto:someone@example.com (page)
+an app's own link, pressed         asks     asks     asks     asks     asks     zoommtg://zoom.us/join?confno=1 (page, pressed)
+an address with no kind            refused  refused  refused  refused  refused  example.com (page, pressed)
+Whether a page can be shown from each folder (no: the disk's top, your home folder or one holding it, or
+no folder):
+  /: no
+  T/home: no
+  T: no
+  T/home/work/site: yes
+  /no/such/folder: no
+  T/home/work/site/page.html: no
+The store each name's sign-ins are kept in:
+  "Mailbox": D118E7B2-FE76-8B12-BE76-F3E588EA2ACD
+  "Daybook": 963DA577-5E5E-846E-9DCC-E448EAA1C9B5
+  "mailbox": 0D99FC0A-A2DB-89B6-8586-FB9B0A7EB0D6
+  "": nothing kept
+Introduced to sites as:
+  Safari: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.2 Safari/605.1.15
+  Safari, not found: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15
+  WebKit's own: (its own words)

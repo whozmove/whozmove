@@ -74,7 +74,7 @@ function folderWork(sessions) {
 // outside git), and the one their edits land in while the turn they're on has edited files there (an edit from an
 // earlier turn doesn't keep them at work there). `kinds` is what each session is now (classify). Deploy waits while any
 // agent works in its folder, not just the row's own, so what's put in place isn't half-way through a change; so do the
-// island's steps (OthersAtWork in app/core/Work.m), while the island stays up, to show where the work stands. One
+// next steps (OthersAtWork in app/core/Work.m), which stay on the row meanwhile, dimmed. One
 // waiting on you doesn't count: it changes nothing until you answer it, which may be days away. A conversation open
 // more than once works wherever one of its copies does (s.alsoOpen), though its row shows another.
 function agentsAtWork(sessions, kinds) {
@@ -88,7 +88,7 @@ function agentsAtWork(sessions, kinds) {
 }
 
 // How a wait for the agents in other sessions is said, naming them as their rows are titled (`titles`, in order), as
-// the app says it in the island's menus (WhyStepsWait in app/core/Work.m): "until the agent in “a” is done", "until the
+// the app says it when a step waits (WhyStepsWait in app/core/Work.m): "until the agent in “a” is done", "until the
 // agents in “a” and “b” are done", "until the agents in “a” and 2 others are done".
 function untilDone(titles) {
   const named = titles.map((t) => `“${t}”`);
@@ -106,7 +106,7 @@ function deployDue(s, d) {
   return Math.max(deployWork(s, d.folder || folderOf(s)), d.work || 0) > Math.max(d.at || 0, d.skippedAt || 0);
 }
 
-// How long the check shows once a deploy has gone through, and how long the line under the row says why one didn't.
+// How long the check shows once a deploy has gone through, and how long the row's note says why one didn't.
 const DONE_MS = 1500, FAILED_MS = 10 * 60000;
 
 // Deploy's round button on a row, or null. Only the row that speaks for its folder (`owner`) has one, and only while
@@ -162,7 +162,7 @@ function deployHTML(s, d, offer, now) {
     + `${icon}</span>`;
 }
 
-// The line under the row's details, when there's something to say about its folder's deploy: what's running (and,
+// The row's note (in its work line's place), when there's something to say about its folder's deploy: what's running (and,
 // after 2 minutes, that it's still going: Deploy is for commands that finish), or for a while after a run that didn't
 // go through, why (the end of its log), or that you stopped it. { text, quiet }, or null.
 function deployNote(d, now) {

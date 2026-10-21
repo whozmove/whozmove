@@ -4,6 +4,7 @@
 
 @implementation Reason {
     id _status;
+    NSString *_words;
 }
 
 + (instancetype)kind:(ReasonKind)kind {
@@ -19,12 +20,19 @@
     return reason;
 }
 
++ (instancetype)terminal:(NSString *)words {
+    Reason *reason = [self kind:ReasonTerminal];
+    reason->_words = [words copy];
+    return reason;
+}
+
 - (NSString *)description {
     switch (self.kind) {
         case ReasonSessionGone: return @"session not found";
         case ReasonRequestWaiting: return @"a request is waiting for an answer";
         case ReasonOpenTwice: return @"session is open more than once";
         case ReasonPaused: return @"session is paused";
+        case ReasonTerminal: return [@"its terminal won't take them: " stringByAppendingString:_words];
         default: return [NSString stringWithFormat:@"session is %@", _status ?: @"not idle"];
     }
 }
@@ -36,6 +44,7 @@
         case ReasonRequestWaiting: return @"Claude is waiting for your answer";
         case ReasonOpenTwice: return @"It's open more than once: close all but one first";
         case ReasonPaused: return @"It's paused in its terminal: bring it back with fg first";
+        case ReasonTerminal: return _words;
         default: return @"This session isn't running";
     }
 }

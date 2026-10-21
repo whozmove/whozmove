@@ -1,6 +1,7 @@
 // Prompt: typing a command into a session's prompt through its terminal, and when keys may go in.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Prompt.h"
+#import "Send.h"
 #import "Files.h"
 #import "Processes.h"
 #import "Asks.h"
@@ -8,8 +9,10 @@
 #import "ClaudeCodeFacts.h"
 
 // The keystrokes go one at a time, paced so each lands after the one before, and each only while `whyNot` finds
-// nothing against it (the session still at its prompt). A prompt that comes up meanwhile gets none of them.
-static void TypeSteps(NSArray<void (^)(void)> *steps, NSUInteger i, Reason *(^whyNot)(void),
+// nothing against it (the session still at its prompt). A prompt that comes up meanwhile gets none of them. A key the
+// terminal refused (`refused`) stops the rest at once, the last one too, asked before anything else runs here: another
+// menu looking for the session's tab meanwhile could lift the terminal's refusal before the next key's check.
+static void TypeSteps(NSArray<void (^)(void)> *steps, NSUInteger i, Reason *(^whyNot)(void), Reason *(^refused)(void),
                       void (^done)(Reason *why, NSUInteger typed, NSUInteger steps)) {
     Reason *why = whyNot();
     if (why) {
@@ -17,10 +20,14 @@ static void TypeSteps(NSArray<void (^)(void)> *steps, NSUInteger i, Reason *(^wh
         return;
     }
     steps[i]();
+    if ((why = refused())) {
+        done(why, i, steps.count);
+        return;
+    }
     BOOL more = i + 1 < steps.count;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((more ? 0.12 : 0.24) * NSEC_PER_SEC)),
                    dispatch_get_main_queue(), ^{
-        if (more) TypeSteps(steps, i + 1, whyNot, done);
+        if (more) TypeSteps(steps, i + 1, whyNot, refused, done);
         else done(nil, steps.count, steps.count);
     });
 }
@@ -34,7 +41,7 @@ void TypeCommand(id<TypingHost> terminal, NSString *tab, NSString *command, Reas
                 ^{ [terminal press:TerminalKeyControlS times:1 inTab:tab]; },
                 ^{ [terminal type:command inTab:tab]; },
                 ^{ [terminal press:TerminalKeyReturn times:1 inTab:tab]; }],
-              0, whyNot, done);
+              0, whyNot, ^{ return WhyTerminalRefuses(terminal, tab); }, done);
 }
 
 void DeleteFiller(id<TypingHost> terminal, NSString *tab) {

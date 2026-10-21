@@ -1,0 +1,168 @@
+== A session on a terminal device a script can name, and text with quotes, a backslash, a tab and an Escape
+-- finding the session on /dev/ttys012
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to tty of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "/dev/ttys012" then
+        set w to window i
+        set s to session k of tab j of w
+        if tty of s is not "/dev/ttys012" then return ""
+        set alone to (count of tabs of w) is 1
+        if alone then set alone to (count of sessions of tab 1 of w) is 1
+        if alone then return (id of s) & " alone"
+        return (id of s) & " shared"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+-- read from "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90 alone": session 4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90, alone in its window
+-- read from "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90 shared": session 4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90, sharing its window
+-- read from "": none
+-- read from "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90": none
+-- read from "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90 alone too": none
+-- read from "w0t0p0:4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90 alone": none
+-- read from "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90 sideways": none
+-- typing the text
+set toType to "/compact keep the \"draft\" plan, not C:\\old [Z"
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to id of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then
+        set w to window i
+        if (count of tabs of w) is not 1 then return "shared"
+        set t to tab 1 of w
+        if (count of sessions of t) is not 1 then return "shared"
+        set s to session 1 of t
+        if id of s is not "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then return ""
+        tell s to write text toType newline no
+        return "typed"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+-- pressing Return
+set toType to character id 13
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to id of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then
+        set w to window i
+        if (count of tabs of w) is not 1 then return "shared"
+        set t to tab 1 of w
+        if (count of sessions of t) is not 1 then return "shared"
+        set s to session 1 of t
+        if id of s is not "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then return ""
+        tell s to write text toType newline no
+        return "typed"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+-- pressing Backspace
+set toType to character id 127
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to id of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then
+        set w to window i
+        if (count of tabs of w) is not 1 then return "shared"
+        set t to tab 1 of w
+        if (count of sessions of t) is not 1 then return "shared"
+        set s to session 1 of t
+        if id of s is not "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then return ""
+        tell s to write text toType newline no
+        return "typed"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+-- pressing Ctrl+S
+set toType to character id 19
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to id of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then
+        set w to window i
+        if (count of tabs of w) is not 1 then return "shared"
+        set t to tab 1 of w
+        if (count of sessions of t) is not 1 then return "shared"
+        set s to session 1 of t
+        if id of s is not "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then return ""
+        tell s to write text toType newline no
+        return "typed"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+-- pressing Shift+Tab, 3 times
+set toType to (character id 27) & "[Z"
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+set found to id of sessions of tabs of windows
+repeat with i from 1 to count of found
+  repeat with j from 1 to count of item i of found
+    repeat with k from 1 to count of item j of item i of found
+      if item k of item j of item i of found is "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then
+        set w to window i
+        if (count of tabs of w) is not 1 then return "shared"
+        set t to tab 1 of w
+        if (count of sessions of t) is not 1 then return "shared"
+        set s to session 1 of t
+        if id of s is not "4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90" then return ""
+        repeat 3 times
+          tell s to write text toType newline no
+          delay 0.05
+        end repeat
+        return "typed"
+      end if
+    end repeat
+  end repeat
+end repeat
+    end tell
+  end if
+end timeout
+return ""
+== Names a script can't take
+-- finding the session on /dev/ttys012"; quit: not asked, as a script can't name it
+-- typing into not-an-id": never, as a script can't name it

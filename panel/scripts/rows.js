@@ -8,7 +8,7 @@ const SECTION_NAMES = { turn: 'Your turn', busy: 'Working', seen: 'Seen', idle: 
 // The app a session runs in, as a row names it (core.hosts): the module's that holds it (Claude Desktop), else a terminal.
 // A terminal session that has ended opens again in the terminal the app names (opensIn).
 const TERMINAL_HOST = {
-  name: 'Terminal', icon: TERMINAL_ICON, openNow: 'Open in your terminal now', inName: '',
+  name: 'Terminal', openNow: 'Open in your terminal now', inName: '',
   closedTip: (s) => (s.opensIn ? `Not running: click to open it in ${s.opensIn}` : 'Not running'),
 };
 function hostOf(s) {
@@ -61,36 +61,57 @@ function chatHTML(s, kind, now) {
   return you + claude;
 }
 
-// The details, on two lines: where the session runs (its app, hostOf; its project, unless grouped by project;
-// branch, a worktree's in its colour; and that it's open twice, when it is), ending in what a module puts there (the
-// session's own numbers); and how its agent is set up (the modules' setup line: its model, effort and mode, and its
-// context ring). Between them, what the modules put under the first line (the island), and a short line when there's
-// something to say (stepLine). A session outside git, grouped by project, has nothing else to say on the first line, so
-// its Desktop/Terminal icon heads the second.
-function metaHTML(row) {
-  const { s } = row;
-  const end = slot('end', row);
-  const under = slot('underWhere', row);
-  const note = stepLine(row);
-  const noteHTML = note ? `<div class="step-note${note.quiet ? ' quiet' : ''}">${esc(note.text)}</div>` : '';
-  const g = s.git;
-  const branch = g && (g.branch || 'detached @' + g.detached);
-  const where = [];
-  if (state.groupBy !== 'project') where.push(`<span class="proj">${esc(projectOf(s).name)}</span>`);
-  if (g) where.push(g.worktree ? worktreeChip(branch, 'branch') : `<span class="branch">${BRANCH_ICON}${esc(branch)}</span>`);
-  if (s.alsoOpen?.length) where.push(`<span class="twice" data-sid="${esc(s.sessionId)}">${openTimes(s)}</span>`);
-  const host = hostOf(s);
-  const tip = [s.cwd, g && `branch ${branch}`, g?.worktree && `worktree ${g.worktree} of ${g.worktreeOf}`,
-               host.name].filter(Boolean).join('\n');
-  const icon = host.icon;
-  const setup = slot('setup', row);
-  if (!where.length && !end) return under + noteHTML + `<div class="setup" title="${esc(tip)}">${icon}${setup}</div>`;
-  return `<div class="where" title="${esc(tip)}">${icon}${where.join('<span class="sep">·</span>')}${end}</div>`
-    + under + noteHTML + (setup ? `<div class="setup">${setup}</div>` : '');
+// The work line, while there's something on it: at its start the session's pull requests (or Create PR, once its
+// branch is pushed with none, or where it stands while commits wait), and at its end what isn't committed in the
+// checkout and the steps its work has to take. The row's note (stepLine), when it has one, is said in the line's place,
+// over what it holds, which stays laid out unseen, so the row keeps its height and nothing under it moves; cut short to
+// one line, with all of it over it.
+function workHTML(row, note = null) {
+  const start = slot('workStart', row), end = slot('numbers', row) + slot('steps', row);
+  if (!start && !end) return '';
+  const said = note ? `<div class="work-note${note.quiet ? ' quiet' : ''}" title="${esc(note.text)}">`
+    + `${esc(note.text)}</div>` : '';
+  return `<div class="work${note ? ' noted' : ''}">${start}${end ? `<span class="work-end">${end}</span>` : ''}`
+    + `${said}</div>`;
+}
+
+// The bottom line, as an editor's status bar has it: how the session's agent is set up at its start (its model, effort
+// and mode, and its context ring: the modules' setup), and where it runs at its end: the worktree, or the branch (or,
+// outside git, the folder), which pointed at says the project and more (placeCardHTML), and what a module puts after
+// it (Deploy's button). Short of room, a long name where it runs (past a dozen letters) shortens first, to about
+// that, then the agent's effort and model give way, then the name further; the mode never does.
+function whereHTML(row) {
+  const { s } = row, g = s.git;
+  const branch = g && (g.branch || 'detached @' + g.detached), name = g ? branch : base(s.cwd);
+  const place = !g ? `<span class="branch folder">${esc(name)}</span>`
+    : g.worktree ? worktreeChip(branch, 'branch') : `<span class="branch">${BRANCH_ICON}${esc(branch)}</span>`;
+  const long = [...name].length > 12 ? ' long' : '';
+  return `<div class="where">${slot('setup', row)}<span class="gap"></span>`
+    + `<span class="place${long}" data-place="${esc(s.sessionId)}">${place}</span>${slot('placeEnd', row)}</div>`;
+}
+
+// What where a session runs says when pointed at: its project, then that it's a worktree of it and on which branch (or
+// which branch it's on, or that it's a folder outside git), its folder, and the app it runs in.
+function placeCardHTML(s) {
+  const g = s.git, project = projectOf(s).name;
+  const what = !g ? 'A folder outside git'
+    : g.worktree ? `A worktree of ${esc(g.worktreeOf || project)}, on branch <b>${esc(g.branch || '')}</b>`
+    : g.branch ? `On branch <b>${esc(g.branch)}</b>` : `Detached at <b>${esc(g.detached || '')}</b>`;
+  return `<div class="pl-head">${esc(project)}</div><div class="pl-what">${what}</div>`
+    + `<div class="pl-path">${esc(g?.root || s.cwd || '')}</div><div class="pl-app">In ${esc(hostOf(s).name)}</div>`;
 }
 
 // A conversation open in more than one process at once (s.alsoOpen: resumed in a second tab while it still ran, or open
-// in Claude Desktop and a terminal), as its details line says it.
+// in Claude Desktop and a terminal): an icon at the title line's end, in the colour of something to put right, with
+// how many times when it's more than twice. Pointed at, its card says where else (twiceCardHTML).
+function twiceHTML(s) {
+  if (!s.alsoOpen?.length) return '';
+  const times = s.alsoOpen.length + 1;
+  return `<span class="twice" data-sid="${esc(s.sessionId)}">${TWICE_ICON}`
+    + `${times > 2 ? `<span class="twice-n">${times}</span>` : ''}</span>`;
+}
+
+// How many times it's open, as its card says it.
 function openTimes(s) {
   const times = s.alsoOpen.length + 1;
   return times === 2 ? 'open twice' : `open ${times} times`;
@@ -132,6 +153,14 @@ function twiceCardHTML(s) {
 }
 
 core.cards.push({
+  selector: '.place[data-place]',
+  key: (place) => 'place:' + place.dataset.place,
+  html(place) {
+    const s = state.last.sessions.find((x) => x.sessionId === place.dataset.place);
+    return s ? placeCardHTML(s) : '';
+  },
+});
+core.cards.push({
   selector: '.twice[data-sid]',
   key: (twice) => 'twice:' + twice.dataset.sid,
   html(twice) {
@@ -142,10 +171,15 @@ core.cards.push({
     if (act === 'close') native({ type: 'closeCopy', sessionId: key.slice('twice:'.length) });
   },
 });
+// The icon cross-fades as it comes, and as how many times changes.
+core.swaps.push(':scope > .main > .line1 .twice');
 
-// The line under the details, { text, quiet } or null: how a step from a row's menus went, or why it couldn't (or why
-// a deploy couldn't start, or its command wasn't saved), for 8s; else what a module has to say there (the folder's
-// deploy).
+// The row's note, { text, quiet } or null: how a step went, or why it couldn't (or why a deploy couldn't start, or its
+// command wasn't saved), for 8s; else what a module has to say (the folder's deploy). It's said in the work line's
+// place (workHTML), or, on a row without one, on a line of its own over the bottom line (noteHTML).
+function noteHTML(note) {
+  return note ? `<div class="step-note${note.quiet ? ' quiet' : ''}">${esc(note.text)}</div>` : '';
+}
 function stepLine(row) {
   const note = state.stepNotes[row.s.sessionId];
   if (note && Date.now() - note.at < 8000) return { text: note.text, quiet: note.quiet };
@@ -156,8 +190,8 @@ function stepLine(row) {
   return null;
 }
 
-// The card under a row's chat: of the modules' cards that want to show there (a request, Compact, Deploy's set-up, the
-// extra stage's question), the most pressing. The others are told they're away, so one that's back waits again before
+// The card under a row's chat: of the modules' cards that want to show there (a request, Compact, Deploy's set-up),
+// the most pressing. The others are told they're away, so one that's back waits again before
 // it takes a press.
 // Sorted once the modules start, when every card is there (they add them as their scripts load).
 const sortCards = () => [...core.rowCards].sort((a, b) => a.order - b.order);
@@ -188,7 +222,7 @@ function openingCard(sid, name) {
 // it's shown in (a row you've pressed stays where you saw it, and a reply you've read stays in Your turn until you've
 // moved on, so the two can differ: sectionOf), the time the rows were sent (now), whether it speaks for its checkout
 // while Show Next Steps is on (owner), the page's own clock, which Deploy's press and animations are timed by, and what
-// each module found when it first looked at the row (core.rowLooks: the island's stages, Deploy's button).
+// each module found when it first looked at the row (core.rowLooks: its next steps, Deploy's button).
 function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
   const row = { s, kind, section, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
                 clock: Date.now() };
@@ -201,17 +235,17 @@ function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
   const tip = s.focused ? hostOf(s).openNow : closed ? hostOf(s).closedTip?.(s) || '' : '';
   const title = tip ? `title="${esc(tip)}"` : '';
   const marks = slot('rowClass', row);  // a module's own classes (a new conversation's row, still landing)
+  const note = stepLine(row), work = workHTML(row, note);
   return `<div class="row ${kind}${closed}${focused}${marks}" data-id="${esc(s.sessionId)}" ${title}>
       <span class="dot" style="${kind === 'needs' ? phase(1600) : kind === 'busy' ? phase(1400) : ''}"></span>
       <div class="main">
         <div class="line1">
           <span class="name">${esc(s.name || base(s.cwd))}</span>${slot('name', row)}
-          ${kind === 'busy' || s.compacting ? '' : `<span class="time">${time}</span>`}${slot('time', row)}
+          ${kind === 'busy' || s.compacting ? '' : `<span class="time">${time}</span>`}${twiceHTML(s)}
         </div>
         ${chatHTML(s, kind, now)}
         ${rowCard(row)}
-        ${metaHTML(row)}
-        ${slot('after', row)}
+        ${work || noteHTML(note)}${whereHTML(row)}
       </div>
     </div>`;
 }

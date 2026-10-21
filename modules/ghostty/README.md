@@ -1,6 +1,6 @@
 # Ghostty
 
-Sessions running in Ghostty, the terminal the panel types into: a row's press brings its session's tab forward, the
+Sessions running in Ghostty, a terminal the panel types into: a row's press brings its session's tab forward, the
 tab Ghostty shows marks the session you're on, the model, effort, mode and Compact menus type their commands into the
 session's tab, and new conversations and the usage strip's Sign in open in a new tab.
 

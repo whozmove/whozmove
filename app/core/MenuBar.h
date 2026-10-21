@@ -16,7 +16,7 @@
 - (void)applySavedGrouping;
 // Tells a freshly loaded page the switches last set: Show Next Steps, Show Deploy, Show Build in Header.
 - (void)applySavedSwitches;
-// Whether Show Next Steps is on (the rows' islands, and the extra stages they show), and Show Deploy (its Deploy step):
+// Whether Show Next Steps is on (the rows' next steps), and Show Deploy (its Deploy step):
 // set from Git's page on the panel's back, each saved, and the page told.
 @property (nonatomic) BOOL showsNextSteps;
 @property (nonatomic) BOOL showsDeploy;

@@ -270,10 +270,10 @@ show('just past the top: under the header', stickyEdge(-1, 150, 500));
 show('just past the bottom: above the bottom edge', stickyEdge(360, 150, 500));
 show('wholly above, and wholly below', [stickyEdge(-400, 150, 500), stickyEdge(900, 150, 500)]);
 show('right at either edge: still in view', [stickyEdge(0, 150, 500), stickyEdge(350, 150, 500)]);
-// A row of seven lines with its padding (9 and 9): its title, your message, Claude's line, where it runs, the island,
-// the setup line and a pull request. The title, Claude's line and where it runs stay.
-const rowLines = [['title', 17, true], ['you', 18, false], ['claude', 18, true], ['where', 19, true],
-                  ['island', 23, false], ['setup', 19, false], ['pr', 19, false]]
+// A row of six lines with its padding (9 and 9): its title, your message, Claude's line, the work line, a step's note
+// and the bottom line. The title, Claude's line and the bottom line stay.
+const rowLines = [['title', 17, true], ['you', 18, false], ['claude', 18, true], ['work', 24, false],
+                  ['note', 18, false], ['where', 21, true]]
   .map(([name, extent, keep]) => ({ name, extent, keep }));
 const rowFull = 18 + rowLines.reduce((sum, l) => sum + l.extent, 0);
 // The copy `past` points past the edge: its height, what has folded off which line, how attached it is, and how far
@@ -284,12 +284,12 @@ const foldAt = (past, edge) => {
   return `${f.height} tall | ${folded.join(', ') || 'nothing folded'} | attached ${+f.attach.toFixed(2)}, `
     + `under ${+f.under.toFixed(2)}`;
 };
-for (const past of [0, 12, 30, 52, 74, 96, 130]) show(`at the top edge, ${past} points past it`, foldAt(past, 'top'));
-for (const past of [12, 30, 52, 74, 96]) show(`at the bottom edge, ${past} points past it`, foldAt(past, 'bottom'));
+for (const past of [0, 12, 30, 52, 60, 74, 130]) show(`at the top edge, ${past} points past it`, foldAt(past, 'top'));
+for (const past of [12, 30, 52, 60, 74]) show(`at the bottom edge, ${past} points past it`, foldAt(past, 'bottom'));
 show('as tall as what of its place is in view, so the row next to it stays touching it',
-  [0, 12, 30, 52, 74].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'top').height === rowFull - past));
+  [0, 12, 30, 52, 60].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'top').height === rowFull - past));
 show('…what has gone all folded off the lines that go',
-  [12, 30, 52, 74].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'bottom').folds
+  [12, 30, 52, 60].every((past) => stickyFold(rowLines, rowFull, rowFull - past, 'bottom').folds
     .reduce((sum, f) => sum + f, 0) === past));
 show('…and never less than the lines that stay', stickyFold(rowLines, rowFull, 10, 'top').height);
 show('a place still taller than the copy (a line it lost folding away there): as tall as the place, nothing folded',
@@ -335,7 +335,7 @@ show('…back in view, nothing', stickyCovers(-30, 150, 500, 72, -40));
 show('…past the bottom', stickyCovers(420, 150, 500, 72, 0));
 show('…taller than the list, nothing', stickyCovers(-100, 520, 500, 72, 0));
 // Back in view, what came on the row while it was away counts as only just shown.
-state.shownAt = { 'compact:s': NOW - 5000, 'island:other': NOW - 5000, ask1: NOW - 5000 };
+state.shownAt = { 'compact:s': NOW - 5000, 'steps:other': NOW - 5000, ask1: NOW - 5000 };
 const realNow = Date.now;
 Date.now = () => NOW;
 showAgain(session({ sessionId: 's', ask: { id: 'ask1' } }));
@@ -453,7 +453,12 @@ section('Open twice');
 // what that means: another copy in a terminal holds up everything the panel types, one in Claude Desktop only the mode.
 // A copy paused in its terminal takes nothing from the panel, so its card says only what bringing it back would do.
 const twice = session({ sessionId: 'o1', alsoOpen: [{ entrypoint: 'cli', paused: false }] });
-show('its details line', /<div class="where"[^]*?<\/div>/.exec(rowHTML(twice, 'idle', NOW))?.[0]);
+show('its title line: the icon after the time',
+  /<div class="line1"[^]*?<\/div>/.exec(rowHTML(twice, 'idle', NOW))?.[0]);
+show('…open three times: the icon and 3', twiceHTML(session({ sessionId: 'o3', alsoOpen: [{ entrypoint: 'cli' },
+                                                                                        { entrypoint: 'cli' }] })));
+show('…and its bottom line says nothing of it', /twice/.test(/<div class="where"[^]*?$/.exec(rowHTML(twice, 'idle',
+                                                                                                    NOW))[0]));
 show('in another terminal tab', twiceCardHTML(twice));
 show('in Claude Desktop', twiceCardHTML(session({ alsoOpen: [{ entrypoint: 'claude-desktop', paused: false }] })));
 show('in Claude Desktop, and paused in a terminal', twiceCardHTML(session({
@@ -506,17 +511,14 @@ Object.assign(state, {
   listedAt: { endedJustNow: earlier(10000), askJustAnswered: earlier(10000) },
   quiz: { askWaiting: {}, askJustAnswered: {}, askAnsweredLongAgo: {} },
   compactOpen: { listed: true, endedLongAgo: true },
-  shownAt: { askWaiting: earlier(1000), 'compact:endedLongAgo': earlier(600000), 'island:listed': earlier(1000),
-             'trust:endedLongAgo': earlier(600000), 'steps:listed': earlier(500), 'steps:endedLongAgo': earlier(600000) },
-  trustAnswered: { listed: { command: 'x', at: earlier(1000) }, endedLongAgo: { command: 'x', at: earlier(600000) } },
+  shownAt: { askWaiting: earlier(1000), 'compact:endedLongAgo': earlier(600000), 'steps:listed': earlier(1000),
+             'steps:listed': earlier(500), 'steps:endedLongAgo': earlier(600000) },
 });
 forgetGone([session({ sessionId: 'listed', ask: { id: 'askWaiting', tool: 'Bash', input: {} } })]);
 show('what you read, kept', Object.keys(state.seen).sort());
 show('question state, kept', Object.keys(state.quiz).sort());
 show('Compact cards, kept', Object.keys(state.compactOpen).sort());
 show('when cards first showed, kept', Object.keys(state.shownAt).sort());
-show('answers about extra stages, kept', Object.keys(state.trustAnswered).sort());
-state.trustAnswered = {};
 
 section('The running build, in the header');
 const buildOf = (fields) => Object.assign({ root: '/work/app', branch: 'main', commit: 'abc1234def', changes: false,
@@ -653,7 +655,7 @@ print('-- back to play, 300ms after the check');
 print(look({}, 'idle', dep({ run: { ...doneRun, finishedAt: NOW - 1800 }, at: NOW - 1800, seenDone: NOW - 1800 })));
 print("-- didn't go through");
 print(look(built, 'idle', dep({ run: failedRun, at: min(30) })));
-show('the line under the row, while it runs', deployNote(dep({ run: { running: true, startedAt: NOW - 2000 } }), NOW));
+show('the row\'s note, while it runs', deployNote(dep({ run: { running: true, startedAt: NOW - 2000 } }), NOW));
 show('…just pressed', deployNote(dep({ pressed: NOW - 300 }), NOW));
 show('…still running after 3 minutes', deployNote(dep({ run: { running: true, startedAt: NOW - 180000 } }), NOW));
 show("…after one that didn't go through", deployNote(dep({ run: failedRun }), NOW));
@@ -697,74 +699,61 @@ show('…so a double click on Back leaves the card up', !!state.deploySetup.d7);
 render = drawn;
 state.deploySetup = {};
 
-section('The island');
+section('The next steps');
 const remote = { remotes: 1, upstream: true, base: 'main' };
 const owned = { outcome: 'Implemented', outcomeAt: min(5) };
 const onF = { git: { branch: 'f', root: '/work/app' } };
-const extra = (fields) => ({ count: 2, label: 'to review', ...fields });
-// Each stage, briefly: what it says, * where your next move is, and → the step its menu offers first.
-const brief = (stages) => stages && stages.map((st) => `${st.stage} ${st.text}${st.move ? ' *' : ''}`
-  + (st.step ? ' → ' + st.step : '') + (st.parts ? ` [${st.parts.staged} staged, ${st.parts.partly} partly, `
-  + `${st.parts.unstaged} unstaged]` : ''));
+// Each step, briefly: commit (with how many files have staged changes), push N, publish N, pr into a branch.
+const brief = (steps) => steps && Object.entries(steps).map(([step, v]) => step === 'commit'
+  ? `commit, ${v.staged} staged` : step === 'pr' ? `pr into ${v.into}` : `${step} ${v}`);
 const split = { filesStaged: 29, filesPartly: 31, filesUnstaged: 4 };
-const islands = [
+const checkouts = [
   ['clean: none', { ...owned, checkout: { ...remote, changes: 0 } }],
   ['changed files', { ...owned, checkout: { ...remote, changes: 2 } }],
   ['new files only', { ...owned, checkout: { ...remote, changes: 0, newFiles: 3 } }],
   ['while the agent works: shown all the same', { ...owned, status: 'busy', checkout: { ...remote, changes: 2 } }],
-  ['no remote, with changes: no commits or GitHub', { ...owned, checkout: { remotes: 0, changes: 1 } }],
+  ['no remote, with changes: commit only', { ...owned, checkout: { remotes: 0, changes: 1 } }],
   ['no remote, committed: finished, none', { ...owned, checkout: { remotes: 0, changes: 0, aheadOfBase: 1 } }],
   ['on main, commits not pushed', { ...owned, checkout: { ...remote, ahead: 2 } }],
-  ['on main, never pushed', { ...owned, checkout: { ...remote, upstream: false, aheadOfBase: 1 } }],
+  ['on main, never pushed: publish', { ...owned, checkout: { ...remote, upstream: false, aheadOfBase: 1 } }],
   ['on main, all pushed: none', { ...owned, checkout: { ...remote, ahead: 0, aheadOfBase: 0 } }],
-  ['on main, changed files and commits', { ...owned, checkout: { ...remote, changes: 1, ahead: 2 } }],
-  ['a branch not pushed', { ...owned, ...onF, checkout: { ...remote, upstream: false, aheadOfBase: 2 } }],
-  ['a branch pushed with no PR, as GitHub says', { ...owned, ...onF, checkout: { ...remote, ahead: 0, aheadOfBase: 2,
-                                                                                pr: null } }],
-  ['…GitHub not asked yet (or no gh): not "no PR", none', { ...owned, ...onF, checkout: { ...remote, ahead: 0,
-                                                                                          aheadOfBase: 2 } }],
-  ['…a PR the session raised from another branch doesn\'t count: "no PR"', { ...owned, ...onF, checkout: { ...remote,
+  ['on main, changed files and commits: both', { ...owned, checkout: { ...remote, changes: 1, ahead: 2 } }],
+  ['a branch not pushed: publish', { ...owned, ...onF, checkout: { ...remote, upstream: false, aheadOfBase: 2 } }],
+  ['a branch pushed with no PR, as GitHub says: a pull request into main', { ...owned, ...onF,
+    checkout: { ...remote, ahead: 0, aheadOfBase: 2, pr: null } }],
+  ['…GitHub not asked yet (or no gh): none', { ...owned, ...onF, checkout: { ...remote, ahead: 0, aheadOfBase: 2 } }],
+  ['…a PR the session raised from another branch doesn\'t count', { ...owned, ...onF, checkout: { ...remote,
     ahead: 0, aheadOfBase: 2, pr: null }, prs: [pr({ headRefName: 'g' })] }],
-  ['…one it raised from this branch does', { ...owned, ...onF, checkout: { ...remote, ahead: 0, aheadOfBase: 2,
+  ['…one it raised from this branch does: none', { ...owned, ...onF, checkout: { ...remote, ahead: 0, aheadOfBase: 2,
     pr: null }, prs: [pr({ headRefName: 'f' })] }],
-  ['…a PR raised since GitHub last looked: not "no PR", none', { ...owned, ...onF, outcome: 'PR raised',
+  ['…a PR raised since GitHub last looked: none', { ...owned, ...onF, outcome: 'PR raised',
     outcomeAt: min(1), checkout: { ...remote, ahead: 0, aheadOfBase: 2, pr: null, prCheckedAt: min(5) / 1000 } }],
   ['a branch with an open PR, nothing new: none', { ...owned, ...onF, checkout: { ...remote, aheadOfBase: 2 },
                                                   prs: [pr({})] }],
-  ['a branch with an open PR and new commits', { ...owned, ...onF, checkout: { ...remote, ahead: 1, aheadOfBase: 3 },
-                                                prs: [pr({})] }],
-  ['a branch with an open PR and changed files', { ...owned, ...onF, checkout: { ...remote, changes: 2, aheadOfBase: 3,
-                                                  pr: pr({ number: 14 }) } }],
+  ['a branch with an open PR and new commits: push', { ...owned, ...onF,
+    checkout: { ...remote, ahead: 1, aheadOfBase: 3 }, prs: [pr({})] }],
+  ['a branch with an open PR and changed files: commit', { ...owned, ...onF, checkout: { ...remote, changes: 2,
+    aheadOfBase: 3, pr: pr({ number: 14 }) } }],
   ['a branch whose PR was merged: none', { ...owned, ...onF, checkout: { ...remote, aheadOfBase: 2,
                                                                        pr: pr({ state: 'MERGED' }) } }],
-  ['the extra stage', { ...owned, checkout: { ...remote, changes: 3, ahead: 1, stage: extra({ edits: 1 }) } }],
-  ['the extra stage holding every change', { ...owned, checkout: { ...remote, changes: 3, stage: extra({ edits: 0 }) } }],
-  ['the extra stage, empty', { ...owned, checkout: { ...remote, changes: 3, stage: extra({ count: 0 }) } }],
-  ['the extra stage, with no remote', { ...owned, checkout: { remotes: 0, changes: 0, stage: extra({ edits: 0 }) } }],
-  ['…naming the files outside it: a gauge of those, split as git sees them', { ...owned, checkout: { ...remote,
-    changes: 64, newFiles: 2, ...split, stage: extra({ edits: 3, parts: { staged: 0, partly: 2, unstaged: 1 } }) } }],
-  ['the extra stage still asking: left out', { ...owned, checkout: { ...remote, changes: 3, stage: { ask: 'x' } } }],
-  ['git says how the files split: a gauge, new files counted as unstaged', { ...owned, checkout: { ...remote,
-    changes: 64, newFiles: 2, ...split } }],
-  ['…all of them staged', { ...owned, checkout: { ...remote, changes: 5, filesStaged: 5, filesPartly: 0,
-                                                 filesUnstaged: 0 } }],
-  ['…but the extra stage counts the files itself: no split', { ...owned, checkout: { ...remote, changes: 64,
-    newFiles: 2, ...split, stage: extra({ edits: 3 }) } }],
-  ['…unless it holds nothing: every change is outside it, so git\'s count and split', { ...owned, checkout: {
-    ...remote, changes: 64, newFiles: 2, ...split, stage: extra({ count: 0, edits: 67 }) } }],
-  ['big counts, shortened', { ...owned, checkout: { ...remote, changes: 12345, ahead: 1260, filesStaged: 4120,
-                                                   filesPartly: 6930, filesUnstaged: 1295, stage: extra({ count: 140 }) } }],
+  ['files staged and partly staged: a commit takes those', { ...owned, checkout: { ...remote, changes: 64,
+    newFiles: 2, ...split } }],
 ];
-for (const [name, fields] of islands) show(name, brief(stagesOf(session(fields), true)));
-show("not the checkout's owner", stagesOf(session({ ...owned, checkout: { ...remote, changes: 2 } }), false));
-show('outside git: none', stagesOf(session({ ...owned, git: null, cwd: '/work/notes' }), true));
-show('tooltips', stagesOf(session({ ...owned, ...onF, checkout: { ...remote, changes: 1, ahead: 0, aheadOfBase: 1,
-                                                                pr: null, stage: extra({}) } }), true).map((st) => st.tip));
-show('counts, as the island writes them', [0, 999, 1000, 1234, 9950, 12345, 999999].map(compact));
-show('commands that run a file in the checkout', Object.fromEntries(['./review.sh', 'python3 scripts/review.py',
-  'python3 review.py', 'sh review.sh', 'cd tools && node review.js', 'review --config=./review.toml', 'make review',
-  'npm run review', 'git review stage', 'python3 -m review', '~/bin/review', '/usr/local/bin/review --json',
-  'curl -s https://example.com/review', '$HOME/review'].map((command) => [command, runsRepoFile(command)])));
+for (const [name, fields] of checkouts) show(name, brief(stepsOf(session(fields), true)));
+show("not the checkout's owner", stepsOf(session({ ...owned, checkout: { ...remote, changes: 2 } }), false));
+show('outside git: none',
+  stepsOf(session({ ...owned, git: null, cwd: '/work/notes', checkout: { changes: 2 } }), true));
+const allSteps = stepsOf(session({ ...owned, checkout: { ...remote, changes: 3, ahead: 2, ...split } }), true);
+show('what each says, beside its icon and over it', ['commit', 'push', 'publish'].map((step) =>
+  stepWords(step, { ...allSteps, publish: 2 })));
+show('…a commit with nothing staged', stepWords('commit', { commit: { staged: 0 } }));
+show('where a branch stands while commits wait: ahead of its upstream\'s remote, or not published; nothing else waits',
+  [outgoingWords({ upstream: 'origin/f' }, { push: 2 }), outgoingWords({ upstream: 'fork/f' }, { push: 1 }),
+   outgoingWords({ upstream: null }, { publish: 1200 }),
+   outgoingWords({ upstream: 'origin/f' }, { commit: { staged: 0 } }), outgoingWords({ upstream: 'origin/f' }, null)]);
+show('…nothing while anything isn\'t committed, staged or not', [
+  outgoingWords({ upstream: null }, { commit: { staged: 0 }, publish: 3 }),
+  outgoingWords({ upstream: 'origin/f' }, { commit: { staged: 2 }, push: 2 })]);
 const edited = (root, at) => ({ workRoot: root, editedAt: at });
 show('who speaks for each checkout or folder: the session that edited files there last', [...checkoutOwners([
   session({ sessionId: 'chat', lastPromptAt: min(1) }),
@@ -783,7 +772,7 @@ show('…its edits counted only where they landed: notes written elsewhere don\'
   session({ sessionId: 'did-the-work', outcome: 'Researched', lastPromptAt: min(30), ...edited('/work/app', min(35)) }),
   session({ sessionId: 'wrote-notes-elsewhere', outcome: 'Documented', outcomeAt: min(2), lastPromptAt: min(2) }),
 ])]);
-show('…and only for the checkout it runs in: what it edits in another leaves that one\'s island where it is',
+show('…and only for the checkout it runs in: what it edits in another leaves that one\'s steps where they are',
   [...checkoutOwners([
     session({ sessionId: 'main-chat', lastPromptAt: min(1), ...edited('/work/app-fix', min(1)) }),
     session({ sessionId: 'tree', git: fixHover, lastPromptAt: min(20), ...edited('/work/app-fix', min(20)) }),
@@ -806,75 +795,67 @@ show('…a closed one when none there is running', [...checkoutOwners([
   session({ sessionId: 'closed-later', status: 'closed', outcome: 'Researched', lastPromptAt: min(3) }),
 ])]);
 
-print('-- a row with changed files it didn\'t change itself: the island under the details line');
+print('-- a row with changed files: the commit icon at the end of the work line');
 state.owners = new Set(['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7']);
 const withSteps = (sessionId, checkout, fields = {}) => session({ sessionId, outcome: 'Tested', workSteps: ['Built',
   'Tested'], checkout: { ...remote, added: 1493, removed: 62, ...checkout }, ...fields });
 print(rowHTML(withSteps('w1', { changes: 3 }), 'idle', NOW));
-print('-- git says how the files split: the files stage is a gauge, with each part\'s count in words and as a number');
-print(rowHTML(withSteps('w1', { changes: 64, newFiles: 2, ahead: 2, ...split }), 'idle', NOW));
-print('-- …kept open through a rebuild while it\'s pointed at');
-state.islandOpen = 'w1';
-print(islandHTML(withSteps('w1', {}), stagesOf(withSteps('w1', { changes: 64, newFiles: 2, ...split }), true)));
-state.islandOpen = null;
-print('-- no remote: only the files');
-print(rowHTML(withSteps('w2', { changes: 3, remotes: 0 }), 'idle', NOW));
-print('-- a branch pushed with no pull request yet, as GitHub says: that is the move');
-print(rowHTML(withSteps('w3', { ahead: 0, aheadOfBase: 1, added: 212, removed: 9, pr: null },
-                        { git: { branch: 'f', root: '/work/app' } }), 'idle', NOW));
-show('the part of the gauge whose files are listed is drawn lit, so a rebuild doesn\'t light it afresh',
-     (state.filesShown = 'w1:staged', /band st is-on/.test(islandHTML(withSteps('w1', {}),
-       stagesOf(withSteps('w1', { changes: 64, newFiles: 2, ...split }), true)))));
-state.filesShown = null;
-print("-- the files of a part of the gauge, as its list shows them: each part titled and explained, new ones marked");
-state.checkoutFiles = { '/work/app': { staged: ['app/Git.m'], partly: ['panel/scripts/rows.js'],
-                                       unstaged: ['README.md'], new: ['docs/stages.md'] } };
-const inApp = session({ git: { branch: 'main', root: '/work/app' } });
-for (const [part, n] of [['staged', 1], ['partly', 1], ['unstaged', 2]]) print(filesHTML(inApp, part, n));
-state.checkoutFiles = { '/work/app': { unstaged: Array.from({ length: 100 }, (_, i) => `src/file${i}.js`),
-                                       new: ['docs/stages.md'] } };
-show('…the first 100, and how many more', filesHTML(inApp, 'unstaged', 150).match(/<div class="f-more">[^<]*/)[0]);
-state.checkoutFiles = {};
-print('-- the extra stage, and how a step from its menu went, said quietly under the details');
-state.stepNotes.w4 = { text: 'Done, 1 left.', quiet: true, at: Date.now() };
-print(rowHTML(withSteps('w4', { changes: 3, ahead: 1, stage: extra({ edits: 1 }) }), 'idle', NOW));
-print("-- a step that couldn't go in, said under the details");
+print('-- changed files and commits to push: both, the commits counted');
+print(rowHTML(withSteps('w1', { changes: 64, newFiles: 2, ahead: 2, upstream: 'origin/main', ...split }), 'idle', NOW));
+print('-- …the commits\' icon pointed at: its word in, kept as the list is drawn again');
+state.hoverStep = 'w1:push';
+print(rowHTML(withSteps('w1', { changes: 64, newFiles: 2, ahead: 2, upstream: 'origin/main', ...split }), 'idle', NOW));
+state.hoverStep = null;
+print('-- a branch never pushed: the cloud, and where it stands where the pull requests go');
+print(rowHTML(withSteps('w2', { upstream: false, aheadOfBase: 2 }, { git: { branch: 'f', root: '/work/app' } }),
+              'idle', NOW));
+print('-- commits to push with an open pull request: the pull request where it goes, and no words');
+print(workHTML({ s: withSteps('w1', { ahead: 1, aheadOfBase: 3, upstream: 'origin/f' },
+                              { git: { branch: 'f', root: '/work/app' }, prs: [pr({ headRefName: 'f' })] }),
+                 kind: 'idle', owner: true, steps: { push: 1 } }));
+print('-- a branch pushed with no pull request yet, as GitHub says: Create PR where the pull requests go');
+const noPR = withSteps('w3', { ahead: 0, aheadOfBase: 1, pr: null }, { git: { branch: 'f', root: '/work/app' } });
+print(rowHTML(noPR, 'idle', NOW));
+state.last = { sessions: [noPR], now: NOW };
+print('-- its card: into the repo\'s default branch until the branches on GitHub are known');
+print(createPRCardHTML(noPR, stepsOf(noPR, true)));
+print('-- …pressed open, the branches, the one it goes into ticked, the default named');
+setPRBranches('w3', { base: 'main', branches: ['develop', 'f', 'main', 'release/1.4'] });
+state.prPicking = 'w3';
+print(createPRCardHTML(noPR, stepsOf(noPR, true)));
+state.prInto.w3 = 'develop';
+show('…another picked: it goes into that one',
+  createPRCardHTML(noPR, stepsOf(noPR, true)).match(/cp-pick[^>]*>[^<]*/)[0]);
+Object.assign(state, { prPicking: null, prInto: {}, prBranches: {} });
+print('-- where it runs, pointed at: a worktree of its project, a branch, a folder outside git');
+print(placeCardHTML(session({ git: { branch: 'f', root: '/work/app-f', worktree: 'app-f', worktreeOf: 'app',
+                                     mainRoot: '/work/app' } })));
+print(placeCardHTML(session({ cwd: '/work/app', git: { branch: 'main', root: '/work/app' } })));
+print(placeCardHTML(session({ cwd: '/work/notes', git: null, entrypoint: 'claude-desktop' })));
+const placeOf = (git, cwd) => whereHTML({ s: session({ cwd, git }) }).match(/class="place[^"]*"/)[0];
+show('where it runs, with a long name: it shortens first, before the model and effort',
+     placeOf({ branch: 'search-results-redesign', root: '/work/app-s', worktree: 'app-s', worktreeOf: 'app',
+               mainRoot: '/work/app' }));
+show('…a dozen letters or fewer: it doesn\'t', placeOf({ branch: 'fix-login-12', root: '/work/app' }));
+show('…a folder outside git, by its name', placeOf(null, '/work/quarterly-planning-notes'));
+print('-- how a step went, said quietly in the work line\'s place, which keeps its height');
+state.stepNotes.w4 = { text: 'Asked Claude to commit the changes', quiet: true, at: Date.now() };
+print(rowHTML(withSteps('w4', { changes: 3, ahead: 1 }), 'idle', NOW));
+print("-- a step that couldn't go in, said there too");
 state.stepNotes.w4 = { text: 'Claude is working: ask again when it\'s done', at: Date.now() };
 print(rowHTML(withSteps('w4', { changes: 3 }), 'idle', NOW));
+print('-- a row with no work line: its note on a line of its own, over the bottom line');
+state.stepNotes.w6 = { text: 'Closed the other copy', quiet: true, at: Date.now() };
+print(rowHTML(withSteps('w6', {}), 'idle', NOW));
 state.stepNotes = {};
-print('-- asked once whether its extra stage may run, with a warning: it runs a file in the checkout');
-print(rowHTML(withSteps('w7', { changes: 3, stage: { ask: 'python3 ./review.py --json' } }), 'idle', NOW));
-state.trustAnswered.w7 = { command: 'python3 ./review.py --json', at: Date.now() };
-show('…not asked again just after an answer',
-     trustAsked(withSteps('w7', { stage: { ask: 'python3 ./review.py --json' } }), true));
-show('…but asked again when the command changes', trustAsked(withSteps('w7', { stage: { ask: 'review --json' } }), true));
-show('…and never on a row that doesn\'t speak for the checkout', trustAsked(withSteps('w7', { stage: { ask: 'x' } }),
-                                                                             false));
-show('…nor while a request waits on the row', trustAsked(withSteps('w7', { stage: { ask: 'x' } },
-  { ask: { id: 'a1', tool: 'Bash', input: { command: 'ls' } } }), true));
-state.trustAnswered = {};
-const asking = withSteps('w7', { changes: 3, stage: { ask: 'review --json' } });
-rowHTML(asking, 'idle', NOW);
-state.shownAt['trust:w7'] -= 5000;  // up a while
-show('…a card that has been up a while takes a press', !justShown('trust:w7'));
-state.trustAnswered.w7 = { command: 'review --json', at: Date.now() };
-rowHTML(asking, 'idle', NOW);  // away, just after an answer
-state.trustAnswered = {};
-rowHTML(asking, 'idle', NOW);
-show('…one that\'s back waits again before it does', justShown('trust:w7'));
-state.shownAt['trust:w7'] -= 5000;
-rowHTML(withSteps('w7', { changes: 3, stage: { ask: 'review --json --all' } }), 'idle', NOW);
-show('…as does one now showing another command', justShown('trust:w7'));
-delete state.shownAt['trust:w7'];
-delete state.trustShown.w7;
 // Deploy's button and line go by the page's own clock: held at NOW while they're drawn, so they read the same each run.
 const pageClock = Date.now;
 Date.now = () => NOW;
-print("-- Deploy's button on the title line, with the dot; the island; why its last deploy didn't go through");
+print("-- Deploy's button at the end of the bottom line, with the dot; why its last deploy didn't go through");
 state.deploys = { projects: { '/work/app': { command: 'make install' } },
                   folders: { '/work/app': { at: min(30), run: failedRun } } };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
-print('-- while the agent works: Deploy dimmed, the island shown all the same');
+print('-- while the agent works: Deploy and the step dimmed, shown all the same');
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5), { status: 'busy' })), 'busy', NOW));
 state.shownAt['deploy:w5'] -= 5000;  // up a while
 state.owners.delete('w5');  // another row speaks for the folder for a while
@@ -882,6 +863,7 @@ rowHTML(withSteps('w5', { changes: 3 }), 'idle', NOW);
 state.owners.add('w5');
 rowHTML(withSteps('w5', { changes: 3 }), 'idle', NOW);
 show("Deploy's button, gone and back, waits again before it takes a press", justShown('deploy:w5'));
+show('…as do the steps', justShown('steps:w5'));
 state.atWork = { '/work/app': [session({ sessionId: 'w9', name: 'codegen', status: 'busy' }),
                                session({ sessionId: 'w5', status: 'busy' })] };
 show("what a row's Deploy waits for: the other sessions at work in its folder, by title",
@@ -895,7 +877,7 @@ print('-- the set-up card on its row');
 state.deploySetup.w5 = { step: 1, text: 'make install', then: 'save' };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
 state.deploySetup = {};
-print('-- Show Next Steps off: no island');
+print('-- Show Next Steps off: no steps');
 state.switches = { ...state.switches, nextSteps: false };
 print(rowHTML(withSteps('w6', { changes: 3 }), 'idle', NOW));
 state.switches = { ...state.switches, nextSteps: true };
@@ -914,7 +896,8 @@ show('no writings: no tag', writingsTag(session({})));
 show('the newest thing, and how many more', writingsTag(session({ writings: wrote.slice(1) })));
 show('the plan waiting for you leads, while Claude asks about it', writingsTag(session({ writings: wrote, ask: planAsk })));
 state.reading = { sessionId: 's', mode: 'writings' };
-show("the tag shows as pressed while the reader is open on its session", writingsTag(session({ writings: wrote.slice(1) })).includes('wtag k-prototype on'));
+show("the tag shows as pressed while the reader is open on its session",
+  writingsTag(session({ writings: wrote.slice(1) })).includes('wtag quiet on'));
 state.reading = null;
 show('a plan only just asked about shows from its request, before the transcript lists it',
      writingsOf(session({ ask: planAsk })).map((w) => [w.id, w.title, w.status]));
@@ -948,77 +931,98 @@ md('a code block keeps its text as it is', '```js\nconst a = "<b>" && 1;\n```');
 md('HTML in the text stays text, and a link shows its words', '<script>alert(1)</script> [docs](https://x.dev/a?b=1&c) > not a quote');
 md('a quote', '> quoted **line**\n> second');
 
-section('What a session changed: its numbers, their card, the changes view');
-const chSessions = [session({ sessionId: 'me', name: 'Retry queue' }), session({ sessionId: 'tests', name: 'Retry tests' })];
-const chMine = { added: 26, removed: 13, v: 4, files: [
-  { path: 'billing/retry.py', added: 20, removed: 0, edits: 2, at: min(1), created: true, saved: false, shared: true },
-  { path: 'docs/retries.md', added: 6, removed: 13, edits: 1, at: min(40), created: false, saved: true }],
-  parts: { me: [26, 13], tests: [24, 1], outside: [1464, 123] } };
-const chRow = session({ sessionId: 'me', name: 'Retry queue', changes: chMine, checkout: { ...remote, base: 'main' } });
-print('-- its numbers end the details line, as a button');
-print(metaHTML({ s: chRow, kind: 'idle' }));
+section('What isn\'t committed: the row\'s numbers, their card, the changes view');
+const chAll = { added: 245, removed: 42, files: 6, unstaged: { files: 5, added: 227, removed: 35 },
+                staged: { files: 2, added: 18, removed: 7 } };
+const chRow = session({ sessionId: 'me', name: 'Retry queue', changes: { all: chAll, v: 4 },
+                        checkout: { ...remote, base: 'main', ahead: 2 } });
+state.owners = new Set(['me']);
+print('-- the checkout\'s numbers at the end of the work line of the row that speaks for it, as a button');
+print(workHTML({ s: chRow, kind: 'idle' }));
+show('…not on another session\'s row in the same checkout', countsHTML(chRow, false));
 state.reading = { sessionId: 'me', mode: 'changes' };
-show('pressed while its changes are open', countsHTML(chRow).includes('counts on'));
+show('pressed while its changes are open', countsHTML(chRow, true).includes('counts on'));
 state.reading = { sessionId: 'me', mode: 'writings' };
-show('…not while what it wrote is', countsHTML(chRow).includes('counts on'));
+show('…not while what it wrote is', countsHTML(chRow, true).includes('counts on'));
 state.reading = null;
-show('nothing changed: no numbers', countsHTML(session({ changes: { added: 0, removed: 0, files: [] } })));
-show('the branch, from its side: itself, the others biggest first, then outside these sessions', branchParts(chRow, chSessions));
-show('…from the other session\'s', branchParts({ ...chRow, sessionId: 'tests' }, chSessions).parts.map((p) => p.name));
-state.last = { sessions: chSessions, now: NOW };
+show('nothing to commit: no numbers', countsHTML(session({ changes: { all: { added: 0, removed: 0, files: 0 } } }), true));
+show('a file only renamed counts, with no lines', countsHTML(session({ sessionId: 'mv',
+  changes: { all: { added: 0, removed: 0, files: 1 } } }), true));
+state.owners = new Set();
+print('-- its card: what isn\'t committed, and how many files are staged and not');
 print(changesCardHTML(chRow));
-const chHunk = { oldStart: 10, newStart: 10, lines: [[' ', 'def a():'], ['-', '    old()', 'me'], ['-', '    older()', 'me'],
-                                                   ['+', '    new()', 'me'], [' ', ''], ['+', '# tested', 'tests']] };
-const chView = { scope: 'session', v: 4, files: [
-  { path: 'billing/retry.py', status: 'new', saved: false, counts: { me: [20, 0], tests: [1, 0] }, hunks: [chHunk] },
-  { path: 'docs/retries.md', status: 'changed', saved: true, counts: { me: [6, 13] }, hunks: [] }] };
-show('its own files: not staged yet, then staged whole', changeGroups(chView, 'me', chSessions).map((g) => [g[0], g[2].map((f) => f.path)]));
-const chBranch = { scope: 'branch', files: [...chView.files,
-  { path: 'tests/test_retry.py', status: 'new', counts: { tests: [23, 0] }, hunks: [] },
-  { path: 'config/settings.py', status: 'changed', counts: { outside: [2, 1] }, hunks: [] },
-  { path: 'billing/queue.py', status: 'new', counts: { short: [40, 0] }, hunks: [] }] };
-show('the branch\'s: by whose, a file under the first to change it',
-     changeGroups(chBranch, 'me', chSessions).map((g) => [g[0], g[1], g[2].map((f) => f.path)]));
-show('a file\'s count: its own lines in its view, everyone\'s in the branch\'s',
-     [fileCount(chView.files[0], 'me', 'session'), fileCount(chView.files[0], 'me', 'branch')]);
-show('its line in the list', [fileLine(chView.files[0], 'me', 'session', chSessions, chMine.files[0], NOW),
-                              fileLine(chView.files[1], 'me', 'session', chSessions, chMine.files[1], NOW),
-                              fileLine(chView.files[0], 'me', 'branch', chSessions, null, NOW)]);
-show('…and its group in the branch\'s list is just other changes',
-     changeGroups({ ...chBranch, complete: false }, 'me', chSessions).map((g) => g[0]));
-const chUnknown = session({ sessionId: 'me', name: 'Retry queue', checkout: { ...remote, base: 'main' },
-  changes: { known: false, added: 1514, removed: 137, files: [], parts: {}, v: 5 } });
-print('-- a session whose changes aren\'t known: the branch\'s numbers on its row, quieter, and a card saying why');
-print(countsHTML(chUnknown));
-print(changesCardHTML(chUnknown));
-show('…its branch switch has the branch\'s total', branchParts(chUnknown, chSessions).total);
-const chBlind = blindView(chBranch);
-show('…and its view names no one: files by how far they\'ve got, each just new or changed',
-     [changeGroups(chBlind, 'me', chSessions).map((g) => [g[0], g[2].length]),
-      fileLine(chBlind.files[0], 'me', 'branch', chSessions, null, NOW)]);
+show('…nothing staged', changesCardHTML(session({ changes: { all: { ...chAll, files: 5,
+  staged: { files: 0, added: 0, removed: 0 } } } })).match(/cc-lede">[^<]*/)[0]);
+const chHunk = { oldStart: 10, newStart: 10, lines: [[' ', 'def a():'], ['-', '    old()'], ['-', '    older()'],
+                                                   ['+', '    new()'], [' ', ''], ['+', '# tested']] };
+const chUnstaged = { scope: 'unstaged', v: 4, files: [
+  { path: 'billing/retry.py', status: 'changed', alsoStaged: true, hunks: [chHunk] },
+  { path: 'billing/queue.py', status: 'new', untracked: true,
+    hunks: [{ oldStart: 0, newStart: 1, lines: [['+', 'QUEUE = []']] }] },
+  { path: 'docs/old.md', status: 'gone', hunks: [] },
+  { path: 'docs/retries.md', status: 'renamed', hunks: [] },
+  { path: 'vendor/big.js', status: 'changed', cut: true, added: 31000, removed: 2, hunks: [] }] };
+const chStaged = { scope: 'staged', v: 4, files: [
+  { path: 'billing/retry.py', status: 'changed', alsoUnstaged: true, hunks: [chHunk] },
+  { path: 'billing/notes.py', status: 'new', hunks: [] }] };
+const chOutgoing = { scope: 'outgoing', v: 4, upstream: 'origin/retry', more: 0, commits: [
+  { hash: 'a41c9e2aa', short: 'a41c9e2', subject: 'Retry failed payments', at: min(26),
+    files: [{ path: 'billing/retry.py', status: 'changed', hunks: [chHunk] }] },
+  { hash: '7d0b5f1bb', short: '7d0b5f1', subject: 'Start the retry queue', at: min(41),
+    files: [{ path: 'billing/retry.py', status: 'new', hunks: [] }, { path: 'billing/queue.py', status: 'new', hunks: [] }] }] };
+show('git\'s letters: changed, untracked, deleted, renamed, changed; and added, in Staged',
+     [...chUnstaged.files, chStaged.files[1]].map((f) => gitLetter(f)[1]));
+show('a file\'s count: from its lines, or as the app counted one cut short',
+     [fileCount(chUnstaged.files[0]), fileCount(chUnstaged.files[4])]);
+show('where else git lists a file: staged too, untracked, changed again since it was staged; nowhere',
+     [fileNote(chUnstaged.files[0], 'unstaged'), fileNote(chUnstaged.files[1], 'unstaged'),
+      fileNote(chStaged.files[0], 'staged'), fileNote(chUnstaged.files[2], 'unstaged')]);
+show('Outgoing\'s files keyed by their commit too: a file in two commits is there twice', viewFiles(chOutgoing).map((f) => f.key));
+show('the head, in git\'s words', [changesSub('unstaged', chAll), changesSub('staged', chAll),
+  changesSub('outgoing', chAll, chOutgoing), changesSub('outgoing', chAll, { ...chOutgoing, upstream: null }),
+  changesSub('outgoing', chAll, { ...chOutgoing, commits: [] }),
+  changesSub('outgoing', chAll, { ...chOutgoing, upstream: null, commits: [] }), changesSub('outgoing', chAll, null)]);
+show('what an empty tab says', CHANGE_TABS.map(([scope]) => emptyWords(scope)));
 show('side by side: taken-out lines beside the ones put in after them', splitRows(chHunk).map(([l, r]) =>
   [l && `${l.at}${l.line[0]}`, r && `${r.at}${r.line[0]}`]));
 show('unchanged lines before a hunk, and between two', [linesBetween(null, chHunk),
      linesBetween(chHunk, { oldStart: 30, newStart: 30, lines: [] })]);
-show('where Open in Editor opens it: the first line the session put in, or anyone in the branch\'s view',
-     [firstChangedLine(chView.files[0], 'me', 'session'), firstChangedLine(chView.files[0], 'tests', 'session'),
-      firstChangedLine(chView.files[1], 'me', 'session')]);
+show('where Open in Editor opens it: the first line put in, else its first change',
+     [firstChangedLine(chUnstaged.files[0]), firstChangedLine({ hunks: [{ oldStart: 4, newStart: 4, lines: [['-', 'x']] }] }),
+      firstChangedLine(chUnstaged.files[2])]);
 show('a little colour for code', [codeHTML('  // a <note>'), codeHTML('say("hi") + \'x\''), codeHTML('# heading')]);
 show('…and none for prose', [codeHTML("# Claude's own \"words\"", 'docs/a.md'), codeHTML("it's Claude's", 'notes.txt')]);
-const chState = { scope: 'session', views: { session: chView }, path: null, layout: 'all', split: false, seen: null };
-print('-- the list of its files, the first lit');
-print(changesShelfHTML(chRow, chState));
-print('-- its changes inline: another session\'s line quiet, under whose it is; the file\'s head with Open in Editor');
+state.last = { sessions: [chRow], now: NOW };
+const chState = (scope, view) => ({ scope, views: { [scope]: view }, key: null, layout: 'all', split: false, seen: null });
+print('-- the bar on Changes: the tabs with their counts, Commit with its other ways, then the layout');
+print(changesBarHTML(chRow, chState('unstaged', chUnstaged)));
+print('-- on Outgoing: Push');
+print(changesBarHTML(chRow, chState('outgoing', chOutgoing)));
+show('…Publish, for a branch never pushed', changesBarHTML({ ...chRow, checkout: { ...remote, upstream: false,
+  aheadOfBase: 2 } }, chState('outgoing', chOutgoing)).match(/data-step="\w+"/)[0]);
+show('…nothing to commit: Commit can\'t be pressed', /data-step="commit"[^>]*disabled/.test(changesBarHTML(
+  session({ changes: { all: { added: 0, removed: 0, files: 0 } }, checkout: remote }), chState('unstaged', chUnstaged))));
+state.switches = { ...state.switches, nextSteps: false };
+show('…Show Next Steps off: a step on the bar', /c-step/.test(changesBarHTML(chRow, chState('unstaged', chUnstaged))));
+state.switches = { ...state.switches, nextSteps: true };
+print('-- the list on Changes, as git lists it, the first lit');
+print(changesShelfHTML(chRow, chState('unstaged', chUnstaged)));
+print('-- the list on Outgoing, under each commit');
+print(changesShelfHTML(chRow, chState('outgoing', chOutgoing)));
+print('-- the changes inline, each file\'s head with Open in Editor');
 state.editors = { apps: [{ id: 'com.microsoft.VSCode', name: 'Visual Studio Code' }] };
-print(changesBodyParts(chRow, chState, chView).map((p) => p.html).join(''));
+const chOpen = chState('unstaged', chUnstaged);
+print(changesBodyParts(chOpen, chUnstaged).slice(0, 2).map((p) => p.html).join(''));
 print('-- side by side, and the first Open in Editor asking which editor; a line new since the last view lit');
-Object.assign(chState, { split: true, picking: 'billing/retry.py' });
-chHunk.lines.push(['+', 'def later():', 'me']);
-print(changesBodyParts(chRow, chState, chView).map((p) => p.html).join(''));
-print('-- once an editor is chosen, it\'s named on the button');
+Object.assign(chOpen, { split: true, picking: 'billing/retry.py' });
+chHunk.lines.push(['+', 'def later():']);
+print(changesBodyParts(chOpen, chUnstaged).slice(0, 1).map((p) => p.html).join(''));
+print('-- Outgoing: each commit\'s head over its files');
+print(changesBodyParts(chState('outgoing', chOutgoing), chOutgoing).map((p) => p.html).join(''));
+print('-- once an editor is chosen, it\'s named on the button; one file at a time');
 state.editors = { apps: state.editors.apps, choice: 'com.microsoft.VSCode' };
-Object.assign(chState, { split: false, picking: null, layout: 'one', path: 'docs/retries.md' });
-print(changesBodyParts(chRow, chState, chView).map((p) => p.html).join(''));
+Object.assign(chOpen, { split: false, picking: null, layout: 'one', key: 'docs/retries.md' });
+print(changesBodyParts(chOpen, chUnstaged).map((p) => p.html).join(''));
 state.editors = { apps: [] };
 
 section('The folded cat (cat.js)');

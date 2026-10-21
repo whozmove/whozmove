@@ -11,8 +11,9 @@
 // two below), wide(r, s) (shown at a page's width, not a reading column's), contentHeight(page) (what it shows is as
 // tall as this, not as it measures), shown(r) (it's what the reader shows now: what it keeps on `r` is made ready),
 // reset(r) (the reader turns to another session or mode: what it kept goes), turn(r, scope) (pressed again where it's
-// open: whether it turned to `scope`, or else it closes), cls (a class the reader's box has while it shows) }. `r` is
-// state.reading.
+// open: whether it turned to `scope`, or else it closes), laidOut(r, width) (the reader is laid out at this width, as
+// the panel grows to it: where its parts are now is where they'll show), closed(r) (the panel has folded back, the
+// reader out of sight), cls (a class the reader's box has while it shows) }. `r` is state.reading.
 
 const reader = document.getElementById('reader');
 // How wide the reader is: a list down its side (230px) beside a reading column of about 70 characters with its
@@ -105,6 +106,7 @@ window.readerOpened = (side, width) => {
   reader.querySelector('.r-in').style.width = width + 'px';
   requestAnimationFrame(() => document.body.classList.add('reader-shown'));
   if (width < r.askedWidth - 1) { r.maxWidth = width; fitReader(); }
+  core.readerModes[r.mode]?.laidOut?.(r, width);
 };
 
 // Asks the app for the room what's shown needs: the reader's width, and its height (header, then the taller of the
@@ -134,6 +136,8 @@ function fitReader() {
 
 // The panel is back where it was: the list alone again.
 window.readerClosed = () => {
+  const r = state.reading;
+  if (r) core.readerModes[r.mode]?.closed?.(r);
   state.reading = null;
   document.body.classList.remove('reading', 'list-left', 'reader-shown');
   reader.innerHTML = '';

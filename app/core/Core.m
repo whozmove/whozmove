@@ -10,6 +10,7 @@
 #import "Send.h"
 #import "Row.h"
 #import "Processes.h"
+#import "Browser.h"
 
 @interface Core ()
 @property Page *page;
@@ -155,6 +156,10 @@ static const NSTimeInterval kAppsKnownFor = 30;
     NSMutableOrderedSet *marks = [NSMutableOrderedSet orderedSet];
     for (id<Agent> agent in self.agents) [marks addObjectsFromArray:agent.environmentMarks];
     return marks.array;
+}
+
+- (Browser *)browserWith:(BrowserSetup *)setup owner:(id<BrowserOwner>)owner {
+    return self.printing ? nil : [[Browser alloc] initWithSetup:setup owner:owner];
 }
 
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {

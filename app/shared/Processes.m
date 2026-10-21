@@ -479,7 +479,7 @@ NSString *LoginPath(void) {
 }
 
 // Runs a command from a checkout: in your shell (LoginShell) with your terminal's PATH (LoginPath), but without your
-// shell's startup files, which a command the panel runs often (an extra stage's) shouldn't wait on; and as yours, not
+// shell's startup files, which a command the panel runs shouldn't wait on; and as yours, not
 // an agent's, so the marks agents put on their commands (`marks`, the core's agentMarks) are taken off. With `errors`,
 // its error output joins what it prints. Blocking. Nil, and nothing runs, until the marks are known: what an agent left
 // on the panel's environment must never reach the command.

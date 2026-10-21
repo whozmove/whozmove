@@ -22,8 +22,8 @@ panel back to the list, and the chevron, which turns it back and folds it into t
   and presses, and the functions the app calls), with `page/back.css`, its style. `module.json` lists them for
   tools/page.sh, which puts the page together beside the panel's.
 
-Each app is its module's: Claude Desktop's, Ghostty's, iTerm2's, Terminal's and Spotify's list their own, the island
-lists Git (with Show Next Steps), and Deploy and new conversations add their switches to Git's and the terminals' pages.
+Each app is its module's: Claude Desktop's, Ghostty's, iTerm2's, Terminal's and Spotify's list their own, the git
+module lists Git (with Show Next Steps), and Deploy and new conversations add their switches to Git's and the terminals' pages.
 
 `tests/test.sh` checks what every module lists (`--print-apps`) and what the back's page makes of it (`page-cases.js`,
 with the back page's scripts).

@@ -50,9 +50,11 @@ static int PrintModeMoves(Core *core) {
     return PrintJSON(sessions);
 }
 
-// A terminal that writes down every key it's asked to put in, for --print-typing.
+// A terminal that writes down every key it's asked to put in, for --print-typing, and refuses keys once it has been
+// asked for `refuseAt` of them (0: never), as a terminal says when it didn't take one.
 @interface RecordingTerminal : NSObject <TypingHost>
 @property (strong) NSMutableArray<NSString *> *keys;
+@property NSUInteger refuseAt;
 @end
 
 @implementation RecordingTerminal
@@ -65,18 +67,24 @@ static int PrintModeMoves(Core *core) {
     NSString *name = @[@"Return", @"Backspace", @"Shift+Tab", @"Ctrl+S"][key];
     [self.keys addObject:[NSString stringWithFormat:@"%@ ×%ld", name, (long)times]];
 }
+- (NSString *)whyNotTypeIn:(NSString *)tab {
+    return self.refuseAt && self.keys.count >= self.refuseAt ? @"It didn't take the last key" : nil;
+}
 @end
 
-// `Whozmove --print-typing`: the keys a slash command is typed with, once into a session that stays at its prompt
-// and once into one that turns busy after two keys, as JSON, then quit. tests/rows.sh checks them: a key out of
-// place, or one more after the session has moved on, could answer a prompt.
+// `Whozmove --print-typing`: the keys a slash command is typed with, once into a session that stays at its prompt,
+// once into one that turns busy after two keys, and once through a terminal that refuses the last key, the Return, as
+// JSON, then quit. tests/rows.sh checks them: a key out of place, or one more after the session has moved on, could
+// answer a prompt, and a refused Return taken for a command gone in would leave it waiting in the prompt.
 static int PrintTyping(void) {
     NSMutableDictionary *runs = [NSMutableDictionary dictionary];
-    for (NSString *run in @[@"stays at its prompt", @"turns busy after two keys"]) {
+    NSArray *names = @[@"stays at its prompt", @"turns busy after two keys", @"its terminal refuses the Return"];
+    for (NSString *run in names) {
         RecordingTerminal *terminal = [RecordingTerminal new];
         terminal.keys = [NSMutableArray array];
+        if ([run hasPrefix:@"its terminal"]) terminal.refuseAt = 4;
         __block NSUInteger checked = 0;
-        NSUInteger safe = [run hasPrefix:@"stays"] ? NSUIntegerMax : 2;
+        NSUInteger safe = [run hasPrefix:@"turns busy"] ? 2 : NSUIntegerMax;
         TypeCommand(terminal, @"tab", @"/model claude-opus-5-5",
                     ^{ return checked++ < safe ? nil : [Reason status:@"busy"]; },
                     ^(Reason *why, NSUInteger typed, NSUInteger steps) {
@@ -85,7 +93,7 @@ static int PrintTyping(void) {
         });
     }
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5];
-    while (deadline.timeIntervalSinceNow > 0 && runs.count < 2)
+    while (deadline.timeIntervalSinceNow > 0 && runs.count < names.count)
         [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.02]];
     return PrintJSON(runs);
 }

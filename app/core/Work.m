@@ -11,7 +11,7 @@ BOOL AgentAtWork(Row *row) {
 // The folder a row's steps and Deploy act on: the checkout its session runs in (for one that runs outside any, the one
 // it last edited files in), or its folder outside git. And the folders a session works in: its own checkout (or
 // folder), and the one its edits last landed in (workRoot) while the turn it's on has edited files there, whichever row
-// that checkout's island is on.
+// that checkout's next steps are on.
 static NSString *FolderOf(Row *row) {
     return (row.workGit ?: row.git)[@"root"] ?: row.cwd;
 }

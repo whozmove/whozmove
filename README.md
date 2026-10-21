@@ -62,8 +62,9 @@ with what each is doing, so you can see at a glance which one needs you.
   and a terminal) is one row, which follows the copy that needs you: one asking you something, then one at work, and
   otherwise the one it followed already. Pressing it opens that copy (in Ghostty, a tab at work is told from one that
   isn't, but two that aren't look alike, so then it may be either), and either of its tabs in front marks it as the
-  one you're on. Its details line says **open twice**, and pointed at, where else it's open: each copy knows only what
-  was said in it since the second opened, so close one when you can. **Close the other copy** on that card closes
+  one you're on. An orange icon of two windows, after the time at its top right, says so (with how many times, past
+  two), and pointed at, where else it's open: each copy knows only what was said in it since the second opened, so
+  close one when you can. **Close the other copy** on that card closes
   those in other terminal tabs, once Claude isn't working in them. While another copy runs in a terminal, the panel
   types nothing into it; while one is open in Claude Desktop, only its mode can't be changed from the panel. Deploy
   and next steps wait while any copy is at work. A copy paused in its terminal (Ctrl+Z) is named too, but holds
@@ -81,23 +82,25 @@ with what each is doing, so you can see at a glance which one needs you.
   message, each step and the reply change the text in place, and Claude shows thinking the moment you
   send. A step shows once it starts running: a hook can't see it while Claude is still writing it. A
   working session's dot fades on and off
-- a ring for how full each session's context is. Pointed at, it widens into a **Compact** button, filled
-  the same way. A click opens a card with how much is left before auto-compact ("427k left") and three ways
-  to compact: Compact, Keep details and Keep essentials (the last two are `/compact` with instructions for
-  what the summary keeps), or your own focus. It goes in like a model pick, while the session is idle.
-  Claude's line says "Compacting the conversation" until it's done, and the ring drops to the new size
-  straight away
+- a ring for how full each session's context is. Pointed at, it widens into a **Compact** button that says
+  how full it is ("98% · Compact"), filled the same way, and where the session runs makes way for it. A
+  click opens a card with how much is left before auto-compact ("427k left") and three ways to compact:
+  Compact, Keep details and Keep essentials (the last two are `/compact` with instructions for what the
+  summary keeps), or your own focus. It goes in like a model pick, while the session is idle. Claude's line
+  says "Compacting the conversation" until it's done, and the ring drops to the new size straight away
 - each session's model, effort and permission mode: click one to change it while the session sits idle.
   Never while it's working or asking you something, since a key typed into a permission prompt would
   answer it.
-  - In Ghostty, the panel types `/model …` or `/effort …` into the session's tab (a half-typed draft is
-    stashed and comes back), or presses Shift+Tab for the mode. Those commands also save your choice as the
-    default for new sessions, so the panel puts your default back (only that setting, and only when the
-    command says it saved it). The mode menu offers only the modes it can reach with a known number of
-    presses. Auto isn't in every session's Shift+Tab cycle, so unless the session is in Auto now or your
-    settings turn Auto off, the menu offers just the moves that are the same either way, and says to change
-    the others in the terminal. If Claude Code asks to confirm (switching model on a cached conversation),
-    the tab comes forward.
+  - In Ghostty or iTerm2, the panel types `/model …` or `/effort …` into the session's tab (a half-typed draft
+    is stashed and comes back), or presses Shift+Tab for the mode. In iTerm2, it types only into a session
+    alone in its window, with no other tabs or panes there: iTerm2's Broadcast Input can copy what's typed
+    into the others, and no script can tell whether it's on, so for a session that shares its window the menu
+    says to change it there. Those commands also save your choice as the default for new sessions, so the
+    panel puts your default back (only that setting, and only when the command says it saved it). The mode
+    menu offers only the modes it can reach with a known number of presses. Auto isn't in every session's
+    Shift+Tab cycle, so unless the session is in Auto now or your settings turn Auto off, the menu offers just
+    the moves that are the same either way, and says to change the others in the terminal. If Claude Code asks
+    to confirm (switching model on a cached conversation), the tab comes forward.
   - In Claude Desktop, the same slash command goes into the conversation's own message box and is sent
     with its Send button through the Accessibility API, so nothing is typed and no menus open. Return is
     pressed only if Claude shows no Send button, and only while Claude is in front. Claude switches to the
@@ -105,35 +108,26 @@ with what each is doing, so you can see at a glance which one needs you.
     slash command for a mode, and nothing is sent while you have a message half-written there. Claude's
     "Switch model?" (a model switch re-reads a cached conversation) is asked in the panel instead, and your
     answer goes to Claude's box. This needs the Accessibility permission for Whozmove
-- the **island**, a glass capsule under the row's project and branch line while the session's checkout has work in
-  flight, with a stage for each place the work can be: the files changed, the checkout's **extra stage** if it has
-  one (below), the commits not on GitHub yet, and GitHub (the branch's pull request, or "no PR" for a branch pushed
-  without one). A stage holding something shows its count, an empty one is a dot, and the one where your next move is
-  is brighter; in git checkouts only
-  - The files stage is a gauge, filled as far as its files are staged. Pointing at it opens it into three parts, each
-    file counted once: **staged**, **partly** (staged, then changed again: a commit now takes the staged version, and
-    the later changes stay behind) and **unstaged** (new files included). The island's other stages shrink to dots
-    meanwhile, to make room. Pointing at a part shows its files, the first 100, in a list that grows out of the
-    pointer and follows it along the gauge; you can move into the list to scroll it
-  - Pointing at the commits stage shows its menu as a card: the commits not on GitHub yet and their steps. A click on
-    it opens what those commits changed, file by file, beside the list. A click on another stage opens its menu: what it holds (files, the extra stage's own list) and its
-    steps, while it holds something: Commit (and push, or open a pull request), Push, Create PR or Create Draft PR,
-    Open PR #N. A step asks the session's agent in words ("Commit the changes."), the way a model pick goes in, only
-    while that agent is idle and no other agent is working in that checkout (there, or editing files there; one
-    waiting on you doesn't count). Meanwhile the island and its menus stay up, to show where the work stands, with
-    the steps greyed out and a line saying which session they wait for. The line under the details says it's
-    asking, or why it can't go in. "no PR" shows once GitHub has said the branch has none, so it needs `gh`
-- an **extra stage** on the island for a checkout whose own git config names a command for one (`git config
-  whozmove.stage '<command>'`): a tool that keeps changes on their way to a commit, such as a review queue, can show
-  what it holds there, with its own list and steps in that stage's menu. While it holds something, the files stage
-  counts only the files outside it, and when the tool names them, its gauge splits and lists just those. Whozmove asks
-  you once, on the row, before it runs the command, and again whenever the command changes. **Stop This Stage**, in
-  its menu, stops running it; after **Not now**, the files stage's menu has **Ask About the Extra Stage Again**.
-  [docs/reference/stages.md](docs/reference/stages.md) says how to write one
-- **Deploy**, a round play button at the end of the title line, for any project Whozmove can work out a deploy
-  command for (a Compose file, a pm2 file, a Makefile `install` target, a package's `deploy:local` script or its
-  commands, a Rust or Go program, a Python package with scripts, Whozmove's own `./build.sh --now`). It puts that
-  checkout's or folder's code in place on this Mac, so in a worktree it runs that worktree's code:
+- the **next steps** its checkout has to take, as git sees it, at the end of the row's work line, in git checkouts
+  only: a commit icon while something isn't committed, **↑2** while the branch is ahead of its copy on GitHub, or a
+  cloud for a branch never pushed. Pointed at, each says its step beside it (**Commit**, **Push**, **Publish**);
+  pressed, it asks the session's agent in words ("Commit the staged changes."), the way a model pick goes in, only
+  while that agent is idle and no other agent is working in that checkout (there, or editing files there; one waiting
+  on you doesn't count). A commit takes only what's staged when something is, as git does. While an agent works there,
+  the steps are dimmed and say they wait. A press says, for a few seconds in the work line's place, that it's asking,
+  or why it can't go in.
+  While commits wait to go, everything else is committed and no pull request shows, the line's start says where the
+  branch stands, in git's words: "Ahead of origin · 2 commits", or "Not published · 3 commits" for a branch never
+  pushed; pressing it opens those commits in the changes view (below), on Outgoing.
+  Once everything is pushed, a branch other than the repo's default with no pull request shows **No pull request**
+  where its pull requests would be, with **Create PR**: pointed at, it says the branch it goes into, the repo's default
+  to begin with; press that to pick another of the repo's branches on GitHub, then **Create PR** or **Create Draft
+  PR**. It shows once GitHub has said the branch has none, so it needs `gh`
+- **Deploy**, a round play button at the end of the bottom line, after the folder it puts in place, for any project
+  Whozmove can work out a deploy command for (a Compose file, a pm2 file, a Makefile `install` target, a package's
+  `deploy:local` script or its commands, a Rust or Go program, a Python package with scripts, Whozmove's own
+  `./build.sh --now`). It puts that checkout's or folder's code in place on this Mac, so in a worktree it runs that
+  worktree's code:
   - The first press shows the command it suggests, to change if you like, and asks you to confirm it twice. When
     you confirm, the card also shows what a package script or Makefile target in the command really runs, and says
     if that looks as if it could deploy to production (Whozmove never suggests one that does). The command is
@@ -145,42 +139,35 @@ with what each is doing, so you can see at a glance which one needs you.
     shell as your terminal starts it (so with the PATH your `~/.zshrc` sets, and nothing else of the panel's), and
     never while that session's agent is working or asking you something, or another agent is working in that
     checkout: the button is dimmed then, and says which session it waits for. While it runs, the button shows a
-    stop square in a slowly turning arc and the line under the details says what's running; a press then offers
-    **Stop Deploy**, which ends it and everything it started, and its log. A check shows once
-    it's done; if it didn't go through, the line says why. Deploy is for commands that finish
+    stop square in a slowly turning arc and the work line says what's running, in its place (a row without one gets
+    a line for it); a press then offers **Stop Deploy**, which ends it and everything it started, and its log. A check
+    shows once it's done; if it didn't go through, the line says why. Deploy is for commands that finish
   - A right-click (or Control-click) on it shows the command, and offers Change Deploy Command…, Forget Deploy
     Command (back to being offered only after new work) and the last run's log; with only a suggestion, Set Up
     Deploy… and Not This Time
 
-  One session speaks for each checkout, and only its row has the island and Deploy: of the sessions running in that
-  checkout, the one that edited files there last, whatever it has done since, so several chats in one checkout don't
-  all show the same island. Notes it wrote elsewhere don't count, and a row is always about the checkout its session
-  runs in: one that edits files in another checkout doesn't take that checkout's island or Deploy (which wait while
-  its agent works there). When no session there has edited it, the session you used last there speaks for it, one
-  still running first, so work left in a checkout keeps its island. **Git**, on the panel's back, turns the island and
-  Deploy, or just Deploy, off
-- what the session itself changed that isn't committed yet, at the end of that line ("+26 −13"), as git status sees
-  it: its own lines, even when other sessions or you work in the same checkout. Once it's all committed, the numbers
-  go. Each changed line is credited to whoever wrote it: the session whose edits put it there (its sub-agents'
-  included), or whose shell command did, as Claude Code records what each command changes in auto mode. A line no
-  session's record has is **Outside these sessions** (a change made by hand, by a session that has closed, or brought
-  in by git). A short or repeated line (a blank line, a `return nil;` that's there twice) goes with the lines around
-  it; alone, it's no one's, as its text can't tell whose it is. A session that ran a shell command Claude Code didn't
-  record (it records them in auto mode, or in any mode once you've turned `bashEditDiffEnabled` on in your settings)
-  could have changed any line, so what it changed isn't known: its row shows all sessions' numbers, dimmed, and its
-  view only theirs, naming no one, and in that checkout no line is said to be outside these sessions, as it might be
-  that session's. A shell command that ends in an error leaves no record of what it changed either, so while a session
-  there has one, no line is said to be outside these sessions. Pointing at the numbers shows how they sit among
-  everything not committed in the checkout: this session's share, the other sessions', and what's outside them.
-  Pressing them grows the panel beside the list, as for what a session wrote (below), with the files the session
-  changed (not staged first) and the changes themselves, as git shows them: only its own lines,
-  in green and red (anyone else's lines in the same file show as the file has them). **All sessions** shows every
-  change not committed in the checkout instead, each changed line's edge in the colour of whose it is. With nothing to
-  show, it says **No changes to commit**. Files show one after another or one at a time, and lines inline or side by
-  side, as you pick (kept for next time). The view keeps up while the agent works, and lines it has just written light
-  up once. **Open in Editor** opens a file at its first changed line: the first time, it asks which editor (Visual
-  Studio Code, Cursor, Zed, Xcode, Sublime Text or BBEdit, the ones on your Mac), and the pawn menu's **Open With ▸**
-  changes it.
+  One session speaks for each checkout, and only its row has the checkout's numbers, next steps and Deploy: of the
+  sessions running in that checkout, the one that edited files there last, whatever it has done since, so several
+  chats in one checkout don't all show the same. Notes it wrote elsewhere don't count, and a row is always about the
+  checkout its session runs in: one that edits files in another checkout doesn't take that checkout's steps or Deploy
+  (which wait while its agent works there). When no session there has edited it, the session you used last there
+  speaks for it, one still running first, so work left in a checkout keeps its steps. **Git**, on the panel's back,
+  turns the next steps and Deploy, or just Deploy, off
+- what isn't committed in the session's checkout, at the end of that line ("+245 −42"), on the row of the session
+  that speaks for the checkout, counted as git counts it: every change since the last commit, staged or not, new files
+  included. Once it's all committed, the numbers go. Pointing at them says how many files that is, and how many are
+  staged and not (a file staged and then changed again counts in both, as `git status` lists it under both). Pressing
+  them grows the panel beside the list, as for what a session wrote (below), with git status's own tabs: **Changes**
+  (what isn't staged, then the files git doesn't track yet), **Staged**, and **Outgoing** (the commits not on GitHub
+  yet, one by one, each with what it changed; "Ahead of origin/main by 2 commits", or "Not published" for a branch
+  never pushed). Each file is marked as git marks it: M changed, A added, D deleted, R renamed, U not tracked yet.
+  Each tab has its step, which asks the session's agent in words, as the row's next steps do: **Commit** (what's
+  staged, or every change when nothing is, as git itself does; its ⌄ offers Commit and Push, and Commit and Open a
+  Pull Request), **Push**, or **Publish** for a branch never pushed; Git's Show Next Steps, on the panel's back, turns
+  them off. Files show one after another or one at a time, and lines inline or side by side, as you pick (kept for
+  next time). The view keeps up while the agent works, and lines it has just written light up once. **Open in
+  Editor** opens a file at its first changed line: the first time, it asks which editor (Visual Studio Code, Cursor,
+  Zed, Xcode, Sublime Text or BBEdit, the ones on your Mac), and the pawn menu's **Open With ▸** changes it.
 - a permission prompt waiting, which you can answer on the row, under Claude's line. A card shows exactly
   what the agent wants to do (the command, and whether it would run in the background or outside the
   sandbox; for an edit, the lines it takes out and puts in; the whole of a file being written; the URL and
@@ -189,18 +176,28 @@ with what each is doing, so you can see at a glance which one needs you.
   says the content is too large to show in full, and Allow once still allows all of it. Claude's own prompt
   stays usable too, and whichever you answer first counts. Sub-agents' requests and sessions that aren't
   interactive (`claude -p`) are left to Claude's own prompt
-- what a session wrote for you to read, on a tag on its row (**Plan +2**): press it and the panel grows beside the
+- what a session wrote for you to read, on a tag on its row, quietly as its icon and how many (in the plan's colour
+  while a plan waits for you): press it and the panel grows beside the
   list, which stays where it was, to fit what's shown (up to the screen's edges; a long plan scrolls), with the
   session's **Plans**, **Prototypes** (`.html` pages it created) and **Notes** (`.md` files it created) beside it,
   newest first. Drag it by either header to move it, reader and all. Plans and notes read as formatted text; a prototype
-  runs as it would in a browser, without reaching anything else. A plan Claude is waiting on can be sent back with
-  your notes (**Revise…**: Claude stays in plan mode and writes a new version) or stopped; approving it happens in the
-  session, where **Take me there** brings you, as Claude Code takes a plan's approval only from its own prompt. ✕
-  (or the tag again) folds the panel back to the list, where the list is now
+  opens from its file once the panel has grown, as it would in a browser: the pictures, scripts and styles beside it,
+  fonts from the web, its own links (one to a site or a page elsewhere on your Mac opens in your web browser), what it
+  saves, light or dark as the panel is, and nothing in it can reach anything else. Click into it to point and type in it
+  (the panel has the keyboard until you click the list again); **Open in Browser** opens it in your web browser, for
+  what the panel doesn't do (its own windows, files, downloads, a link to any other file outside its folder), and the
+  line above it says when it asked for one of those. It loads again, where you were, when the session changes it. A plan
+  Claude is waiting on can be sent back with your notes (**Revise…**: Claude stays in plan mode and writes a new
+  version) or stopped; approving it happens in the session, where **Take me there** brings you, as Claude Code takes a
+  plan's approval only from its own prompt. ✕ (or the tag again) folds the panel back to the list, where the list is now
 - Claude's questions (its question tool) answered on the row, one at a time like Claude's own box: pick an
   option (or several), type your own answer, or enter a number, then Skip, Next, Submit, or × to dismiss
-- the session's **branch**, in purple with a worktree icon when it runs in a worktree
-- **open PRs** the session created or worked on, with a hover card (state, author, `+/−`, files)
+- at the end of its bottom line, how the session's agent is set up at its start, and where it runs: the session's
+  **branch**, in purple with a worktree icon when it runs in a worktree, or its folder outside git. Pointed at, it says
+  its project, that it's a worktree of it and on which branch, its folder and the app it runs in. Short of room, a
+  long name shortens first, to about a dozen letters, before the model and effort
+- **open PRs** the session created or worked on, at the start of its work line, with a hover card (state, author,
+  `+/−`, files)
 - click a session to jump to it: Claude Desktop opens it (launching Claude if needed), Ghostty switches to its
   tab (and its split, in a tab with several), and iTerm2 to its window, tab and pane, its hotkey window too (but not
   one that floats over every Space, which iTerm2 doesn't let scripts reach). When iTerm2 has quit while its sessions
@@ -272,11 +269,11 @@ A label's colour says whose move it is:
 ## Install
 
 Needs macOS, Xcode Command Line Tools (`clang`, and the `python3` the hooks run on) and Claude Code.
-Optional: `gh`, signed in, for PR status; Claude Desktop and Ghostty, for jumping to and controlling their
-sessions, and iTerm2, for jumping to its sessions and starting new ones; the `claude` command, signed in to a Claude
-plan, for your plan's usage (Claude Desktop's own copy will do). Sessions in other terminals are listed too, but a
-click only brings their app forward (not the exact tab), they aren't marked as the one you're on, and their model,
-effort and mode can't be changed from the panel.
+Optional: `gh`, signed in, for PR status; Claude Desktop, Ghostty and iTerm2, for jumping to and controlling their
+sessions (in iTerm2, a session alone in its window); the `claude` command, signed in to a Claude plan, for your
+plan's usage (Claude Desktop's own copy will do). Sessions in other terminals are listed too, but a click only
+brings their app forward (not the exact tab), they aren't marked as the one you're on, and their model, effort and
+mode can't be changed from the panel.
 
 Tested with Claude Code 2.1.302 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
 1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
@@ -298,12 +295,11 @@ each agent is using. `install.sh` adds them as a Claude Code plugin, `whozmove`,
 command (Claude Desktop only, say), it prints the two `/plugin` lines to run in a session instead. Sessions
 pick up hooks when they start, so they apply to sessions started (or restarted) after this.
 
-macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to
-change settings, compact, focus the message box and send a new conversation's first message in Claude Desktop), and
-**Automation** of Ghostty (to switch to and type into its tabs, open new ones, and see which one you're looking at),
-of iTerm2 (to switch to its tabs, open new ones, and see which one you're looking at) and of Spotify (to show its
-song's cover and control it, asked at the first Play or the first song it plays). Both can be granted later in System
-Settings → Privacy & Security.
+macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to change settings,
+compact, focus the message box and send a new conversation's first message in Claude Desktop), and **Automation** of
+Ghostty and of iTerm2 (to switch to and type into their tabs, open new ones, and see which one you're looking at)
+and of Spotify (to show its song's cover and control it, asked at the first Play or the first song it plays). Both
+can be granted later in System Settings → Privacy & Security.
 
 After changing anything in `app/`, `modules/`, `panel/`, `icon/` or the hooks, run `./build.sh` again in your
 terminal. It puts the app in place and restarts it, with the hooks too once they're installed as the plugin (a hook
@@ -328,11 +324,10 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude, Ghostty or iTerm2 (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
 | Permission requests | `~/Library/Application Support/Whozmove/asks/<id>.json`, left by the permission hook while it waits; your answer goes back in `<id>.answer.json` |
 | Branch and worktree | the session folder's `.git`, read directly (no `git` process) |
-| Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
+| Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); iTerm2's AppleScript (`write text … newline no`, each key as the characters it sends: Return, Backspace, Ctrl+S, and Esc `[Z` for Shift+Tab), into the session found by its own terminal device (tty), only while it's alone in its window, which the same script checks right before typing; Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
 | PRs | `pr-link` entries in the session transcript; open/merged state from `gh pr view` |
-| The island and its counts | `git status` (which files are staged, partly staged or not), and per checkout `git merge-base` with its base branch (`origin/HEAD`'s, else `main` or `master`), `git diff --numstat` from there, new files' lines, and `git log` for the commits not on GitHub; the PRs from `gh` |
-| What a session changed | the edits each session's transcript records (Edit, MultiEdit and Write, with the lines each put in and took out; what Claude Code recorded each shell command changed; the mode each command ran in), `bashEditDiffEnabled` in the machine's, the project's and your Claude Code settings, and per checkout, every 3 seconds at most while something there changes, `git diff` from the last commit, which files have changes not staged, and new files; and, while there are commits not on GitHub yet, what they changed; each changed line goes to whoever's edits match it |
-| Extra stage | the command the checkout's own git config names (`whozmove.stage`), run only once you've allowed it, which you answer in the panel and Whozmove keeps in `~/Library/Application Support/Whozmove/stages.json` (see [docs/reference/stages.md](docs/reference/stages.md)) |
+| The next steps | `git status` (which files are staged, partly staged or not, and how far the branch is ahead of its upstream), and per checkout its base branch (`origin/HEAD`'s, else `main` or `master`) and `git rev-list --count` from there; for Create PR's card, the branches on GitHub as this Mac last fetched them (`git for-each-ref refs/remotes/origin`); the PRs from `gh` |
+| What isn't committed | per checkout, every 3 seconds at most while something there changes, `git diff` from the last commit, `git diff` alone (not staged), `git diff --cached` (staged) and new files; while there are commits not on GitHub yet, `git log` and `git show` for each; and the edits each session's transcript records (Edit, MultiEdit and Write, with the lines each put in and took out; what Claude Code recorded each shell command changed), with `bashEditDiffEnabled` in the machine's, the project's and your Claude Code settings, which each changed line is matched with |
 | Deploy | each project's command, which you confirm in the panel, and each folder's last deploy, in `~/Library/Application Support/Whozmove/deploy.json`; each run's log, exit status and whether you stopped it in `deploys/`; suggestions from the project's own files; when an agent last edited files or built, from the hook (`editedAt`, `builtAt`) |
 | The running build | `build.json`, which `build.sh` writes inside the app |
 | Now playing | what Spotify tells the whole Mac each time the song or its state changes (`com.spotify.client.PlaybackStateChanged`); the cover and the controls through Apple events to Spotify, only while it's running; Spotify is opened only when you press its token's Play |
@@ -343,7 +338,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | File | Role |
 |---|---|
 | `app/` | the native app's core, one file per job (`core/`: the floating `NSPanel`, the menu bar item, the bridge to the page, the rows, the session you're on, and words typed into a session or sent to Claude Desktop), what modules fill in (`contracts/`) and the helpers that know no app (`shared/`) |
-| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `island/` (each row's checkout, its stages and their menus, and its PRs), `deploy/`, `changes/` (a session's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
+| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `git/` (each row's checkout, its next steps and Create PR, and its PRs), `deploy/`, `changes/` (a checkout's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
 | `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), and `page.sh`, which puts the page together with each module's page files |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
@@ -362,7 +357,6 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | `docs/guides/adding-a-module.md` | adding a new agent, app or feature, step by step |
 | `docs/reference/tokens.md` | the panel's colours, text sizes and corners by name, and the checks on them |
 | `docs/reference/rows.md` | what the panel knows about each session, field by field, and where each comes from |
-| `docs/reference/stages.md` | how a repo gives its island an extra stage: the command, what it prints, and how Whozmove runs it |
 | `docs/screenshot.png` | the panel at the top of this page, drawn from sample sessions |
 
 Debug log: `~/Library/Application Support/Whozmove/panel.log`.
@@ -378,18 +372,14 @@ Debug log: `~/Library/Application Support/Whozmove/panel.log`.
 - What it keeps is in `~/Library/Application Support/Whozmove/`, which only you can read: each session's last
   message and Claude's last reply (their first 280 characters), what it's doing at the moment (a command, a file's
   name, a search) and how far each turn took the work, requests while they wait for your OK, the deploy command
-  you've confirmed for each project, with each deploy's log, your answer about each repo's extra-stage command, the
-  words of a conversation you start in a terminal until it has started, the lyrics found for the last 1,000 songs you
-  played, until you turn lyrics off, and a small log, which can hold folder paths, repository and conversation names,
-  and text typed into sessions. A new tab in iTerm2 runs from a file of commands in your own temporary folder, which
+  you've confirmed for each project, with each deploy's log, the words of a conversation you start in a terminal until
+  it has started, the lyrics found for the last 1,000 songs you played, until you turn lyrics off, and a small log,
+  which can hold folder paths, repository and conversation names, and text typed into sessions. A new tab in iTerm2 runs from a file of commands in your own temporary folder, which
   only you can read and which removes itself as it runs.
 - Trusting a folder on the new conversation card records exactly that, the one key for that folder
   (`hasTrustDialogAccepted`), in Claude Code's `~/.claude.json`, where Claude Code and Claude Desktop both look, under
   the same lock Claude Code takes to write it. Nothing else in that file is changed, and only that key is ever read
   from it; it's never logged.
-- A repo's extra-stage command runs on this Mac only once you've allowed it, and again each time Whozmove reads the
-  checkout: whatever that command does (including any network traffic) is its own. A changed command is asked about
-  again before it runs.
 - The permission hook only ever allows once, never "always allow", and never approves a plan, and keys go into a terminal session only
   while it sits idle at its prompt, with no request waiting. The one exception is a single Backspace: when
   Whozmove sends a next step's request into a session, it first sets aside anything you'd typed there, with an "x"
@@ -413,7 +403,7 @@ stay open under the same licence.
 
 The pull-request and branch icons are GitHub's [Octicons](https://github.com/primer/octicons), under the MIT
 licence (Copyright (c) 2026 GitHub Inc.); its full notice is beside them, in `panel/scripts/icons.js` and
-`modules/island/page/prs.js`.
+`modules/git/page/prs.js`.
 
 ## Contact
 

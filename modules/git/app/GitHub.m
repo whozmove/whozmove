@@ -15,7 +15,7 @@ NSString *GhPath(void) {
 }
 
 // The fields fetched for each PR; the hover card shows most of them. Its branch (headRefName) tells which branch's PR
-// it is, for the island.
+// it is, for the next steps.
 NSString *const kPRFields = @"number,title,state,isDraft,url,author,additions,deletions,changedFiles,createdAt,"
                             @"reviewDecision,statusCheckRollup,headRefName";
 

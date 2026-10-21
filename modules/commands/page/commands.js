@@ -24,8 +24,9 @@ function agentSetupHTML(s) {
 
 // A ring filling up with the context in use. Neutral below 60%, amber from 60% (filling up), red-orange from 85%
 // (near auto-compact: start fresh or compact). Pointed at, it widens into a Compact button that is the same gauge
-// (its fill is the context in use); a click opens the Compact card (compactHTML). It's drawn open while pointed at
-// or while its card is up, so the rebuild every second doesn't replay the widening.
+// (its fill is the context in use) and says how full it is first, where the ring was; a click opens the Compact card
+// (compactHTML). It's drawn open while pointed at or while its card is up, so the rebuild every second doesn't replay
+// the widening.
 function contextRing(s) {
   const a = s.agent || {}, tokens = a.tokens, model = a.model;
   if (!tokens) return '';
@@ -41,7 +42,7 @@ function contextRing(s) {
     + `<circle cx="6" cy="6" r="${r}" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
       <circle cx="6" cy="6" r="${r}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="${(length * pct / 100).toFixed(2)} ${length.toFixed(2)}"/></svg>`
-    + '<span class="ctx-label">Compact</span></span>';
+    + `<span class="ctx-label">${pct}% · Compact</span></span>`;
 }
 
 // A row's model, effort or mode: the app's menu for it, below the label.
@@ -115,10 +116,9 @@ window.compactNote = (sid, text) => { state.compactOpen[sid] = true; state.compa
 
 // ---- What it plugs into ----
 
+// At the start of the bottom line. The model, effort and mode cross-fade as they change, not the ring.
 core.slots.setup.push((row) => agentSetupHTML(row.s));
-// The setup line counts as changed when the model, effort or mode does (its labels cross-fade), not the ring.
-core.lines['.setup'] = { text: (el) => el.querySelector('.agent')?.textContent,
-                         swap: (el) => el.querySelector('.agent') };
+core.swaps.push(':scope > .main > .where .agent');
 // The Compact card comes after a request waiting on the row, and closes for Deploy's set-up card.
 core.rowCards.push({
   name: 'compact', order: 20,

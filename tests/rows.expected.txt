@@ -91,6 +91,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -145,6 +160,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -199,6 +229,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -289,6 +334,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -396,6 +456,21 @@
     },
     "changes": {
       "added": 15,
+      "all": {
+        "added": 15,
+        "files": 10,
+        "removed": 0,
+        "staged": {
+          "added": 2,
+          "files": 2,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 13,
+          "files": 9,
+          "removed": 0
+        }
+      },
       "files": [],
       "known": false,
       "parts": {},
@@ -442,6 +517,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -497,6 +587,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -641,6 +746,21 @@
     },
     "changes": {
       "added": 0,
+      "all": {
+        "added": 3,
+        "files": 2,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 3,
+          "files": 2,
+          "removed": 0
+        }
+      },
       "complete": true,
       "files": [],
       "known": true,
@@ -747,6 +867,21 @@
     },
     "changes": {
       "added": 6,
+      "all": {
+        "added": 15,
+        "files": 10,
+        "removed": 0,
+        "staged": {
+          "added": 2,
+          "files": 2,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 13,
+          "files": 9,
+          "removed": 0
+        }
+      },
       "complete": false,
       "files": [
         {
@@ -922,159 +1057,6 @@
     "status": "busy",
     "statusUpdatedAt": "now-2m",
     "workRoot": "T/repo"
-  },
-  {
-    "agent": {
-      "compactWindow": 800000,
-      "effort": "medium",
-      "mode": "default",
-      "model": "claude-sonnet-5-5",
-      "tokens": 0
-    },
-    "checkout": {
-      "ahead": 0,
-      "aheadOfBase": 0,
-      "base": "main",
-      "behind": 0,
-      "changes": 1,
-      "checkedAt": "now-0m",
-      "filesPartly": 0,
-      "filesStaged": 0,
-      "filesUnstaged": 1,
-      "newFiles": 0,
-      "remotes": 0,
-      "stage": {
-        "count": 3,
-        "edits": 1,
-        "label": "to review",
-        "parts": {
-          "partly": 0,
-          "staged": 0,
-          "unstaged": 1
-        }
-      },
-      "upstream": false
-    },
-    "cwd": "T/allowed",
-    "entrypoint": "cli",
-    "git": {
-      "branch": "main",
-      "root": "T/allowed"
-    },
-    "pid": "pid",
-    "procStart": "start-stage-0",
-    "prs": [],
-    "sessionId": "x-allowed",
-    "status": "idle",
-    "statusUpdatedAt": "now-40m"
-  },
-  {
-    "agent": {
-      "compactWindow": 800000,
-      "effort": "medium",
-      "mode": "default",
-      "model": "claude-sonnet-5-5",
-      "tokens": 0
-    },
-    "checkout": {
-      "ahead": 0,
-      "aheadOfBase": 0,
-      "base": "main",
-      "behind": 0,
-      "changes": 0,
-      "checkedAt": "now-0m",
-      "filesPartly": 0,
-      "filesStaged": 0,
-      "filesUnstaged": 0,
-      "newFiles": 0,
-      "remotes": 0,
-      "stage": {
-        "ask": "printf '%s' '{\"label\":\"to review\",\"count\":3,\"edits\":1,\"editFiles\":[\"a.txt\"],\"header\":\"3 to review\",\"items\":[\"1  First\"],\"actions\":[{\"title\":\"Send\",\"run\":\"true\"}]}'"
-      },
-      "upstream": false
-    },
-    "cwd": "T/asks",
-    "entrypoint": "cli",
-    "git": {
-      "branch": "main",
-      "root": "T/asks"
-    },
-    "pid": "pid",
-    "procStart": "start-stage-1",
-    "prs": [],
-    "sessionId": "x-asks",
-    "status": "idle",
-    "statusUpdatedAt": "now-40m"
-  },
-  {
-    "agent": {
-      "compactWindow": 800000,
-      "effort": "medium",
-      "mode": "default",
-      "model": "claude-sonnet-5-5",
-      "tokens": 0
-    },
-    "checkout": {
-      "ahead": 0,
-      "aheadOfBase": 0,
-      "base": "main",
-      "behind": 0,
-      "changes": 0,
-      "checkedAt": "now-0m",
-      "filesPartly": 0,
-      "filesStaged": 0,
-      "filesUnstaged": 0,
-      "newFiles": 0,
-      "remotes": 0,
-      "upstream": false
-    },
-    "cwd": "T/junk",
-    "entrypoint": "cli",
-    "git": {
-      "branch": "main",
-      "root": "T/junk"
-    },
-    "pid": "pid",
-    "procStart": "start-stage-3",
-    "prs": [],
-    "sessionId": "x-junk",
-    "status": "idle",
-    "statusUpdatedAt": "now-40m"
-  },
-  {
-    "agent": {
-      "compactWindow": 800000,
-      "effort": "medium",
-      "mode": "default",
-      "model": "claude-sonnet-5-5",
-      "tokens": 0
-    },
-    "checkout": {
-      "ahead": 0,
-      "aheadOfBase": 0,
-      "base": "main",
-      "behind": 0,
-      "changes": 0,
-      "checkedAt": "now-0m",
-      "filesPartly": 0,
-      "filesStaged": 0,
-      "filesUnstaged": 0,
-      "newFiles": 0,
-      "remotes": 0,
-      "upstream": false
-    },
-    "cwd": "T/later",
-    "entrypoint": "cli",
-    "git": {
-      "branch": "main",
-      "root": "T/later"
-    },
-    "pid": "pid",
-    "procStart": "start-stage-2",
-    "prs": [],
-    "sessionId": "x-later",
-    "status": "idle",
-    "statusUpdatedAt": "now-40m"
   }
 ]
 the usage check listed as a row: False
@@ -1706,110 +1688,19 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "card" : "Claude is working: compact it when it's done",
       "log" : "session is busy"
     }
-  },
-  "x-allowed" : {
-    "mode" : "default",
-    "possibleCycles" : [
-      [
-        "default",
-        "acceptEdits",
-        "plan",
-        "auto"
-      ],
-      [
-        "default",
-        "acceptEdits",
-        "plan"
-      ]
-    ],
-    "presses" : {
-      "acceptEdits" : 1,
-      "auto" : null,
-      "bypassPermissions" : null,
-      "default" : null,
-      "plan" : 2
-    },
-    "whyNotEditDraft" : null,
-    "whyNotType" : null
-  },
-  "x-asks" : {
-    "mode" : "default",
-    "possibleCycles" : [
-      [
-        "default",
-        "acceptEdits",
-        "plan",
-        "auto"
-      ],
-      [
-        "default",
-        "acceptEdits",
-        "plan"
-      ]
-    ],
-    "presses" : {
-      "acceptEdits" : 1,
-      "auto" : null,
-      "bypassPermissions" : null,
-      "default" : null,
-      "plan" : 2
-    },
-    "whyNotEditDraft" : null,
-    "whyNotType" : null
-  },
-  "x-junk" : {
-    "mode" : "default",
-    "possibleCycles" : [
-      [
-        "default",
-        "acceptEdits",
-        "plan",
-        "auto"
-      ],
-      [
-        "default",
-        "acceptEdits",
-        "plan"
-      ]
-    ],
-    "presses" : {
-      "acceptEdits" : 1,
-      "auto" : null,
-      "bypassPermissions" : null,
-      "default" : null,
-      "plan" : 2
-    },
-    "whyNotEditDraft" : null,
-    "whyNotType" : null
-  },
-  "x-later" : {
-    "mode" : "default",
-    "possibleCycles" : [
-      [
-        "default",
-        "acceptEdits",
-        "plan",
-        "auto"
-      ],
-      [
-        "default",
-        "acceptEdits",
-        "plan"
-      ]
-    ],
-    "presses" : {
-      "acceptEdits" : 1,
-      "auto" : null,
-      "bypassPermissions" : null,
-      "default" : null,
-      "plan" : 2
-    },
-    "whyNotEditDraft" : null,
-    "whyNotType" : null
   }
 }
 == The keys a slash command is typed with, and where typing stops when the session moves on
 {
+  "its terminal refuses the Return" : {
+    "keys" : [
+      "text x",
+      "Ctrl+S ×1",
+      "text \/model claude-opus-5-5",
+      "Return ×1"
+    ],
+    "stopped" : "its terminal won't take them: It didn't take the last key"
+  },
   "stays at its prompt" : {
     "keys" : [
       "text x",
@@ -1985,34 +1876,6 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick effort" : "Claude is working in this session: change it when it's done",
       "pick mode" : "Claude is working in this session: change it when it's done",
       "pick model" : "Claude is working in this session: change it when it's done"
-    },
-    "x-allowed" : {
-      "ask" : "Send this conversation's first message first",
-      "compact" : "Send this conversation's first message first",
-      "pick effort" : null,
-      "pick mode" : null,
-      "pick model" : null
-    },
-    "x-asks" : {
-      "ask" : "Send this conversation's first message first",
-      "compact" : "Send this conversation's first message first",
-      "pick effort" : null,
-      "pick mode" : null,
-      "pick model" : null
-    },
-    "x-junk" : {
-      "ask" : "Send this conversation's first message first",
-      "compact" : "Send this conversation's first message first",
-      "pick effort" : null,
-      "pick mode" : null,
-      "pick model" : null
-    },
-    "x-later" : {
-      "ask" : "Send this conversation's first message first",
-      "compact" : "Send this conversation's first message first",
-      "pick effort" : null,
-      "pick mode" : null,
-      "pick model" : null
     }
   },
   "s-clone, another tab like its own" : {
@@ -2036,12 +1899,26 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick mode" : "Couldn't find this session's Ghostty tab",
     "pick model" : "Couldn't find this session's Ghostty tab"
   },
+  "s-clone, its tab not found, with its terminal's reason" : {
+    "ask" : "Whozmove is asking macOS whether it may control the terminal",
+    "compact" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick effort" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick mode" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick model" : "Whozmove is asking macOS whether it may control the terminal"
+  },
+  "s-clone, its terminal's own reason" : {
+    "ask" : "Its window has other tabs, which the terminal could type into: ask there",
+    "compact" : "Its window has other tabs, which the terminal could type into: compact it there",
+    "pick effort" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick mode" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick model" : "Its window has other tabs, which the terminal could type into: change it there"
+  },
   "s-clone, no terminal the panel can type into" : {
-    "ask" : "Only sessions running in Ghostty can be asked from here",
-    "compact" : "Only sessions running in Ghostty can be compacted from here",
-    "pick effort" : "Only sessions running in Ghostty can be changed here",
-    "pick mode" : "Only sessions running in Ghostty can be changed here",
-    "pick model" : "Only sessions running in Ghostty can be changed here"
+    "ask" : "Only sessions running in Ghostty or iTerm2 can be asked from here",
+    "compact" : "Only sessions running in Ghostty or iTerm2 can be compacted from here",
+    "pick effort" : "Only sessions running in Ghostty or iTerm2 can be changed here",
+    "pick mode" : "Only sessions running in Ghostty or iTerm2 can be changed here",
+    "pick model" : "Only sessions running in Ghostty or iTerm2 can be changed here"
   },
   "s-clone, open in another terminal too" : {
     "ask" : "It's open more than once: close all but one first",
@@ -2051,11 +1928,11 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick model" : "It's open more than once: close all but one first"
   },
   "s-clone, open in another terminal too, with no terminal the panel can type into" : {
-    "ask" : "Only sessions running in Ghostty can be asked from here",
-    "compact" : "Only sessions running in Ghostty can be compacted from here",
-    "pick effort" : "Only sessions running in Ghostty can be changed here",
-    "pick mode" : "Only sessions running in Ghostty can be changed here",
-    "pick model" : "Only sessions running in Ghostty can be changed here"
+    "ask" : "Only sessions running in Ghostty or iTerm2 can be asked from here",
+    "compact" : "Only sessions running in Ghostty or iTerm2 can be compacted from here",
+    "pick effort" : "Only sessions running in Ghostty or iTerm2 can be changed here",
+    "pick mode" : "Only sessions running in Ghostty or iTerm2 can be changed here",
+    "pick model" : "Only sessions running in Ghostty or iTerm2 can be changed here"
   },
   "s-clone, open in Claude Desktop too" : {
     "ask" : null,
@@ -2063,6 +1940,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick effort" : null,
     "pick mode" : "It's open elsewhere too: change its mode in the terminal",
     "pick model" : null
+  },
+  "s-clone, paused in its terminal, its tab not found" : {
+    "ask" : "It's paused in its terminal: bring it back with fg first",
+    "compact" : "It's paused in its terminal: bring it back with fg first",
+    "pick effort" : "It's paused in its terminal: bring it back with fg first",
+    "pick mode" : "It's paused in its terminal: bring it back with fg first",
+    "pick model" : "It's paused in its terminal: bring it back with fg first"
   },
   "s-desk, its first message sent" : {
     "ask" : null,
@@ -2084,6 +1968,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick effort" : null,
     "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
     "pick model" : null
+  },
+  "s-topic, working, with its terminal's own reason" : {
+    "ask" : "Its window has other tabs, which the terminal could type into: ask there",
+    "compact" : "Its window has other tabs, which the terminal could type into: compact it there",
+    "pick effort" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick mode" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick model" : "Its window has other tabs, which the terminal could type into: change it there"
   }
 }
 == A command's result as read from a transcript (null: none yet), and what it says: the value now in effect
@@ -2148,7 +2039,7 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "savedDefault" : false
   }
 }
-== Each session: why its island's steps and its Deploy wait now (null: they don't), for its own agent or another
+== Each session: why its next steps and its Deploy wait now (null: they don't), for its own agent or another
    at work in the same checkout
 {
   "k-ghostty" : null,
@@ -2172,161 +2063,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
   "s-term" : "These wait until the agent is done",
   "s-topic" : "These wait until the agent is done",
   "s-twice" : "These wait until the agent is done",
-  "s-wt" : "These wait until the agent is done",
-  "x-allowed" : null,
-  "x-asks" : null,
-  "x-junk" : null,
-  "x-later" : null
+  "s-wt" : "These wait until the agent is done"
 }
-== The changes view of two sessions in the clone, of what isn't committed: s-topic's own files, then s-clone's,
-   which aren't known (it ran a shell command Claude Code didn't record), so it gets all sessions', with no line said
-   to be no listed session's;
-   each changed line credited to whoever wrote it (a session or its sub-agent, or unknown), and whether it's staged
-   or committed
+== The changes view of the clone, as git shows it: Changes (what git diff shows, then the files git doesn't track
+   yet), Staged (git diff --cached; d.txt, staged and then changed again, is in both), from either session's side
 {
-  "complete" : false,
   "files" : [
     {
-      "complete" : false,
-      "counts" : {
-        "s-clone" : [
-          1,
-          0
-        ],
-        "s-topic" : [
-          2,
-          0
-        ]
-      },
-      "hunks" : [
-        {
-          "lines" : [
-            [
-              " ",
-              "def schedule(invoice):"
-            ],
-            [
-              " ",
-              "    return queue.put(invoice)"
-            ],
-            [
-              "+",
-              "def on_card(customer):",
-              "s-topic"
-            ],
-            [
-              "+",
-              "    run_now(customer)",
-              "s-topic"
-            ],
-            [
-              " ",
-              "# reviewed by the second session"
-            ]
-          ],
-          "newStart" : 1,
-          "oldStart" : 1
-        }
-      ],
-      "path" : "retry.py",
-      "saved" : false,
-      "status" : "changed"
-    },
-    {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          1,
-          0
-        ]
-      },
-      "hunks" : [
-        {
-          "lines" : [
-            [
-              "+",
-              "Check the retry queue.",
-              "s-topic"
-            ]
-          ],
-          "newStart" : 1,
-          "oldStart" : 0
-        }
-      ],
-      "path" : ".claude\/commands\/check.md",
-      "saved" : false,
-      "status" : "new"
-    },
-    {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          2,
-          0
-        ]
-      },
-      "hunks" : [
-        {
-          "lines" : [
-            [
-              "+",
-              "def written_anyway():",
-              "s-topic"
-            ],
-            [
-              "+",
-              "    return schedule(None) or None",
-              "s-topic"
-            ]
-          ],
-          "newStart" : 1,
-          "oldStart" : 0
-        }
-      ],
-      "path" : "interrupted.py",
-      "saved" : false,
-      "status" : "new"
-    },
-    {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          1,
-          0
-        ]
-      },
-      "hunks" : [
-        {
-          "lines" : [
-            [
-              "+",
-              "Made by its command.",
-              "s-topic"
-            ]
-          ],
-          "newStart" : 1,
-          "oldStart" : 0
-        }
-      ],
-      "path" : "notes.txt",
-      "saved" : false,
-      "status" : "new"
-    }
-  ],
-  "scope" : "session",
-  "v" : "v"
-}
-{
-  "complete" : false,
-  "files" : [
-    {
-      "complete" : false,
-      "counts" : {
-        "short" : [
-          1,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
@@ -2336,8 +2079,7 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
             ],
             [
               "+",
-              "z",
-              "short"
+              "z"
             ]
           ],
           "newStart" : 1,
@@ -2345,76 +2087,30 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "a.txt",
-      "saved" : false,
       "status" : "changed"
     },
     {
-      "complete" : false,
-      "counts" : {
-        "outside" : [
-          2,
-          0
-        ]
-      },
+      "alsoStaged" : true,
       "hunks" : [
         {
           "lines" : [
             [
-              "+",
-              "first",
-              "outside"
+              " ",
+              "first"
             ],
             [
               "+",
-              "again",
-              "outside"
+              "again"
             ]
           ],
           "newStart" : 1,
-          "oldStart" : 0
+          "oldStart" : 1
         }
       ],
       "path" : "d.txt",
-      "saved" : false,
-      "status" : "new"
+      "status" : "changed"
     },
     {
-      "complete" : false,
-      "counts" : {
-        "outside" : [
-          1,
-          0
-        ]
-      },
-      "hunks" : [
-        {
-          "lines" : [
-            [
-              "+",
-              "staged",
-              "outside"
-            ]
-          ],
-          "newStart" : 1,
-          "oldStart" : 0
-        }
-      ],
-      "path" : "e.txt",
-      "saved" : true,
-      "status" : "new"
-    },
-    {
-      "complete" : false,
-      "counts" : {
-        "s-clone" : [
-          1,
-          0
-        ],
-        "s-topic" : [
-          2,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
@@ -2428,18 +2124,15 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
             ],
             [
               "+",
-              "def on_card(customer):",
-              "s-topic"
+              "def on_card(customer):"
             ],
             [
               "+",
-              "    run_now(customer)",
-              "s-topic"
+              "    run_now(customer)"
             ],
             [
               "+",
-              "# reviewed by the second session",
-              "s-clone"
+              "# reviewed by the second session"
             ]
           ],
           "newStart" : 1,
@@ -2447,24 +2140,15 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "retry.py",
-      "saved" : false,
       "status" : "changed"
     },
     {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          1,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "Check the retry queue.",
-              "s-topic"
+              "Check the retry queue."
             ]
           ],
           "newStart" : 1,
@@ -2472,29 +2156,20 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : ".claude\/commands\/check.md",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     },
     {
-      "complete" : false,
-      "counts" : {
-        "s-clone" : [
-          2,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "def helper():",
-              "s-clone"
+              "def helper():"
             ],
             [
               "+",
-              "    return schedule(None)",
-              "s-clone"
+              "    return schedule(None)"
             ]
           ],
           "newStart" : 1,
@@ -2502,29 +2177,20 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "helper.py",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     },
     {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          2,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "def written_anyway():",
-              "s-topic"
+              "def written_anyway():"
             ],
             [
               "+",
-              "    return schedule(None) or None",
-              "s-topic"
+              "    return schedule(None) or None"
             ]
           ],
           "newStart" : 1,
@@ -2532,24 +2198,16 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "interrupted.py",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     },
     {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          1,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "Made by its command.",
-              "s-topic"
+              "Made by its command."
             ]
           ],
           "newStart" : 1,
@@ -2557,24 +2215,16 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "notes.txt",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     },
     {
-      "complete" : false,
-      "counts" : {
-        "s-clone" : [
-          1,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "Looks good to me overall.",
-              "s-clone"
+              "Looks good to me overall."
             ]
           ],
           "newStart" : 1,
@@ -2582,24 +2232,16 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "review.md",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     },
     {
-      "complete" : false,
-      "counts" : {
-        "outside" : [
-          1,
-          0
-        ]
-      },
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "typed by hand after all",
-              "outside"
+              "typed by hand after all"
             ]
           ],
           "newStart" : 1,
@@ -2607,50 +2249,87 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       ],
       "path" : "typed.txt",
-      "saved" : false,
-      "status" : "new"
+      "status" : "new",
+      "untracked" : true
     }
   ],
-  "scope" : "branch",
+  "scope" : "unstaged",
   "v" : "v"
 }
-== The island's commits stage pressed, from s-topic's side: what the clone's commits not on its upstream yet changed,
-   each line credited as the rest are, with the commit it's from
 {
-  "complete" : false,
   "files" : [
     {
-      "complete" : false,
-      "counts" : {
-        "s-topic" : [
-          2,
-          0
-        ]
-      },
+      "alsoUnstaged" : true,
       "hunks" : [
         {
           "lines" : [
             [
               "+",
-              "def schedule(invoice):",
-              "s-topic"
-            ],
-            [
-              "+",
-              "    return queue.put(invoice)",
-              "s-topic"
+              "first"
             ]
           ],
           "newStart" : 1,
           "oldStart" : 0
         }
       ],
-      "path" : "retry.py",
-      "saved" : true,
+      "path" : "d.txt",
+      "status" : "new"
+    },
+    {
+      "hunks" : [
+        {
+          "lines" : [
+            [
+              "+",
+              "staged"
+            ]
+          ],
+          "newStart" : 1,
+          "oldStart" : 0
+        }
+      ],
+      "path" : "e.txt",
       "status" : "new"
     }
   ],
-  "scope" : "commits",
+  "scope" : "staged",
+  "v" : "v"
+}
+== Outgoing, from s-topic's side: the clone's commits not on its upstream yet, one by one, each with what it changed
+{
+  "commits" : [
+    {
+      "at" : "at",
+      "files" : [
+        {
+          "hunks" : [
+            {
+              "lines" : [
+                [
+                  "+",
+                  "def schedule(invoice):"
+                ],
+                [
+                  "+",
+                  "    return queue.put(invoice)"
+                ]
+              ],
+              "newStart" : 1,
+              "oldStart" : 0
+            }
+          ],
+          "path" : "retry.py",
+          "status" : "new"
+        }
+      ],
+      "hash" : "id",
+      "short" : "id",
+      "subject" : "retry"
+    }
+  ],
+  "more" : 0,
+  "scope" : "outgoing",
+  "upstream" : "origin\/topic",
   "v" : "v"
 }
 == Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the

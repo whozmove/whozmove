@@ -12,9 +12,10 @@
 #import "Send.h"
 
 // A terminal that answers for a session's tab without being asked, for --print-why-not: under the panel's first
-// terminal's name, with the tab found and certainly the session's unless a variant says otherwise.
+// terminal's name, with the tab found and certainly the session's, and no reason of its own, unless a variant says
+// otherwise.
 @interface SampleTerminal : NSObject <TypingHost>
-@property (strong) NSString *name;
+@property (strong) NSString *name, *whyNot;
 @property (assign) BOOL found, unique;
 @end
 
@@ -24,21 +25,23 @@
 - (NSString *)tabFor:(Row *)row unique:(BOOL *)unique { *unique = self.unique; return self.found ? @"tab" : nil; }
 - (void)type:(NSString *)text inTab:(NSString *)tab {}
 - (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab {}
+- (NSString *)whyNotTypeIn:(NSString *)tab { return self.whyNot; }
 @end
 
 // A session's reach as the menus find it (Send's SessionReach, all as the sample home has it: whether an app keeps it
 // as a conversation, its first message, whether it's open twice, why keys can't go in now, the terminals' names), but
 // for what can't be asked in a test: its terminal and tab are a SampleTerminal's (none when `terminal` is nil), and
-// Whozmove may control Claude, never asked of macOS. A variant can say its first message is sent, or that it's open
-// elsewhere too, or in another terminal.
+// Whozmove may control Claude, never asked of macOS. A variant can say its first message is sent, that it's open
+// elsewhere too, or in another terminal, or that it's paused in its terminal.
 @interface SampleReach : SessionReach
 @property (strong) SampleTerminal *sample;
-@property (assign) BOOL allowed;
+@property (assign) BOOL allowed, pausedNow;
 @property (strong) NSNumber *startedNow, *openElsewhereNow, *openTwiceNow;
 @end
 
 @implementation SampleReach
 - (id<TypingHost>)typing { return self.desktop ? nil : self.sample; }
+- (Reason *)whyNotType { return self.pausedNow ? [Reason kind:ReasonPaused] : super.whyNotType; }
 - (BOOL)mayControl { return self.allowed; }
 - (BOOL)started { return self.startedNow ? self.startedNow.boolValue : super.started; }
 - (BOOL)openElsewhere { return self.openElsewhereNow ? self.openElsewhereNow.boolValue : super.openElsewhere; }
@@ -92,6 +95,23 @@ static int PrintWhyNot(Core *core) {
     variant(@"s-clone", @"its tab not found", NO, ^(SampleReach *r) { r.sample.found = NO; });
     variant(@"s-clone", @"another tab like its own", NO, ^(SampleReach *r) { r.sample.unique = NO; });
     variant(@"s-clone", @"compacting already", YES, ^(SampleReach *r) {});
+    variant(@"s-clone", @"its terminal's own reason", NO, ^(SampleReach *r) {
+        r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
+    });
+    variant(@"s-clone", @"its tab not found, with its terminal's reason", NO, ^(SampleReach *r) {
+        r.sample.found = NO;
+        r.sample.whyNot = @"Whozmove is asking macOS whether it may control the terminal";
+    });
+    // A session paused in its terminal is out of its foreground, where a terminal may find no tab for it: the pause is
+    // what's said.
+    variant(@"s-clone", @"paused in its terminal, its tab not found", NO, ^(SampleReach *r) {
+        r.pausedNow = YES;
+        r.sample.found = NO;
+    });
+    // The terminal's own reason comes before what the session is doing.
+    variant(@"s-topic", @"working, with its terminal's own reason", NO, ^(SampleReach *r) {
+        r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
+    });
     variant(@"s-clone", @"open in another terminal too", NO, ^(SampleReach *r) {
         r.openElsewhereNow = r.openTwiceNow = @YES;
     });

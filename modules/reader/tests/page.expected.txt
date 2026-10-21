@@ -1,0 +1,21 @@
+
+== A prototype (writings.js)
+opening: the line, before the app has said anything: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button>
+opening: its space: Opening…
+loading: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button>
+loaded: click into it: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button><div class="r-note">Click into it to point and type.</div>
+loaded: its space, under it: 
+clicked into: it has the keyboard: It has the keyboard: click the list to give it back.
+it asked: window: It tried to open a window, which the panel doesn't do. Open it in your browser for that.
+it asked: alert: It tried to show a message box, which the panel doesn't do. Open it in your browser for that.
+it asked: files: It asked for a file, which the panel doesn't pick. Open it in your browser for that.
+it asked: download: It tried to download a file, which the panel doesn't do. Open it in your browser for that.
+it asked: camera: It asked for the camera or the microphone, which the panel doesn't give. Open it in your browser for that.
+it asked: otherApp: It tried to open another app, which the panel doesn't do. Open it in your browser for that.
+it asked: link: That link goes to a file outside its folder, which the panel doesn't open. Open it in your browser for that.
+it asked: something new: It asked for something the panel doesn't do. Open it in your browser for that.
+it asked, while it has the keyboard: It tried to open a window, which the panel doesn't do. Open it in your browser for that.
+a problem: no note on the line: 
+a problem: in its space: This file isn't there any more.
+published too: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button> · <button class="r-open" data-url="https://claude.ai/public/artifacts/example">Open the published page</button><div class="r-note">Click into it to point and type.</div>
+a name that is markup is shown as text: <span class="r-path">/work/&lt;b&gt;x&lt;/b&gt;.html</span> · <button class="r-open r-outside">Open in Browser</button>

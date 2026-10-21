@@ -14,10 +14,10 @@
   conversation last moved. Click it and it carries on in a new tab of the terminal it ran in (Ghostty, iTerm2 or
   Terminal; else the one New Conversation starts in), in its folder, as the same conversation, and the row turns back
   into the running one. Until then its menus say "It isn't running: press its row to open it again", and, like a
-  closed Claude Desktop conversation's, its row keeps its checkout's island and its share of the changes. Clicked
-  while it's still closing, it says it's opening and opens once it has closed. If Claude Code doesn't carry it on in
-  the new tab within half a minute, the row says so, and nothing tries again until you click. One you left with
-  `/clear`, or whose transcript Claude Code has cleared away, isn't listed.
+  closed Claude Desktop conversation's, its row keeps its checkout's changes and next steps. Clicked while it's still
+  closing, it says it's opening and opens once it has closed. If Claude Code doesn't carry it on in the new tab within
+  half a minute, the row says so, and nothing tries again until you click. One you left with `/clear`, or whose
+  transcript Claude Code has cleared away, isn't listed.
 - **The row of the session you're on stays in view**, whether you scroll the list past it or the list moves it out of
   sight (down to Working as it starts on your message): it holds on at the top of the list, or at its bottom while it's
   further down, folding a line at a time, the row next to it touching it all the way, until its name, Claude's line and
@@ -33,16 +33,17 @@
   a reply went to Idle after 30 minutes, or as soon as you'd read it. A row you press, to answer it, say, stays where
   it is until your pointer has left the panel. The header's line counts what the sections show. **Group by Activity**
   is gone: a panel set to it groups by status.
-- Each row's details line ends in what its session changed that isn't committed yet ("+26 −13"), like Claude
-  Desktop's own bar, even with other sessions or you working in the same checkout: each changed line goes to whoever
-  wrote it, a session's shell commands included, as Claude Code records what they change in auto mode. Pointing at
-  the numbers shows how they sit among everything not committed in the checkout; pressing them grows the panel beside
-  the list with the session's files and its own changes, or all sessions', as git shows them, and "No changes to
-  commit" once there are none. A session that ran a shell command unrecorded shows all sessions' numbers instead, as
-  what it changed isn't known. Files one after another or one at a time, lines inline or side by side, kept as you
-  pick them. The view keeps up while the agent works. **Open in Editor** opens a file at its first change, in the
+- What isn't committed in a checkout ("+26 −13"), like Claude Desktop's own bar, at the end of the work line of the
+  row that speaks for it (below), counted as git counts it: every change since the last commit, staged or not, new
+  files included. Pointing at the numbers says how many files that is, and how many are staged and not; pressing them
+  grows the panel beside the list with git status's own tabs: **Changes** (what isn't staged, then the files git
+  doesn't track yet), **Staged**, and **Outgoing** (the commits not on GitHub yet, one by one), each file marked as
+  git marks it, with the tab's step: **Commit** (and, under its ⌄, Commit and Push, and Commit and Open a Pull
+  Request), **Push** or **Publish**. Files one after another or one at a time, lines inline or side by side, kept as
+  you pick them. The view keeps up while the agent works. **Open in Editor** opens a file at its first change, in the
   editor you pick the first time; the pawn menu's **Open With ▸** changes it.
-- **What a session wrote**, on a tag on its row (**Plan +2**): press it and the panel grows beside the list, which
+- **What a session wrote**, on a tag on its row, its icon and how many (in the plan's colour while a plan waits for
+  you): press it and the panel grows beside the list, which
   stays where it was, with the session's **Plans**, **Prototypes** (`.html` pages it created) and **Notes** (`.md`
   files it created), newest first. Plans and notes read as formatted text; a prototype runs as it would in a browser,
   without reaching anything else. While Claude waits on a plan, its row asks for your OK, with **Read plan** and
@@ -58,37 +59,41 @@
   nothing switches the branch of a folder in use. Start names the app, Claude Desktop, Ghostty or iTerm2, with an
   arrow to switch it. A card closed before it starts comes back as you left it. A folder Claude hasn't worked in
   before is asked about on the card, once, for both apps.
-- Under each row's details line, while there's work in flight, is the **island**: a glass capsule with a stage for
-  each place the work can be, the files changed, commits not on GitHub yet and GitHub, each with its count, the one
-  where your next move is brighter. The files stage is a gauge, filled as far as its files are staged; pointing at it
-  opens it into **staged**, **partly** (staged, then changed again) and **unstaged**, and pointing at a part lists its
-  files in a list that grows out of the pointer and follows it. Pointing at the commits stage shows its menu as a
-  card, and a click on it opens what those commits changed, beside the list. A click on another stage opens its menu,
-  with what it holds and its steps (Commit, Push, Create PR, Open PR), which ask the session's agent in words, only
-  while it's idle and no other agent is working in that checkout (its menus still open meanwhile, saying which
-  session the steps wait for). The island stays on one row per checkout for as long as there's work left there: of the
-  sessions running in that checkout, the one that edited files there last, or, if none did, the one you used last
-  there. A row is always about the checkout its session runs in: editing files in another checkout doesn't bring that
-  checkout's island or Deploy to it. The pawn menu's **Next Steps ▸** turns the island and Deploy, or just Deploy, off.
-- An **extra stage** on the island for a repo whose own git config names a command for one (`whozmove.stage`): a
-  tool that keeps changes on their way to a commit, such as a review queue, shows its count there, with its own list
-  and steps in the stage's menu. While it holds something, the files stage counts only the files outside it, and its
-  gauge splits and lists just those when the tool names them. Whozmove asks once before it runs the command, and
-  again whenever it changes. See [docs/reference/stages.md](docs/reference/stages.md).
-- **Deploy**, a round play button on the same row, for any project Whozmove can work out a deploy command for: it
-  puts that checkout's code in place on this Mac, so in a worktree it runs that worktree's code. The first press
-  suggests the command and you confirm it twice, seeing what a package script or Makefile target in it really runs,
-  with a warning if that looks as if it could deploy to production (never suggested); from then on the button is
-  always there for that project, with a dot when an agent edited files or built since the last deploy (until then
-  it's offered only after new work). It runs in your own shell as your terminal starts it, with nothing else of the
-  panel's, never while the agent is working or asking, or another is working there (it's dimmed then), shows a stop
-  square in a turning arc while it runs (a press then offers **Stop Deploy**, which ends it and all it started, and
-  its log) and a check when it's done; if it didn't go through, the line under the row says why. A right-click changes
-  or forgets the command.
+- Under its last message and reply, a row has a **work line** while there's work in flight: its pull requests at the
+  start, and at the end what isn't committed (above) and the **next steps** its checkout has to take, as git sees it,
+  each an icon: a commit icon while something isn't committed, **↑2** while the branch is ahead of its copy on GitHub,
+  a cloud for a branch never pushed. Pointed at, each says its step beside it (**Commit**, **Push**, **Publish**);
+  pressed, it asks the session's agent in words, only while it's idle and no other agent is working in that checkout
+  (meanwhile the steps are dimmed, and a press says what they wait for). A commit takes only what's staged when
+  something is, as git does. While commits wait to go, everything else is committed and no pull request shows, the
+  line's start says where the branch stands ("Ahead of origin · 2 commits", or "Not published · 3 commits"), and
+  pressed, opens those commits. Once everything is pushed, a branch with no pull request shows **No pull request** and
+  **Create PR**: pointed at, it says the branch it goes into, the repo's default to begin with, and a press there
+  picks another of the repo's branches on GitHub, then **Create PR** or **Create Draft PR**. The numbers, the steps
+  and Deploy stay on one row per checkout for as long as there's work left there: of the sessions running in that
+  checkout, the one that edited files there last, or, if none did, the one you used last there. A row is always about
+  the checkout its session runs in: editing files in another checkout doesn't bring that checkout's steps or Deploy to
+  it. **Git**, on the panel's back, turns the next steps and Deploy, or just Deploy, off.
+- A row's **bottom line** is like an editor's status bar: how the session's agent is set up (its model, effort, mode
+  and context ring) at its start, and at its end where it runs, its branch (in purple with a worktree icon in a
+  worktree) or its folder outside git, then Deploy. Pointed at, the branch says its project, that it's a worktree of
+  it and on which branch, its folder and the app it runs in. Rows no longer show the app's icon. Pointed at, the
+  context ring's Compact button says how full the context is too ("98% · Compact"), and the branch makes way for it.
+  Short of room, a long branch or worktree name shortens first, to about a dozen letters, before the model and effort.
+- **Deploy**, a round play button at the end of that bottom line, for any project Whozmove can work out a deploy
+  command for: it puts that checkout's code in place on this Mac, so in a worktree it runs that worktree's code. The
+  first press suggests the command and you confirm it twice, seeing what a package script or Makefile target in it
+  really runs, with a warning if that looks as if it could deploy to production (never suggested); from then on the
+  button is always there for that project, with a dot when an agent edited files or built since the last deploy (until
+  then it's offered only after new work). It runs in your own shell as your terminal starts it, with nothing else of
+  the panel's, never while the agent is working or asking, or another is working there (it's dimmed then), shows a
+  stop square in a turning arc while it runs (a press then offers **Stop Deploy**, which ends it and all it started,
+  and its log) and a check when it's done; if it didn't go through, the work line says why, in its place. A
+  right-click changes or forgets the command.
   Whozmove's own is `./build.sh --now`: once it's set up, an agent's `./build.sh` only compiles, and Deploy puts the
   build in place.
 - Rows no longer show a coloured label for where an idle session's work stands ("Ready to commit", "In review", "Done"
-  and the like), or what that work has been through ("built · tested", the audit) at the end of the details line.
+  and the like), or what that work has been through ("built · tested", the audit).
 - **Working on Whozmove ▸** in the pawn menu, shown while ⌥ is held: **Show Build in Header** says which worktree
   the running build came from and when.
 - `./build.sh` puts the hooks in place too, once they're installed as the plugin, and running `./install.sh` again
@@ -132,7 +137,7 @@
   busy, Whozmove asks again, a little later each time; and the lyrics found are kept on this Mac, so a song played again
   shows them at once, until you turn lyrics off.
 - **Light mode**: the panel, its cards, the usage card and Spotify's token follow the Mac's Light or Dark appearance,
-  or the one picked in the pawn menu's new **Look ▸**, with colours of their own for each: on a light panel, the stages'
+  or the one picked in the pawn menu's new **Look ▸**, with colours of their own for each: on a light panel, the status
   colours are deeper so their words read, and a card's main button is dark. **Look ▸** also picks the panel's own
   colour: **Grey**, now how it starts, **Black** (white on a light panel), or **Glass**, the see-through panel it was,
   showing what's behind it, blurred. While Reduce Transparency is on in System Settings, Glass is grey.
@@ -145,15 +150,18 @@
 - A conversation open in two places at once (resumed in a second tab while it still runs, or open in Claude Desktop
   and a terminal) is one row instead of two, following the copy that needs you: one asking you something, then one at
   work, and otherwise the one it followed already, which pressing the row opens; either of its Ghostty tabs in front
-  marks it as the one you're on. Its details line says **open twice**, and pointed at, where else it's open, as each
-  copy knows only what was said in it since the second opened, with **Close the other copy** for those in other
-  terminal tabs. The panel types nothing into it while another copy runs in a terminal, and doesn't change its mode
-  while one is open in Claude Desktop. Deploy and next steps wait while any copy is at work.
+  marks it as the one you're on. An orange icon of two windows after its time says so, and pointed at, where else it's
+  open, as each copy knows only what was said in it since the second opened, with **Close the other copy** for those
+  in other terminal tabs. The panel types nothing into it while another copy runs in a terminal, and doesn't change
+  its mode while one is open in Claude Desktop. Deploy and next steps wait while any copy is at work.
 - Nothing is typed into a session paused in its terminal (Ctrl+Z), where the keys would go to the shell.
 - **iTerm2**: a click on a session's row brings forward its window, its tab and its pane, found by the session's own
-  terminal, and the session in the iTerm2 tab you're looking at is marked as the one you're on. When iTerm2 has gone
-  while its sessions live on (after a crash), the click starts it. A conversation started in iTerm2 opens in a new tab
-  of its front window, and the usage card's Sign in goes there too on a Mac without Ghostty.
+  terminal, and the session in the iTerm2 tab you're looking at is marked as the one you're on. A session alone in its
+  window takes the model, effort and mode menus, Compact and next steps, typed in as in Ghostty; for one that shares
+  its window with other tabs or panes, they say to change it there, as iTerm2's Broadcast Input could copy the keys
+  into those. When iTerm2 has gone while its sessions live on (after a crash), the click starts it. A conversation
+  started in iTerm2 opens in a new tab of its front window, and the usage card's Sign in goes there too on a Mac
+  without Ghostty.
 - When a row comes or goes, the panel's bottom edge eases with the rows instead of jumping to its new height, and the
   panel no longer flashes lighter at its bottom edge as it grows. Moving the pointer over something no longer restarts
   its hover effect with every move.

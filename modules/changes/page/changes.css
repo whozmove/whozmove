@@ -1,10 +1,11 @@
-/* The changes view (changes-view.js): what a session changed, in the reader's place, beside the list.
+/* The changes view (changes-view.js): what isn't committed in a checkout, as git shows it, in the reader's place,
+   beside the list.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 .r-in.k-changes .r-answer { display: none; }
 .r-in.k-changes .r-shelf { width: 260px; }
 
-/* The bar over the changes (in the reader's .r-src): whose changes are shown, and how files and lines are laid out. */
+/* The bar over the changes (in the reader's .r-src): the tabs, the tab's step, and how files and lines are laid out. */
 .r-in.k-changes .r-src { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 18px;
                          border-bottom: 1px solid var(--rule); }
 .c-switch { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-box);
@@ -14,16 +15,28 @@
                    color: var(--muted); white-space: nowrap; }
 .c-switch button.is-hover { color: var(--text); }
 .c-switch button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
-.c-scopes button[data-scope="session"][aria-pressed="true"] { box-shadow: inset 2px 0 0 var(--who-me); }
-.c-scopes button:disabled { opacity: 0.45; cursor: default; }
 .c-nums { display: inline-flex; gap: 4px; font-size: var(--size-meta); font-variant-numeric: tabular-nums; }
 .c-nums .add { color: var(--added); }
 .c-nums .del { color: var(--removed); }
+.c-nums.c-ahead { color: var(--muted); }
+/* The tab's step (Commit, with its other ways under ⌄; Push; Publish), which asks the session's agent. */
+.c-commit { flex: none; display: inline-flex; gap: 1px; }
+.c-step { flex: none; display: inline-flex; align-items: center; font: inherit; font-size: var(--size-small);
+          color: var(--text); padding: 3px 10px; border: none; border-radius: var(--radius-button);
+          background: var(--button); white-space: nowrap; }
+.c-step.is-hover { background: var(--hover-strong); }
+.c-step:disabled { color: var(--faint); }
+.c-commit .c-step:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.c-commit .c-ways { padding: 3px 6px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
 
-/* The files, grouped. */
-.r-group .c-swatch { display: inline-block; width: 7px; height: 7px; border-radius: var(--radius-bar);
-                     margin-right: 6px; }
-.r-group .c-count { float: right; font-weight: 500; letter-spacing: 0; text-transform: none; }
+/* The files, as git lists them; in Outgoing, under the commit each is from. */
+.r-group.k-commit { display: flex; flex-direction: column; gap: 2px; padding: 12px 8px 5px; text-transform: none;
+                    letter-spacing: 0; font-size: var(--size-small); font-weight: 500; color: var(--muted); }
+.k-subject { color: var(--text); font-weight: 600; }
+.k-meta { font-size: var(--size-meta); font-weight: 400; color: var(--faint); font-variant-numeric: tabular-nums; }
+.k-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 18px 10px; border-bottom: 1px solid var(--rule); }
+.k-head .k-subject { font-size: var(--size-title); }
+.k-head ~ .k-head { margin-top: 16px; }
 .c-file { grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; }
 .c-file .r-meta { grid-column: 2 / 4; }
 .c-mark { grid-row: span 2; align-self: start; margin-top: 2px; width: 14px; height: 14px;
@@ -46,7 +59,6 @@
           color: var(--muted); background: var(--tag); }
 .c-chip.new { color: var(--added); background: var(--added-fill); }
 .c-chip.gone { color: var(--removed); background: var(--removed-fill); }
-.c-chip.shared { color: var(--who-other); background: var(--who-other-fill); }
 .c-grow { flex: 1; }
 .c-edwrap { position: relative; flex: none; }
 .c-open { font: inherit; font-size: var(--size-small); color: var(--muted); padding: 3px 9px; border: none;
@@ -64,18 +76,17 @@
            border-top: 1px solid var(--rule); }
 .c-aside { padding: 14px 18px; font-size: var(--size-body); color: var(--muted); }
 
-/* The lines: who changed each (a thin stripe in their colour), the old and new line numbers, the sign, the text. */
+/* The lines: the old and new line numbers, the sign, the text. */
 .c-lines { width: 100%; border-collapse: collapse;
           font: var(--size-body)/19px ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 4;
           -webkit-user-select: text; cursor: text; }
 .c-lines td { padding: 0; vertical-align: top; }
-.c-lines .c-who { width: 3px; background: var(--who, transparent); }
 .c-lines .c-ln { width: 1%; min-width: 34px; padding: 0 8px 0 10px; text-align: right; color: var(--line-number);
                 white-space: nowrap; -webkit-user-select: none; }
 .c-lines .c-sg { width: 14px; text-align: center; color: var(--line-sign); -webkit-user-select: none; }
 .c-lines .c-code { white-space: pre; padding-right: 24px; color: var(--diff-code); }
-.c-lines tr.add td:not(.c-who), .c-lines td.add { background: var(--added-fill); }
-.c-lines tr.del td:not(.c-who), .c-lines td.del { background: var(--removed-fill); }
+.c-lines tr.add td, .c-lines td.add { background: var(--added-fill); }
+.c-lines tr.del td, .c-lines td.del { background: var(--removed-fill); }
 .c-lines tr.add .c-sg, .c-lines td.c-sg.add { color: var(--added); }
 .c-lines tr.del .c-sg, .c-lines td.c-sg.del { color: var(--removed); }
 .c-lines tr.c-gap td { padding: 5px 0 5px 18px; font: var(--size-small) -apple-system, BlinkMacSystemFont, sans-serif;
@@ -89,7 +100,7 @@
 .c-str { color: var(--code-string); }
 /* A line the agent has just written lights up once, then settles to the added green. */
 @keyframes justWritten { 0%, 35% { background: var(--added-flash); } 100% { background: var(--added-fill); } }
-.c-lines tr.live td:not(.c-who), .c-lines td.live { animation: justWritten 2s ease; }
+.c-lines tr.live td, .c-lines td.live { animation: justWritten 2s ease; }
 
 /* The card a row's numbers show when pointed at (changesCardHTML), in the PR card's place (#card). */
 .cc-big { display: flex; align-items: baseline; gap: 8px; }
@@ -97,19 +108,7 @@
 .cc-big .add { color: var(--added); }
 .cc-big .del { color: var(--removed); }
 .cc-big span { color: var(--muted); font-size: var(--size-card); }
-.cc-lede { margin: 2px 0 10px; font-size: var(--size-card); color: var(--faint); }
-.cc-bar { display: flex; gap: 1px; height: 6px; border-radius: 3px; overflow: hidden; background: var(--track); }
-.cc-bar i { display: block; min-width: 3px; }
-.cc-legend { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; gap: 5px 8px; align-items: center;
-             margin-top: 10px; font-size: var(--size-card); }
-.cc-sw { width: 8px; height: 8px; border-radius: var(--radius-bar); }
-.cc-name { min-width: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cc-name.me { color: var(--text); font-weight: 500; }
-.cc-name small { font-size: var(--size-meta); font-weight: 400; color: var(--faint); }
-.cc-v { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cc-total { display: flex; justify-content: space-between; margin-top: 9px; padding-top: 8px;
-            border-top: 1px solid var(--rule); font-size: var(--size-card); color: var(--muted); }
-.cc-total b { font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+.cc-lede { margin: 2px 0 2px; font-size: var(--size-card); color: var(--faint); }
 .cc-hint { margin-top: 6px; font-size: var(--size-meta); color: var(--faint); }
 
 @media (prefers-reduced-motion: reduce) {

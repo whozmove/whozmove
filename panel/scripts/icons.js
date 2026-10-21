@@ -31,7 +31,7 @@ const BRANCH_ICON = '<svg width="10" height="10" viewBox="0 0 16 16"><path fill=
   + 'm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z'
   + 'M4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>';
 
-// A worktree: a folder with a branch in it, on the details line and the new conversation card.
+// A worktree: a folder with a branch in it, on the bottom line and the new conversation card.
 const WORKTREE_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" '
   + 'stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 '
   + '1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" '
@@ -39,7 +39,11 @@ const WORKTREE_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fil
   + 'stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 '
   + '1.6l-1.1.2"/></svg>';
 
-// Desktop / Terminal, as an icon on the details line.
+// Desktop / Terminal, as an icon on the new conversation card.
+// Two windows, one over the other: a conversation open more than once.
+const TWICE_ICON = '<svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><rect x=".65" y="3.15" '
+  + 'width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4 3.15V2.65a2 2 '
+  + '0 0 1 2-2h4.35a2 2 0 0 1 2 2V7a2 2 0 0 1-2 2H8.65" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
 const DESKTOP_ICON = '<svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" '
   + 'stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg>';
 const TERMINAL_ICON = '<svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" '

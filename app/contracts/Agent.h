@@ -32,7 +32,7 @@
 // apart by it.
 - (BOOL)titleShowsWork:(NSString *)title;
 // The marks it puts on the commands its sessions run, as the names of environment variables. A command you set off from
-// the panel (an extra stage's, say) is yours, so they're taken off it.
+// the panel (making a worktree, say) is yours, so they're taken off it.
 @property (readonly) NSArray<NSString *> *environmentMarks;
 @end
 

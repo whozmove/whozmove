@@ -38,7 +38,7 @@ const state = {
   lastOpenId: null,
 
   // Requests answered from the page, by ask id: 'allow' or 'deny' (until the request goes away), and when that was
-  // (fresh.js). When each card, island or button on the list first showed (justShown).
+  // (fresh.js). When each card, step or button on the list first showed (justShown).
   answering: {}, answeredAt: {}, shownAt: {},
   // When each session and request was last listed, and when the page loaded: what's kept for one of them goes a
   // minute after it has gone from the list (forgetGone).
@@ -52,8 +52,8 @@ const state = {
   // Whozmove running now (setRunningBuild), which the header names while that's on.
   switches: { nextSteps: true, deploy: true, build: false }, running: null,
   // The sessions that speak for their checkouts, from the last render (checkoutOwners), whose rows show their
-  // checkout's island and Deploy; and how a step from a row's menus went, or why it couldn't, { text, quiet, at }, said
-  // under the details for a few seconds (stepNote).
+  // checkout's numbers, next steps and Deploy; and how a step went, or why it couldn't, { text, quiet, at }, said in
+  // the work line's place for a few seconds (stepNote).
   owners: new Set(), stepNotes: {},
 
   // Whether the list has been drawn before, and until when the next rebuild waits for an animation to finish.

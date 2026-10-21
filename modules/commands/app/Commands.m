@@ -29,7 +29,6 @@ NSString *WhyNoPick(Row *row, NSString *field, id<Reach> reach, NSArray<NSArray<
     }
     NSString *why = WhyNoTab(reach, @"changed here", @"change it there");
     if (why) return why;
-    if (reach.whyNotType && reach.whyNotType.kind == ReasonPaused) return reach.whyNotType.onCard;
     // Its copies share one record of the mode, so which mode this one is in can't be told.
     if ([field isEqual:@"mode"] && reach.openElsewhere)
         return @"It's open elsewhere too: change its mode in the terminal";
@@ -210,7 +209,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         return;
     }
     // The menu may have been open a while: check again, right before any key goes in.
-    Reason *why = [agent whyNotTypeInto:row.sessionId pid:row.pid];
+    Reason *why = WhyTerminalRefuses(terminal, tab) ?: [agent whyNotTypeInto:row.sessionId pid:row.pid];
     if (why) {
         PanelLog(@"%@ -> %@ %@ not typed: %@", row.sessionId, field, value, why);
         NSBeep();
@@ -222,6 +221,13 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         NSInteger presses = [agent shiftTabsFrom:row.agent[@"mode"] to:value cycles:[agent modeCyclesFor:row]];
         if (presses <= 0) { NSBeep(); return; }
         [terminal press:TerminalKeyShiftTab times:presses inTab:tab];
+        // The terminal checks its own reason again as the presses go in, and refuses them all if it finds one.
+        Reason *refused = WhyTerminalRefuses(terminal, tab);
+        if (refused) {
+            PanelLog(@"%@ -> mode %@ not pressed: %@", row.sessionId, value, refused);
+            NSBeep();
+            return;
+        }
         [self remember:value as:@"mode" forSession:row.sessionId];
         PanelLog(@"mode of %@ -> %@ (%ld shift-tabs)", row.sessionId, value, (long)presses);
         [self changed];
@@ -253,9 +259,13 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     [self holdDefaultsFor:command];
     PanelLog(@"%@ -> typing \"%@\" into %@ terminal %@", command.sessionId, command.text, command.terminal.name,
              command.tab);
-    // Each keystroke goes in only while the session is still at its prompt (the agent's whyNotTypeInto:).
+    // Each keystroke goes in only while the session is still at its prompt (the agent's whyNotTypeInto:), and while
+    // its terminal hasn't refused one (WhyTerminalRefuses), which a Compact card then says.
     [agent type:command.text into:command.terminal tab:command.tab
-         whyNot:^{ return [agent whyNotTypeInto:command.sessionId pid:command.pid]; }
+         whyNot:^{
+        return WhyTerminalRefuses(command.terminal, command.tab)
+            ?: [agent whyNotTypeInto:command.sessionId pid:command.pid];
+    }
            done:^(Reason *why, NSUInteger typed, NSUInteger steps) {
         if (!why) {
             [self awaitResult:command tries:0];
@@ -264,6 +274,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         PanelLog(@"%@ -> stopped typing \"%@\" after %lu of %lu steps: %@", command.sessionId, command.text,
                  (unsigned long)typed, (unsigned long)steps, why);
         NSBeep();
+        if (why.kind == ReasonTerminal) command.why = why.onCard;
         [self abandon:command];
     }];
 }

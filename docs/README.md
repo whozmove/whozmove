@@ -16,7 +16,6 @@ and how to send a change is in [CONTRIBUTING](../CONTRIBUTING.md).
 ## Reference
 
 - [Rows](reference/rows.md): every field the panel knows about a session, and where each one comes from.
-- [The extra stage](reference/stages.md): how a repo gives its island a stage of its own.
 - [Tokens](reference/tokens.md): the panel's colours, text sizes and corners by name, and the checks that keep styles
   to them.
 
@@ -30,9 +29,9 @@ between the page and the app, and its rules.
 | [claude-code](../modules/claude-code/README.md) | the agent: Claude Code's sessions, transcripts, details, commands, requests and usage, and its hooks |
 | [claude-desktop](../modules/claude-desktop/README.md) | Claude Desktop's conversations, its message box, new conversations, and "Switch model?" |
 | [ghostty](../modules/ghostty/README.md) | sessions in Ghostty: a session's tab, which tab it shows, and typing into it |
-| [iterm2](../modules/iterm2/README.md) | sessions in iTerm2: a session's window, tab and pane, which tab it shows, and new tabs |
+| [iterm2](../modules/iterm2/README.md) | sessions in iTerm2: a session's window, tab and pane, which tab it shows, typing into a session alone in its window, and new tabs |
 | [terminal-app](../modules/terminal-app/README.md) | macOS's Terminal, which only runs a command: Sign in on a Mac without Ghostty or iTerm2 |
-| [island](../modules/island/README.md) | each row's checkout, its stages and their menus, the extra stage, and the PRs |
+| [git](../modules/git/README.md) | each row's checkout, its next steps and Create PR, and the PRs |
 | [deploy](../modules/deploy/README.md) | Deploy: each project's command, run on this Mac when you press it |
 | [changes](../modules/changes/README.md) | what a session changed, line by line: a row's numbers and the changes view |
 | [reader](../modules/reader/README.md) | what a session wrote for you to read: its plans, prototypes and notes |

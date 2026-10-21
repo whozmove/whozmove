@@ -1,6 +1,0 @@
-{
-  "order": 10,
-  "scripts": ["page/stages.js", "page/island.js", "page/island-files.js", "page/island-steps.js",
-              "page/stage-trust.js", "page/prs.js"],
-  "styles": []
-}

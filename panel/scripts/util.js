@@ -39,9 +39,9 @@ const kTokens = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : Mat
 // "1,493".
 const thousands = (n) => Math.round(n || 0).toLocaleString('en-US');
 
-// How wide a text is in an element's font (the island's gauge and the usage strip are sized from their words). From the
-// font's own parts: WebKit leaves the `font` shorthand empty when it can't say it in one (the gauge's tabular figures),
-// and a canvas given that keeps its default, a smaller 10px sans-serif.
+// How wide a text is in an element's font (the usage card is laid out from its words). From the font's own parts:
+// WebKit leaves the `font` shorthand empty when it can't say it in one (tabular figures), and a canvas given that keeps
+// its default, a smaller 10px sans-serif.
 let textCanvas;
 function textWidth(el, text) {
   textCanvas ??= document.createElement('canvas').getContext('2d');

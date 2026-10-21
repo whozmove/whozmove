@@ -18,20 +18,24 @@
 @property (strong) NSMenu *openWithMenu;  // filled as it opens: the editors on this Mac change
 @end
 
-// `Whozmove --print-changes <sessionId> <scope>`: what the changes view would be sent for that session in $HOME (its
-// own changes, the whole checkout's, or its commits not on GitHub yet: `session`, `branch` or `commits`), each line
-// credited to whoever wrote it, as JSON, then quit.
+// The scopes the changes view has, as git splits what it shows: not staged (new files included), staged, and the
+// commits not on GitHub yet.
+static NSString *ScopeOf(id scope) {
+    return [@[@"unstaged", @"staged", @"outgoing"] containsObject:scope] ? scope : @"unstaged";
+}
+
+// `Whozmove --print-changes <sessionId> <scope>`: what the changes view would be sent for that session's checkout in
+// $HOME (`unstaged`, `staged` or `outgoing`), as JSON, then quit.
 static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
     Changes *changes = nil;
     for (id module in core.modules.all)
         if ([module isKindOfClass:ChangesModule.class]) changes = [(ChangesModule *)module changes];
     SettledRows(core);
-    NSString *sid = arguments.count > 0 ? arguments[0] : @"", *scope = arguments.count > 1 ? arguments[1] : @"session";
-    if (![scope isEqualToString:@"commits"]) return PrintJSON([changes viewOf:sid scope:scope] ?: @{});
-    // The commits view is worked out off the main thread, as the page asks for it.
+    NSString *sid = arguments.count > 0 ? arguments[0] : @"", *scope = ScopeOf(arguments.count > 1 ? arguments[1] : nil);
+    // Outgoing is read off the main thread, as the page asks for it.
     __block NSDictionary *view = nil;
     __block BOOL done = NO;
-    [changes commitsOf:sid done:^(NSDictionary *answer) { view = answer; done = YES; }];
+    [changes view:sid scope:scope done:^(NSDictionary *answer) { view = answer; done = YES; }];
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:10];
     while (!done && deadline.timeIntervalSinceNow > 0)
         [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.02]];
@@ -67,9 +71,8 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
         @"readChanges": ^(NSDictionary *msg) {
             NSString *sid = msg[@"sessionId"], *scope = msg[@"scope"];
             if (![sid isKindOfClass:NSString.class]) return;
-            // Built, and made JSON, off the main thread: a large view would hold up everything else here.
-            scope = [scope isEqual:@"commits"] ? @"commits" : [scope isEqual:@"branch"] ? @"branch" : @"session";
-            [weakSelf.changes viewOf:sid scope:scope done:^(NSString *json) {
+            // Made JSON off the main thread: a large view would hold up everything else here.
+            [weakSelf.changes viewOf:sid scope:ScopeOf(scope) done:^(NSString *json) {
                 if (json) [weakSelf.core.page call:@"showChanges" arguments:[@"..." stringByAppendingString:json]];
             }];
         },
@@ -85,7 +88,7 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
     };
 }
 
-// Each session's work: whose each changed line is, worked out again where something changed, and the session's own
+// Each session's work: what isn't committed in its checkout, counted again where something changed, as its row's
 // numbers.
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase {
     if (phase != RowPhaseWork) return;

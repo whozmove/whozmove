@@ -2,7 +2,6 @@
 # each file's, with how many times. tests/checks.sh fails on one written out that isn't listed here, or written out
 # more often than this says, so a new style takes its values from the tokens. Once a file no longer writes one out,
 # tests/checks.sh --update takes it off: nothing is ever added.
-modules/changes/page/changes.css  corner  3px  1
 modules/changes/page/changes.css  size  9px  1
 modules/spotify/page/now-playing.css  size  14px  1
 panel/styles/cards.css  corner  3.5px  1

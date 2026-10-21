@@ -33,7 +33,7 @@ extern NSString *const kClaudeCodeShellFailure;
 // The folder beside a session's transcript where Claude Code keeps its sub-agents' records, one file each.
 extern NSString *const kClaudeCodeSubagents;
 // The marks Claude Code puts on the commands an agent runs, as environment variables, separated by spaces. A command
-// you set off from the panel (Deploy, an extra stage's) is yours, so they're taken off it.
+// you set off from the panel (Deploy, making a worktree) is yours, so they're taken off it.
 extern NSString *const kClaudeCodeAgentMarks;
 // The marks a session's terminal tab title starts with while Claude works, one or the other, turned about once a second
 // (checked with 2.1.302); the rest of the time it starts with ✳. One conversation can run in two tabs at once (a plain

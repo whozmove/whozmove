@@ -1,110 +1,75 @@
-// What a session changed: its row's numbers, the card that says how they sit among everyone's, and how the changes view
-// groups files and lays out their lines.
+// What isn't committed in a row's checkout, as git shows it: the row's numbers, the card they show, and how the changes
+// view lists files and lays out their lines.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
-// Plain functions: they take what they need and change nothing, so tests/panel.sh can check every case. The view
-// shows what isn't committed yet, as git status does ("This session", "All sessions"), or what the commits not on
-// GitHub yet changed ("commits", from the island's commits stage). Whose a line is comes from the app (Changes.m): a
-// session's id; "outside" (no listed session's record has it: your own edits, a closed session's, what git brought
-// in); or "short" (a short or repeated line with nothing around it to tell by). While a session in the checkout ran a
-// shell command Claude Code didn't record (`complete` false), or a command's record left out a file's lines (that
-// file's `complete` false), an "outside" line could be that command's, so it's named for no one: only its stage is
-// said.
+// Plain functions: they take what they need and change nothing, so tests/panel.sh can check every case. The view has
+// git status's own tabs: Changes (what `git diff` shows, then the files git doesn't track yet), Staged (`git diff
+// --cached`) and Outgoing (the commits not on GitHub yet, one by one). A file staged and then changed again is in both
+// of the first two, as git status lists it.
 
-// Who a part of the changes is, in words, from a session's side: that session is "This session", another listed one
-// goes by its name.
-function whoName(who, sid, sessions, complete = true) {
-  if (who === sid) return 'This session';
-  if (who === 'outside') return complete ? 'Outside these sessions' : 'Other changes';
-  if (who === 'short') return 'Short or repeated lines';
-  const other = sessions.find((x) => x.sessionId === who);
-  return other ? other.name || base(other.cwd) : 'Another session';
+// The view's tabs, in order: their scope (as the app's views are named) and their name.
+const CHANGE_TABS = [['unstaged', 'Changes'], ['staged', 'Staged'], ['outgoing', 'Outgoing']];
+
+const filesWord = (n) => `${thousands(n)} ${n === 1 ? 'file' : 'files'}`;
+const commitsWord = (n) => `${thousands(n)} ${n === 1 ? 'commit' : 'commits'}`;
+
+// A file's letter in the list, as git status and VS Code mark it, with its colour: U a file git doesn't track yet, A
+// added, D deleted, R renamed, M changed.
+function gitLetter(f) {
+  if (f.untracked) return ['new', 'U'];
+  if (f.status === 'new') return ['new', 'A'];
+  if (f.status === 'gone') return ['gone', 'D'];
+  if (f.status === 'renamed') return ['changed', 'R'];
+  return ['changed', 'M'];
 }
 
-// The card's parts of what isn't committed in the checkout, from a session's side: that session first, then the others
-// in the checkout, biggest first, then what was changed outside these sessions, and short or repeated lines. Each {who,
-// name, added, removed}; with the whole's total and this session's share of it, in whole percent.
-function branchParts(s, sessions) {
-  // Not known: the checkout's total is all there is, with no one's part of it.
-  if (s.changes?.known === false) {
-    return { parts: [], total: { added: s.changes.added || 0, removed: s.changes.removed || 0 }, share: 0 };
+// A file's lines put in and taken out, [added, removed]: counted from its lines, or, for one sent without them (cut
+// short in a long view), as the app counted them.
+function fileCount(f) {
+  if (f.cut) return [f.added || 0, f.removed || 0];
+  let added = 0, removed = 0;
+  for (const h of f.hunks || []) {
+    for (const l of h.lines) {
+      if (l[0] === '+') added++;
+      else if (l[0] === '-') removed++;
+    }
   }
-  const parts = s.changes?.parts || {};
-  const complete = s.changes?.complete !== false;
-  const all = Object.entries(parts).map(([who, [added, removed]]) => ({ who, name: whoName(who, s.sessionId, sessions,
-                                                                                           complete),
-                                                                         added, removed }));
-  const rank = (p) => p.who === s.sessionId ? 0 : ({ outside: 2, short: 3 })[p.who] ?? 1;
-  all.sort((a, b) => rank(a) - rank(b) || (b.added + b.removed) - (a.added + a.removed));
-  const total = all.reduce((t, p) => ({ added: t.added + p.added, removed: t.removed + p.removed }),
-                           { added: 0, removed: 0 });
-  const mine = parts[s.sessionId] || [0, 0], size = total.added + total.removed;
-  const share = size ? Math.round(100 * (mine[0] + mine[1]) / size) : 0;
-  return { parts: all, total, share };
+  return [added, removed];
 }
 
-// The changes view's list, as groups of files, each [label, who (for its colour, or null), files]. A session's own:
-// what isn't staged yet, then what's staged whole. Everyone's, and the commits': by whose they are, a file under the
-// first of them to change it.
-function changeGroups(view, sid, sessions) {
-  const files = view?.files || [];
-  if (view?.blind && view.scope === 'commits') return [['Not on GitHub yet', null, files]].filter((g) => g[2].length);
-  if (view?.scope === 'session' || view?.blind) {
-    return [['Not staged', null, files.filter((f) => !f.saved)], ['Staged', null, files.filter((f) => f.saved)]]
-      .filter((g) => g[2].length);
-  }
-  const whos = [...new Set(files.flatMap((f) => Object.keys(f.counts || {})))];
-  const rank = (w) => w === sid ? 0 : ({ outside: 2, short: 3 })[w] ?? 1;
-  whos.sort((a, b) => rank(a) - rank(b));
-  const groups = whos.map((w) => [whoName(w, sid, sessions, view.complete !== false), w, []]);
-  // A file with no lines to count (a picture, a file only renamed, or one whose mode changed) is no one's.
-  const lineless = ['No line changes', null, []];
-  for (const f of files) {
-    const first = whos.find((w) => f.counts?.[w]);
-    (first ? groups.find((g) => g[1] === first) : lineless)[2].push(f);
-  }
-  return [...groups, lineless].filter((g) => g[2].length);
+// Where else git lists a file, said under its name and on its head: a file git doesn't track yet, one with staged
+// changes as well (in Changes), and one changed again since it was staged (in Staged).
+function fileNote(f, scope) {
+  if (scope === 'unstaged') return f.untracked ? 'Untracked' : f.alsoStaged ? 'Also staged' : '';
+  if (scope === 'staged') return f.alsoUnstaged ? 'Also in Changes' : '';
+  return '';
 }
 
-// The view of a session whose changes aren't known, as it's shown: no line is anyone's ("none"), so nothing says whose,
-// only how far each part has got. `blind` marks it.
-function blindView(view) {
-  const files = (view.files || []).map((f) => {
-    const all = Object.values(f.counts || {}).reduce((t, [a, d]) => [t[0] + a, t[1] + d], [0, 0]);
-    // Each line keeps its stage, and the commit it's from.
-    const hunks = (f.hunks || []).map((h) => ({ ...h, lines: h.lines.map((l) => l[0] === ' ' ? l
-      : [l[0], l[1], 'none', ...l.slice(3)]) }));
-    return { ...f, counts: { none: all }, hunks, complete: false };
-  });
-  return { ...view, files, complete: false, blind: true };
+// The view's files in its order, each with the key the list and the view find it by: its path; in Outgoing, its
+// commit's too (a file can be in more than one), with the commit it's from.
+function viewFiles(view) {
+  if (view?.scope === 'outgoing') {
+    return (view.commits || []).flatMap((k) => (k.files || []).map((f) => ({ ...f, key: `${k.hash}:${f.path}`,
+                                                                           commit: k })));
+  }
+  return (view?.files || []).map((f) => ({ ...f, key: f.path }));
 }
 
-// A file's count as the view shows it: this session's lines in its own view, everyone's in the branch's.
-function fileCount(f, sid, scope) {
-  if (scope !== 'session') {
-    return Object.values(f.counts || {}).reduce((t, [a, d]) => [t[0] + a, t[1] + d], [0, 0]);
-  }
-  return f.counts?.[sid] || [0, 0];
+// What the view's head says under the session's name, in git's words: how many files aren't staged or are, or how far
+// the branch is ahead of its copy on GitHub ("Ahead of origin/main by 2 commits"), or that it was never published.
+// `all` is the row's count of what isn't committed (the app's), `view` Outgoing's view once it's come.
+function changesSub(scope, all, view) {
+  if (scope === 'unstaged') return `${filesWord(all?.unstaged?.files || 0)} not staged`;
+  if (scope === 'staged') return `${filesWord(all?.staged?.files || 0)} staged`;
+  if (!view || view.missing) return 'Commits not on GitHub yet';
+  const n = (view.commits?.length || 0) + (view.more || 0);
+  if (!n) return view.upstream ? `Up to date with ${view.upstream}` : 'No commits to publish';
+  return view.upstream ? `Ahead of ${view.upstream} by ${commitsWord(n)}` : `Not published: ${commitsWord(n)}`;
 }
 
-// The line under a file's name in the list. A session's own: how often it edited it and when, and whether someone
-// else changed it too. The branch's: who changed it.
-function fileLine(f, sid, scope, sessions, rowFile, now, complete = true) {
-  if (f.counts?.none || !Object.keys(f.counts || {}).length) {
-    return f.status === 'new' ? 'New' : f.status === 'gone' ? 'Deleted' : 'Changed';
-  }
-  if (scope !== 'session') {
-    return Object.keys(f.counts || {}).map((w) => w === sid ? 'this session' : whoName(w, sid, sessions, complete))
-      .join(', ');
-  }
-  const edits = rowFile?.edits || 0;
-  const again = edits > 2 ? `, then edited ${edits - 1} times` : edits > 1 ? ', then edited once' : '';
-  const what = f.status === 'gone' ? 'Deleted' : rowFile?.created ? 'Created' + again
-    : edits > 1 ? `Edited ${edits} times` : 'Edited once';
-  const when = rowFile?.at ? ' · ' + ago(now - rowFile.at) : '';
-  // Shared, as the file's chip says: someone else's lines are in it too (a lone short line is no one's).
-  const others = Object.keys(f.counts || {}).filter((w) => w !== sid && w !== 'short');
-  return what + when + (others.length ? ' · shared' : '');
+// What an empty tab says, as git status would.
+function emptyWords(scope) {
+  return { unstaged: 'No changes.', staged: 'Nothing staged.', outgoing: 'No commits to push.' }[scope];
 }
 
 // A hunk's lines side by side: unchanged lines on both sides, and each run of taken-out lines beside the lines put in
@@ -131,13 +96,12 @@ function linesBetween(prev, hunk) {
   return Math.max(0, hunk.newStart - end);
 }
 
-// The first line a file's changes are about, for opening it there: the first line its session (or, in the branch's
-// view, anyone) put in, else where its first change is.
-function firstChangedLine(f, sid, scope) {
+// The line a file opens at in your editor: the first line put in, else where its first change is.
+function firstChangedLine(f) {
   for (const h of f.hunks || []) {
     let at = h.newStart;
     for (const l of h.lines) {
-      if (l[0] === '+' && (scope !== 'session' || l[2] === sid)) return at;
+      if (l[0] === '+') return at;
       if (l[0] !== '-') at++;
     }
   }

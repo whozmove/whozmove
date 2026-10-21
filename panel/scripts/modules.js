@@ -26,11 +26,11 @@ const core = {
   // The cards that can show under a row's chat, one at a time: { name, order, wants(row), html(row), away(row),
   // close(sid) }. The most pressing (lowest order) that wants to show does; the others are away.
   rowCards: [],
-  rowNotes: [],        // (row) → { text, quiet } or null: the line under the details, when the core has none
-  // The places on a row's template, and on a project's header, each (row or project) → HTML: after the name, after the
-  // time, the end of the details' first line, lines under it, the agent's setup line, lines at the end, and the
-  // project's header after its name.
-  slots: { rowClass: [], name: [], time: [], end: [], underWhere: [], setup: [], after: [], project: [] },
+  rowNotes: [],        // (row) → { text, quiet } or null: the row's note, when the core has none
+  // The places on a row's template, and on a project's header, each (row or project) → HTML: after the name; the work
+  // line's start (the pull requests), its numbers and its steps at its end; the bottom line's start (how the agent is
+  // set up) and its end, after where the session runs; and the project's header after its name.
+  slots: { rowClass: [], name: [], workStart: [], numbers: [], steps: [], setup: [], placeEnd: [], project: [] },
 
   // Pressing and typing (input.js).
   presses: [],         // [selector, press(target, event)]: a press on the list, checked before the core's own
@@ -51,10 +51,10 @@ const core = {
   readerModes: {},
   readerPresses: [],
 
-  // How the list moves (morph.js): the lines the modules draw on a row, by selector ({ place, text, swap, shape,
-  // morph, grow, fold, still }: `still(el)` takes out of a copy of the line what's only there while it moves, for the
-  // copy of the row you're on held at the list's edge, sticky.js), and the bits of a row that cross-fade when their
-  // text changes.
+  // How the list moves (morph.js): how a row's lines move, by the line's selector, where a module's part needs more
+  // than the core's ({ text, swap, shape, morph, grow, fold, still }: `still(el)` takes out of a copy of the line
+  // what's only there while it moves, for the copy of the row you're on held at the list's edge, sticky.js), and the
+  // bits of a row that cross-fade when their text changes.
   lines: {},
   swaps: [],
 
@@ -69,9 +69,9 @@ const core = {
   // What an agent's details mean, for the parts that show them: { modelName, modeName, contextWindow, compactLimit }.
   agent: {},
 
-  // The apps sessions run in, as the page names them, each a module's (hostOf in rows.js): { holds(s), name, icon,
-  // openNow, inName, closedTip(s) (what a row that isn't running says a press does), project(s) }. A session none
-  // holds runs in a terminal.
+  // The apps sessions run in, as the page names them, each a module's (hostOf in rows.js): { holds(s), name, openNow,
+  // inName, closedTip(s) (what a row that isn't running says a press does), project(s) }. A session none holds runs in
+  // a terminal.
   hosts: [],
 };
 

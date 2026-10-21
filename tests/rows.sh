@@ -52,7 +52,8 @@ git -C "$T/clone" -c user.email=t@t -c user.name=t commit -q -m topic
 git -C "$T/clone" update-ref refs/remotes/origin/topic HEAD
 git -C "$T/clone" branch -q --set-upstream-to=origin/topic
 echo z >> "$T/clone/a.txt"
-# And how its changes split for the island's gauge: one file staged, one staged and then changed again, one not staged.
+# And how its changes split as git status sees them: one file staged, one staged and then changed again, one not
+# staged.
 echo staged > "$T/clone/e.txt"
 git -C "$T/clone" add e.txt
 echo first > "$T/clone/d.txt"
@@ -72,27 +73,12 @@ printf 'def written_anyway():\n    return schedule(None) or None\n' > "$T/clone/
 printf 'Made by its command.\n' > "$T/clone/notes.txt"
 printf 'typed by hand after all\n' > "$T/clone/typed.txt"
 mkdir -p "$T/clone/.claude/commands" && printf 'Check the retry queue.\n' > "$T/clone/.claude/commands/check.md"
-# Checkouts with an extra stage (docs/reference/stages.md), each named by its own git config: one you've allowed, one not
-# answered yet (its row asks), one answered Not Now, and one whose command prints something that isn't the stage's.
-STAGE='{"label":"to review","count":3,"edits":1,"editFiles":["a.txt"],"header":"3 to review","items":["1  First"],'\
-'"actions":[{"title":"Send","run":"true"}]}'
-STAGE_COMMAND="printf '%s' '$STAGE'"
-for name in allowed asks later junk; do
-  git -C "$T" init -q -b main "$name"
-  echo one > "$T/$name/a.txt"
-  git -C "$T/$name" add a.txt
-  git -C "$T/$name" -c user.email=t@t -c user.name=t commit -q -m init
-  git -C "$T/$name" config whozmove.stage "$STAGE_COMMAND"
-done
-git -C "$T/junk" config whozmove.stage "echo not json"
-echo two >> "$T/allowed/a.txt"
 
 # Live sessions (stand-in processes), and one whose process has ended: a pid above the highest macOS hands
 # out (99999), so no process can ever have it.
 TERM_PID=$(detached sleep 600); WT_PID=$(detached sleep 600); DESK_PID=$(detached sleep 600)
 MODE_PIDS=$(for _ in 1 2 3 4 5 6; do detached sleep 600; done | paste -sd , -)
 TOPIC_PID=$(detached sleep 600); CLONE_PID=$(detached sleep 600)
-STAGE_PIDS=$(for _ in allowed asks later junk; do detached sleep 600; done | paste -sd , -)
 RUN_PID=$(detached sleep 600)  # a deploy still running
 GONE_PID=999999
 # And s-term again, resumed while its first process was paused in its terminal (Ctrl+Z): one row, the running one's.
@@ -174,20 +160,18 @@ done
 
 # Everything else the app reads, with times relative to now so that Claude Desktop's three-day window and
 # the like hold whenever this runs. The output turns times back into "now-<minutes>m".
-python3 - "$T" "$TERM_PID" "$WT_PID" "$DESK_PID" "$GONE_PID" "$MODE_PIDS" "$TOPIC_PID" "$STAGE_PIDS" \
-  "$STAGE_COMMAND" "$RUN_PID" "$CLONE_PID" "$PAUSED_PID" "$TWICE_PIDS" "$HALT_PID" <<'PY'
+python3 - "$T" "$TERM_PID" "$WT_PID" "$DESK_PID" "$GONE_PID" "$MODE_PIDS" "$TOPIC_PID" "$RUN_PID" \
+  "$CLONE_PID" "$PAUSED_PID" "$TWICE_PIDS" "$HALT_PID" <<'PY'
 import json, os, sys, time
 from datetime import datetime, timezone
 T, term_pid, wt_pid, desk_pid, gone_pid = sys.argv[1], *map(int, sys.argv[2:6])
 mode_pids = [int(pid) for pid in sys.argv[6].split(",")]
 topic_pid = int(sys.argv[7])
-stage_pids = [int(pid) for pid in sys.argv[8].split(",")]
-stage_command = sys.argv[9]
-run_pid = int(sys.argv[10])
-paused_pid = int(sys.argv[12])
-clone_pid = int(sys.argv[11])
-twice_pids = [int(pid) for pid in sys.argv[13].split(",")]
-halt_pid = int(sys.argv[14])
+run_pid = int(sys.argv[8])
+paused_pid = int(sys.argv[10])
+clone_pid = int(sys.argv[9])
+twice_pids = [int(pid) for pid in sys.argv[11].split(",")]
+halt_pid = int(sys.argv[12])
 now = time.time()
 open(os.path.join(T, "written-at"), "w").write(repr(now))  # what Deploy's sample runs are counted from (in_minutes)
 
@@ -283,21 +267,10 @@ put(f".claude/sessions/{topic_pid}.json", {"pid": topic_pid, "sessionId": "s-top
                                     "status": "busy", "statusUpdatedAt": ms(15), "entrypoint": "cli",
                                     "kind": "interactive", "procStart": "start-topic"})
 put(f"Library/Application Support/Whozmove/sessions/s-topic.json", {"outcome": "Committed", "outcomeAt": ms(15)})
-# And another session in that clone, idle: its island's steps and Deploy wait for the agent at work there.
+# And another session in that clone, idle: its next steps and Deploy wait for the agent at work there.
 put(f".claude/sessions/{clone_pid}.json", {"pid": clone_pid, "sessionId": "s-clone", "cwd": os.path.join(T, "clone"),
                                     "status": "idle", "statusUpdatedAt": ms(20), "entrypoint": "cli",
                                     "kind": "interactive", "name": "review notes", "procStart": "start-clone"})
-# A session in each checkout with an extra stage, and your answers about them (Whozmove's own stages.json): the
-# command allowed in one, Not Now in another, the junk one allowed; the asking one has none yet.
-for number, name in enumerate(["allowed", "asks", "later", "junk"]):
-    put(f".claude/sessions/{stage_pids[number]}.json", {"pid": stage_pids[number], "sessionId": f"x-{name}",
-                                                       "cwd": os.path.join(T, name), "status": "idle",
-                                                       "statusUpdatedAt": ms(40), "entrypoint": "cli",
-                                                       "kind": "interactive", "procStart": f"start-stage-{number}"})
-put("Library/Application Support/Whozmove/stages.json", {"projects": {
-    os.path.join(T, "allowed"): {"command": stage_command, "allowedAt": ms(30)},
-    os.path.join(T, "later"): {"command": stage_command, "notNowAt": ms(30)},
-    os.path.join(T, "junk"): {"command": "echo not json", "allowedAt": ms(30)}}})
 put(".claude/sessions/broken.json", "not json")
 put(".claude/sessions/notes.txt", "not a session")
 
@@ -694,19 +667,16 @@ HOME="$T" "$APP" --print-results "/model claude-opus-5-5" "$T/results/model-set.
   "/effort max" "$T/results/effort-capped.jsonl" "/effort high" "$T/results/effort-set.jsonl" \
   "/plan" "$T/results/plan.jsonl" "/compact keep the tests" "$T/results/compact-done.jsonl" \
   "/compact" "$T/results/compact-refused.jsonl" "/compact" "$T/results/compact-no-result.jsonl"
-echo "== Each session: why its island's steps and its Deploy wait now (null: they don't), for its own agent or another"
+echo "== Each session: why its next steps and its Deploy wait now (null: they don't), for its own agent or another"
 echo "   at work in the same checkout"
 HOME="$T" "$APP" --print-waits
-echo "== The changes view of two sessions in the clone, of what isn't committed: s-topic's own files, then s-clone's,"
-echo "   which aren't known (it ran a shell command Claude Code didn't record), so it gets all sessions', with no line said"
-echo "   to be no listed session's;"
-echo "   each changed line credited to whoever wrote it (a session or its sub-agent, or unknown), and whether it's staged"
-echo "   or committed"
-HOME="$T" "$APP" --print-changes s-topic session | sed -E 's/"v" : [0-9]+/"v" : "v"/'
-HOME="$T" "$APP" --print-changes s-clone branch | sed -E 's/"v" : [0-9]+/"v" : "v"/'
-echo "== The island's commits stage pressed, from s-topic's side: what the clone's commits not on its upstream yet changed,"
-echo "   each line credited as the rest are, with the commit it's from"
-HOME="$T" "$APP" --print-changes s-topic commits | sed -E 's/"v" : [0-9]+/"v" : "v"/'
+echo "== The changes view of the clone, as git shows it: Changes (what git diff shows, then the files git doesn't track"
+echo "   yet), Staged (git diff --cached; d.txt, staged and then changed again, is in both), from either session's side"
+HOME="$T" "$APP" --print-changes s-topic unstaged | sed -E 's/"v" : [0-9]+/"v" : "v"/'
+HOME="$T" "$APP" --print-changes s-clone staged | sed -E 's/"v" : [0-9]+/"v" : "v"/'
+echo "== Outgoing, from s-topic's side: the clone's commits not on its upstream yet, one by one, each with what it changed"
+HOME="$T" "$APP" --print-changes s-topic outgoing \
+  | sed -E 's/"v" : [0-9]+/"v" : "v"/; s/"(hash|short)" : "[0-9a-f]+"/"\1" : "id"/; s/"at" : [0-9.e+]+/"at" : "at"/'
 echo "== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the"
 echo "   page is told it"
 # Their times count from when the runs were written, however long the tests above took.

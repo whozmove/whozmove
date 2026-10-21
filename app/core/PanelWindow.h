@@ -30,6 +30,14 @@
 // and the height of the whole panel), within the screen; asked again as what it shows changes. Then folds back.
 - (void)expandReader:(CGFloat)width height:(CGFloat)height;
 - (void)collapse:(CGFloat)height;
+// Runs `then` once the panel has stopped changing size (the reader growing beside the list, or folding back), or at
+// once if it isn't: for what should start only once it's in view.
+- (void)whenStill:(void (^)(void))then;
+// A module's view held over part of the page (a page shown in the reader's body, Browser.h), `rect` in the page's
+// points from its top-left corner: cut by the panel's rounded edges, uncovered as the panel grows, and moving wherever
+// the page does, as the page's own parts do. Held again, it moves to the new place.
+- (void)hold:(NSView *)view overPage:(NSRect)rect;
+- (void)letGo:(NSView *)view;
 // The panel's other side: a view (the apps module's page) on the back of the glass, as wide as the list and as tall as
 // the panel, which shows while the panel is turned over.
 - (void)holdBack:(NSView *)view;

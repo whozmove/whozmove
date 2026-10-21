@@ -40,7 +40,7 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 };
 
 // A terminal the panel can type into. Whether it's safe to type is the session's own state, the same in every terminal
-// (WhyNotTypeInto).
+// (WhyNotTypeInto), and, in a terminal with a reason of its own, the terminal's say too (whyNotTypeIn:).
 @protocol TypingHost <Host>
 // Brings a session's tab forward (Host's open:, which a terminal the panel types into always has).
 - (BOOL)open:(Row *)row;
@@ -50,6 +50,12 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 // Puts text into a tab, or presses a key there `times` times.
 - (void)type:(NSString *)text inTab:(NSString *)tab;
 - (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab;
+@optional
+// Why keys can't go into a tab now, as the panel says it, or nil: the terminal's own reason (in iTerm2, other sessions
+// its Broadcast Input could copy them to). Asked of a tab that wasn't found (nil) too, for why it wasn't, when the
+// terminal knows. One that refuses a key as it goes in refuses everything after it in that tab, and says why here,
+// until the tab is looked for again (tabFor:), so a command never goes in half.
+- (NSString *)whyNotTypeIn:(NSString *)tab;
 @end
 
 // A terminal that can run a command in a new tab, in a folder (a new conversation, or the usage card's Sign in:

@@ -110,7 +110,7 @@
 }
 
 // The checkout's branch and worktree. A row is about the checkout its session runs in, whatever it edits elsewhere: its
-// island, Deploy and file lists are that checkout's. Only one that runs outside any checkout (opened in the folder
+// numbers, next steps and Deploy are that checkout's. Only one that runs outside any checkout (opened in the folder
 // above some, say) goes by the checkout it last edited files in (from its hooks).
 - (void)addCheckoutTo:(Row *)row {
     if (row.cwd) row.git = GitInfo(row.cwd);

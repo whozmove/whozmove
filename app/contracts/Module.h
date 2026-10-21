@@ -8,7 +8,7 @@
 // The phases each read of the rows goes through on the main thread, in this order, once the sessions have been read on
 // their queue (Rows, in the core). Each module adds its part of every row in the phase it belongs to.
 typedef NS_ENUM(NSInteger, RowPhase) {
-    RowPhaseCheckout,  // the state of the checkout each row is about (what its island shows)
+    RowPhaseCheckout,  // the state of the checkout each row is about (what its next steps go by)
     RowPhaseWork,      // each session's work: its PRs, writings, changes, compacting, picks not confirmed yet
     RowPhaseDetails,   // its agent's details: model, effort, mode, context
     RowPhaseListed,    // the rows are whole: what's kept by session, sent apart from them, or watched for

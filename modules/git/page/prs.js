@@ -1,4 +1,4 @@
-// The pull requests a session raised or worked on, under its row, and the card one pointed at shows.
+// The pull requests a session raised or worked on, on its row's work line, and the card one pointed at shows.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 /* The pull-request icon is GitHub's Octicon git-pull-request, from https://github.com/primer/octicons, under this
@@ -35,10 +35,16 @@ const PR_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fill="cur
 
 const MAX_PRS = 3;
 
+// The PRs a row shows: the open ones this session created or worked on, and those whose state couldn't be checked;
+// merged and closed ones are left out.
+function shownPRs(s) {
+  return (s.prs || []).filter((p) => p.state === 'OPEN' || p.state === 'UNKNOWN');
+}
+
 // Open PRs this session created or worked on. Hidden while GitHub is still being asked, dimmed when
-// their state couldn't be checked (UNKNOWN); merged and closed ones are left out.
+// their state couldn't be checked (UNKNOWN).
 function prsHTML(s) {
-  const open = (s.prs || []).filter((p) => p.state === 'OPEN' || p.state === 'UNKNOWN');
+  const open = shownPRs(s);
   if (!open.length) return '';
   const rows = open.slice(0, MAX_PRS).map((p) => {
     const cls = ['pr', p.isDraft ? 'draft' : '', p.state === 'UNKNOWN' ? 'pending' : ''].join(' ');
@@ -76,8 +82,8 @@ function prCardHTML(p) {
       </div>`;
 }
 
-core.slots.after.push((row) => prsHTML(row.s));
-core.lines['.prs'] = { place: 'after', text: (el) => el.textContent };
+// At the start of the work line, after Create PR when there's that.
+core.slots.workStart.push((row) => prsHTML(row.s));
 core.presses.push(['.pr[data-url]', (pr) => native({ type: 'openPR', url: pr.dataset.url })]);
 core.pointerTargets.push('.pr[data-url]');
 core.cards.push({

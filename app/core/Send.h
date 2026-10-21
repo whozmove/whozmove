@@ -28,6 +28,9 @@
 @property (readonly, copy) NSString *terminals;
 @property (readonly) BOOL hasTab;
 @property (readonly) BOOL unique;
+// The terminal's own reason keys can't go into that tab now, or why it found none, as the panel says it, or nil
+// (TypingHost's whyNotTypeIn:).
+@property (readonly, copy) NSString *tabWhyNot;
 // Why keys can't go into it now, or nil.
 @property (readonly) Reason *whyNotType;
 @end
@@ -47,22 +50,25 @@
 - (SessionReach *)reachOf:(Row *)row;
 // The agent that runs a session, if words can be put into its prompt; the terminal it runs in, if it's one the panel
 // can type into; the app that keeps it as a conversation of its own (Claude Desktop), or nil; and the terminals the
-// panel can type into, by name ("Ghostty", or "Ghostty or iTerm" once there are two).
+// panel can type into, by name ("Ghostty or iTerm2").
 - (id<AgentPrompt>)agentOf:(Row *)row;
 - (id<TypingHost>)terminalOf:(Row *)row;
 - (id<ConversationHost>)conversationHostOf:(Row *)row;
 @property (readonly) NSString *terminalNames;
 // Whether a session ran in a terminal and has ended (the core's hasEnded:, which a press on its row goes by too).
 - (BOOL)hasEnded:(Row *)row;
-// The session's agent asked in words, as you'd type them, while it's idle: a step chosen from one of a row's island
-// menus. The row says it's asking, or why they can't go in (stepNote).
+// The session's agent asked in words, as you'd type them, while it's idle: one of a row's next steps. The row says
+// it's asking, or why they can't go in (stepNote).
 - (void)ask:(NSString *)words row:(Row *)row;
 @end
 
 // Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, its tab
-// isn't found, its conversation is open in another terminal too, or another tab fits as well. `here` and `there` end
-// the sentences ("can be changed here", "change it there").
+// isn't found, its conversation is open in another terminal too, another tab fits as well, or the terminal has a reason
+// of its own. `here` and `there` end the sentences ("can be changed here", "change it there").
 NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there);
+// The terminal's own reason keys can't go into a tab now, or nil: what the last check before a key goes in asks, and
+// each key typed after it, as a terminal that refused one refuses the rest.
+Reason *WhyTerminalRefuses(id<TypingHost> terminal, NSString *tab);
 // Why its agent can't be asked in words now, as the row's note says it, or nil.
 NSString *WhyNoAsk(id<Reach> reach);
 // Why a command can't go into a Claude Desktop conversation now, or nil: one that runs takes it only while it sits

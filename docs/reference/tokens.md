@@ -22,14 +22,12 @@ The file is grouped, and says beside each token what it's for:
 - **Words on the panel**, brightest first: `--bright`, `--text`, `--code`, `--reading-text` (what the reader shows to
   read), `--muted`, `--label`, `--dim`, `--faint`, and some for one kind of words (`--branch-text`, `--read-text`,
   `--line-number`); and `--on-colour`, a mark on a colour or a picture, white on either panel.
-- **Whose move it is**: `--needs`, `--busy`, `--turn`, `--pr` and `--idle`; `--turn-words`, amber words; and the same for words in a stage's colour, the soft fill behind them, a stronger fill
-  where your next move is, and an edge round a card about it (`--busy-text`, `--busy-fill`, `--busy-fill-strong`,
-  `--turn-edge`, …).
-- **What a session wrote, PRs, git's colours and who changed what**: `--plan-text`, `--prototype-text` and their fills;
-  a PR's state on its card (`--pr-open-text`, …); `--added`, `--removed`, `--changed-text` and their fills; `--who-me`,
-  `--who-other`, `--who-outside` (the changes view's colours); and how full a gauge is, `--level-normal` to
-  `--level-limit` (a context ring, the usage card's bars).
-- **The island's files gauge**: `--gauge-text`, `--gauge-fill`, `--gauge-staged`, … one for each part and its words.
+- **Whose move it is**: `--needs`, `--busy`, `--turn`, `--pr` and `--idle`; `--turn-words`, amber words; and the same
+  for words in a state's colour, the soft fill behind them, and an edge round a card about it (`--needs-text`,
+  `--turn-fill`, `--turn-edge`, …).
+- **What a session wrote, PRs and git's colours**: `--plan-text` and its fill, `--prototype-text`; a PR's state on its
+  card (`--pr-open-text`, …); `--added`, `--removed`, `--changed-text` and their fills; and how full a gauge is,
+  `--level-normal` to `--level-limit` (a context ring, the usage card's bars).
 - **Lines, edges and fills**: `--rule`, `--edge`, `--surface`, `--track`, `--cover` (a song's cover until it loads),
   `--scrim` (under a mark on a picture), `--tag`, `--picked`; pointed at, `--hover` and firmer ones for smaller things,
   and `--pointed-filter`, a writing's tag.
@@ -40,7 +38,7 @@ The file is grouped, and says beside each token what it's for:
   (`--cat-tag`, …), `--usage-card`, and `--vine-green` to `--vine-heart`.
 - **Text sizes**, `--size-chip` to `--size-heading`, and `--size-lyrics` (a song's lines in the reader); **corners**,
   `--radius-bar` to `--radius-pill`.
-- **The layout**, `--header`, `--side`, `--column`, and the gauge's spring, `--spring`.
+- **The layout**, `--header`, `--side`, `--column`, and a spring for motion, `--spring`.
 
 ## Using them
 

@@ -127,7 +127,7 @@ function steady(s, now) {
   return s;
 }
 
-// Who speaks for a checkout: the row that shows its island.
+// Who speaks for a checkout: the row that shows its numbers and next steps.
 
 // Outcomes of a turn that changed or shipped something.
 const CHANGED = ['Implemented', 'Documented', 'Built', 'Validated', 'Tested', 'Committed', 'Pushed', 'PR raised',
@@ -144,8 +144,8 @@ function editedAt(s, root) {
 // The session that speaks for each checkout (or folder, outside git): of the sessions that run there, the one that
 // edited files there last, running or not, whatever it has done since. A session speaks only for the checkout it runs
 // in (the app sends workGit only for one that runs outside any), so what it edits elsewhere never brings that
-// checkout's island to its row. Only its row shows the island (and Deploy) for the work there, so several chats in one
-// checkout don't all offer the same Commit. When no session there has edited it, the session last active there speaks
+// checkout's steps to its row. Only its row shows the numbers, the steps (and Deploy) for the work there, so several
+// chats in one checkout don't all offer the same Commit. When no session there has edited it, the session last active there speaks
 // for it, one still running before a closed one, so work left in a checkout always shows somewhere. Returns their ids.
 function checkoutOwners(sessions) {
   const editor = {}, fallback = {};

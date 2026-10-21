@@ -1,0 +1,21 @@
+// Checkouts: keeps each listed checkout's git status and branch PR fresh.
+// Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
+#import <Foundation/Foundation.h>
+
+@class Row;
+
+@interface Checkouts : NSObject
+// Starts the git and gh reads that are due for the checkouts these sessions work in.
+- (void)refreshFor:(NSArray<Row *> *)sessions;
+// What's known about a checkout (its git root): {changes, ahead, behind, upstream, remotes, added, removed, base,
+// aheadOfBase, newFiles, filesStaged, filesPartly, filesUnstaged, pr, prBranch, checkedAt, prCheckedAt}, or nil before
+// its first read.
+- (NSDictionary *)stateOf:(NSString *)root;
+// Has the checkout read again on the next refresh, as something has just changed it.
+- (void)readSoon:(NSString *)root;
+// Whether each branch's pull request is looked up: not while the next steps, which go by it, are switched off (Show
+// Next Steps).
+@property (atomic, assign) BOOL looksUpPRs;
+// Whether any read is still out. A test run waits until none is.
+@property (readonly) BOOL checking;
+@end

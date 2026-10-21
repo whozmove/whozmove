@@ -16,7 +16,8 @@ once and takes it back if it doesn't go through.
   model?" is asked in the panel first when Claude would ask it. Why a menu or the card offers nothing now is worded by
   plain functions (`WhyNoPick`, `WhyNoCompact`), from the session's reach (the core's `Send`).
 - `app/Command.m`: one slash command, from going in to its end.
-- `page/commands.js`: the model, effort and mode labels on a row's setup line, the context ring and the Compact card.
+- `page/commands.js`: the model, effort and mode labels at the start of a row's bottom line, the context ring and the
+  Compact card.
   `module.json` lists it for tools/page.sh.
 
 tests/rows.sh checks why each sample session's menus, Compact card and next steps would offer nothing now

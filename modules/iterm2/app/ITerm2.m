@@ -1,6 +1,6 @@
-// ITerm2: finding a session's iTerm2 tab and bringing it forward, and running a command in a new tab, through
-// AppleScript, and which tab it shows, through its Apple events. iTerm2 says which terminal device each of its sessions
-// has, so a session is found by its own.
+// ITerm2: finding a session's iTerm2 tab, bringing it forward and typing into it, and running a command in a new tab,
+// through AppleScript, and which tab it shows, through its Apple events. iTerm2 says which terminal device each of its
+// sessions has, so a session is found by its own.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ITerm2.h"
 #import "ITerm2Facts.h"
@@ -55,6 +55,106 @@ static NSString *Nameable(NSString *tty) {
     NSString *number = [tty hasPrefix:@"/dev/ttys"] ? [tty substringFromIndex:9] : nil;
     NSCharacterSet *notDigit = [NSCharacterSet characterSetWithCharactersInString:@"0123456789"].invertedSet;
     return number.length && [number rangeOfCharacterFromSet:notDigit].location == NSNotFound ? tty : nil;
+}
+
+// Whether text is a session's id as iTerm2 gives it, which a script may name: hex digits and dashes.
+static BOOL IsSessionId(NSString *text) {
+    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:@"0123456789ABCDEFabcdef-"].invertedSet;
+    return text.length && [text rangeOfCharacterFromSet:other].location == NSNotFound;
+}
+
+// What the panel says when keys can't go into a session's tab: others share its window, where iTerm2's Broadcast Input
+// could copy them; it's gone; or iTerm2 didn't take them.
+static NSString *const kSharedWindow =
+    @"Its iTerm2 window has other tabs or panes, which Broadcast Input could type into";
+static NSString *const kTabGone = @"Couldn't find this session's iTerm2 tab";
+static NSString *const kNotTaken = @"iTerm2 didn't take the keys";
+
+// What finds the session on a terminal device (Nameable), and says its id and whether it's alone in its window, as
+// "<id> alone" or "<id> shared", or nothing when no session is on it. The session found is held by what iTerm2 answers
+// for it, its own id (as the window is held by its own), and its device asked again there, so a window or a tab moved
+// meanwhile can't give another session's.
+static NSString *FindScript(NSString *tty) {
+    return [NSString stringWithFormat:@"set found to tty of sessions of tabs of windows\n"
+                                      @"repeat with i from 1 to count of found\n"
+                                      @"  repeat with j from 1 to count of item i of found\n"
+                                      @"    repeat with k from 1 to count of item j of item i of found\n"
+                                      @"      if item k of item j of item i of found is \"%@\" then\n"
+                                      @"        set w to window i\n"
+                                      @"        set s to session k of tab j of w\n"
+                                      @"        if tty of s is not \"%@\" then return \"\"\n"
+                                      @"        set alone to (count of tabs of w) is 1\n"
+                                      @"        if alone then set alone to (count of sessions of tab 1 of w) is 1\n"
+                                      @"        if alone then return (id of s) & \" alone\"\n"
+                                      @"        return (id of s) & \" shared\"\n"
+                                      @"      end if\n"
+                                      @"    end repeat\n"
+                                      @"  end repeat\n"
+                                      @"end repeat", tty, tty];
+}
+
+// The session's id in what FindScript returned, and *alone whether it's alone in its window; nil when it found none.
+static NSString *FoundTab(NSString *answer, BOOL *alone) {
+    NSArray<NSString *> *parts = [answer componentsSeparatedByString:@" "];
+    BOOL said = parts.count == 2 && ([parts[1] isEqualToString:@"alone"] || [parts[1] isEqualToString:@"shared"]);
+    *alone = said && [parts[1] isEqualToString:@"alone"];
+    return said && IsSessionId(parts[0]) ? parts[0] : nil;
+}
+
+// A key as the characters a terminal sends for it, as AppleScript makes them (ITerm2Facts.h).
+static NSString *KeyText(TerminalKey key) {
+    switch (key) {
+        case TerminalKeyReturn: return [NSString stringWithFormat:@"character id %d", kITerm2Return];
+        case TerminalKeyBackspace: return [NSString stringWithFormat:@"character id %d", kITerm2Backspace];
+        case TerminalKeyShiftTab: return [NSString stringWithFormat:@"(character id %d) & \"%@\"", kITerm2Escape,
+                                                                    kITerm2ShiftTabAfterEscape];
+        case TerminalKeyControlS: return [NSString stringWithFormat:@"character id %d", kITerm2ControlS];
+    }
+    return nil;
+}
+
+// Text as AppleScript makes it, for a /compact's focus, which is free text: its quotes and backslashes escaped, and
+// each control character (a tab, an Escape) a space, since what's typed goes in as keys, where one would be pressed:
+// an Escape and "[Z" make a Shift+Tab, which would change the mode.
+static NSString *TextToType(NSString *text) {
+    static NSCharacterSet *controls;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSMutableCharacterSet *set = [NSMutableCharacterSet characterSetWithRange:NSMakeRange(0, 0x20)];
+        [set addCharactersInRange:NSMakeRange(0x7f, 0x21)];
+        controls = set;
+    });
+    NSString *plain = [[text componentsSeparatedByCharactersInSet:controls] componentsJoinedByString:@" "];
+    return [NSString stringWithFormat:@"\"%@\"", AppleScriptText(plain)];
+}
+
+// What puts `toType`, `times` times, 0.05s apart, into the session with that id, only while it's alone in its window:
+// "typed", "shared" while others share its window, or nothing when it's gone. Its window is held by its own id once
+// found, and asked again there, so the window rule is what iTerm2 says right before the keys go in. They go in as
+// typed, never with a newline of iTerm2's.
+static NSString *TypeScript(NSString *sessionId, NSInteger times) {
+    NSString *write = times == 1 ? @"        tell s to write text toType newline no\n"
+                    : [NSString stringWithFormat:@"        repeat %ld times\n"
+                                                 @"          tell s to write text toType newline no\n"
+                                                 @"          delay 0.05\n"
+                                                 @"        end repeat\n", (long)times];
+    return [NSString stringWithFormat:@"set found to id of sessions of tabs of windows\n"
+                                      @"repeat with i from 1 to count of found\n"
+                                      @"  repeat with j from 1 to count of item i of found\n"
+                                      @"    repeat with k from 1 to count of item j of item i of found\n"
+                                      @"      if item k of item j of item i of found is \"%@\" then\n"
+                                      @"        set w to window i\n"
+                                      @"        if (count of tabs of w) is not 1 then return \"shared\"\n"
+                                      @"        set t to tab 1 of w\n"
+                                      @"        if (count of sessions of t) is not 1 then return \"shared\"\n"
+                                      @"        set s to session 1 of t\n"
+                                      @"        if id of s is not \"%@\" then return \"\"\n"
+                                      @"%@"
+                                      @"        return \"typed\"\n"
+                                      @"      end if\n"
+                                      @"    end repeat\n"
+                                      @"  end repeat\n"
+                                      @"end repeat", sessionId, sessionId, write];
 }
 
 // The folder a new tab's file of commands waits in until the tab runs it: your temporary folder's, which only you can
@@ -135,20 +235,26 @@ static NSString *NewTabScript(NSString *program, BOOL forward) {
                                       forward ? @"  select w\n" : @"", forward ? @"\nactivate" : @""];
 }
 
-// Runs AppleScript in iTerm2, and returns what it returns, only while iTerm2 is running: `tell` would start it, so it's
-// checked before the script and again in it. Each question iTerm2 hasn't answered in 2s gives up, rather than holding
-// the panel for AppleScript's own 2 minutes. So macOS's question whether Whozmove may control iTerm2, which a script's
+// AppleScript that runs `body` in iTerm2 only while iTerm2 is running, as `tell` would start it, after `given` (values
+// set before, outside iTerm2's words). Each question iTerm2 hasn't answered in 2s gives up, rather than holding the
+// panel for AppleScript's own 2 minutes. So macOS's question whether Whozmove may control iTerm2, which a script's
 // first question would bring up, is asked before (ask:then:), with no limit on your answer.
-static NSString *RunInITerm2(NSString *body) {
+static NSString *ITerm2Script(NSString *given, NSString *body) {
+    return [NSString stringWithFormat:@"%@with timeout of 2 seconds\n"
+                                      @"  if application id \"%@\" is running then\n"
+                                      @"    tell application id \"%@\"\n"
+                                      @"%@\n"
+                                      @"    end tell\n"
+                                      @"  end if\n"
+                                      @"end timeout\n"
+                                      @"return \"\"", given ?: @"", kITerm2AppId, kITerm2AppId, body];
+}
+
+// Runs AppleScript in iTerm2 (ITerm2Script), and returns what it returns, only while iTerm2 is running, which is
+// checked before the script too.
+static NSString *RunInITerm2(NSString *given, NSString *body) {
     if (ITerm2Process() <= 0) return nil;
-    return RunAppleScript([NSString stringWithFormat:@"with timeout of 2 seconds\n"
-                                                     @"  if application id \"%@\" is running then\n"
-                                                     @"    tell application id \"%@\"\n"
-                                                     @"%@\n"
-                                                     @"    end tell\n"
-                                                     @"  end if\n"
-                                                     @"end timeout\n"
-                                                     @"return \"\"", kITerm2AppId, kITerm2AppId, body]);
+    return RunAppleScript(ITerm2Script(given, body));
 }
 
 @interface ITerm2 ()
@@ -160,6 +266,11 @@ static NSString *RunInITerm2(NSString *body) {
 // gone to another app meanwhile. On the main thread only.
 @property (assign) BOOL allowed, askingToControl;
 @property (copy) void (^onceAllowed)(void);
+// Why keys can't go into each tab now, by its session's id, as the panel says it: the window rule as tabFor: last found
+// it, or a refusal as keys went in, which sticks until the tab is looked for again; and why tabFor: last found no tab,
+// when it knows. On the main thread only.
+@property (strong) NSMutableDictionary<NSString *, NSString *> *refusals;
+@property (copy) NSString *missedWhy;
 @end
 
 @implementation ITerm2
@@ -171,12 +282,16 @@ static NSString *RunInITerm2(NSString *body) {
 - (instancetype)initWithCore:(Core *)core {
     if (!(self = [super init])) return nil;
     self.queue = dispatch_queue_create("whozmove.iterm2", DISPATCH_QUEUE_SERIAL);
+    self.refusals = [NSMutableDictionary dictionary];
     return self;
 }
 
 // `Whozmove --print-iterm2-tab <shell> <file> <folder> <command>`: what a new tab running the command in the folder,
 // through that shell, would have in its file of commands at that path, and what iTerm2 would be told to open it, or
-// that it wouldn't be, then quit. Nothing is written, and nothing is sent to iTerm2.
+// that it wouldn't be, then quit. `Whozmove --print-iterm2-typing <tty> <session id> <text> <answer>…`: what iTerm2
+// would be told to find the session on that terminal device, how each answer to it would be read, and what it would be
+// told to type the text into the session with that id and to press each key. Nothing is written, and nothing is sent
+// to iTerm2.
 + (NSDictionary<NSString *, PrintMode> *)printModes {
     return @{@"--print-iterm2-tab": ^(Core *core, NSArray<NSString *> *a) {
         if (a.count != 4) {
@@ -188,13 +303,45 @@ static NSString *RunInITerm2(NSString *body) {
         else printf("-- its file of commands\n%s-- what iTerm2 is told\n%s\n",
                     TabCommands(a[1], a[2], a[3], a[0]).UTF8String, NewTabScript(program, YES).UTF8String);
         return 0;
+    }, @"--print-iterm2-typing": ^(Core *core, NSArray<NSString *> *a) {
+        if (a.count < 3) {
+            fprintf(stderr, "usage: Whozmove --print-iterm2-typing <tty> <session id> <text> <answer>…\n");
+            return 2;
+        }
+        NSString *tty = Nameable(a[0]);
+        if (!tty) printf("-- finding the session on %s: not asked, as a script can't name it\n", a[0].UTF8String);
+        else printf("-- finding the session on %s\n%s\n", tty.UTF8String,
+                    ITerm2Script(nil, FindScript(tty)).UTF8String);
+        for (NSString *answer in [a subarrayWithRange:NSMakeRange(3, a.count - 3)]) {
+            BOOL alone;
+            NSString *tab = FoundTab(answer, &alone);
+            printf("-- read from \"%s\": %s\n", answer.UTF8String,
+                   tab ? [NSString stringWithFormat:@"session %@, %@", tab, alone ? @"alone in its window"
+                                                                                  : @"sharing its window"].UTF8String
+                       : "none");
+        }
+        if (!IsSessionId(a[1])) {
+            printf("-- typing into %s: never, as a script can't name it\n", a[1].UTF8String);
+            return 0;
+        }
+        NSString *text = [NSString stringWithFormat:@"set toType to %@\n", TextToType(a[2])];
+        printf("-- typing the text\n%s\n", ITerm2Script(text, TypeScript(a[1], 1)).UTF8String);
+        NSArray *keys = @[@[@"Return", @(TerminalKeyReturn), @1], @[@"Backspace", @(TerminalKeyBackspace), @1],
+                          @[@"Ctrl+S", @(TerminalKeyControlS), @1],
+                          @[@"Shift+Tab, 3 times", @(TerminalKeyShiftTab), @3]];
+        for (NSArray *key in keys) {
+            NSString *given = [NSString stringWithFormat:@"set toType to %@\n", KeyText([key[1] integerValue])];
+            printf("-- pressing %s\n%s\n", [key[0] UTF8String],
+                   ITerm2Script(given, TypeScript(a[1], [key[2] integerValue])).UTF8String);
+        }
+        return 0;
     }};
 }
 
-// Whether macOS lets Whozmove control iTerm2 already, found out without asking you, so a press or a new tab needn't
-// wait to know. Files of commands left from new tabs that never ran go, once they're a minute old: one for a tab still
-// opening as the panel restarts is still wanted. A press waiting for macOS's answer is let go once you go to another
-// app, as it isn't what you're after any more.
+// Whether macOS lets Whozmove control iTerm2 already, found out without asking you, so a press, a menu or a new tab
+// needn't wait to know. Files of commands left from new tabs that never ran go, once they're a minute old: one for a
+// tab still opening as the panel restarts is still wanted. A press waiting for macOS's answer is let go once you go to
+// another app, as it isn't what you're after any more.
 - (void)launch {
     NSString *files = TabFilesFolder();
     dispatch_async(self.queue, ^{
@@ -256,7 +403,7 @@ static NSString *RunInITerm2(NSString *body) {
 // Asks macOS whether Whozmove may control iTerm2, asking you if it hasn't yet, for a press: one question at a time, and
 // a press meanwhile only changes what's opened once you've answered (nothing, if you've gone to another app).
 - (void)askToControl:(pid_t)pid then:(void (^)(void))then {
-    self.onceAllowed = then;
+    if (then) self.onceAllowed = then;  // a menu asks with nothing to do after, and leaves what a press asked for
     if (self.askingToControl) return;
     self.askingToControl = YES;
     [self ask:pid then:^(BOOL allowed) {
@@ -310,7 +457,7 @@ static NSString *RunInITerm2(NSString *body) {
                                                   @"    end repeat\n"
                                                   @"  end repeat\n"
                                                   @"end repeat", tty];
-    NSString *done = RunInITerm2(script);
+    NSString *done = RunInITerm2(nil, script);
     if (!done) self.allowed = NO;
     if (![done isEqualToString:@"focused"]) {
         PanelLog(@"open terminal session pid %d -> no iTerm2 session on %@", row.pid, tty);
@@ -318,6 +465,80 @@ static NSString *RunInITerm2(NSString *body) {
     }
     PanelLog(@"open terminal session pid %d -> selected iTerm2 session on %@", row.pid, tty);
     return YES;
+}
+
+// A session's tab is held by iTerm2's own id for the session, which stays its own for the session's life, where its
+// terminal device can pass to a later one; it's found by the session's terminal device, which iTerm2 says, so it's
+// certainly the session's. The answer says whether it's alone in its window too: iTerm2's Broadcast Input, which no
+// script can see, can copy what's typed to the other sessions in a window, hidden floating panes among them, and never
+// beyond it, so keys go only into a session alone in its window. Until macOS has let Whozmove control iTerm2, that's
+// asked first, off the main thread, as its question waits for your answer, and no tab is found meanwhile; the menu
+// says so (whyNotTypeIn:).
+- (NSString *)tabFor:(Row *)row unique:(BOOL *)unique {
+    *unique = YES;
+    self.missedWhy = nil;
+    pid_t pid = ITerm2Process();
+    NSString *tty = pid > 0 ? Nameable(TerminalPath(SessionTerminal(row.pid, ITerm2Processes()))) : nil;
+    if (!tty) {
+        PanelLog(@"terminal session pid %d -> no iTerm2 session on its terminal", row.pid);
+        return nil;
+    }
+    if (!self.allowed) {
+        // Whether you've answered already is asked without asking you, which macOS answers at once. You're asked only
+        // when you haven't been yet; any other answer (iTerm2 quitting meanwhile) is only a try that didn't reach it.
+        OSStatus status = AutomationPermission(pid, NO);
+        if (status == noErr) {
+            self.allowed = YES;
+        } else {
+            self.missedWhy = status == errAEEventNotPermitted
+                ? @"Whozmove isn't allowed to control iTerm2: allow it in System Settings, Privacy & Security, "
+                  @"Automation"
+                : status == errAEEventWouldRequireUserConsent
+                ? @"macOS is asking whether Whozmove may control iTerm2: allow it, then try again"
+                : @"iTerm2 didn't answer: try again";
+            if (status == errAEEventWouldRequireUserConsent) [self askToControl:pid then:nil];
+            return nil;
+        }
+    }
+    NSString *answer = RunInITerm2(nil, FindScript(tty));
+    if (!answer) self.allowed = NO;
+    BOOL alone;
+    NSString *tab = FoundTab(answer, &alone);
+    if (!tab) {
+        PanelLog(@"terminal session pid %d -> no iTerm2 session on %@", row.pid, tty);
+        return nil;
+    }
+    self.refusals[tab] = alone ? nil : kSharedWindow;
+    return tab;
+}
+
+- (NSString *)whyNotTypeIn:(NSString *)tab {
+    return tab ? self.refusals[tab] : self.missedWhy;
+}
+
+- (void)type:(NSString *)text inTab:(NSString *)tab {
+    [self put:TextToType(text) times:1 inTab:tab];
+}
+
+- (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab {
+    [self put:KeyText(key) times:times inTab:tab];
+}
+
+// Puts `keys` (AppleScript that makes them) into a tab `times` times, checking once first that the session is still
+// alone in its window, then all of them 0.05s apart, as a part of a Shift+Tab count would land in another mode. Nothing
+// goes into a tab that refused keys since it was last looked for, so a command that's refused part-way stops there.
+- (void)put:(NSString *)keys times:(NSInteger)times inTab:(NSString *)tab {
+    if (!tab.length) return;
+    if (self.refusals[tab]) {
+        PanelLog(@"iTerm2 session %@ -> no keys typed: %@", tab, self.refusals[tab]);
+        return;
+    }
+    NSString *done = IsSessionId(tab)
+        ? RunInITerm2([NSString stringWithFormat:@"set toType to %@\n", keys], TypeScript(tab, times)) : nil;
+    if ([done isEqualToString:@"typed"]) return;
+    if (!done) self.allowed = NO;
+    self.refusals[tab] = [done isEqualToString:@"shared"] ? kSharedWindow : done ? kTabGone : kNotTaken;
+    PanelLog(@"iTerm2 session %@ -> keys not typed: %@", tab, self.refusals[tab]);
 }
 
 // A command in a new tab, with iTerm2 started first if it isn't running. Until macOS has let Whozmove control iTerm2,
@@ -386,7 +607,7 @@ static NSString *RunInITerm2(NSString *body) {
 // Opens a new tab: nil once it has, else why not. It went through only if the script got to its end. One that failed
 // may have lost Whozmove's leave to control iTerm2, so the next asks macOS again.
 - (NSString *)openTab:(NSString *)script in:(NSString *)folder {
-    if (RunInITerm2(script)) {
+    if (RunInITerm2(nil, script)) {
         PanelLog(@"new terminal session in %@, in iTerm2", folder);
         return nil;
     }
@@ -439,15 +660,16 @@ static NSString *RunInITerm2(NSString *body) {
 
 #pragma mark On the panel's back
 
-// iTerm2 on the panel's back: what Whozmove does with it, and macOS's Automation, which finding its tabs and opening
-// new ones needs.
+// iTerm2 on the panel's back: what Whozmove does with it, and macOS's Automation, which finding its tabs, typing into
+// them and opening new ones needs.
 - (NSArray<AppEntry *> *)appEntries {
     AppEntry *iterm = [AppEntry appWithId:self.appId name:self.name
-                                     does:@"Lists the Claude Code sessions in its tabs and opens them, and starts new "
-                                          @"conversations in a new tab."
+                                     does:@"Lists the Claude Code sessions in its tabs and opens them, types the "
+                                          @"panel's commands while a session waits at its prompt, alone in its "
+                                          @"window, and starts new conversations in a new tab."
                                     order:30];
     iterm.permission = AppPermissionAutomation;
-    iterm.permissionFor = @"Finds each session's tab, and opens new ones";
+    iterm.permissionFor = @"Finds each session's tab, types into it, and opens new ones";
     return @[iterm];
 }
 

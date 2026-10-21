@@ -1,0 +1,49 @@
+== Where each prototype is shown from (its folder, read from there, with the web's parts, links out to your
+   browser, nothing kept), or why it can't be
+[
+  {
+    "file": "T/home/work/site/page.html",
+    "folder": "T/home/work/site",
+    "kept": null,
+    "linksOut": true,
+    "page": "T/home/work/site/page.html",
+    "problem": null,
+    "webParts": true
+  },
+  {
+    "file": "T/home/work/site/sub/inner.html",
+    "folder": "T/home/work/site/sub",
+    "kept": null,
+    "linksOut": true,
+    "page": "T/home/work/site/sub/inner.html",
+    "problem": null,
+    "webParts": true
+  },
+  {
+    "file": "T/home/work/linked/page.html",
+    "folder": "T/home/work/site",
+    "kept": null,
+    "linksOut": true,
+    "page": "T/home/work/site/page.html",
+    "problem": null,
+    "webParts": true
+  },
+  {
+    "file": "T/home/work/site/gone.html",
+    "folder": null,
+    "kept": null,
+    "linksOut": false,
+    "page": null,
+    "problem": "This file isn't there any more.",
+    "webParts": false
+  },
+  {
+    "file": "T/home/top.html",
+    "folder": null,
+    "kept": null,
+    "linksOut": false,
+    "page": null,
+    "problem": "It's saved straight into your home folder (or a disk's top), which the panel won't open whole: open it in your browser.",
+    "webParts": false
+  }
+]

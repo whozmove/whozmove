@@ -12,7 +12,9 @@ const HOVER_TARGETS = ['.row', '.chev', '.apps', '.group.toggle', '.project', '.
 // key(anchor), html(anchor) }, the key saying what the card is about ("pr:<url>"), or null when it shows none now (a
 // session's numbers have none while the reader is open), and the HTML empty when what it's about has gone. One with
 // press(key, act) has buttons (data-act): it stays while the pointer is on what it's about or on the card, which then
-// takes the pointer, and a press on one of them is passed on, unless the card has only just been drawn.
+// takes the pointer, and a press on one of them is passed on, unless the card has only just been drawn. The card goes
+// once pressed, unless the press says it changes what the card shows (it returns true: a pick on it): then it's drawn
+// again.
 const card = document.getElementById('card');
 const cardMaker = (anchor) => core.cards.find((c) => anchor.matches(c.selector));
 function cardAnchor(el) {
@@ -96,8 +98,8 @@ function syncHover() {
   const hovered = new Set(allTargets.map((target) => el?.closest(target)).filter(Boolean));
   document.querySelectorAll('.is-hover').forEach((n) => { if (!hovered.has(n)) n.classList.remove('is-hover'); });
   for (const n of hovered) n.classList.add('is-hover');
-  // What the modules do with what it's on: the island's gauge opening, its commits stage's card, the context ring
-  // widening, the changes asked for ahead of a press.
+  // What the modules do with what it's on: a step's word coming in, the context ring widening, the changes asked for
+  // ahead of a press.
   for (const watch of core.pointerWatchers) watch(el);
   if (state.cardPress && el?.closest('#card')) { showCard(state.cardKey, anchorOf(state.cardKey)); return; }
   const key = cardKey(cardAnchor(el));
@@ -113,8 +115,8 @@ card.addEventListener('mousedown', (e) => {
   if (e.button !== 0 || !button || button.disabled || !press) return;
   e.preventDefault();
   if (justShown('card:' + key)) return;
-  press(key, button.dataset.act);
-  hideCard();
+  if (press(key, button.dataset.act)) showCard(key, anchorOf(key));
+  else hideCard();
 });
 
 function pointerAt(x, y) { state.pointer = { x, y }; syncHover(); }

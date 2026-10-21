@@ -136,8 +136,7 @@ function revealOpenConversation() {
   state.lastOpenId = id;
 }
 
-// The panel grows to fit its content, and for a while to fit a card hanging below it (the modules' too: the card of
-// the island's commits stage, say).
+// The panel grows to fit its content, and for a while to fit a card hanging below it (the modules' too).
 function reportHeight() {
   requestAnimationFrame(() => {
     stickyPlace();  // the row you're on, held at the list's edge, goes with whatever has moved the list
@@ -168,7 +167,7 @@ function forgetGone(sessions) {
   const gone = (id) => now - (state.listedAt[id] ?? state.loadedAt) > FORGET_MS;
   for (const key of ['answering', 'answeredAt', 'stepNotes', 'placed', ...core.forgotten.keys])
     for (const id of Object.keys(state[key])) if (gone(id)) delete state[key][id];
-  // A card, island or button first shown for a session ('compact:<id>', 'island:<id>', …) goes with it, as does a
+  // A card, step or button first shown for a session ('compact:<id>', 'steps:<id>', …) goes with it, as does a
   // request's card, kept by the request's id.
   for (const key of Object.keys(state.shownAt)) if (gone(shownFor(key))) delete state.shownAt[key];
   const read = Object.keys(state.seen).filter((id) => gone(id) && now - state.seen[id] > IDLE_AFTER_MS);
@@ -274,7 +273,7 @@ window.setRunningBuild = (running) => {
   render();
 };
 
-// The panel's switches: Show Next Steps (each row's island, and Deploy's button), Show Deploy (Deploy's round
+// The panel's switches: Show Next Steps (each row's next steps, and Deploy's button), Show Deploy (Deploy's round
 // button), and Show Build in Header; and the panel's look from its Look menu, grey, black or glass, for the colours
 // that match the panel's own (tokens.css).
 window.setSwitches = (switches) => {
@@ -284,7 +283,7 @@ window.setSwitches = (switches) => {
 };
 
 // How a step from a row's menus went (`quiet`: it worked), or why it couldn't go in, or why a deploy couldn't start or
-// its command wasn't saved: under the details for a few seconds. What it settles for a module goes first
+// its command wasn't saved: the row's note for a few seconds, in its work line's place. What it settles for a module goes first
 // (core.noted: a Deploy pressed there stops standing in for a run).
 window.stepNote = (sid, text, quiet) => {
   const s = state.last.sessions.find((x) => x.sessionId === sid);

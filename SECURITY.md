@@ -35,8 +35,8 @@ In scope:
 
 - anything that lets Whozmove act on a session you didn't ask it to: answer a request, type into it, or send it a
   command;
-- anything that makes Whozmove run a command you didn't allow: an extra stage's command before you've allowed it, a
-  command other than the one you allowed, or anything a deploy runs that you didn't confirm;
+- anything that makes Whozmove run a command you didn't allow: a deploy command you didn't confirm, or anything a
+  deploy runs beyond the command you confirmed;
 - anything that exposes what Whozmove keeps or reads;
 - anything that weakens the permissions macOS gives Whozmove, or lets another app use them.
 

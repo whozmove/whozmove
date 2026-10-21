@@ -1,5 +1,6 @@
-// Changes: what each session changed in its checkout, line by line: what isn't committed yet, and its commits not on
-// GitHub yet.
+// Changes: what isn't committed in each listed checkout, line by line, as git splits it (not staged, new files
+// included, and staged), with each changed line credited to the session that wrote it; and the commits not on GitHub
+// yet, one by one.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Changes.h"
 #import "Files.h"
@@ -94,6 +95,8 @@ NSArray<NSDictionary *> *ParseDiff(NSString *diff) {
             file[@"status"] = @"new";
         } else if ([line hasPrefix:@"deleted file mode"]) {
             file[@"status"] = @"gone";
+        } else if ([line hasPrefix:@"rename from "]) {
+            file[@"status"] = @"renamed";
         } else if ([line hasPrefix:@"rename to "]) {
             file[@"path"] = Unquoted([line substringFromIndex:10]);  // "rename to" names it with no side's prefix
         } else if ([line hasPrefix:@"+++ "]) {
@@ -221,26 +224,73 @@ static void AddParts(NSMutableDictionary *parts, NSDictionary *counts) {
     }];
 }
 
-// What isn't committed in a checkout, credited, as `git diff HEAD` and git status see it: every change since the last
-// commit, staged or not, new files included (`others`, git's list of them, NUL-separated), each file saying whether
-// it's staged whole (`saved`: nothing in it is left unstaged). `owners` are {path: [{sid, at, added, removed}]}. Nil
+// Files as the changes view shows them, as git does: each line only [sign, text], with no one named.
+static NSArray *Bare(NSArray *files) {
+    NSMutableArray *bare = [NSMutableArray arrayWithCapacity:files.count];
+    for (NSDictionary *file in files) {
+        NSMutableArray *hunks = [NSMutableArray array];
+        for (NSDictionary *hunk in file[@"hunks"]) {
+            NSMutableArray *lines = [NSMutableArray arrayWithCapacity:[hunk[@"lines"] count]];
+            for (NSArray *line in hunk[@"lines"]) [lines addObject:@[line[0], line[1]]];
+            [hunks addObject:@{@"oldStart": hunk[@"oldStart"], @"newStart": hunk[@"newStart"], @"lines": lines}];
+        }
+        NSMutableDictionary *one = [file mutableCopy];
+        one[@"hunks"] = hunks;
+        [bare addObject:one];
+    }
+    return bare;
+}
+
+// How many files and lines: {files, added, removed}.
+static NSDictionary *Tallied(NSArray *files) {
+    NSInteger added = 0, removed = 0;
+    for (NSDictionary *file in files)
+        for (NSDictionary *hunk in file[@"hunks"])
+            for (NSArray *line in hunk[@"lines"]) {
+                if ([line[0] isEqualToString:@"+"]) added++;
+                else if ([line[0] isEqualToString:@"-"]) removed++;
+            }
+    return @{@"files": @(files.count), @"added": @(added), @"removed": @(removed)};
+}
+
+// What isn't committed in a checkout, as git status splits it, and credited. `files`: every change since the last
+// commit, staged or not, new files included (`others`, git's list of them, NUL-separated), credited by whose each line
+// is, each file saying whether it's staged whole (`saved`: nothing in it is left unstaged); with `parts`, that by
+// whose. `unstaged`: what `git diff` shows, then the new files (`untracked`), each saying whether it has staged changes
+// too (`alsoStaged`); `staged`: what `git diff --cached` shows, each saying whether it was changed again since
+// (`alsoUnstaged`), as git status lists such a file under both. `owners` are {path: [{sid, at, added, removed}]}. Nil
 // when git can't say, or says too much.
 static NSDictionary *CreditCheckout(NSString *root, NSDictionary *owners, NSString *others) {
     // Before the first commit there's no HEAD: everything is against nothing (git's empty tree).
     NSString *head = Git(root, @[@"rev-parse", @"--quiet", @"--verify", @"HEAD"]).length ? @"HEAD"
                                                                                         : @"4b825dc642cb6eb9a060e54bf8d69288fbee4904";
-    NSString *all = Git(root, @[@"diff", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3", @"-M", head]);
-    // The files with changes not staged yet: only their names are needed.
-    NSString *unstaged = Git(root, @[@"diff", @"--name-only", @"-z"]);
-    if (!all || !unstaged || !others) return nil;
-    NSMutableSet *notStaged = [NSMutableSet setWithArray:[unstaged componentsSeparatedByString:@"\0"]];
+    NSArray *diff = @[@"diff", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3"];
+    NSString *all = Git(root, [diff arrayByAddingObjectsFromArray:@[@"-M", head]]);
+    NSString *staged = Git(root, [diff arrayByAddingObjectsFromArray:@[@"-M", @"--cached"]]);
+    NSString *tree = Git(root, diff);
+    if (!all || !staged || !tree || !others) return nil;
+    NSMutableArray *unstagedFiles = [Bare(ParseDiff(tree)) mutableCopy], *stagedFiles = [Bare(ParseDiff(staged)) mutableCopy];
+    NSMutableSet *notStaged = [NSMutableSet set], *inStaged = [NSMutableSet set];
+    for (NSDictionary *file in unstagedFiles) [notStaged addObject:file[@"path"]];
+    for (NSDictionary *file in stagedFiles) [inStaged addObject:file[@"path"]];
     NSMutableArray *files = [ParseDiff(all) mutableCopy];
     NSArray *newPaths = [others componentsSeparatedByString:@"\0"];
     for (NSString *path in [newPaths subarrayWithRange:NSMakeRange(0, MIN(newPaths.count, kNewFiles))]) {
         NSDictionary *file = path.length ? NewFile(root, path) : nil;
         if (!file) continue;
         [files addObject:file];
+        NSMutableDictionary *untracked = [Bare(@[file])[0] mutableCopy];
+        untracked[@"untracked"] = @YES;
+        [unstagedFiles addObject:untracked];
         [notStaged addObject:path];
+    }
+    for (NSMutableDictionary *file in unstagedFiles)
+        if ([inStaged containsObject:file[@"path"]]) file[@"alsoStaged"] = @YES;
+    for (NSUInteger i = 0; i < stagedFiles.count; i++) {
+        if (![notStaged containsObject:stagedFiles[i][@"path"]]) continue;
+        NSMutableDictionary *file = [stagedFiles[i] mutableCopy];
+        file[@"alsoUnstaged"] = @YES;
+        stagedFiles[i] = file;
     }
     NSMutableArray *credited = [NSMutableArray array];
     NSMutableDictionary *parts = [NSMutableDictionary dictionary];
@@ -250,29 +300,34 @@ static NSDictionary *CreditCheckout(NSString *root, NSDictionary *owners, NSStri
         [credited addObject:done];
         AddParts(parts, done[@"counts"]);
     }
-    return @{@"files": credited, @"parts": parts};
+    return @{@"files": credited, @"parts": parts, @"unstaged": unstagedFiles, @"staged": stagedFiles,
+             @"unstagedCount": Tallied(unstagedFiles), @"stagedCount": Tallied(stagedFiles)};
 }
 
-// What the commits not on GitHub yet changed, from `from` (where GitHub's copy is, as the island counts them) to
-// HEAD, as ParseDiff gives it, for CreditCommits; kept for as long as the commits are the same. Nil when git can't
-// say.
-static NSArray *ReadCommits(NSString *root, NSString *from) {
-    NSString *all = Git(root, @[@"diff", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3", @"-M",
-                                [from stringByAppendingString:@"...HEAD"]]);
-    return all ? ParseDiff(all) : nil;
-}
+// The most commits the Outgoing view reads one by one; past that, it says how many more.
+static const NSUInteger kOutgoingCommits = 50;
 
-// Those commits' changes, credited: each line with whose it is.
-static NSDictionary *CreditCommits(NSArray *read, NSDictionary *owners) {
-    NSMutableArray *credited = [NSMutableArray array];
-    NSMutableDictionary *parts = [NSMutableDictionary dictionary];
-    for (NSDictionary *file in read) {
-        NSMutableDictionary *done = [Credit(file, owners[file[@"path"]] ?: @[]) mutableCopy];
-        done[@"saved"] = @YES;
-        [credited addObject:done];
-        AddParts(parts, done[@"counts"]);
+// The commits from `from` (where GitHub's copy is, as a row's ↑N counts them) to HEAD, newest first, as git log lists
+// them, each with what it changed, as git show has it: {commits: [{hash, short, subject, at (ms), files}], more}. Nil
+// when git can't say.
+static NSDictionary *ReadOutgoing(NSString *root, NSString *from) {
+    NSString *range = [from stringByAppendingString:@"..HEAD"];
+    NSString *log = Git(root, @[@"log", @"--no-color", @"--format=%H%x1f%h%x1f%ct%x1f%s",
+                                [NSString stringWithFormat:@"-n%lu", (unsigned long)kOutgoingCommits], range]);
+    NSString *count = Git(root, @[@"rev-list", @"--count", range]);
+    if (!log || !count) return nil;
+    NSMutableArray *commits = [NSMutableArray array];
+    for (NSString *line in [log componentsSeparatedByString:@"\n"]) {
+        NSArray *f = [line componentsSeparatedByString:@"\x1f"];
+        if (f.count < 4) continue;
+        NSString *shown = Git(root, @[@"show", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3", @"-M",
+                                      @"--format=", f[0]]);
+        [commits addObject:@{@"hash": f[0], @"short": f[1], @"at": @([f[2] doubleValue] * 1000),
+                             @"subject": [[f subarrayWithRange:NSMakeRange(3, f.count - 3)] componentsJoinedByString:@"\x1f"],
+                             @"files": shown ? Bare(ParseDiff(shown)) : @[]}];
     }
-    return @{@"files": credited, @"parts": parts};
+    NSInteger all = [[count stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] integerValue];
+    return @{@"commits": commits, @"more": @(MAX(0, all - (NSInteger)commits.count))};
 }
 
 // A full path as it is in a checkout, or nil if it's outside it.
@@ -300,57 +355,21 @@ static NSString *OwnersSource(NSDictionary *byPath) {
     return [edited componentsJoinedByString:@"\n"];
 }
 
-// A file's hunks with only one session's changes in them, for its own view, so the rest of the file's lines aren't
-// sent. Another's lines put in are in the file now, so they stay as unchanged lines; another's taken out aren't, so
-// they go. What's left is cut down to the session's changes with three lines around each. The old side counts from the
-// file as it would be without this session's changes, so its numbers still run on.
-static NSArray *OwnHunks(NSArray *hunks, NSString *sid) {
-    static const NSInteger around = 3;
-    NSMutableArray *out = [NSMutableArray array];
-    NSInteger shift = 0;
-    for (NSDictionary *hunk in hunks) {
-        NSInteger old = [hunk[@"oldStart"] integerValue] + shift, now = [hunk[@"newStart"] integerValue];
-        NSMutableArray *lines = [NSMutableArray array];  // [line, old, now]
-        for (NSArray *line in hunk[@"lines"]) {
-            BOOL theirs = ![line[0] isEqualToString:@" "] && ![line[2] isEqual:sid];
-            if (theirs && [line[0] isEqualToString:@"-"]) { shift--; continue; }
-            if (theirs) shift++;
-            [lines addObject:@[theirs ? @[@" ", line[1]] : line, @(old), @(now)]];
-            NSString *sign = theirs ? @" " : line[0];
-            if (![sign isEqualToString:@"+"]) old++;
-            if (![sign isEqualToString:@"-"]) now++;
-        }
-        NSMutableArray<NSNumber *> *mine = [NSMutableArray array];
-        for (NSUInteger k = 0; k < lines.count; k++)
-            if (![lines[k][0][0] isEqualToString:@" "]) [mine addObject:@(k)];
-        NSUInteger k = 0;
-        while (k < mine.count) {
-            NSInteger from = MAX(0, mine[k].integerValue - around), to = mine[k].integerValue;
-            while (k + 1 < mine.count && mine[k + 1].integerValue - to <= 2 * around) to = mine[++k].integerValue;
-            k++;
-            NSRange part = NSMakeRange((NSUInteger)from, (NSUInteger)MIN((NSInteger)lines.count, to + around + 1) - from);
-            NSArray *window = [lines subarrayWithRange:part];
-            NSMutableArray *kept = [NSMutableArray arrayWithCapacity:window.count];
-            for (NSArray *one in window) [kept addObject:one[0]];
-            [out addObject:@{@"oldStart": window[0][1], @"newStart": window[0][2], @"lines": kept}];
-        }
-    }
-    return out;
-}
-
-// Files as a view sends them: each saying whether whose its lines are is all known (none is while `allInDoubt`, nor in a
-// file a command's record left out, `doubts`), and past the most a view is sent, listed with their counts and without
-// their lines.
-static NSArray *Shown(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
-    NSUInteger sent = 0;
+// Files as a view sends them: past the most a view is sent (`sent`, counted across the calls of one view), listed with
+// their counts and without their lines.
+static NSArray *Capped(NSArray *files, NSUInteger *sent) {
     NSMutableArray *shown = [NSMutableArray array];
     for (NSDictionary *file in files) {
         NSUInteger lines = 0;
         for (NSDictionary *hunk in file[@"hunks"]) lines += [hunk[@"lines"] count];
         NSMutableDictionary *one = [file mutableCopy];
-        one[@"complete"] = allInDoubt || [doubts containsObject:file[@"path"]] ? @NO : @YES;
-        if (sent + lines > kViewLines) { one[@"hunks"] = @[]; one[@"cut"] = @YES; }
-        else sent += lines;
+        if (*sent + lines > kViewLines) {
+            NSDictionary *tally = Tallied(@[file]);
+            one[@"hunks"] = @[];
+            one[@"cut"] = @YES;
+            one[@"added"] = tally[@"added"];
+            one[@"removed"] = tally[@"removed"];
+        } else *sent += lines;
         [shown addObject:one];
     }
     return shown;
@@ -364,53 +383,25 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     return YES;
 }
 
-// A session's view (Changes.h, viewOf:scope:), from its checkout's counted `result` (nil before the first count, or in
-// a checkout no listed session edited in, which isn't `counted`); `unknown`, whether the session's changes aren't
-// known. Plain, so it can be built off the main thread.
-static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSString *scope, BOOL counted, BOOL unknown,
-                               BOOL allInDoubt, NSSet *doubts) {
-    // A checkout no listed session edited in isn't counted: as far as its sessions go, there's nothing to commit.
-    if (!result && !counted)
-        return @{@"scope": [scope isEqualToString:@"branch"] ? @"branch" : @"session", @"v": @0, @"files": @[],
-                 @"complete": @YES};
-    if (!result) return nil;
-    if (result[@"tooMuch"]) return @{@"missing": @"Too many changes to count here."};
-    // A session whose changes aren't known has only the checkout's to show.
-    BOOL branch = [scope isEqualToString:@"branch"] || unknown;
-    NSMutableArray *mine = [NSMutableArray array];
-    for (NSDictionary *file in result[@"files"]) {
-        if (!branch && !file[@"counts"][sessionId]) continue;
-        // Its own view has only its own changes, so only they're sent.
-        if (branch) [mine addObject:file];
-        else {
-            NSMutableDictionary *own = [file mutableCopy];
-            own[@"hunks"] = OwnHunks(file[@"hunks"], sessionId);
-            [mine addObject:own];
-        }
-    }
-    // Complete when every session in the checkout is known, and no command's record left out lines here: only then
-    // is a line no one's edits explain no listed session's. Each file says so for itself too.
-    return @{@"scope": branch ? @"branch" : @"session", @"v": result[@"v"], @"files": Shown(mine, allInDoubt, doubts),
-             @"complete": @(Complete(result[@"files"], allInDoubt, doubts))};
-}
-
 @interface Changes ()
 @property (strong) dispatch_queue_t queue;
-// Kept on the main thread: each session's checkout, each checkout's credited branch ({files, parts, v}) and what it was
-// worked out from, when it was last looked at, and the ones being worked out now.
+// Kept on the main thread: each session's checkout, each checkout's counted changes ({files, parts, unstaged, staged,
+// v}: CreditCheckout's) and what they were worked out from, when it was last looked at, and the ones being worked out
+// now.
 @property (strong) NSMutableDictionary<NSString *, NSString *> *roots;
-// Each listed session's row, and each checkout's commits view as last worked out (with what it was worked out from,
-// `source`, and for opening its files), for the commits view, worked out only when it's asked for.
+// Each listed session's row, and each checkout's commits not on GitHub yet as last read (ReadOutgoing's, with what
+// they were read from, `source`, and for opening their files), read ahead while there are some.
 @property (strong) NSMutableDictionary<NSString *, Row *> *rows;
-@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *commits;
-@property (strong) NSMutableSet<NSString *> *commitsBusy;
-@property (strong) NSMutableDictionary<NSString *, NSNumber *> *commitsLookedAt;
-// The checkouts being counted now, and each session's checkouts edited (rootsEditedBy:).
-@property (strong) NSSet<NSString *> *counted;
+@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *outgoing;
+@property (strong) NSMutableSet<NSString *> *outgoingBusy;
+@property (strong) NSMutableDictionary<NSString *, NSNumber *> *outgoingLookedAt;
+// Each session's checkouts edited (rootsEditedBy:).
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *edited;
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *results;
 @property (strong) NSMutableDictionary<NSString *, NSString *> *sources;
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *lookedAt;
+// Each checkout's sessions' edits as its last count was started with (OwnersSource), so new ones are counted at once.
+@property (strong) NSMutableDictionary<NSString *, NSString *> *ownersSeen;
 @property (strong) NSMutableSet<NSString *> *busy;
 @property (assign) NSInteger version;
 // What each session edited, as its agent said it this refresh (editsOf:), by session.
@@ -436,11 +427,12 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
     self.results = [NSMutableDictionary dictionary];
     self.sources = [NSMutableDictionary dictionary];
     self.lookedAt = [NSMutableDictionary dictionary];
+    self.ownersSeen = [NSMutableDictionary dictionary];
     self.busy = [NSMutableSet set];
     self.rows = [NSMutableDictionary dictionary];
-    self.commits = [NSMutableDictionary dictionary];
-    self.commitsBusy = [NSMutableSet set];
-    self.commitsLookedAt = [NSMutableDictionary dictionary];
+    self.outgoing = [NSMutableDictionary dictionary];
+    self.outgoingBusy = [NSMutableSet set];
+    self.outgoingLookedAt = [NSMutableDictionary dictionary];
     self.edited = [NSMutableDictionary dictionary];
     self.unknown = @{};
     self.doubts = @{};
@@ -482,7 +474,14 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
     }
     // Each checkout's editors: the sessions running in it that edited files, and any other listed session that edited
     // files in it from elsewhere, whose lines there are as much its own. Those, and the sessions running in it, are
-    // the ones whose changes have to be known for it to be complete.
+    // the ones whose changes have to be known for it to be complete. Who edited only says whose a line is: every
+    // listed checkout is counted, as git counts it, unless its last git status found nothing to commit there.
+    NSMutableSet<NSString *> *pending = [NSMutableSet set];
+    for (Row *row in sessions) {
+        NSString *root = self.roots[row.sessionId ?: @""];
+        NSDictionary *c = row.checkout;
+        if (root && (!c || [c[@"changes"] integerValue] + [c[@"newFiles"] integerValue] > 0)) [pending addObject:root];
+    }
     NSMutableDictionary<NSString *, NSMutableArray<Row *> *> *editors = [NSMutableDictionary dictionary];
     NSMutableDictionary<NSString *, NSMutableArray<NSString *> *> *unknown = [NSMutableDictionary dictionary];
     NSMutableDictionary<NSString *, NSMutableSet<NSString *> *> *doubts = [NSMutableDictionary dictionary];
@@ -516,31 +515,36 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
     self.unknown = [unknown copy];
     self.doubts = [doubts copy];
     self.failing = [failing copy];
-    self.counted = [NSSet setWithArray:editors.allKeys];
+    for (NSString *root in checkouts)
+        if (editors[root]) [pending addObject:root];
     for (NSString *root in self.results.allKeys)
-        if (!editors[root]) {
+        if (![pending containsObject:root]) {
             [self.results removeObjectForKey:root];
             [self.sources removeObjectForKey:root];
+            [self.ownersSeen removeObjectForKey:root];
         }
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
-    // A checkout's commits not on GitHub yet are worked out ahead, while it has some (as the island counts them).
+    // A checkout's commits not on GitHub yet are read ahead, while it has some (as a row's ↑N counts them).
     for (NSString *sid in self.rows) {
         Row *row = self.rows[sid];
         NSString *root = self.roots[sid];
         NSDictionary *c = row.checkout;
         NSInteger waiting = [c[@"remotes"] integerValue] > 0
             ? [c[[c[@"upstream"] boolValue] ? @"ahead" : @"aheadOfBase"] integerValue] : 0;
-        if (waiting <= 0 || now - [self.commitsLookedAt[root] doubleValue] < kEvery) continue;
-        self.commitsLookedAt[root] = @(now);
-        [self workCommitsAt:root row:row done:nil];
+        if (waiting <= 0 || now - [self.outgoingLookedAt[root] doubleValue] < kEvery) continue;
+        self.outgoingLookedAt[root] = @(now);
+        [self workOutgoingAt:root row:row done:nil];
     }
-    [editors enumerateKeysAndObjectsUsingBlock:^(NSString *root, NSArray<Row *> *rows, BOOL *stop) {
-        if ([self.busy containsObject:root] || now - [self.lookedAt[root] doubleValue] < kEvery) return;
-        self.lookedAt[root] = @(now);
-        // The files they edited in this checkout, each with whose edits and their lines, newest edit first: copied,
-        // only when a count is due, as they're read on the queue.
-        NSDictionary *byPath = [self ownersAt:root rows:rows];
+    for (NSString *root in pending) {
+        if ([self.busy containsObject:root]) continue;
+        // The files its sessions edited in this checkout, each with whose edits and their lines, newest edit first:
+        // copied, as they're read on the queue. New edits are counted at once, rather than a few seconds on, as they
+        // say whose lines are whose (they come in after the checkout's first count, as transcripts are read).
+        NSDictionary *byPath = [self ownersAt:root rows:editors[root] ?: @[]];
         NSString *edits = OwnersSource(byPath), *known = self.sources[root];
+        if (now - [self.lookedAt[root] doubleValue] < kEvery && [edits isEqualToString:self.ownersSeen[root]]) continue;
+        self.lookedAt[root] = @(now);
+        self.ownersSeen[root] = edits;
         [self.busy addObject:root];
         dispatch_async(self.queue, ^{
             // What it would be worked out from: the commit, what's staged, each changed file's size and time,
@@ -574,7 +578,7 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
                 self.sources[root] = source;
             });
         });
-    }];
+    }
 }
 
 // The checkouts a session edited files in, from its edits, worked out again only when they or the checkouts change.
@@ -596,8 +600,17 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
 - (NSDictionary *)rowChangesOf:(Row *)row {
     NSString *root = self.roots[row.sessionId];
     NSDictionary *result = root ? self.results[root] : nil;
-    if (!result) return nil;
+    if (!result || result[@"tooMuch"]) return nil;
     NSString *sid = row.sessionId;
+    // The checkout's, as git counts them: everything not committed (each file once), what isn't staged (new files
+    // included) and what's staged.
+    NSInteger allAdded = 0, allRemoved = 0;
+    for (NSArray *part in [result[@"parts"] allValues]) {
+        allAdded += [part[0] integerValue];
+        allRemoved += [part[1] integerValue];
+    }
+    NSDictionary *all = @{@"added": @(allAdded), @"removed": @(allRemoved), @"files": @([result[@"files"] count]),
+                          @"unstaged": result[@"unstagedCount"], @"staged": result[@"stagedCount"]};
     // Not known: the whole checkout's count, which is certain, and nothing said to be the session's.
     if ([self.unknown[root] containsObject:sid]) {
         NSInteger added = 0, removed = 0;
@@ -606,7 +619,7 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
             removed += [part[1] integerValue];
         }
         return @{@"known": @NO, @"added": @(added), @"removed": @(removed), @"files": @[], @"parts": @{},
-                 @"v": result[@"v"]};
+                 @"all": all, @"v": result[@"v"]};
     }
     NSDictionary *edits = [self editsOf:row][@"files"];
     NSMutableDictionary *editsByPath = [NSMutableDictionary dictionary];
@@ -633,42 +646,44 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
     }
     [files sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"at" ascending:NO]]];
     return @{@"known": @YES, @"added": @(added), @"removed": @(removed), @"files": files, @"parts": result[@"parts"],
-             @"complete": @(Complete(result[@"files"], [self allInDoubt:root], self.doubts[root])), @"v": result[@"v"]};
+             @"complete": @(Complete(result[@"files"], [self allInDoubt:root], self.doubts[root])), @"all": all,
+             @"v": result[@"v"]};
 }
 
-- (NSDictionary *)viewOf:(NSString *)sessionId scope:(NSString *)scope {
+- (void)view:(NSString *)sessionId scope:(NSString *)scope done:(void (^)(NSDictionary *view))done {
     NSString *root = self.roots[sessionId];
-    return BuildView(root ? self.results[root] : nil, sessionId, scope, !root || [self.counted containsObject:root],
-                     [self.unknown[root] containsObject:sessionId], [self allInDoubt:root], self.doubts[root]);
-}
-
-- (void)viewOf:(NSString *)sessionId scope:(NSString *)scope done:(void (^)(NSString *json))done {
-    NSString *root = self.roots[sessionId];
-    BOOL allInDoubt = [self allInDoubt:root];
-    NSSet *doubts = self.doubts[root];
-    void (^send)(NSDictionary *) = ^(NSDictionary *view) {
-        NSArray *said = @[sessionId ?: @"", scope ?: @"session", view ?: @{@"missing": @"Still counting the changes."}];
-        NSData *data = [NSJSONSerialization dataWithJSONObject:said options:0 error:nil];
-        NSString *json = data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : nil;
-        dispatch_async(dispatch_get_main_queue(), ^{ if (json) done(json); });
-    };
-    if ([scope isEqualToString:@"commits"]) {
-        [self workCommitsAt:root row:self.rows[sessionId] done:^(NSDictionary *commits) {
-            dispatch_async(self.views, ^{
-                send(commits ? @{@"scope": @"commits", @"v": commits[@"v"],
-                                 @"files": Shown(commits[@"files"], allInDoubt, doubts),
-                                 @"complete": @(Complete(commits[@"files"], allInDoubt, doubts))}
-                             : @{@"missing": @"Couldn't read the commits."});
-            });
+    if ([scope isEqualToString:@"outgoing"]) {
+        [self workOutgoingAt:root row:self.rows[sessionId] done:^(NSDictionary *read) {
+            if (!read) { done(@{@"missing": @"Couldn't read the commits."}); return; }
+            NSUInteger sent = 0;
+            NSMutableArray *commits = [NSMutableArray array];
+            for (NSDictionary *commit in read[@"commits"]) {
+                NSMutableDictionary *one = [commit mutableCopy];
+                one[@"files"] = Capped(commit[@"files"], &sent);
+                [commits addObject:one];
+            }
+            done(@{@"scope": @"outgoing", @"v": read[@"v"], @"upstream": read[@"upstream"] ?: NSNull.null,
+                   @"commits": commits, @"more": read[@"more"] ?: @0});
         }];
         return;
     }
-    // What it's built from, as it is now; then built, and made JSON, off the main thread.
-    NSDictionary *result = [(root ? self.results[root] : nil) copy];
-    BOOL counted = !root || [self.counted containsObject:root], unknown = [self.unknown[root] containsObject:sessionId];
-    dispatch_async(self.views, ^{
-        send(BuildView(result, sessionId, scope, counted, unknown, allInDoubt, doubts));
-    });
+    NSDictionary *result = root ? self.results[root] : nil;
+    if (!result) { done(root ? @{@"missing": @"Still counting the changes."} : @{@"scope": scope, @"v": @0, @"files": @[]}); return; }
+    if (result[@"tooMuch"]) { done(@{@"missing": @"Too many changes to count here."}); return; }
+    NSUInteger sent = 0;
+    done(@{@"scope": scope, @"v": result[@"v"], @"files": Capped(result[scope] ?: @[], &sent)});
+}
+
+- (void)viewOf:(NSString *)sessionId scope:(NSString *)scope done:(void (^)(NSString *json))done {
+    [self view:sessionId scope:scope done:^(NSDictionary *view) {
+        // Made JSON off the main thread: a large view would hold up everything else.
+        dispatch_async(self.views, ^{
+            NSData *data = [NSJSONSerialization dataWithJSONObject:@[sessionId ?: @"", scope ?: @"", view] options:0
+                                                             error:nil];
+            NSString *json = data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : nil;
+            dispatch_async(dispatch_get_main_queue(), ^{ if (json) done(json); });
+        });
+    }];
 }
 
 // Whether no line in a checkout can be said to be no listed session's: one of its sessions isn't known, or had a shell
@@ -693,75 +708,60 @@ static NSDictionary *BuildView(NSDictionary *result, NSString *sessionId, NSStri
     return byPath;
 }
 
-- (void)commitsOf:(NSString *)sessionId done:(void (^)(NSDictionary *view))done {
-    Row *row = self.rows[sessionId];
-    NSString *root = self.roots[sessionId];
-    if (!row || !root) { done(nil); return; }
-    [self workCommitsAt:root row:row done:^(NSDictionary *now) {
-        BOOL allInDoubt = [self allInDoubt:root];
-        done(now ? @{@"scope": @"commits", @"v": now[@"v"], @"files": Shown(now[@"files"], allInDoubt, self.doubts[root]),
-                     @"complete": @(Complete(now[@"files"], allInDoubt, self.doubts[root]))} : nil);
-    }];
-}
-
-// Works out a checkout's commits not on GitHub yet, credited (CreditCommits), unless the last ones still stand; `done`
-// (if any) gets them on the main thread, or nil. Also done ahead, every few seconds while there are commits waiting,
-// so the island's commits stage opens them at once.
-- (void)workCommitsAt:(NSString *)root row:(Row *)row done:(void (^)(NSDictionary *commits))done {
-    // A session whose checkout couldn't be read this time round (git failed for a moment) has none to work out.
+// Reads a checkout's commits not on GitHub yet (ReadOutgoing), unless the last ones still stand; `done` (if any) gets
+// them on the main thread, with the upstream they're ahead of (or none, a branch never published), or nil. Also done
+// ahead, every few seconds while there are commits waiting, so Outgoing opens at once.
+- (void)workOutgoingAt:(NSString *)root row:(Row *)row done:(void (^)(NSDictionary *read))done {
+    // A session whose checkout couldn't be read this time round (git failed for a moment) has none to read.
     if (!root) {
         if (done) dispatch_async(dispatch_get_main_queue(), ^{ done(nil); });
         return;
     }
-    if ([self.commitsBusy containsObject:root]) {
-        // One is being worked out: this waits for it.
+    if ([self.outgoingBusy containsObject:root]) {
+        // One is being read: this waits for it.
         dispatch_async(self.queue, ^{ dispatch_async(dispatch_get_main_queue(), ^{
-            if (done) done(self.commits[root]);
+            if (done) done(self.outgoing[root]);
         }); });
         return;
     }
-    [self.commitsBusy addObject:root];
-    // As the island counts them (unpushedCommits in panel/scripts/whose-move.js): past the upstream when there is
+    [self.outgoingBusy addObject:root];
+    // As a row's ↑N counts them (unpushedCommits in panel/scripts/whose-move.js): past the upstream when there is
     // one, else past the base branch's GitHub copy; none without a remote.
     BOOL remote = [row.checkout[@"remotes"] integerValue] > 0, upstream = [row.checkout[@"upstream"] boolValue];
-    // Every listed session's edits that are in this checkout, wherever it runs.
-    NSDictionary *owners = [self ownersAt:root rows:self.rows.allValues];
-    NSString *edits = OwnersSource(owners);
-    NSDictionary *last = self.commits[root];
+    NSDictionary *last = self.outgoing[root];
     dispatch_async(self.queue, ^{
         NSString *baseRef = nil;
         if (!upstream) BranchStart(root, NULL, &baseRef);
         NSString *from = !remote ? nil : upstream ? @"@{upstream}" : baseRef;
-        // The same commits, from the same place: what they changed still stands; with the same edits to credit them by
-        // too, so does the whole view.
-        NSString *commits = [NSString stringWithFormat:@"%@ %@", Git(root, @[@"rev-parse", @"HEAD"]),
-                             from ? Git(root, @[@"rev-parse", from]) : @""];
-        NSString *source = [commits stringByAppendingFormat:@"\n%@", edits];
-        NSArray *read = [last[@"read source"] isEqualToString:commits] ? last[@"read"]
-                           : from ? ReadCommits(root, from) : @[];
-        NSDictionary *credited = [last[@"source"] isEqualToString:source] ? last
-                               : read ? CreditCommits(read, owners) : nil;
+        // The same commits, from the same place: what they changed still stands.
+        NSString *source = [NSString stringWithFormat:@"%@ %@", Git(root, @[@"rev-parse", @"HEAD"]),
+                            from ? Git(root, @[@"rev-parse", from]) : @""];
+        NSString *name = upstream ? [Git(root, @[@"rev-parse", @"--abbrev-ref", @"@{upstream}"])
+                                     stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] : nil;
+        NSDictionary *read = [last[@"source"] isEqualToString:source] ? last
+                           : from ? ReadOutgoing(root, from) : @{@"commits": @[], @"more": @0};
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.commitsBusy removeObject:root];
-            if (!credited) { if (done) done(nil); return; }
-            if (credited != last) {
-                NSMutableDictionary *kept = [credited mutableCopy];
+            [self.outgoingBusy removeObject:root];
+            if (!read) { if (done) done(nil); return; }
+            if (read != last) {
+                NSMutableDictionary *kept = [read mutableCopy];
                 kept[@"source"] = source;
-                kept[@"read"] = read;
-                kept[@"read source"] = commits;
+                if (name.length) kept[@"upstream"] = name;
                 kept[@"v"] = @(++self.version);
-                self.commits[root] = kept;
+                self.outgoing[root] = kept;
             }
-            if (done) done(self.commits[root]);
+            if (done) done(self.outgoing[root]);
         });
     });
 }
 
-
 - (NSString *)fileOf:(NSString *)sessionId path:(NSString *)path {
     NSString *root = self.roots[sessionId];
     if (!root || ![path isKindOfClass:NSString.class]) return nil;
-    for (NSArray *files in @[self.results[root][@"files"] ?: @[], self.commits[root][@"files"] ?: @[]])
+    NSMutableArray *lists = [@[self.results[root][@"files"] ?: @[], self.results[root][@"unstaged"] ?: @[],
+                               self.results[root][@"staged"] ?: @[]] mutableCopy];
+    for (NSDictionary *commit in self.outgoing[root][@"commits"]) [lists addObject:commit[@"files"] ?: @[]];
+    for (NSArray *files in lists)
         for (NSDictionary *file in files)
             if ([file[@"path"] isEqualToString:path]) return [root stringByAppendingPathComponent:path];
     return nil;

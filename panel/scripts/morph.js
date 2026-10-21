@@ -35,30 +35,25 @@ function keptInOrder(moves) {
   for (let i = end; i >= 0; i = prev[i]) kept.add(moves[i].row);
   return kept;
 }
-// A row's lines, top to bottom (rowHTML): the core's, with the lines the modules draw in its places put where those
-// are (core.lines, each with its `place`: the island under the details' first line, the pull requests at the end).
-// Listed once the modules start, when every line they draw is there (they add them as their scripts load).
-function listLines() {
-  const placed = (place) => Object.keys(core.lines).filter((sel) => core.lines[sel].place === place);
-  return ['.line1', '.you', '.claude', '.perm', '.where', ...placed('underWhere'), '.step-note', '.setup',
-          ...placed('after')];
-}
-let lineOrder = null;
-core.starts.push(() => { lineOrder = listLines(); });
-function rowParts() { return lineOrder ?? listLines(); }
+// A row's lines, top to bottom (rowHTML): the title, the chat, a card, the work line, a step's note and the bottom line.
+const ROW_LINES = ['.line1', '.you', '.claude', '.perm', '.work', '.step-note', '.where'];
+function rowParts() { return ROW_LINES; }
 // The text that counts as a change for each line (the live line's timer ticks every second; that doesn't, and nor do
-// Deploy's button changing, which animates by itself, on the title line, the counts at the end of the details line,
-// which swap by themselves, or a line that animates by itself, as the island does each of its stages). A card is
-// another one when its data attributes are (which request, session or step it's for), or it shows another question, or
-// it was answered. The modules say what counts in their lines (core.lines' `text`).
+// the bits that cross-fade by themselves: the numbers on the work line, and the agent's setup and Deploy's button on
+// the bottom line). The work line changes with its pull requests, with which steps it shows, and with the row's note
+// said in its place; the bottom line with where the session runs. A card is another one when its data attributes are (which request, session or step it's
+// for), or it shows another question, or it was answered. The modules say what counts in their lines (core.lines'
+// `text`).
 // (`:scope > .what`: a line's own text, not that of the copies rolling inside it.)
 const PART_TEXT = { '.you': (el) => el.querySelector(':scope > .what')?.textContent,
                     '.claude': (el) => el.dataset.mode + ' ' + el.querySelector(':scope > .what')?.textContent,
                     '.perm': (el) => Object.values(el.dataset).join('') + ' '
                                      + (el.querySelector('.q')?.dataset.q ?? '')
                                      + (el.querySelector('.perm-sent') ? ' sent' : ''),
-                    '.where': (el) => [...el.childNodes].map((n) => (n.classList?.contains('end') ? '#' : n.textContent))
-                                     .join(''),
+                    '.work': (el) => (el.querySelector(':scope > .work-note')?.textContent ?? '') + '|'
+                                     + (el.querySelector('.prs, .nopr')?.textContent ?? '') + '|'
+                                     + [...el.querySelectorAll('[data-step]')].map((s) => s.dataset.step).join(' '),
+                    '.where': (el) => el.querySelector('.place')?.textContent ?? '',
                     '.step-note': (el) => el.textContent };
 const partText = (sel) => PART_TEXT[sel] ?? core.lines[sel]?.text;
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
@@ -80,7 +75,7 @@ function snapshot(list) {
     const parts = {};
     for (const sel of rowParts()) {
       const el = row.querySelector(':scope > .main > ' + sel);
-      // `shape`: where a line that animates by itself had its parts (the island's segments), to animate from.
+      // `shape`: where a line that a module animates by itself had its parts, to animate from.
       const line = core.lines[sel];
       if (el) parts[sel] = { el, text: partText(sel)?.(el), height: el.offsetHeight, shape: line?.shape?.(el) };
     }
@@ -154,8 +149,8 @@ function fadeAway(list, old, ms = MORPH_MS) {
 }
 
 // Which card on the list a box is in, by the card's data attributes (which request, session or step it's for), so the
-// rebuild finds it again: to leave a box being read where it was scrolled to (a request, the extra stage's command,
-// which has to be read to its end), and to keep the box being typed in with its caret. Null outside a card.
+// rebuild finds it again: to leave a box being read where it was scrolled to (a request, which has to be read to its
+// end), and to keep the box being typed in with its caret. Null outside a card.
 function cardOf(box) {
   const card = box.closest('.perm');
   return card ? Object.entries(card.dataset).map(([key, value]) => `${key}:${value}`).join(' ') : null;
@@ -185,7 +180,7 @@ function morph(list, html) {
                              end: typing.type === 'number' ? null : typing.selectionEnd };
   list.innerHTML = html;
   listResize?.cancel();
-  for (const drawn of core.drawn) drawn(list);  // what the modules size from the new HTML (the island's gauges)
+  for (const drawn of core.drawn) drawn(list);  // what the modules size from the new HTML
   for (const d of list.querySelectorAll('.perm .perm-detail')) d.scrollTop = scrolled.get(cardOf(d)) || 0;
   if (caret) {
     const box = [...list.querySelectorAll(`.perm .q-type${caret.q != null ? `[data-q="${caret.q}"]` : ''}`)]
@@ -217,7 +212,7 @@ function morph(list, html) {
         tween(el, { height: '0px', ...FLAT, opacity: '0', transform: 'translateY(-4px)' },
                   { height: h + 'px', ...box, opacity: '1', transform: 'translateY(0)' },
                   () => { el.style.overflow = ''; });
-        line?.grow?.(el);  // how a module's line comes in, beside growing (the island's capsule springs open)
+        line?.grow?.(el);  // how a module's line comes in, beside growing
         grewOrShrank = changed = true;
       } else if (!el && was) {  // a line that's gone: a copy folds away where it was (.folding)
         const ghost = was.el.cloneNode(true);
@@ -240,7 +235,7 @@ function morph(list, html) {
           grewOrShrank = true;
         } else (step ? el.querySelector(':scope > .what') : line?.swap ? line.swap(el) : el)?.classList.add('swap');
         changed = true;
-      } else if (el && was && line?.morph?.(el, was.shape)) {  // a line that animates by itself (the island)
+      } else if (el && was && line?.morph?.(el, was.shape)) {  // a line a module animates by itself
         changed = true;
       }
     });

@@ -39,16 +39,14 @@ static NSURL *PageURL(void) {
 }
 
 // The panel only ever shows panel.html. A link or a file dropped on it would otherwise replace the page, and
-// whatever loaded would keep the bridge that answers permission requests. The one frame inside it is the reader's,
-// showing a prototype a session wrote from its text (srcdoc), and it never goes anywhere else.
+// whatever loaded would keep the bridge that answers permission requests. It has no frames: a page a session wrote
+// shows in a Browser of its own (the reader's), which has no bridge, so nothing in the panel's page ever loads one.
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)action
     decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     NSURL *url = action.request.URL;
     if (action.targetFrame && !action.targetFrame.isMainFrame) {
-        BOOL inline_ = [url.absoluteString isEqualToString:@"about:srcdoc"]
-                       || [url.absoluteString isEqualToString:@"about:blank"];
-        if (!inline_) PanelLog(@"kept a prototype from loading a %@: page", url.scheme ?: @"?");
-        decisionHandler(inline_ ? WKNavigationActionPolicyAllow : WKNavigationActionPolicyCancel);
+        PanelLog(@"kept a frame in the panel's page from loading a %@: page", url.scheme ?: @"?");
+        decisionHandler(WKNavigationActionPolicyCancel);
         return;
     }
     BOOL page = url.isFileURL
@@ -69,8 +67,7 @@ static NSURL *PageURL(void) {
     if (self.onLoad) self.onLoad();
 }
 
-// Only the panel's own page speaks for you. A prototype in the reader runs its own scripts, and none of them may
-// answer a request or press anything.
+// Only the panel's own page speaks for you: nothing in a frame of it may answer a request or press anything.
 - (void)userContentController:(WKUserContentController *)controller didReceiveScriptMessage:(WKScriptMessage *)message {
     if (!message.frameInfo.isMainFrame) return;
     NSDictionary *msg = message.body;

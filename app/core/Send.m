@@ -9,17 +9,27 @@
 #import "Log.h"
 #import "Text.h"
 
-// Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, its tab
-// isn't found, or another tab fits as well. `here` and `there` end the sentences ("can be changed here", "change it
-// there").
+// Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, it's
+// paused in its terminal, its tab isn't found (the terminal's reason, when it knows one), another tab fits as well, or
+// the terminal has a reason of its own. A paused session (Ctrl+Z) has left its terminal's foreground, where a terminal
+// that finds a session by its terminal device (iTerm2) finds no tab for it, so the pause is said first. `here` and
+// `there` end the sentences ("can be changed here", "change it there").
 NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there) {
     if (reach.ended) return @"It isn't running: press its row to open it again";
     if (!reach.terminal)
         return [NSString stringWithFormat:@"Only sessions running in %@ can be %@", reach.terminals, here];
-    if (!reach.hasTab) return [NSString stringWithFormat:@"Couldn't find this session's %@ tab", reach.terminal];
+    if (reach.whyNotType && reach.whyNotType.kind == ReasonPaused) return reach.whyNotType.onCard;
+    if (!reach.hasTab)
+        return reach.tabWhyNot ?: [NSString stringWithFormat:@"Couldn't find this session's %@ tab", reach.terminal];
     if (reach.openTwice) return [Reason kind:ReasonOpenTwice].onCard;
     if (!reach.unique) return [NSString stringWithFormat:@"Another tab in this folder looks the same: %@", there];
+    if (reach.tabWhyNot) return [NSString stringWithFormat:@"%@: %@", reach.tabWhyNot, there];
     return nil;
+}
+
+Reason *WhyTerminalRefuses(id<TypingHost> terminal, NSString *tab) {
+    NSString *why = [terminal respondsToSelector:@selector(whyNotTypeIn:)] ? [terminal whyNotTypeIn:tab] : nil;
+    return why ? [Reason terminal:why] : nil;
 }
 
 // While it works, the command would go in as a message; while it waits, Claude is asking something in that
@@ -40,9 +50,9 @@ NSString *WhyNoAsk(id<Reach> reach) {
     Row *_row;
     __weak Send *_send;
     NSNumber *_started, *_mayControl;
-    BOOL _lookedForTerminal, _lookedForTab, _unique, _askedWhyNot;
+    BOOL _lookedForTerminal, _lookedForTab, _unique, _askedTabWhyNot, _askedWhyNot;
     id<TypingHost> _typing;
-    NSString *_tab;
+    NSString *_tab, *_tabWhyNot;
     Reason *_whyNotType;
 }
 
@@ -121,6 +131,15 @@ NSString *WhyNoAsk(id<Reach> reach) {
     return _unique;
 }
 
+// Asked once the tab has been looked for, of the tab found or of none.
+- (NSString *)tabWhyNot {
+    if (!_askedTabWhyNot) {
+        _askedTabWhyNot = YES;
+        _tabWhyNot = WhyTerminalRefuses(self.typing, self.tab).onCard;
+    }
+    return _tabWhyNot;
+}
+
 // A Claude Desktop conversation by WhyNotSendTo, a terminal session by its agent; with no agent to say, never.
 - (Reason *)whyNotType {
     if (!_askedWhyNot) {
@@ -171,7 +190,7 @@ NSString *WhyNoAsk(id<Reach> reach) {
     return [host conformsToProtocol:@protocol(ConversationHost)] ? host : nil;
 }
 
-// The terminals the panel can type into, by name ("Ghostty", or "Ghostty or iTerm" once there are two).
+// The terminals the panel can type into, by name ("Ghostty or iTerm2").
 - (NSString *)terminalNames {
     return [[[self.core hostsThat:@protocol(TypingHost)] valueForKey:@"name"] componentsJoinedByString:@" or "];
 }
@@ -205,7 +224,8 @@ NSString *WhyNoAsk(id<Reach> reach) {
     NSString *tab = reach.tab;
     pid_t pid = row.pid;
     id<AgentPrompt> agent = [self agentOf:row];
-    [agent type:text into:terminal tab:tab whyNot:^{ return [agent whyNotTypeInto:sid pid:pid]; }
+    [agent type:text into:terminal tab:tab
+         whyNot:^{ return WhyTerminalRefuses(terminal, tab) ?: [agent whyNotTypeInto:sid pid:pid]; }
            done:^(Reason *why, NSUInteger typed, NSUInteger steps) {
         if (why) {
             PanelLog(@"%@ -> stopped asking \"%@\" after %lu of %lu steps: %@", sid, text, (unsigned long)typed,

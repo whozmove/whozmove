@@ -3,6 +3,7 @@
 #import "PanelWindow.h"
 #import "Page.h"
 #import "Appearance.h"
+#import "Browser.h"
 #import <QuartzCore/QuartzCore.h>
 
 // The panel's width; its header's height (--header in panel/styles/tokens.css) and the buttons at the header's right
@@ -108,6 +109,23 @@ static const CGFloat kBackLead = 44;
 - (NSView *)hitTest:(NSPoint)point { return self.away ? nil : [super hitTest:point]; }
 @end
 
+// What modules hold over the page (hold:overPage:) is in this, laid over the page in its clip and kept where the page
+// is: everything that moves the page (the panel growing, folding, turning over) moves it too, and the clip cuts it at
+// the panel's rounded edges. Its y runs down from the page's top, as the page's own does. It takes no clicks itself,
+// only those on what's in it, so the page under it gets the rest. It's beside the page rather than in it, so keys and
+// scrolls a site in it doesn't use never reach the panel's page.
+@interface PageCover : NSView
+@end
+
+@implementation PageCover
+- (BOOL)isFlipped { return YES; }
+
+- (NSView *)hitTest:(NSPoint)point {
+    NSView *hit = [super hitTest:point];
+    return hit == self ? nil : hit;
+}
+@end
+
 // The tint over the glass, which makes the panel its look (the Look menu, app/core/MenuBar.m): grey or black, solid,
 // in the page's own colour for it (--panel in panel/styles/tokens.css), or glass. On the dark panel, glass is the HUD's
 // dark glass, darkened; on the light one, a popover's light glass, lightened, and black is white. It has no edge of its
@@ -172,6 +190,13 @@ static const CGFloat kBackLead = 44;
 @property (assign) NSPoint lastHover;   // the last position sent to the page
 @property (assign) NSPoint lastScreen;  // where the pointer was at the last look, on the screen
 @property (assign) BOOL leftStill;      // it came off the panel without moving, and hasn't moved since
+// The keyboard: a site's in the panel (Browser) since a click into it, or a box of the page's since it asked; the site
+// the pointer was last passed to; and what watches clicks for the keyboard.
+@property (assign) BOOL browserKeys;
+@property (weak) Browser *keyboardBrowser;
+@property (assign) BOOL pageKeys;
+@property (weak) Browser *pointedBrowser;
+@property (strong) id clickWatch;
 @property (assign) BOOL expanded;       // grown to the screen for the reader
 @property (assign) NSRect listFrame;    // where the panel was before it grew, to fold back to
 @property (assign) BOOL listOnRight;    // the reader opened to the list's left
@@ -197,6 +222,8 @@ static const CGFloat kBackLead = 44;
 @property (assign) NSRect turnFrame;    // where the panel is as it turns, the window having taken in room round it
 @property (strong) NSMutableArray *turnObservers;
 @property (assign) BOOL reshaping;
+@property (strong) NSMutableArray *stillWaiters;  // run once the panel has stopped changing size (whenStill:)
+@property (strong) PageCover *cover;    // what modules hold over the page (hold:overPage:), made with the first
 @property (assign) BOOL hasPending;     // a size asked for while the panel was changing size, taken next
 @property (assign) NSRect pendingFrame;
 @property (copy) void (^pendingDone)(void);
@@ -334,6 +361,33 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     return (1 - breath.heart) * lungs + breath.heart * heart;
 }
 
+// Whether a view is in sight in a window: in it, not hidden, and with some of it showing.
+static BOOL Shows(NSView *view, NSWindow *window) {
+    return view && view.window == window && !view.isHiddenOrHasHiddenAncestor && !NSIsEmptyRect(view.visibleRect);
+}
+
+// WebKit hears of the pointer through its view's own tracking area, never the view's mouseMoved:, so a move passed in
+// goes to that area's owner, as macOS would send it there.
+static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
+    NSWindow *window = view.window;
+    if (!window) return;
+    NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+    NSEvent *event = type == NSEventTypeMouseMoved
+        ? [NSEvent mouseEventWithType:type location:at modifierFlags:NSEvent.modifierFlags timestamp:now
+                         windowNumber:window.windowNumber context:nil eventNumber:0 clickCount:0 pressure:0]
+        : [NSEvent enterExitEventWithType:type location:at modifierFlags:NSEvent.modifierFlags timestamp:now
+                             windowNumber:window.windowNumber context:nil eventNumber:0 trackingNumber:0 userData:NULL];
+    for (NSTrackingArea *area in view.trackingAreas) {
+        id owner = area.owner;
+        if (owner == view || !(area.options & NSTrackingMouseMoved)) continue;
+        if (type == NSEventTypeMouseMoved && [owner respondsToSelector:@selector(mouseMoved:)])
+            [owner mouseMoved:event];
+        if (type == NSEventTypeMouseExited && [owner respondsToSelector:@selector(mouseExited:)])
+            [owner mouseExited:event];
+        return;
+    }
+}
+
 @implementation PanelWindow
 
 - (instancetype)initWithPage:(Page *)page {
@@ -341,6 +395,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.page = page;
     self.glassObservers = [NSMutableArray array];
     self.turnObservers = [NSMutableArray array];
+    self.stillWaiters = [NSMutableArray array];
     self.catAt = kCatAt;
     self.pointerObservers = [NSMutableArray array];
     NSRect screen = NSScreen.mainScreen.visibleFrame;
@@ -456,7 +511,15 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
                                                      queue:NSOperationQueue.mainQueue
                                                 usingBlock:^(NSNotification *note) {
         weakSelf.panel.wantsKeyboard = NO;
+        weakSelf.browserKeys = weakSelf.pageKeys = NO;
         [weakSelf.page keyboardGone];
+    }];
+    // A click into a site in the panel (Browser.h) takes the keyboard for it; one anywhere else in the panel gives it
+    // back. Seen before the click goes to what's under it, so the site has the keyboard as it gets the click.
+    self.clickWatch = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskLeftMouseDown
+                                                            handler:^NSEvent *(NSEvent *event) {
+        if (event.window == weakSelf.panel) [weakSelf clickedAt:event.locationInWindow];
+        return event;
     }];
     // The edge between the panel's two sides, seen only while it turns: a strip of the panel's own colour, lighter in
     // its middle as a rounded edge would catch the light (paintEdge). It's see-through but while its animation runs
@@ -684,6 +747,49 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     }];
 }
 
+- (void)whenStill:(void (^)(void))then {
+    if (!then) return;
+    if (self.reshaping) [self.stillWaiters addObject:[then copy]];
+    else then();
+}
+
+// The panel has stopped changing size, with no other size asked for: whoever waited for that goes now, unless what
+// they did after the last change (folding back calls the page) has started the panel changing size again.
+- (void)tellStill {
+    if (self.reshaping || !self.stillWaiters.count) return;
+    NSArray *waiting = [self.stillWaiters copy];
+    [self.stillWaiters removeAllObjects];
+    for (void (^then)(void) in waiting) then();
+}
+
+#pragma mark Over the page
+
+- (void)hold:(NSView *)view overPage:(NSRect)rect {
+    if (!view) return;
+    if (!self.cover) {
+        PageCover *cover = [[PageCover alloc] initWithFrame:self.page.view.frame];
+        cover.autoresizingMask = NSViewNotSizable;
+        [self.clip addSubview:cover positioned:NSWindowAbove relativeTo:self.page.view];
+        self.cover = cover;
+        // The page is moved and sized in many places (the panel growing, folding into the cat, turning over), each a
+        // step at a time: told of every change, as it's made, the cover is where the page is in every frame.
+        self.page.view.postsFrameChangedNotifications = YES;
+        __weak typeof(self) weakSelf = self;
+        [NSNotificationCenter.defaultCenter addObserverForName:NSViewFrameDidChangeNotification
+                                                        object:self.page.view
+                                                         queue:nil
+                                                    usingBlock:^(NSNotification *note) {
+            weakSelf.cover.frame = weakSelf.page.view.frame;
+        }];
+    }
+    view.frame = NSIntegralRect(rect);
+    if (view.superview != self.cover) [self.cover addSubview:view];
+}
+
+- (void)letGo:(NSView *)view {
+    if (view.superview == self.cover) [view removeFromSuperview];
+}
+
 // Changing the window's size every frame would have the page drawn again every frame, a frame or two behind, in tiles:
 // the edge would fill in block by block. So the window takes in, at once, everything the panel covers on the way
 // (from where it is to where it goes), and only the panel's edges move: the glass and the page's clip, eased out over
@@ -715,6 +821,8 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
             void (^next)(void) = weakSelf.pendingDone;
             weakSelf.pendingDone = nil;
             [weakSelf reshapeTo:weakSelf.pendingFrame done:next];
+        } else {
+            [weakSelf tellStill];
         }
     };
     void (^move)(void) = ^{
@@ -1041,6 +1149,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     }
     BOOL changed = on != self.folded;
     self.folded = on;
+    if (on) [self dropKeyboard];
     if (!on) [self stopBreathing];
     if (!changed || instant) {
         [self placeAtOnce];
@@ -1319,7 +1428,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.turnFrame = panel;
     // The room it turns in mustn't be what the panel comes back at next launch (settle saves it as itself again).
     self.panel.frameAutosaveName = @"";
-    if (over) [self takeKeyboard:NO];
+    if (over) [self dropKeyboard];
     self.clip.away = self.back.away = YES;
     self.strip.hidden = self.readerStrip.hidden = YES;
     __weak typeof(self) weakSelf = self;
@@ -1503,7 +1612,19 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 #pragma mark Keyboard
 
+// The page's box takes the keyboard from a site in the panel, but its letting go doesn't take it from one: pressed from
+// the box into a site, the box lets go a moment after the site took it.
 - (void)takeKeyboard:(BOOL)on {
+    self.pageKeys = on;
+    if (!on && self.browserKeys) return;
+    if (on && self.browserKeys) {
+        self.browserKeys = NO;
+        [self.panel makeFirstResponder:self.page.view];
+    }
+    [self wantKeyboard:on];
+}
+
+- (void)wantKeyboard:(BOOL)on {
     if (on == self.panel.wantsKeyboard) return;
     self.panel.wantsKeyboard = on;
     if (on) [self.panel makeKeyWindow];
@@ -1512,9 +1633,62 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 }
 
 - (BOOL)releaseKeyboard {
+    self.browserKeys = self.pageKeys = NO;
     if (!self.panel.isKeyWindow) return NO;
     self.panel.wantsKeyboard = NO;
     return YES;
+}
+
+// Whoever in the panel has the keyboard gives it back: the panel folds or turns over.
+- (void)dropKeyboard {
+    self.browserKeys = NO;
+    [self takeKeyboard:NO];
+}
+
+// The site shown at a point in the window, if one is, and nothing covers it there.
+- (Browser *)browserAt:(NSPoint)at {
+    NSArray<Browser *> *browsers = [Browser inWindow:self.panel];
+    if (!browsers.count) return nil;
+    NSView *root = self.panel.contentView;
+    NSView *hit = [root hitTest:[root.superview ?: root convertPoint:at fromView:nil]];
+    for (Browser *browser in browsers)
+        if (hit && [hit isDescendantOf:browser.view] && !browser.view.isHiddenOrHasHiddenAncestor) return browser;
+    return nil;
+}
+
+// A click into a site takes the keyboard for it, as typing there is what it's for. One elsewhere in the panel gives it
+// back to the app it came from, unless it's into one of the page's own boxes, which asks for it (takeKeyboard:) as the
+// click lands.
+- (void)clickedAt:(NSPoint)at {
+    Browser *into = [self browserAt:at];
+    if (into) {
+        self.browserKeys = YES;
+        self.keyboardBrowser = into;
+        [self wantKeyboard:YES];
+        [self.panel makeFirstResponder:into.view];
+        return;
+    }
+    if (!self.browserKeys) return;
+    self.browserKeys = NO;
+    [self.panel makeFirstResponder:self.page.view];
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (!weakSelf.browserKeys && !weakSelf.pageKeys) [weakSelf wantKeyboard:NO];
+    });
+}
+
+// WebKit follows the pointer only in the window you type in, so a site gets it only while the panel has the keyboard;
+// and macOS sends a window that doesn't make its app active none of the pointer's moves, so they're passed in from
+// here. Once the site that was given the keyboard has gone (closed, or out of sight), the keyboard goes back; and a
+// site the pointer leaves is told so.
+- (void)pointBrowsersAt:(NSPoint)screen moved:(BOOL)moved {
+    if (self.browserKeys && !Shows(self.keyboardBrowser.view, self.panel)) [self dropKeyboard];
+    NSPoint at = [self.panel convertPointFromScreen:screen];
+    Browser *on = self.panel.isVisible && self.panel.isKeyWindow ? [self browserAt:at] : nil;
+    Browser *was = self.pointedBrowser;
+    if (was && was != on) PassPointer(was.view, NSEventTypeMouseExited, at);
+    if (on && (moved || on != was)) PassPointer(on.view, NSEventTypeMouseMoved, at);
+    self.pointedBrowser = on;
 }
 
 - (void)popUpMenu:(NSMenu *)menu atPagePoint:(NSPoint)point {
@@ -1538,6 +1712,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
     self.lastScreen = screen;
     if (self.panel.isVisible)
         for (void (^observer)(NSPoint) in self.pointerObservers) observer(screen);
+    [self pointBrowsersAt:screen moved:moved];
     // Turned over, the list isn't what the pointer is on: the back's page follows it (followPointer:).
     if (self.turned) {
         if (self.hovering) {
@@ -1551,7 +1726,9 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
         [self tellCatPointer:screen];
         [self tellCatSide];
     }
-    BOOL inside = self.panel.isVisible && NSPointInRect(screen, frame);
+    // A site in the panel isn't the page: the pointer on one is off the page.
+    BOOL inside = self.panel.isVisible && NSPointInRect(screen, frame)
+                  && ![self browserAt:[self.panel convertPointFromScreen:screen]];
     // Off the panel without moving, its edge moved past the pointer (a card folding away) or one of its menus closed
     // where the pointer picked from it: the page is told it's still there, and again once it moves.
     if (!inside) {

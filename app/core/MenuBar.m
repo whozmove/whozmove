@@ -10,8 +10,8 @@
 #import "Module.h"
 #import "Appearance.h"
 
-// The panel's switches, kept in the app's preferences as the grouping is: Show Next Steps (each row's island, with its
-// menus) and Show Deploy (its Deploy step), on until turned off on Git's page on the panel's back; and the menu's Show
+// The panel's switches, kept in the app's preferences as the grouping is: Show Next Steps (each row's next steps) and
+// Show Deploy (its Deploy step), on until turned off on Git's page on the panel's back; and the menu's Show
 // Build in Header, for working on Whozmove itself, off until ticked.
 static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @"showDeploy",
                 *const kShowBuild = @"showBuild";

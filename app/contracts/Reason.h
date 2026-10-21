@@ -12,12 +12,14 @@ typedef NS_ENUM(NSInteger, ReasonKind) {
     ReasonOtherStatus,     // the registry gives the session another status
     ReasonOpenTwice,       // its conversation runs in another terminal too
     ReasonPaused,          // it's paused in its terminal (Ctrl+Z)
+    ReasonTerminal,        // its terminal won't take keys in its tab now, for a reason of its own
 };
 
 // A reason prints (with %@) the way the log says it; `onCard` is how the Compact card says it.
 @interface Reason : NSObject
 + (instancetype)kind:(ReasonKind)kind;
 + (instancetype)status:(id)status;  // for a session that isn't idle
++ (instancetype)terminal:(NSString *)words;  // the terminal's own reason, as the panel says it (TypingHost)
 @property (readonly) ReasonKind kind;
 @property (readonly) NSString *onCard;
 @property (readonly) NSString *onButton;  // and how a row's next-step button says it

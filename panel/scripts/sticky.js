@@ -13,8 +13,8 @@
 // How far past the edge the row has gone when its copy is fully part of the edge, and how far rows have gone under it
 // when the line along its edge is fully drawn.
 const STICKY_ATTACH = 24, STICKY_UNDER = 10;
-// What stays on the copy beside its chat line (Claude's, or with none, yours): the title line and where it runs, which
-// a session outside git, grouped by project, shows on its setup line instead.
+// What stays on the copy beside its chat line (Claude's, or with none, yours): the title line and the bottom line, with
+// how the agent is set up and where it runs.
 const STICKY_KEEPS = ['.line1', '.where'];
 // How long the copy takes to come or go where it doesn't take over from the row in place, or hand back to it there (it
 // starts holding on with the row already past the edge, or lets go with the row somewhere else), and to cross-fade
@@ -147,11 +147,10 @@ function stickyChat(row) {
 // copy.
 function stickyMeasure(row) {
   const main = row.querySelector(':scope > .main'), chat = stickyChat(row);
-  const setupSays = !main.querySelector(':scope > .where');  // where it runs, outside git grouped by project
   return [...main.children].map((el) => {
     const h = el.getBoundingClientRect().height, m = parseFloat(getComputedStyle(el).marginTop);
     return { el, h, m, extent: m + h,
-             keep: el === chat || STICKY_KEEPS.some((sel) => el.matches(sel)) || (setupSays && el.matches('.setup')) };
+             keep: el === chat || STICKY_KEEPS.some((sel) => el.matches(sel)) };
   });
 }
 

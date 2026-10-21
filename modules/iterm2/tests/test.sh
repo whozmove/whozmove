@@ -1,7 +1,10 @@
 #!/bin/bash
 # The iTerm2 module's tests: what a new tab for a new conversation or Sign in would run, from folders whose names need
 # quoting, and what iTerm2 would be told to open it with, only plain words, or that it wouldn't be told (Whozmove
-# --print-iterm2-tab, compared with tabs.expected.txt). Nothing is sent to iTerm2, so it needn't be on the Mac.
+# --print-iterm2-tab, compared with tabs.expected.txt); and what it would be told to find a session's tab, how its
+# answers would be read, and what it would be told to type and press there, only into a session alone in its window
+# (Whozmove --print-iterm2-typing, compared with typing.expected.txt). Nothing is sent to iTerm2, so it needn't be on
+# the Mac.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -32,4 +35,18 @@ HOME="$T" "$APP" --print-iterm2-tab /opt/homebrew/bin/bash "$files/5A1E9C2D-7B44
 echo "== A temporary folder whose path iTerm2 wouldn't take as it is"
 HOME="$T" "$APP" --print-iterm2-tab /bin/zsh "/Users/you/My Temp/whozmove-iterm2/x.sh" /work/app "$start"
 } 2>&1)
-compare "iTerm2's new tabs" "$HERE/tabs.expected.txt" "$out" "${1:-}"
+compare "iTerm2's new tabs" "$HERE/tabs.expected.txt" "$out" "${1:-}" || status=1
+
+# A session's id as iTerm2 gives it, and the answers finding one can get: alone in its window, sharing it, none, and
+# ones that aren't its answer. The text typed is a /compact with its focus, quotes and a backslash in it, and a tab and
+# an Escape with "[Z" after it, which would be pressed as keys (the Escape and "[Z" a Shift+Tab) if they went in.
+id=4F1C9A2E-7B3D-4E8A-9C21-0D5E6F7A8B90
+out=$({
+echo "== A session on a terminal device a script can name, and text with quotes, a backslash, a tab and an Escape"
+HOME="$T" "$APP" --print-iterm2-typing /dev/ttys012 "$id" $'/compact keep the "draft" plan,\tnot C:\\old\e[Z' \
+  "$id alone" "$id shared" "" "$id" "$id alone too" "w0t0p0:$id alone" "$id sideways"
+echo "== Names a script can't take"
+HOME="$T" "$APP" --print-iterm2-typing '/dev/ttys012"; quit' 'not-an-id"' "x"
+} 2>&1)
+compare "iTerm2's typing" "$HERE/typing.expected.txt" "$out" "${1:-}" || status=1
+exit ${status:-0}

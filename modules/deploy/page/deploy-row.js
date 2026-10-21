@@ -1,4 +1,4 @@
-// Deploy on a row: its round button, the line under the details about its folder's last deploy, the card where you
+// Deploy on a row: its round button, the row's note about its folder's last deploy, the card where you
 // set what it runs, and what the app says about it (deploys.js has the plain functions they're drawn from).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -140,7 +140,7 @@ window.openDeploySetup = (sid, then) => openSetup(sid, then);
 // ---- What it plugs into ----
 
 // Its button, while it's offered; when it isn't, what it showed is forgotten, so one that's back waits again before it
-// takes a press, as the island does. It goes by the page's own clock (row.clock), which its press and animations are
+// takes a press, as the next steps do. It goes by the page's own clock (row.clock), which its press and animations are
 // timed by.
 core.rowLooks.push((row) => {
   row.deploy = rowDeploy(row.s);
@@ -148,8 +148,9 @@ core.rowLooks.push((row) => {
   if (row.offer) state.shownAt['deploy:' + row.s.sessionId] ??= row.clock;
   else delete state.shownAt['deploy:' + row.s.sessionId];
 });
-core.slots.time.push((row) => (row.offer ? deployHTML(row.s, row.deploy, row.offer, row.clock) : ''));
-// The line under the details, on a row with the button: what its folder's deploy has to say.
+// At the end of the bottom line, after where the session runs: Deploy goes with the folder it puts in place.
+core.slots.placeEnd.push((row) => (row.offer ? deployHTML(row.s, row.deploy, row.offer, row.clock) : ''));
+// The row's note, on a row with the button: what its folder's deploy has to say.
 core.rowNotes.push((row) => (row.offer ? deployNote(row.deploy, Date.now()) : null));
 // The set-up card, after a request or the Compact card on the row.
 core.rowCards.push({

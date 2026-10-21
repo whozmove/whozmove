@@ -18,8 +18,8 @@ const WRITING_ICONS = {
   notes: '<svg width="9" height="10" viewBox="0 0 9 10"><path d="M1.5 1h6v8h-6z M3 3.5h3 M3 5.5h3 M3 7.5h2" fill="none" '
     + 'stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>',
 };
-// A prototype is shown at a laptop's width, and its height can't be measured (its frame keeps its page to itself), so
-// it takes the height the screen allows.
+// A prototype is shown at a laptop's width, and its height can't be measured (it's in a browser of its own), so it
+// takes the height the screen allows.
 const PROTOTYPE_HEIGHT = 2000;
 
 // The listed plan Claude's request is about: one still without an answer, presented just before the request was
@@ -49,17 +49,19 @@ function waitingPlan(s) {
   return all.find((w) => w.id === 'ask:' + s.ask.id) || askedPlan(all, s.ask);
 }
 
-// The row's tag: the plan waiting for you, or else the newest thing written, and how many more there are. It shows
-// as pressed while the reader is open on its session, as pressing it again closes it.
+// The row's tag, quietly: the icon of the plan waiting for you, or else of the newest thing written, and how many
+// things it wrote. A plan waiting for you is in the plan's colour. It shows as pressed while the reader is open on its
+// session, as pressing it again closes it.
 function writingsTag(s) {
   const all = writingsOf(s);
   if (!all.length) return '';
-  const lead = waitingPlan(s) || all[0], more = all.length - 1;
+  const waiting = waitingPlan(s), lead = waiting || all[0];
   const r = state.reading;
   const on = r?.mode === 'writings' && r.sessionId === s.sessionId && !r.closing ? ' on' : '';
-  return `<span class="wtag k-${lead.kind}${on}" data-writings="${esc(s.sessionId)}" data-wid="${esc(lead.id)}"
-      title="Read what this session wrote">${WRITING_ICONS[lead.kind]}${WRITING_WORDS[lead.kind][0]}`
-    + `${more ? `<span class="more">+${more}</span>` : ''}</span>`;
+  const title = waiting ? 'A plan waiting for you: read it'
+    : `Read what this session wrote: ${all.length} ${all.length === 1 ? 'thing' : 'things'}`;
+  return `<span class="wtag ${waiting ? 'k-plan' : 'quiet'}${on}" data-writings="${esc(s.sessionId)}"`
+    + ` data-wid="${esc(lead.id)}" title="${title}">${WRITING_ICONS[lead.kind]}${all.length}</span>`;
 }
 
 // How a writing stands, as its line in the list says: for a plan, whether it's waiting on you or how it was
@@ -122,14 +124,17 @@ function shelfHTML(s, all, current) {
   }).join('');
 }
 
-// What's being read: asked of the app once (again if the file was written since), shown when it's back.
+// What's being read: asked of the app once (again if the file was written since), shown when it's back; or a
+// prototype, which the app shows itself.
 function drawView() {
   const r = state.reading, s = readerSession();
   if (!r || !s) return;
   const w = writingsOf(s).find((x) => x.id === r.id);
   const src = reader.querySelector('.r-src'), body = reader.querySelector('.r-body');
+  if (w?.kind === 'prototype') return drawPrototype(w, src, body);
+  leavePrototype();
   if (!w) {
-    src.textContent = '';
+    putHTML(src, '');
     body.innerHTML = '<div class="r-missing">Nothing written in this session yet.</div>';
     r.shown = null;
     return;
@@ -147,19 +152,126 @@ function drawView() {
   const key = `${w.id}@${w.at}@${read?.text?.length ?? read?.missing ?? 'wait'}`;
   if (r.shown === key) return;
   r.shown = key;
-  const published = w.url ? ` · <button class="r-open" data-url="${esc(w.url)}">Open the published page</button>` : '';
-  src.innerHTML = `<span class="r-path">${esc(w.path || '')}</span>${published}`
-    + (w.kind === 'prototype' ? '<div class="r-note">Shown from its own text: pictures and files beside it don\'t load '
-       + 'here, and its scripts can\'t reach the panel.</div>' : '');
+  putHTML(src, `<span class="r-path">${esc(w.path || '')}</span>${publishedHTML(w)}`);
   if (!read) body.innerHTML = '<div class="r-missing">Opening…</div>';
   else if (read.missing) body.innerHTML = `<div class="r-missing">${esc(read.missing)}</div>`;
-  else if (w.kind === 'prototype')
-    body.innerHTML = `<iframe class="r-frame" sandbox="allow-scripts" srcdoc="${esc(read.text)}"></iframe>`;
   else body.innerHTML = `<article class="md">${markdownHTML(read.text)}</article>`;
   body.scrollTop = 0;
   r.ready = !!read;  // until it's in, the panel keeps the size it has
   fitReader();
 }
+
+// A writing published from the session (its address on the web), to open there.
+function publishedHTML(w) {
+  return w.url ? ` · <button class="r-open" data-url="${esc(w.url)}">Open the published page</button>` : '';
+}
+
+// ---- A prototype ----
+
+// A prototype shows from its file, in a browser of its own the app holds over the reader's body
+// (modules/reader/app/ReaderModule.m), where the files beside it, its links and its scripts work as in your browser,
+// and nothing in it can reach the panel. Here the body is only the space it's held over: what's in that space shows
+// until its page is in, or when it can't be shown. What the app says of it, {loading, problem, asked, keyboard}, is
+// kept on the reader as `proto`, with the prototype it's about, and what the app was told of where it goes.
+
+// What the line above a prototype says under its path: what it asked for that the panel doesn't do, else whether it
+// has the keyboard, and with it the pointer, which it gets only once you've clicked into it. A plain function.
+const PROTOTYPE_ASKS = {
+  window: 'It tried to open a window, which the panel doesn\'t do.',
+  alert: 'It tried to show a message box, which the panel doesn\'t do.',
+  files: 'It asked for a file, which the panel doesn\'t pick.',
+  download: 'It tried to download a file, which the panel doesn\'t do.',
+  camera: 'It asked for the camera or the microphone, which the panel doesn\'t give.',
+  otherApp: 'It tried to open another app, which the panel doesn\'t do.',
+  link: 'That link goes to a file outside its folder, which the panel doesn\'t open.',
+};
+function prototypeNote(st) {
+  if (!st || st.problem) return '';
+  if (st.asked) return `${PROTOTYPE_ASKS[st.asked] || 'It asked for something the panel doesn\'t do.'} `
+    + 'Open it in your browser for that.';
+  if (st.loading) return '';
+  return st.keyboard ? 'It has the keyboard: click the list to give it back.' : 'Click into it to point and type.';
+}
+
+// What shows in its space while the page isn't over it: "Opening…" until it's in, or why it can't be shown.
+function prototypeUnder(st) {
+  if (st?.problem) return st.problem;
+  return !st || st.loading ? 'Opening…' : '';
+}
+
+// The line above a prototype: where it is, Open in Browser, and what prototypeNote says.
+function prototypeLine(w, st) {
+  const note = prototypeNote(st);
+  return `<span class="r-path">${esc(w.path || '')}</span> · <button class="r-open r-outside">Open in Browser</button>`
+    + publishedHTML(w) + (note ? `<div class="r-note">${esc(note)}</div>` : '');
+}
+
+// The body becomes the prototype's space once (again when the file's been written since), and the line and the words
+// in that space follow what the app says.
+function drawPrototype(w, src, body) {
+  const r = state.reading;
+  if (r.proto && r.proto.id !== w.id) leavePrototype();
+  r.proto ??= { id: w.id, state: null };
+  const key = `${w.id}@${w.at}`;
+  if (r.shown !== key) {
+    r.shown = key;
+    body.innerHTML = '<div class="r-proto"><div class="r-missing"></div></div>';
+    body.scrollTop = 0;
+    prototypeWatch?.disconnect();
+    prototypeWatch?.observe(body.firstElementChild);
+    r.ready = true;
+  }
+  const lineChanged = putHTML(src, prototypeLine(w, r.proto.state));
+  const under = body.querySelector('.r-proto .r-missing');
+  if (under) under.textContent = prototypeUnder(r.proto.state);
+  if (lineChanged) fitReader();
+  placePrototype();
+}
+
+// Tells the app where the prototype's space is in the page, once the reader is laid out at the width it asked for, so
+// the panel grows to it first and the page loads in view: shown the first time, and again once its file's been
+// written since (it loads again, where you were in it); moved as the space moves. Not while the reader folds away:
+// the prototype stays as it was meanwhile, as the reader's text does.
+function placePrototype() {
+  const r = state.reading, space = reader.querySelector('.r-proto');
+  if (!r?.proto || !space || r.closing || !(Math.abs((r.laidOutWidth ?? -9) - (r.askedWidth ?? 0)) < 1)) return;
+  const w = writingsOf(readerSession()).find((x) => x.id === r.id);
+  if (w?.kind !== 'prototype' || w.id !== r.proto.id) return;
+  const box = space.getBoundingClientRect();
+  const rect = { x: Math.round(box.left + window.scrollX), y: Math.round(box.top + window.scrollY),
+                 width: Math.round(box.width), height: Math.round(box.height) };
+  const key = `${w.id}@${w.at}`;
+  if (r.proto.key !== key) {
+    r.proto.key = key;
+    r.proto.rect = rect;
+    native({ type: 'prototype', action: 'show', sessionId: r.sessionId, id: w.id, at: w.at, rect });
+  } else if (JSON.stringify(rect) !== JSON.stringify(r.proto.rect)) {
+    r.proto.rect = rect;
+    native({ type: 'prototype', action: 'place', rect });
+  }
+}
+
+// The space changes size as the panel grows and as the line above it changes: the prototype goes with it at once,
+// rather than at the next update.
+const prototypeWatch = typeof ResizeObserver === 'function' ? new ResizeObserver(() => placePrototype()) : null;
+
+// The reader shows something else, or has closed: the app takes the prototype away.
+function leavePrototype() {
+  const r = state.reading;
+  if (!r?.proto) return;
+  r.proto = null;
+  prototypeWatch?.disconnect();
+  native({ type: 'prototype', action: 'hide' });
+}
+
+// How the prototype stands, as the app says: loading, why it can't be shown, what it asked for, and whether it has the
+// keyboard.
+window.prototypeState = (sid, wid, st) => {
+  const r = state.reading;
+  if (!r || r.sessionId !== sid || r.proto?.id !== wid) return;
+  r.proto.state = st;
+  drawView();
+};
 
 // Under a plan Claude is waiting on: approving happens in the session; sending it back with notes, or stopping it,
 // happens here, through the request the permission hook left (answerAsk).
@@ -207,6 +319,8 @@ core.readerPresses.push(
     drawReader();
   }],
   ['.r-open[data-url]', (b) => native({ type: 'openPR', url: b.dataset.url })],
+  ['.r-outside', () => native({ type: 'prototype', action: 'outside', sessionId: state.reading.sessionId,
+                                id: state.reading.id })],
   ['.r-go', () => { const s = readerSession(); closeReader(); if (s) openSession(s); }],
   ['.r-revise', () => {
     state.reading.revising = true;
@@ -243,18 +357,27 @@ reader.addEventListener('keydown', (e) => {
 // ---- What it plugs into ----
 
 // The reader's mode. What it keeps on the reader (state.reading): the writings' texts as the app read them, by id; the
-// plans answered from here; whether notes are being written for one, and the notes; and what's drawn now (drawView).
+// plans answered from here; whether notes are being written for one, and the notes; what's drawn now (drawView); the
+// prototype the app shows (proto); and the width the reader was last laid out at.
 core.readerModes.writings = {
   draw: drawWritings,
   wide: (r, s) => writingsOf(s).find((x) => x.id === r.id)?.kind === 'prototype',
-  contentHeight: (page) => (page?.classList.contains('r-frame') ? PROTOTYPE_HEIGHT : undefined),
+  contentHeight: (page) => (page?.classList.contains('r-proto') ? PROTOTYPE_HEIGHT : undefined),
   shown(r) {
     r.reads ??= {};
     r.sent ??= {};
     r.notes ??= '';
     r.revising = false;
   },
-  reset(r) { r.shown = null; },
+  reset(r) {
+    r.shown = null;
+    leavePrototype();
+  },
+  laidOut(r, width) {
+    r.laidOutWidth = width;
+    placePrototype();
+  },
+  closed: leavePrototype,
 };
 
 // The row's tag, after its name; pressed, the reader opens on that session's writings, or closes.

@@ -1,4 +1,4 @@
-// Menus: the small parts the pawn's and the island's menus are made of.
+// Menus: the small parts the pawn's and the panel's other menus are made of.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 

@@ -30,8 +30,8 @@
     ]
   },
   {
-    "does" : "Lists the Claude Code sessions in its tabs and opens them, and starts new conversations in a new tab.",
-    "for" : "Finds each session's tab, and opens new ones",
+    "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt, alone in its window, and starts new conversations in a new tab.",
+    "for" : "Finds each session's tab, types into it, and opens new ones",
     "id" : "com.googlecode.iterm2",
     "listed" : "when on this Mac",
     "name" : "iTerm2",
