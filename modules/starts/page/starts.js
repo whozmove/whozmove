@@ -354,8 +354,10 @@ function forgetStarted(sessions) {
 // you are in them. The panel takes the keyboard for its box (wantKeyboard). While a start is still on its way down from
 // there, the new card waits unseen until the way is clear, so nothing passes over it.
 function openCard(folder, app) {
+  // Folded, the panel opens first; with the folded cat's list out, it's open already, and only finishes opening
+  // (peek.js).
   const folded = document.body.classList.contains('collapsed');
-  if (folded) toggleCollapsed();
+  if (stillFolded()) toggleCollapsed();
   const sessions = state.last.sessions, was = state.dock;
   wantKeyboard(true);
   if (was && !folder && !app) return focusStart();

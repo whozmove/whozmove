@@ -111,8 +111,9 @@ static NSString *JSONText(id value) {
     [self call:@"hoverAt" arguments:[NSString stringWithFormat:@"%.0f, %.0f", point.x, point.y]];
 }
 
-- (void)hoverEnd:(BOOL)still {
-    [self call:@"hoverEnd" arguments:still ? @"true" : nil];
+- (void)hoverEnd:(BOOL)still held:(BOOL)held {
+    [self call:@"hoverEnd" arguments:[NSString stringWithFormat:@"%@, %@", still ? @"true" : @"false",
+                                                                held ? @"true" : @"false"]];
 }
 
 - (void)keyboardGone {
@@ -131,8 +132,21 @@ static NSString *JSONText(id value) {
     [self call:@"catPointer" arguments:@"null"];
 }
 
-- (void)catSide:(BOOL)right {
-    [self call:@"catSide" arguments:right ? @"true" : @"false"];
+- (void)catWay:(BOOL)right up:(BOOL)up across:(CGFloat)across tall:(CGFloat)tall {
+    [self call:@"catWay" arguments:[NSString stringWithFormat:@"{right: %@, up: %@, across: %.0f, tall: %.0f}",
+                                    right ? @"true" : @"false", up ? @"true" : @"false", across, tall]];
+}
+
+- (void)catRoomTaken:(id)ask {
+    [self call:@"catRoomTaken" arguments:[ask isKindOfClass:NSNumber.class] ? [ask stringValue] : nil];
+}
+
+- (void)catPressed:(BOOL)down {
+    [self call:@"catPressed" arguments:down ? @"true" : @"false"];
+}
+
+- (void)catMoving:(BOOL)moving {
+    [self call:@"catMoving" arguments:moving ? @"true" : @"false"];
 }
 
 - (void)catGlass:(void (^)(void))then {

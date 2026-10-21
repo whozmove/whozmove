@@ -1,7 +1,7 @@
 
 == A prototype (writings.js)
 opening: the line, before the app has said anything: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button>
-opening: its space: Opening…
+opening: its space, naming the file: Loading landing.html…
 loading: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button>
 loaded: click into it: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button><div class="r-note">Click into it to point and type.</div>
 loaded: its space, under it: 
@@ -19,3 +19,7 @@ a problem: no note on the line:
 a problem: in its space: This file isn't there any more.
 published too: <span class="r-path">/work/app/landing.html</span> · <button class="r-open r-outside">Open in Browser</button> · <button class="r-open" data-url="https://claude.ai/public/artifacts/example">Open the published page</button><div class="r-note">Click into it to point and type.</div>
 a name that is markup is shown as text: <span class="r-path">/work/&lt;b&gt;x&lt;/b&gt;.html</span> · <button class="r-open r-outside">Open in Browser</button>
+
+== While a writing is read (writings.js)
+a plan: from the transcript: Reading the plan from the session's transcript…
+notes: from their file: Reading NOTES.md…

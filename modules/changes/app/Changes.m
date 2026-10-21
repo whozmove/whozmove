@@ -145,7 +145,7 @@ static NSString *Git(NSString *root, NSArray *arguments) {
     NSMutableArray *all = [@[@"--no-optional-locks", @"-c", @"core.quotePath=false", @"-c", @"diff.noprefix=false",
                              @"-c", @"diff.mnemonicPrefix=false", @"-c", @"diff.relative=false", @"-C", root] mutableCopy];
     [all addObjectsFromArray:arguments];
-    NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+    NSDictionary *run = RunGit(all);
     if (!run || [run[@"status"] intValue] != 0 || [run[@"out"] length] > kDiffLargest) return nil;
     return [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
         ?: [[NSString alloc] initWithData:run[@"out"] encoding:NSISOLatin1StringEncoding];
@@ -668,7 +668,14 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         return;
     }
     NSDictionary *result = root ? self.results[root] : nil;
-    if (!result) { done(root ? @{@"missing": @"Still counting the changes."} : @{@"scope": scope, @"v": @0, @"files": @[]}); return; }
+    if (!result) {
+        // Not counted: git is still at it (the page says so, and asks again once the numbers come in), or its last
+        // git status found nothing to commit, which leaves nothing to show.
+        NSDictionary *c = self.rows[sessionId].checkout;
+        BOOL clean = c && [c[@"changes"] integerValue] + [c[@"newFiles"] integerValue] == 0;
+        done(root && !clean ? @{@"counting": @YES} : @{@"scope": scope, @"v": @0, @"files": @[]});
+        return;
+    }
     if (result[@"tooMuch"]) { done(@{@"missing": @"Too many changes to count here."}); return; }
     NSUInteger sent = 0;
     done(@{@"scope": scope, @"v": result[@"v"], @"files": Capped(result[scope] ?: @[], &sent)});

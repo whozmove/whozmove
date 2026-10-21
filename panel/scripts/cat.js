@@ -1,9 +1,9 @@
 // The folded panel: the cat in its round glass where the name's o is in the header. The app folds the panel round the
 // glass (fold:instant: in app/core/PanelWindow.m); this draws what's on it. The cat shows whose turn it is the way a
-// cat would: asleep while nothing runs, watching while sessions work, looking at you while one needs your input. While
-// the pointer is on it, what's waiting on you comes out beside it by name, and everything else as its dot: a press on
-// either opens that conversation, and a press on the cat opens the panel round it, the cat becoming the name's o. While
-// the pointer is near, its eyes follow it.
+// cat would: asleep while nothing runs, watching while sessions work, looking at you while one needs your input.
+// Pointed at, it looks up at you, and its list comes out round it (peek.js); what needs you comes out beside it by
+// itself (chats.js); a press on it opens the panel round it, the cat becoming the name's o. While the pointer is near,
+// its eyes follow it.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The cat's shapes, in its own units (448 to 92pt): the glass is 370 across (76pt) and the folded window round it 497
@@ -31,22 +31,11 @@ const CAT_SEES = 480, CAT_GLANCE = 12, CAT_GAZE_NEAR = 16;
 // setting off and arriving softly, so they stay close to a slow pointer and take a moment to catch up with a quick one,
 // and turn to it smoothly from wherever they were as it comes near.
 const CAT_GAZE_SPRING = 24;
-// The labels, in points from the glass's middle, counted away from the cat. What's waiting on you has a tag by name,
-// at most this many: the first one's near end this far out (6pt off the glass) and its middle level with the glass's,
-// each next one this far down. Everything else is its dot, in a row this far below the last tag's middle (level with
-// the glass's middle when there's none): the first under the tags' dots, each next one this far out, this many to a
-// row, each next row this far down.
-const CAT_TAG_END = 44, CAT_TAG_STEP = 30, CAT_NAMES_MOST = 5;
-const CAT_DOTS_BELOW = 26, CAT_DOT_FIRST = 57, CAT_DOT_STEP = 17, CAT_DOTS_ROW = 12, CAT_DOT_ROWS_STEP = 18;
-// A tag's height, and the box a dot is pointed at and pressed in (cat.css).
-const CAT_TAG_TALL = 24, CAT_DOT_WIDE = 17, CAT_DOT_TALL = 20;
-// Where the glass's middle is from its square's corners (the folded window is 102pt, the glass 76 in its middle).
+// Where the glass's middle is from its square's corners (the folded window is 102pt, the glass 76 in its middle): the
+// pointer within about this far of it is on the cat.
 const CAT_GLASS_IN = 51;
-// The labels come out this long after the pointer comes onto the cat, each this long after the one before.
-const CAT_TAGS_START = 0.08, CAT_TAGS_STAGGER = 0.035;
 
 const catEl = document.getElementById('cat');
-const catTagsEl = document.getElementById('catTags');
 
 // What the cat does for these counts of sessions, { needs (your input: the menu bar's number), working, idle }: it
 // looks at you while any needs your input, watches while any are working, and otherwise sleeps.
@@ -54,29 +43,6 @@ function catPose(counts) {
   if (counts.needs > 0) return 'turn';
   if (counts.working > 0) return 'watch';
   return 'asleep';
-}
-
-// Where each session's label goes, for the sessions in the list's order, each { section } (whose-move.js): { names,
-// dots }, each a list of { i, y } and { i, x, y }, `i` the session's place in the list, `y` its middle down from the
-// glass's middle and `x` a dot's middle out from it, in points. The first sessions waiting on you have a tag by name;
-// the rest of them, first, and everything else have a dot.
-function catLabels(kinds) {
-  const names = [], dots = [];
-  kinds.forEach((k, i) => (k.section === 'turn' && names.length < CAT_NAMES_MOST ? names : dots).push(i));
-  const row = names.length ? (names.length - 1) * CAT_TAG_STEP + CAT_DOTS_BELOW : 0;
-  return {
-    names: names.map((i, n) => ({ i, y: n * CAT_TAG_STEP })),
-    dots: dots.map((i, n) => ({ i, x: CAT_DOT_FIRST + (n % CAT_DOTS_ROW) * CAT_DOT_STEP,
-                                y: row + Math.floor(n / CAT_DOTS_ROW) * CAT_DOT_ROWS_STEP })),
-  };
-}
-
-// Where a label `tall` points high goes, its near end `out` points from the glass's middle and its middle `y` below it,
-// as a style for its place in #catTags, which is at the top-right corner of the cat's square: to the cat's left, or to
-// its right while it's on the screen's left half (`right`).
-function catLabelStyle(out, y, tall, right) {
-  const across = right ? `left: ${(out - CAT_GLASS_IN).toFixed(1)}px` : `right: ${(CAT_GLASS_IN + out).toFixed(1)}px`;
-  return `${across}; top: ${(CAT_GLASS_IN + y - tall / 2).toFixed(1)}px`;
 }
 
 // Where the eyes look, toward the pointer at (x, y) points from the glass's middle (y running down), from where they
@@ -102,7 +68,6 @@ function buildCat() {
     </g></g></g>
   </svg>`;
   catEl.classList.toggle('calm', calm.matches);
-  catTagsEl.classList.toggle('calm', calm.matches);
   // Asleep until the first update says otherwise: the panel can come back folded before the rows have been read.
   catEl.classList.add('asleep');
   state.cat.pose = 'asleep';
@@ -110,15 +75,11 @@ function buildCat() {
 buildCat();
 calm.addEventListener?.('change', () => {
   catEl.classList.toggle('calm', calm.matches);
-  catTagsEl.classList.toggle('calm', calm.matches);
   catLook();
 });
 
-// With each update (render, in panel.js): its pose, and a label for each of `sessions` (in the list's order, `kinds`
-// saying what each is and where the list shows it, { kind, section }), drawn again only when they've changed. New ones
-// drawn while the labels are out show in their places at once, as an element's first look isn't animated, and the app
-// is asked for the room they need now.
-function drawCat(counts, sessions, kinds) {
+// With each update (render, in panel.js): its pose, for these counts of sessions (catPose).
+function drawCat(counts) {
   catPlace();
   const pose = catPose(counts);
   if (pose !== state.cat.pose) {
@@ -133,29 +94,6 @@ function drawCat(counts, sessions, kinds) {
     state.cat.toldPose = pose;
     native({ type: 'catPose', pose });
   }
-  const names = sessions.map((s) => s.name || base(s.cwd));
-  state.cat.drawn = { counts, sessions, kinds };
-  const right = state.cat.right;
-  // Each label's dot, as the list draws it for its kind (rows.css): a conversation that isn't running (Claude
-  // Desktop's, or a terminal session that has ended) has a hollow one.
-  const kindOf = (i) => kinds[i].kind + (sessions[i].status === 'closed' ? ' closed' : '');
-  const dot = (i) => `<span class="cat-mark ${kindOf(i)}"><span class="dot"></span></span>`;
-  const key = (right ? 'right\n' : '')
-    + sessions.map((s, i) => `${kindOf(i)}:${kinds[i].section}:${s.sessionId}:${names[i]}`).join('\n');
-  if (key === state.cat.marks || state.cat.arriving) return;
-  state.cat.marks = key;
-  // They come out one after another: the tags, then the dots.
-  let order = 0;
-  const delay = () => `--delay: ${(CAT_TAGS_START + order++ * CAT_TAGS_STAGGER).toFixed(3)}s`;
-  const laid = catLabels(kinds);
-  catTagsEl.innerHTML = laid.names.map(({ i, y }) => `<div class="cat-tag" data-id="${esc(sessions[i].sessionId)}" `
-      + `style="${catLabelStyle(CAT_TAG_END, y, CAT_TAG_TALL, right)}; ${delay()}">${dot(i)}`
-      + `<span class="cat-tag-name">${esc(names[i])}</span></div>`).join('')
-    + laid.dots.map(({ i, x, y }) => `<div class="cat-dot${kinds[i].kind === 'idle' ? ' quiet' : ''}" `
-      + `data-id="${esc(sessions[i].sessionId)}" `
-      + `style="${catLabelStyle(x - CAT_DOT_WIDE / 2, y, CAT_DOT_TALL, right)}; ${delay()}">${dot(i)}`
-      + `<span class="cat-dot-name">${esc(names[i])}</span></div>`).join('');
-  if (state.cat.hovering) askForTagsRoom();
 }
 
 // The glass the cat sits on breathes while sessions work, as a cat does, quicker the more are working, and as a heart
@@ -166,106 +104,62 @@ function catBreathe(working) {
   native({ type: 'catBreathe', working });
 }
 
-// Asks the app for the room the labels need while they're out (catFan, in app/core/PanelWindow.m).
-function askForTagsRoom() {
-  const room = catTagsRoom();
-  if (room) native({ type: 'catFan', on: true, width: room.width, height: room.height });
+// Where each of `els` is from the folded glass's middle, as the app takes the room beside the cat (catRoom): [x, y,
+// width, height] in points, y running down, as each is laid out where it ends up (not as it moves on its way there).
+function catParts(els) {
+  const root = document.getElementById('root').getBoundingClientRect();
+  const gx = root.left + state.cat.at.x, gy = root.top + state.cat.at.y;
+  return [...els].map((el) => {
+    const r = el.getBoundingClientRect(), shift = catShift(el);
+    return [r.left - shift.x - gx, r.top - shift.y - gy, r.width, r.height].map((n) => Math.round(n * 10) / 10);
+  });
 }
 
-// How much of the screen the labels need, from the cat's square's top corner on the far side from them, so the app can
-// make room for them while they're out (catFan, in app/core/PanelWindow.m): { width, height } in points, or null with
-// none. A dot's name, under it while it's pointed at, is counted in, as wide as it reaches past the dot on either side.
-function catTagsRoom() {
-  const labels = [...catTagsEl.querySelectorAll('.cat-tag, .cat-dot')];
-  if (!labels.length) return null;
-  // On the cat's right, they're measured from the square's left end (2 × CAT_GLASS_IN from its right).
-  let width = 0, height = 0;
-  for (const label of labels) {
-    const name = label.querySelector('.cat-dot-name');
-    const past = name ? Math.max(0, (name.offsetWidth - label.offsetWidth) / 2) : 0;
-    const across = state.cat.right ? 2 * CAT_GLASS_IN + parseFloat(label.style.left) + label.offsetWidth
-                                   : parseFloat(label.style.right) + label.offsetWidth;
-    width = Math.max(width, across + past);
-    height = Math.max(height, parseFloat(label.style.top)
-      + (name ? name.offsetTop + name.offsetHeight : label.offsetHeight));
-  }
-  // Room for their shadow too.
-  return { width: Math.ceil(width + 12), height: Math.ceil(height + 16) };
+// The room beside the folded cat (catRoom, in app/core/PanelWindow.m), for what comes out there, each part as catParts
+// has it: the chats' (chats.js), `what` being { chats }. With none, the room goes. `then` runs once the window has it
+// (catRoomTaken), or a moment later if the app doesn't say, so what comes out is never cut off by the window's edge on
+// its way. Each ask is numbered, and the app says which it has taken: asked again before then, an older ask's `then`
+// runs once its own room or a newer one is taken, and the newest's only once its own is.
+function askCatRoom(what = {}, then = null) {
+  const cat = state.cat, room = Object.assign(cat.room, what), ask = ++cat.roomAsk;
+  if (then) cat.roomWaits.push({ ask, then });
+  native({ type: 'catRoom', parts: room.chats, ask });
+  clearTimeout(cat.roomTimer);
+  cat.roomTimer = setTimeout(() => window.catRoomTaken(ask), 900);
 }
 
-// The pointer on the folded cat (hoverAt and hoverEnd, in panel.js): the labels come out, the app making room for them
-// first; as it leaves, they fade together, and then the room goes. Open, the panel has none of it. Folded with the
-// pointer still on the cat, they don't come until the pointer has left it once.
+window.catRoomTaken = (ask = state.cat.roomAsk) => {
+  const cat = state.cat;
+  if (ask >= cat.roomAsk) clearTimeout(cat.roomTimer);
+  const ready = cat.roomWaits.filter((w) => w.ask <= ask);
+  cat.roomWaits = cat.roomWaits.filter((w) => w.ask > ask);
+  for (const { then } of ready) then();
+};
+
+// The folded cat is being dragged with something out beside it (app/core/PanelWindow.m): what's out goes in, and gives
+// the room back, so the cat moves on its own; once it has stopped, what comes out of it comes out the way the app has
+// said it goes from there (catWay).
+window.catMoving = (moving) => chatsMoving(moving);
+
+// The pointer on the folded cat, or its list out (peek.js): it opens its eyes and lifts its head to look at you, as
+// long as the pointer stays. Open, the panel has none of it. Folded with the pointer still on the cat, it doesn't until
+// the pointer has left it once.
 function catHover(on) {
   if (state.cat.arriving) return;
-  if (!document.body.classList.contains('collapsed')) on = false;
+  if (!document.body.classList.contains('collapsed') && !state.peek.open) on = false;
   if (!on) state.cat.waitForLeave = false;
   if (on && state.cat.waitForLeave) return;
   if (on === state.cat.hovering) return;
   state.cat.hovering = on;
-  clearTimeout(state.cat.leaving);
-  if (on) {
-    askForTagsRoom();
-    catEl.classList.remove('leaving', 'reset');
-    catTagsEl.classList.remove('leaving', 'reset');
-    catEl.classList.add('hover');
-    catTagsEl.classList.add('out');
-  } else {
-    catTagsEl.querySelectorAll('.is-pointed').forEach((t) => t.classList.remove('is-pointed'));
-    catEl.classList.add('leaving');
-    catEl.classList.remove('hover');
-    catTagsEl.classList.add('leaving');
-    catTagsEl.classList.remove('out');
-    state.cat.leaving = setTimeout(() => {
-      catEl.classList.add('reset');
-      catEl.classList.remove('leaving');
-      catTagsEl.classList.add('reset');
-      catTagsEl.classList.remove('leaving');
-      if (!state.cat.arriving) native({ type: 'catFan', on: false });
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        catEl.classList.remove('reset');
-        catTagsEl.classList.remove('reset');
-      }));
-    }, 420);
-  }
+  catEl.classList.toggle('hover', on);
   catLook();
 }
 
-// Whether the page point (x, y) is on the folded cat or one of its labels: what keeps them out while the room the app
-// made for them is pointed at, and lets the pointer go from the cat to a label, and from one to another.
-function catPointedAt(x, y) {
+// Whether the page point (x, y) is on the folded cat.
+function pointOnCat(x, y) {
   const root = document.getElementById('root').getBoundingClientRect();
-  const gx = root.left + state.cat.at.x, gy = root.top + state.cat.at.y;
-  const labels = [...catTagsEl.querySelectorAll('.cat-tag, .cat-dot')];
-  // The one label pointed at is lit, or, for a dot, shows its name; on the cat, none is.
-  const point = (label) => labels.forEach((l) => l.classList.toggle('is-pointed', l === label));
-  if (Math.hypot(x - gx, y - gy) <= CAT_GLASS_IN + 2) { point(null); return true; }
-  if (!state.cat.hovering || !labels.length) return false;
-  const inside = (r, by) => x >= r.left - by && x <= r.right + by && y >= r.top - by && y <= r.bottom + by;
-  // A dot pointed at keeps its name while the pointer is on the name. Anywhere between the cat and its labels, the
-  // pointer is still on its way to one.
-  let on = null, box = { left: gx, right: gx, top: gy, bottom: gy };
-  for (const label of labels) {
-    const r = label.getBoundingClientRect();
-    const name = label.classList.contains('is-pointed') && label.querySelector('.cat-dot-name');
-    if (!on && (inside(r, 2) || (name && inside(name.getBoundingClientRect(), 0)))) on = label;
-    box = { left: Math.min(box.left, r.left), right: Math.max(box.right, r.right),
-            top: Math.min(box.top, r.top), bottom: Math.max(box.bottom, r.bottom) };
-  }
-  point(on);
-  return !!on || inside(box, 6);
+  return Math.hypot(x - root.left - state.cat.at.x, y - root.top - state.cat.at.y) <= CAT_GLASS_IN + 2;
 }
-
-// A press on a label or a dot opens that conversation where it is, as its row's would, and the panel stays folded: the
-// labels go back in. The keyboard stays with the conversation.
-catTagsEl.addEventListener('mousedown', (e) => {
-  const label = e.target.closest('.cat-tag, .cat-dot');
-  if (!label || e.button !== 0) return;
-  e.preventDefault();
-  const s = state.last.sessions.find((x) => x.sessionId === label.dataset.id);
-  if (s) openSession(s);
-  catHover(false);
-});
 
 // Its eyes on the pointer while it's near and the cat is awake (asleep, it wakes while it's pointed at); otherwise as
 // its pose has them (cat.css: drifting over the work, or on you with a glance down now and then). Following it, the
@@ -332,15 +226,14 @@ function catShift(el) {
   return { x: v[4], y: v[5] };
 }
 
-// Which side of the cat the labels come out on, as the app sees where it is: its right while it's on the screen's left
-// half, its left otherwise. Laid out again at once, while they're in.
-window.catSide = (right) => {
-  if (state.cat.right === right) return;
-  state.cat.right = right;
-  catTagsEl.classList.toggle('to-right', right);
-  state.cat.marks = null;
-  const d = state.cat.drawn;
-  if (d) drawCat(d.counts, d.sessions, d.kinds);
+// Which way what comes out of the cat goes, as the app sees where it is (CatWayFor, in app/core/PanelWindow.h): to its
+// right while it's on the screen's left half, else its left; up from its foot while it's on the lower half, else down
+// from its top; and how far there is to the screen's edge each way, `across` and `tall`. Its chats, out the other way
+// (it moved quickly), come out afresh this way (chats.js).
+window.catWay = (way) => {
+  const was = state.cat.way;
+  state.cat.way = way;
+  if (!!was.right !== !!way.right || !!was.up !== !!way.up) chatsTurned();
 };
 
 // Where the pointer is from the folded glass's middle, in points with y running down, while it's near; null once it
@@ -394,13 +287,12 @@ function catToName() {
 
 // The panel opening round the cat (toggleCollapsed, in panel.js), before the page shows the list: the cat stays where
 // it is and becomes the name's o as the glass spreads out from behind it (app/core/PanelWindow.m), the name coming in
-// from both its sides as it shrinks, and then the list comes in (cat.css); the labels that were out fade where they
-// are. `show` takes the folded look off. With reduced motion it all just fades.
-function catOpening(show) {
+// from both its sides as it shrinks, and then the list comes in (cat.css). `show` takes the folded look off. `already`
+// when the panel is open round the cat already, its list out while it's pointed at (peek.js): the cat shrinks, and the
+// name comes in, at once, the list staying as it is. With reduced motion it all just fades.
+function catOpening(show, already = false) {
   if (calm.matches) { show(); return; }
   state.cat.arriving = true;
-  clearTimeout(state.cat.leaving);
-  catEl.classList.remove('leaving', 'reset');
   // Its head stays where it is now (raised, as it is while pointed at, or still on its way up) and goes from there onto
   // the o as it shrinks, so nothing moves on once it has; its eyes open on the way, as the o's are.
   const pose = catEl.querySelector('.cat-pose');
@@ -408,14 +300,14 @@ function catOpening(show) {
   pose.style.transform = getComputedStyle(pose).transform;
   catEl.classList.add('waking');
   document.body.classList.add('arriving');
-  catTagsEl.classList.add('into-rows');
+  document.body.classList.toggle('open-already', already);
   show();
   const move = catToName();
   if (move) catEl.style.transformOrigin = move.origin;
   // The cat starts shrinking, and the name coming in round it, as the glass starts spreading out from behind it: the
   // app says when (catGlass), once the page has been drawn at the open panel's size, as before that WebKit draws
-  // nothing new. A moment later if it doesn't say.
-  catOnGlass(() => {
+  // nothing new. A moment later if it doesn't say. With the glass spread already, at once.
+  const shrink = () => {
     if (move) catEl.style.transform = move.transform;
     document.body.classList.add('name-in');
     setTimeout(() => {
@@ -423,25 +315,26 @@ function catOpening(show) {
       catEl.style.transition = 'none';
       catEl.style.transform = '';
       catEl.style.transformOrigin = '';
-      document.body.classList.remove('arriving', 'name-in');
+      document.body.classList.remove('arriving', 'name-in', 'open-already');
       void catEl.offsetWidth;
       catEl.style.transition = '';
-      catTagsEl.classList.remove('into-rows', 'out');
       catEl.classList.remove('hover', 'waking');
       pose.style.transform = '';
       pose.style.transition = '';
       state.cat.hovering = false;
       state.cat.arriving = false;
-      native({ type: 'catFan', on: false });
+      askCatRoom({ chats: [] });
     }, 560);
-  }, 400);
+  };
+  if (already) shrink();
+  else catOnGlass(shrink, 400);
 }
 
 // The panel folding round the cat (toggleCollapsed): the name's o grows back into the folded cat at once, as the click
 // lands, "Wh" and "zmove" going out at its sides as it does and the list fading, while the glass closes in round it
-// (app/core/PanelWindow.m). The labels don't come back, nor, while the pointer is still on the cat, until the pointer
-// has left it once. `hide` puts the folded look on. Folding round Whozmove beside the panel, with the header gone,
-// there's no o to grow from: catFromSide.
+// (app/core/PanelWindow.m). The cat doesn't look up at the pointer still on it, nor its list come out, until the
+// pointer has left it once. `hide` puts the folded look on. Folding round Whozmove beside the panel, with the header
+// gone, there's no o to grow from: catFromSide.
 function catFolding(hide) {
   state.cat.waitForLeave = true;
   if (state.cat.fromSide) return catFromSide(hide);

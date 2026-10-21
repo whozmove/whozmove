@@ -200,6 +200,54 @@ exit=0
    stageAt = "ms"
    turnReached = ["Committed"]
    workCommitted = true
+== 17 Whozmove isn't installed (no app noted in its folder): nothing is recorded
+exit=0
+   no record
+== 18 the app noted there has gone: looked for again a moment later, then nothing is recorded
+exit=0
+   no record
+== 19 compacting, by itself or asked for: from its start to its end, or to the next step after one stopped
+exit=0
+   compactingAt = "ms"
+   stageAt = "ms"
+exit=0
+   compactedAt = "ms"
+   compactingAt = null
+   stageAt = "ms"
+exit=0
+exit=0
+exit=0
+   activity = "Reading a file"
+   activityAt = "ms"
+   compactingAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Researched"]
+exit=0
+exit=0
+   activity = "Reading a file"
+   activityAt = "ms"
+   compactingAt = "ms"
+   notice = "Claude needs your permission"
+   noticeAt = "ms"
+   noticeType = "permission_prompt"
+   stageAt = "ms"
+   turnReached = ["Researched"]
+exit=0
+   activity = "Reading a file"
+   activityAt = "ms"
+   compactingAt = null
+   notice = "Claude needs your permission"
+   noticeAt = "ms"
+   noticeType = "permission_prompt"
+   stageAt = "ms"
+   turnReached = ["Researched"]
+exit=0
+exit=0
+   compactingAt = null
+   notice = "Claude is waiting for your input"
+   noticeAt = "ms"
+   noticeType = "idle_prompt"
+   stageAt = "ms"
 == P1 panel not running
 exit=0
 0
@@ -334,8 +382,10 @@ exit=0
 == the plugin's hooks
    Notification: python3 hooks/whozmove-claude.py async
    PermissionRequest: python3 hooks/whozmove-claude-permission.py timeout 3600
+   PostCompact: python3 hooks/whozmove-claude.py async
    PostToolUse: python3 hooks/whozmove-claude.py async
    PostToolUseFailure: python3 hooks/whozmove-claude.py async
+   PreCompact: python3 hooks/whozmove-claude.py async
    PreModelSwitch: python3 hooks/whozmove-claude-permission.py timeout 90
    PreToolUse: python3 hooks/whozmove-claude.py async
    Stop: python3 hooks/whozmove-claude.py async

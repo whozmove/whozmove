@@ -11,6 +11,7 @@ static NSDictionary *Recorded(id info) {
         if ([info[key] isKindOfClass:NSString.class]) build[key] = info[key];
     if ([info[@"builtAt"] isKindOfClass:NSNumber.class]) build[@"builtAt"] = info[@"builtAt"];
     if ([info[@"changes"] isKindOfClass:NSNumber.class]) build[@"changes"] = @([info[@"changes"] boolValue]);
+    if ([info[@"agent"] isKindOfClass:NSNumber.class]) build[@"agent"] = @([info[@"agent"] boolValue]);
     return build[@"root"] ? build : nil;
 }
 
@@ -43,4 +44,8 @@ NSString *RunningBuildTip(void) {
                                                          timeStyle:NSDateFormatterShortStyle]]];
     }
     return [lines componentsJoinedByString:@"\n"];
+}
+
+BOOL BuiltByAgent(void) {
+    return [RunningBuild()[@"agent"] boolValue];
 }

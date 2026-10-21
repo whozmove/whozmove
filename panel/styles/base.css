@@ -1,4 +1,4 @@
-/* The panel itself: the header, the list, and its group and project headers. Its colours, sizes and corners are
+/* The panel itself: the header, the list, and its project headers. Its colours, sizes and corners are
    tokens.css's.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
@@ -10,6 +10,9 @@ html, body { background: transparent; color: var(--text);
 /* The tint over the glass is the window's own (app/core/PanelWindow.m), so space the panel grows into is tinted
    before the page has painted it. */
 html { min-height: 100vh; }
+/* As tall as the page at least: it hides what's past its own edge, and the chats beside the folded cat (chats.css) can
+   reach past the foot of a short list. */
+body { min-height: 100vh; }
 
 header { flex: none; height: var(--header); display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; }
 /* The name, drawn from its letters with the cat for its first o (panel.html), as Outfit Medium at 17px sets it; and
@@ -36,11 +39,11 @@ header .add-new svg { transition: transform .4s var(--spring); }
 header .add-new.open svg { transform: rotate(45deg); }
 header .chev.is-hover { background: var(--hover); color: var(--text); }
 header .chev svg { transition: transform .15s ease; }
-/* The header lies over the list's top, in room the list keeps for it, its line under it going with it, and slides away
-   with the list's scroll (header.js), the list clipped where its edge is, so rows go under it. A card under the header
-   (a new conversation's) takes that room instead, and the line goes back to the list's top. The panel's back has a
-   header of its own (modules/apps), which stays where it is. Over the list, under the cat as it grows from the name's
-   o or shrinks onto it (#cat, cat.css). */
+/* The header lies over the list's top, in room the list keeps for it, its line under it going with it, and is pushed
+   away by the row you're on as the list scrolls (header.js), the list clipped where its edge is, so rows go under it. A
+   card under the header (a new conversation's) takes that room instead, and the line goes back to the list's top. The
+   panel's back has a header of its own (modules/apps), which stays where it is. Over the list, under the cat as it
+   grows from the name's o or shrinks onto it (#cat, cat.css). */
 header { position: relative; }
 #root > header { position: absolute; top: 0; left: 0; right: 0; z-index: 2; }
 #root > header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
@@ -68,9 +71,6 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
    slide (see slideGroup); the open conversation is pinned below a collapsed group instead. */
 .prows { overflow: hidden; transition: height .2s ease, opacity .2s ease; }
 .prows.closed { height: 0; opacity: 0; }
-.group.toggle .pchev { display: inline-grid; place-items: center; margin-left: 2px; }
-.group.toggle .pchev svg { transition: transform .15s ease; }
-.group.toggle.collapsed .pchev svg { transform: rotate(-90deg); }
 .project .add { margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: var(--radius-button);
                 display: grid; place-items: center; color: var(--muted); }
 .project .add.is-hover { background: var(--hover); color: var(--text); }
@@ -80,16 +80,12 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
    conversation's card and the strips under the list come on top of that, and the panel grows to fit them, down to where
    the screen ends (setRoom), where the list gives way. A new conversation moves from its card down to its row over the
    list, on a layer of its own (#flight), and never crosses the strips. */
-#root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); width: var(--column); }
+#root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); margin-top: var(--above);
+        width: var(--column); }
 #list { position: relative; flex: 1 1 auto; min-height: 0; max-height: 640px; overflow-y: auto;
         padding: calc(var(--header) + 1px) 6px 6px; }
 #dock:not(:empty) ~ #list { padding-top: 0; border-top: 1px solid var(--rule);
                             max-height: calc(640px - var(--header)); }
 #list::-webkit-scrollbar { width: 0; }
-
-.group { padding: 8px 8px 3px; font-size: var(--size-tag); font-weight: 600; letter-spacing: .06em;
-         text-transform: uppercase; color: var(--faint); display: flex; gap: 6px; }
-.group.toggle.is-hover { color: var(--muted); }
-.group .n { font-weight: 500; }
 
 .empty { padding: 14px 10px; color: var(--faint); text-align: center; }

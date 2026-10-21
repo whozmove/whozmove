@@ -1,20 +1,19 @@
-// Whose move it is: which section each session goes in, how sessions sort, and which session speaks for each
-// checkout.
+// Whose move it is: what each session is, how the list sorts, and which session speaks for each checkout.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Plain functions: they take what they need and change nothing, so tests/panel.sh can check every case.
 
-// A reply you've read waits this long for something more, from you or from Claude: an hour with nothing, and its
-// session goes to Idle. One you haven't read waits for you however long it takes.
-const IDLE_AFTER_MS = 60 * 60 * 1000;
-// How long you're away from a session before you've moved on from it: a reply you've read stays in Your turn while
-// you're on its session, and until you've been away from it this long.
+// A reply you've read waits this long for something more, from you or from Claude: a day with nothing, and its
+// session is idle. One you haven't read waits for you however long it takes.
+const IDLE_AFTER_MS = 24 * 60 * 60 * 1000;
+// How long you're away from a session before you've moved on from it: until then, being on it again reads what it
+// sends (stillOnIt).
 const MOVED_ON_MS = 10 * 60 * 1000;
 // Statuses that mean Claude is waiting on you.
 const NEEDS_STATUSES = new Set(['waiting', 'needs_input', 'requires_action', 'blocked']);
 
 // What a session is now: needs (a request or question waits for you), busy (working), turn (a reply you haven't
-// read), seen (a reply you've read) or idle (no reply, or one you've read with nothing since for an hour: no message,
+// read), seen (a reply you've read) or idle (no reply, or one you've read with nothing since for a day: no message,
 // and you not on it while it was yours). `view` holds when you were last on each session while it was yours, as the
 // page keeps it (`seen`: stillOnIt), and the time before which every reply counts as read (`readBefore`). Claude's
 // registry time isn't used: it also moves when a process merely starts.
@@ -44,23 +43,17 @@ function onItAt(s) {
 // When you were last on a session, as the page keeps it (`kept`), now that you're on it at `at` (opened here, or as
 // onItAt says): it follows you while the session is yours, with something new since you were last on it (a reply, or
 // your message, after `readBefore`), or you on it in the last ten minutes. Once you've moved on, it stays as it was,
-// so looking at that session again doesn't bring its row back into Your turn: only something new does.
+// so looking at that session again doesn't read a reply it sends later: only being on it once that reply has come does.
 function stillOnIt(s, kept, at, now, readBefore) {
   const newest = Math.max(s.lastReplyAt || 0, s.lastPromptAt || 0);
   const yours = Math.max(kept, readBefore || 0) < newest || now - kept < MOVED_ON_MS;
   return yours ? Math.max(kept, at) : kept;
 }
 
-// Where each kind of session is shown, top to bottom: a request and a reply you haven't read share Your turn, then
-// Working, Seen (the replies you've read, once you've moved on from them: sectionOf) and Idle.
-const SECTIONS = ['turn', 'busy', 'seen', 'idle'];
-const SECTION_OF = { needs: 'turn', turn: 'turn', busy: 'busy', seen: 'seen', idle: 'idle' };
-
-// Where a session is shown: as its kind says, but a reply you've read stays in Your turn until you've moved on from it,
-// so it doesn't leave as you read it: while you're on its session, and for ten minutes after you were last on it, as
-// the page keeps it (`view.seen`: stillOnIt). Then it goes to Seen.
-function sectionOf(s, kind, now, view) {
-  return kind === 'seen' && now - (view.seen[s.sessionId] || 0) < MOVED_ON_MS ? 'turn' : SECTION_OF[kind];
+// Whether a session waits on you: a request or question, or a reply you haven't read. Its dot says so, the menu bar
+// counts it, and the folded panel names it.
+function waitsOnYou(kind) {
+  return kind === 'needs' || kind === 'turn';
 }
 
 // When a session became your turn: when its request came (the hook's time, else when Claude's status changed), or
@@ -69,33 +62,20 @@ function turnSince(s, kind) {
   return kind === 'needs' ? s.ask?.at || s.statusUpdatedAt || 0 : s.lastReplyAt || 0;
 }
 
-// Where a session sorts within Working, Seen or Idle, smallest first: Working by when each turn began, newest first, so
-// two at work don't trade places with every step; Seen by the reply, newest first; Idle by when the conversation last
-// moved.
-function placeKey(s, kind, section) {
-  if (section === 'busy') return -sortKey(s, 'busy');
-  if (section === 'seen') return -(s.lastReplyAt || 0);
-  return -lastActive(s);
-}
-
-// The rows in the order they're shown, each { s, kind, section, key, tie, latest, held }: by section (sectionOf, with
-// `view` as classify has it), then by key, then by tie. Your turn is first come, first served: a row that comes into it
-// joins its end (its key is `now`, those that come at once in the order they became your turn, their tie), and keeps
-// that place while it's there, so nothing above it moves. Working's, Seen's and Idle's keys don't move while a row
-// stays in its section either, so rows keep their order. A row you've pressed (`held(id)`) keeps all it was last shown
-// with (`before`), whatever it has become, so it stays where you saw it, and so does its project (`latest`, how recent
-// it is: sortKey).
-function placeRows(rows, before, held, now, view) {
+// The rows in the order they're shown, each { s, kind, latest, quiet, held }, as a chat app lists its conversations:
+// newest message first (movedAt). A message coming in, Claude's reply or a request, takes its row to the top, and so
+// does yours; while Claude works it stays where your message put it. Only the idle ones (`quiet`: a reply you've read
+// with nothing since for a day, or none at all) go below the rest, newest first there too, so a reply you haven't
+// read never sits under one you were done with a day ago. A row you've pressed (`held(id)`) keeps all it was
+// last shown with (`before`), whatever it has become, so it stays where you saw it, until you've
+// moved on from the panel.
+function placeRows(rows, before, held) {
   const byId = (a, b) => (a.s.sessionId < b.s.sessionId ? -1 : a.s.sessionId > b.s.sessionId ? 1 : 0);
   return rows.map(({ s, kind }) => {
     const was = before[s.sessionId];
     if (was && held(s.sessionId)) return { ...was, s, kind, held: true };
-    const section = sectionOf(s, kind, now, view), latest = sortKey(s, kind);
-    if (section !== 'turn') return { s, kind, section, key: placeKey(s, kind, section), tie: 0, latest };
-    const stays = was?.section === 'turn';
-    return { s, kind, section, key: stays ? was.key : now, tie: stays ? was.tie : turnSince(s, kind), latest };
-  }).sort((a, b) => SECTIONS.indexOf(a.section) - SECTIONS.indexOf(b.section) || a.key - b.key || a.tie - b.tie
-    || byId(a, b));
+    return { s, kind, latest: movedAt(s, kind), quiet: kind === 'idle' };
+  }).sort((a, b) => a.quiet - b.quiet || b.latest - a.latest || byId(a, b));
 }
 
 // When the conversation last moved: your message, Claude's reply, or the newest message in its transcript.
@@ -105,18 +85,22 @@ function lastActive(s) {
   return moved || s.activityAt || s.statusUpdatedAt || 0;
 }
 
-// How recent a session is: a working one by when its turn began, not by its latest step, so two working at once
-// don't swap places with every step; the rest by when their conversation last moved. Working sorts by it, and so do
-// the projects.
-function sortKey(s, kind) {
-  if (kind !== 'busy') return lastActive(s);
-  return s.lastPromptAt > (s.lastReplyAt || 0) ? s.lastPromptAt : s.statusUpdatedAt || 0;
+// When a session's last message came, which is where its row sorts: a working one's when its turn began, your message,
+// not its latest step, so its steps never move it; one waiting on you when its request came, or its reply; the rest
+// when their conversation last moved. At work with no message of yours since its reply (compacting, say), nothing has
+// been said, so it stays where its last message put it; only a session with no messages recorded goes by when it
+// started working.
+function movedAt(s, kind) {
+  if (kind === 'busy') {
+    return s.lastPromptAt > (s.lastReplyAt || 0) ? s.lastPromptAt : s.lastReplyAt || s.statusUpdatedAt || 0;
+  }
+  return Math.max(lastActive(s), kind === 'needs' ? turnSince(s, kind) : 0);
 }
 
 // Claude's status and your message (or its reply) arrive separately, usually a tenth of a second apart. For up
 // to 3 seconds a new turn is shown as it was until both agree, so your message appears first and the working
 // line follows it; and a message of yours that has just come in is the start of a turn, though the status still says
-// idle, so its row goes straight to Working. A status change in the middle of a turn shows as it is.
+// idle, so its row shows it at work at once. A status change in the middle of a turn shows as it is.
 function steady(s, now) {
   if (!s.lastPromptAt) return s;
   const replied = (s.lastReplyAt || 0) >= s.lastPromptAt;

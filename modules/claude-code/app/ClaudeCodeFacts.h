@@ -8,9 +8,9 @@
 // files), so it is still in one place each. The hooks know Claude Code's tool names and events (the permission hook
 // also what a PreModelSwitch hook is told and how it answers). build.sh knows the mark
 // Claude Code puts on the commands an agent runs (CLAUDECODE; the app's own copy is kClaudeCodeAgentMarks), plugin.sh
-// and app/swap-in.sh how it keeps an installed plugin (a copy per version, refreshed by `claude plugin update`),
-// Prompt.m how its prompt keeps a draft through Ctrl+S, and Results.m how it words a command's result. The module's
-// page part keeps the few facts it needs itself: each model's context window, in page/agent.js.
+// how it keeps an installed plugin (a copy per version, made again for a new one), PluginInstall.m what `claude plugin
+// list --json` prints, Prompt.m how its prompt keeps a draft through Ctrl+S, and Results.m how it words a command's
+// result. The module's page part keeps the few facts it needs itself: each model's context window, in page/agent.js.
 #import <Foundation/Foundation.h>
 
 // Claude Code's own folder in the home folder, a path in it, and what Whozmove reads there.
@@ -80,6 +80,23 @@ NSArray<NSString *> *ClaudeAuthStatusArguments(void);
 NSArray<NSString *> *ClaudeSignInArguments(void);
 // The environment variables that point it at an API key or another provider instead of a Claude plan.
 NSArray<NSString *> *ClaudeOtherAuthVariables(void);
+// Where Claude Code is installed from, for the line's Get Claude Code.
+extern NSString *const kClaudeCodeInstallPage;
+
+// Whozmove's hooks as Claude Code's plugin (modules/claude-code/plugin/): the plugin and its marketplace are both
+// kWhozmoveMarketplace, so `claude plugin` names it kWhozmovePlugin. Claude Code's own commands keep it, each checked
+// with 2.1.302: one lists the plugins (PluginListArguments); the marketplace is added from a folder (adding it again
+// when it's there already is fine: "already on disk") and the plugin installed from it; a new version in the folder
+// is taken with a marketplace update, then a plugin update; and a plugin turned off is turned on again. A plugin added
+// or changed reaches only the sessions that start after it: Claude Code loads its plugins as a session starts.
+extern NSString *const kWhozmovePlugin;
+extern NSString *const kWhozmoveMarketplace;
+NSArray<NSString *> *PluginListArguments(void);
+NSArray<NSString *> *PluginMarketplaceAddArguments(NSString *folder);
+NSArray<NSString *> *PluginInstallArguments(void);
+NSArray<NSString *> *PluginMarketplaceUpdateArguments(void);
+NSArray<NSString *> *PluginUpdateArguments(void);
+NSArray<NSString *> *PluginEnableArguments(void);
 
 
 // The choices the details line offers, as [the value Claude Code takes, the name shown]. Models are the current

@@ -1,5 +1,5 @@
 # Whozmove's hooks as a Claude Code plugin (plugin/, beside this file): what's copied, and the version the copy gets.
-# Sourced by build.sh and install.sh, from the checkout's root.
+# Sourced by tools/bundle.sh, which puts a copy in every build, and install.sh, from the checkout's root.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Claude Code keeps its own copy of an installed plugin, one per version, and makes a new one only for a new version,

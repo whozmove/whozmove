@@ -26,13 +26,13 @@ show('a turn you stopped: you wrote to it after its reply',
   classify(session({ ...repliedAt(min(20)), lastPromptAt: min(2) }), NOW, unread));
 show('replied 40 min ago, not opened', classify(session(repliedAt(min(40))), NOW, unread));
 show('replied 40 min ago, opened', classify(session({ ...repliedAt(min(40)), sessionId: 'r2' }), NOW, readHere('r2')));
-show('replied 2 h ago, not opened: still waiting for you', classify(session(repliedAt(min(120))), NOW, unread));
-show('replied 61 min ago, opened then',
-  classify(session({ ...repliedAt(min(61)), sessionId: 'r2' }), NOW, readHere('r2', min(61))));
-show('replied 2 h ago, opened a minute ago: an hour from when you were last on it',
-  classify(session({ ...repliedAt(min(120)), sessionId: 'r2' }), NOW, readHere('r2')));
-show('replied 61 min ago, and you wrote to it 30 min ago',
-  classify(session({ ...repliedAt(min(61)), lastPromptAt: min(30) }), NOW, unread));
+show('replied 2 days ago, not opened: still waiting for you', classify(session(repliedAt(min(48 * 60))), NOW, unread));
+show('replied a day ago, opened then',
+  classify(session({ ...repliedAt(min(24 * 60 + 1)), sessionId: 'r2' }), NOW, readHere('r2', min(24 * 60 + 1))));
+show('replied 2 days ago, opened a minute ago: a day from when you were last on it',
+  classify(session({ ...repliedAt(min(48 * 60)), sessionId: 'r2' }), NOW, readHere('r2')));
+show('replied a day ago, and you wrote to it 30 min ago',
+  classify(session({ ...repliedAt(min(24 * 60 + 1)), lastPromptAt: min(30) }), NOW, unread));
 show('a turn you stopped long after its reply, its transcript moving until 5 min ago',
   classify(session({ ...repliedAt(min(75)), lastPromptAt: min(70), messageAt: min(5) }), NOW, unread));
 show('never replied', classify(session({}), NOW, unread));
@@ -40,38 +40,26 @@ show('a closed conversation that replied 5 min ago, not opened',
   classify(session({ ...reply, status: 'closed', entrypoint: 'claude-desktop', pid: 0 }), NOW, unread));
 show('a terminal session that has ended, its reply 5 min ago not read', classify(session({ ...reply,
   status: 'closed', pid: 0, opensIn: 'Ghostty' }), NOW, unread));
-show('…its reply 2 h ago read then', classify(session({ ...repliedAt(min(120)), sessionId: 'k1', status: 'closed',
-  pid: 0, opensIn: 'Ghostty' }), NOW, readHere('k1', min(119))));
-show('replied 3 h ago, before the page first kept the replies you had not read, not opened',
-  classify(session(repliedAt(min(180))), NOW, { seen: {}, readBefore: min(120) }));
+show('…its reply 2 days ago read then', classify(session({ ...repliedAt(min(48 * 60)), sessionId: 'k1',
+  status: 'closed', pid: 0, opensIn: 'Ghostty' }), NOW, readHere('k1', min(48 * 60 - 1))));
+show('replied 3 days ago, before the page first kept the replies you had not read, not opened',
+  classify(session(repliedAt(min(72 * 60))), NOW, { seen: {}, readBefore: min(48 * 60) }));
 show('your turn since, a request', turnSince(session({ ask: { id: 'a', tool: 'Bash', input: {}, at: min(3) } }),
                                              'needs') === min(3));
 show('…Claude waiting on you, from when its status changed',
   turnSince(session({ status: 'waiting', statusUpdatedAt: min(4) }), 'needs') === min(4));
 show('…a reply', turnSince(session(reply), 'turn') === min(5));
-show('a reply you read 9 min ago: still in Your turn',
-  sectionOf(session({ ...reply, sessionId: 'r2' }), 'seen', NOW, readHere('r2', min(9))));
-show('…10 min ago: in Seen', sectionOf(session({ ...reply, sessionId: 'r2' }), 'seen', NOW, readHere('r2', min(10))));
 
 section('Where each row goes');
-// The rows in the order they're shown, section by section: each row's id, with what it is when that isn't its
-// section's own (a request in Your turn, or a row you've pressed that has changed).
-function where(placed) {
-  let out = '', at = null;
-  for (const p of placed) {
-    out += p.section === at ? ' ' : `${at ? ' · ' : ''}${p.section}: `;
-    out += p.s.sessionId + (p.kind === p.section ? '' : `(${p.kind})`);
-    at = p.section;
-  }
-  return out;
-}
+// The rows in the order they're shown, newest message first: each row's id and what it is.
+const where = (placed) => placed.map((p) => `${p.s.sessionId}(${p.kind})`).join(' ');
 // One update after another, each placed as render places it at the app's time `now`: the rows you've pressed (`held`)
 // where they were last shown, with when you were last on each session as `view` says.
 const placedAt = {};
 const placeAll = (sessions, held = [], now = NOW, view = unread) => {
   const placed = placeRows(sessions.map((s) => ({ s, kind: classify(s, now, view) })), placedAt,
-                           (sid) => held.includes(sid), now, view);
-  for (const { s, section, key, tie, latest } of placed) placedAt[s.sessionId] = { section, key, tie, latest };
+                           (sid) => held.includes(sid));
+  for (const { s, latest, quiet } of placed) placedAt[s.sessionId] = { latest, quiet };
   return where(placed);
 };
 const asked = (id, at) => ({ ask: { id, tool: 'Bash', input: {}, at } });
@@ -80,52 +68,47 @@ const lineup = [
   session({ sessionId: 'q2', status: 'waiting', statusUpdatedAt: min(3) }),
   session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(20) }),
   session({ sessionId: 's1', ...repliedAt(min(30), { lastFocusedAt: min(29) }) }),
-  session({ sessionId: 'q1', ...asked('q1', min(8)) }),
+  session({ sessionId: 'q1', ...repliedAt(min(40)), ...asked('q1', min(8)) }),
   session({ sessionId: 'i1', ...repliedAt(min(90), { lastFocusedAt: min(89) }) }),
   session({ sessionId: 'r2', ...repliedAt(min(12)) }),
   session({ sessionId: 'w2', status: 'busy', lastPromptAt: min(2) }),
   session({ sessionId: 's2', ...repliedAt(min(14), { lastFocusedAt: min(13) }) }),
   session({ sessionId: 'i2' }),
 ];
-show('Your turn first come, first served; Working and Seen newest first; then Idle', placeAll(lineup));
-const q3 = session({ sessionId: 'q3', ...asked('q3', min(1)) });
-show('a new request joins the end of Your turn, and nothing above it moves', placeAll([...lineup, q3], [], NOW + 1000));
-const others = [...lineup.filter((s) => s.sessionId !== 'r1'), q3];
-const r1 = (fields) => session({ sessionId: 'r1', ...repliedAt(min(5)), ...fields });
-show('a row you pressed, to read it: it stays where it was, with what it is now',
-  placeAll([...others, r1({ lastFocusedAt: min(1) })], ['r1'], NOW + 2000));
-show('…answered, and working again: still there',
-  placeAll([...others, r1({ status: 'busy', lastPromptAt: min(1), lastFocusedAt: min(1) })], ['r1'], NOW + 3000));
-show("…once you've moved on from the panel, it goes where it belongs now",
-  placeAll([...others, r1({ status: 'busy', lastPromptAt: min(1), lastFocusedAt: min(1) })], [], NOW + 4000));
+show('one list, newest message first, whatever each is: a request by when it came, a working one by your message',
+  placeAll(lineup));
+const q3 = session({ sessionId: 'q3', ...repliedAt(min(50)), ...asked('q3', NOW - 500) });
+show('a request that comes goes to the top', placeAll([...lineup, q3], [], NOW + 1000));
+const i1Replied = session({ sessionId: 'i1', ...repliedAt(NOW + 1500, { lastFocusedAt: min(89) }) });
+const withI1 = (s) => [...lineup.filter((x) => x.sessionId !== 'i1'), q3, s];
+show('…and so does a reply, an idle one\'s too', placeAll(withI1(i1Replied), [], NOW + 2000));
+const w1Steps = session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(20), activityAt: NOW + 2500,
+                          messageAt: NOW + 2500 });
+show("a working one's steps don't move it",
+  placeAll([...withI1(i1Replied).filter((x) => x.sessionId !== 'w1'), w1Steps], [], NOW + 3000));
+const others = withI1(i1Replied).filter((s) => s.sessionId !== 's1');
+const s1 = (fields) => session({ sessionId: 's1', ...repliedAt(min(30), { lastFocusedAt: min(29) }), ...fields });
+show('a row you pressed, to write to it: it stays where it was as it starts work',
+  placeAll([...others, s1({ status: 'busy', lastPromptAt: NOW + 3500 })], ['s1'], NOW + 4000));
+show('…and as it replies',
+  placeAll([...others, s1({ ...repliedAt(NOW + 4500), lastPromptAt: NOW + 3500 })], ['s1'], NOW + 5000));
+show("…once you've moved on from the panel, it goes to the top",
+  placeAll([...others, s1({ ...repliedAt(NOW + 4500), lastPromptAt: NOW + 3500 })], [], NOW + 6000));
 show("a row you pressed that wasn't shown yet goes where it belongs",
-  placeAll([...others, session({ sessionId: 'n1', status: 'busy', lastPromptAt: min(1) })], ['n1'], NOW + 5000));
-const backAtWork = session({ sessionId: 'i1', ...repliedAt(min(90), { lastFocusedAt: min(89) }), status: 'busy',
-                             lastPromptAt: NOW - 1000 });
-show('a row you pressed in Idle stays there as it starts work again',
-  placeAll([...others.filter((s) => s.sessionId !== 'i1'), backAtWork], ['i1'], NOW + 6000));
-const atWork = others.filter((s) => s.sessionId !== 'w1');
-const w1Replied = session({ sessionId: 'w1', ...repliedAt(min(1)) });
-show('a row you pressed that replies meanwhile stays where it was',
-  placeAll([...atWork, w1Replied], ['w1'], NOW + 7000));
-const q4 = session({ sessionId: 'q4', ...asked('q4', NOW - 500) });
-show('…while a request that comes joins the end of Your turn',
-  placeAll([...atWork, q4, w1Replied], ['w1'], NOW + 8000));
-show("…and once you've moved on, it joins the end after that request, though its reply came first",
-  placeAll([...atWork, q4, w1Replied], [], NOW + 9000));
-const m1 = session({ sessionId: 'm1', ...repliedAt(min(5)) });
-const m2 = session({ sessionId: 'm2', ...repliedAt(min(4)) });
-const w3 = session({ sessionId: 'w3', status: 'busy', lastPromptAt: min(3) });
-const later = (minutes) => NOW + 20000 + minutes * 60000;
-const onM1 = { seen: { m1: later(0) } };
-show('two replies waiting, one working', placeAll([m1, m2, w3], [], later(0)));
-show('a reply you read stays in Your turn, where it was, while you are on it',
-  placeAll([m1, m2, w3], [], later(0) + 1000, onM1));
-show('…and for ten minutes after you were last on it', placeAll([m1, m2, w3], [], later(9.9), onM1));
-show('…then it goes to Seen', placeAll([m1, m2, w3], [], later(10), onM1));
-const w3Replied = session({ sessionId: 'w3', ...repliedAt(later(10) + 500) });
-show('a reply that comes in while you are on it joins the end of Your turn',
-  placeAll([m1, m2, w3Replied], [], later(10) + 1000, { seen: { m1: later(0), w3: later(10) + 1000 } }));
+  placeAll([...others, session({ sessionId: 'n1', status: 'busy', lastPromptAt: min(1) })], ['n1'], NOW + 7000));
+show('a read reply above an unread one', placeAll([
+  session({ sessionId: 'u1', ...repliedAt(min(50)) }),
+  session({ sessionId: 'd1', ...repliedAt(min(40), { lastFocusedAt: min(39) }) }),
+], [], NOW));
+show('…a day on, idle: it goes below it', placeAll([
+  session({ sessionId: 'u1', ...repliedAt(min(50)) }),
+  session({ sessionId: 'd1', ...repliedAt(min(40), { lastFocusedAt: min(39) }) }),
+], [], NOW + 24 * 60 * 60000));
+show('your message from Claude or a terminal takes its row to the top too', placeAll([
+  session({ sessionId: 'm1', ...repliedAt(min(5)) }),
+  session({ sessionId: 'm2', ...repliedAt(min(30), { lastFocusedAt: min(29) }), status: 'busy',
+            lastPromptAt: NOW + 7500 }),
+], [], NOW + 8000));
 goTo('i1');
 show("the session you're on isn't held: its row goes where it belongs", heldNow()('i1'));
 goTo(null);
@@ -185,27 +168,17 @@ markOn('tb', tabs, min(4));
 show('…and still read once the app has restarted, as the page keeps it', kindOn('tb'));
 markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(min(3)), seenAt: min(4) })], min(3));
 show('…a reply that came after you last looked is not read', kindOn('tb'));
-const sectionOn = (sid, now) => {
-  const s = state.last.sessions.find((x) => x.sessionId === sid);
-  return sectionOf(s, classify(s, now, view()), now, view());
-};
-markOn('tb', tabs, min(4));
-show('a reply you have read is in Your turn while you are on it', sectionOn('tb', min(4)));
 markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(1) }], min(1));
 keepSeen(state.last.sessions, min(1));
-show('…what the page keeps follows you while you stay on it', state.seen.tb === min(1));
+show('what the page keeps follows you while you stay on it', state.seen.tb === min(1));
 markOn('ta', tabs, NOW);
-show('…and once you are on another, it stays in Your turn for ten minutes after you were last on it, then in Seen',
-  [sectionOn('tb', NOW + 8.9 * 60000), sectionOn('tb', NOW + 9 * 60000)]);
 markOn('tb', [tabs[0], { ...tabs[1], seenAt: NOW + 12 * 60000 }], NOW + 12 * 60000);
 keepSeen(state.last.sessions, NOW + 12 * 60000);
-show('once you have moved on, being on it again leaves it in Seen',
-  [state.seen.tb === min(1), sectionOn('tb', NOW + 12 * 60000)]);
+show('…and once you have moved on, being on it again leaves it as it was', state.seen.tb === min(1));
 markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(NOW + 13 * 60000), seenAt: NOW + 14 * 60000 })],
        NOW + 14 * 60000);
 keepSeen(state.last.sessions, NOW + 14 * 60000);
-show('…until something new comes: a reply it sends while you are on it is read, and in Your turn',
-  [kindOn('tb'), sectionOn('tb', NOW + 14 * 60000)]);
+show('…until something new comes: a reply it sends while you are on it is read', kindOn('tb'));
 state.opening = { sessionId: 'ta', at: Date.now() };
 markOn('tb', tabs, min(2));
 show('a conversation just opened in Claude is the one you are on at once, before Claude says so', state.current);
@@ -216,34 +189,21 @@ state.claudeShowed = null;
 goTo(null);
 
 section('The list');
-// What the list shows, in order: each header with its count (› when it's folded), each project by its folder, where a
-// group's rows are (folded away or not) and the copies pinned below a folded one, and each row's id with its classes.
+// What the list shows, in order: each project by its folder (› when it's folded), where a project's rows are (folded
+// away or not) and the copies pinned below a folded one, and each row's id with its classes.
 function outline(html) {
-  const parts = new RegExp([/<div class="group[^"]*?( collapsed)?" data-key="[^"]*">([^<]*)<span class="n">(\d+)/,
-                             /<div class="project( collapsed)?" data-key="([^"]*)"/,
+  const parts = new RegExp([/<div class="project( collapsed)?" data-key="([^"]*)"/,
                              /<div class="(prows(?: closed)?|pinned)">/, /<div class="row ([^"]*)" data-id="([^"]*)"/]
     .map((part) => part.source).join('|'), 'g');
-  return [...html.matchAll(parts)].map(([, folded, name, n, projectFolded, project, body, cls, id]) =>
-    name ? `[${name} ${n}${folded ? ' ›' : ''}]`
-      : project ? `[${project}${projectFolded ? ' ›' : ''}]`
+  return [...html.matchAll(parts)].map(([, projectFolded, project, body, cls, id]) =>
+    project ? `[${project}${projectFolded ? ' ›' : ''}]`
       : body ? `(${body === 'pinned' ? 'pinned' : body === 'prows' ? 'rows' : 'folded'})`
       : `${id}.${cls.trim().split(' ').join('.')}`).join(' ');
 }
 // The rows placed once, those in `held` where it says they were last shown.
 const placeOnce = (sessions, held = {}) =>
-  placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held, NOW, unread);
-show('the sections in order, Idle folded', outline(sectionsHTML(placeOnce(lineup), NOW)));
-const inIdle = { i1: { section: 'idle', key: 0, tie: 0, latest: 0 } };
-show('a row you pressed, held in folded Idle with a request: pinned below it', outline(sectionsHTML(placeOnce([
-  session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(2) }),
-  session({ sessionId: 'i1', ...asked('i1', min(1)) }),
-  session({ sessionId: 'i2' }),
-], inIdle), NOW)));
-show('…or at work again: pinned too, while you are with it', outline(sectionsHTML(placeOnce([
-  session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(2) }),
-  session({ sessionId: 'i1', status: 'busy', lastPromptAt: min(1) }),
-  session({ sessionId: 'i2' }),
-], inIdle), NOW)));
+  placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held);
+show('one list, no headers, nothing folded', outline(rowsHTML(placeOnce(lineup), NOW)));
 state.groupBy = 'project';
 const inRepo = (sessionId, root, fields) => session({ sessionId, cwd: root, git: { branch: 'main', root }, ...fields });
 state.closedProjects['/work/other'] = true;
@@ -253,15 +213,21 @@ show('a folded project: a reply waiting in it pinned below it', outline(projects
   inRepo('g4', '/work/other', {}),
 ]), NOW)));
 delete state.closedProjects['/work/other'];
-const one = inRepo('a1', '/work/one', repliedAt(min(2)));
-const two = (fields) => inRepo('b1', '/work/two', { ...repliedAt(min(20), { lastFocusedAt: min(19) }), ...fields });
-const twoWas = Object.fromEntries(placeOnce([one, two({})]).map(({ s, section, key, tie, latest }) =>
-  [s.sessionId, { section, key, tie, latest }]));
-const twoAtWork = two({ status: 'busy', lastPromptAt: NOW - 1000 });
-show('projects by their newest row', outline(projectsHTML(placeOnce([one, two({})]), NOW)));
-show('…but a row you pressed keeps its project where it was, as it starts work',
-  outline(projectsHTML(placeOnce([one, twoAtWork], { b1: twoWas.b1 }), NOW)));
-show("…until you've moved on", outline(projectsHTML(placeOnce([one, twoAtWork]), NOW)));
+const one = inRepo('a1', '/work/one', repliedAt(min(20), { lastFocusedAt: min(19) }));
+const two = inRepo('b1', '/work/two', repliedAt(min(2)));
+show('projects A to Z, whichever had the newest message', outline(projectsHTML(placeOnce([two, one]), NOW)));
+show('…by name whatever its case, numbers in number order', outline(projectsHTML(placeOnce([
+  inRepo('c1', '/work/Zebra', {}), inRepo('c2', '/work/app10', {}), inRepo('c3', '/work/app9', {}),
+  inRepo('c4', '/work/beta', {})]), NOW)));
+const rest = [inRepo('a2', '/work/one', repliedAt(min(10))), two];
+const a1Was = Object.fromEntries(placeOnce([one, ...rest]).map(({ s, latest, quiet }) => [s.sessionId, { latest, quiet }]));
+const a1AtWork = inRepo('a1', '/work/one', { ...repliedAt(min(20), { lastFocusedAt: min(19) }), status: 'busy',
+                                              lastPromptAt: NOW - 1000 });
+show('inside a project, newest message first', outline(projectsHTML(placeOnce([one, ...rest]), NOW)));
+show('…a row you pressed stays where it was there as it starts work',
+  outline(projectsHTML(placeOnce([a1AtWork, ...rest], { a1: a1Was.a1 }), NOW)));
+show("…until you've moved on: then it goes to its project's top, and the projects stay as they are",
+  outline(projectsHTML(placeOnce([a1AtWork, ...rest]), NOW)));
 state.groupBy = 'status';
 
 section('Your message and Claude\'s line, written in and erased');
@@ -382,11 +348,17 @@ state.shownAt = {};
 section('Sorting');
 const since = (t) => `now-${Math.round((NOW - t) / 60000)}m`;
 show('working, your message newer than its reply',
-  since(sortKey(session({ lastPromptAt: min(3), lastReplyAt: min(9), statusUpdatedAt: min(1) }), 'busy')));
-show('working, no new message',
-  since(sortKey(session({ lastPromptAt: min(9), lastReplyAt: min(8), statusUpdatedAt: min(2) }), 'busy')));
+  since(movedAt(session({ lastPromptAt: min(3), lastReplyAt: min(9), statusUpdatedAt: min(1) }), 'busy')));
+show('working, no message of yours since its reply: by its reply',
+  since(movedAt(session({ lastPromptAt: min(9), lastReplyAt: min(8), statusUpdatedAt: min(2) }), 'busy')));
 show('idle, by its newest message',
-  since(sortKey(session({ lastPromptAt: min(30), lastReplyAt: min(20), messageAt: min(15) }), 'idle')));
+  since(movedAt(session({ lastPromptAt: min(30), lastReplyAt: min(20), messageAt: min(15) }), 'idle')));
+show('compacting, with no message of yours since its reply: by its reply, not when it started',
+  since(movedAt(session({ lastPromptAt: min(30), lastReplyAt: min(20), statusUpdatedAt: min(1) }), 'busy')));
+show('…with no messages recorded at all: by when it started working',
+  since(movedAt(session({ statusUpdatedAt: min(1) }), 'busy')));
+show('a request, by when it came, though its reply was long before',
+  since(movedAt(session({ lastReplyAt: min(40), ask: { id: 'a', tool: 'Bash', input: {}, at: min(4) } }), 'needs')));
 
 section('A new turn held steady');
 const fresh = { statusUpdatedAt: NOW - 1000 };
@@ -445,6 +417,31 @@ state.last.now = NOW;
 const nowRing = contextRing(session({ ...reply, sessionId: 'n1', agent: opus(980000) }));
 show('a ring that says compact now', /class="ctx open now"/.test(nowRing) && /% · Compact now</.test(nowRing));
 show('…and why, in its tip', /title="([^"·]*)/.exec(nowRing)?.[1]);
+calm.matches = false;  // the settling is motion, which the stand-in otherwise turns off
+const ringOf = (fields) => contextRing(session({ ...reply, sessionId: 'k1', agent: opus(640000), ...fields }));
+state.hoverCtx = 'k1';
+const turningRing = ringOf({ status: 'busy', compacting: min(1) });
+show('compacting: the ring turns, and stays a ring while pointed at', /class="ctx compacting"/.test(turningRing)
+  && /ctxTurn|animation-delay/.test(turningRing) && !/ctx-fill/.test(turningRing));
+show('…and says so in its tip', /title="([^"]*)/.exec(turningRing)?.[1]);
+state.hoverCtx = null;
+const settledRing = contextRing(session({ ...reply, sessionId: 'k1', agent: opus(80000) }));
+show('compacted: the arc fades where it was as the ring fills to its new size', /class="ctx settling"/.test(settledRing)
+  && /class="ctx-arc" transform="rotate\(\d+ 6 6\)"/.test(settledRing) && /class="ctx-fill"/.test(settledRing));
+show("…which one that wasn't compacting doesn't",
+  /settling/.test(contextRing(session({ ...reply, sessionId: 'k2', agent: opus(80000) }))));
+calm.matches = true;
+const k3 = (fields) => contextRing(session({ ...reply, sessionId: 'k3', agent: opus(980000), ...fields }));
+k3({ compacting: min(1) });
+show("compacted, its new size not read yet: it doesn't say compact now", !/Compact now/.test(k3({})));
+show('…nor 29s on with the same size; 31s on (stopped with Esc), it does again',
+  [29000, 31000].map((t) => { state.last.now = NOW + t; return /Compact now/.test(k3({})); }));
+state.last.now = NOW;
+const k4 = (tokens, fields) => contextRing(session({ ...reply, sessionId: 'k4', agent: opus(tokens), ...fields }));
+k4(980000, { compacting: min(1) });
+k4(980000, {});
+k4(80000, {});
+show('once its new size is in, a size that grows big again says compact now', /Compact now/.test(k4(980000, {})));
 
 section('Projects');
 show('a worktree counts toward its repo', projectOf(session({
@@ -567,7 +564,7 @@ print(projectsHTML(placeRows([
   session({ sessionId: 'g2', status: 'busy', lastPromptAt: min(1) }),
   session({ sessionId: 'g3', cwd: '/work/other', git: { branch: 'main', root: '/work/other' }, outcome: 'Answered',
     lastReplyAt: min(500), seenAt: min(499) }),
-].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false, NOW, unread), NOW));
+].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false), NOW));
 state.groupBy = 'status';
 
 section('Command cards');
@@ -589,12 +586,23 @@ print(askHTML({ id: 'e', tool: 'mcp__planner__add_event', input: {
   room: null } }));
 print(askHTML({ id: 'n', tool: 'mcp__server__list_things', input: {} }));
 
+section('Keys on a question once it has been pressed');
+show('of 3 options, none picked yet: 1, 3 and 4 (past them), ↓ and ↑ (the first and the last), and a letter',
+     ['1', '3', '4', 'ArrowDown', 'ArrowUp', 'a'].map((key) => keyPick(3, false, [], key)));
+show('…the second picked: 2 again (kept, not taken back), 1, ↓, ↑',
+     ['2', '1', 'ArrowDown', 'ArrowUp'].map((key) => keyPick(3, false, [1], key)));
+show('…at the ends, ↑ on the first and ↓ on the last: nowhere to go',
+     [keyPick(3, false, [0], 'ArrowUp'), keyPick(3, false, [2], 'ArrowDown')]);
+show('taking several, the first and third picked: 2 adds it, 3 takes it out, and ↓ does nothing',
+     ['2', '3', 'ArrowDown'].map((key) => keyPick(3, true, [0, 2], key)));
+show('no options (a question answered in words): nothing', ['1', 'ArrowDown'].map((key) => keyPick(0, false, [], key)));
+
 section('What the page forgets');
 // forgetGone works from the page's own clock.
 const earlier = (ms) => Date.now() - ms;
 Object.assign(state, {
   loadedAt: earlier(5 * 60000),
-  seen: { listed: earlier(7200000), endedLongAgo: earlier(7200000), endedJustNow: earlier(7200000),
+  seen: { listed: earlier(7200000), endedLongAgo: earlier(2 * 86400000), endedJustNow: earlier(7200000),
           readRecently: earlier(60000), readWithinTheHour: earlier(40 * 60000) },
   listedAt: { endedJustNow: earlier(10000), askJustAnswered: earlier(10000) },
   quiz: { askWaiting: {}, askJustAnswered: {}, askAnsweredLongAgo: {} },
@@ -1162,6 +1170,10 @@ print('-- the list on Changes, as git lists it, the first lit');
 print(changesShelfHTML(chRow, chState('unstaged', chUnstaged)));
 print('-- the list on Outgoing, under each commit');
 print(changesShelfHTML(chRow, chState('outgoing', chOutgoing)));
+show('while a tab\'s view is on its way: where it\'s coming from',
+     ['unstaged', 'staged', 'outgoing'].map((scope) => changesWaitWords(chRow, chState(scope, undefined))));
+show('…while git is still counting the changes', changesWaitWords(chRow, chState('unstaged', { counting: true })));
+show('…and no list down the side meanwhile', changesShelfHTML(chRow, chState('unstaged', { counting: true })));
 print('-- the changes inline, each file\'s head with Open in Editor');
 state.editors = { apps: [{ id: 'com.microsoft.VSCode', name: 'Visual Studio Code' }] };
 const chOpen = chState('unstaged', chUnstaged);
@@ -1184,18 +1196,6 @@ show('nothing running', catPose(catCounts(0, 0, 3)));
 show('no sessions at all', catPose(catCounts(0, 0, 0)));
 show('two working', catPose(catCounts(0, 2, 1)));
 show('one needs your input while two work', catPose(catCounts(1, 2, 1)));
-const inSections = (...sections) => sections.map((section) => ({ section }));
-show('its labels: two waiting by name beside it, the other five as dots in a row under them',
-     catLabels(inSections('turn', 'turn', 'busy', 'busy', 'seen', 'idle', 'idle')));
-show('…nothing waiting: the dots alone, level with the cat', catLabels(inSections('busy', 'idle', 'idle')));
-show('…seven waiting: five by name, the other two first among the dots',
-     catLabels(inSections('turn', 'turn', 'turn', 'turn', 'turn', 'turn', 'turn', 'busy')));
-show('…twenty: the dots go on in a second row after twelve',
-     catLabels(inSections('turn', ...Array(19).fill('idle'))));
-show('a tag\'s place, from the corner of the cat\'s square: on its left, and on its right on the screen\'s left half',
-     [false, true].map((right) => catLabelStyle(CAT_TAG_END, CAT_TAG_STEP, CAT_TAG_TALL, right)));
-show('…and a dot\'s', [false, true].map((right) => catLabelStyle(CAT_DOT_FIRST - CAT_DOT_WIDE / 2, CAT_DOTS_BELOW,
-                                                                  CAT_DOT_TALL, right)));
 show('its eyes, toward a pointer up and to its right while it looks at you', catGaze(30, -30, 0));
 show('…toward one below it while it watches', catGaze(0, 40, 50));
 show('…and only a little toward one on its face, close to its eyes', catGaze(4, 6, 0));
@@ -1209,20 +1209,85 @@ show('…after a quick sweep from its left to its right, catching up over a mome
 show('…and at 30 frames a second, each frame further on than the last, without shaking',
      [1, 2, 3, 4, 5, 6, 8].map((n) => eyesAfter(n, 30)));
 
-section('The header, sliding away with the list (header.js)');
-show('scrolled down 20 points from the top: 20 points of it gone', headerAfterScroll(0, 20, 20));
-show('…down 300 more: all of it gone, and no further', headerAfterScroll(20, 300, 320));
-show('…back up 10 from far down the list: 10 points of it back', headerAfterScroll(HEADER_TALL, -10, 310));
+section('The chats beside the folded cat (chats.js)');
+show('what brings a chat out: a request, a wait without one, a reply you haven\'t read; nothing for one you have read, '
+     + 'one at work, one idle, nor a start not listed yet',
+     [chatNews(session({ ask: { id: 'q1' } }), 'needs'), chatNews(session({ statusUpdatedAt: min(2) }), 'needs'),
+      chatNews(session({ lastReplyAt: min(1) }), 'turn'), chatNews(session({}), 'seen'), chatNews(session({}), 'busy'),
+      chatNews(session({}), 'idle'), chatNews(session({ pending: true, ask: { id: 'q2' } }), 'needs')]);
+const chatRow = (sid, news, on = false) => ({ sid, news, on });
+const chatsAt = (chats) => ({ out: chats.out.map((c) => `${c.sid} ${Math.round(c.left / 1000)}s${c.kept ? ' pinned' : ''}`),
+                              queue: chats.queue.map((q) => q.sid), came: chats.came, went: chats.went });
+const foldedRule = { open: false, quiet: false, holding: false, most: 3 };
+// The list's order is newest first: d's request is the newest, then c's, b's reply and a's request.
+const asking = [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5'), chatRow('a', 'ask:1')];
+let chats = chatsStep({ out: [], queue: [], done: {}, seeded: false }, [chatRow('a', 'ask:1'), chatRow('b', null)],
+                      foldedRule);
+show('as the page loads, what\'s already waiting doesn\'t come out', chatsAt(chats));
+chats = chatsStep(chats, asking, foldedRule);
+show('three more come to need you: all three come out, newest first, nearest the cat', chatsAt(chats));
+const newest = [chatRow('e', 'ask:9'), ...asking];
+show('…a newer one comes out on top, and the oldest of the three goes back in to wait',
+     chatsAt(chatsStep(chats, newest, foldedRule)));
+show('…but while you hold one (pointing at it, typing in it, or in its tab), the newer one waits, and nothing moves',
+     chatsAt(chatsStep(chats, newest, { ...foldedRule, holding: true })));
+show('…their time runs, but not for one that\'s held',
+     chatsTick(chats.out, 1000, (c) => c.sid === 'c').out.map((c) => `${c.sid} ${c.left}`));
+const ran = chatsTick(chats.out, CHAT_MS, (c) => c.sid !== 'd');
+show('…and once one\'s time has run out, it goes back', ran.expired.map((c) => c.sid));
+chats = chatsStep(chatsBack({ ...chats, out: [...ran.out, ...ran.expired] }, 'd'), asking, foldedRule);
+show('…counted as seen, so it doesn\'t come out again for the same request', chatsAt(chats));
+show('…but does for something new in its session, newest again',
+     chatsAt(chatsStep(chats, [chatRow('d', 'ask:7'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5'),
+                               chatRow('a', 'ask:1')], foldedRule)));
+show('one answered elsewhere goes', chatsAt(chatsStep(chats,
+  [chatRow('d', 'ask:3'), chatRow('c', null), chatRow('b', 'reply:5'), chatRow('a', 'ask:1')], foldedRule)));
+show('pressed, its tab in front: it stays, held, though its reply has been read there', chatsAt(chatsStep(chats,
+  [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', null, true), chatRow('a', 'ask:1')], foldedRule)));
+show('…and goes once you\'ve left the tab', chatsAt(chatsStep(chats,
+  [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', null), chatRow('a', 'ask:1')], foldedRule)));
+show('what comes in the tab you\'re in is seen there, and doesn\'t come out', chatsAt(chatsStep(chats,
+  [chatRow('f', 'ask:11', true), chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5')], foldedRule)));
+const pinnedB = { ...chats, out: chats.out.map((c) => (c.sid === 'b' ? { ...c, kept: true } : c)) };
+show('a pinned one stays out as newer ones come, the newest taking the rest of the room',
+     chatsAt(chatsStep(pinnedB, [chatRow('g', 'ask:12'), chatRow('e', 'ask:9'), ...asking], foldedRule)));
+show('while the cat is moved, or its list is out, nothing more comes out', chatsAt(chatsStep(chats, newest,
+  { ...foldedRule, quiet: true })));
+show('with the panel open, all of it counts as seen, and what was out goes', chatsAt(chatsStep(chats, newest,
+  { ...foldedRule, open: true })));
+show('in a session\'s tab: the one you\'re on, seen there 1 second ago, or opened from here 2 seconds ago; not 4 '
+     + 'seconds after the app last saw you there, nor another session',
+     [chatLookedAt(session({ focused: true, seenAt: min(1 / 60) }), NOW),
+      chatLookedAt(session({ sessionId: 'x', focused: true }), NOW, { sid: 'x', ago: 2000 }),
+      chatLookedAt(session({ focused: true, seenAt: min(4 / 60) }), NOW),
+      chatLookedAt(session({ focused: false, seenAt: min(1 / 60) }), NOW)]);
+show('how many chats fit, 160 and 220 tall, in 600, 300 and 100 points (the first always)',
+     [600, 300, 100].map((tall) => chatsFit([160, 220], tall)));
+const catAt = { x: 45, y: 23 };
+show('where they go, two of them 160 and 120 tall, 340 across, with the pill 22 tall: left and down',
+     chatsLayout([160, 120], { right: false, up: false }, 340, catAt, 22));
+show('…right and up, from a cat low on the screen\'s left half',
+     chatsLayout([160, 120], { right: true, up: true }, 340, catAt, 22));
+
+section('The folded cat\'s list, while it\'s pointed at (peek.js)');
+show('what its head says', [peekTitle(0), peekTitle(1), peekTitle(4)]);
+
+section('The header, pushed away by the held row (header.js)');
+show('scrolled down 20 points with the row you\'re on in view, or still folding at the top: it stays',
+     headerAfterScroll(0, 20, 300, 0));
+show('…the row\'s copy 12 points past where it has folded all it can after a 20-point scroll: 12 points of it gone',
+     headerAfterScroll(0, 20, 300, 12));
+show('…down 300 more, the copy as far past: all of it gone, and no further', headerAfterScroll(12, 300, 600, 300));
+show('the copy far past already (the list moved the row there), a 5-point scroll: 5 points further, no more',
+     headerAfterScroll(10, 5, 400, 200));
+show('back up 10 from far down the list: still all gone', headerAfterScroll(HEADER_TALL, -10, 310, 0));
+show('…part-way, and back up 40: as far gone as it was', headerAfterScroll(20, -40, 300, 0));
 show('…back up 32 to 8 points from the very top: only as far gone as the list has scrolled',
-     headerAfterScroll(HEADER_TALL, -32, 8));
-show('a scroll stopped with it part-way, going down: all gone', headerSettle(20, 1, 400));
-show('…going down, only 30 points from the top: as far as the list has scrolled', headerSettle(20, 1, 30));
-show('…going up: all there', headerSettle(20, -1, 400));
-show('…all there or all gone already: as it is', [headerSettle(0, 1, 400), headerSettle(HEADER_TALL, -1, 400)]);
+     headerAfterScroll(HEADER_TALL, -32, 8, 0));
 show('gone: once all of it has (within half a point), and until it has come back 6 points',
      [[46.4, false], [46.6, false], [44, true], [41.5, true], [40.9, true]].map(([off, was]) => headerGone(off, was)));
 const mayGo = { folded: false, reading: false, carded: false, room: 300 };
-show('it may slide away with a list that scrolls; not folded, with the reader open, with a card under it, nor with '
+show('it may be pushed away in a list that scrolls; not folded, with the reader open, with a card under it, nor with '
      + 'a list a point or less from scrolling',
      [mayGo, { ...mayGo, folded: true }, { ...mayGo, reading: true }, { ...mayGo, carded: true },
       { ...mayGo, room: 1 }, { ...mayGo, room: 1.5 }].map(headerMayGo));

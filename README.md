@@ -7,35 +7,42 @@ with what each is doing, so you can see at a glance which one needs you.
 <p align="center"><img src="docs/screenshot.png" width="412"
   alt="The Whozmove panel: a session asking to run a command, one working, and one with a reply waiting for you"></p>
 
-- group by **status** (Your turn / Working / Seen / Idle) or by **project**, with a ＋ per project that starts a new
-  conversation there (⌥-click: in the terminal)
-- **Your turn** comes first: the sessions waiting on you, with a request or question (a pulsing red-orange dot) or a
-  reply you haven't read (an amber dot), first come, first served. One that comes in joins the end, so nothing above
-  it moves, and a reply waits there until you've read it. A reply you've read gets an empty amber dot and stays where
-  it is while you're on its session, and for 10 minutes after you were last on it; then its row goes to **Seen**,
-  below **Working**, and to **Idle** an hour after the last message (Claude's or yours) or the last time you were on
-  it, whichever is later. Once it's in Seen, being on it again leaves it there until something new comes. Opening a
-  session here, being on it in Claude, Ghostty or iTerm2 for a couple of seconds after it replied (watching the reply
-  come in counts), or writing to it counts as reading its reply, and as being on it; for a session in another terminal,
-  only opening it here or writing to it does. The header's line counts what the sections show ("2 your turn · 1
-  working", in red-orange while a request waits), or with neither, how many are in Seen and Idle
+- one list, **newest first**, as a chat app's, or grouped by **project**, the projects A to Z so they never move,
+  each with its conversations newest first and a ＋ that starts a new conversation there (⌥-click: in the terminal)
+- a conversation goes to the top whenever a message comes: Claude's reply, a request or question, or yours, from the
+  panel, Claude or a terminal. While Claude works, its row stays where your message put it; its steps never move it.
+  A row you've just pressed stays where it is until your pointer has left the panel, then goes to the top. Once a
+  conversation is idle (read, with nothing new for a day), it goes below the rest, so a reply you haven't read never
+  sits under one you were done with
+- its dot says whose move it is: a pulsing red-orange one for a request or question, amber for a reply you haven't
+  read, which stays so until you've read it, an empty amber ring once you have, and grey while Claude works or once it
+  has been quiet for a day. Opening a session here, being on it in Claude, Ghostty or iTerm2 for a couple of seconds
+  after it replied (watching the reply come in counts), or writing to it counts as reading its reply; for a session in
+  another terminal, only opening it here or writing to it does
 - **the row you're on stays in view**: scroll the list past the session you're on, or let the list move its row out of
-  sight (down to Working as it starts on your message, say), and the row holds on at the top of the list (or at its
+  sight (to the top as a message comes in, say), and the row holds on at the top of the list (or at its
   bottom, while it's further down), folding a line at a time until its name, Claude's line and where it runs are left,
   and the rest of the list goes under it. However quickly the list moves, the lines fold one after another, catching
   up within a moment. Back in view it opens out and glides into its place again; press it to scroll back to it.
   Switch to another session and its tint moves over to that one's row as it slides away. A row you're typing in, or
   one too tall to show whole, goes out of sight as any row does
-- **more room for the list**: the header slides away as you scroll the list down, point for point, and comes back as
-  soon as you scroll up, from anywhere in the list; it's always there at the top. While it's gone, Whozmove peeks out
-  beside the panel's top corner, on the side facing the middle of the screen: it looks up as your pointer comes near,
-  blinks slowly when you rest on it, and flicks an ear when something new needs you. Press it and the panel folds round
-  it right where it is; drag it to move the panel. Opened again, the panel grows round it, the header back
+- **more room for the list**: the header stays as you scroll the list down until the row you're on reaches it and has
+  folded down there; scrolling on, that row pushes the header away, and it stays away, even part-way, until you've
+  scrolled back to the top of the list. While it's gone, Whozmove peeks out beside the panel's top corner, on the side
+  facing the middle of the screen: it looks up as your pointer comes near, blinks slowly when you rest on it, and flicks
+  an ear when something new needs you. Press it and the panel folds round it right where it is; drag it to move the
+  panel. Opened again, the panel grows round it, the header back
 - **flick the panel away**: a quick sideways two-finger swipe on the panel pushes it off that side of the screen, and
   Whozmove peeks out from the screen's edge; press it (or **Show / Hide Panel**, or ⌃⌥N) and the panel slides back where
   it was. Up and down still scroll the list, and while you're typing in one of its boxes, a sideways swipe stays the
-  box's. Folded, a two-finger swipe any way moves it, gliding on as far as the swipe was quick, and never past the
-  screen's edge
+  box's
+- **what needs you comes out beside the folded panel**: while the panel is folded, a request, a question, a plan or a
+  reply you haven't read comes out beside it by itself, as its row from the list, so you can answer it there, or press
+  it to open its session. Newest first, three at most, each for 45 seconds, the time it has left shrinking along its
+  foot; pointing at one, typing in it or being in its session keeps them all out, and nothing new comes out meanwhile.
+  The pin keeps one out, × sends it back, and under them it says how many more are waiting
+- **rest the pointer on the folded panel** and it opens, headed with how many are waiting on you; move off and it folds
+  back. Press it to keep it open. What's out beside it goes into its row as the panel opens, and back out as it folds
 - **start a conversation** from the ＋ in the panel's header, or ⌃⌥N from any app: a card opens at the top of the
   panel, under the header; write what Claude should do and press ⌘Return (Return starts a new line). The card is
   shaped like the row it becomes.
@@ -99,7 +106,8 @@ with what each is doing, so you can see at a glance which one needs you.
   click opens a card with how much is left before auto-compact ("427k left") and three ways to compact:
   Compact, Keep details and Keep essentials (the last two are `/compact` with instructions for what the
   summary keeps), or your own focus. It goes in like a model pick, while the session is idle. Claude's line
-  says "Compacting the conversation" until it's done, and the ring drops to the new size straight away.
+  says "Compacting the conversation" until it's done. Whenever a conversation compacts, by itself or asked
+  for, the ring becomes a short arc going round, and once it's done it fills to the new size.
   When it's a good time to compact, the ring opens by itself and says "98% · Compact now", and why when you
   point at it. That happens only while the session sits idle, once its conversation is nearly full or long,
   or, once it's big, when its work has just been committed or you've been away from it for an hour
@@ -208,11 +216,13 @@ with what each is doing, so you can see at a glance which one needs you.
   what's asked of it; any other tool's input field by field, as Claude's own prompt lists it), with **Deny**
   and **Allow once**, never "always allow". Each part shows up to 100,000 characters; past that the card
   says the content is too large to show in full, and Allow once still allows all of it. Claude's own prompt
-  stays usable too, and whichever you answer first counts. Sub-agents' requests and sessions that aren't
-  interactive (`claude -p`) are left to Claude's own prompt
+  stays usable too, and whichever you answer first counts. Click the card and its keys are the panel's
+  until you answer, press Esc or click elsewhere: Return allows once. Sub-agents' requests and sessions that
+  aren't interactive (`claude -p`) are left to Claude's own prompt
 - what a session wrote for you to read, on a tag on its row, quietly as its icon and how many (in the plan's colour
-  while a plan waits for you): press it and the panel grows beside the
-  list, which stays where it was, to fit what's shown (up to the screen's edges; a long plan scrolls), with the
+  while a plan waits for you): press it and the panel grows at once beside the list, which stays where it was, saying
+  where what's shown is coming from (the session's transcript, or a file) until it's in, then fits it (up to the
+  screen's edges; a long plan scrolls), with the
   session's **Plans**, **Prototypes** (`.html` pages it created) and **Notes** (`.md` files it created) beside it,
   newest first. Drag it by either header to move it, reader and all. Plans and notes read as formatted text; a prototype
   opens from its file once the panel has grown, as it would in a browser: the pictures, scripts and styles beside it,
@@ -225,7 +235,9 @@ with what each is doing, so you can see at a glance which one needs you.
   version) or stopped; approving it happens in the session, where **Take me there** brings you, as Claude Code takes a
   plan's approval only from its own prompt. ✕ (or the tag again) folds the panel back to the list, where the list is now
 - Claude's questions (its question tool) answered on the row, one at a time like Claude's own box: pick an
-  option (or several), type your own answer, or enter a number, then Skip, Next, Submit, or × to dismiss
+  option (or several), type your own answer, or enter a number, then Skip, Next, Submit, or × to dismiss.
+  Once you've clicked the card, the keys work on it too: 1 to 9, or ↓ and ↑, pick an option, and Return goes
+  on to the next question or submits, rather than reaching Claude's own copy of the question in the terminal
 - at the end of its bottom line, how the session's agent is set up at its start, and where it runs: the session's
   **branch**, in purple with a worktree icon when it runs in a worktree, or its folder outside git. Pointed at, it says
   its project, that it's a worktree of it and on which branch, its folder and the app it runs in. Short of room, a
@@ -298,12 +310,13 @@ A label's colour says whose move it is:
 | Colour | Meaning | Labels |
 |---|---|---|
 | red-orange | blocked or broken: fix it | a request or question waiting |
-| amber | your move: a routine next step | Your turn |
+| amber | your move: a routine next step | a reply you haven't read |
 | cream | work underway | "Claude", beside what it's doing |
 
 ## Install
 
-Needs macOS, Xcode Command Line Tools (`clang`, and the `python3` the hooks run on) and Claude Code.
+Needs macOS 12 or later, with Safari up to date (its engine draws the panel), Xcode Command Line Tools (`clang`, and
+the `python3` the hooks run on) and Claude Code.
 Optional: `gh`, signed in, for PR status; Claude Desktop, Ghostty and iTerm2, for jumping to and controlling their
 sessions (in iTerm2, any session once its Python API is on, else one alone in its window); the `claude` command,
 signed in to a Claude plan, for your plan's usage (Claude Desktop's own copy will do). Sessions in other terminals
@@ -325,10 +338,12 @@ cd whozmove
 ```
 
 The hooks are how the panel learns your last prompt, Claude's last reply, requests for your OK and the tool
-each agent is using. `install.sh` adds them as a Claude Code plugin, `whozmove`, with Claude Code's own
-`claude plugin` commands, so there's nothing to edit in `~/.claude/settings.json`. Without the `claude`
-command (Claude Desktop only, say), it prints the two `/plugin` lines to run in a session instead. Sessions
-pick up hooks when they start, so they apply to sessions started (or restarted) after this.
+each agent is using. The app carries them, and each time it opens from an Applications folder it adds them to
+Claude Code as a plugin, `whozmove`, or brings them up to date there, with Claude Code's own `claude plugin`
+commands, so there's nothing to edit in `~/.claude/settings.json`. It finds `claude` as your terminal does, or uses
+Claude Desktop's own copy. Once Claude Code is there, it waits for Apple's command line developer tools, which the
+hooks run on, and if you take the hooks out of Claude Code, it leaves them out. Sessions pick up hooks when they
+start, so they apply to sessions started (or restarted) after this.
 
 macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to change settings,
 compact, focus the message box and send a new conversation's first message in Claude Desktop), and **Automation** of
@@ -339,9 +354,9 @@ Accessibility too, to tick its box in iTerm2's Settings, and asks for nothing mo
 one-time cookie from iTerm2 through that same Automation, and iTerm2 lists the connection in its Script Console.
 
 After changing anything in `app/`, `modules/`, `panel/`, `icon/` or the hooks, run `./build.sh` again in your
-terminal. It puts the app in place and restarts it, with the hooks too once they're installed as the plugin (a hook
-change reaches sessions started after that). Run inside Claude Code, by an agent or by you with `!`, it leaves the
-hooks as they are, since every session you start would run them; and once you've set up Deploy for Whozmove in the
+terminal. It puts the app in place and restarts it, and the app brings its hooks up to date as it starts (a hook
+change reaches sessions started after that). Run inside Claude Code, by an agent or by you with `!`, the hooks are
+left as they are, since every session you start would run them; and once you've set up Deploy for Whozmove in the
 panel, it only compiles while the panel runs with Deploy's button showing, and Deploy on the session's row puts it in
 place when you press it. Running `./install.sh` again updates the hooks too. `./install.sh --uninstall` removes the
 app, its login item and the plugin, and asks before deleting Whozmove's folder.
@@ -358,7 +373,8 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | Session in the iTerm2 tab you're looking at | iTerm2's Apple events, once a second while it's in front: the terminal devices (ttys) of the sessions in its current window's current tab (and of the one with the keyboard, when the tab is split), matched to each session's own, the one iTerm2 gave it, while its `claude` is in its terminal's foreground, the way a click finds a session's tab. A session is iTerm2's when iTerm2, or the server it runs its sessions under (`iTermServer-…`, which keeps them running when iTerm2 quits or crashes), is up its process tree |
 | Last prompt / reply / notice | `~/Library/Application Support/Whozmove/sessions/<id>.json`, written by the hook (the folder is yours only: 700) |
 | Live line | the same file: the hook describes each tool call as it starts (a command's own description, the file, the query, …) |
-| Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude, Ghostty or iTerm2 (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
+| Read, unread, quiet | Unread: a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude, Ghostty or iTerm2 (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since. Read: a reply you've read. Quiet: no reply yet, or one you've read with nothing since for a day, the transcript's newest message and the last time you were on it included |
+| Order | newest first: your last message, Claude's last reply, when a request came, else the transcript's newest message; a working session by your message, not its steps; a compaction, the summary it leaves included, doesn't count; idle ones below the rest, newest first there too |
 | Permission requests | `~/Library/Application Support/Whozmove/asks/<id>.json`, left by the permission hook while it waits; your answer goes back in `<id>.answer.json` |
 | Branch and worktree | the session folder's `.git`, read directly (no `git` process) |
 | Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); iTerm2's Python API while it's on (`send_text` with `suppress_broadcast`, over its Unix socket in `~/Library/Application Support/iTerm2/private`, opened with a one-time cookie from its AppleScript `request cookie and key`), else its AppleScript (`write text … newline no`), each key as the characters it sends (Return, Backspace, Ctrl+S, and Esc `[Z` for Shift+Tab), into the session found by its own terminal device (tty), and through AppleScript only while it's alone in its window, which the same script checks right before typing; Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
@@ -375,16 +391,16 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | File | Role |
 |---|---|
 | `app/` | the native app's core, one file per job (`core/`: the floating `NSPanel`, the menu bar item, the bridge to the page, the rows, the session you're on, and words typed into a session or sent to Claude Desktop), what modules fill in (`contracts/`) and the helpers that know no app (`shared/`) |
-| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `git/` (each row's checkout, its next steps and Create PR, and its PRs), `deploy/`, `changes/` (a checkout's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
-| `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), and `page.sh`, which puts the page together with each module's page files |
+| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin, put into Claude Code and kept up to date there); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `git/` (each row's checkout, its next steps and Create PR, and its PRs), `deploy/`, `changes/` (a checkout's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card), `spotify/` (the now-playing strip, its lyrics and Spotify's token) and `install/` (the app setting itself up as it opens: where it runs from, Apple's developer tools, and its hooks in Claude Code) |
+| `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), `page.sh`, which puts the page together with each module's page files, and `bundle.sh`, which makes the app bundle, with the hooks inside it, and signs it (build.sh) |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
 | `modules/claude-code/plugin/hooks/whozmove-claude-permission.py` | Claude Code PermissionRequest hook: asks in the panel as well as in Claude; and its PreModelSwitch hook: asks "Switch model?" in the panel for a switch the panel made |
-| `modules/claude-code/plugin/` (`hooks/hooks.json`, `.claude-plugin/`) | the Claude Code plugin that runs both hooks; `install.sh` adds it from a copy in Whozmove's folder |
+| `modules/claude-code/plugin/` (`hooks/hooks.json`, `.claude-plugin/`) | the Claude Code plugin that runs both hooks; the app adds it as it opens, from a copy in Whozmove's folder |
 | `icon/make-icon.m` | draws `icon/AppIcon.icns` (re-run only to change the icon) |
 | `build.sh`, `install.sh`, `app/login-item.plist` | build, and install (the plugin and the login item); they read the app's name and id from `app/Info.plist` |
-| `app/swap-in.sh`, `modules/claude-code/plugin.sh` | what puts a build of Whozmove and its hooks in place and restarts the app (every build carries a copy), and the plugin's copy with a version named after its hooks |
-| `tests/` | `all.sh` runs every test: `rows.sh` checks the rows the app builds for a sample home folder, when keys may go into each session, its mode menus' Shift+Tab counts, the keys a command is typed with, what its menus say about why nothing can go in, how a command's result is read, what the usage card gets from Claude Code's recorded answers, what a new conversation's start runs and how folder trust is read and recorded, and that this README names the macOS permissions the app asks for and no file names one it doesn't, `panel.sh` the page's labels, colours and row HTML, `build.sh` when a build only compiles and when it goes straight in, against a throwaway home folder, `checks.sh` that the modules stay apart; each compares with its recorded `.expected.txt`, and each module's own tests run too (Claude Code's run both hooks against a throwaway home folder; the usage module's check what the usage card shows and the vine's reset frame by frame) |
+| `app/swap-in.sh`, `modules/claude-code/plugin.sh` | what puts a build of Whozmove in place and restarts the app, which brings the hooks it carries up to date (every build carries a copy), and the plugin's copy with a version named after its hooks |
+| `tests/` | `all.sh` runs every test: `rows.sh` checks the rows the app builds for a sample home folder, when keys may go into each session, its mode menus' Shift+Tab counts, the keys a command is typed with, what its menus say about why nothing can go in, how a command's result is read, what the usage card gets from Claude Code's recorded answers, what a new conversation's start runs and how folder trust is read and recorded, and that this README names the macOS permissions the app asks for and no file names one it doesn't, `panel.sh` the page's labels, colours and row HTML, `build.sh` when a build only compiles and when it goes straight in, against a throwaway home folder, `checks.sh` that the modules stay apart; each compares with its recorded `.expected.txt`, and each module's own tests run too (Claude Code's run both hooks against a throwaway home folder, and put its plugin into a stand-in Claude Code; the install module's check how the app sets itself up as it opens; the usage module's check what the usage card shows and the vine's reset frame by frame) |
 | `CONTRIBUTING.md` | how it's built and how to work on it |
 | `CHANGELOG.md` | what changed in each release |
 | `SECURITY.md` | how to report a security problem, and what happens next |
@@ -410,9 +426,13 @@ Debug log: `~/Library/Application Support/Whozmove/panel.log`.
   message and Claude's last reply (their first 280 characters), what it's doing at the moment (a command, a file's
   name, a search) and how far each turn took the work, requests while they wait for your OK, the deploy command
   you've confirmed for each project, with each deploy's log, the words of a conversation you start in a terminal until
-  it has started, the lyrics found for the last 1,000 songs you played, until you turn lyrics off, and a small log,
+  it has started, the lyrics found for the last 1,000 songs you played, until you turn lyrics off, where the app runs
+  from and when its hooks first went into Claude Code, and a small log,
   which can hold folder paths, repository and conversation names, and text typed into sessions. A new tab in iTerm2 runs from a file of commands in your own temporary folder, which
   only you can read and which removes itself as it runs.
+- The hooks go into Claude Code through its own `claude plugin` commands, which record them in its settings
+  (`~/.claude/settings.json`): Whozmove itself doesn't edit that file for them. They record nothing once Whozmove is
+  gone, only while the app noted in its folder is there.
 - Trusting a folder on the new conversation card records exactly that, the one key for that folder
   (`hasTrustDialogAccepted`), in Claude Code's `~/.claude.json`, where Claude Code and Claude Desktop both look, under
   the same lock Claude Code takes to write it. Nothing else in that file is changed, and only that key is ever read

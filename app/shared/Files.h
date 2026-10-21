@@ -3,6 +3,9 @@
 #import <Foundation/Foundation.h>
 
 NSString *Home(void);
+// Whether that home folder is the account's own, not a throwaway one a test gives: a print run that would change what's
+// in it refuses to run there.
+BOOL HomeIsYourOwn(void);
 NSString *AppDir(NSString *sub);
 extern BOOL MachineFilesInHome;
 NSString *MachineFile(NSString *path);

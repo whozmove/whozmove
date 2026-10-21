@@ -1,8 +1,9 @@
 #!/bin/bash
 # Runs build.sh against a throwaway HOME (never your real ~/Applications or Whozmove's folder) and compares what it does
 # with tests/build.expected.txt: when an agent's build only compiles, leaving it to Deploy in the panel, and when a
-# build goes straight in; swap-in.sh putting the hooks in place only when they changed, and never for an agent; and
-# restarting only the app it replaced, the copy that's really running, with a clean environment.
+# build goes straight in; the hooks every build carries, sealed in its signature, even with a Finder tag on one, and
+# left for the app to bring up to date as it opens, which an agent's build says it won't do; and restarting only the
+# app it replaced, the copy that's really running, with a clean environment.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -34,14 +35,17 @@ mkdir -p "$T/repo" "$D"
 # The app's own code isn't needed: one stand-in file compiles in its place.
 find "$T/repo" -name '*.m' -delete
 printf 'int main(void) { return 0; }\n' > "$T/repo/app/main.m"
+# A Finder tag on one of its hooks (Finder information, which codesign refuses in a bundle), so the builds from it
+# below sign a bundle the tag would go into.
+xattr -wx com.apple.FinderInfo 0000000000000000000C00000000000000000000000000000000000000000000 \
+  "$T/repo/modules/claude-code/plugin/hooks/whozmove-claude.py"
 git -C "$T/repo" init -q -b main
 git -C "$T/repo" add -A
 git -C "$T/repo" -c user.email=t@t -c user.name=t commit -q -m init
 git -C "$T/repo" worktree add -q "$T/fix-hover" -b fix-hover
 # A stand-in for the panel: a process with the app's name (compiled: macOS kills a copied system binary), and one that
-# also writes down the environment it was started with. One for Claude Code's command, which writes down what it's
-# asked; and one for launchctl, whose login item is what $T/job says (none without it), and which writes down what
-# it's asked to do.
+# also writes down the environment it was started with. And one for launchctl, whose login item is what $T/job says
+# (none without it), and which writes down what it's asked to do.
 printf '#include <unistd.h>\nint main(void){sleep(600);return 0;}\n' > "$T/sleeper.c"
 cat > "$T/telling.c" <<'C'
 #include <stdio.h>
@@ -61,14 +65,13 @@ C
 mkdir -p "$T/stand-in" "$T/bin"
 clang -o "$T/stand-in/$EXE" "$T/sleeper.c" || exit 1
 clang -o "$T/telling" "$T/telling.c" || exit 1
-printf '#!/bin/bash\necho "claude $*" >> "%s/claude.log"\n' "$T" > "$T/bin/claude"
 printf '#!/bin/bash\nif [ "$1" = print ]; then cat "%s/job" 2>/dev/null || exit 113\n' "$T" > "$T/bin/launchctl"
 printf 'else echo "launchctl $*" >> "%s/launchctl.log"; fi\n' "$T" >> "$T/bin/launchctl"
-chmod +x "$T/bin/claude" "$T/bin/launchctl"
+chmod +x "$T/bin/launchctl"
 
 tests() {
 # Runs a command in a checkout as you'd run it in your terminal (with an agent's marks taken off, since this test may
-# itself be run by one), with the throwaway home, the stand-in claude, and any VAR=value given first.
+# itself be run by one), with the throwaway home, the stand-in launchctl, and any VAR=value given first.
 run_in() {
   local dir=$1; shift
   (cd "$dir" && env -u CLAUDECODE -u CLAUDE_CODE_SESSION_ID HOME="$T" PATH="$T/bin:$PATH" "$@" 2>&1)
@@ -91,6 +94,21 @@ print(" ".join(f"{k}={b[k]}" for k in sorted(b) if k not in ("builtAt", "commit"
 PY
 }
 installed() { echo "installed: $(recorded "$APP")"; }
+# The hooks the app in place carries, and whether its signature covers them: a copy of it checks out, until a hook in
+# it is changed.
+carried() {
+  local hooks=Contents/Resources/plugin
+  echo "it carries the hooks: $(plutil -extract version raw -o - "$APP/$hooks/.claude-plugin/plugin.json")"
+  codesign --verify --strict "$APP" 2>/dev/null && echo "its signature checks out" || echo "its signature is broken"
+  rm -rf "$T/changed.app"
+  cp -R "$APP" "$T/changed.app"
+  codesign --verify --strict "$T/changed.app" 2>/dev/null && echo "an unchanged copy checks out" \
+    || echo "an unchanged copy doesn't check out"
+  echo "# changed" >> "$T/changed.app/$hooks/hooks/whozmove-claude.py"
+  codesign --verify --strict "$T/changed.app" 2>/dev/null && echo "with a hook changed, it still checks out" \
+    || echo "with a hook changed, it no longer checks out"
+  rm -rf "$T/changed.app"
+}
 # Whether the app in the stand-in ~/Applications changed since the last look.
 before=
 changed() {
@@ -103,7 +121,7 @@ changed() {
 echo "== 1 an agent, with no deploy command saved: straight into ~/Applications, and nothing else is restarted"
 unsaved; panel_up
 run_in "$T/repo" CLAUDECODE=1 ./build.sh
-installed; changed
+installed; changed; carried
 
 echo "== 2 an agent, with Whozmove's deploy command saved and the panel running: it only compiles"
 saved
@@ -134,25 +152,15 @@ sleep 1
 run_in "$T/repo" CLAUDECODE=1 ./build.sh
 installed; changed
 
-echo "== 6 with the plugin installed (older hooks): the hooks go in too, and Claude Code is told"
+echo "== 6 a build leaves the hooks in Whozmove's folder as they are: the app brings them up to date as it opens"
 mkdir -p "$D/plugin/.claude-plugin"
 echo '{"name": "whozmove", "version": "0.0.1+00000000"}' > "$D/plugin/.claude-plugin/plugin.json"
 run_in "$T/repo" ./build.sh
-echo "hooks installed: $(plutil -extract version raw -o - "$D/plugin/.claude-plugin/plugin.json")"
-echo "claude was asked:"; cat "$T/claude.log"
+echo "the hooks in Whozmove's folder: $(plutil -extract version raw -o - "$D/plugin/.claude-plugin/plugin.json")"
 
-echo "== 7 the same hooks again: Claude Code isn't asked again"
-run_in "$T/repo" ./build.sh
-echo "claude was asked:"; cat "$T/claude.log"
-
-echo "== 7b an agent's build, with the panel not running, and other hooks installed: the app goes in, the hooks don't"
-echo '{"name": "whozmove", "version": "0.0.2+11111111"}' > "$D/plugin/.claude-plugin/plugin.json"
-rm -f "$T/claude.log"
-sleep 1
+echo "== 7 an agent's build leaves them too, as the app it makes won't bring them up to date, and says how to"
 run_in "$T/repo" CLAUDECODE=1 ./build.sh
-changed
-echo "hooks installed: $(plutil -extract version raw -o - "$D/plugin/.claude-plugin/plugin.json")"
-echo "claude was asked: $(cat "$T/claude.log" 2>/dev/null || echo nothing)"
+echo "the hooks in Whozmove's folder: $(plutil -extract version raw -o - "$D/plugin/.claude-plugin/plugin.json")"
 
 echo "== 8 restarting: the app running from ~/Applications is, the stand-in running from elsewhere isn't; the new copy"
 echo "   starts with nothing of the environment of what restarted it (an agent's, here) but who and where you are"

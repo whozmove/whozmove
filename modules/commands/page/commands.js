@@ -5,8 +5,11 @@
 
 // The Compact card, per session: open, its note ({text, way}: why it didn't compact, and the words of a button past
 // that, or null), and the focus typed in it. The session whose context ring is pointed at. The sessions whose ring has
-// opened by itself to say now is a good time to compact (compactNow), once it has.
-moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null, compactNowShown: {} });
+// opened by itself to say now is a good time to compact (compactNow), once it has. The sessions whose ring was last
+// drawn turning, as they compact, and those whose compaction has just ended ({at, angle}: when, and where its arc was
+// then), whose ring settles at its new size; and those whose size is still the one from before ({at, tokens}).
+moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null, compactNowShown: {},
+              ringTurning: {}, ringSettling: {}, sizeBefore: {} });
 
 // ---- The setup line ----
 
@@ -54,30 +57,69 @@ function compactNow(s, now) {
 // the widening. When it's a good time to compact (compactNow), it opens by itself and stays open, saying "Compact
 // now", and why in its tip: drawn closed the first time (`now-soon`), it widens in the next frame, as it does
 // pointed at; once it no longer is, it's drawn open once more (`now-going`) and folds in the next frame, as it does
-// pointed away.
+// pointed away. While the conversation compacts, by itself or asked for, the ring is a short arc going round
+// (`compacting`), the turn's phase taken from the clock so the rebuild every second carries it on; it doesn't widen
+// then, as Claude's line says what it's doing and for how long. When the compaction ends, the arc fades where it was
+// as the ring fills from empty to the new size (`settling`), once.
+const RING_TURN_MS = 1200, RING_SETTLE_MS = 700;
 function contextRing(s) {
   const a = s.agent || {}, tokens = a.tokens, model = a.model;
   if (!tokens) return '';
+  const compacting = !!s.compacting, settle = ringSettle(s.sessionId, compacting, tokens);
   const window = core.agent.contextWindow(model, tokens), pct = Math.min(100, Math.round(tokens / window * 100));
   const color = pct >= 85 ? GAUGE.limit : pct >= 60 ? GAUGE.warning : GAUGE.normal;
   const r = 5, length = 2 * Math.PI * r, left = Math.max(0, core.agent.compactLimit(a) - tokens);
-  const why = compactNow(s, state.last.now), sid = s.sessionId;
+  const sid = s.sessionId, why = sizeBefore(sid, tokens) ? null : compactNow(s, state.last.now);
   const was = !!state.compactNowShown[sid], going = !why && was && !calm.matches;
   if (!why && !going) delete state.compactNowShown[sid];
   else if (why && calm.matches) state.compactNowShown[sid] = true;
   const shown = !!why && !!state.compactNowShown[sid];
-  const open = state.hoverCtx === sid || state.compactOpen[sid] || shown || going ? ' open' : '';
+  const open = !compacting && (state.hoverCtx === sid || state.compactOpen[sid] || shown || going) ? ' open' : '';
   const now = why ? (shown ? ' now' : ' now now-soon') : going ? ' now-going' : '';
-  const title = (why ? `A good time to compact: ${why} · ` : '')
-    + `${pct}% · ${kTokens(tokens)} of ${kTokens(window)} tokens in context`
-    + ` · ${kTokens(left)} left before auto-compact`;
-  return `<span class="ctx${open}${now}" data-ctx="${esc(s.sessionId)}" title="${title}"`
-    + ` style="color:${color};--fill:${pct}%">
-      <svg width="12" height="12" viewBox="0 0 12 12">`
-    + `<circle cx="6" cy="6" r="${r}" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
-      <circle cx="6" cy="6" r="${r}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"
-              stroke-dasharray="${(length * pct / 100).toFixed(2)} ${length.toFixed(2)}"/></svg>`
-    + `<span class="ctx-label">${pct}% · Compact${why || going ? ' now' : ''}</span></span>`;
+  const title = compacting ? `Compacting the conversation · it was ${pct}% full`
+    : (why ? `A good time to compact: ${why} · ` : '')
+      + `${pct}% · ${kTokens(tokens)} of ${kTokens(window)} tokens in context`
+      + ` · ${kTokens(left)} left before auto-compact`;
+  const arc = (part, more = '') => `<circle class="ctx-arc"${more} cx="6" cy="6" r="${r}" fill="none"`
+    + ` style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"`
+    + ` stroke-dasharray="${(length * part).toFixed(2)} ${length.toFixed(2)}"/>`;
+  const svg = compacting ? `<svg width="12" height="12" viewBox="0 0 12 12" style="${phase(RING_TURN_MS)}">`
+    : `<svg width="12" height="12" viewBox="0 0 12 12"${settle ? ` style="--since:-${settle.since}ms"` : ''}>`;
+  return `<span class="ctx${open}${now}${compacting ? ' compacting' : settle ? ' settling' : ''}"`
+    + ` data-ctx="${esc(s.sessionId)}" title="${title}" style="color:${color};--fill:${pct}%">${svg}`
+    + `<circle cx="6" cy="6" r="${r}" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>`
+    + (compacting ? arc(0.28) : (settle ? arc(0.28, ` transform="rotate(${settle.angle} 6 6)"`) : '')
+                                + arc(pct / 100).replace('ctx-arc', 'ctx-fill'))
+    + `</svg><span class="ctx-label">${pct}% · Compact${why || going ? ' now' : ''}</span></span>`;
+}
+
+// Whether the session's ring is settling after a compaction, and for how long it has been and where its arc was then
+// ({since, angle}), or null; noting, as it's drawn, whether it's compacting, and the size it had as it ended.
+function ringSettle(sid, compacting, tokens) {
+  const t = performance.now();
+  if (compacting) {
+    state.ringTurning[sid] = true;
+    delete state.ringSettling[sid];
+    return null;
+  }
+  if (state.ringTurning[sid]) {
+    delete state.ringTurning[sid];
+    state.sizeBefore[sid] = { at: state.last.now, tokens };
+    if (!calm.matches) state.ringSettling[sid] = { at: t, angle: Math.round((t % RING_TURN_MS) / RING_TURN_MS * 360) };
+  }
+  const settle = state.ringSettling[sid];
+  if (settle && t - settle.at < RING_SETTLE_MS) return { since: Math.round(t - settle.at), angle: settle.angle };
+  delete state.ringSettling[sid];
+  return null;
+}
+
+// Whether the session's context size is still the one from before the compaction that has just ended: the new size
+// comes with the transcript's next read, a moment later, and until then it isn't a good time to compact again. Once
+// the size has changed, or after 30s (one stopped with Esc keeps its size), it's the size it says.
+function sizeBefore(sid, tokens) {
+  const before = state.sizeBefore[sid];
+  if (before && (tokens !== before.tokens || state.last.now - before.at > 30000)) delete state.sizeBefore[sid];
+  return !!state.sizeBefore[sid];
 }
 
 // A row's model, effort or mode: the app's menu for it, below the label.
@@ -231,14 +273,15 @@ core.returns.push(['.c-focus', (box) => {
 }]);
 core.pointerTargets.push('.pick');
 // The ring pointed at widens into its Compact button, and stays wide while its card is up, or while it says now is a
-// good time to compact.
+// good time to compact; never while it's turning, as the conversation compacts.
 core.pointerWatchers.push((el) => {
   state.hoverCtx = el?.closest('.ctx[data-ctx]')?.dataset.ctx || null;
   for (const ring of document.querySelectorAll('.ctx[data-ctx]')) {
     const sid = ring.dataset.ctx;
-    ring.classList.toggle('open', sid === state.hoverCtx || !!state.compactOpen[sid]
+    ring.classList.toggle('open', !ring.classList.contains('compacting')
+                                  && (sid === state.hoverCtx || !!state.compactOpen[sid]
                                   || (ring.classList.contains('now') && !!state.compactNowShown[sid])
-                                  || ring.classList.contains('now-going'));
+                                  || ring.classList.contains('now-going')));
   }
 });
 // A ring that has only just become a good time to compact is drawn closed, then widens once that's been laid out; one
@@ -264,5 +307,6 @@ core.afterDraw.push(() => {
     }
   });
 });
-core.forgotten.keys.push('compactOpen', 'compactNotes', 'compactFocus', 'compactNowShown');
+core.forgotten.keys.push('compactOpen', 'compactNotes', 'compactFocus', 'compactNowShown', 'ringTurning',
+                         'ringSettling', 'sizeBefore');
 core.forgotten.prefixes.push('compact', 'going');

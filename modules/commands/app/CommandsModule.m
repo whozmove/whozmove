@@ -207,7 +207,12 @@ static int PrintWhyNot(Core *core) {
     if (phase == RowPhaseWork) {
         for (Row *row in rows) {
             NSString *sid = row.sessionId;
-            if ([self.commands compactingSince:sid]) row.compacting = [self.commands compactingSince:sid];
+            // A compaction the panel sent shows from when it was sent. One the hook saw begin before the panel's last
+            // had its result was that one, which is over, even if the hook didn't hear it end (stopped with Esc).
+            NSNumber *since = [self.commands compactingSince:sid], *answered = [self.commands compactEndedAt:sid];
+            if (since) row.compacting = since;
+            else if (row.compacting && answered && row.compacting.doubleValue <= answered.doubleValue)
+                row.compacting = nil;
             row.chosen = [self.commands chosenFor:sid];
             // A session that has ended has nothing going in, nor a question asked for it.
             BOOL ended = [self.core hasEnded:row];

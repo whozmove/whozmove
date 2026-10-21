@@ -984,6 +984,7 @@
       "remotes": 1,
       "upstream": true
     },
+    "compacting": "now-1m",
     "cwd": "T/clone",
     "entrypoint": "cli",
     "git": {

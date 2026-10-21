@@ -52,7 +52,7 @@ import sys
 import time
 import uuid
 
-# Whozmove's folder: must match AppDir in app/Files.m (tests/hooks.sh fails if it doesn't).
+# Whozmove's folder: must match AppDir in app/shared/Files.m (modules/claude-code/tests/test.sh fails if it doesn't).
 ROOT = os.path.expanduser("~/Library/Application Support/Whozmove")
 ASKS = os.path.join(ROOT, "asks")
 WAIT_LIMIT = 3500  # seconds; just under the hook's timeout in hooks/hooks.json
@@ -79,7 +79,8 @@ def panel_pid():
                                  timeout=5).stdout.strip()
     except (OSError, ValueError, subprocess.SubprocessError):
         return None
-    # The app's executable, CFBundleExecutable in Info.plist (tests/hooks.sh names its stand-in from there).
+    # The app's executable, CFBundleExecutable in Info.plist (modules/claude-code/tests/test.sh names its stand-in
+    # from there).
     return pid if os.path.basename(command) == "Whozmove" else None
 
 

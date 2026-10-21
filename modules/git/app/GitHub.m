@@ -6,9 +6,10 @@
 // Set by `--print-rows`: rows printed for a test never depend on the network, so it acts as if gh isn't there.
 BOOL NeverAskGitHub;
 
-// Where gh is installed, or nil if it isn't (or mustn't be asked).
+// Where gh is installed, or nil if it isn't (or mustn't be asked). gh runs git, so it waits for Apple's developer tools,
+// as git does (DeveloperToolsReady).
 NSString *GhPath(void) {
-    if (NeverAskGitHub) return nil;
+    if (NeverAskGitHub || !DeveloperToolsReady()) return nil;
     for (NSString *path in @[@"/opt/homebrew/bin/gh", @"/usr/local/bin/gh", @"/usr/bin/gh"])
         if ([NSFileManager.defaultManager isExecutableFileAtPath:path]) return path;
     return nil;

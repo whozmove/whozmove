@@ -34,11 +34,12 @@ The file is grouped, and says beside each token what it's for:
 - **Buttons, switches, text boxes, code and the cards over the list**: `--button`, `--main-button` (a card's main
   button, the panel's opposite: light on the dark panel, dark on the light one), `--tick` and `--switch-off` (a switch
   on and off), `--field`, `--code-fill`, `--card`, `--card-shadow`, `--menu` (a menu the page draws).
-- **The cat, the usage card and its vine**: `--cream` and `--cat-feature` (the cat and its eyes), its tags
-  (`--cat-tag`, …), `--usage-card`, and `--vine-green` to `--vine-heart`.
+- **The cat, the usage card and its vine**: `--cream` and `--cat-feature` (the cat and its eyes), the chats beside it
+  (`--chat`, `--chat-edge`, `--chat-shadow`, `--chat-pill`), `--usage-card`, and `--vine-green` to `--vine-heart`.
 - **Text sizes**, `--size-chip` to `--size-heading`, and `--size-lyrics` (a song's lines in the reader); **corners**,
   `--radius-bar` to `--radius-pill`.
-- **The layout**, `--header`, `--side`, `--column`, and a spring for motion, `--spring`.
+- **The layout**, `--header`, `--side` and `--above` (the room for the reader beside the list, and for what comes up
+  from the folded cat above it), `--column`, and a spring for motion, `--spring`.
 
 ## Using them
 

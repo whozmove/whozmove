@@ -42,3 +42,5 @@ words.
   `workHTML`), and while another is, the row says why when it's pressed.
 - A step's words are fixed (`StepRequest`): the page only names the step, and a pull request's branch, which goes in its
   words only if it's the repo's default or one of its branches on GitHub as last read for the card.
+- No git or `gh` runs before Apple's developer tools are installed (`RunGit`, `GhPath`): until then, git offers to
+  install them each time it's run, and `gh` runs git.

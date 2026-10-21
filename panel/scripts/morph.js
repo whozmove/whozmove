@@ -8,7 +8,7 @@
 // - your message and Claude's line are written: new text writes in from the left, old text erases from the right
 //   (rewriteLine), a new one writes in as it grows, and one that's gone erases before it folds;
 // - other changed text cross-fades, and a row whose height changed otherwise resizes smoothly;
-// - a row or section header that moved slides from where it was, and a new one eases in;
+// - a row or project header that moved slides from where it was, and a new one eases in;
 // - one that left view (its session ended, or it went into a folded group) fades out where it was, while the
 //   rest close the gap.
 const MORPH_MS = 1000, MORPH_EASE = 'cubic-bezier(.2, .8, .2, 1)';
@@ -16,7 +16,7 @@ const MORPH_MS = 1000, MORPH_EASE = 'cubic-bezier(.2, .8, .2, 1)';
 // a sliver of padding until the animation ends.
 const BOX_KEYS = ['marginTop', 'paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'];
 const FLAT = Object.fromEntries(BOX_KEYS.map((k) => [k, '0px']));
-const HEADER_MS = 280;  // section headers ("Working", "Idle", a project) move quicker than the rows
+const HEADER_MS = 280;  // project headers move quicker than the rows
 
 // Of the rows that were there before, the most that keep their old order among themselves (the longest run with
 // old positions rising): they slide in step, never passing one another, and the others glide over them
@@ -71,7 +71,7 @@ function place(list, el) {
 
 function snapshot(list) {
   const rows = new Map(), heads = new Map();
-  for (const head of list.querySelectorAll('.group[data-key], .project[data-key]'))
+  for (const head of list.querySelectorAll('.project[data-key]'))
     heads.set(head.dataset.key, { ...place(list, head), el: head });
   rows.heads = heads;
   for (const row of list.querySelectorAll('.row[data-id]')) {
@@ -435,21 +435,26 @@ function cardOf(box) {
   return card ? Object.entries(card.dataset).map(([key, value]) => `${key}:${value}`).join(' ') : null;
 }
 
-// The list's own box easing from its old height to its new one (morph), kept so that a rebuild or a group's slide
-// during it can stop it where it is.
-let listResize = null;
+// Each box morph draws in (the list, and a chat beside the folded cat, chats.js) easing from its old height to its new
+// one, kept so that a rebuild or a group's slide during it can stop it where it is; and the boxes drawn once already,
+// whose next rebuild animates. Each box's own, so a chat's rebuild never cuts the list's short.
+const resizes = new WeakMap(), drawnBefore = new WeakSet();
 
-// Runs `measure` with the list's own box at the height it's easing to, since a list partway through easing measures
+// Runs `measure` with a box morph draws in at the height it's easing to, since a box partway through easing measures
 // short (and a list scrolled to its end scrolls back as it grows), and puts the easing back where it was before
-// anything is drawn: for what has to land where the list ends up (a new conversation's row, starts.js).
-function atListEnd(measure) {
-  const ease = listResize?.playState === 'running' ? listResize : null, at = ease?.currentTime ?? 0;
+// anything is drawn: for what has to land where the list ends up (a new conversation's row, starts.js), or the room a
+// chat beside the folded cat needs once its row has grown (chats.js).
+function atMorphEnd(box, measure) {
+  const resize = resizes.get(box);
+  const ease = resize?.playState === 'running' ? resize : null, at = ease?.currentTime ?? 0;
   if (ease) ease.currentTime = MORPH_MS;
   try { return measure(); } finally { if (ease) ease.currentTime = at; }
 }
 
+const atListEnd = (measure) => atMorphEnd(document.getElementById('list'), measure);
+
 function morph(list, html) {
-  const before = state.morphed && !calm.matches ? snapshot(list) : null;
+  const before = drawnBefore.has(list) && !calm.matches ? snapshot(list) : null;
   const wasHeight = before ? list.offsetHeight : 0;  // as it shows now, even partway through easing
   const scrolled = new Map([...list.querySelectorAll('.perm .perm-detail')].map((d) => [cardOf(d), d.scrollTop]));
   // Keep focus and caret in an answer box on the list being typed in (not one beside it, as the reader's).
@@ -458,7 +463,7 @@ function morph(list, html) {
                              start: typing.type === 'number' ? null : typing.selectionStart,
                              end: typing.type === 'number' ? null : typing.selectionEnd };
   list.innerHTML = html;
-  listResize?.cancel();
+  resizes.get(list)?.cancel();
   for (const drawn of core.drawn) drawn(list);  // what the modules size from the new HTML
   for (const d of list.querySelectorAll('.perm .perm-detail')) d.scrollTop = scrolled.get(cardOf(d)) || 0;
   if (caret) {
@@ -466,7 +471,7 @@ function morph(list, html) {
       .find((b) => cardOf(b) === caret.card && !b.closest('.prows.closed'));
     if (box) { box.focus(); if (caret.start != null) box.setSelectionRange(caret.start, caret.end); }
   }
-  state.morphed = true;
+  drawnBefore.add(list);
   if (!before) return;
   const height = list.offsetHeight;  // as rebuilt, before the lines below are given their starting sizes
   let changed = false;
@@ -538,7 +543,7 @@ function morph(list, html) {
   const shown = new Set([...list.querySelectorAll('.row[data-id]')].filter((r) => !r.closest('.prows.closed'))
     .map(rowKey));
   for (const [key, old] of before) if (!old.hidden && !shown.has(key)) { fadeAway(list, old); changed = true; }
-  const heads = new Map([...list.querySelectorAll('.group[data-key], .project[data-key]')]
+  const heads = new Map([...list.querySelectorAll('.project[data-key]')]
     .map((h) => [h.dataset.key, h]));
   for (const [key, old] of before.heads) if (!heads.has(key)) { fadeAway(list, old, HEADER_MS); changed = true; }
   for (const [key, head] of heads) {
@@ -563,11 +568,11 @@ function morph(list, html) {
   // The list's own box eases between its heights with the rows, so what's below it (the now-playing strip) and the
   // panel's bottom edge move with them, rather than jumping to where they end up while the rows are still on their way.
   if (late.length) {
-    listResize = list.animate(listFrames(wasHeight, height, late), { duration: MORPH_MS, easing: 'linear' });
+    resizes.set(list, list.animate(listFrames(wasHeight, height, late), { duration: MORPH_MS, easing: 'linear' }));
     changed = true;
   } else if (Math.abs(height - wasHeight) > 1) {
-    listResize = list.animate([{ height: `${wasHeight}px` }, { height: `${height}px` }],
-                              { duration: MORPH_MS, easing: MORPH_EASE });
+    resizes.set(list, list.animate([{ height: `${wasHeight}px` }, { height: `${height}px` }],
+                                   { duration: MORPH_MS, easing: MORPH_EASE }));
     changed = true;
   }
   if (changed) {  // the panel follows the list's height while it animates; rebuilds wait till it's done
@@ -597,7 +602,7 @@ const SLIDE_MS = 200;
 function slideGroup(header, collapse) {
   const body = header?.nextElementSibling;
   if (!body?.classList.contains('prows')) return render();
-  listResize?.cancel();  // the list's height follows the slide instead
+  resizes.get(document.getElementById('list'))?.cancel();  // the list's height follows the slide instead
   header.classList.toggle('collapsed', collapse);
   if (!collapse && body.nextElementSibling?.classList.contains('pinned')) body.nextElementSibling.remove();
   const full = body.scrollHeight;

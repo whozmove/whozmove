@@ -75,7 +75,7 @@ static NSImage *MenuBarMark(void) {
     self.statusItem.button.image = MenuBarMark();
     self.statusItem.button.imagePosition = NSImageLeft;
     // Its own items, in the sections modules' items go in too (addEntries:), each with its order there.
-    self.groupByStatusItem = [self item:@"Group by Status" action:@selector(groupByStatus) key:@""];
+    self.groupByStatusItem = [self item:@"Newest First" action:@selector(groupByStatus) key:@""];
     self.groupByProjectItem = [self item:@"Group by Project" action:@selector(groupByProject) key:@""];
     self.showBuildItem = [self item:@"Show Build in Header" action:@selector(toggleShowBuild) key:@""];
     NSMenu *look = [NSMenu new];
@@ -171,7 +171,8 @@ static NSImage *MenuBarMark(void) {
     self.statusItem.button.title = count > 0 ? [NSString stringWithFormat:@" %ld", (long)count] : @"";
 }
 
-// The panel's grouping, chosen from this menu: Status (Your turn, Working, Seen, Idle) or Project.
+// The panel's grouping, chosen from this menu: Newest First (one list, as a chat app's; "status", its old name) or
+// Project.
 - (void)groupByStatus { [self applyGroupBy:@"status"]; }
 
 - (void)groupByProject { [self applyGroupBy:@"project"]; }

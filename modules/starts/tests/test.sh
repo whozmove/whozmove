@@ -1,8 +1,8 @@
 #!/bin/bash
 # The starts module's tests: what sample starts would run, a terminal tab's command and Claude Desktop's link
-# (Whozmove --print-starts, compared with starts.expected.txt), worktrees checked and made in a sample repo (Whozmove
-# --print-worktrees, compared with worktrees.expected.txt), and the page's part (page-cases.js, run with macOS's jsc in
-# UTC, compared with page.expected.txt).
+# (Whozmove --print-starts, compared with starts.expected.txt), worktrees checked and made in a sample repo, or refused
+# without Apple's developer tools (Whozmove --print-worktrees, compared with worktrees.expected.txt), and the page's
+# part (page-cases.js, run with macOS's jsc in UTC, compared with page.expected.txt).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -28,7 +28,8 @@ HOME="$T" "$APP" --print-starts | in_minutes
 compare Starts "$HERE/starts.expected.txt" "$out" "${1:-}" || status=1
 
 # A sample repo for worktrees: a branch checked out nowhere (release), one taken by name only (taken), a folder in the
-# way where Claude Code puts its own, and a folder outside any repo. git here ignores your personal git settings
+# way where Claude Code puts its own, a folder outside any repo, and an empty developer folder, which makes Apple's
+# developer tools look missing (DEVELOPER_DIR, which xcode-select names). git here ignores your personal git settings
 # (signing, hooks, …).
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 git -C "$T" init -q -b main shop
@@ -37,13 +38,15 @@ git -C "$T/shop" add a.txt
 git -C "$T/shop" -c user.email=t@t -c user.name=t commit -q -m init
 git -C "$T/shop" branch taken
 git -C "$T/shop" branch release
-mkdir -p "$T/shop-worktrees/in-the-way" "$T/plain"
+mkdir -p "$T/shop-worktrees/in-the-way" "$T/plain" "$T/no-tools"
 out=$({
 echo "== Worktrees: what a repo has (its own folder, its worktrees, its branches with no folder), and whether each target"
 echo "   can have one (a new branch's name, name:base for another base, +branch for a branch that's there), or why not"
 HOME="$T" "$APP" --print-worktrees "$T/shop" fix-login taken in-the-way -dash-first feat/slash two..dots fix-2:release \
   fix-3:nope +release +nope +main | in_minutes
 HOME="$T" "$APP" --print-worktrees "$T/plain" fix-login | in_minutes
+echo "== Without Apple's developer tools, no worktree is made: git would offer to install them instead"
+DEVELOPER_DIR="$T/no-tools" HOME="$T" "$APP" --print-worktrees "$T/shop" fix-login | in_minutes
 echo "== Making them: a new branch following the base branch, one following release, and a worktree for release itself;"
 echo "   then the repo lists them, and the names are taken"
 HOME="$T" "$APP" --print-worktrees --make "$T/shop" fix-login fix-2:release +release | in_minutes

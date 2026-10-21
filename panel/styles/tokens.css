@@ -52,6 +52,7 @@
      around a card that's about it. */
   --needs-text: #ff9b85;
   --needs-edge: rgba(255, 107, 74, 0.3);
+  --needs-edge-keys: rgba(255, 107, 74, 0.75);  /* a request's edge while it has the keyboard */
   --needs-glow: rgba(255, 107, 74, 0.55);  /* the ring a needs-you dot sends out, and where it fades to */
   --needs-glow-gone: rgba(255, 107, 74, 0);
   --turn-text: #ffd166;
@@ -162,11 +163,12 @@
      panel (app/core/SideCat.m) in both: keep them matching. */
   --cream: #f3ebe2;
   --cat-feature: var(--panel);
-  /* The labels beside the cat: a tag for each session waiting on you, and the name a dot shows when pointed at. */
-  --cat-tag: #1f1f23;
-  --cat-tag-edge: rgba(255, 255, 255, 0.09);
-  --cat-tag-pointed: #34343c;
-  --cat-tag-shadow: rgba(10, 12, 20, 0.35);
+  /* A chat beside the folded cat (chats.js): a session's row on a card of the panel's own colour, with an edge and a
+     shadow; and the pill under the chats that says how many more wait. */
+  --chat: var(--panel);
+  --chat-edge: rgba(255, 255, 255, 0.09);
+  --chat-shadow: 0 0 0 0.8px rgba(255, 255, 255, 0.09), 0 10px 26px rgba(10, 12, 20, 0.42);
+  --chat-pill: rgba(24, 24, 27, 0.86);
   /* The cards that float over the list: a PR's, Create PR's, where a session runs. */
   --card: #232327;
   --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
@@ -212,6 +214,7 @@
   --radius-box: 8px;                     /* a row, a card on a row, a code block, a switch */
   --radius-menu: 9px;                    /* Open With's list of editors */
   --radius-card: 10px;                   /* the PR card */
+  --radius-chat: 14px;                   /* a chat beside the folded cat */
   --radius-panel: 24px;                  /* the panel's own corners, and the usage card's under it (kCorner) */
   --radius-icon: 22.5%;                  /* an app's tile on the panel's back, rounded as macOS's app icons are */
   --radius-circle: 50%;
@@ -223,6 +226,9 @@
      app/core/PanelWindow.m, which shows only the part in use): the list's column starts this far in. */
   --side: 1254px;
   --column: 340px;
+  /* And room above the list, laid out always too (kAboveRoom in app/core/PanelWindow.m), which the folded cat's chats
+     come up into while it's low on the screen (chats.js): the list starts this far down. */
+  --above: 800px;
 
   /* Motion: a spring, with a slight overshoot, where WebKit has it (the header's ＋ turning, in base.css). */
   --spring: linear(0, .0063, .0255 1.2%, .1006 2.6%, .2161 4.1%, .4237 6.3%, .6366 8.7%, .8137 11.3%,
@@ -264,6 +270,7 @@
     --turn-words: #7f5300;
     --needs-text: #b02c10;
     --needs-edge: rgba(201, 52, 18, 0.35);
+    --needs-edge-keys: rgba(201, 52, 18, 0.75);
     --needs-glow: rgba(201, 52, 18, 0.45);
     --needs-glow-gone: rgba(201, 52, 18, 0);
     --turn-text: #7f5300;
@@ -355,10 +362,9 @@
     --compose-dot: rgba(0, 0, 0, 0.45);
     --code-fill: rgba(0, 0, 0, 0.045);
     --cream: #2a2420;
-    --cat-tag: #fff;
-    --cat-tag-edge: rgba(0, 0, 0, 0.1);
-    --cat-tag-pointed: #ececf0;
-    --cat-tag-shadow: rgba(10, 12, 20, 0.16);
+    --chat-edge: rgba(0, 0, 0, 0.1);
+    --chat-shadow: 0 0 0 0.8px rgba(0, 0, 0, 0.1), 0 10px 26px rgba(10, 12, 20, 0.16);
+    --chat-pill: rgba(255, 255, 255, 0.92);
     --card: #fff;
     --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
     --app-tile: #e3e3e8;

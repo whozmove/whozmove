@@ -1,0 +1,188 @@
+== Where it runs from: only an Applications folder, at any depth, gets anything set up
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "applications",
+    "connected" : "recorded",
+    "found" : [
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "nested",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "noted" : "\/Applications\/Tools\/Whozmove.app"
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "downloads",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications"
+    ],
+    "noted" : null
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "disk-image",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications"
+    ],
+    "noted" : null
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "translocated",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications"
+    ],
+    "noted" : null
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "build-folder",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications"
+    ],
+    "noted" : null
+  }
+]
+== A build an agent made: where it runs from is noted, its hooks are left as they are
+[
+  {
+    "asked" : [
+
+    ],
+    "case" : "agent-build",
+    "connected" : "not recorded",
+    "found" : [
+      "agentBuild"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  }
+]
+== Waiting for the agent, then for Apple's developer tools, then carrying on at the next look
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "no-agent-yet",
+    "connected" : "recorded",
+    "found" : [
+      "noCommand",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "tools-later",
+    "connected" : "recorded",
+    "found" : [
+      "noTools",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "neither-yet",
+    "connected" : "recorded",
+    "found" : [
+      "noCommand",
+      "noTools",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no",
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "no-command-yet",
+    "connected" : "recorded",
+    "found" : [
+      "noCommand",
+      "added"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  }
+]
+== Hooks taken out of the agent, or turned off in it, and two presses on the line one after the other
+[
+  {
+    "asked" : [
+      "start: at launch, before yes",
+      "end: at launch, before yes"
+    ],
+    "case" : "taken-out",
+    "connected" : "recorded",
+    "found" : [
+      "removed"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "turned-off",
+    "connected" : "recorded",
+    "found" : [
+      "turnedOff"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  },
+  {
+    "asked" : [
+      "start: at launch, before yes",
+      "end: at launch, before yes",
+      "start: addBack, before yes",
+      "end: addBack, before yes",
+      "start: retry, before yes",
+      "end: retry, before yes"
+    ],
+    "case" : "presses",
+    "connected" : "recorded",
+    "found" : [
+      "removed",
+      "added",
+      "ready"
+    ],
+    "noted" : "~\/Applications\/Whozmove.app"
+  }
+]

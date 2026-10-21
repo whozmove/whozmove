@@ -12,9 +12,9 @@
 // The tooltip over the header, which the drag strip covers (so the page's own can't show there): the running
 // build's details, while Show Build in Header is ticked; nil for none.
 @property (copy) NSString *headerTip;
-// The header slides away with the list's scroll (panel/scripts/header.js): how many of its points still show at the
-// panel's top, which the drag strip covers and no more, and whether it has gone. Those following it hear whether it
-// has gone, as it changes.
+// The header is pushed away by the row you're on as the list scrolls (panel/scripts/header.js): how many of its points
+// still show at the panel's top, which the drag strip covers and no more, and whether it has gone. Those following it
+// hear whether it has gone, as it changes.
 - (void)headerShowing:(CGFloat)showing gone:(BOOL)gone;
 @property (readonly) BOOL headerGone;
 - (void)followHeader:(void (^)(BOOL gone))observer;
@@ -29,7 +29,7 @@
 // (⌃⌥N).
 - (void)bringUp;
 - (void)resetPosition;
-// Tells a freshly loaded page how tall the panel can grow (and, folded, which way the cat's tags go).
+// Tells a freshly loaded page how tall the panel can grow (and, folded, which way what comes out of the cat goes).
 - (void)resendRoom;
 // The height the page asks for, kept within that room.
 - (void)fitHeight:(CGFloat)height;
@@ -59,11 +59,20 @@
 // Folded, the panel is the cat in a small round glass where the name's o is in its header (panel/scripts/cat.js); the
 // page says when it folds and opens, moving, or at once as it loads.
 - (void)fold:(BOOL)on instant:(BOOL)instant;
+// The same, folding with chats still out beside the cat: `room` is where they go back out to as it folds, as catRoom:
+// has its parts, and the window holds that room once it has folded. `peek` for the folded cat's list coming out while
+// it's pointed at, or going back in (panel/scripts/peek.js): asked the other way while it's still moving, it turns
+// back from where it is, and how the panel is left for next launch isn't changed.
+- (void)fold:(BOOL)on instant:(BOOL)instant room:(NSArray *)room peek:(BOOL)peek;
+// The folded cat's list on pointing is kept open (pressed, peek.js): the panel is left open for next launch.
+- (void)keepOpen;
 // Where the page has the name's o, from the list's top-left corner: where the folded glass's middle is.
 - (void)catAt:(NSPoint)at;
-// Folded, room under and beside the cat for its tags while they're out (cat.js), `width` and `height` points from the
-// cat's square's top corner on the far side from them; and that room taken away once they've gone.
-- (void)catFan:(BOOL)on width:(CGFloat)width height:(CGFloat)height;
+// Folded, room beside the cat for what comes out of it (its chats, chats.js), as the page lays it out: `parts`, each
+// [x, y, width, height] in points from the glass's middle with y running down, which the window takes in, with room
+// for their shadows, letting clicks through everywhere else. With no parts, the window is the cat's square again. The
+// page hears once the window has the room (catRoomTaken).
+- (void)catRoom:(NSDictionary *)room;
 // How many sessions are working: while any are, the folded glass breathes, quicker the more there are; once none are,
 // it finishes the breath it's in and rests.
 - (void)catBreathe:(NSInteger)working;
@@ -101,9 +110,11 @@
 // Where the page's list's top-left corner is on the screen, which the page's places (catAt) count from.
 @property (readonly) NSPoint listCorner;
 // The panel dragged by hand, by `by` points (the drag strip over the header, or Whozmove beside the panel): it moves as
-// far as macOS lets it, and what follows the glass hears. NO while it's changing size, when it can't be dragged.
+// far as macOS lets it, and what follows the glass hears. NO while it's changing size, when it can't be dragged, and
+// while chats are out beside the folded cat, until they've gone in (the page is told the cat is moving).
 - (BOOL)dragBy:(NSPoint)by;
-// The drag is over: the panel's place is kept, and the room it has below worked out again.
+// The drag is over: the panel's place is kept, the room it has below worked out again, and the page told the folded
+// cat has stopped moving.
 - (void)draggedByHand;
 // A sideways two-finger flick on the open panel's list pushes it off that edge of the screen, out of sight, with
 // Whozmove peeking out where it went (SideCat.h); it comes back where it was from there, or from Show / Hide Panel or
@@ -120,9 +131,19 @@ int SwipeWay(CGFloat x, CGFloat y);
 // Whether fingers lifting at `speed` points a second across, having gone `x`, flick the panel off the screen's edge:
 // fast enough, and the way they went.
 BOOL SwipeFlicks(CGFloat speed, CGFloat x);
-// Folded, how far its round glass `glass` moves for a swipe that would move it `by`: as far as that, up to the edge of
-// the screen's room `visible` and no further; one already past an edge isn't pulled back, but goes no further out.
-NSPoint FoldedMove(NSRect glass, NSPoint by, NSRect visible);
+// Which way what comes out of the folded cat goes, for its glass `glass` on a screen whose room is `visible`: toward
+// the screen's middle, so to its right while it's on the screen's left half, and up from its foot while it's on the
+// lower half, else down from its top; `across` points from the glass's middle to the screen's edge that way, and `tall`
+// from its top (going down) or its foot (going up) to the screen's edge, no more than the page has room for above the
+// list (kAboveRoom), either way.
+typedef struct { BOOL right, up; CGFloat across, tall; } CatWay;
+CatWay CatWayFor(NSRect glass, NSRect visible);
+// The folded window that takes in the cat's square `box` and each of `parts` (on the screen), with `shadow` points
+// round each part for its shadow, in whole points.
+NSRect CatRoomFrame(NSRect box, NSArray<NSValue *> *parts, CGFloat shadow);
+// Whether a press at `point` lands on one of `parts` (on the screen), or within `margin` points of one: where the room
+// beside the cat takes a click, rather than letting it through to what's under the panel.
+BOOL CatRoomTakes(NSPoint point, NSArray<NSValue *> *parts, CGFloat margin);
 // Where the panel goes, flicked toward the right or the left of the screen's room `visible`: just past its edge.
 NSPoint ParkedOrigin(NSRect frame, NSRect visible, BOOL right);
 // How much the panel shows as it goes past the screen's edge or comes back from there: none of it past the edge, less

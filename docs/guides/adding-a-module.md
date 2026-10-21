@@ -12,7 +12,8 @@ its line in the docs' map, and an empty container in the page if it needs a plac
   sessions, what its hooks or records say of each, the requests waiting on them, and the title of each; and whichever
   of its small protocols it can: `AgentWork` (what a session did: its PRs and its edits), `AgentCommands` (the words
   of a slash command and what its result says), `AgentPrompt` (typing into a session's prompt, and when that's safe),
-  `AgentUsage` (your plan's usage) and `AgentStarts` (a new session's command, and folder trust).
+  `AgentUsage` (your plan's usage), `AgentStarts` (a new session's command, and folder trust) and `AgentInstall`
+  (what lets the panel follow its sessions, its hooks for one, put in as Whozmove opens).
 - **A host** is an app sessions run in (Ghostty, iTerm2, Claude Desktop). It fills in `app/contracts/Host.h`: `Host`,
   and `TypingHost` if keys can go into a session there (with the terminal's own reason when they can't,
   `whyNotTypeIn:`, as iTerm2's says when other sessions share the window, and a button past it the panel can take for

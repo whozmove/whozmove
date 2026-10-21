@@ -188,17 +188,62 @@ function pressRequest(card, e) {
   if (button) answerRequest(button, e);
 }
 
-// An option of a question: one pick, or several where the question takes them. A pick replaces words typed for
-// that question, and answering a question that was skipped (after Back) un-skips it.
+// An option of a question: one pick, or several where the question takes them.
 function pickOption(option, e) {
   e.preventDefault();
   const id = option.closest('.perm').dataset.ask, st = quizState(id), qi = +option.dataset.q, oi = +option.dataset.o;
   const multi = !!option.closest('.multi'), picks = st.picks[qi] || [];
-  if (multi) st.picks[qi] = picks.includes(oi) ? picks.filter((x) => x !== oi) : [...picks, oi];
-  else st.picks[qi] = picks.includes(oi) ? [] : [oi];
+  if (multi) setPicks(id, qi, picks.includes(oi) ? picks.filter((x) => x !== oi) : [...picks, oi]);
+  else setPicks(id, qi, picks.includes(oi) ? [] : [oi]);
+}
+
+// A question's picks, from a press or a key. They replace words typed for that question, and answering a question
+// that was skipped (after Back) un-skips it.
+function setPicks(id, qi, picks) {
+  const st = quizState(id);
+  st.picks[qi] = picks;
   st.typed[qi] = '';
   delete st.skipped[qi];
   render();
+}
+
+// The picks a key makes among a question's `count` options, given the ones made: 1 to 9 picks that option, or where
+// the question takes several, adds it or takes it out; ↓ and ↑ move a single pick to the next option or the one before
+// (from none, the first or the last). null for any other key, a number past the options, or a move with nowhere to go.
+function keyPick(count, multi, picks, key) {
+  if (/^[1-9]$/.test(key)) {
+    const oi = +key - 1;
+    if (oi >= count) return null;
+    return multi ? (picks.includes(oi) ? picks.filter((x) => x !== oi) : [...picks, oi]) : [oi];
+  }
+  if (multi || !count || (key !== 'ArrowDown' && key !== 'ArrowUp')) return null;
+  const down = key === 'ArrowDown', at = picks.length ? picks[0] : down ? -1 : count;
+  const to = Math.max(0, Math.min(count - 1, at + (down ? 1 : -1)));
+  return to === picks[0] ? null : [to];
+}
+
+// Keys on a request or question card once it's been pressed (core.keyCards): on a question with options, 1 to 9 and
+// ↓ ↑ pick (keyPick). Return presses its main button (Next, Submit or Allow once) and Esc lets the keyboard go, as the
+// core does for any such card.
+function keyOnRequest(card, e) {
+  const q = card.querySelector('.q[data-q]'), count = card.querySelectorAll('.opt[data-o]').length;
+  if (!q || !count) return false;
+  const id = card.dataset.ask, qi = +q.dataset.q;
+  const picks = keyPick(count, !!card.querySelector('.q-opts.multi'), quizState(id).picks[qi] || [], e.key);
+  if (picks) setPicks(id, qi, picks);
+  return !!picks || /^[1-9]$/.test(e.key) || e.key === 'ArrowDown' || e.key === 'ArrowUp';
+}
+
+// Whether a press on a request or question card answers it, rather than only picking or moving between its questions:
+// Allow once or Deny, ×, or Submit or Skip on the last question. Such a press doesn't take the keyboard, and gives it
+// back if the card had it.
+function pressAnswers(card, target) {
+  const button = target.closest('button');
+  if (!button || button.disabled || button.matches('.opt, .q-back')) return false;
+  if (!button.matches('.q-next, .q-skip')) return true;
+  const n = (state.last.sessions.find((x) => x.ask?.id === card.dataset.ask)?.ask?.input?.questions || []).slice(0, 4)
+    .length;
+  return quizState(card.dataset.ask).step >= n - 1;
 }
 
 // Back, Skip, Next or Submit, and × (which dismisses all the questions). Once sent, the first answer stands.
@@ -263,5 +308,14 @@ core.rowCards.push({
   html: (row) => (folded(row.s.ask.id) ? '' : askHTML(row.s.ask)),
 });
 core.presses.push(['.perm[data-ask]', pressRequest]);
+// A request or a question takes the keyboard once pressed, but where the press answers it, so its keys answer it here
+// rather than going to the app in front, where Claude's own copy of it waits; a plan's card has nothing to key.
+core.keyCards.push({
+  card: '.perm[data-ask]:not(.plan-ask)',
+  id: (card) => card.dataset.ask,
+  open: (card) => !state.answering[card.dataset.ask],
+  takes: (card, target) => !pressAnswers(card, target),
+  key: keyOnRequest,
+});
 core.typing.push(['.perm[data-ask] .q-type', typeAnswer]);
 core.forgotten.keys.push('quiz');

@@ -122,10 +122,10 @@ static int PrintBrowsing(NSArray<NSString *> *arguments) {
 
 // `Whozmove --print-edges`: what the panel's edge does with sample panels and screens, then quit: the side the icons
 // at its edge are on (EdgeSideFor), where the panel folds round Whozmove beside it (SideCatFoldAt), whether a
-// two-finger swipe is the panel's and whether it flicks the panel (SwipeWay, SwipeFlicks), how far a swipe moves the
-// folded glass within the screen (FoldedMove), and where a flicked panel goes and how much of it shows on its way
-// (ParkedOrigin, ParkedShows). tests/edges.sh compares it with a recorded
-// copy.
+// two-finger swipe is the panel's and whether it flicks the panel (SwipeWay, SwipeFlicks), where a flicked panel goes
+// and how much of it shows on its way (ParkedOrigin, ParkedShows), and which way what comes out of the folded cat goes,
+// the room the window takes in for it, and where that takes a click (CatWayFor, CatRoomFrame, CatRoomTakes).
+// tests/edges.sh compares it with a recorded copy.
 static int PrintEdges(void) {
     NSRect screen = NSMakeRect(0, 0, 1440, 875), list = NSMakeRect(0, 0, 340, 600);
     printf("The side the icons are on, on a screen 1440 wide (its middle at 720, 40 either side before it changes):\n");
@@ -158,23 +158,37 @@ static int PrintEdges(void) {
     NSPoint right = ParkedOrigin(panel, room, YES), left = ParkedOrigin(panel, room, NO);
     printf("A panel at (1000, 200), 340 wide, flicked: to the right, to (%.0f, %.0f); to the left, to (%.0f, %.0f)\n",
            right.x, right.y, left.x, left.y);
-    printf("The folded glass at (1300, 700), 76 across, swiped by, and one already 12 past the top:\n");
-    NSRect glass = NSMakeRect(1300, 700, 76, 76), over = NSMakeRect(1300, 811, 76, 76);
-    CGFloat moves[][2] = {{-200, -100}, {60, 0}, {0, 120}, {500, -900}};
-    for (size_t i = 0; i < sizeof moves / sizeof *moves; i++) {
-        NSPoint by = FoldedMove(glass, NSMakePoint(moves[i][0], moves[i][1]), room);
-        printf("  (%.0f, %.0f): moves (%.0f, %.0f)\n", moves[i][0], moves[i][1], by.x, by.y);
-    }
-    CGFloat overMoves[][2] = {{30, 0}, {0, 20}, {0, -20}};
-    for (size_t i = 0; i < sizeof overMoves / sizeof *overMoves; i++) {
-        NSPoint by = FoldedMove(over, NSMakePoint(overMoves[i][0], overMoves[i][1]), room);
-        printf("  past the top, (%.0f, %.0f): moves (%.0f, %.0f)\n", overMoves[i][0], overMoves[i][1], by.x, by.y);
-    }
     printf("How much shows on its way to the right, its left edge at 1000, 1100, 1270, 1355, 1440:");
     CGFloat lefts[] = {1000, 1100, 1270, 1355, 1440};
     for (size_t i = 0; i < sizeof lefts / sizeof *lefts; i++)
         printf(" %.3f", ParkedShows(NSMakeRect(lefts[i], 200, 340, 600), room));
     printf("\n");
+    printf("Which way what comes out of the folded cat goes, its glass 76 across on a screen 1440 by 875:\n");
+    struct { const char *what; CGFloat x, y; } ways[] = {
+        {"at the top right", 1340, 780}, {"at the top left", 20, 780}, {"at the bottom right", 1340, 20},
+        {"at the bottom left", 20, 20}, {"in the middle, a little low", 682, 380},
+        {"at the very top, half off", 600, 840}};
+    for (size_t i = 0; i < sizeof ways / sizeof *ways; i++) {
+        CatWay way = CatWayFor(NSMakeRect(ways[i].x, ways[i].y, 76, 76), room);
+        printf("  %s: %s and %s, %.0f across, %.0f tall\n", ways[i].what, way.right ? "right" : "left",
+               way.up ? "up" : "down", way.across, way.tall);
+    }
+    NSRect box = NSMakeRect(1300, 700, 102, 102);
+    NSArray<NSValue *> *chats = @[[NSValue valueWithRect:NSMakeRect(950, 640, 340, 160)],
+                                  [NSValue valueWithRect:NSMakeRect(950, 470, 340, 160)]];
+    NSRect frame = CatRoomFrame(box, chats, 18);
+    printf("The cat's square at (1300, 700) with two chats to its left, 340 by 160 each, 10 apart: the window is "
+           "(%.0f, %.0f) %.0f by %.0f\n", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+    printf("…and with none: (%.0f, %.0f) %.0f by %.0f\n", CatRoomFrame(box, @[], 18).origin.x,
+           CatRoomFrame(box, @[], 18).origin.y, CatRoomFrame(box, @[], 18).size.width,
+           CatRoomFrame(box, @[], 18).size.height);
+    printf("A press there, 6 points round each chat taking it (else it goes through to what's under the panel):\n");
+    struct { const char *what; CGFloat x, y; } presses[] = {
+        {"on the first chat", 1100, 700}, {"on the second", 1000, 500}, {"between them", 1100, 635},
+        {"4 left of the first", 946, 700}, {"10 left of it", 940, 700}, {"under both", 1100, 450}};
+    for (size_t i = 0; i < sizeof presses / sizeof *presses; i++)
+        printf("  %s: %s\n", presses[i].what,
+               CatRoomTakes(NSMakePoint(presses[i].x, presses[i].y), chats, 6) ? "taken" : "goes through");
     return 0;
 }
 

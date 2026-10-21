@@ -153,12 +153,31 @@ function drawView() {
   if (r.shown === key) return;
   r.shown = key;
   putHTML(src, `<span class="r-path">${esc(w.path || '')}</span>${publishedHTML(w)}`);
-  if (!read) body.innerHTML = '<div class="r-missing">Opening…</div>';
-  else if (read.missing) body.innerHTML = `<div class="r-missing">${esc(read.missing)}</div>`;
-  else body.innerHTML = `<article class="md">${markdownHTML(read.text)}</article>`;
-  body.scrollTop = 0;
-  r.ready = !!read;  // until it's in, the panel keeps the size it has
-  fitReader();
+  if (!read) {
+    readerWait(body, writingWaitWords(w));
+    r.ready = false;
+    fitReader();
+    return;
+  }
+  const html = read.missing ? `<div class="r-missing">${esc(read.missing)}</div>`
+    : `<article class="md">${markdownHTML(read.text)}</article>`;
+  // Still the one to show: another writing may have been picked while the words it waited with went.
+  const show = () => {
+    if (r.shown !== key) return;
+    body.innerHTML = html;
+    body.scrollTop = 0;
+    r.ready = true;
+    fitReader();
+  };
+  // In place of the words it waited with, it comes in once they've gone.
+  if (body.querySelector(':scope > .r-wait')) readerRefill(body, show);
+  else show();
+}
+
+// Where a writing is being read from, while it is: a plan as Claude asked about it, from the session's transcript, or
+// a file as it is now. A plain function.
+function writingWaitWords(w) {
+  return w.kind === 'plan' ? 'Reading the plan from the session\'s transcript…' : `Reading ${base(w.path) || 'the notes'}…`;
 }
 
 // A writing published from the session (its address on the web), to open there.
@@ -193,10 +212,10 @@ function prototypeNote(st) {
   return st.keyboard ? 'It has the keyboard: click the list to give it back.' : 'Click into it to point and type.';
 }
 
-// What shows in its space while the page isn't over it: "Opening…" until it's in, or why it can't be shown.
-function prototypeUnder(st) {
+// What shows in its space while the page isn't over it: which file is loading until it's in, or why it can't be shown.
+function prototypeUnder(st, w) {
   if (st?.problem) return st.problem;
-  return !st || st.loading ? 'Opening…' : '';
+  return !st || st.loading ? `Loading ${base(w?.path) || 'the prototype'}…` : '';
 }
 
 // The line above a prototype: where it is, Open in Browser, and what prototypeNote says.
@@ -223,7 +242,11 @@ function drawPrototype(w, src, body) {
   }
   const lineChanged = putHTML(src, prototypeLine(w, r.proto.state));
   const under = body.querySelector('.r-proto .r-missing');
-  if (under) under.textContent = prototypeUnder(r.proto.state);
+  if (under) {
+    under.textContent = prototypeUnder(r.proto.state, w);
+    // It breathes while the page loads (readerWait's words do too).
+    under.classList.toggle('r-wait', !r.proto.state?.problem && !!(!r.proto.state || r.proto.state.loading));
+  }
   if (lineChanged) fitReader();
   placePrototype();
 }

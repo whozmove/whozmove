@@ -1,0 +1,81 @@
+/* The chats beside the folded cat (scripts/chats.js): each a session's row, the list's own (rows.css), on a card of the
+   panel's own colour, out beside the cat toward the screen's middle, the cat over them as they come out from under it.
+   Its pin and × are at its top corner, over the end of its title line, which makes room for them; the time it has left
+   is a line along its foot in its dot's colour, shrinking as it runs out, firmer while it's held, gone while it's
+   pinned. Each is as tall as its row, a request's card and all, up to as far as the screen goes beside the cat
+   (--chat-most, chats.js), where its row scrolls, the time line staying under it. Under them, how many more wait. Each
+   is placed by its transform (chats.js), and moves to the next as it changes; with reduced motion, they fade.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#chats { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 2; visibility: hidden; }
+body.collapsed #chats { visibility: visible; }
+.chat { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; width: var(--column);
+        max-height: var(--chat-most); overflow: hidden; padding: 4px 6px 6px; border-radius: var(--radius-chat); background: var(--chat);
+        box-shadow: var(--chat-shadow); opacity: 0; transform-origin: 100% 0;
+        transition: transform .42s cubic-bezier(.2, .8, .2, 1), opacity .2s linear; }
+.chat-row { position: relative; min-height: 0; overflow-y: auto; }
+.chat-row::-webkit-scrollbar { width: 0; }
+#chats.to-right .chat { transform-origin: 0 0; }
+#chats.up .chat { transform-origin: 100% 100%; }
+#chats.up.to-right .chat { transform-origin: 0 100%; }
+.chat.going { pointer-events: none; }
+.chat.tucked { pointer-events: none; transition: transform .16s ease-in, opacity .16s linear; }
+.chat.going-all { pointer-events: none; transition: opacity .12s linear; }
+.chat .row .line1 { padding-right: 40px; }
+
+.chat-tools { position: absolute; top: 12px; right: 12px; display: flex; gap: 2px; }
+.chat-tool { width: 18px; height: 18px; display: grid; place-items: center; padding: 0; border: none;
+             border-radius: var(--radius-small); background: none; color: var(--faint); }
+.chat-tool.is-hover { background: var(--hover-strong); color: var(--text); }
+.chat-pin .pin-head { fill: none; }
+.chat.kept .chat-pin { color: var(--turn); }
+.chat.kept .chat-pin .pin-head { fill: currentColor; }
+
+.chat-time { position: absolute; left: 14px; right: 14px; bottom: 0; height: 2px; border-radius: var(--radius-bar);
+             background: var(--turn); opacity: .7; transform: scaleX(var(--left, 1)); transform-origin: 0 50%;
+             transition: opacity .2s linear, transform .1s linear; }
+#chats:not(.to-right) .chat-time { transform-origin: 100% 50%; }
+.chat.chat-needs .chat-time { background: var(--needs); }
+.chat.held .chat-time { opacity: 1; }
+.chat.kept .chat-time { opacity: 0; }
+
+.chat-more { position: absolute; left: 0; top: 0; width: var(--column); display: flex; justify-content: flex-end;
+             opacity: 0; pointer-events: none;
+             transition: transform .42s cubic-bezier(.2, .8, .2, 1), opacity .2s linear; }
+#chats.to-right .chat-more { justify-content: flex-start; }
+.chat-more.shows { opacity: 1; }
+.chat-more span { padding: 3px 9px; border-radius: var(--radius-pill); background: var(--chat-pill);
+                  color: var(--muted); font-size: var(--size-small); box-shadow: 0 0 0 0.8px var(--chat-edge); }
+
+/* As the panel opens round the cat, or folds back with chats still out, each chat is pulled into its row or back out of
+   it (chatsLand, chatsLeave, in chats.js), the script moving it a frame at a time: its card (colour and shadow, on a
+   layer of their own under its row), its pin, × and time line, the held row's tint for the session you're on, and its
+   title line's room for the pin and ×, each as far as the script says. The rows they land on, or leave, are out of
+   sight meanwhile, as is the held row's copy where one becomes it. While they go in, the rest of the panel waits out of
+   sight, but for the cat and the name, until the glass has spread out from behind the cat, then comes in round them;
+   while they come out, the pill saying how many more wait comes once they have. */
+body.chats-landing #chats, body.chats-landed #chats, body.chats-leaving #chats { visibility: visible; }
+.chat-base, .chat-tint { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.chat-base { background: var(--chat); box-shadow: var(--chat-shadow); opacity: 0; }
+.chat-tint { background: var(--focused); opacity: var(--tint, 0); }
+.chat.landing { display: block; pointer-events: none; transition: none; background: transparent; box-shadow: none; }
+.chat.landing .chat-row { overflow: visible; }
+.chat.landing .chat-base { opacity: var(--card, 1); }
+.chat.landing .chat-tools { opacity: var(--chrome, 1); transition: none; }
+.chat.landing .chat-time { opacity: calc(.7 * var(--chrome, 1)); transition: none; }
+.chat.landing.kept .chat-time { opacity: 0; }
+.chat.landing .row .line1 { padding-right: calc(40px * (1 - var(--away, 0))); }
+.row.chat-landing { visibility: hidden; }
+body.held-landing #sticky, body.held-landing #sticky-under, body.held-leaving #sticky,
+body.held-leaving #sticky-under { opacity: 0 !important; }
+body.chats-leaving .chat-more { opacity: 0; }
+body.chats-landing #root > :not(#cat):not(#chats):not(header), body.chats-landing header .add-new,
+body.chats-landing header .apps, body.chats-landing header .chev, body.chats-landing header .build {
+  opacity: 0 !important; transition: none !important; animation: none !important; }
+body.chats-landed #root > :not(#cat):not(#chats):not(header) { transition: opacity .2s ease !important; }
+body.chats-landed header .add-new, body.chats-landed header .apps, body.chats-landed header .chev,
+body.chats-landed header .build { animation: cat-fade-in .2s ease both !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chat, .chat-more { transition: opacity .2s linear; }
+}

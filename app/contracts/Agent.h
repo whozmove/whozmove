@@ -2,9 +2,9 @@
 // is a module that adopts Agent; what more it does, it says by the protocols it adopts beside it, one for each part of
 // the panel that uses it, so none of them reaches into the whole agent: AgentWork (what a session did: its edits and
 // its PRs), AgentCommands (its menus' choices, the commands that make them, and whether one took), AgentPrompt (a
-// command put into a session's prompt while keeping your draft), AgentUsage (your plan's usage) and AgentStarts (a new
-// session, an ended one carried on, and whether it may work in a folder). The core finds the agent that runs a row's
-// session (Core's agentOf:).
+// command put into a session's prompt while keeping your draft), AgentUsage (your plan's usage), AgentStarts (a new
+// session, an ended one carried on, and whether it may work in a folder) and AgentInstall (Whozmove's hooks in it,
+// added and kept up to date). The core finds the agent that runs a row's session (Core's agentOf:).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -127,4 +127,22 @@
 // to that: nil once done, else why it couldn't be, as the panel says it. Both block: call them off the main thread.
 - (BOOL)folderTrusted:(NSString *)folder;
 - (NSString *)trustFolder:(NSString *)folder;
+@end
+
+// What lets the panel follow the agent's sessions, put into the agent as Whozmove opens: for Claude Code, its hooks,
+// as a plugin.
+@protocol AgentInstall <Agent>
+// Puts the hooks in the folder `hooks` (the ones this app carries) into the agent, or brings them up to date there:
+// {state, detail}. `state` is ready (as they were), added (the first time, or back after your press), updated (a new
+// version), noCommand (the agent isn't on this Mac), removed (taken out of the agent since they were put in, so they're
+// left out), turnedOff (turned off in it) or failed, with what went wrong as `detail` (the agent's own last line, when
+// it said one). `answer` is your press on the line (addBack, turnOn or retry), else nil; `before` says whether they
+// were ever put in on this Mac, as the install module records it, so the agent keeps nothing. It blocks: call it off
+// the main thread. Nil in a print run, where it's never asked.
+- (NSDictionary *)connect:(NSString *)answer before:(BOOL)before from:(NSString *)hooks;
+// Whether the agent is on this Mac, found without running anything, not even your shell, whose startup files may run
+// git before Apple's developer tools are in: asked before the tools, which only its sessions need.
+@property (readonly) BOOL onThisMac;
+// Where to get the agent, for the line's Get Claude Code.
+@property (readonly) NSURL *installPage;
 @end

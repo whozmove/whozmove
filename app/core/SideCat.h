@@ -1,8 +1,9 @@
-// SideCat: Whozmove beside the panel. While the header has slid away with the list's scroll (panel/scripts/header.js),
-// the cat's head peeks out from behind the panel's top corner, on the side facing the screen's middle: an EdgeIcon, as
-// Spotify's token is at the bottom corner. It keeps the folded cat's moods, notices the pointer, slow-blinks when the
-// pointer rests on it and flicks an ear when something new needs you. Pressed, it comes in front of the glass and the
-// panel folds round it right where it is, the cat growing a little into the folded cat; dragged, it moves the panel.
+// SideCat: Whozmove beside the panel. While the header has gone, pushed away by the row you're on as the list scrolls
+// (panel/scripts/header.js), the cat's head peeks out from behind the panel's top corner, on the side facing the
+// screen's middle: an EdgeIcon, as Spotify's token is at the bottom corner. It keeps the folded cat's moods, notices
+// the pointer, slow-blinks when the pointer rests on it and flicks an ear when something new needs you. Pressed, it
+// comes in front of the glass and the panel folds round it right where it is, the cat growing a little into the folded
+// cat; dragged, it moves the panel.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "EdgeIcon.h"
 

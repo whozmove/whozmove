@@ -7,6 +7,7 @@
 #import "Row.h"
 #import "Files.h"
 #import "Log.h"
+#import "Processes.h"
 #import "Text.h"
 #import "ClaudeCodeFacts.h"
 #import "ClaudeSessions.h"
@@ -22,7 +23,8 @@
 #import "Prompt.h"
 #import "Results.h"
 #import "KeptSessions.h"
-#import "Processes.h"
+#import "PluginInstall.h"
+#import "ClaudeCommand.h"
 
 // The words are read from their file as the command runs, so they never pass through your shell's line editor, its
 // quoting or its history.
@@ -55,6 +57,8 @@ static NSString *ResumeCommand(NSString *sessionId) {
 @property (strong) ClaudeUsage *usage;
 @property (strong) KeptSessions *kept;  // its terminal sessions, kept so they're listed once they've ended
 @property (assign) NSTimeInterval lastRead;  // when the transcripts were last read
+@property (copy) NSSet<NSString *> *compacting;  // the sessions its hook recorded compacting as the rows were last read
+@property (assign) BOOL readSoon;  // a compaction has ended, so the transcripts are read again once no read is out
 // Whether Claude Code is set to record shell commands' changes (ShellDiffSetting), for each folder a listed session
 // runs in and for none, as last read on the queue, when that was, and whether a read is out.
 @property (strong) dispatch_queue_t queue;
@@ -148,13 +152,22 @@ static NSString *ResumeCommand(NSString *sessionId) {
 }
 
 // In the first phase, so the reads start as soon as the rows are known: what's new in the listed sessions'
-// transcripts, every 10s, and whether Claude Code records shell commands' changes in their folders. What they find
-// shows in the rows from a later read on.
+// transcripts, every 10s, and at once when a compaction has just ended, as the context's new size is there; and
+// whether Claude Code records shell commands' changes in their folders. What they find shows in the rows from a later
+// read on.
 - (void)readNewFor:(NSArray<Row *> *)rows {
     self.transcripts.sessionIds = [rows valueForKey:@"sessionId"];
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
-    if (now - self.lastRead >= 10) {
-        self.lastRead = now;
+    NSMutableSet<NSString *> *compacting = [NSMutableSet set];
+    for (Row *row in rows)
+        if (row.compacting && row.sessionId) [compacting addObject:row.sessionId];
+    if (self.compacting && ![self.compacting isSubsetOfSet:compacting]) self.readSoon = YES;
+    self.compacting = compacting;
+    // A read still out would skip the session, so the one for a compaction waits for it to come back.
+    BOOL soon = self.readSoon && !self.transcripts.reading, timed = now - self.lastRead >= 10;
+    if (soon || timed) {
+        if (soon) self.readSoon = NO;
+        if (timed) self.lastRead = now;
         [self.transcripts readNew];
     }
     [self readSettingSoon:rows];
@@ -366,9 +379,12 @@ static NSString *ResumeCommand(NSString *sessionId) {
 
 #pragma mark Usage and starts
 
-// Never in a print run: what it prints can't depend on this Mac's login.
+// Never in a print run: what it prints can't depend on this Mac's login. Nor before Apple's developer tools are
+// installed: claude may run git, which offers to install them each time until they are, so until then it's as if
+// there were no claude to ask.
 - (NSDictionary *)askUsage {
-    return self.core.printing ? nil : [self.usage ask];
+    if (self.core.printing) return nil;
+    return DeveloperToolsReady() ? [self.usage ask] : @{@"state": @"none"};
 }
 
 - (NSString *)startCommand:(NSString *)sessionId wordsFile:(NSString *)wordsFile {
@@ -386,6 +402,23 @@ static NSString *ResumeCommand(NSString *sessionId) {
 
 - (NSString *)trustFolder:(NSString *)folder {
     return TrustFolder(folder);
+}
+
+#pragma mark Its hooks
+
+// Never in a print run, where what it prints can't depend on this Mac's Claude Code: the print mode runs it with a
+// stand-in claude instead (--print-plugin-install).
+- (NSDictionary *)connect:(NSString *)answer before:(BOOL)before from:(NSString *)hooks {
+    if (self.core.printing) return nil;
+    return ConnectPlugin(answer, before, hooks, LoginPath());
+}
+
+- (BOOL)onThisMac {
+    return ClaudeCodeOnThisMac();
+}
+
+- (NSURL *)installPage {
+    return [NSURL URLWithString:kClaudeCodeInstallPage];
 }
 
 @end

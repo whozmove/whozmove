@@ -6,16 +6,19 @@ in each session's transcript (its PRs, what it wrote for you to read, what it ed
 session's details, the words of the commands the panel sends (`/model`, `/effort`, `/plan`, `/compact`) and what their
 results say, typing a command into a session's prompt while keeping your draft, the requests waiting for your answer in
 the panel, your plan's usage asked of `claude`, whether Claude may work in a folder, a new session's command and an
-ended one's, and its hooks plugin.
+ended one's, and its hooks plugin, put into Claude Code and kept up to date there.
 
 ## Its pieces
 
 - `app/ClaudeCode.m`: its face for the core (contracts/Module.h), and the agent it is (contracts/Agent.h), with every
-  one of the agent's protocols: AgentWork, AgentCommands, AgentPrompt, AgentUsage and AgentStarts. Its part of each
-  row: in the first phase, it starts reading what's new in the transcripts (every 10s) and whether Claude Code records
-  shell commands' changes in the sessions' folders (every 5s); then each session's last message and writings; then its
-  details, with a pick from the panel the session hasn't confirmed yet; and once the rows are whole, it forgets the
-  launch flags of sessions that have ended, and keeps each running terminal session's record (`KeptSessions.m`).
+  one of the agent's protocols: AgentWork, AgentCommands, AgentPrompt, AgentUsage, AgentStarts and AgentInstall. Its
+  part of each row: in the first phase, it starts reading what's new in the transcripts (every 10s, and at once when a
+  compaction its hook recorded ends, as the context's new size is there; one in a session started before the hook
+  update ends unheard, so its new size waits for the next 10s read) and whether Claude Code records shell commands'
+  changes in the sessions' folders (every 5s); then each session's last message and writings; then its details, with
+  a pick from the panel the session hasn't confirmed yet; and once the rows are whole,
+  it forgets the launch flags of sessions that have ended, and keeps each running terminal session's record
+  (`KeptSessions.m`).
 - `app/KeptSessions.m`: the terminal sessions it ran lately, kept so their rows stay once they've ended, as Claude
   Desktop keeps its conversations: a file for each in Whozmove's folder (`conversations/<id>.json`: its folder, name,
   the terminal it runs in, its process, its transcript and when its conversation last moved), written on a queue of
@@ -45,23 +48,37 @@ ended one's, and its hooks plugin.
   both look.
 - `app/ClaudeUsage.m`: your plan's usage, asked of `claude` itself, run for a moment in a folder of its own, and the
   command that signs it in. How often it's asked, the strip and its Sign in are the usage module's.
+- `app/ClaudeCommand.m`: where `claude` may be, best first (your terminal's PATH, where its installers put it, then
+  Claude Desktop's own copies, newest first), and what it runs with: that PATH and the bare essentials, nothing of this
+  app's environment. And whether Claude Code is on this Mac at all, found without running anything, not even your
+  shell (`ClaudeCodeOnThisMac`: its command where its installers put it, or its sessions' registry), which the install
+  module asks before Apple's developer tools (the agent's `onThisMac`).
+- `app/PluginInstall.m`: the hooks put into Claude Code as its plugin (the agent's AgentInstall, which the install
+  module calls as the app opens): copied from the app into Whozmove's folder (`plugin`) when their version differs or
+  the folder has gone, then, as `claude plugin list --json` finds them, added (the marketplace from that folder, then
+  the plugin), brought up to date (a marketplace update, then a plugin update), turned on again at your press, or left
+  as they are, each with Claude Code's own command.
 - `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things, its
   command and what it's run with, the marks its tab titles show while it works, how its registry marks a session run
-  from a terminal, and the model, effort and mode
-  choices. When Claude
-  Code changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
+  from a terminal, the `claude plugin` commands that keep Whozmove's plugin, where Claude Code is installed from, and
+  the model, effort and mode choices. When Claude Code changes, the fix goes here. The README's "Tested with" names the
+  version they were last checked with.
 - `app/ClaudeCodePrints.m`: its print modes, for the tests.
 - `page/agent.js`: what a session's model, mode and context mean (`core.agent`); `page/requests.js`: a request, its
-  questions or a plan on a row, and your answers. `module.json` lists them for tools/page.sh.
+  questions or a plan on a row, and your answers, by press or, once a request or a question is pressed, by key (1 to 9
+  and ↓ ↑ pick an option, `keyPick`; Return presses its main button). `module.json` lists them for tools/page.sh.
 - `plugin/`: Whozmove's hooks, as the Claude Code plugin `whozmove`: `hooks/whozmove-claude.py` (what each session is
-  doing, recorded in Whozmove's folder) and `hooks/whozmove-claude-permission.py` (a request left for the panel, and
-  its answer passed back; and Claude Code's "Switch model?" for a switch the panel made, asked in the panel when
-  Claude Code would ask it), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy install.sh and
-  build.sh put in place, with a version named after the hooks' contents. CONTRIBUTING describes the hooks and their
+  doing, recorded in Whozmove's folder) and `hooks/whozmove-claude-permission.py` (a request left for the panel, and its
+  answer passed back; and Claude Code's "Switch model?" for a switch the panel made, asked in the panel when Claude Code
+  would ask it), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy install.sh puts in place and
+  every build carries (tools/bundle.sh), with a version named after the hooks' contents. The session hook records
+  nothing while the app noted in Whozmove's folder (`app`) isn't there. CONTRIBUTING describes the hooks and their
   rules.
 
 `tests/test.sh` runs both hooks against a throwaway home folder and compares what they write and print with
-`tests/hooks.expected.txt`. tests/rows.sh checks the rest in its sample home: the rows (`--print-rows`), when keys may
+`tests/hooks.expected.txt`, again on the Python in Apple's developer tools when python3 is another one; then it puts
+the plugin into a stand-in Claude Code for each case (`--print-plugin-install`), compared with
+`tests/plugin.expected.txt`. tests/rows.sh checks the rest in its sample home: the rows (`--print-rows`), when keys may
 go into each session and the Shift+Tabs its mode menu would type (`--print-mode-moves`), the keys a command is typed
 with (`--print-typing`), how a command's result is read (`--print-results`), what the usage strip gets from Claude
 Code's answers (`--print-usage`), folder trust (`--print-trust`), and what's kept of each terminal session and what's
@@ -105,3 +122,12 @@ dropped (`--print-kept`).
   dropped, as you left it there; and one goes 3 days after its conversation last moved, or once Claude Code no longer
   has its transcript. One is listed only while no other row has it (Claude Desktop's own row comes first) and its
   folder is there, and a press carries it on only in that folder, as the same conversation.
+- Claude Code isn't asked about your plan's usage before Apple's developer tools are installed (`askUsage`): `claude`
+  may run git, which offers to install them each time until they are. Nor is its plugin put in before then: the
+  install module waits for them.
+- Whozmove's plugin is kept with Claude Code's own `claude plugin` commands only, never by editing its settings. One
+  taken out is left out unless you press Add Back, one turned off stays off unless you press Turn On, and a copy of it
+  from a marketplace of your own is left as it is, with no second one beside it.
+- The session hook records nothing while Whozmove isn't installed: no app noted in its folder, or one that isn't there
+  2 seconds after it's first missed. So nothing more of your sessions is written down once it's gone, and its folder
+  isn't made again.

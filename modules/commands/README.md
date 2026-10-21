@@ -25,7 +25,10 @@ once and takes it back if it doesn't go through.
   Compact card, and the card on a row while a pick goes into a terminal session (the row's `goingIn`): going in, then
   Claude Code asking about it in the terminal, with Take me there; `page/switch-model.js`: "Switch model?", asked on
   its row, as the card under its chat, for Claude Desktop and terminal sessions alike. The ring opens by itself into
-  "Compact now" when it's a good time to compact (`compactNow`: a plain function, checked by tests/panel.sh).
+  "Compact now" when it's a good time to compact (`compactNow`: a plain function, checked by tests/panel.sh), and
+  turns as a short arc while the conversation compacts, settling at its new size once it's done (`ringSettle`). It
+  doesn't say "Compact now" again while the size it has is still the one from before the compaction (`sizeBefore`),
+  until the new size comes in, or for 30s at most, as a compaction stopped with Esc keeps its size.
   `module.json` lists them for tools/page.sh.
 
 tests/rows.sh checks why each sample session's menus, Compact card and next steps would offer nothing now

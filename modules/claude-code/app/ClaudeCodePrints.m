@@ -1,5 +1,5 @@
 // ClaudeCodePrints: the Claude Code module's print modes, which the tests check: --print-mode-moves, --print-typing,
-// --print-results, --print-usage, --print-trust and --print-kept.
+// --print-results, --print-usage, --print-trust, --print-kept and --print-plugin-install.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ClaudeCode.h"
 #import "Core.h"
@@ -10,6 +10,8 @@
 #import "ClaudeCodeFacts.h"
 #import "AgentDetails.h"
 #import "ClaudeUsage.h"
+#import "ClaudeCommand.h"
+#import "PluginInstall.h"
 #import "Prompt.h"
 #import "Results.h"
 #import "Trust.h"
@@ -181,6 +183,36 @@ static int PrintKept(Core *core) {
                        @"stale": Stale(kept, [NSSet setWithArray:keeps.allKeys], NSDate.date.timeIntervalSince1970)});
 }
 
+// `Whozmove --print-plugin-install [--answer <press>] [--before] <hooks>`: puts the hooks in the folder `hooks` into
+// Claude Code as the app does as it opens (ConnectPlugin), with `claude` looked for on $INSTALL_PATH first and in the
+// home folder in $HOME, and prints what it reached, as JSON, then quits. `--answer` is your press on the line (addBack
+// or turnOn), `--before` that they were put in once already. modules/claude-code/tests/test.sh runs it for each case,
+// with a stand-in claude that writes down what it's asked. It changes Whozmove's folder there and runs the `claude` it
+// finds, so it refuses to run in your own home folder.
+static int PrintPluginInstall(NSArray<NSString *> *arguments) {
+    if (HomeIsYourOwn()) {
+        fprintf(stderr, "--print-plugin-install changes Claude Code in $HOME: run it with a throwaway HOME, as "
+                        "modules/claude-code/tests/test.sh does\n");
+        return 2;
+    }
+    MachineFilesInHome = YES;
+    NSMutableArray<NSString *> *rest = [arguments mutableCopy];
+    NSString *answer = nil;
+    NSUInteger at = [rest indexOfObject:@"--answer"];
+    if (at != NSNotFound && at + 1 < rest.count) {
+        answer = rest[at + 1];
+        [rest removeObjectsInRange:NSMakeRange(at, 2)];
+    }
+    BOOL before = [rest containsObject:@"--before"];
+    [rest removeObject:@"--before"];
+    if (rest.count != 1) {
+        fprintf(stderr, "usage: --print-plugin-install [--answer addBack|turnOn] [--before] <hooks>\n");
+        return 2;
+    }
+    NSString *path = NSProcessInfo.processInfo.environment[@"INSTALL_PATH"] ?: @"";
+    return PrintJSON(ConnectPlugin(answer, before, rest[0], path));
+}
+
 NSDictionary<NSString *, PrintMode> *ClaudeCodePrintModes(void) {
     return @{
         @"--print-kept": ^(Core *core, NSArray *a) { return PrintKept(core); },
@@ -189,5 +221,6 @@ NSDictionary<NSString *, PrintMode> *ClaudeCodePrintModes(void) {
         @"--print-results": ^(Core *core, NSArray *a) { return PrintResults(a); },
         @"--print-usage": ^(Core *core, NSArray *a) { return PrintUsage(a); },
         @"--print-trust": ^(Core *core, NSArray *a) { return PrintTrust(a); },
+        @"--print-plugin-install": ^(Core *core, NSArray *a) { return PrintPluginInstall(a); },
     };
 }

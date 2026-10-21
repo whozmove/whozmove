@@ -18,7 +18,10 @@
 @keyframes rowIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .swap { animation: swapIn 1s cubic-bezier(.2, .8, .2, 1); }
 .row.arrive { animation: rowIn 1s cubic-bezier(.2, .8, .2, 1); }
-.group.arrive, .project.arrive { animation: rowIn 280ms cubic-bezier(.2, .8, .2, 1); }  /* headers: quicker */
+.project.arrive { animation: rowIn 280ms cubic-bezier(.2, .8, .2, 1); }  /* headers: quicker */
+
+/* The reader's words while what it's to show is on its way (readerWait in reader.js): they breathe until it's in. */
+.r-wait { animation: breathe 2.4s ease-in-out infinite; }
 
 /* Deploy's round button (see deployHTML): its icon comes in whenever it changes (play to the stop square once pressed,
    to a check once it's done, back to play), and while a deploy runs a thin arc turns slowly round it; once it's done,
@@ -28,10 +31,21 @@
 @keyframes playRingIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes playRingOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes playTurn { to { transform: rotate(360deg); } }
+@keyframes ctxTurn { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+@keyframes ctxArcOut { to { opacity: 0; } }
+@keyframes ctxFillIn { from { stroke-dasharray: 0 32; } }
 .play-icon { animation: playIconIn .25s cubic-bezier(.2, .8, .2, 1) both; animation-delay: var(--since); }
 .play.going .play-ring { animation: playRingIn .3s ease-out both, playTurn 1.2s linear infinite;
                          animation-delay: var(--since); }
 .play.done .play-ring { animation: playRingOut .6s ease-in both; animation-delay: calc(var(--since) + 500ms); }
+
+/* The context ring while its conversation compacts (commands.js): a short arc going round, on a turn that carries on
+   from one rebuild to the next. Once it has, the arc fades where it stopped, and the ring fills from empty to its new
+   size, `--since` ago, so a rebuild meanwhile doesn't start it again. */
+.where .ctx.compacting svg { animation: ctxTurn 1.2s linear infinite; }
+.ctx.settling .ctx-arc { animation: ctxArcOut .25s ease-out both; animation-delay: var(--since); }
+.ctx.settling .ctx-fill { animation: ctxFillIn .5s cubic-bezier(.2, .8, .2, 1) both;
+                          animation-delay: calc(var(--since) + 150ms); }
 
 /* A step's word, as its icon is pointed at (git-steps.js): the room for it opens, then the word fades in, lifting 3px
    as it lands, while what's to its left slides over; pointed away, the word fades first, then its room closes. */
@@ -46,7 +60,8 @@
   .step-word { transform: none; transition: none !important; }
   .play-icon, .play.going .play-ring, .play.done .play-ring { animation: none; }
   .play.going .play-ring { opacity: 1; }
-  .busy .dot, .perm.going .dot, .claude.work .who { animation: none; }
+  .where .ctx.compacting svg, .ctx.settling .ctx-arc, .ctx.settling .ctx-fill { animation: none; }
+  .busy .dot, .perm.going .dot, .claude.work .who, .r-wait { animation: none; }
   .claude .shine { animation: none; color: var(--work-text); -webkit-text-fill-color: currentColor;
                    background: none; }
 }

@@ -10,6 +10,7 @@
 #import "Log.h"
 #import "Text.h"
 #import "ClaudeCodeFacts.h"
+#import "ClaudeCommand.h"
 
 static NSString *const kRequestId = @"whozmove-usage";
 // How long Claude Code has to answer.
@@ -17,32 +18,6 @@ static const NSTimeInterval kDeadline = 15;
 
 NSString *UsageFolder(void) {
     return AppDir(@"usage");
-}
-
-NSArray<NSString *> *ClaudeCandidates(NSString *path) {
-    NSFileManager *files = NSFileManager.defaultManager;
-    NSMutableArray<NSString *> *found = [NSMutableArray array];
-    void (^add)(NSString *) = ^(NSString *command) {
-        if ([files isExecutableFileAtPath:command] && ![found containsObject:command]) [found addObject:command];
-    };
-    for (NSString *folder in [path componentsSeparatedByString:@":"])
-        if (folder.isAbsolutePath) add([folder stringByAppendingPathComponent:@"claude"]);
-    for (NSString *folder in ClaudeCommandFolders())  // the Mac's own folders are read from $HOME in the print modes
-        add([(folder.isAbsolutePath ? MachineFile(folder) : [Home() stringByAppendingPathComponent:folder])
-             stringByAppendingPathComponent:@"claude"]);
-    NSString *desktop = [Home() stringByAppendingPathComponent:kClaudeDesktopCommands];
-    NSArray *versions = [[files contentsOfDirectoryAtPath:desktop error:nil]
-                         sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
-        return [b compare:a options:NSNumericSearch];  // newest first: 2.1.10 before 2.1.9
-    }];
-    for (NSString *version in versions) {
-        NSString *folder = [desktop stringByAppendingPathComponent:version];
-        for (NSString *build in [[files contentsOfDirectoryAtPath:folder error:nil]
-                                 sortedArrayUsingSelector:@selector(compare:)])
-            add([[folder stringByAppendingPathComponent:build]
-                    stringByAppendingPathComponent:kClaudeDesktopCommandInBuild]);
-    }
-    return found;
 }
 
 NSDictionary *UsageFromReply(NSData *line) {
@@ -122,7 +97,7 @@ static NSString *SignInCommand(NSString *claude) {
         [candidates insertObject:self.answered atIndex:0];
     }
     if (!candidates.count) return @{@"state": @"none"};
-    NSDictionary *environment = [self environmentWith:path];
+    NSDictionary *environment = ClaudeEnvironment(path);
     NSDictionary *request = @{@"type": @"control_request", @"request_id": kRequestId,
                               @"request": @{@"subtype": kClaudeUsageRequest, @"skip_behaviors": @YES}};
     NSMutableData *send = [[NSJSONSerialization dataWithJSONObject:request options:0 error:nil] mutableCopy];
@@ -155,16 +130,6 @@ static NSString *SignInCommand(NSString *claude) {
         return @{@"state": signedOut ? @"signedOut" : @"other", @"signIn": SignInCommand(claude)};
     }
     return @{@"state": @"failed"};
-}
-
-// What `claude` runs with: your terminal's PATH and the bare essentials, and nothing of this app's, so the marks an
-// agent's shell would have left (a Whozmove restarted from one inherits them) can't make it think it's an agent's.
-- (NSDictionary *)environmentWith:(NSString *)path {
-    NSDictionary *own = NSProcessInfo.processInfo.environment;
-    NSMutableDictionary *environment = [NSMutableDictionary dictionaryWithDictionary:@{@"PATH": path, @"HOME": Home()}];
-    for (NSString *key in @[@"USER", @"LOGNAME", @"TMPDIR", @"LANG"])
-        if (own[key]) environment[key] = own[key];
-    return environment;
 }
 
 // Whether your terminal's shell sets one of ClaudeOtherAuthVariables: then Claude Code there uses that rather than a

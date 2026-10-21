@@ -1,0 +1,22 @@
+/* The folded cat's list while it's pointed at (scripts/peek.js): the open panel, its header out of sight, and in its
+   place a head as tall, with its line under it, the cat in it as it is folded, where the name's o is, and at its other
+   end how many are waiting on you, where the header's buttons are, so they come in only once the words have gone.
+   Coming out, the list comes in as it does as the panel opens from the cat (cat.css): out of sight until the glass
+   starts spreading out from behind the cat, then fading in as it has. Folding back, the head fades with the list.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#peekHead { position: absolute; left: 0; top: 0; right: 0; z-index: 2; height: var(--header); display: flex;
+            align-items: center; justify-content: flex-end; padding: 0 16px 0 76px; visibility: hidden; opacity: 0;
+            font-size: var(--size-title); font-weight: 600; color: var(--text);
+            transition: opacity .15s ease, visibility 0s linear .15s; }
+#peekHead::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+                   background: var(--rule); }
+.peek-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.peeking #peekHead { visibility: visible; opacity: 1; transition: opacity .15s ease; }
+body.peeking header { opacity: 0; visibility: hidden; transition: none; }
+body.peeking #cat { opacity: 1; visibility: visible; }
+body.collapsed.peeking #peekHead { opacity: 0; visibility: hidden;
+                                   transition: opacity .15s ease, visibility 0s linear .15s; }
+body.peek-wait #list, body.peek-wait #sticky, body.peek-wait #sticky-under, body.peek-wait #peekHead {
+  opacity: 0; transition: none; }
+body.peek-in #list, body.peek-in #sticky, body.peek-in #sticky-under, body.peek-in #peekHead { transition-delay: .3s; }

@@ -2,17 +2,34 @@
 
 ## Unreleased
 
-- **More room for the list.** The header slides away as you scroll the list down, point for point, and comes back as
-  soon as you scroll up, from anywhere in the list; a scroll that stops with it part-way finishes the way you were
-  going. While it's gone, Whozmove peeks out beside the panel's top corner, on the side facing the middle of the screen,
-  and keeps its moods: it looks up as your pointer comes near, blinks slowly when you rest on it, and flicks an ear when
-  something new needs you. Press it and it grows a little, right where it is, as the panel folds round it; drag it to
-  move the panel. The panel opens round it again, with the header back. With reduced motion it fades in and out where it
-  rests.
+- Click a request or a question on a row and the keys work on it: 1 to 9, or ↓ and ↑, pick an option, Return goes on,
+  submits or allows once, and Esc leaves it, answering nothing. Its edge shows it has the keyboard, which goes back to
+  the app you were in once you answer. Before, Return went to the app in front, where it could answer Claude's own copy
+  of the question with a different option.
+- **The list is in the order a chat app keeps.** One list, newest first, with no sections: a conversation goes to the
+  top whenever a message comes, Claude's reply or a request, and when you send one, from the panel, Claude or a
+  terminal. While Claude works, its row stays where your message put it, and compacting a conversation doesn't move
+  it at all. A row you've just pressed stays put until your pointer has left the panel, then goes to the top. Once a
+  conversation has gone idle, a day after you read its reply, it goes below the rest. The dots still say whose move
+  it is. In the pawn menu, Group by Status is now **Newest First**. Grouped by project, the projects go A to Z and
+  stay put, each with its conversations newest first.
+- **More room for the list.** The header stays as you scroll the list down until the row you're on reaches it and has
+  folded down there; scrolling on, that row pushes the header away, point for point, and it stays away, even part-way,
+  until you've scrolled back to the top of the list. While it's gone, Whozmove peeks out beside the panel's top corner,
+  on the side facing the middle of the screen, and keeps its moods: it looks up as your pointer comes near, blinks
+  slowly when you rest on it, and flicks an ear when something new needs you. Press it and it grows a little, right
+  where it is, as the panel folds round it; drag it to move the panel. The panel opens round it again, with the header
+  back. With reduced motion it fades in and out where it rests.
 - **Flick the panel away.** A quick sideways two-finger swipe on the panel pushes it off that side of the screen, fading
   as it goes, and Whozmove peeks out from the screen's edge; press it, or Show / Hide Panel, or ⌃⌥N, and the panel
-  slides back where it was. Up and down still scroll the list. Folded, a two-finger swipe any way moves the panel,
-  gliding on as far as the swipe was quick, and stopping at the screen's edge.
+  slides back where it was. Up and down still scroll the list.
+- **What needs you comes out beside the folded panel.** While the panel is folded, a request, a question, a plan or a
+  reply you haven't read comes out beside it by itself, as its own row from the list, so you can answer it there or
+  press it to open its session. Newest first, three at most, each for 45 seconds, its time running out along its foot;
+  pointing at one, typing in it or being in its session keeps them all out, and nothing new comes out meanwhile. Pin
+  one to keep it out, or × to send it back; under them it says how many more are waiting.
+- **Rest the pointer on the folded panel and it opens**, headed with how many are waiting on you; move off and it folds
+  back, or press it to keep it open. As it opens, what's out beside it goes into its row, and back out as it folds.
 - **Your message and Claude's line are written in.** New text writes in from the left once the old has erased from
   the right, and Claude's next step keeps what it shares with the one before ("Reading …"), rewriting only the rest. A
   reply on two lines writes one line, then the next; Claude's time stays just past its text as it goes. While Claude
@@ -21,6 +38,12 @@
   the reader, the keyboard goes back to the app you were in as you leave, and pressing a terminal session's row leaves
   it in the terminal, so you can type there straight away. Before, the panel could keep it, press after press, until
   you clicked into the terminal.
+- **Whozmove sets up its hooks itself.** Each time it opens from an Applications folder, it adds its hooks to Claude
+  Code as the `whozmove` plugin, or brings them up to date there, with Claude Code's own `claude plugin` commands,
+  using the `claude` your terminal finds, else Claude Desktop's own copy. It looks for Claude Code first, and waits for
+  Apple's command line developer tools only once it's there, as only its sessions need them. It never adds back hooks
+  you took out of Claude Code, and leaves them as they are for a build an agent made. The hooks now record nothing
+  while Whozmove isn't installed: once it's gone, nothing more of your sessions is written down.
 - **The panel turns over to the apps Whozmove works with.** The four squares in the header turn the whole panel over,
   about its middle, with its back already there as it comes round, at the panel's size. Behind the list are Claude,
   Ghostty, iTerm2, Terminal, Spotify and Git, those on your Mac, each with its own icon; press one for what Whozmove
@@ -107,6 +130,10 @@
   Compact now"), and why when you point at it: while it sits idle, once its conversation is nearly full or long, or,
   once it's big, when its work has just been committed or you've been away from it for an hour. Not where the panel
   couldn't compact it.
+- **Compacting, shown on the ring.** While a conversation compacts, whether by itself or asked for, its context ring
+  becomes a short arc going round, and Claude's line says "Compacting the conversation" with how long it has taken.
+  When it's done, the arc fades and the ring fills to the new size. A session started before the update shows this
+  only for the compactions asked for from the panel.
 - **Deploy**, a round play button at the end of that bottom line, for any project Whozmove can work out a deploy
   command for: it puts that checkout's code in place on this Mac, so in a worktree it runs that worktree's code. The
   first press suggests the command and you confirm it twice, seeing what a package script or Makefile target in it
@@ -123,9 +150,10 @@
   and the like), or what that work has been through ("built · tested", the audit).
 - **Working on Whozmove ▸** in the pawn menu, shown while ⌥ is held: **Show Build in Header** says which worktree
   the running build came from and when.
-- `./build.sh` puts the hooks in place too, once they're installed as the plugin, and running `./install.sh` again
-  now updates them: before, Claude Code kept its first copy of the plugin, so a changed hook never reached sessions.
-  A build run inside Claude Code (an agent's, or yours with `!`) leaves the hooks as they are.
+- A changed hook now reaches your sessions: Whozmove brings its hooks up to date in Claude Code as it starts, so
+  after `./build.sh` too, where before Claude Code kept its first copy of the plugin. A build run inside Claude Code
+  (an agent's, or yours with `!`) leaves the hooks as they are, and says how to put them in place. A build put in
+  place says when Whozmove isn't running, or runs from somewhere else, and what to do.
 - A build restarts Whozmove only if it's running from the app the build replaced, and only once the copy running
   has quit (made to, if it doesn't when asked), the copy you opened yourself after quitting it included; the panel
   fades in when it starts.

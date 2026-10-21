@@ -5,10 +5,10 @@
 /* The reader sits beside the list's column in the page, which is always laid out at one width (--side): on the
    column's left, ending where it starts, or on its right. readerOpened places it and gives its width; the panel shows
    it as it grows (PanelWindow's reshapeTo:), so it's laid out once, before it's uncovered. */
-#reader { display: none; position: absolute; top: 0; height: 100vh; overflow: hidden; }
+#reader { display: none; position: absolute; top: var(--above); height: calc(100vh - var(--above)); overflow: hidden; }
 body.reading #reader { display: block; border-right: 1px solid var(--rule); }
 body.reading.list-left #reader { border-right: none; border-left: 1px solid var(--rule); }
-body.reading #root { height: 100vh; max-height: none !important; }
+body.reading #root { height: calc(100vh - var(--above)); max-height: none !important; }
 
 .r-in { position: absolute; top: 0; bottom: 0; left: 0; display: flex; flex-direction: column; opacity: 0;
         transition: opacity .18s ease; }

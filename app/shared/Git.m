@@ -6,6 +6,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+// Runs git, as RunTool does, once Apple's developer tools are installed: their own git, never /usr/bin/git, which
+// without them offers to install them each time it's run (DeveloperToolsGit). Until then nothing runs, and it's nil as
+// for a tool that couldn't start.
+NSDictionary *RunGit(NSArray<NSString *> *arguments) {
+    NSString *git = DeveloperToolsGit();
+    return git ? RunTool(git, arguments, nil) : nil;
+}
+
 // The branch and worktree of the checkout that holds `cwd`, read straight from its .git, without running git:
 // {branch or detached, root, worktree, worktreeOf, mainRoot}, or nil outside a repo.
 NSDictionary *GitInfo(NSString *cwd) {
@@ -60,9 +68,8 @@ NSDictionary *GitInfo(NSString *cwd) {
 // progress. It runs without optional locks: a plain `git status` refreshes the index under index.lock, and an agent
 // committing at that moment would fail. Blocking.
 NSDictionary *FetchCheckoutState(NSString *root) {
-    NSDictionary *run = RunTool(@"/usr/bin/git", @[@"--no-optional-locks", @"-C", root, @"status", @"--porcelain=v2",
-                                                   @"-z", @"--branch", @"--untracked-files=no"],
-                                nil);
+    NSDictionary *run = RunGit(@[@"--no-optional-locks", @"-C", root, @"status", @"--porcelain=v2", @"-z", @"--branch",
+                                 @"--untracked-files=no"]);
     if (!run || [run[@"status"] intValue] != 0) return nil;
     // A name that isn't UTF-8 (one from another system) reads as Latin-1, rather than losing the whole checkout.
     NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
@@ -94,7 +101,7 @@ NSDictionary *FetchCheckoutState(NSString *root) {
             counted[kind]++;
         }
     }
-    NSDictionary *remote = RunTool(@"/usr/bin/git", @[@"--no-optional-locks", @"-C", root, @"remote"], nil);
+    NSDictionary *remote = RunGit(@[@"--no-optional-locks", @"-C", root, @"remote"]);
     NSString *names = [[NSString alloc] initWithData:remote[@"out"] ?: NSData.data encoding:NSUTF8StringEncoding];
     NSUInteger remotes = [[names stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
                              componentsSeparatedByString:@"\n"].count;
@@ -120,7 +127,7 @@ NSString *BranchStart(NSString *root, NSString **base, NSString **baseRef) {
     NSString *(^git)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
         NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
         [all addObjectsFromArray:arguments];
-        NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+        NSDictionary *run = RunGit(all);
         if (!run || [run[@"status"] intValue] != 0) return nil;
         NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding];
         return [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
@@ -145,7 +152,7 @@ NSString *LocalBaseBranch(NSString *root) {
     NSString *(^git)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
         NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
         [all addObjectsFromArray:arguments];
-        NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+        NSDictionary *run = RunGit(all);
         if (!run || [run[@"status"] intValue] != 0) return nil;
         NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding];
         text = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
@@ -171,7 +178,7 @@ NSDictionary *FetchChangeCounts(NSString *root) {
     NSString *(^output)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
         NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
         [all addObjectsFromArray:arguments];
-        NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+        NSDictionary *run = RunGit(all);
         if (!run || [run[@"status"] intValue] != 0) return nil;
         return [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
             ?: [[NSString alloc] initWithData:run[@"out"] encoding:NSISOLatin1StringEncoding];
@@ -202,8 +209,8 @@ NSDictionary *FetchChangeCounts(NSString *root) {
 // The branches GitHub's copy of a checkout's repo has, as this Mac last fetched them (origin's), by name, sorted, or nil
 // when git can't say. Blocking.
 NSArray<NSString *> *RemoteBranches(NSString *root) {
-    NSDictionary *run = RunTool(@"/usr/bin/git", @[@"--no-optional-locks", @"-C", root, @"for-each-ref",
-                                                   @"--format=%(refname:short)", @"refs/remotes/origin"], nil);
+    NSDictionary *run = RunGit(@[@"--no-optional-locks", @"-C", root, @"for-each-ref", @"--format=%(refname:short)",
+                                 @"refs/remotes/origin"]);
     if (!run || [run[@"status"] intValue] != 0) return nil;
     NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding] ?: @"";
     NSMutableArray<NSString *> *names = [NSMutableArray array];

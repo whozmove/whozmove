@@ -53,8 +53,8 @@ function deployMenu(button) {
   native({ type: 'stepMenu', step: 'deploy', sessionId: button.dataset.deploy, x: r.left - 4, y: r.bottom + 4 });
 }
 
-// A right-click (or Control-click) on Deploy's button opens its menu, in place of WebKit's own.
-list.addEventListener('contextmenu', (e) => {
+// A right-click (or Control-click) on Deploy's button opens its menu, in place of WebKit's own, wherever its row is.
+document.addEventListener('contextmenu', (e) => {
   const button = e.target.closest('.play[data-deploy]');
   if (!button) return;
   e.preventDefault();

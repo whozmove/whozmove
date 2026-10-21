@@ -41,6 +41,12 @@
     if (record[@"workRoot"]) self.workRoot = AsText(record[@"workRoot"]);
     if (record[@"editedAt"]) self.editedAt = AsNumber(record[@"editedAt"]);
     if (record[@"permissionMode"]) self.permissionMode = AsText(record[@"permissionMode"]);
+    // A compaction under way, by itself or asked for, while the session runs: one quit in the middle of it says
+    // nothing, and nor may one stopped with Esc, so one that began 15 minutes ago is taken as over.
+    NSNumber *compactingAt = AsNumber(record[@"compactingAt"]);
+    if (compactingAt && ![self.status isEqual:@"closed"]
+        && NSDate.date.timeIntervalSince1970 * 1000 - compactingAt.doubleValue < 15 * 60 * 1000)
+        self.compacting = compactingAt;
 }
 
 - (NSDictionary *)json {

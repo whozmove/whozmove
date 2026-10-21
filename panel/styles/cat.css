@@ -1,6 +1,6 @@
-/* The folded panel: the cat in its round glass where the name's o is, and, while the pointer is on it, a label for each
-   session beside it (scripts/cat.js). Its shapes are in the cat's own units, 448 to 92 points (cat.js): in an SVG, a
-   length in px is one of them.
+/* The folded panel: the cat in its round glass where the name's o is (scripts/cat.js); its chats and its list are
+   chats.css's and peek.css's. Its shapes are in the cat's own units, 448 to 92 points (cat.js): in an SVG, a length in
+   px is one of them.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* Its square centred on the glass's middle (--cat-x and --cat-y, which catPlace works out from the name's o), where
@@ -32,6 +32,9 @@ body.arriving:not(.name-in) header .add-new, body.arriving:not(.name-in) header 
 body.arriving:not(.name-in) header .chev,
 body.arriving:not(.name-in) #list, body.arriving:not(.name-in) #dock, body.arriving:not(.name-in) #sticky,
 body.arriving:not(.name-in) #sticky-under { opacity: 0; transition: none; }
+/* With the panel open round the cat already, its list out while it's pointed at (peek.js), the list stays as it is. */
+body.arriving.open-already #list, body.arriving.open-already #dock, body.arriving.open-already #sticky,
+body.arriving.open-already #sticky-under { opacity: 1; transition: none; }
 body.arriving.name-in header .add-new, body.arriving.name-in header .apps, body.arriving.name-in header .chev {
   animation: cat-fade-in .2s ease .15s both; }
 @keyframes cat-fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -88,44 +91,7 @@ body.collapsed #cat.landing { transition: none; }
 @keyframes cat-drift { 0%, 100% { transform: translate(-6px, 7px); } 50% { transform: translate(6px, 7px); } }
 @keyframes cat-glance { 0%, 80%, 100% { transform: none; } 85%, 93% { transform: translate(-5px, 7px); } }
 
-/* The labels (catLabels): what's waiting on you by name, in tags beside the cat at its eye level, and everything else
-   as its dot, in a row under them, nearest the cat first, each with the list's own dot (rows.css), at the end nearest
-   the cat. Pointing at a tag lights it, and pointing at a dot shows its name under it; a press on either opens its
-   conversation. They come out one after another (--delay), each fading in as it rises the last 3pt, and fade
-   together as the pointer leaves. On the screen's left half they're on the cat's right. */
-#catTags { position: absolute; left: calc(var(--cat-x) + 51px); top: calc(var(--cat-y) - 51px); width: 0; height: 0;
-           z-index: 2; visibility: hidden; }
-body.collapsed #catTags, body.arriving #catTags { visibility: visible; }
-.cat-tag, .cat-dot { position: absolute; cursor: default; pointer-events: none; opacity: 0; transform: translateY(3px);
-                     transition: opacity .12s linear, transform .2s ease .12s, background-color .12s ease; }
-#catTags.out .cat-tag, #catTags.out .cat-dot {
-  pointer-events: auto; opacity: 1; transform: none;
-  transition: opacity .12s linear var(--delay), transform .3s cubic-bezier(.2, .8, .2, 1) var(--delay),
-              background-color .12s ease; }
-#catTags.reset .cat-tag, #catTags.reset .cat-dot { transition: none; }
-.cat-tag { display: flex; flex-direction: row-reverse; align-items: center; gap: 6px; height: 24px;
-           box-sizing: border-box; padding: 0 9px 0 11px; border-radius: var(--radius-pill); background: var(--cat-tag);
-           box-shadow: 0 0 0 .8px var(--cat-tag-edge), 0 5px 12px var(--cat-tag-shadow); white-space: nowrap;
-           font-size: var(--size-body); font-weight: 500; color: var(--text); }
-#catTags.to-right .cat-tag { flex-direction: row; padding: 0 11px 0 9px; }
-.cat-tag.is-pointed { background: var(--cat-tag-pointed); }
-.cat-mark { display: flex; }
-.cat-mark .dot { margin-top: 0; }
-.cat-dot { display: flex; align-items: center; justify-content: center; width: 17px; height: 20px; }
-.cat-dot.is-pointed { z-index: 1; }
-.cat-dot-name { position: absolute; left: 50%; top: 21px; display: flex; align-items: center; height: 22px;
-                box-sizing: border-box; padding: 0 10px; border-radius: var(--radius-pill); background: var(--cat-tag);
-                box-shadow: 0 0 0 .8px var(--cat-tag-edge), 0 5px 12px var(--cat-tag-shadow); white-space: nowrap;
-                font-size: var(--size-small); font-weight: 500; color: var(--text); opacity: 0;
-                transform: translate(-50%, -2px); transition: opacity .1s linear, transform .2s ease; }
-.cat-dot.quiet .cat-dot-name { color: var(--muted); }
-.cat-dot.is-pointed .cat-dot-name { opacity: 1; transform: translate(-50%, 0); }
-/* Opening the panel from them, they fade where they are, gone by the time the glass spreads out from behind the cat. */
-#catTags.into-rows .cat-tag, #catTags.into-rows .cat-dot { opacity: 0; transition: opacity .1s ease; }
-
 /* Reduced motion tells the same story: no breathing, drifting, rolling or growing; what changes fades, or jumps to
    where it ends. */
 #cat.calm .cat-drift { animation: none; }
 #cat.calm .cat-pose, #cat.calm .cat-gaze { transition: none; }
-#catTags.calm .cat-tag, #catTags.calm .cat-dot { transform: none; transition: opacity .2s ease; }
-#catTags.calm .cat-dot-name { transform: translate(-50%, 0); transition: opacity .2s ease; }

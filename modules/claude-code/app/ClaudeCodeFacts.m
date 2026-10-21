@@ -56,6 +56,35 @@ NSArray<NSString *> *ClaudeOtherAuthVariables(void) {
              @"CLAUDE_CODE_USE_FOUNDRY"];
 }
 
+NSString *const kClaudeCodeInstallPage = @"https://code.claude.com/docs/en/setup";
+
+NSString *const kWhozmovePlugin = @"whozmove@whozmove";
+NSString *const kWhozmoveMarketplace = @"whozmove";
+
+NSArray<NSString *> *PluginListArguments(void) {
+    return @[@"plugin", @"list", @"--json"];
+}
+
+NSArray<NSString *> *PluginMarketplaceAddArguments(NSString *folder) {
+    return @[@"plugin", @"marketplace", @"add", folder];
+}
+
+NSArray<NSString *> *PluginInstallArguments(void) {
+    return @[@"plugin", @"install", kWhozmovePlugin];
+}
+
+NSArray<NSString *> *PluginMarketplaceUpdateArguments(void) {
+    return @[@"plugin", @"marketplace", @"update", kWhozmoveMarketplace];
+}
+
+NSArray<NSString *> *PluginUpdateArguments(void) {
+    return @[@"plugin", @"update", kWhozmovePlugin];
+}
+
+NSArray<NSString *> *PluginEnableArguments(void) {
+    return @[@"plugin", @"enable", kWhozmovePlugin];
+}
+
 
 NSArray<NSArray<NSString *> *> *ModelChoices(void) {
     return @[@[@"claude-opus-5-5", @"Opus 5.5"], @[@"claude-sonnet-5-5", @"Sonnet 5.5"],

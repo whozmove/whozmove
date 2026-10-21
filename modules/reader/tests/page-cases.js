@@ -7,7 +7,7 @@ load('tests/page-harness.js');  // the stand-ins, the page's scripts and the hel
 section('A prototype (writings.js)');
 const page = { id: 'w1', kind: 'prototype', title: 'Landing page', path: '/work/app/landing.html', at: min(5) };
 show('opening: the line, before the app has said anything', prototypeLine(page, null));
-show('opening: its space', prototypeUnder(null));
+show('opening: its space, naming the file', prototypeUnder(null, page));
 show('loading', prototypeLine(page, { loading: true, keyboard: false }));
 show('loaded: click into it', prototypeLine(page, { loading: false, keyboard: false }));
 show('loaded: its space, under it', prototypeUnder({ loading: false, keyboard: false }));
@@ -21,3 +21,7 @@ show('a problem: in its space', prototypeUnder(gone));
 show('published too', prototypeLine({ ...page, url: 'https://claude.ai/public/artifacts/example' },
                                     { loading: false, keyboard: false }));
 show('a name that is markup is shown as text', prototypeLine({ ...page, path: '/work/<b>x</b>.html' }, null));
+
+section('While a writing is read (writings.js)');
+show('a plan: from the transcript', writingWaitWords({ kind: 'plan', path: '/home/.claude/plans/tidy.md' }));
+show('notes: from their file', writingWaitWords({ kind: 'notes', path: '/work/app/NOTES.md' }));

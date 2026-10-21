@@ -27,8 +27,9 @@ commit not on its upstream (`--print-changes`), and tests/panel.sh the page's pa
   numbers are pointed at), `openFile` (`{sessionId, path, line}`, with `editor` when it was just
   chosen), and the view's steps, which the git module answers: `gitStep` (`{sessionId, step}`) and `gitWays`
   (`{sessionId, x, y}`).
-- The app calls `showChanges(sid, scope, view)` (the view made JSON off the main thread) and `setEditors({choice,
-  apps})`.
+- The app calls `showChanges(sid, scope, view)` (the view made JSON off the main thread; `{counting: true}` while git
+  hasn't finished counting the checkout's changes, which the page says while it asks again every few seconds)
+  and `setEditors({choice, apps})`.
 
 ## Rules
 

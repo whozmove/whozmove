@@ -24,8 +24,10 @@
 - (void)update:(NSData *)rows;
 - (void)setRoom:(CGFloat)room;
 - (void)hoverAt:(NSPoint)point;
-// The pointer is off the panel; `still` while it hasn't moved there yet (the panel's edge moved past it).
-- (void)hoverEnd:(BOOL)still;
+// The pointer is off the panel; `still` while it hasn't moved there yet (the panel's edge moved past it), and `held`
+// while it's on what the panel holds over or under itself (Spotify's token, the usage card), where the folded cat's
+// list on pointing stays out.
+- (void)hoverEnd:(BOOL)still held:(BOOL)held;
 // The panel no longer has the keyboard: another app took it, or the panel gave it back.
 - (void)keyboardGone;
 // The panel is turning over to its back (YES), or is back on its list side (NO): PanelWindow's turnOver:then:.
@@ -34,8 +36,17 @@
 // gone (cat.js).
 - (void)catPointer:(NSPoint)offset;
 - (void)catPointerGone;
-// Which way the folded cat's tags fan out: toward the screen's middle, so right while the cat is on its left half.
-- (void)catSide:(BOOL)right;
+// Which way what comes out of the folded cat goes (PanelWindow.h's CatWayFor): told as it changes, while nothing is
+// out.
+- (void)catWay:(BOOL)right up:(BOOL)up across:(CGFloat)across tall:(CGFloat)tall;
+// The window has taken in the room the page asked for beside the folded cat, or given it back (catRoom), `ask` being
+// which of the page's asks that was.
+- (void)catRoomTaken:(id)ask;
+// The folded cat pressed (YES), and the press let go (NO): its list doesn't come out on pointing meanwhile (peek.js).
+- (void)catPressed:(BOOL)down;
+// The folded cat is being dragged with something out beside it, which goes in meanwhile (YES); and it has stopped
+// (NO).
+- (void)catMoving:(BOOL)moving;
 // That the glass is about to spread out from behind the folded cat as the panel opens: the cat shrinks into the name's
 // o (cat.js). `then` runs once the page has started it (its next frame), or a moment later if it
 // doesn't say, so the glass starts with it.

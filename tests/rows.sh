@@ -260,6 +260,8 @@ for sid, (folder, name, procs) in copies.items():
 put(f".claude/sessions/{halt_pid}.json", {"pid": halt_pid, "sessionId": "s-halt", "cwd": os.path.join(T, "idle"),
                                           "status": "idle", "statusUpdatedAt": ms(40), "entrypoint": "cli",
                                           "kind": "interactive", "name": "rest a while", "procStart": "start-halt"})
+# Its compaction began 20 minutes ago and never said it ended: it's taken as over.
+put(f"Library/Application Support/Whozmove/sessions/s-halt.json", {"compactingAt": ms(20)})
 put(".claude/projects/p/s-halt.jsonl", [
     {"type": "user", "message": {"role": "user", "content": "rest a while"}, "timestamp": iso(40), "isSidechain": False}])
 near = next(spare)
@@ -273,7 +275,9 @@ put(f".claude/sessions/{gone_pid}.json", {"pid": gone_pid, "sessionId": "s-gone"
 put(f".claude/sessions/{topic_pid}.json", {"pid": topic_pid, "sessionId": "s-topic", "cwd": os.path.join(T, "clone"),
                                     "status": "busy", "statusUpdatedAt": ms(15), "entrypoint": "cli",
                                     "kind": "interactive", "procStart": "start-topic"})
-put(f"Library/Application Support/Whozmove/sessions/s-topic.json", {"outcome": "Committed", "outcomeAt": ms(15)})
+# It's compacting, by itself, mid-turn.
+put(f"Library/Application Support/Whozmove/sessions/s-topic.json", {"outcome": "Committed", "outcomeAt": ms(15),
+                                                                    "compactingAt": ms(1)})
 # And another session in that clone, idle: its next steps and Deploy wait for the agent at work there.
 put(f".claude/sessions/{clone_pid}.json", {"pid": clone_pid, "sessionId": "s-clone", "cwd": os.path.join(T, "clone"),
                                     "status": "idle", "statusUpdatedAt": ms(20), "entrypoint": "cli",
@@ -296,7 +300,8 @@ for number, (sid, cwd, mode) in enumerate([("m-auto", repo, "auto"), ("m-plan", 
 
 # Transcripts. s-term: a prompt in acceptEdits, a reply with its usage and the effort it was made with (over the
 # settings' effort), a PR it made, and a sub-agent's reply that must not count. s-wt: a prompt in plan mode (its only
-# record of its mode), a reply with no effort (the settings' stands), then a compaction that leaves the context smaller.
+# record of its mode), a reply with no effort (the settings' stands), then a compaction that leaves the context smaller,
+# with the summary Claude Code writes after it, which isn't a message: the conversation last moved with the reply.
 put(".claude/projects/p/s-term.jsonl", [
     {"type": "user", "message": {"role": "user", "content": "please fix the tests"}, "timestamp": iso(10),
      "permissionMode": "acceptEdits", "isSidechain": False},
@@ -343,6 +348,8 @@ put(".claude/projects/p/s-wt.jsonl", [
      "usage": {"input_tokens": 100, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 300000}},
      "timestamp": iso(3), "isSidechain": False},
     {"type": "system", "subtype": "compact_boundary", "compactMetadata": {"postTokens": 52000}, "timestamp": iso(2)},
+    {"type": "user", "message": {"role": "user", "content": "This session is being continued from a previous one."},
+     "timestamp": iso(2), "isSidechain": False, "isCompactSummary": True, "isVisibleInTranscriptOnly": True},
 ])
 
 # Edits, as Claude Code records each one's result. s-topic: retry.py written, then added to; and edits that aren't

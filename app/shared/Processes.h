@@ -24,5 +24,7 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               BOOL (^line)(NSData *line), NSTimeInterval seconds);
 NSString *LoginShell(void);
 NSString *LoginPath(void);
+NSString *DeveloperToolsGit(void);
+BOOL DeveloperToolsReady(void);
 NSDictionary *RunInCheckout(NSString *command, NSString *folder, NSTimeInterval seconds, BOOL errors,
                             NSArray<NSString *> *marks);

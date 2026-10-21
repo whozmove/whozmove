@@ -67,8 +67,8 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 @property (weak) Core *core;
 // sessionId -> what was picked, and when
 @property (strong) NSMutableDictionary<NSString *, NSMutableDictionary *> *chosen;
-// sessionId -> when a /compact sent from the panel began
-@property (strong) NSMutableDictionary<NSString *, NSNumber *> *compacting;
+// sessionId -> when a /compact sent from the panel began, and when the last one had its result
+@property (strong) NSMutableDictionary<NSString *, NSNumber *> *compacting, *compactEnded;
 // sessionId -> a pick on its way into the session's terminal, {field, value, inTerminal}
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *going;
 // "Switch model?" asked on a session's row, by sessionId: Claude Desktop's question, {from, to, tokens, never}, and the
@@ -89,6 +89,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     self.core = core;
     self.chosen = [NSMutableDictionary dictionary];
     self.compacting = [NSMutableDictionary dictionary];
+    self.compactEnded = [NSMutableDictionary dictionary];
     self.going = [NSMutableDictionary dictionary];
     self.switchQuestions = [NSMutableDictionary dictionary];
     self.switchesToAsk = [NSMutableDictionary dictionary];
@@ -103,6 +104,10 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 
 - (NSNumber *)compactingSince:(NSString *)sessionId {
     return self.compacting[sessionId];
+}
+
+- (NSNumber *)compactEndedAt:(NSString *)sessionId {
+    return self.compactEnded[sessionId];
 }
 
 - (NSDictionary *)goingIn:(NSString *)sessionId {
@@ -186,7 +191,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     NSMenu *menu = [NSMenu new];
     menu.autoenablesItems = NO;
     NSString *heading = @{@"model": @"Model", @"effort": @"Effort", @"mode": @"Permission mode"}[field];
-    if (@available(macOS 14.0, *)) [menu addItem:[NSMenuItem sectionHeaderWithTitle:heading]];
+    HeadingInMenu(menu, heading);
     if (why) {
         SayInMenu(menu, why);
         // A way past it, when its terminal has one the panel can take (iTerm2's Python API, turned on), right under
@@ -521,7 +526,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     }
     NSString *text = [agent compactCommand:focus];
     SessionReach *reach = [self.core.send reachOf:row];
-    NSString *why = WhyNoCompact(reach, self.compacting[sid] != nil)
+    NSString *why = WhyNoCompact(reach, self.compacting[sid] != nil || row.compacting != nil)
         ?: ([self changesGoingInto:sid] ? kStillChanging : nil);
     if (why) {
         PanelLog(@"%@ -> %@ not sent: %@", sid, text, why);
@@ -547,6 +552,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 - (void)endCompact:(Command *)command result:(NSString *)result {
     if (![command.field isEqual:@"compact"] || !self.compacting[command.sessionId]) return;
     [self.compacting removeObjectForKey:command.sessionId];
+    self.compactEnded[command.sessionId] = @(NSDate.date.timeIntervalSince1970 * 1000);
     NSString *note = [command.agent compactNote:result];
     if (note)
         [self.page compactNote:command.sessionId

@@ -53,3 +53,7 @@ const CHEVRON_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M
   + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CLOSE_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" '
   + 'stroke-width="1.5" stroke-linecap="round"/></svg>';
+// A pin: a chat beside the folded cat kept out until you're done with it (chats.js), its head filled while it's kept.
+const PIN_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path class="pin-head" '
+  + 'd="M4 1.5h4l-.6 3.2L9.6 7H2.4l2.2-2.3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>'
+  + '<path d="M6 7.2v3.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';

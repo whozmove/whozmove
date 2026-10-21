@@ -90,7 +90,7 @@ static const NSUInteger kNameMax = 60;
 static NSString *Ask(NSString *root, NSArray<NSString *> *arguments) {
     NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
     [all addObjectsFromArray:arguments];
-    NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+    NSDictionary *run = RunGit(all);
     if (!run || [run[@"status"] intValue] != 0) return nil;
     return [[[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
             stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
@@ -123,8 +123,8 @@ static NSDictionary<NSString *, NSString *> *CheckedOut(NSString *repo) {
 - (NSDictionary *)listIn:(NSString *)folder {
     NSString *repo = RepoOf(folder);
     if (!repo) return @{@"none": @YES, @"where": [Worktrees shown:RealPath(folder)]};
-    NSDictionary *checkedOut = CheckedOut(repo);
-    NSString *here = RealPath(GitInfo(folder)[@"root"] ?: folder);
+    NSDictionary *checkedOut = CheckedOut(repo), *git = GitInfo(folder);
+    NSString *here = RealPath(git[@"root"] ?: folder);
     NSMutableArray *worktrees = [NSMutableArray array];
     for (NSString *path in [checkedOut.allKeys sortedArrayUsingSelector:@selector(compare:)])
         if (![path isEqual:here])
@@ -135,7 +135,10 @@ static NSDictionary<NSString *, NSString *> *CheckedOut(NSString *repo) {
                             componentsSeparatedByString:@"\n"])
         if (name.length && ![taken containsObject:name]) [branches addObject:name];
     NSString *base = LocalBaseBranch(repo);
-    return @{@"here": @{@"path": here, @"where": [Worktrees shown:here], @"branch": checkedOut[here] ?: NSNull.null},
+    // Its own branch comes from its .git too, so it's still named when git can't be asked (before Apple's developer
+    // tools are installed), though its worktrees and branches can't be listed then.
+    return @{@"here": @{@"path": here, @"where": [Worktrees shown:here],
+                        @"branch": checkedOut[here] ?: git[@"branch"] ?: NSNull.null},
              @"worktrees": worktrees, @"branches": branches, @"base": base ?: NSNull.null,
              @"folder": [Worktrees shown:[self folderFor:repo]], @"folderPath": [self folderFor:repo]};
 }
@@ -153,6 +156,10 @@ static NSString *LocalBranch(NSString *repo, id value) {
 }
 
 - (NSDictionary *)check:(NSDictionary *)target in:(NSString *)folder {
+    // Making one runs git from your shell, which without Apple's developer tools offers to install them instead, and
+    // the checks below ask git too, so they'd fail for the wrong reason.
+    if (!DeveloperToolsReady())
+        return @{@"why": @"Making a worktree needs Apple's command line developer tools: install them first"};
     NSString *repo = RepoOf(folder);
     if (!repo) return @{@"why": [NSString stringWithFormat:@"%@ isn't in a git repository", folder.lastPathComponent]};
     NSString *kind = AsText(target[@"kind"]), *name = nil, *base = nil;

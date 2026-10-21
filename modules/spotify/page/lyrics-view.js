@@ -142,7 +142,7 @@ function drawLyrics() {
     lyricsStep(Date.now(), 'instant');
   };
   if (first || calm.matches) fill();
-  else lyricsRefill(body, fill);
+  else readerRefill(body, fill);
 }
 
 // The lines, each a button that takes the song there (the dots of a pause too), and where they came from; or plain
@@ -160,26 +160,6 @@ function lyricsBodyHTML(shown) {
       + `${verses}<p class="ly-credit">Lyrics from LRCLIB</p></div>`;
   }
   return `<div class="r-missing">${esc(lyricsMissing(shown))}</div>`;
-}
-
-// What's shown goes, then the new comes in the panel's way (fading in, lifting 3px, sharpening): a new song's lyrics,
-// or what's known of them changing. Changed again while the old is going (a new song's lyrics are often known a moment
-// after it), the newest comes in once it has gone; and nothing comes in if the reader has turned to something else by
-// then.
-function lyricsRefill(body, fill) {
-  const r = state.reading, old = body.firstElementChild;
-  if (r.lyricsFill) return void (r.lyricsFill = fill);
-  if (!old) return fill();
-  r.lyricsFill = fill;
-  tween(old, { opacity: '1' }, { opacity: '0' }, () => {
-    const latest = r.lyricsFill;
-    r.lyricsFill = null;
-    if (!latest || state.reading !== r || r.mode !== 'lyrics') return;
-    latest();
-    body.firstElementChild?.animate([{ opacity: 0, transform: 'translateY(3px)', filter: 'blur(1.5px)' },
-                                     { opacity: 1, transform: 'none', filter: 'blur(0)' }],
-                                    { duration: 420, easing: MORPH_EASE });
-  }, 160, 'ease');
 }
 
 // The lines at `now`: the one being sung lit and those sung dimmed, and the column moved so it's about a third of the
@@ -249,8 +229,7 @@ function lyricsSeek(i) {
 // ---- What it plugs into ----
 
 // The reader's mode, about none of the sessions. What it keeps on the reader (state.reading): the song and state its
-// lines were drawn for (lyricsShown), which line was lit (lyricsAt), and what comes in once what's shown has gone
-// (lyricsFill).
+// lines were drawn for (lyricsShown) and which line was lit (lyricsAt).
 core.readerModes.lyrics = {
   sessionless: true,
   width: () => LYRICS_READER_WIDTH,
@@ -259,12 +238,10 @@ core.readerModes.lyrics = {
   shown(r) {
     r.lyricsShown = undefined;
     r.lyricsAt = -1;
-    r.lyricsFill = null;
     npEl.classList.add('lyrics-open');
   },
   reset(r) {
     r.lyricsShown = undefined;
-    r.lyricsFill = null;
     lyricsDotsGone();
   },
   cls: 'k-lyrics',

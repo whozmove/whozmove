@@ -1,28 +1,23 @@
-// The header lies over the list's top (base.css) and slides away with the list's scroll, point for point, for the list
-// to have its room, and comes back by as much as you scroll back up, from anywhere in the list. When the scroll stops
-// with it part-way, it finishes the way you were going. It's all there at the very top of the list, and stays so while
-// the list is too short to scroll, the reader is open or a card is under it; folded, it stays as it was, out of sight,
-// until the panel opens, when it's all there (toggleCollapsed, panel.js). The app hears how much of it shows, for the
-// drag strip over it, and when it has gone, for Whozmove beside the panel (app/core/PanelWindow.m). What it keeps
-// between rebuilds is state.header (state.js).
+// The header lies over the list's top (base.css) and stays there as the list scrolls, until the row you're on, held at
+// the list's top, has folded all it can there (sticky.js): scrolling on, that pushes it up and away, point for point,
+// for the list to have its room. It stays as far as it was pushed, part-way too, until the list has scrolled back to
+// its very top, which brings it back with it. It's all there while the list is too short to scroll, the reader is open
+// or a card is under it; folded, it stays as it was, out of sight, until the panel opens, when it's all there
+// (toggleCollapsed, panel.js). The app hears how much of it shows, for the drag strip over it, and when it has gone,
+// for Whozmove beside the panel (app/core/PanelWindow.m). What it keeps between rebuilds is state.header (state.js).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // How tall the header is with its line: --header (tokens.css, kHeaderHeight in app/core/PanelWindow.m) and 1.
 const HEADER_TALL = 47;
-// How long the scroll is still before the header finishes the way it was going, and how long it takes then.
-const HEADER_SETTLE_AFTER = 140, HEADER_GLIDE = 200;
+// How long it takes to come back where it can't go (the reader opening, a card under it).
+const HEADER_GLIDE = 200;
 
-// How far the header has gone after the list has scrolled by `d` to `top`: as far as the list moved, never further than
-// the list has scrolled (at its very top, it's all there).
-function headerAfterScroll(off, d, top, tall = HEADER_TALL) {
-  return Math.max(0, Math.min(tall, off + d, top));
-}
-
-// Where a stopped scroll leaves a header that's part-way: all gone if the list was going down (as far as the list has
-// scrolled), all there if it was going up. One that's all there or all gone stays.
-function headerSettle(off, dir, top, tall = HEADER_TALL) {
-  if (off <= 0 || off >= tall) return off;
-  return dir > 0 ? Math.min(tall, top) : 0;
+// How far the header has gone after the list has scrolled by `d` to `top`, the held row's copy having gone `push`
+// points past where it has folded all it can at the list's top (stickyPush, sticky.js): further by as much of the
+// scroll down as took the copy past there, and back only as the list's very top comes back into view (at the top, it's
+// all there).
+function headerAfterScroll(off, d, top, push, tall = HEADER_TALL) {
+  return Math.max(0, Math.min(tall, off + Math.max(0, Math.min(d, push)), top));
 }
 
 // Whether the header counts as gone: all of it, and once it has, until it has come back by a few points, so a jitter
@@ -51,7 +46,8 @@ function headerOff() {
 
 const headerCarded = () => !!document.getElementById('dock').firstElementChild;
 const headerList = () => document.getElementById('list');
-const headerFolded = () => document.body.classList.contains('collapsed');
+// Folded, or with the folded cat's list out (peek.js), whose head stands in for the header and stays where it is.
+const headerFolded = () => document.body.classList.contains('collapsed') || document.body.classList.contains('peeking');
 function headerCanGo() {
   const list = headerList();
   return headerMayGo({ folded: headerFolded(), reading: !!state.reading, carded: headerCarded(),
@@ -70,11 +66,10 @@ function headerShow(off, force) {
   headerTell();
 }
 
-// All there at once, for what measures from it (the panel opening round the cat, catOpening in cat.js; the list
-// scrolling to a row above, showInList in sticky.js), its glide and settling stopped.
+// All there at once, for what measures from it (the panel opening round the cat, catOpening in cat.js), its glide
+// stopped.
 function headerAllThere() {
   cancelAnimationFrame(state.header.glide);
-  clearTimeout(state.header.quiet);
   headerShow(0, true);
 }
 
@@ -101,30 +96,21 @@ function headerTell() {
 }
 
 // Folded, the list may still scroll (a scroll's momentum running on, the session you're on scrolled to): the header
-// stays where it is, out of sight, until the panel opens (toggleCollapsed puts it all there).
+// stays where it is, out of sight, until the panel opens (toggleCollapsed puts it all there). Open, the row you're on
+// is laid out for the scroll first, so it's held at the list's top as soon as it has gone past it, and how far its copy
+// pushes the header is measured from there.
 function headerScrolled() {
   const h = state.header, list = headerList(), top = list.scrollTop, d = top - h.last;
   h.last = top;
   if (headerFolded()) return;
-  if (Math.abs(d) > 0.01) h.dir = d > 0 ? 1 : -1;
-  cancelAnimationFrame(h.glide);
-  if (!headerCanGo()) headerGlideTo(0);
-  else headerShow(headerAfterScroll(h.off, d, top));
-  clearTimeout(h.quiet);
-  h.quiet = setTimeout(headerSettled, HEADER_SETTLE_AFTER);
-}
-
-// The scroll has stopped with the header part-way: it finishes the way you were going.
-function headerSettled() {
-  if (headerFolded()) return;
   if (!headerCanGo()) return headerGlideTo(0);
-  headerGlideTo(headerSettle(state.header.off, state.header.dir, headerList().scrollTop));
+  stickyPlace();
+  headerShow(headerAfterScroll(h.off, d, top, stickyPush()));
 }
 
 function headerGlideTo(to) {
   const h = state.header;
   cancelAnimationFrame(h.glide);
-  clearTimeout(h.quiet);
   const from = h.off;
   if (Math.abs(to - from) < 0.5 || calm.matches) return headerShow(to, true);
   const start = performance.now();

@@ -24,12 +24,20 @@ Fingers lifting, at a speed in points a second, having gone so far across: wheth
   1200, gone -10: no
   801, gone 5: yes
 A panel at (1000, 200), 340 wide, flicked: to the right, to (1440, 200); to the left, to (-340, 200)
-The folded glass at (1300, 700), 76 across, swiped by, and one already 12 past the top:
-  (-200, -100): moves (-200, -100)
-  (60, 0): moves (60, 0)
-  (0, 120): moves (0, 99)
-  (500, -900): moves (64, -700)
-  past the top, (30, 0): moves (30, 0)
-  past the top, (0, 20): moves (0, 0)
-  past the top, (0, -20): moves (0, -20)
 How much shows on its way to the right, its left edge at 1000, 1100, 1270, 1355, 1440: 1.000 1.000 0.250 0.062 0.000
+Which way what comes out of the folded cat goes, its glass 76 across on a screen 1440 by 875:
+  at the top right: left and down, 1378 across, 800 tall
+  at the top left: right and down, 1382 across, 800 tall
+  at the bottom right: left and up, 1378 across, 800 tall
+  at the bottom left: right and up, 1382 across, 800 tall
+  in the middle, a little low: left and up, 720 across, 495 tall
+  at the very top, half off: right and down, 802 across, 800 tall
+The cat's square at (1300, 700) with two chats to its left, 340 by 160 each, 10 apart: the window is (932, 452) 470 by 366
+…and with none: (1300, 700) 102 by 102
+A press there, 6 points round each chat taking it (else it goes through to what's under the panel):
+  on the first chat: taken
+  on the second: taken
+  between them: taken
+  4 left of the first: taken
+  10 left of it: goes through
+  under both: goes through

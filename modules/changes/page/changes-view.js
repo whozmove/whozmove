@@ -55,11 +55,12 @@ function turnChanges(r, scope) {
   return true;
 }
 
-// The app's view of a checkout's changes for one tab (Changes.m's view:scope:done:), or {missing}.
+// The app's view of a checkout's changes for one tab (Changes.m's view:scope:done:), or {missing}, or {counting} while
+// git hasn't finished counting them (it's asked again once the numbers come in).
 window.showChanges = (sid, scope, view) => {
   // Kept for when the view opens on it, as it may have been asked for ahead (prefetchChanges), with what was asked for.
   const key = sid + ' ' + scope;
-  if (view && !view.missing) keepChanges(key, state.changesAsked[key], view);
+  if (view && !view.missing && !view.counting) keepChanges(key, state.changesAsked[key], view);
   const r = state.reading;
   if (!r || r.mode !== 'changes' || r.sessionId !== sid) return;
   const c = changesState(r);
@@ -75,8 +76,11 @@ window.showChanges = (sid, scope, view) => {
 function drawChanges(drawing = false) {
   const r = state.reading, s = readerSession(), c = changesState(r);
   const want = changesWanted(s, c.scope);
-  if (c.asked !== want) {
+  // While git is still counting, asked again every few seconds too: a count that ends with too much to count gives the
+  // row no numbers, so nothing else would move `want`.
+  if (c.asked !== want || (c.views[c.scope]?.counting && Date.now() - c.askedAt > COUNTING_AGAIN_MS)) {
     c.asked = want;
+    c.askedAt = Date.now();
     // Asked for ahead and come in already: drawn now, so the panel opens on it at once.
     const ready = state.changesReady.get(s.sessionId + ' ' + c.scope);
     if (ready?.want === want) {
@@ -86,10 +90,31 @@ function drawChanges(drawing = false) {
       askChanges(s.sessionId, c.scope, want);
     }
   }
+  // Until the tab's view is in, its body says where it's coming from, as the panel opens.
+  if (!drawing && !changesShown(c)) readerWait(reader.querySelector('.r-body'), changesWaitWords(s, c));
   let changed = putHTML(reader.querySelector('.r-head'), changesHeadHTML(s, c));
   changed = putHTML(reader.querySelector('.r-src'), changesBarHTML(s, c)) || changed;
   changed = putHTML(reader.querySelector('.r-shelf'), changesShelfHTML(s, c)) || changed;
-  if (changed) { fitReader(); syncHover(); }
+  // Drawn again with the files (redrawChanges), the panel is fitted once they're in.
+  if (changed && !drawing) { fitReader(); syncHover(); }
+}
+
+const COUNTING_AGAIN_MS = 3000;
+
+// The tab's view, once it's in: not while git is still counting the changes.
+const changesShown = (c) => (c.views[c.scope]?.counting ? null : c.views[c.scope]);
+
+// Where a tab's view is coming from while it's on its way: git, counting the checkout's changes (until it has, there's
+// nothing to send), or the app reading the changes, or the commits, from it. A plain function.
+function changesWaitWords(s, c) {
+  const where = base((s.workGit || s.git)?.root || s.cwd);
+  if (c.views[c.scope]?.counting) return `Still counting the changes in ${where} with git…`;
+  if (c.scope === 'outgoing') {
+    const ahead = unpushedCommits(s.checkout);
+    return `Reading ${ahead ? 'the ' + commitsWord(ahead) : 'the commits'} not on GitHub yet from git…`;
+  }
+  return c.scope === 'staged' ? `Reading what's staged in ${where} from git…`
+    : `Reading the changes in ${where} from git…`;
 }
 
 // The view drawn again: the head and list, then the files, keeping where it was scrolled to.
@@ -100,14 +125,27 @@ function redrawChanges() {
   // The list first, as it settles which file is lit (the one shown, one at a time), which may have changed with the view.
   reader.querySelector('.r-shelf').dataset.drawn = '';
   drawChanges(true);
-  const view = c.views[c.scope];
+  const view = changesShown(c);
   const body = reader.querySelector('.r-body'), top = body.scrollTop;
-  const parts = view ? changesBodyParts(c, view) : [{ html: '<div class="r-missing">Opening…</div>' }];
+  const token = c.drawn = (c.drawn || 0) + 1;
+  if (!view) {
+    readerWait(body, changesWaitWords(s, c));
+    r.ready = false;
+    c.drawnScope = null;
+    fitReader();
+    syncHover();
+    return;
+  }
+  // In place of the words it waited with, the view comes in once they've gone.
+  if (body.querySelector(':scope > .r-wait')) {
+    readerRefill(body, () => { body.innerHTML = ''; redrawChanges(); });
+    return;
+  }
+  const parts = changesBodyParts(c, view);
   // Drawn for the first time, a long view is drawn a screenful first: once it fills the panel as tall as it can be,
   // the panel can open around it, and the files below it follow a few at a time, frame by frame, so the page keeps
   // answering the pointer meanwhile. Drawn again (the agent at work), it's drawn whole, so where it's scrolled to stays.
   const first = !r.ready || c.drawnScope !== c.scope;
-  const token = c.drawn = (c.drawn || 0) + 1;
   body.innerHTML = '<div class="c-blocks"></div>';
   const files = body.firstElementChild, head = reader.querySelector('.r-head').offsetHeight;
   // Adds the next parts, up to about `lines` lines (at least one part); how many were added.
@@ -120,15 +158,15 @@ function redrawChanges() {
     }
     files.insertAdjacentHTML('beforeend', html);
   };
-  if (!first || !view) add(Infinity);
+  if (!first) add(Infinity);
   else {
     add(SCREENFUL);
     // Shorter than the panel can be, the panel's size waits on the rest.
     while (shown < parts.length && body.scrollHeight + head + 60 < state.panelMax) add(SCREENFUL);
   }
   body.scrollTop = top;
-  r.ready = !!view;
-  c.drawnScope = view ? c.scope : null;
+  r.ready = true;
+  c.drawnScope = c.scope;
   fitReader();
   syncHover();
   // A file picked in the list before its turn: the rest is drawn at once, so it's there to go to.
@@ -224,7 +262,7 @@ function commitHeadHTML(k, cls) {
 // The files down the side, as git lists them, each with its letter; in Outgoing, under the commit each is from. The one
 // shown is lit.
 function changesShelfHTML(s, c) {
-  const view = c.views[c.scope];
+  const view = changesShown(c);
   if (!view) return '';
   if (view.missing) return `<div class="r-missing">${esc(view.missing)}</div>`;
   const list = viewFiles(view);

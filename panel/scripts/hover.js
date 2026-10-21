@@ -5,7 +5,7 @@
 // Everything hover-related follows one pointer position that the app polls and sends (hoverAt, hoverEnd).
 // Neither :hover nor mouse events are used: the panel is rarely the focused window, so WebKit's own hover goes
 // stale, and the list is rebuilt every second.
-const HOVER_TARGETS = ['.row', '.chev', '.apps', '.group.toggle', '.project', '.perm button', '.opt', '.q-close',
+const HOVER_TARGETS = ['.row', '.chev', '.apps', '.project', '.perm button', '.opt', '.q-close',
                        '.step-note button',
                        '#reader button', '#card button'];
 
@@ -18,8 +18,10 @@ const HOVER_TARGETS = ['.row', '.chev', '.apps', '.group.toggle', '.project', '.
 // again.
 const card = document.getElementById('card');
 const cardMaker = (anchor) => core.cards.find((c) => anchor.matches(c.selector));
+// None shows from a chat beside the folded cat (chats.js): the panel's room there is the chats' own.
 function cardAnchor(el) {
-  return core.cards.length ? el?.closest(core.cards.map((c) => c.selector).join(', ')) || null : null;
+  const anchor = core.cards.length ? el?.closest(core.cards.map((c) => c.selector).join(', ')) : null;
+  return anchor && !anchor.closest('#chats') ? anchor : null;
 }
 function cardKey(anchor) {
   return anchor ? cardMaker(anchor)?.key(anchor) ?? null : null;
@@ -27,13 +29,13 @@ function cardKey(anchor) {
 
 // Below what it's about when the panel can grow to fit it, otherwise above.
 function placeCard(anchor) {
-  const r = anchor.getBoundingClientRect();
+  const r = anchor.getBoundingClientRect(), from = rootTop();
   const h = card.offsetHeight;
-  let top = r.bottom + 4;
+  let top = r.bottom - from + 4;
   const above = top + h + 8 > state.panelMax;
-  if (above) top = Math.max(6, r.top - h - 4);
+  if (above) top = Math.max(6, r.top - from - h - 4);
   card.classList.toggle('above', above);
-  card.style.top = top + 'px';
+  card.style.top = from + top + 'px';
   state.cardBottom = Math.ceil(top + h + 8);
 }
 
@@ -59,7 +61,8 @@ function showCard(key, anchor = cardUnderPointer()) {
 // so it's found again by its key.
 function anchorOf(key) {
   for (const maker of core.cards)
-    for (const anchor of document.querySelectorAll(maker.selector)) if (maker.key(anchor) === key) return anchor;
+    for (const anchor of document.querySelectorAll(maker.selector))
+      if (!anchor.closest('#chats') && maker.key(anchor) === key) return anchor;
   return null;
 }
 

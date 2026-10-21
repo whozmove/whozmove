@@ -14,9 +14,13 @@ import re
 import sys
 import time
 
-# Whozmove's folder: must match AppDir in app/Files.m (tests/hooks.sh fails if it doesn't).
+# Whozmove's folder: must match AppDir in app/shared/Files.m (modules/claude-code/tests/test.sh fails if it doesn't).
 ROOT = os.path.expanduser("~/Library/Application Support/Whozmove")
 BASE = os.path.join(ROOT, "sessions")
+# Where the app runs from, which it notes in its folder each time it opens (modules/install): nothing is recorded
+# while it isn't there, so once Whozmove is removed nothing more of your sessions is written down, and its folder isn't
+# made again.
+APP_NOTE = os.path.join(ROOT, "app")
 SNIPPET = 280
 
 # How a shell line is read (command_segments): what's dropped from it, what separates its commands, and the
@@ -41,6 +45,7 @@ OUTCOMES = ["Deployed", "On staging", "Merged", "PR raised", "Pushed", "Committe
 CHANGES = {"Implemented", "Documented", "Built", "Tested", "Committed"}  # a turn that changed something
 UNCOMMITTED = {"Implemented", "Documented", "Built", "Validated", "Tested"}  # changes still sitting in the checkout
 FOLLOW_UP_MS = 2 * 3600 * 1000  # how long a look-up turn counts as a follow-up to the work before it
+COMPACT_END_AFTER_MS = 1000  # how long after a compaction starts the next step can say it has ended
 PROOF = ("Built", "Tested", "Validated")  # what the work's been through, shown beside its state
 
 # A deploy counts only when it names its environment: production is "Deployed", staging is "On
@@ -327,12 +332,29 @@ def last_assistant_text(transcript_path):
     return ""
 
 
+def app_installed():
+    """Whether the app noted in Whozmove's folder is there. A build or an upgrade swapping it in can leave a moment
+    without it, so it's looked for again 2 seconds later before it counts as gone: this hook runs in the background,
+    so no session waits."""
+    try:
+        with open(APP_NOTE) as f:
+            app = f.read().strip()
+    except OSError:
+        return False
+    if not app:
+        return False
+    if os.path.isdir(app):
+        return True
+    time.sleep(2)
+    return os.path.isdir(app)
+
+
 def main():
     now = int(time.time() * 1000)  # taken first: hooks run async, so this orders racing events
     event = json.load(sys.stdin)
     session_id = event.get("session_id")
     name = event.get("hook_event_name")
-    if not session_id:
+    if not session_id or not app_installed():
         return
 
     update = {}              # the fields this event sets
@@ -375,6 +397,8 @@ def main():
                 update = dict(workRoot=root, editedAt=now)
     elif name == "PostToolUseFailure":
         pass  # a step ended: only its time is kept (stageAt, below)
+    elif name in ("PreCompact", "PostCompact"):
+        pass  # a compaction started or ended, by itself or asked for (compactingAt, below)
     else:
         return
 
@@ -405,6 +429,22 @@ def main():
         # after a step finishes it stays up, timed from when that step began, while Claude thinks on.
         if (activity is not None or name == "Stop") and state.get("activityAt", 0) <= now:
             state.update(activity=activity, activityAt=now)
+        # While the conversation is compacting, by itself or asked for: from its start until it ends. One stopped
+        # with Esc says nothing, so Claude's own work going on, your next message, the turn ending or Claude saying it
+        # waits for you means it has ended too, if that comes a second or more after the start: each hook runs on its
+        # own, so the step just before a compaction can come in a moment after it. A sub-agent's steps go on while the
+        # main conversation compacts, and don't count. A start is never taken from before the last end, as the two
+        # compaction hooks can come in either order too.
+        compacting_at = state.get("compactingAt")
+        ends = (name in ("UserPromptSubmit", "Stop")
+                or (name == "PreToolUse" and not event.get("agent_id"))
+                or (name == "Notification" and event.get("notification_type") == "idle_prompt"))
+        if name == "PreCompact" and now > state.get("compactedAt", 0):
+            state["compactingAt"] = now
+        elif name == "PostCompact":
+            state.update(compactingAt=None, compactedAt=now)
+        elif compacting_at and ends and now - compacting_at >= COMPACT_END_AFTER_MS:
+            state["compactingAt"] = None
         if reached and reached not in state.setdefault("turnReached", []):
             state["turnReached"].append(reached)
         # What the current piece of work has been through (built, tested, validated, audited), kept until it's

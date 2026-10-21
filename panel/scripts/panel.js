@@ -23,7 +23,7 @@ function followClaude() {
 }
 // When you were last on each session while it was yours (stillOnIt in whose-move.js): you opened it here, the app saw
 // you on it in Claude, Ghostty or iTerm2 (its seenAt, which it forgets when it restarts), or you wrote to it. What it
-// replied before then is read (classify), and a reply you've read stays in Your turn until you've moved on (sectionOf).
+// replied before then is read (classify).
 // Kept across launches: written down at once when it moves past something new (a reply, or your message), and otherwise
 // at most once a minute while you stay on it, so a restart loses no more than that.
 function noteOnIt(s, at, now) {
@@ -71,8 +71,8 @@ function render() {
     state.opening = null;
   }
   followClaude();
-  // The box that had the keyboard went away (its card folded).
-  if (state.keyboardWanted && !document.activeElement?.closest?.(textBoxes())) wantKeyboard(false);
+  // The box or the card that had the keyboard went away (its card folded, or it was answered).
+  if (state.keyboardWanted && !keepsKeyboard()) wantKeyboard(false);
   const now = state.last.now, listed = state.last.sessions.map((s) => openedNow(steady(s, now)));
   // With them, the rows the modules add that the app hasn't listed yet: the conversations started here (starts.js).
   const sessions = listed.concat(...core.moreRows.map((more) => more(listed)));
@@ -81,25 +81,23 @@ function render() {
   keepSeen(listed, now);
   const read = view();
   state.kinds = Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, now, read)]));
-  const placed = placeRows(sessions.map((s) => ({ s, kind: state.kinds[s.sessionId] })), state.placed, heldNow(), now,
-                           read);
-  for (const { s, section, key, tie, latest } of placed) state.placed[s.sessionId] = { section, key, tie, latest };
+  const placed = placeRows(sessions.map((s) => ({ s, kind: state.kinds[s.sessionId] })), state.placed, heldNow());
+  for (const { s, latest, quiet } of placed) state.placed[s.sessionId] = { latest, quiet };
   for (const before of core.beforeDraw) before(listed);
 
   const kinds = Object.values(state.kinds);
-  // The folded cat (cat.js): it looks at you while something is your turn, watches while something works, and has a
-  // label for each session in the list's order: what's your turn by name, the rest as their dots.
-  const inSection = (section) => placed.filter((p) => p.section === section).length;
-  const counts = { needs: inSection('turn'), working: inSection('busy') };
-  counts.idle = placed.length - counts.needs - counts.working;
-  drawCat(counts, placed.map((p) => p.s), placed.map(({ kind, section }) => ({ kind, section })));
-  let html = state.groupBy === 'project' ? projectsHTML(placed, now) : sectionsHTML(placed, now);
+  // The folded cat (cat.js): it looks at you while something waits on you, and watches while something works.
+  drawCat({ needs: placed.filter((p) => waitsOnYou(p.kind)).length,
+            working: placed.filter((p) => p.kind === 'busy').length });
+  // And beside it, while folded, what needs you comes out as its row, by itself (chats.js).
+  drawChats(placed, now);
+  let html = state.groupBy === 'project' ? projectsHTML(placed, now) : rowsHTML(placed, now);
   if (!sessions.length) html = '<div class="empty">No Claude Code sessions running</div>';
   morph(document.getElementById('list'), html);
   revealOpenConversation();
   nameRunningBuild();
 
-  native({ type: 'badge', value: kinds.filter((k) => k === 'needs' || k === 'turn').length });
+  native({ type: 'badge', value: kinds.filter(waitsOnYou).length });
   syncHover();  // the rows under the pointer were just replaced
   for (const after of core.afterDraw) after();
   reportHeight();
@@ -222,49 +220,80 @@ window.setGroupBy = (mode) => {
 };
 
 // A click on the header folds the panel into the cat (cat.js), and a click on the cat opens it again (the chevron folds
-// it too). The app moves the glass (fold:instant: in app/core/PanelWindow.m).
+// it too). With the folded cat's list out, the panel is open already, and a click on the cat only finishes opening it
+// (peek.js).
 window.toggleCollapsed = () => {
+  if (state.peek.open) return peekStays();
   const collapsed = !document.body.classList.contains('collapsed');
   // Not while the reader is open: the panel folds from the list alone (app/core/PanelWindow.m).
   if (collapsed && state.reading) return;
+  if (!collapsed) peekHeaderBack();
+  foldPanel(collapsed);
+};
+
+// The panel folds into the cat, or opens out of it, the app moving the glass (fold:instant: in
+// app/core/PanelWindow.m). `peek` for the folded cat's list coming out while it's pointed at, or going back in
+// (peek.js): the cat stays as it is, how the panel was left isn't kept for next time, and asked the other way before
+// it's done, the app turns it back from where it is. `room`, folding, is where the chats still out go back out to
+// beside the cat (chatsLeave, in chats.js), which the app keeps as it folds.
+function foldPanel(collapsed, peek = false, room = null) {
   const flip = () => document.body.classList.toggle('collapsed', collapsed);
   // The cat grows from the name's o, or shrinks onto it, where the header has it all there (header.js); folding round
   // Whozmove beside the panel, the header fades where it has gone. Opened before that fold has landed, the folded cat
   // goes back to the o first, and the panel opens round it there.
   if (!collapsed && state.cat.fromSide) catFromSideEnds();
   if (!collapsed || !state.cat.fromSide) headerAllThere();
-  if (collapsed) catFolding(flip); else catOpening(flip);
-  store.set('collapsed', collapsed);
-  native({ type: 'fold', on: collapsed });
-  if (!collapsed) catHover(false);
+  if (peek) flip();
+  else if (collapsed) catFolding(flip);
+  else catOpening(flip);
+  // Opening, the chats out beside the cat go into their rows (chats.js).
+  if (!collapsed) chatsLand();
+  if (!peek) store.set('collapsed', collapsed);
+  native({ type: 'fold', on: collapsed, ...(room ? { room } : {}), ...(peek ? { peek } : {}) });
+  if (!collapsed && !peek) catHover(false);
   catLook();
   for (const folded of core.collapses) folded(collapsed);
   reportHeight();
-};
+}
 
-// Where the pointer is over the panel, as the app polls it (see hover.js); folded, whether it's on the cat or a tag.
+// Whether the panel is folded into the cat for now: folded, or with the folded cat's list out while it's pointed at
+// (peek.js), which a press that needs the panel open for good opens first (openFromCat).
+function stillFolded() {
+  return document.body.classList.contains('collapsed') || state.peek.open;
+}
+
+// Opens the panel for good, from the folded cat or its list out, for what's pressed there that needs it open (the
+// reader, "Switch model?"), and then `then`.
+function openFromCat(then) {
+  if (stillFolded()) toggleCollapsed();
+  then();
+}
+
+// Where the pointer is over the panel, as the app polls it (see hover.js); folded, whether it's on the cat or its list.
 // Once it has left, the rows you pressed go to their places (heldNow), so the list is drawn again for them: here, as
 // what watches the pointer runs as the list is drawn (syncHover), and drawing it from there would never end. Off the
 // panel `still`, the panel's edge having moved past it (a card folding away, a menu of its own closing where you
-// picked from it), it's taken to be still with the panel until the app says it has moved.
+// picked from it), it's taken to be still with the panel until the app says it has moved; `held`, on what the panel
+// holds over or under itself (Spotify's token, the usage card), it's still with the folded cat's list out beside it.
 window.hoverAt = (x, y) => {
   state.pointerStill = false;
   pointerAt(x, y);
-  catHover(document.body.classList.contains('collapsed') && catPointedAt(x, y));
+  peekPointer(x, y);
 };
-window.hoverEnd = (still) => {
+window.hoverEnd = (still, held) => {
   pointerGone();
-  catHover(false);
+  peekPointer(null, null, !!still || !!held);
   state.pointerStill = !!still;
   if (state.pressedRows.size && !still) renderWhenSettled();
 };
 
 // The panel no longer has the keyboard: another app took it (you clicked into it), or the panel gave it back. The box
-// it was typed into lets go of it too, so the list being drawn again doesn't put the keyboard back there, and the rows
-// you pressed go once your pointer is off the panel.
+// it was typed into, or the card pressed, lets go of it too, so the list being drawn again doesn't put the keyboard
+// back there, and the rows you pressed go once your pointer is off the panel.
 window.keyboardGone = () => {
   if (document.activeElement?.closest?.(textBoxes())) document.activeElement.blur();
   state.keyboardWanted = false;
+  state.keyCard = null;
   if (state.pressedRows.size) renderWhenSettled();
 };
 

@@ -39,6 +39,11 @@ const kTokens = (n) => n >= 1e6 ? (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + 'M' : Mat
 // "1,493".
 const thousands = (n) => Math.round(n || 0).toLocaleString('en-US');
 
+// How far down the page the list's top is: the page has room above it (--above, in tokens.css), which the panel shows
+// only while something comes up from the folded cat. What's placed by where the page measures it, from the page's top,
+// and kept within the panel's room, from the list's top, counts from here.
+const rootTop = () => document.getElementById('root').getBoundingClientRect().top;
+
 // How wide a text is in an element's font (the usage card is laid out from its words). From the font's own parts:
 // WebKit leaves the `font` shorthand empty when it can't say it in one (tabular figures), and a canvas given that keeps
 // its default, a smaller 10px sans-serif.

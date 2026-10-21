@@ -478,6 +478,72 @@ NSString *LoginPath(void) {
     return [own stringByAppendingString:@":/opt/homebrew/bin:/usr/local/bin"];
 }
 
+// The git in the folder xcode-select names (Apple's command line developer tools, or Xcode), or nil without one there.
+// xcode-select isn't one of the stand-ins in /usr/bin that run a developer tool, so asking it never sets off macOS's
+// offer to install them. It's run with RunBriefly, whose wait for it takes a few milliseconds where RunTool's can take
+// 70, as every call waits for the first answer.
+static NSString *DeveloperGit(void) {
+    NSDictionary *run = RunBriefly(@"/usr/bin/xcode-select", @[@"-p"], nil, 5, 4096, NO);
+    if (!run || [run[@"status"] intValue] != 0) return nil;
+    NSString *folder = [[[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
+                        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (!folder.isAbsolutePath) return nil;
+    NSString *git = [folder stringByAppendingPathComponent:@"usr/bin/git"];
+    return [NSFileManager.defaultManager isExecutableFileAtPath:git] ? git : nil;
+}
+
+// The git in Apple's command line developer tools, or Xcode, once they're installed, else nil. Until they are,
+// /usr/bin/git (and the other stand-ins there) offers to install them each time it's run, so Whozmove runs no git of
+// its own before this names one: git itself runs from here (RunGit), never through the stand-in, and gh, which runs
+// git, a new worktree's git and the claude asked about your plan's usage, which may run it, wait for it too
+// (DeveloperToolsReady). The git found is checked on every call, which starts nothing, so tools taken away while
+// Whozmove runs are noticed at once. Until they're there, it asks xcode-select again at most every 5 minutes, timed by
+// the Mac's uptime, which is never set back, one ask at a time, on a queue of its own. Every call waits for the first
+// answer, wherever it's made; after that, a call off the main thread waits for an ask under way, and one on it never
+// waits.
+NSString *DeveloperToolsGit(void) {
+    static NSString *git;            // the git found, while it's there
+    static NSTimeInterval askedAt;   // when xcode-select was last asked, by the Mac's uptime (0: never, or ask now)
+    static BOOL asking, answered;
+    static NSObject *guard;
+    static dispatch_queue_t queue;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        guard = [NSObject new];
+        queue = dispatch_queue_create("whozmove.developer-tools", DISPATCH_QUEUE_SERIAL);
+    });
+    @synchronized (guard) {
+        if (git && access(git.fileSystemRepresentation, X_OK) != 0) {
+            git = nil;
+            askedAt = 0;
+        }
+        NSTimeInterval now = NSProcessInfo.processInfo.systemUptime;
+        if (!git && !asking && (!askedAt || now - askedAt >= 5 * 60)) {
+            askedAt = now;
+            asking = YES;
+            // Set going while the guard is held, so a call that waits for the answer is queued behind it.
+            dispatch_async(queue, ^{
+                NSString *found = DeveloperGit();
+                @synchronized (guard) {
+                    git = found;
+                    asking = NO;
+                    answered = YES;
+                }
+            });
+        }
+        if (!asking || (answered && NSThread.isMainThread)) return git;
+    }
+    dispatch_sync(queue, ^{});
+    @synchronized (guard) {
+        return git;
+    }
+}
+
+// Whether Apple's command line developer tools, or Xcode, are installed (DeveloperToolsGit).
+BOOL DeveloperToolsReady(void) {
+    return DeveloperToolsGit() != nil;
+}
+
 // Runs a command from a checkout: in your shell (LoginShell) with your terminal's PATH (LoginPath), but without your
 // shell's startup files, which a command the panel runs shouldn't wait on; and as yours, not
 // an agent's, so the marks agents put on their commands (`marks`, the core's agentMarks) are taken off. With `errors`,

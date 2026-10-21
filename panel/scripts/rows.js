@@ -1,9 +1,6 @@
-// The list's HTML: a session's row, and its group and project headers. The row's template is the core's; what the
+// The list's HTML: a session's row, and the project headers. The row's template is the core's; what the
 // modules show on it goes in its places (core.slots), each giving its HTML or nothing.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
-
-// Each section's name on its header, in the order they're shown (SECTIONS in whose-move.js).
-const SECTION_NAMES = { turn: 'Your turn', busy: 'Working', seen: 'Seen', idle: 'Idle' };
 
 // The app a session runs in, as a row names it (core.hosts): the module's that holds it (Claude Desktop), else a terminal.
 // A terminal session that has ended opens again in the terminal the app names (opensIn).
@@ -19,6 +16,15 @@ function hostOf(s) {
 // chip in the worktree colours. Where it sits adds its own classes and attributes (`cls`, `attrs`), and its size.
 function worktreeChip(name, cls = '', attrs = '') {
   return `<span class="wt${cls ? ` ${cls}` : ''}"${attrs}>${WORKTREE_ICON}<span class="wt-name">${esc(name)}</span></span>`;
+}
+
+// A session's row as it's in view: the list's, or, while the panel is folded into the cat with the list out of sight,
+// its chat beside the cat (chats.js). A row pinned below a folded group is in the list twice: the one in view is the
+// pinned one.
+function rowInView(sid) {
+  const where = document.getElementById(document.body.classList.contains('collapsed') ? 'chats' : 'list');
+  return [...(where?.querySelectorAll('.row[data-id]') ?? [])]
+    .find((r) => r.dataset.id === sid && !r.closest('.prows.closed')) || null;
 }
 
 // What a place on a row (or a project's header) shows: each module's part there, in the order they were added.
@@ -42,7 +48,7 @@ function chatHTML(s, kind, now) {
   if (s.startProblem) {
     claude = `<div class="claude wait" data-mode="wait"><span class="who">Claude</span>`
       + `<span class="what">${esc(s.activity)}</span></div>`;
-  } else if (kind === 'busy' || s.compacting) {  // working, or compacting at a word from the panel
+  } else if (kind === 'busy' || s.compacting) {  // working, or compacting, by itself or asked for
     const since = s.compacting || s.lastPromptAt || s.statusUpdatedAt;
     const doing = s.compacting ? 'Compacting the conversation' : s.activity || 'Thinking';
     // The shimmer sits on an inner span: WebKit doesn't paint a cut-off "…" in clipped-to-text colour, so
@@ -227,13 +233,12 @@ function openingCard(sid, name) {
   }
 }
 
-// A session's row. `row` is what each module's part is given: the session, what it is now (kind: classify), the section
-// it's shown in (a row you've pressed stays where you saw it, and a reply you've read stays in Your turn until you've
-// moved on, so the two can differ: sectionOf), the time the rows were sent (now), whether it speaks for its checkout
+// A session's row. `row` is what each module's part is given: the session, what it is now (kind: classify), the time
+// the rows were sent (now), whether it speaks for its checkout
 // while Show Next Steps is on (owner), the page's own clock, which Deploy's press and animations are timed by, and what
 // each module found when it first looked at the row (core.rowLooks: its next steps, Deploy's button).
-function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
-  const row = { s, kind, section, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
+function rowHTML(s, kind, now) {
+  const row = { s, kind, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
                 clock: Date.now() };
   for (const look of core.rowLooks) look(row);
   // How long ago, on the title line; not while it works (or compacts), when Claude's line has the time.
@@ -259,58 +264,43 @@ function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
     </div>`;
 }
 
-// A group's rows in a body that folds to nothing. The conversation open in Claude, any session waiting on you (a
+// A project's rows in a body that folds to nothing. The conversation open in Claude, any session waiting on you (a
 // request, a question or a reply you haven't read), a row you've pressed, and one just started from the panel stay in
-// view: while the group is folded, a copy of their row is pinned below it. The original stays in the body, in place, so
-// opening the group slides to its true height.
+// view: while the project is folded, a copy of their row is pinned below it. The original stays in the body, in place,
+// so opening the project slides to its true height.
 function groupBody(rows, closed) {
-  const pinned = closed ? rows.filter((r) => r.s.focused || SECTION_OF[r.kind] === 'turn' || r.held || r.s.pending)
+  const pinned = closed ? rows.filter((r) => r.s.focused || waitsOnYou(r.kind) || r.held || r.s.pending)
     : [];
   return `<div class="prows${closed ? ' closed' : ''}">${rows.map((r) => r.html).join('')}</div>`
     + (pinned.length ? `<div class="pinned">${pinned.map((r) => r.html).join('')}</div>` : '');
 }
 
-// The rows as they're placed (placeRows), each section under its header with its count: Your turn, Working and Seen,
-// then Idle, folded until you open it.
-function sectionsHTML(placed, now) {
-  let html = '';
-  for (const section of SECTIONS) {
-    const rows = placed.filter((p) => p.section === section)
-      .map(({ s, kind, held }) => ({ s, kind, held, html: rowHTML(s, kind, now, section) }));
-    if (!rows.length) continue;
-    const name = `${SECTION_NAMES[section]}<span class="n">${rows.length}</span>`;
-    if (section !== 'idle') {
-      html += `<div class="group" data-key="g:${section}">${name}</div>${rows.map((r) => r.html).join('')}`;
-      continue;
-    }
-    html += `<div class="group toggle${state.showIdle ? '' : ' collapsed'}" data-key="g:idle">${name}`
-      + `<span class="pchev">${CHEVRON_ICON}</span></div>` + groupBody(rows, !state.showIdle);
-  }
-  return html;
+// The rows as they're placed (placeRows), newest message first, as one list with no headers, as a chat app's.
+function rowsHTML(placed, now) {
+  return placed.map(({ s, kind }) => rowHTML(s, kind, now)).join('');
 }
 
-// Projects ordered by most recent activity (each row's latest, from placeRows, so one you've pressed doesn't move its
-// project); inside each, its rows as they're placed: Your turn, Working, Seen, Idle. A project's header has its name,
-// its chevron, and what the modules put there (＋ for a new conversation in it).
+// Projects in the order of their names, A to Z, so a project never moves as its conversations do; inside each, its rows
+// as they're placed, newest message first. A project's header has its name, its chevron, and what the modules put
+// there (＋ for a new conversation in it).
 function projectsHTML(placed, now) {
   const projects = new Map();
   for (const p of placed) {
     const of = projectOf(p.s);
-    if (!projects.has(of.key)) projects.set(of.key, { ...of, rows: [], latest: 0 });
-    const entry = projects.get(of.key);
-    entry.rows.push(p);
-    entry.latest = Math.max(entry.latest, p.latest);
+    if (!projects.has(of.key)) projects.set(of.key, { ...of, rows: [] });
+    projects.get(of.key).rows.push(p);
   }
+  const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true })
+    || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
   return [...projects.values()]
-    .sort((a, b) => b.latest - a.latest)
+    .sort(byName)
     .map((p) => {
       const closed = !!state.closedProjects[p.key];
       const head = `<div class="project${closed ? ' collapsed' : ''}" data-key="${esc(p.key)}" title="${esc(p.key)}">
             <span class="pname">${esc(p.name)}</span><span class="pchev">${CHEVRON_ICON}</span>
             ${slot('project', p)}
           </div>`;
-      const rows = p.rows.map(({ s, kind, section, held }) =>
-        ({ s, kind, held, html: rowHTML(s, kind, now, section) }));
+      const rows = p.rows.map(({ s, kind, held }) => ({ s, kind, held, html: rowHTML(s, kind, now) }));
       return head + groupBody(rows, closed);
     })
     .join('');

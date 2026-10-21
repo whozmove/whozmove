@@ -4,7 +4,8 @@
 
 // Pressing a row's tag (or its numbers) grows the panel beside the list (the app does that, PanelWindow's
 // expandReader): the list stays where it was, and the reader opens beside it. The panel grows only as much as what's
-// shown needs, and changes size with it.
+// shown needs, and changes size with it. It grows as soon as it's pressed: until what it shows is in, the reader says
+// where that's coming from (readerWait), and the panel then grows or shrinks to fit it.
 //
 // A mode is { draw(), and as it needs: sessionless (it's about none of the sessions: it opens with none,
 // toggleReader(null, null, mode), and shows whatever the list holds), width(r) (its own width, rather than one of the
@@ -36,6 +37,9 @@ function readerSession() {
 function openReader(sid, wid, mode = 'writings', scope = null) {
   const s = state.last.sessions.find((x) => x.sessionId === sid), m = core.readerModes[mode];
   if (!m || (!s && !m.sessionless)) return;
+  // Pressed on a chat beside the folded cat (chats.js), or in its list (peek.js), the panel opens for good first: the
+  // reader grows from the list once it has (the app holds it till then, PanelWindow's expandReader).
+  if (stillFolded()) return openFromCat(() => openReader(sid, wid, mode, scope));
   if (!state.reading) {
     state.reading = { mode, sessionId: sid, id: wid, session: s, scope };
     headerGlideTo(0);  // the header is all there while the reader is open (header.js)
@@ -43,7 +47,8 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
     reader.innerHTML = `<div class="r-in"><div class="r-head"></div><div class="r-main"><nav class="r-shelf"></nav>
         <div class="r-view"><div class="r-src"></div><div class="r-body"></div><div class="r-answer"></div></div>
       </div></div>`;
-    // The panel grows once what's shown is in, at its size (fitReader), rather than first growing around "Opening…".
+    // The panel grows at once, as wide as the mode needs and as tall as the list (fitReader), so the press is seen
+    // to work however long what's shown takes to come in.
   } else {
     const r = state.reading;
     if (r.mode !== mode || r.sessionId !== sid) {
@@ -55,6 +60,7 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
     }
     Object.assign(r, { mode, sessionId: sid, id: wid, session: s, scope });
   }
+  state.reading.refill = null;  // what was to come in once the old had gone (readerRefill)
   m.shown?.(state.reading);
   for (const other of Object.values(core.readerModes))
     if (other.cls) reader.querySelector('.r-in').classList.toggle(other.cls, other === m);
@@ -116,10 +122,11 @@ window.readerOpened = (side, width) => {
 // list down its side and the page being read with its answer bar), or the list's, or what hangs below it, if that's
 // taller: a new conversation's card opening under the header, or a card under a low row, grows the panel, as it does
 // with the list alone, rather than squeezing the rows or being cut off. The app keeps the panel at least as tall as the
-// list was, and within the screen. Asked only once there's something to show, and only when it changes.
+// list was, and within the screen. Asked only when it changes. While what's shown is on its way (not `ready`), the
+// panel keeps the height it has, so turning to another session or tab doesn't fold it only to grow it again.
 function fitReader() {
   const r = state.reading, s = readerSession();
-  if (!r || r.closing || !r.ready) return;
+  if (!r || r.closing) return;
   const m = core.readerModes[r.mode];
   if (!s && !m.sessionless) return;
   const width = Math.min(m.width?.(r) ?? (m.wide?.(r, s) ? READER_PAGE_WIDTH : READER_TEXT_WIDTH),
@@ -130,7 +137,7 @@ function fitReader() {
   const content = m.contentHeight?.(page) ?? (page?.offsetHeight || 0);
   const view = reader.querySelector('.r-src').offsetHeight + content + reader.querySelector('.r-answer').offsetHeight;
   const height = Math.max(listHeight(), hangingBelow(), reader.querySelector('.r-head').offsetHeight + 1
-    + Math.max(view, reader.querySelector('.r-shelf').scrollHeight));
+    + Math.max(view, reader.querySelector('.r-shelf').scrollHeight), r.ready ? 0 : r.askedHeight || 0);
   if (r.askedWidth === width && Math.abs((r.askedHeight || 0) - height) < 2) return;
   r.askedWidth = width;
   r.askedHeight = height;
@@ -159,6 +166,34 @@ function drawReader() {
   const r = state.reading, s = readerSession();
   if (!r || !reader.firstChild || (!s && !core.readerModes[r.mode].sessionless)) return;
   core.readerModes[r.mode].draw();
+}
+
+// What the reader's body says while what it's to show is on its way: where it's coming from, breathing until it's in
+// (motion.css). Put in again only when the words change, so the breathing carries on.
+function readerWait(body, words) {
+  if (body.querySelector(':scope > .r-wait')?.textContent === words) return;
+  body.innerHTML = `<div class="r-missing r-wait">${esc(words)}</div>`;
+}
+
+// What the reader's body shows goes, then `fill` puts the new in, which comes in the panel's way (fading in, lifting
+// 3px, sharpening): what came in place of readerWait's words, or a song's lyrics in place of another's. Asked again
+// while the old is going, the newest comes in once it has gone; and nothing comes in if the reader has turned to
+// another session or mode by then. Under reduced motion it's put in at once.
+function readerRefill(body, fill) {
+  const r = state.reading, old = body.firstElementChild;
+  if (r.refill) return void (r.refill = fill);
+  if (!old || calm.matches) return fill();
+  r.refill = fill;
+  const { mode, sessionId } = r;
+  tween(old, { opacity: '1' }, { opacity: '0' }, () => {
+    const latest = r.refill;
+    r.refill = null;
+    if (!latest || state.reading !== r || r.mode !== mode || r.sessionId !== sessionId) return;
+    latest();
+    body.firstElementChild?.animate([{ opacity: 0, transform: 'translateY(3px)', filter: 'blur(1.5px)' },
+                                     { opacity: 1, transform: 'none', filter: 'blur(0)' }],
+                                    { duration: 420, easing: MORPH_EASE });
+  }, 160, 'ease');
 }
 
 // Puts `html` in `el` unless it's there already (as last put in), and says whether it did.

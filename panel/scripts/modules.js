@@ -19,9 +19,8 @@ const core = {
   drawn: [],           // (list) as soon as the list's new HTML is in, before anything measures it
   afterDraw: [],       // () once the list is drawn and what's under the pointer looked at again
 
-  // A row (rows.js). `row` is { s, kind, section, now, owner, clock }, and what the modules' looks add to it: `kind` is
-  // what the session is now (classify), `section` where its row is shown, which differs while a row you've pressed
-  // stays put.
+  // A row (rows.js). `row` is { s, kind, now, owner, clock }, and what the modules' looks add to it: `kind` is what the
+  // session is now (classify).
   rowLooks: [],        // (row) a module's first look at a row, which keeps what it found on `row` for its parts
   // The cards that can show under a row's chat, one at a time: { name, order, wants(row), html(row), away(row),
   // close(sid) }. The most pressing (lowest order) that wants to show does; the others are away.
@@ -37,6 +36,11 @@ const core = {
   typing: [],          // [selector, typed(box, event)]: what's typed in a box on the list
   returns: [],         // [selector, returned(box, event)]: Return in one (else it presses its card's main button)
   textBoxes: [],       // the boxes outside the cards that take the keyboard while they're typed in (wantKeyboard)
+  // Cards on a row that take the keyboard once pressed, so keys work on them (heldCard): { card, id(card), open(card),
+  // takes(card, target), key(card, event) }: the card's selector, its id (found again by it as the list is rebuilt),
+  // whether it still waits for you, whether a press on `target` in it takes the keyboard (not one that answers it), and
+  // what a key does there (true if it did something; Return presses its main button, Esc lets go).
+  keyCards: [],
 
   // The pointer (hover.js).
   pointerTargets: [],  // more of what the pointer can point at

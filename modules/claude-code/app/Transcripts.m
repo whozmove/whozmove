@@ -4,6 +4,7 @@
 #import "Writings.h"
 #import "Edits.h"
 #import "Files.h"
+#import "Log.h"
 #import "ClaudeCodeFacts.h"
 
 // ~/.claude/projects/<encoded cwd>/<sessionId>.jsonl, found by id so the cwd encoding doesn't matter.
@@ -73,7 +74,8 @@ static NSDictionary *LatestUsage(NSData *chunk, NSUInteger end, NSUInteger *at) 
 
 // When the conversation last moved: the newest message in a chunk of transcript, yours or Claude's (tool calls
 // and results count), in ms since 1970, or 0 if there's none. Slash commands (/model, /effort, …) leave records
-// too, but changing a session's settings isn't activity, so they don't count.
+// too, but changing a session's settings isn't activity, so they don't count, and nor does the summary a compaction
+// leaves.
 static double LatestMessageAt(NSData *chunk, NSUInteger end) {
     NSData *newline = [@"\n" dataUsingEncoding:NSUTF8StringEncoding];
     NSData *user = [@"\"type\":\"user\"" dataUsingEncoding:NSUTF8StringEncoding];
@@ -94,6 +96,9 @@ static double LatestMessageAt(NSData *chunk, NSUInteger end) {
         if (![entry isKindOfClass:NSDictionary.class]
             || !([entry[@"type"] isEqual:@"user"] || [entry[@"type"] isEqual:@"assistant"])) continue;
         if ([entry[@"isSidechain"] boolValue] || [entry[@"isMeta"] boolValue]) continue;
+        // The summary a compaction leaves is written as your message, but you sent nothing: the conversation didn't
+        // move, so its row doesn't go to the top.
+        if ([entry[@"isCompactSummary"] boolValue]) continue;
         id message = entry[@"message"];
         id content = [message isKindOfClass:NSDictionary.class] ? message[@"content"] : nil;
         if ([content isKindOfClass:NSString.class]
@@ -338,6 +343,7 @@ static NSArray<NSDictionary *> *SubAgentEdits(NSString *path, NSMutableDictionar
                 for (NSDictionary *link in links) t[@"prs"][link[@"url"]] = link;
                 // After a compaction only the size changed: the model is still the one the last reply came from.
                 if (usage[@"compacted"]) {
+                    PanelLog(@"%@ -> compacted: %@ tokens in context now", sid, usage[@"tokens"]);
                     NSMutableDictionary *kept = [t[@"usage"] mutableCopy] ?: [NSMutableDictionary dictionary];
                     // The new size, and that reply's model if it was in this read.
                     [kept addEntriesFromDictionary:usage];

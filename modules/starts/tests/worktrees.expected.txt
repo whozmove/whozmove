@@ -72,6 +72,26 @@
     }
   }
 }
+== Without Apple's developer tools, no worktree is made: git would offer to install them instead
+{
+  "has": {
+    "base": "main",
+    "branches": [],
+    "folder": "~/shop-worktrees",
+    "folderPath": "T/shop-worktrees",
+    "here": {
+      "branch": "main",
+      "path": "T/shop",
+      "where": "~/shop"
+    },
+    "worktrees": []
+  },
+  "targets": {
+    "fix-login": {
+      "why": "Making a worktree needs Apple's command line developer tools: install them first"
+    }
+  }
+}
 == Making them: a new branch following the base branch, one following release, and a worktree for release itself;
    then the repo lists them, and the names are taken
 {

@@ -89,6 +89,8 @@
 /* Long words (a path, a URL) break wherever they must rather than run out of the card. */
 .perm { margin-top: 7px; padding: 9px 10px 10px; border-radius: var(--radius-box); background: var(--surface);
         border: 1px solid var(--needs-edge); overflow-wrap: anywhere; }
+/* A request or a question pressed, which has the keyboard until it's answered (input.js's heldCard). */
+.perm.has-keys { border-color: var(--needs-edge-keys); }
 .perm button { overflow-wrap: anywhere; }
 .perm-title { font-size: var(--size-body); font-weight: 600; color: var(--text); }
 .perm-why { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }

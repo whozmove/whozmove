@@ -10,10 +10,7 @@ NSString *UsageFolder(void);
 - (NSDictionary *)ask;
 @end
 
-// The parts the module's --print-usage prints, for tests/rows.sh.
-// Where `claude` may be, best first: on `path` (your terminal's PATH), where its installers put it, then Claude
-// Desktop's own copies, newest first.
-NSArray<NSString *> *ClaudeCandidates(NSString *path);
+// The parts the module's --print-usage prints, for tests/rows.sh (where `claude` may be: ClaudeCommand.h).
 // What the strip needs from Claude Code's answer to the usage request, from one line of its output: nil if the line
 // isn't that answer, @{@"error": why} when the answer is an error.
 NSDictionary *UsageFromReply(NSData *line);

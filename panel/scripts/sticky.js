@@ -1,7 +1,8 @@
 // The row you're on, held at the list's edge: it never leaves the list's visible part. As the list scrolls past the
 // session you're on, or moves its row out of sight by itself, the row holds on at the list's top (past it: the header's
-// edge, wherever that has slid to) or at its bottom (past that), folded down to its title line, Claude's line and where
-// it runs, and opens back into its place as it comes back.
+// edge, wherever that has been pushed to) or at its bottom (past that), folded down to its title line, Claude's line
+// and where it runs, and opens back into its place as it comes back. Folded all it can at the top, it's what pushes the
+// header away as the list scrolls on (stickyPush, header.js).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // The row stays in the list, keeping its place, so nothing in the list moves: a copy of it, laid over the list's edge,
@@ -42,8 +43,8 @@ function stickyEdge(t, h, v) {
 
 // Whether the row holds on at an edge now, and how it gets there or goes. `was` is the edge it held on at till now (or
 // null), and `inView` whether its place was wholly in view when last looked at. The row never leaves the list's
-// visible part: whatever takes it past an edge, or further past one (`away`: your scrolling, the row moving to another
-// section as its session starts working, rows above it growing, the list getting shorter), it holds on there. A row
+// visible part: whatever takes it past an edge, or further past one (`away`: your scrolling, the row moving to the top
+// as a message comes in, rows above it growing, the list getting shorter), it holds on there. A row
 // that only grows past the bottom edge, its top staying where it is (a card opening on it), stays as it is, still in
 // view, and grows in as any row does. It never holds on while one of its boxes is typed in (`typing`), nor when it's
 // taller than the list's visible part, which could then never show it whole. Returns { edge, fade }: the edge (or
@@ -251,8 +252,7 @@ function stickyPlace() {
   // that, nothing was moving.
   const now = performance.now(), dt = Math.min(20, now - st.easedAt), lastT = st.lastT ?? t;
   const reach = (edge, y) => {
-    const least = st.full - st.lines.reduce((sum, l) => sum + (l.keep ? 0 : l.extent), 0);
-    const folded = Math.min(least, st.full - STICKY_ATTACH);
+    const folded = stickyFolded();
     return edge === 'top' ? Math.max(y, folded - h) : Math.min(y, v - folded);
   };
   const catchUp = (edge, at, speed) => (calm.matches ? { at: reach(edge, t), speed: 0 }
@@ -319,6 +319,23 @@ function stickyPlace() {
   st.attached = edge === 'top' && a <= 0 ? attach : 0;
   stickyShade();
   if (started && state.pointer) syncHover();  // what's under a pointer that hasn't moved may be the copy now
+}
+
+// How tall the copy is once it has folded all it can: its lines that stay, and at least STICKY_ATTACH short of all of
+// it, so it's attached to the edge by then.
+function stickyFolded() {
+  const st = state.sticky, least = st.full - st.lines.reduce((sum, l) => sum + (l.keep ? 0 : l.extent), 0);
+  return Math.min(least, st.full - STICKY_ATTACH);
+}
+
+// How far the row you're on has gone past the list's top beyond where its copy, held on there, has folded all it can:
+// how far the copy would push the header away (header.js). 0 while it isn't held on at the top, or is going.
+function stickyPush() {
+  const st = state.sticky, list = document.getElementById('list');
+  if (st.edge !== 'top' || st.leaving || !st.row?.isConnected) return 0;
+  const r = st.row.getBoundingClientRect();
+  const t = r.top - list.getBoundingClientRect().top - list.clientTop - headerInset();
+  return Math.max(0, stickyFolded() - r.height - t);
 }
 
 // Folds a line of the copy by `f` points (stickyLineFold), or puts it back.
@@ -508,10 +525,7 @@ function stickyBack() {
 // conversation's row. For the row you're on itself, the copy goes as the row comes into view.
 function showInList(el) {
   const st = state.sticky, list = document.getElementById('list');
-  // Scrolling up brings the header back by as much as the list moves (header.js), so for a row above, the header is
-  // put back first, and the row lands just under it.
-  if (headerOff() > 0 && el.getBoundingClientRect().top < list.getBoundingClientRect().top + list.clientTop
-      + headerInset()) headerAllThere();
+  // The list's visible part starts at the header's edge, wherever it has been pushed to: scrolling up leaves it there.
   const top = list.getBoundingClientRect().top + list.clientTop + headerInset(), v = list.clientHeight - headerInset();
   const r = el.getBoundingClientRect(), t = r.top - top, h = r.height;
   const held = el !== st.row && st.row?.isConnected && !st.row.contains(document.activeElement) ? st.row : null;

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Builds ~/Applications/Whozmove.app from app/, panel/ and icon/, and puts it in place with the hooks beside it.
-# Run again after editing any of them, or a hook.
+# Builds ~/Applications/Whozmove.app from app/, modules/, panel/ and icon/, and puts it in place: the app brings the
+# hooks it carries up to date as it starts. Run again after editing any of them, or a hook.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Once you've set Deploy up for Whozmove in the panel (its command is ./build.sh --now), an agent's build only
@@ -9,7 +9,7 @@
 # carries the same mark as an agent's, so it's left to Deploy too.
 set -euo pipefail
 cd "$(dirname "$0")"
-. modules/claude-code/plugin.sh
+. tools/bundle.sh
 
 now=no
 for arg in "$@"; do
@@ -19,9 +19,9 @@ for arg in "$@"; do
   esac
 done
 
-# The app's name, bundle id and executable are written down once, in app/Info.plist; this and install.sh read
-# them from there, so a rename can't leave a stale copy behind (a stale signing id would quietly lose the
-# Accessibility grant; a stale job label would stop the restart).
+# The app's name, bundle id and executable are written down once, in app/Info.plist; this, tools/bundle.sh and
+# install.sh read them from there, so a rename can't leave a stale copy behind (a stale signing id would quietly lose
+# the Accessibility grant; a stale job label would stop the restart).
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" app/Info.plist; }
 name=$(plist CFBundleName); bundle_id=$(plist CFBundleIdentifier); exe=$(plist CFBundleExecutable)
 app="$HOME/Applications/$name.app"
@@ -32,19 +32,14 @@ folder="$HOME/Library/Application Support/$name"
 work=$(mktemp -d "${TMPDIR:-/tmp}/$exe.XXXXXX")
 trap 'rm -rf "$work"' EXIT
 new="$work/$name.app"
-mkdir -p "$new/Contents/MacOS" "$new/Contents/Resources"
-cp app/Info.plist "$new/Contents/"
-cp icon/AppIcon.icns "$new/Contents/Resources/"
-# The page, with each module's page files listed in it (tools/page.sh), and the app (tools/compile.sh).
-tools/page.sh "$new/Contents/Resources/panel"
-cp app/swap-in.sh "$new/Contents/Resources/"
-tools/compile.sh "$new/Contents/MacOS/$exe"
+# The program, the page, the icon, swap-in.sh and the hooks (tools/bundle.sh).
+make_bundle "$new"
 
-# Where the build came from, for the panel's header (app/core/Builds.m), which names the running build by it. Also where
-# Claude Code's command is, for putting the hooks in place (app/swap-in.sh) when the panel's Deploy runs this, with
-# launchd's short PATH.
+# Where the build came from, for the panel's header (app/core/Builds.m), which names the running build by it. Also
+# whether an agent built it (Claude Code marks the commands an agent runs with CLAUDECODE), whose hooks the app leaves
+# as they are (modules/install), as app/swap-in.sh then says.
 python3 - "$new/Contents/Resources/build.json" <<'PY'
-import json, os, shutil, subprocess, sys, time
+import json, os, subprocess, sys, time
 
 def git(*args):
     try:
@@ -70,19 +65,14 @@ if commit:
         main = os.path.dirname(common) if os.path.basename(common) == ".git" else common
         info.update(worktree=os.path.basename(info["root"]), mainRoot=main,
                     worktreeOf=os.path.splitext(os.path.basename(main))[0])
-if shutil.which("claude"):
-    info["claude"] = shutil.which("claude")  # as found, not resolved: a link survives Claude Code's updates
+if os.environ.get("CLAUDECODE"):
+    info["agent"] = True
 with open(sys.argv[1], "w") as f:
     json.dump(info, f, indent=1, sort_keys=True)
 PY
 
-# Ad-hoc signed, but with the bundle id as its designated requirement: macOS keys privacy grants
-# (Accessibility, for the Claude Desktop message box) to that, so a rebuild doesn't lose them. By default an
-# ad-hoc signature's requirement is the exact build's hash. The catch: any ad-hoc signed app claiming this
-# id would match it too. Signing with a certificate of your own (and its requirement) closes that.
-codesign --force --sign - -r="designated => identifier \"$bundle_id\"" "$new"
-# The hooks as they are in this checkout, to go in with the app (app/swap-in.sh).
-copy_plugin "$work/plugin"
+# Last, with build.json in it (tools/bundle.sh).
+sign_bundle "$new"
 
 # Whether to stop at compiling and leave putting the build in place to Deploy, in the panel: when an agent runs this
 # (Claude Code marks the commands an agent runs with CLAUDECODE), the panel is running with Deploy's button showing, and

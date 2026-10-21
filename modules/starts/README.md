@@ -30,8 +30,8 @@ New Conversation and ⌃⌥N in the pawn menu.
   and the pawn's hop as a conversation starts; `page/start-words.js`, what the card reads in your words (@ for the
   project, # for where in it) and a new worktree's name (plain functions). `module.json` lists them for tools/page.sh.
 - `tests/test.sh`: what sample starts would run, a terminal tab's command and Claude Desktop's link (`--print-starts`,
-  `starts.expected.txt`), what a sample repo has and worktrees checked and made in it (`--print-worktrees`,
-  `worktrees.expected.txt`),
+  `starts.expected.txt`), what a sample repo has and worktrees checked and made in it, or refused without Apple's
+  developer tools (`--print-worktrees`, `worktrees.expected.txt`),
   and the page's part (`page-cases.js`, `page.expected.txt`). tests/all.sh runs it.
 
 Folder trust is the Claude Code module's: tests/rows.sh checks how it's read and recorded (`--print-trust`).
@@ -56,6 +56,7 @@ Folder trust is the Claude Code module's: tests/rows.sh checks how it's read and
 - The panel takes the keyboard while the card is open from ⌃⌥N or New Conversation, until it starts or closes.
 - A worktree is made only when you start a conversation in one from the card, with git run as you run it (your PATH,
   without agents' marks), so the repo's own hooks run as they would for you; a name that's taken, or git refusing,
-  starts nothing. A start in a worktree that's there goes only to one of the repo's own folders, as git lists them.
+  starts nothing, and none is made before Apple's developer tools are installed, as git would offer to install them
+  instead. A start in a worktree that's there goes only to one of the repo's own folders, as git lists them.
 - Nothing switches the branch of a folder in use: a branch is only ever checked out in a new worktree.
 - Where a repo's worktrees go is kept in Whozmove's folder, never in the repo.

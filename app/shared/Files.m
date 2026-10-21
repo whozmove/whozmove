@@ -1,6 +1,8 @@
 // Files: where Whozmove's files are, and reading files: JSON, JSONL lines, times.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Files.h"
+#import <pwd.h>
+#import <unistd.h>
 
 // The home folder: $HOME when it's set, else the account's own. NSHomeDirectory() alone ignores $HOME, which
 // tests/rows.sh points at a sample home; launchd sets it to the account's own folder for the real app. Every path
@@ -14,6 +16,16 @@ NSString *Home(void) {
         home = set.isAbsolutePath ? set : NSHomeDirectory();
     });
     return home;
+}
+
+// The account's own home folder is the one its record names, as swap-in.sh reads it, whatever $HOME says. One that
+// can't be told counts as yours.
+BOOL HomeIsYourOwn(void) {
+    struct passwd *account = getpwuid(getuid());
+    if (!account || !account->pw_dir) return YES;
+    NSString *own = [NSFileManager.defaultManager stringWithFileSystemRepresentation:account->pw_dir
+                                                                              length:strlen(account->pw_dir)];
+    return [RealPath(Home()) isEqualToString:RealPath(own)];
 }
 
 // Whozmove's own files (what the hooks record, requests waiting for your OK, the log), kept apart from any

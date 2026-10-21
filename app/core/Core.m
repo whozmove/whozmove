@@ -177,15 +177,14 @@ static const NSTimeInterval kAppsKnownFor = 30;
         @"collapse": ^(NSDictionary *msg) { [weakSelf.window collapse:[msg[@"height"] doubleValue]]; },
         @"turn": ^(NSDictionary *msg) { [weakSelf.window turnOver:[msg[@"on"] boolValue] then:nil]; },
         @"fold": ^(NSDictionary *msg) {
-            [weakSelf.window fold:[msg[@"on"] boolValue] instant:[msg[@"instant"] boolValue]];
+            [weakSelf.window fold:[msg[@"on"] boolValue] instant:[msg[@"instant"] boolValue] room:msg[@"room"]
+                             peek:[msg[@"peek"] boolValue]];
         },
+        @"keepOpen": ^(NSDictionary *msg) { [weakSelf.window keepOpen]; },
         @"catAt": ^(NSDictionary *msg) {
             [weakSelf.window catAt:NSMakePoint([msg[@"x"] doubleValue], [msg[@"y"] doubleValue])];
         },
-        @"catFan": ^(NSDictionary *msg) {
-            [weakSelf.window catFan:[msg[@"on"] boolValue] width:[msg[@"width"] doubleValue]
-                             height:[msg[@"height"] doubleValue]];
-        },
+        @"catRoom": ^(NSDictionary *msg) { [weakSelf.window catRoom:msg]; },
         @"catBreathe": ^(NSDictionary *msg) { [weakSelf.window catBreathe:[msg[@"working"] integerValue]]; },
         @"catPose": ^(NSDictionary *msg) {
             if ([msg[@"pose"] isKindOfClass:NSString.class]) [weakSelf.sideCat takeMood:msg[@"pose"]];

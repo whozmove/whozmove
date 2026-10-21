@@ -19,6 +19,10 @@ static const CGFloat kCloseWidth = 46;
 // it (--side in panel/styles/tokens.css), always, and the window shows the part in use: the list, and the reader
 // beside it while it's open. The page's left edge stays this far left of the list's.
 static const CGFloat kReaderRoom = 1254, kPageWidth = kWidth + 2 * kReaderRoom;
+// In the same way, the page always has this much room above the list (--above), out of sight, which the folded cat's
+// chats come up into while it's low on the screen: so nothing in the page has to move, in step with the window, to
+// make room for them. The page's top is this far above the list's.
+static const CGFloat kAboveRoom = 800;
 // Folded, the panel is a round glass kFoldGlass across, on the name's o in the open panel's header, in a window
 // kFoldBox square: the room round the glass is for its shadow (panel/scripts/cat.js draws the cat in it). The glass's
 // corners are kCorner while it's open, and half its width while it's round.
@@ -34,7 +38,8 @@ static const NSTimeInterval kSpread = 0.5;
 // and it's told a little further out, so it hears when the pointer leaves.
 static const CGFloat kCatSees = 520;
 // How often the pointer is looked at (pollPointer): 25 times a second for hover, and as often as the screen is drawn
-// while the folded cat's eyes follow it, so they keep up with it.
+// while the folded cat's eyes follow it, so they keep up with it, and while chats are out beside it, so clicks go
+// through the room between them as soon as the pointer's there.
 static const NSTimeInterval kPointerEvery = 0.04, kPointerEveryWatched = 1.0 / 60;
 // Whether the panel was folded when it was left, so it comes back folded before its page has loaded.
 static NSString *const kFoldedKey = @"panelFolded";
@@ -52,6 +57,9 @@ static const CGFloat kBackLead = 44;
 // off the screen's edge, and to come back, at least and at most.
 static const CGFloat kSwipeDecide = 6, kLeanMost = 20, kFlickSpeed = 800;
 static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
+// Folded, the room beside the cat (catRoom:) takes in this much round each part the page draws there, for its shadow;
+// and a click this near one is its, rather than going through to what's under the panel.
+static const CGFloat kRoomShadow = 18, kRoomMargin = 6;
 
 // Clicking the panel doesn't take the keyboard from the app being typed in (a click on a row, say, leaves it with
 // Claude's message box): the panel becomes the key window only while one of its own text boxes is being typed in
@@ -79,27 +87,33 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 @property (copy) void (^onClick)(void);
 @property (copy) BOOL (^onDrag)(NSPoint by);  // each step of a drag (PanelWindow's dragBy:): NO if it can't move now
 @property (copy) void (^onDragged)(void);     // the drag is over (draggedByHand)
+@property (copy) void (^onPress)(BOOL down);  // the button pressed on it, and let go
 @end
 
 @implementation DragStrip {
     NSPoint _start;
-    BOOL _dragged;
+    BOOL _dragged, _tried;
 }
 - (BOOL)acceptsFirstMouse:(NSEvent *)event { return YES; }
 - (void)mouseDown:(NSEvent *)event {
     _start = [NSEvent mouseLocation];
-    _dragged = NO;
+    _dragged = _tried = NO;
+    if (self.onPress) self.onPress(YES);
 }
 - (void)mouseDragged:(NSEvent *)event {
     NSPoint now = [NSEvent mouseLocation];
     if (!_dragged && hypot(now.x - _start.x, now.y - _start.y) < 3) return;
+    _tried = YES;
     if (!self.onDrag(NSMakePoint(now.x - _start.x, now.y - _start.y))) return;
     _dragged = YES;
     _start = now;
 }
+// A press that moved far enough to be a drag is one, even where the panel couldn't move yet (the folded cat's chats
+// going in first): it never counts as a click.
 - (void)mouseUp:(NSEvent *)event {
-    if (!_dragged && self.onClick) self.onClick();
-    if (_dragged) self.onDragged();
+    if (self.onPress) self.onPress(NO);
+    if (_tried) self.onDragged();
+    else if (self.onClick) self.onClick();
 }
 @end
 
@@ -194,6 +208,7 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 @property (assign) NSPoint lastHover;   // the last position sent to the page
 @property (assign) NSPoint lastScreen;  // where the pointer was at the last look, on the screen
 @property (assign) BOOL leftStill;      // it came off the panel without moving, and hasn't moved since
+@property (assign) BOOL pointerHeld;    // off the page, on what the panel holds over or under itself (heldTakes:)
 // The keyboard: a site's in the panel (Browser) since a click into it, or a box of the page's since it asked; the site
 // the pointer was last passed to; and what watches clicks for the keyboard.
 @property (assign) BOOL browserKeys;
@@ -206,8 +221,6 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 // where the panel was as it started.
 @property (strong) id swipeWatch;
 @property (assign) BOOL swipeAllowed, swipeDecided, swipeMine;
-@property (assign) BOOL foldedSwipe;    // a swipe on the folded cat, moving it (swipedFolded:), and its momentum
-@property (assign) NSPoint foldedFrom, foldedTotal;  // where the folded glass started, and how far the swipe has gone
 @property (assign) CGFloat swipeX, swipeY, swipeSpeed;
 @property (assign) NSTimeInterval swipeAt;
 @property (assign) NSPoint swipeFrom;
@@ -222,6 +235,9 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 @property (strong) NSMutableArray *awayObservers;
 @property (strong) NSPanel *handOff;  // the keyboard's way back to the app in front (giveBackKeyboard)
 @property (assign) BOOL expanded;       // grown to the screen for the reader
+// The reader's size, asked for while the panel was opening out of the cat (a press on a chat beside it opened both),
+// taken once it has opened.
+@property (strong) NSValue *pendingReader;
 @property (assign) NSRect listFrame;    // where the panel was before it grew, to fold back to
 @property (assign) BOOL listOnRight;    // the reader opened to the list's left
 // The panel's shape, apart from the window's: the glass and the page's clip (rounded, over it) normally fill the
@@ -255,7 +271,7 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 @property (strong) NSTimer *moveTimer;
 // Who follows the glass and the pointer (followGlass:, followPointer:), and the side the icons at its edge are on.
 @property (strong) NSMutableArray *glassObservers, *pointerObservers;
-// How much of the header shows as it slides away with the list (headerShowing:gone:), and who hears it has gone; who
+// How much of the header shows as it's pushed away (headerShowing:gone:), and who hears it has gone; who
 // hears the panel fold and open, and its look change.
 @property (assign) CGFloat headerPoints;
 @property (assign) BOOL headerGone;
@@ -264,12 +280,21 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 // Folded into the cat (fold:instant:); how tall the panel was as it folded, to open at again; a fold or an opening
 // asked for while one was moving, taken next (nil for none).
 @property (assign) BOOL folded;
-// Folded, whether the window has made room for the cat's tags (catFan:), so it's larger than the cat's corner; and
-// whether they fan out to its right (the cat is on the screen's left half), the cat then in the window's top-left.
-@property (assign) BOOL fanOpen;
-@property (assign) BOOL fanRight;
-// The side the page was last told the tags go (catSide:), or nil.
-@property (strong) NSNumber *toldSide;
+// Folded, the room beside the cat the page asked for (catRoom:): whether the window holds any, so it's larger than the
+// cat's square; where the cat's square is in it, from its bottom-left corner; and the parts drawn there, on the
+// screen, which take clicks. While it changes, those following the glass aren't told: the cat's circle stays where it
+// is.
+@property (assign) BOOL roomHeld;
+@property (assign) NSPoint roomOffset;
+@property (strong) NSArray<NSValue *> *roomParts;
+@property (assign) BOOL roomChanging;
+// Whether clicks go through the panel to what's under it, where nothing's drawn in that room (passClicks:).
+@property (assign) BOOL clicksThrough;
+// Which way the page was last told the room goes (catWay:), or nil; and whether it was told the cat is moving.
+@property (assign) CatWay toldWay;
+@property (assign) BOOL wayTold, movingTold;
+// Whether the page was told the folded cat is pressed (catPressed:), and not yet that it's let go.
+@property (assign) BOOL pressTold;
 // While the panel folds or opens (holdsPage), where the top-left corner of the page's list is held on the screen
 // (rootAt): it starts where it was and goes where it ends, whatever the window takes in on the way.
 @property (assign) BOOL holdsPage;
@@ -280,8 +305,19 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 // The glass's corners now (roundGlass:).
 @property (assign) CGFloat glassRadius;
 @property (strong) NSNumber *pendingFold;
-// The cat's tags' room asked for while the panel was folding or opening ({on, width, height}), taken next.
-@property (strong) NSDictionary *pendingFan;
+// Folding with chats still out beside the cat, the room they go back out to as it folds (fold:instant:room:peek:), as
+// the page lays them out; held once it has folded.
+@property (copy) NSArray *foldRoom;
+// The fold or opening under way (foldMoving): whether one is, and whether it's the folded cat's list coming out or going
+// back in (peek, asked for next, then the one moving), which turns back from where it is if asked the other way; which
+// run it is, each of its steps going on only while it's still the one moving; the cat's square it folds into or opens
+// out of; and whether the window keeps room beside the cat for chats meanwhile.
+@property (assign) BOOL foldInMotion, askedPeek, foldPeek;
+@property (assign) NSUInteger foldRun;
+@property (assign) NSRect foldBox;
+@property (assign) BOOL foldRoomOut;
+// The room beside the cat asked for while the panel was folding, opening or changing its room, taken next.
+@property (strong) NSDictionary *pendingRoom;
 // Where the pointer last was from the folded glass's centre, as the page was told, and whether it was near enough.
 @property (assign) BOOL catSeesPointer;
 @property (assign) NSPoint lastCatPointer;
@@ -500,7 +536,7 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
     // The clip rounds the page with the panel's corners, so what it draws up to its edges (the usage strip's vine)
     // meets them.
-    page.view.frame = NSMakeRect(-kReaderRoom, 0, kPageWidth, NSHeight(clip.bounds));
+    page.view.frame = NSMakeRect(-kReaderRoom, 0, kPageWidth, NSHeight(clip.bounds) + kAboveRoom);
     page.view.autoresizingMask = NSViewHeightSizable;
     [clip addSubview:page.view];
 
@@ -522,6 +558,14 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
         each.onDrag = ^BOOL(NSPoint by) { return [weakSelf dragBy:by]; };
         each.onDragged = ^{ [weakSelf draggedByHand]; };
     }
+    // Pressed while folded, the folded cat's list doesn't come out on pointing until the button is let go: a press
+    // there opens the panel, or drags it.
+    strip.onPress = ^(BOOL down) {
+        PanelWindow *me = weakSelf;
+        if (down ? !me.folded || me.pressTold : !me.pressTold) return;
+        me.pressTold = down;
+        [me.page catPressed:down];
+    };
     [NSNotificationCenter.defaultCenter addObserverForName:NSApplicationDidChangeScreenParametersNotification object:nil
                                                      queue:NSOperationQueue.mainQueue
                                                 usingBlock:^(NSNotification *note) {
@@ -541,7 +585,8 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     // back. Seen before the click goes to what's under it, so the site has the keyboard as it gets the click.
     self.clickWatch = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskLeftMouseDown
                                                             handler:^NSEvent *(NSEvent *event) {
-        if (event.window == weakSelf.panel) [weakSelf clickedAt:event.locationInWindow];
+        if (event.window != weakSelf.panel) return event;
+        [weakSelf clickedAt:event.locationInWindow];
         return event;
     }];
     // A sideways two-finger swipe on the panel moves it (swiped:): seen before the page gets it, which then doesn't.
@@ -639,6 +684,13 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 - (void)resetPosition {
     if (self.parked || self.parkTimer) [self backAtOnce];
+    // Folded with something out beside the cat, it goes in, and comes out again once the cat is there.
+    BOOL roomOut = self.folded && self.roomHeld;
+    if (roomOut) {
+        [self tellMoving:YES];
+        [self.panel setFrame:[self catBoxIn:self.panel.frame] display:NO];
+        [self letRoomGo];
+    }
     NSRect screen = NSScreen.mainScreen.visibleFrame;
     NSRect frame = self.panel.frame;
     // Folded, the cat goes where the name's o is in the panel put back there.
@@ -651,6 +703,7 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     [self.panel orderFrontRegardless];
     [self updateRoom];
     [self tellGlass:[self glassOnScreen] over:0];
+    if (roomOut) [self tellMoving:NO];
 }
 
 #pragma mark Size
@@ -673,8 +726,9 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 - (void)resendRoom {
     self.room = 0;
-    // A page loaded afresh hasn't heard which way the folded cat's tags go either, nor that the panel is turned over.
-    self.toldSide = nil;
+    // A page loaded afresh hasn't heard which way what comes out of the folded cat goes either, nor that the panel is
+    // turned over.
+    self.wayTold = NO;
     [self updateRoom];
     if (self.turned) [self.page turned:YES];
 }
@@ -746,6 +800,12 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 - (BOOL)dragBy:(NSPoint)by {
     if (self.reshaping) return NO;
+    // Folded with something out beside the cat, that goes in first (the page gives the room back), and the cat moves
+    // once it has: the drag, which counts from where it started, catches up then.
+    if (self.folded && self.roomHeld) {
+        [self tellMoving:YES];
+        return NO;
+    }
     NSRect was = self.panel.frame;
     [self.panel setFrame:NSOffsetRect(was, by.x, by.y) display:YES];
     // By where the window is now, not by how far the pointer went: macOS rounds a window's place to whole pixels and
@@ -760,8 +820,25 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 // Not while the reader is open, which turns the name off: that size isn't the one to come back at.
 - (void)draggedByHand {
+    [self keepPlace];
+    [self tellMoving:NO];
+}
+
+- (void)keepPlace {
     if (self.panel.frameAutosaveName.length) [self.panel saveFrameUsingName:self.panel.frameAutosaveName];
     [self updateRoom];
+}
+
+// The page hears the folded cat has started moving with something out beside it, which goes in meanwhile, and once it
+// has stopped, with which way what comes out of it goes from there (tellCatWay), so it comes out that way.
+- (void)tellMoving:(BOOL)moving {
+    if (moving == self.movingTold) return;
+    self.movingTold = moving;
+    if (!moving) {
+        self.wayTold = NO;
+        [self tellCatWay];
+    }
+    [self.page catMoving:moving];
 }
 
 - (void)hold:(NSWindow *)window over:(BOOL)over {
@@ -772,43 +849,26 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 #pragma mark Flicked off the screen's edge
 
-NSPoint FoldedMove(NSRect glass, NSPoint by, NSRect visible) {
-    // How far it may go each way: up to the screen's edge, and nowhere further out where it's past that already.
-    CGFloat left = MIN(0, NSMinX(visible) - NSMinX(glass)), right = MAX(0, NSMaxX(visible) - NSMaxX(glass));
-    CGFloat down = MIN(0, NSMinY(visible) - NSMinY(glass)), up = MAX(0, NSMaxY(visible) - NSMaxY(glass));
-    return NSMakePoint(MAX(left, MIN(right, by.x)), MAX(down, MIN(up, by.y)));
+CatWay CatWayFor(NSRect glass, NSRect visible) {
+    CatWay way;
+    way.right = NSMidX(glass) < NSMidX(visible);
+    way.up = NSMidY(glass) < NSMidY(visible);
+    way.across = floor(way.right ? NSMaxX(visible) - NSMidX(glass) : NSMidX(glass) - NSMinX(visible));
+    CGFloat tall = way.up ? NSMaxY(visible) - NSMinY(glass) : NSMaxY(glass) - NSMinY(visible);
+    way.tall = floor(MAX(0, MIN(kAboveRoom, tall)));
+    return way;
 }
 
-// Folded, a two-finger swipe on the cat, any way, moves it with the fingers, and as they lift it goes on with the
-// trackpad's own momentum, as far as the swipe was quick, slowing to a stop: always within the screen, stopping at its
-// edge. Its place is kept once the swipe, and then its momentum, has ended. Not while it's folding or opening.
-- (NSEvent *)swipedFolded:(NSEvent *)event {
-    if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin) {
-        self.foldedFrom = [self foldedGlassIn:self.panel.frame].origin;
-        self.foldedTotal = NSZeroPoint;
-        return nil;
-    }
-    if (self.folded) {
-        // Which way the fingers went, whichever way scrolling goes on this Mac; the screen's y runs up. The swipe's
-        // total so far, kept within the screen from where the glass started, places it: macOS rounds a window's place,
-        // so a fraction of a point added each time would be lost, and a turn back moves it at once.
-        CGFloat way = event.isDirectionInvertedFromDevice ? 1 : -1;
-        NSPoint total = NSMakePoint(self.foldedTotal.x + event.scrollingDeltaX * way,
-                                    self.foldedTotal.y - event.scrollingDeltaY * way);
-        NSRect visible = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame;
-        NSRect glass = [self foldedGlassIn:self.panel.frame];
-        self.foldedTotal = total = FoldedMove((NSRect){self.foldedFrom, glass.size}, total, visible);
-        NSPoint by = NSMakePoint(self.foldedFrom.x + total.x - NSMinX(glass),
-                                 self.foldedFrom.y + total.y - NSMinY(glass));
-        if (by.x || by.y) [self dragBy:by];  // not while it changes shape (dragBy:): the next step catches up
-    }
-    BOOL ends = event.momentumPhase == NSEventPhaseEnded || event.momentumPhase == NSEventPhaseCancelled
-                || (event.momentumPhase == NSEventPhaseNone
-                    && (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled));
-    if (ends) [self draggedByHand];
-    // A swipe with momentum to come stays the cat's until that has run out.
-    if (event.momentumPhase == NSEventPhaseEnded || event.momentumPhase == NSEventPhaseCancelled) self.foldedSwipe = NO;
-    return nil;
+NSRect CatRoomFrame(NSRect box, NSArray<NSValue *> *parts, CGFloat shadow) {
+    NSRect frame = box;
+    for (NSValue *part in parts) frame = NSUnionRect(frame, NSInsetRect(part.rectValue, -shadow, -shadow));
+    return NSIntegralRect(frame);
+}
+
+BOOL CatRoomTakes(NSPoint point, NSArray<NSValue *> *parts, CGFloat margin) {
+    for (NSValue *part in parts)
+        if (NSPointInRect(point, NSInsetRect(part.rectValue, -margin, -margin))) return YES;
+    return NO;
 }
 
 int SwipeWay(CGFloat x, CGFloat y) {
@@ -839,10 +899,6 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 // on the open panel's list, with the reader closed, and not while one of the page's boxes has the keyboard.
 - (NSEvent *)swiped:(NSEvent *)event {
     if (event.window != self.panel || !event.hasPreciseScrollingDeltas) return event;
-    // A swipe that starts on the folded cat is the cat's, to its end, momentum and all.
-    if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin)
-        self.foldedSwipe = self.folded && !self.reshaping;
-    if (self.foldedSwipe) return [self swipedFolded:event];
     if (event.momentumPhase != NSEventPhaseNone) return self.swipeMine ? nil : event;
     if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin) {
         self.swipeMine = self.swipeDecided = NO;
@@ -1024,6 +1080,7 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 }
 
 - (void)tellGlass:(NSRect)glass over:(NSTimeInterval)duration {
+    if (self.roomChanging) return;
     NSScreen *screen = self.panel.screen ?: NSScreen.mainScreen;
     NSRect list = self.expanded ? self.listFrame : glass;
     // Flicked away, or on its way there or back, the icons keep the side facing back onto the screen (parkToward:).
@@ -1040,8 +1097,13 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 // (16pt from its edges; a longer page scrolls). The page is told which side its list is on, and how wide the reader
 // is, before the panel starts to grow, so what's in it is laid out once at that size and the growing only uncovers it.
 - (void)expandReader:(CGFloat)width height:(CGFloat)height {
-    // The reader opens from a row, and there are none to see while it's folded or turned over.
+    // The reader opens from a row, and there are none to see while it's folded or turned over. Opening out of the cat,
+    // it grows once the panel has opened, from where the list is then.
     if (self.folded || self.turned) return;
+    if (self.reshaping && !self.expanded && self.holdsPage) {
+        self.pendingReader = [NSValue valueWithSize:NSMakeSize(width, height)];
+        return;
+    }
     NSScreen *screen = self.panel.screen ?: NSScreen.mainScreen;
     NSRect visible = NSInsetRect(screen.visibleFrame, 16, 16);
     if (!self.expanded) {
@@ -1065,9 +1127,10 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 // Back to where the list was (or was dragged to with the panel), at the height the list needs now (it may have changed
 // while the reader was open), so nothing is resized again once the panel has folded.
 - (void)collapse:(CGFloat)height {
-    // Closed before it grew (pressed again before what it shows was in): there's nothing to fold, but the page still
-    // waits to hear that the reader has closed.
+    // Closed without having grown (it was asked to while the panel was folded or turned over): there's nothing to fold,
+    // but the page still waits to hear that the reader has closed.
     if (!self.expanded) {
+        self.pendingReader = nil;
         [self.page readerClosed];
         return;
     }
@@ -1193,15 +1256,19 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     return NSMakePoint(NSMidX(box) - self.catAt.x, NSMidY(box) + self.catAt.y);
 }
 
-// Where the page's left edge is on the screen: kReaderRoom left of the list.
+// Where the page's left edge is on the screen: kReaderRoom left of the list; and its top, kAboveRoom above the list's.
 - (CGFloat)pageLeft {
     return [self rootAt].x - kReaderRoom;
 }
 
+- (CGFloat)pageTop {
+    return [self rootAt].y + kAboveRoom;
+}
+
 // The page's frame in the clip, which is `local` in a window that's `frame` on the screen: its list where rootAt says,
-// and as tall as from there to the window's bottom. Folded, and while it folds or opens, it's at least as tall as the
-// open panel, past the window's bottom: so it's laid out at the one size all the way, and opening shows more of it
-// rather than having WebKit lay it out and draw it again as the cat starts to shrink.
+// with the room above it (kAboveRoom), and as tall as from there to the window's bottom. Folded, and while it folds or
+// opens, it's at least as tall as the open panel, past the window's bottom: so it's laid out at the one size all the
+// way, and opening shows more of it rather than having WebKit lay it out and draw it again as the cat starts to shrink.
 - (NSRect)pageFrameIn:(NSRect)frame clip:(NSRect)local {
     NSPoint at = [self rootAt];
     CGFloat tall = at.y - NSMinY(frame);
@@ -1209,7 +1276,7 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     // Turning over, it keeps the panel's height, so it isn't laid out again for the room taken in below the panel.
     if (self.turning) tall = NSHeight(self.turnFrame);
     return NSMakeRect(at.x - kReaderRoom - NSMinX(frame) - NSMinX(local), at.y - tall - NSMinY(frame) - NSMinY(local),
-                      kPageWidth, tall);
+                      kPageWidth, tall + kAboveRoom);
 }
 
 // Where a rectangle on the screen is in the window.
@@ -1270,7 +1337,7 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     NSPoint window = self.panel.frame.origin, at = [self rootAt];
     NSPoint pageFrom = NSMakePoint(window.x + NSMinX(clipFrom) + NSMinX(self.page.view.frame),
                                    window.y + NSMinY(clipFrom) + NSMinY(self.page.view.frame));
-    NSPoint pageTo = NSMakePoint(at.x - kReaderRoom, at.y - NSHeight(self.page.view.frame));
+    NSPoint pageTo = NSMakePoint(at.x - kReaderRoom, at.y + kAboveRoom - NSHeight(self.page.view.frame));
     __weak typeof(self) weakSelf = self;
     void (^step)(CGFloat) = ^(CGFloat along) {
         PanelWindow *me = weakSelf;
@@ -1312,20 +1379,20 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 }
 
 // Done changing size: the glass, the clip and the page fill the window again, and follow it as before. Folded, the
-// glass is the round one in the cat's square, and the clip the circle round it, or the whole window while the tags are
-// out.
+// glass is the round one in the cat's square, and the clip the circle round it, or the whole window while chats are out
+// beside it.
 - (void)settle {
     NSView *root = self.panel.contentView;
     self.holdsPage = NO;
     if (self.folded) {
         self.glass.frame = [self inWindow:[self foldedGlassIn:self.panel.frame]];
         [self roundGlass:kFoldGlass / 2];
-        self.clip.layer.cornerRadius = self.fanOpen ? 0 : kFoldBox / 2;
+        self.clip.layer.cornerRadius = self.roomHeld ? 0 : kFoldBox / 2;
     } else {
-        self.fanOpen = NO;
+        [self letRoomGo];
     }
-    // Back to the cat's corner from the tags' room, which was never saved, it's saved as itself again.
-    if (!self.fanOpen && !self.expanded && !self.panel.frameAutosaveName.length) {
+    // Back to the cat's square from the room beside it, which was never saved, it's saved as itself again.
+    if (!self.roomHeld && !self.expanded && !self.panel.frameAutosaveName.length) {
         [self.panel saveFrameUsingName:@"Whozmove"];
         self.panel.frameAutosaveName = @"Whozmove";
     }
@@ -1357,7 +1424,7 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 - (void)placeStrips {
     NSRect bounds = self.panel.contentView.bounds;
     CGFloat top = NSHeight(bounds) - kHeaderHeight;
-    // Folded, the cat's corner is dragged by, and a click on it opens the panel; the tags' room below it is the page's.
+    // Folded, the cat's square is dragged by, and a click on it opens the panel; the room beside it is the page's.
     if (self.folded) {
         self.strip.frame = [self inWindow:[self catBoxIn:self.panel.frame]];
         self.strip.hidden = NO;
@@ -1365,8 +1432,8 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
         return;
     }
     if (!self.expanded) {
-        // Only over the part of the header that still shows as it slides away with the list, so a press on the rows
-        // that have come up under it goes to them; none once it has gone. The back's header stays where it is.
+        // Only over the part of the header that still shows as it's pushed away, so a press on the rows that have come
+        // up under it goes to them; none once it has gone. The back's header stays where it is.
         CGFloat lead = self.turned ? kBackLead : 0;
         CGFloat showing = self.turned ? kHeaderHeight : MAX(0, MIN(kHeaderHeight, self.headerPoints));
         self.strip.frame = NSMakeRect(lead, NSHeight(bounds) - showing, NSWidth(bounds) - kButtonsWidth - lead,
@@ -1435,18 +1502,16 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     [self.panel addChildWindow:self.shade ordered:NSWindowBelow];
 }
 
-// The folded glass in a window that's `frame`: round, in the middle of the cat's square, whatever room the tags have
-// below and beside it.
+// The folded glass in a window that's `frame`: round, in the middle of the cat's square, whatever room there is beside
+// it.
 - (NSRect)foldedGlassIn:(NSRect)frame {
     CGFloat inset = (kFoldBox - kFoldGlass) / 2;
     return NSInsetRect([self catBoxIn:frame], inset, inset);
 }
 
-// The cat's square (kFoldBox) in a folded window that's `frame`: its top-right corner, or its top-left while the tags
-// are out to the right.
+// The cat's square (kFoldBox) in a folded window that's `frame`: all of it, or where it is in the room beside it.
 - (NSRect)catBoxIn:(NSRect)frame {
-    CGFloat left = self.fanOpen && self.fanRight ? NSMinX(frame) : NSMaxX(frame) - kFoldBox;
-    return NSMakeRect(left, NSMaxY(frame) - kFoldBox, kFoldBox, kFoldBox);
+    return NSMakeRect(NSMinX(frame) + self.roomOffset.x, NSMinY(frame) + self.roomOffset.y, kFoldBox, kFoldBox);
 }
 
 // The glass's corners: its mask's, which doesn't reach its subviews, and the tint's.
@@ -1487,12 +1552,39 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 }
 
 // The page says the panel folds into the cat, or opens out of it (panel.js): moving, or at once as it loads. Not while
-// the reader is open (the page doesn't fold then). Asked again while it's moving, the newest is taken once it's done.
+// the reader is open (the page doesn't fold then). Asked again while it's moving, the newest is taken once it's done;
+// but the folded cat's list coming out or going back in (peek.js), asked the other way meanwhile, turns back from where
+// it is, as the chats moving with it do (chats.js), rather than finishing first. Folding with chats still out beside
+// the cat, `room` is where they go back out to as it folds.
+- (void)fold:(BOOL)on instant:(BOOL)instant room:(NSArray *)room peek:(BOOL)peek {
+    self.foldRoom = on && !instant ? room : nil;
+    if (self.expanded) return;
+    // How it's left for next launch (show), as the page keeps it: the list on pointing isn't (keepOpen).
+    if (!peek) [NSUserDefaults.standardUserDefaults setBool:on forKey:kFoldedKey];
+    if (on) self.pendingReader = nil;
+    if (self.reshaping && self.foldInMotion && self.foldPeek && !instant) {
+        self.pendingFold = nil;
+        if (on == self.folded) return;
+        self.folded = on;
+        self.askedPeek = peek;
+        if (on) [self dropKeyboard];
+        else [self stopBreathing];
+        [self tellFold:NO];
+        [self foldMoving];
+        return;
+    }
+    self.askedPeek = peek;
+    [self fold:on instant:instant];
+}
+
+- (void)keepOpen {
+    [NSUserDefaults.standardUserDefaults setBool:NO forKey:kFoldedKey];
+}
+
 - (void)fold:(BOOL)on instant:(BOOL)instant {
     if (self.expanded) return;
     // It folds from its list side: turned over (a page loaded afresh says how it was left), it's put back at once.
     if (self.turned && !self.turning) [self turnBackAtOnce];
-    [NSUserDefaults.standardUserDefaults setBool:on forKey:kFoldedKey];
     if (self.reshaping) {
         self.pendingFold = @(on);
         return;
@@ -1511,50 +1603,101 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     [self foldMoving];
 }
 
-// The cat's tags come out (cat.js): the folded window takes in the room they need under and beside the cat, the cat's
-// square, and so the glass, staying put; the page is laid out again at the new height, showing nothing new but the
-// tags. Once they've gone, the window is the cat's corner again. Asked while the panel folds or opens, it's done once
-// that's over. They go the way the page was told (tellCatSide), as it laid them out that way. While they're out the
-// window's frame isn't saved: the panel comes back next time as the cat alone.
-- (void)catFan:(BOOL)on width:(CGFloat)width height:(CGFloat)height {
+// Folded, what comes out beside the cat (its chats, chats.js) has the room the page lays it out in: the window takes
+// in, at once, everything it covers, the cat's square staying where it is, so the page stays put beneath it and nothing
+// in it moves but what the page moves; and where the room ends up smaller, the window is made that size once it's done.
+// The page is told once it's done, with which of its asks that was (catRoomTaken:). Asked again meanwhile, the newest is taken once this is done; asked
+// while the panel folds or opens, once that is. While there's room, the window's frame isn't saved: the panel comes
+// back next time as the cat alone. Those following the glass aren't told of it: the cat's circle stays where it was.
+- (void)catRoom:(NSDictionary *)room {
     if (!self.folded) return;
     if (self.reshaping) {
-        self.pendingFan = @{@"on": @(on), @"width": @(width), @"height": @(height)};
+        self.pendingRoom = room;
         return;
     }
-    if (!on && !self.fanOpen) return;
-    NSRect box = [self catBoxIn:self.panel.frame];
-    NSRect visible = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame;
-    if (on) self.fanRight = self.toldSide.boolValue;
-    CGFloat w = on ? MAX(kFoldBox, ceil(width)) : kFoldBox;
-    CGFloat h = on ? MIN(MAX(kFoldBox, ceil(height)), NSMaxY(box) - NSMinY(visible)) : kFoldBox;
-    NSRect target = on && self.fanRight ? NSMakeRect(NSMinX(box), NSMaxY(box) - h, w, h)
-                                        : NSMakeRect(NSMaxX(box) - w, NSMaxY(box) - h, w, h);
-    if (NSEqualRects(target, self.panel.frame) && on == self.fanOpen) return;
-    if (on && !self.fanOpen) {
+    NSRect frame = self.panel.frame, box = [self catBoxIn:frame];
+    NSArray<NSValue *> *parts = [self roomParts:room[@"parts"] around:box];
+    BOOL held = parts.count > 0;
+    NSRect target = held ? CatRoomFrame(box, parts, kRoomShadow) : box;
+    // What takes clicks is as the page has it now, even where the window is already the size it needs.
+    self.roomParts = held ? parts : nil;
+    if (NSEqualRects(target, frame) && held == self.roomHeld) {
+        [self.page catRoomTaken:room[@"ask"]];
+        return;
+    }
+    if (held && !self.roomHeld) {
         [self.panel saveFrameUsingName:@"Whozmove"];
         self.panel.frameAutosaveName = @"";
+        [self pollPointerEvery:kPointerEveryWatched];
     }
-    self.fanOpen = on;
-    // Changing shape until the page has drawn it there: a fold asked for meanwhile waits for it.
+    CGFloat inset = (kFoldBox - kFoldGlass) / 2;
+    NSRect circle = NSInsetRect(box, inset, inset), span = NSUnionRect(frame, target);
     self.reshaping = YES;
+    self.roomChanging = YES;
+    self.strip.hidden = YES;
+    // The page stays where the cat's square has it throughout (rootAt), whatever the window takes in on the way.
+    self.pageAt = [self rootAround:box];
+    self.holdsPage = YES;
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    self.clip.layer.cornerRadius = 0;
+    [CATransaction commit];
     __weak typeof(self) weakSelf = self;
-    [self setWindowFrame:target glass:[self foldedGlassIn:target] clip:target then:^{
-        [weakSelf settle];
-        [weakSelf takePending];
-    }];
+    void (^finish)(void) = ^{
+        PanelWindow *me = weakSelf;
+        me.roomChanging = NO;
+        if (held) {
+            me.roomHeld = YES;
+            me.roomOffset = NSMakePoint(NSMinX(box) - NSMinX(target), NSMinY(box) - NSMinY(target));
+        } else [me letRoomGo];  // which gives the slower polling back
+        [me settle];
+        [me.page catRoomTaken:room[@"ask"]];
+        [me takePending];
+    };
+    void (^fit)(void) = ^{
+        if (NSEqualRects(span, target)) finish();
+        else [weakSelf setWindowFrame:target glass:circle clip:target then:finish];
+    };
+    if (NSEqualRects(span, frame)) fit();
+    else [self setWindowFrame:span glass:circle clip:span then:fit];
 }
 
-// What was asked for while the panel was changing shape, once it's done: a fold or an opening first (the tags' room
-// then goes with it), else the tags' room.
+// The parts of the room beside the cat the page names, each [x, y, width, height] in points from the glass's middle
+// with y running down, on the screen round the cat's square `box`; anything else is left out.
+- (NSArray<NSValue *> *)roomParts:(id)list around:(NSRect)box {
+    NSPoint middle = NSMakePoint(NSMidX(box), NSMidY(box));
+    NSMutableArray<NSValue *> *parts = [NSMutableArray array];
+    for (id part in [list isKindOfClass:NSArray.class] ? list : @[]) {
+        if (![part isKindOfClass:NSArray.class] || [part count] != 4) continue;
+        BOOL numbers = YES;
+        for (id each in part) numbers = numbers && [each isKindOfClass:NSNumber.class];
+        if (!numbers) continue;
+        CGFloat w = MAX(0, [part[2] doubleValue]), h = MAX(0, [part[3] doubleValue]);
+        NSRect each = NSMakeRect(middle.x + [part[0] doubleValue], middle.y - [part[1] doubleValue] - h, w, h);
+        if (!NSIsEmptyRect(each)) [parts addObject:[NSValue valueWithRect:each]];
+    }
+    return parts;
+}
+
+// No room beside the cat: the window is the cat's square (or opening out of it), and takes clicks again.
+- (void)letRoomGo {
+    BOOL had = self.roomHeld;
+    self.roomHeld = NO;
+    self.roomOffset = NSZeroPoint;
+    self.roomParts = nil;
+    [self passClicks:NO];
+    if (had && !self.catSeesPointer) [self pollPointerEvery:kPointerEvery];
+}
+
+// What was asked for while the panel was changing shape, once it's done: a fold or an opening first (the room beside
+// the cat then goes with it), else the room beside the cat.
 - (void)takePending {
     NSNumber *fold = self.pendingFold;
-    NSDictionary *fan = self.pendingFan;
+    NSDictionary *room = self.pendingRoom;
     self.pendingFold = nil;
-    self.pendingFan = nil;
+    self.pendingRoom = nil;
     if (fold && fold.boolValue != self.folded) [self fold:fold.boolValue instant:NO];
-    else if (fan)
-        [self catFan:[fan[@"on"] boolValue] width:[fan[@"width"] doubleValue] height:[fan[@"height"] doubleValue]];
+    else if (room) [self catRoom:room];
 }
 
 // While sessions work, the folded glass breathes as a cat does (the page says how many, cat.js): a breath in, quicker,
@@ -1623,15 +1766,18 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 
 // The panel as it is now, folded or open, with nothing moving: at launch, from the frame saved last, either way.
 - (void)placeAtOnce {
+    // With room beside the cat (a page loaded afresh while something was out), just the cat's square.
+    if (self.roomHeld) [self.panel setFrame:[self catBoxIn:self.panel.frame] display:NO];
+    self.foldInMotion = NO;
+    [self letRoomGo];
+    self.pendingRoom = nil;
     NSRect frame = self.panel.frame;
     BOOL round = fabs(NSWidth(frame) - kWidth) > 1;
-    self.fanOpen = NO;
-    self.pendingFan = nil;
     if (self.folded && !round) {
         self.openHeight = NSHeight(frame);
         [self.panel setFrame:[self foldedFrameFrom:frame] display:NO];
     } else if (self.folded && !NSEqualSizes(frame.size, NSMakeSize(kFoldBox, kFoldBox))) {
-        // Left with room for its tags (the app quit while they were out): just the cat's corner.
+        // Not the cat's square: just that.
         [self.panel setFrame:[self foldedFrameFrom:frame] display:NO];
     } else if (!self.folded && round) {
         [self.panel setFrame:[self openFrameFrom:frame] display:NO];
@@ -1646,55 +1792,115 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 // where it is; then the window becomes the cat's square. Opening runs it backwards: the glass spreads out from behind
 // the cat as the cat becomes the name's o. Only the edges move, as with the reader (reshapeTo:), so the page is drawn
 // once. Where the open panel is moved in from the screen's edge, the page slides with the glass between the two places.
+// Turned back on its way (fold:instant:room:peek:), it starts from where the glass, the page's clip and the page are,
+// toward the same cat's square or the open panel round it, over as much of the time as it has left to go.
 - (void)foldMoving {
+    BOOL back = self.foldInMotion;
     self.reshaping = YES;
+    self.foldInMotion = YES;
+    self.foldPeek = self.askedPeek;
+    self.askedPeek = NO;
+    NSUInteger run = ++self.foldRun;
+    if (back) {
+        [self.moveTimer invalidate];
+        self.moveTimer = nil;
+    }
     self.strip.hidden = self.readerStrip.hidden = YES;
     [self tellCatPointerGone];
     CGFloat inset = (kFoldBox - kFoldGlass) / 2;
     NSRect from = self.panel.frame;
+    // Where the glass, the page's clip and the page's list are on the screen now, for a move turned back on its way.
+    NSRect glassNow = NSOffsetRect(self.glass.frame, NSMinX(from), NSMinY(from));
+    NSRect clipNow = NSOffsetRect(self.clip.frame, NSMinX(from), NSMinY(from));
+    NSRect pageView = self.page.view.frame;
+    NSPoint pageNow = NSMakePoint(NSMinX(from) + NSMinX(self.clip.frame) + NSMinX(pageView) + kReaderRoom,
+                                  NSMinY(from) + NSMinY(self.clip.frame) + NSMaxY(pageView) - kAboveRoom);
     __weak typeof(self) weakSelf = self;
+    BOOL (^moving)(void) = ^BOOL { return weakSelf && weakSelf.foldRun == run; };
     void (^finish)(void) = ^{
+        if (!moving()) return;
+        weakSelf.foldInMotion = NO;
         [weakSelf settle];
-        [weakSelf.panel saveFrameUsingName:@"Whozmove"];
+        // Holding room for chats beside the cat, the place kept is the open panel's, as it was saved as it folded.
+        if (!weakSelf.roomHeld) [weakSelf.panel saveFrameUsingName:@"Whozmove"];
         if (!weakSelf.folded) [weakSelf resendRoom];
         [weakSelf tellFold:YES];
         [weakSelf takePending];
+        NSValue *reader = weakSelf.pendingReader;
+        weakSelf.pendingReader = nil;
+        if (reader && !weakSelf.folded && !weakSelf.reshaping)
+            [weakSelf expandReader:reader.sizeValue.width height:reader.sizeValue.height];
     };
     if (self.folded) {
-        NSRect box = [self foldedFrameFrom:from], glass = NSInsetRect(box, inset, inset);
+        NSRect box = back ? self.foldBox : [self foldedFrameFrom:from], glass = NSInsetRect(box, inset, inset);
+        self.foldBox = box;
+        // With chats going back out beside the cat as it folds (chats.js), the window takes in the room they go to from
+        // the start, the page's clip keeping it all as the glass closes, and holds it once it has folded, the place
+        // kept the open panel's, as while chats are out (turned back on its way, the window isn't that: what was saved
+        // stays).
+        NSArray<NSValue *> *parts = [self roomParts:self.foldRoom around:box];
+        self.foldRoom = nil;
+        BOOL roomOut = parts.count > 0;
+        self.foldRoomOut = roomOut;
+        NSRect end = roomOut ? CatRoomFrame(box, parts, kRoomShadow) : box, span = NSUnionRect(from, end);
+        if (roomOut) {
+            if (!back) [self.panel saveFrameUsingName:@"Whozmove"];
+            self.panel.frameAutosaveName = @"";
+            [self pollPointerEvery:kPointerEveryWatched];
+        }
         // The page starts where the open panel has it (it's marked folded already, so rootAt would take the open
-        // panel's frame for the cat's square), and goes where the folded cat has it.
-        self.pageAt = NSMakePoint(NSMinX(from), NSMaxY(from));
+        // panel's frame for the cat's square), or where it is, and goes where the folded cat has it.
+        self.pageAt = back ? pageNow : NSMakePoint(NSMinX(from), NSMaxY(from));
         self.holdsPage = YES;
-        [self setWindowFrame:NSUnionRect(from, box) glass:from clip:from then:^{
+        NSTimeInterval seconds = back ? [self foldTimeFrom:glassNow to:glass other:[self openFrameFrom:box]] : kSpread;
+        [self setWindowFrame:span glass:back ? glassNow : from clip:roomOut ? span : back ? clipNow : from then:^{
+            if (!moving()) return;
             weakSelf.pageAt = [weakSelf rootAround:box];
-            [weakSelf moveGlassTo:glass clip:glass corner:kFoldGlass / 2 glassCorner:kFoldGlass / 2 over:kSpread
-                           easing:kFoldEasing then:^{
-                [weakSelf setWindowFrame:box glass:glass clip:box then:finish];
+            [weakSelf moveGlassTo:glass clip:roomOut ? span : glass corner:roomOut ? 0 : kFoldGlass / 2
+                      glassCorner:kFoldGlass / 2 over:seconds easing:kFoldEasing then:^{
+                if (!moving()) return;
+                if (roomOut) {
+                    PanelWindow *me = weakSelf;
+                    me.roomParts = parts;
+                    me.roomHeld = YES;
+                    me.roomOffset = NSMakePoint(NSMinX(box) - NSMinX(end), NSMinY(box) - NSMinY(end));
+                }
+                [weakSelf setWindowFrame:end glass:glass clip:end then:finish];
             }];
         }];
     } else {
-        NSRect box = [self catBoxIn:from], glass = [self foldedGlassIn:from];
-        BOOL tagsOut = self.fanOpen;
+        NSRect box = back ? self.foldBox : [self catBoxIn:from], glass = back ? glassNow : [self foldedGlassIn:from];
+        self.foldBox = box;
+        BOOL roomOut = back ? self.foldRoomOut : self.roomHeld;
+        self.foldRoomOut = roomOut;
         // The page starts where the folded cat has it (the panel is marked open already, so rootAt would take the
-        // cat's square for the open panel), and goes where the open panel has it.
-        self.pageAt = [self rootAround:box];
+        // cat's square for the open panel), or where it is, and goes where the open panel has it.
+        self.pageAt = back ? pageNow : [self rootAround:box];
         self.holdsPage = YES;
-        self.fanOpen = NO;
-        NSRect open = [self openFrameFrom:box];
-        // While the tags are out, the page's clip keeps them in as they fade (cat.css), until the glass starts.
+        [self letRoomGo];
+        // A fold turned back before it held its room watched the pointer more often meanwhile.
+        if (back && roomOut && !self.catSeesPointer) [self pollPointerEvery:kPointerEvery];
+        NSRect open = [self openFrameFrom:box], span = NSUnionRect(open, from);
+        NSTimeInterval seconds = back ? [self foldTimeFrom:glassNow to:open other:NSInsetRect(box, inset, inset)]
+                                      : kSpread;
+        // While chats are out beside the cat, each moves into its row as the glass spreads out from behind the cat
+        // (chats.js): the page's clip keeps all the room they need till the glass has spread, the page keeping the
+        // rest of the panel out of sight meanwhile.
         [CATransaction begin];
         [CATransaction setDisableActions:YES];
-        self.clip.layer.cornerRadius = tagsOut ? 0 : kFoldGlass / 2;
+        if (roomOut) self.clip.layer.cornerRadius = 0;
+        else if (!back) self.clip.layer.cornerRadius = kFoldGlass / 2;
         [CATransaction commit];
-        [self setWindowFrame:NSUnionRect(open, from) glass:glass clip:tagsOut ? from : glass then:^{
+        [self setWindowFrame:span glass:glass clip:roomOut ? span : back ? clipNow : glass then:^{
+            if (!moving()) return;
             // The cat shrinks into the name's o as the glass spreads out from behind it, starting together.
             [weakSelf.page catGlass:^{
-                if (tagsOut) [weakSelf clipTo:glass corner:kFoldGlass / 2];
+                if (!moving()) return;
                 weakSelf.pageAt = NSMakePoint(NSMinX(open), NSMaxY(open));
-                [weakSelf moveGlassTo:open clip:open corner:kCorner glassCorner:kCorner over:kSpread
-                               easing:kFoldEasing then:^{
-                    if (NSEqualRects(NSUnionRect(open, from), open)) finish();
+                [weakSelf moveGlassTo:open clip:roomOut ? span : open corner:roomOut ? 0 : kCorner glassCorner:kCorner
+                                 over:seconds easing:kFoldEasing then:^{
+                    if (!moving()) return;
+                    if (NSEqualRects(span, open)) finish();
                     else [weakSelf setWindowFrame:open showing:open then:finish];
                 }];
             }];
@@ -1702,18 +1908,12 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     }
 }
 
-// The page's clip, at once, to `clip` (on the screen) with corners `corner`, the page staying put on the screen.
-- (void)clipTo:(NSRect)clip corner:(CGFloat)corner {
-    NSPoint window = self.panel.frame.origin;
-    NSPoint page = NSMakePoint(window.x + NSMinX(self.clip.frame) + NSMinX(self.page.view.frame),
-                               window.y + NSMinY(self.clip.frame) + NSMinY(self.page.view.frame));
-    NSRect local = [self inWindow:clip];
-    [CATransaction begin];
-    [CATransaction setDisableActions:YES];
-    self.clip.frame = local;
-    self.clip.layer.cornerRadius = corner;
-    [self.page.view setFrameOrigin:NSMakePoint(page.x - window.x - NSMinX(local), page.y - window.y - NSMinY(local))];
-    [CATransaction commit];
+// How long a fold or an opening turned back on its way takes from the glass `now` to `to`: kSpread for the whole way
+// from `other`, where it was going, and as much less as it has less to go, though never so little that it jumps.
+- (NSTimeInterval)foldTimeFrom:(NSRect)now to:(NSRect)to other:(NSRect)other {
+    CGFloat whole = MAX(MAX(fabs(NSWidth(other) - NSWidth(to)), fabs(NSHeight(other) - NSHeight(to))), 1);
+    CGFloat left = MAX(fabs(NSWidth(now) - NSWidth(to)), fabs(NSHeight(now) - NSHeight(to)));
+    return kSpread * MIN(1, MAX(0.4, left / whole));
 }
 
 #pragma mark Turning over
@@ -2061,9 +2261,9 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 }
 
 - (void)popUpMenu:(NSMenu *)menu atPagePoint:(NSPoint)point {
-    NSView *view = self.panel.contentView;  // not flipped; the page's y runs down from the top
+    NSView *view = self.panel.contentView;  // not flipped; the page's y runs down from its top, above the list's
     NSPoint at = NSMakePoint(point.x + [self pageLeft] - NSMinX(self.panel.frame),
-                             [self rootAt].y - NSMinY(self.panel.frame) - point.y);
+                             [self pageTop] - NSMinY(self.panel.frame) - point.y);
     [menu popUpMenuPositioningItem:nil atLocation:at inView:view];
     // The pointer isn't looked at while the menu is up: it's taken to be where the menu closed, so it hasn't left the
     // panel until it moves on from there (pollPointer).
@@ -2086,38 +2286,59 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     if (self.turned) {
         if (self.hovering) {
             self.hovering = NO;
-            [self.page hoverEnd:NO];
+            [self.page hoverEnd:NO held:NO];
         }
         return;
     }
     NSRect frame = self.panel.frame;
     if (self.folded && !self.reshaping) {
         [self tellCatPointer:screen];
-        [self tellCatSide];
+        [self tellCatWay];
+    }
+    // Folded with room beside the cat, only the cat and what's drawn there take the pointer and clicks: elsewhere they
+    // go through to what's under the panel, as if it weren't there. Not changed while a button is held, so a press that
+    // started on the page isn't taken from it as it moves off.
+    BOOL taken = YES;
+    if (self.folded && self.roomHeld && !self.reshaping) {
+        taken = NSPointInRect(screen, [self catBoxIn:frame]) || CatRoomTakes(screen, self.roomParts, kRoomMargin);
+        if (NSEvent.pressedMouseButtons == 0) [self passClicks:!taken];
     }
     // A site in the panel isn't the page: the pointer on one is off the page.
-    BOOL inside = self.panel.isVisible && NSPointInRect(screen, frame)
+    BOOL inside = self.panel.isVisible && taken && NSPointInRect(screen, frame)
                   && ![self browserAt:[self.panel convertPointFromScreen:screen]];
     // Off the panel without moving, its edge moved past the pointer (a card folding away) or one of its menus closed
     // where the pointer picked from it: the page is told it's still there, and again once it moves.
     if (!inside) {
-        if (self.hovering) {
+        BOOL held = [self heldTakes:screen];
+        if (self.hovering || held != self.pointerHeld) {
+            if (self.hovering) self.leftStill = !moved;
             self.hovering = NO;
-            self.leftStill = !moved;
-            [self.page hoverEnd:self.leftStill];
+            self.pointerHeld = held;
+            [self.page hoverEnd:self.leftStill held:held];
         } else if (self.leftStill && moved) {
             self.leftStill = NO;
-            [self.page hoverEnd:NO];
+            [self.page hoverEnd:NO held:held];
         }
         return;
     }
     self.leftStill = NO;
-    // The page's top is its list's (rootAt), and its left edge pageLeft.
-    NSPoint page = NSMakePoint(round(screen.x - [self pageLeft]), round([self rootAt].y - screen.y));
+    self.pointerHeld = NO;
+    // The page's top is above its list's (pageTop), and its left edge pageLeft.
+    NSPoint page = NSMakePoint(round(screen.x - [self pageLeft]), round([self pageTop] - screen.y));
     if (self.hovering && NSEqualPoints(page, self.lastHover)) return;
     self.hovering = YES;
     self.lastHover = page;
     [self.page hoverAt:page];
+}
+
+// Whether the pointer at `screen` is on what the panel holds over or under itself (Spotify's token, the usage card),
+// where that takes it: off the page, but still with the panel, so the folded cat's list stays out (peek.js). Each takes
+// the pointer only over what shows of it, as it has just been told where the pointer is.
+- (BOOL)heldTakes:(NSPoint)screen {
+    for (NSWindow *window in self.panel.childWindows)
+        if (window != self.shade && window.isVisible && window.alphaValue > 0 && !window.ignoresMouseEvents
+            && NSPointInRect(screen, window.frame)) return YES;
+    return NO;
 }
 
 // Looks at the pointer this often from now on (pollPointer).
@@ -2147,25 +2368,32 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
     }
 }
 
-// Which way the tags go, as the page should lay them out before they come: told whenever it changes, as the cat is
-// dragged across the screen's middle.
-- (BOOL)catOnLeftHalf:(NSRect)box {
+// Which way what comes out of the cat goes, as the page should lay it out before it comes: told as it changes, as the
+// cat is moved about the screen, while nothing is out (what is goes in as it moves, tellMoving:).
+- (void)tellCatWay {
+    if (self.roomHeld || self.movingTold || !self.page.ready) return;
     NSRect visible = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame;
-    return NSMidX(box) < NSMidX(visible);
+    CatWay way = CatWayFor([self foldedGlassIn:self.panel.frame], visible), told = self.toldWay;
+    if (self.wayTold && way.right == told.right && way.up == told.up && way.across == told.across
+        && way.tall == told.tall) return;
+    self.toldWay = way;
+    self.wayTold = YES;
+    [self.page catWay:way.right up:way.up across:way.across tall:way.tall];
 }
 
-- (void)tellCatSide {
-    if (self.fanOpen || !self.page.ready) return;
-    BOOL right = [self catOnLeftHalf:[self catBoxIn:self.panel.frame]];
-    if (self.toldSide && self.toldSide.boolValue == right) return;
-    self.toldSide = @(right);
-    [self.page catSide:right];
+// Clicks go through the panel where nothing's drawn in the room beside the cat, or come to it again. Flicked off the
+// screen, it takes none either way.
+- (void)passClicks:(BOOL)through {
+    if (through == self.clicksThrough) return;
+    self.clicksThrough = through;
+    self.panel.ignoresMouseEvents = through || self.parked;
 }
 
 - (void)tellCatPointerGone {
     if (!self.catSeesPointer) return;
     self.catSeesPointer = NO;
-    [self pollPointerEvery:kPointerEvery];
+    // While there's room beside the cat, the pointer is looked at as often still, for what takes clicks there.
+    [self pollPointerEvery:self.roomHeld ? kPointerEveryWatched : kPointerEvery];
     [self.page catPointerGone];
 }
 

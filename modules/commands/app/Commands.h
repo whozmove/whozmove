@@ -19,10 +19,11 @@
 - (void)compact:(NSDictionary *)msg;
 - (void)answerSwitch:(NSDictionary *)msg;
 
-// For a session's row: what was picked for it and not confirmed yet, and when a /compact sent from the panel
-// began.
+// For a session's row: what was picked for it and not confirmed yet, when a /compact sent from the panel began, and
+// when the last one had its result.
 - (NSDictionary *)chosenFor:(NSString *)sessionId;
 - (NSNumber *)compactingSince:(NSString *)sessionId;
+- (NSNumber *)compactEndedAt:(NSString *)sessionId;
 // A pick from the panel on its way into a session's terminal: {field, value, inTerminal}.
 - (NSDictionary *)goingIn:(NSString *)sessionId;
 // "Switch model?" as a session's row asks it, {from, to, tokens, never}, or nil.
@@ -34,8 +35,8 @@
 // Why a session's model, effort or mode can't be changed from its menu now, as the menu says it, or nil. `cycles` are
 // a terminal session's possible Shift+Tab cycles, for its mode menu.
 NSString *WhyNoPick(Row *row, NSString *field, id<Reach> reach, NSArray<NSArray<NSString *> *> *cycles);
-// Why it can't be compacted from the Compact card now, as the card says it, or nil. `compacting`: a compaction sent
-// from the panel hasn't ended yet.
+// Why it can't be compacted from the Compact card now, as the card says it, or nil. `compacting`: a compaction, sent
+// from the panel or not, hasn't ended yet.
 NSString *WhyNoCompact(id<Reach> reach, BOOL compacting);
 // Whether a compaction certainly couldn't go in now, from what's known without asking a terminal (so it can be asked of
 // every row each second): the session has ended, a change from the panel is still going into it, or it runs in no

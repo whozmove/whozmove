@@ -3,10 +3,15 @@
 # and what they write and print compared with hooks.expected.txt, beside this file.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
+# Then the hooks run again on the Python in Apple's developer tools (/usr/bin/python3, 3.9), which a Mac with only
+# those runs them on, when python3 here is another one; and Whozmove's plugin is put into a stand-in Claude Code as the
+# app does as it opens (Whozmove --print-plugin-install), compared with plugin.expected.txt.
+#
 # Prints the difference and exits 1 if anything changed.
 #   modules/claude-code/tests/test.sh            run and compare
 #   modules/claude-code/tests/test.sh --update   run and save the output as the new expected (after a change you meant)
-# Needs python3, git, clang and perl. Takes about a minute: the permission hook is waited on in real time.
+# Needs python3, git, clang and perl. Takes about a minute for each Python: the permission hook is waited on in real
+# time.
 cd "$(dirname "$0")/../../.." || exit 1
 REPO=$PWD
 HERE=modules/claude-code/tests
@@ -15,6 +20,8 @@ PLUGIN="$REPO/modules/claude-code/plugin"
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 H="$PLUGIN/hooks/whozmove-claude.py"
 P="$PLUGIN/hooks/whozmove-claude-permission.py"
+# The Python the hooks run on here (HOOKS_PYTHON is set for the second run).
+PY=${HOOKS_PYTHON:-python3}
 # Whozmove's own folder and process name, taken from the app itself (AppDir in Files.m, CFBundleExecutable
 # in app/Info.plist). The hooks spell both out separately, so if they ever disagree with the app, the tests fail
 # here instead of the panel quietly showing nothing. The folder has a space in it, so it's always quoted.
@@ -32,7 +39,9 @@ D="$T/$APPDIR"
 # Stand-in processes are started detached, their pids kept in $T/pids so they're stopped however this ends.
 trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
 detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
-mkdir -p "$D/sessions" "$T/.claude/sessions" "$T/.claude/projects/p" "$T/repo"
+mkdir -p "$D/sessions" "$T/.claude/sessions" "$T/.claude/projects/p" "$T/repo" "$T/Applications/$EXE.app"
+# Where the app runs from, as it notes it in its folder each time it opens: the hooks record only while it's there.
+echo "$T/Applications/$EXE.app" > "$D/app"
 git -C "$T/repo" init -q -b main && git -C "$T/repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
 # A worktree of it, whose .git is a file naming the real git folder: a code review there is noted on its own branch.
 git -C "$T/repo" worktree add -q -b side "$T/side"
@@ -42,7 +51,7 @@ printf '#include <unistd.h>\nint main(void){sleep(600);return 0;}\n' > "$T/fake.
 clang -o "$T/$EXE" "$T/fake.c" || exit 1
 
 tests() {
-run() { echo "$1" | HOME="$T" python3 "$H"; echo "exit=$?"; }
+run() { echo "$1" | HOME="$T" "$PY" "$H"; echo "exit=$?"; }
 show() { python3 - "$D/sessions/$1.json" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
@@ -106,9 +115,9 @@ show s2
 run "{\"session_id\":\"s2\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Agent\",
      \"tool_input\":{\"subagent_type\":\"Explore\",\"description\":\"find things\"},$C}"
 show s2
-echo "== 11 malformed input"; echo 'not json' | HOME="$T" python3 "$H"; echo "exit=$?"
-echo '[]' | HOME="$T" python3 "$H"; echo "exit=$?"
-echo '{"hook_event_name":"Stop"}' | HOME="$T" python3 "$H"; echo "exit=$?"
+echo "== 11 malformed input"; echo 'not json' | HOME="$T" "$PY" "$H"; echo "exit=$?"
+echo '[]' | HOME="$T" "$PY" "$H"; echo "exit=$?"
+echo '{"hook_event_name":"Stop"}' | HOME="$T" "$PY" "$H"; echo "exit=$?"
 echo "== 12 deploy to prod via kubectl"
 run "{\"session_id\":\"s3\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",
      \"tool_input\":{\"command\":\"kubectl --context prod apply -f k8s/\"},$C}"
@@ -143,10 +152,43 @@ run "{\"session_id\":\"s6\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"
 run "{\"session_id\":\"s6\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"ReportFindings\",
      \"tool_input\":{\"findings\":[]},\"cwd\":\"$T/side\"}"
 show s6
+echo "== 17 Whozmove isn't installed (no app noted in its folder): nothing is recorded"
+mv "$D/app" "$T/app.kept"
+run "{\"session_id\":\"s7\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"hello\",$C}"
+[ -e "$D/sessions/s7.json" ] && show s7 || echo "   no record"
+echo "== 18 the app noted there has gone: looked for again a moment later, then nothing is recorded"
+echo "$T/Gone/$EXE.app" > "$D/app"
+run "{\"session_id\":\"s7\",\"hook_event_name\":\"UserPromptSubmit\",\"prompt\":\"hello\",$C}"
+[ -e "$D/sessions/s7.json" ] && show s7 || echo "   no record"
+mv "$T/app.kept" "$D/app"
+echo "== 19 compacting, by itself or asked for: from its start to its end, or to the next step after one stopped"
+run "{\"session_id\":\"c1\",\"hook_event_name\":\"PreCompact\",\"trigger\":\"auto\",$C}"
+show c1
+run "{\"session_id\":\"c1\",\"hook_event_name\":\"PostCompact\",\"trigger\":\"auto\",$C}"
+show c1
+# A step that came in just after it began (each hook runs on its own), or a sub-agent's, leaves it going; Claude's
+# own next step, or its saying it waits for you, a second on, ends it.
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"PreCompact\",\"trigger\":\"auto\",$C}"
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Read\",\"tool_input\":{},$C}"
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{},$C}"
+show c2
+sleep 1.1
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"agent_id\":\"ag2\",
+     \"tool_input\":{},$C}"
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"Notification\",\"message\":\"Claude needs your permission\",
+     \"notification_type\":\"permission_prompt\",$C}"
+show c2
+run "{\"session_id\":\"c2\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{},$C}"
+show c2
+run "{\"session_id\":\"c3\",\"hook_event_name\":\"PreCompact\",\"trigger\":\"manual\",$C}"
+sleep 1.1
+run "{\"session_id\":\"c3\",\"hook_event_name\":\"Notification\",\"message\":\"Claude is waiting for your input\",
+     \"notification_type\":\"idle_prompt\",$C}"
+show c3
 
 # Permission hook. perl's alarm is the timeout for cases that must end on their own at once.
 echo "== P1 panel not running"
-echo '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' | HOME="$T" python3 "$P"
+echo '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' | HOME="$T" "$PY" "$P"
 echo "exit=$?"
 ls "$D/asks" 2>/dev/null | wc -l | tr -d ' '
 # The same hook's part for model switches (PreModelSwitch): only a switch the panel noted is its business. The note
@@ -172,7 +214,7 @@ note claude-sonnet-5-5; switch_event claude-sonnet-5-5 false | HOME="$T" python3
 OTHER=$(detached sleep 600); echo $OTHER > "$D/panel.pid"
 echo "== P0 stale panel.pid (another process)"
 echo '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' \
-  | HOME="$T" perl -e 'alarm 3; exec @ARGV' python3 "$P"
+  | HOME="$T" perl -e 'alarm 3; exec @ARGV' "$PY" "$P"
 echo "exit=$?"
 ls "$D/asks" 2>/dev/null | wc -l | tr -d ' '; rm -rf "$D/asks"
 PANEL=$(detached "$T/$EXE"); echo $PANEL > "$D/panel.pid"
@@ -180,7 +222,7 @@ echo "{\"pid\": $PANEL, \"sessionId\": \"s1\", \"kind\": \"interactive\", \"stat
   > "$T/.claude/sessions/$PANEL.json"
 echo "{\"pid\": $OTHER, \"sessionId\": \"p1\", \"kind\": \"print\"}" > "$T/.claude/sessions/$OTHER.json"
 answer() {  # $1 = event json, $2 = the panel's answer json, or SIGTERM (Claude Code stopping the hook)
-  (echo "$1" | HOME="$T" python3 "$P" > "$T/out" 2>&1; echo "exit=$?" >> "$T/out") & HP=$!
+  (echo "$1" | HOME="$T" "$PY" "$P" > "$T/out" 2>&1; echo "exit=$?" >> "$T/out") & HP=$!
   for i in $(seq 1 40); do
     f=$(ls "$D/asks"/*.json 2>/dev/null | grep -v answer | head -1)
     [ -n "$f" ] && break
@@ -243,10 +285,10 @@ echo "== P7d a plan is never allowed from the panel"; answer "$PLAN" '{"behavior
 echo "== P7e notes and stop ignored for other tools"
 answer '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' '{"behavior":"deny","stop":true,"message":"x"}'
 step_aside() {
-  echo "$1" | HOME="$T" perl -e 'alarm 3; exec @ARGV' python3 "$P"; echo "exit=$?"
+  echo "$1" | HOME="$T" perl -e 'alarm 3; exec @ARGV' "$PY" "$P"; echo "exit=$?"
   ls "$D/asks" 2>/dev/null | grep -vc answer; rm -f "$D/asks/"*
 }
-echo "== P8 malformed input"; echo 'nope' | HOME="$T" python3 "$P"; echo "exit=$?"
+echo "== P8 malformed input"; echo 'nope' | HOME="$T" "$PY" "$P"; echo "exit=$?"
 echo "== P9 sub-agent request"
 step_aside '{"session_id":"s1","agent_id":"ag1","tool_name":"Bash","tool_input":{"command":"ls"}}'
 echo "== P11 non-interactive session"; step_aside '{"session_id":"p1","tool_name":"Bash","tool_input":{"command":"ls"}}'
@@ -276,7 +318,7 @@ progress() {
 start() {  # $1 = extra event json fields
   : > "$T/out"
   (echo "{\"session_id\":\"s9\",\"tool_name\":\"AskUserQuestion\",\"tool_input\":$INPUT$1}" \
-     | HOME="$T" python3 "$P" > "$T/out" 2>&1
+     | HOME="$T" "$PY" "$P" > "$T/out" 2>&1
    echo "exit=$?" >> "$T/out") & HP=$!
   for i in $(seq 1 40); do ls "$D/asks/"*.json >/dev/null 2>&1 && break; sleep 0.1; done
   echo "   request shown: $(ls "$D/asks" 2>/dev/null | grep -vc answer)"
@@ -320,4 +362,85 @@ PY
 
 out=$(tests 2>&1 | sed "s|$T|T|g")
 . "$REPO/tests/compare.sh"
-compare Hooks "$REPO/$HERE/hooks.expected.txt" "$out" "${1:-}"
+status=0
+if [ -n "${HOOKS_PYTHON:-}" ]; then
+  compare "Hooks on $HOOKS_PYTHON" "$REPO/$HERE/hooks.expected.txt" "$out" || exit 1
+  exit 0
+fi
+compare Hooks "$REPO/$HERE/hooks.expected.txt" "$out" "${1:-}" || status=1
+# The same hooks, the same results, on the developer tools' own Python, when it's another one than python3 here.
+if [ -x /usr/bin/python3 ] && [ "$(python3 -c 'import sys; print(sys.executable)')" \
+     != "$(/usr/bin/python3 -c 'import sys; print(sys.executable)')" ]; then
+  HOOKS_PYTHON=/usr/bin/python3 "$REPO/$HERE/test.sh" || status=1
+fi
+
+# Whozmove's plugin, put into Claude Code as the app does as it opens: a stand-in claude, found through
+# $INSTALL_PATH, writes down what it's asked, answers `plugin list --json` from list.json in its home folder, and
+# fails the command its home folder's `fail` names, saying why, as Claude Code does.
+plugin_cases() {
+  . modules/claude-code/plugin.sh
+  copy_plugin "$T/hooks"
+  local new mine off
+  new=$(plutil -extract version raw -o - "$T/hooks/.claude-plugin/plugin.json")
+  mine="{\"id\": \"whozmove@whozmove\", \"version\": \"$new\", \"enabled\": true}"
+  off="{\"id\": \"whozmove@whozmove\", \"version\": \"$new\", \"enabled\": false}"
+  mkdir -p "$T/bin"
+  cat > "$T/bin/claude" <<'SH'
+#!/bin/bash
+PATH=/usr/bin:/bin
+echo "claude $*" >> "$HOME/asked"
+if [ -f "$HOME/fail" ] && [ "$*" = "$(cat "$HOME/fail")" ]; then
+  echo "Installing plugin \"whozmove@whozmove\"..."
+  echo "Error: Failed to install plugin \"whozmove@whozmove\": marketplace not reachable" >&2
+  exit 1
+fi
+if [ "$*" = "plugin list --json" ]; then cat "$HOME/list.json" 2>/dev/null || echo "[]"
+else echo '{"outcome":"ok"}'; fi
+SH
+  chmod +x "$T/bin/claude"
+  case_home() {  # a fresh home folder, with what the stand-in lists
+    rm -rf "$T/home"; mkdir -p "$T/home"
+    printf '%s\n' "$1" > "$T/home/list.json"
+  }
+  connect() {
+    HOME="$T/home" INSTALL_PATH="${WHERE-$T/bin}" "$APP" --print-plugin-install "$@" "$T/hooks"
+    echo "   asked:"
+    sed -e "s|$T/home|~|g" -e 's|^|     |' "$T/home/asked" 2>/dev/null || echo "     nothing"
+    echo "   the copy in Whozmove's folder: $(plutil -extract version raw -o - \
+      "$T/home/Library/Application Support/Whozmove/plugin/.claude-plugin/plugin.json" 2>/dev/null || echo none)"
+  }
+  echo "== 1 the first time: the marketplace is added from Whozmove's folder, then the plugin"
+  case_home "[]"; connect
+  echo "== 2 there already, this version: nothing to do"
+  case_home "[$mine]"; connect
+  echo "== 3 an older version there: the marketplace, then the plugin, are updated"
+  case_home '[{"id": "whozmove@whozmove", "version": "0.0.1+00000000", "enabled": true}]'; connect
+  echo "== 4 taken out since it went in: left out"
+  case_home "[]"; connect --before
+  echo "== 5 Add Back, after the plugin and its marketplace were taken out, or only the plugin" \
+       "(adding it again is fine)"
+  case_home "[]"; connect --before --answer addBack
+  echo "== 6 turned off in Claude Code: left off"
+  case_home "[$off]"; connect
+  echo "== 7 Turn On, and a new version with it"
+  case_home '[{"id": "whozmove@whozmove", "version": "0.0.1+00000000", "enabled": false}]'; connect --answer turnOn
+  echo "== 8 Claude Code lists it, but it can't load: what it says"
+  case_home "[{\"id\": \"whozmove@whozmove\", \"version\": \"$new\", \"enabled\": true,
+    \"errors\": [\"Marketplace whozmove failed to load: cache-miss\"]}]"; connect
+  echo "== 9 installing fails: its last line"
+  case_home "[]"; echo "plugin install whozmove@whozmove" > "$T/home/fail"; connect
+  echo "== 10 a copy from a marketplace of your own: left as it is, with no second one"
+  case_home '[{"id": "whozmove@my-tools", "version": "1.0.0", "enabled": true}]'; connect
+  echo "== 11 no claude anywhere"
+  case_home "[]"; WHERE= connect
+  echo "== 12 only Claude Desktop's own copy"
+  case_home "[]"
+  desktop="$T/home/Library/Application Support/Claude/claude-code/2.1.302/0/claude.app/Contents/MacOS"
+  mkdir -p "$desktop" && cp "$T/bin/claude" "$desktop/claude"
+  WHERE= connect
+}
+. "$REPO/tests/lib.sh"
+APP=$(built_app "$T") || exit 1
+plugin=$(plugin_cases 2>&1 | sed -e "s|$T|T|g" -e 's/+[0-9a-f]\{8\}/+<hash>/g')
+compare "Whozmove's plugin" "$REPO/$HERE/plugin.expected.txt" "$plugin" "${1:-}" || status=1
+exit $status

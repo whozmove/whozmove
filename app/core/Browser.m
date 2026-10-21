@@ -265,6 +265,13 @@ static NSString *AskerOf(WKFrameInfo *frame) {
     return address.isFileURL ? address.lastPathComponent : address.host;
 }
 
+// Who asks for a download: the frame it came from, which macOS names from 15.2 on, else the page its web view shows.
+static NSString *DownloadAskerOf(WKDownload *download) {
+    if (@available(macOS 15.2, *)) return AskerOf(download.originatingFrame);
+    NSURL *address = download.webView.URL;
+    return address.isFileURL ? address.lastPathComponent : address.host;
+}
+
 // Why a page didn't load, in plain words, or nil when it only stopped: you stopped it, it became a download, or it was
 // refused here.
 static NSString *ProblemOf(NSError *error) {
@@ -763,7 +770,7 @@ static void OpenOutside(NSURL *address) {
 - (void)download:(WKDownload *)download decideDestinationUsingResponse:(NSURLResponse *)response
     suggestedFilename:(NSString *)suggestedFilename completionHandler:(void (^)(NSURL *))completionHandler {
     __weak Browser *weakSelf = self;
-    BrowserAsk *ask = [[BrowserAsk alloc] initWithKind:BrowserAskDownload from:AskerOf(download.originatingFrame)
+    BrowserAsk *ask = [[BrowserAsk alloc] initWithKind:BrowserAskDownload from:DownloadAskerOf(download)
                                                   done:^(BOOL yes, NSString *text, NSArray *files, NSURL *file) {
         if (yes && file) [weakSelf.downloads setObject:file forKey:download];
         completionHandler(yes ? file : nil);
