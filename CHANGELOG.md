@@ -6,10 +6,11 @@
   dot) and a reply you haven't read (amber), first come, first served, so one that comes in joins the end and nothing
   above it moves. A reply waits there until you've read it: opened it here, been on it in Claude or Ghostty for a
   couple of seconds since it came (watching it come in counts), or written to it. One you've read gets an empty dot
-  and its row goes to **Seen**, below **Working**, then to **Idle** an hour after the last message; before, a reply
-  went to Idle after 30 minutes, or as soon as you'd read it. A row you press, to answer it, say, stays where it is
-  until your pointer has left the panel. The header's line counts what the sections show. **Group by Activity** is
-  gone: a panel set to it groups by status.
+  and stays there while you're on its session, and for 10 minutes after you were last on it; then its row goes to
+  **Seen**, below **Working**, and to **Idle** an hour after the last message or the last time you were on it; before,
+  a reply went to Idle after 30 minutes, or as soon as you'd read it. A row you press, to answer it, say, stays where
+  it is until your pointer has left the panel. The header's line counts what the sections show. **Group by Activity**
+  is gone: a panel set to it groups by status.
 - Each row's details line ends in what its session changed that isn't committed yet ("+26 −13"), like Claude
   Desktop's own bar, even with other sessions or you working in the same checkout: each changed line goes to whoever
   wrote it, a session's shell commands included, as Claude Code records what they change in auto mode. Pointing at

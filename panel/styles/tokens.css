@@ -78,6 +78,15 @@
   --field: rgba(0, 0, 0, 0.25);
   --field-edge: rgba(255, 255, 255, 0.14);
   --code-fill: rgba(0, 0, 0, 0.3);
+  /* The folded panel's cat (cat.js) and the name in the header; and the cat's eyes and nose, the glass's own dark
+     showing through. */
+  --cream: #f3ebe2;
+  --cat-feature: #1d1d20;
+  /* The labels beside the cat: a tag for each session waiting on you, and the name a dot shows when pointed at. */
+  --cat-tag: #1f1f23;
+  --cat-tag-edge: rgba(255, 255, 255, 0.09);
+  --cat-tag-pointed: #34343c;
+  --cat-tag-shadow: rgba(10, 12, 20, 0.35);
   /* The cards that float over the list: the PR card, the gauge's lists, the commits card, "Switch model?". */
   --card: #232327;
   --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);

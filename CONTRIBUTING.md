@@ -125,7 +125,7 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     its tag, and the reader's `writings` mode, where a plan is sent back or stopped); `changes` (a session's numbers,
     their card's parts of the branch, how the changes view groups files and lays lines side by side: plain functions)
     and `changes-view` (the numbers, their card, and the reader's `changes` mode); the usage strip (`usage`: what it
-    shows, plain functions; `strip`: drawing it, folding it into one row and back, the line on the collapsed header;
+    shows, plain functions; `strip`: drawing it, folding it into one row and back;
     `waits`: its wait styles, chosen by name, each a file of its own, `wait-vine` the first, whose shape and reset are
     plain numbers too); and `starts` (the card for a new conversation, which opens under the header, the pending row a
     start shows as until it's listed, and the card turning into that row and moving down to its place; `start-words`:
@@ -417,14 +417,17 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
 - **Don't name a script or flag for a deploy.** The session hook counts commands named for one as production
   deploys (`names_deploy` in the hook `whozmove-claude.py`), so building and deploying Whozmove use `build.sh`,
   `--now` and `swap-in.sh`.
-- **Sorting and grouping** (`classify`, `placeRows` and `sortKey` in whose-move.js; `heldNow`, `keepSeen` and
-  `state.placed` in panel.js; `noteSeen:` in app/core/Focus.m): what a session is (a request, working, a reply you
-  haven't read, however old, one you have, or idle an hour after the last message) is kept apart from where its row is
-  shown, its section and its place there. A reply is read once you've opened its session here (`markRead`), written
-  to it, or been on it for 2 seconds in Claude or Ghostty in front while at the Mac (the app's `seenAt`, kept by the
-  page across launches), after it came. Your turn holds the requests and the replies you haven't read, first come,
-  first served: a row that comes into it joins the end and keeps its place there, so nothing above it moves; a working
-  row sorts by when its turn began, so two working agents don't trade places with every step. Only a row you've
+- **Sorting and grouping** (`classify`, `sectionOf`, `stillOnIt`, `placeRows` and `sortKey` in whose-move.js;
+  `heldNow`, `noteOnIt` and `state.placed` in panel.js; `noteSeen:` in app/core/Focus.m): what a session is (a
+  request, working, a reply you haven't read, however old, one you have, or idle an hour after the last message or the
+  last time you were on it) is kept apart from where its row is shown, its section and its place there. The page keeps
+  when you were last on each session while it's yours, across launches (`noteOnIt`): you opened it here, wrote to it,
+  or were on it for 2 seconds in Claude or Ghostty in front while at the Mac (the app's `seenAt`). A reply from before
+  then is read. Your turn holds the requests, the replies you haven't read, and the ones you have until you've moved
+  on, away from the session for 10 minutes; once you have, being on it again leaves its row in Seen until something new
+  comes (a reply, or your message). Your turn is first come, first served: a row that comes into it joins the end and
+  keeps its place there, so nothing above it moves; a working row sorts by when its turn began, so two working agents
+  don't trade places with every step. Only a row you've
   pressed (`keepInPlace`) keeps the place it was last shown in, and its project's, showing what it is now there, until
   you've moved on from the panel: the pointer off it and moved (`hoverEnd`), no box with the keyboard. These are
   deliberate: read the comments in whose-move.js before changing them.

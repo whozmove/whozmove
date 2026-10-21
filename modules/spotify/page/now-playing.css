@@ -4,7 +4,7 @@
 
 #nowplaying { flex: none; position: relative; }
 #nowplaying[hidden] { display: none; }
-/* Folded to its header, the panel hides the strip; Spotify's token, unless it's hidden, stands in for it. */
+/* Folded into the cat, the panel hides the strip, and Spotify's token goes too. */
 body.collapsed #nowplaying { display: none; }
 .np-strip { position: relative; display: flex; align-items: center; gap: 9px; padding: 8px 10px 8px 14px;
             border-top: 1px solid var(--rule); }

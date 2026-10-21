@@ -122,6 +122,31 @@ static NSString *JSONText(id value) {
     [self call:@"keyboardGone" arguments:nil];
 }
 
+- (void)catPointer:(NSPoint)offset {
+    [self call:@"catPointer" arguments:[NSString stringWithFormat:@"%.1f, %.1f", offset.x, offset.y]];
+}
+
+- (void)catPointerGone {
+    [self call:@"catPointer" arguments:@"null"];
+}
+
+- (void)catSide:(BOOL)right {
+    [self call:@"catSide" arguments:right ? @"true" : @"false"];
+}
+
+- (void)catGlass:(void (^)(void))then {
+    __block BOOL called = NO;
+    void (^once)(void) = ^{
+        if (called) return;
+        called = YES;
+        then();
+    };
+    [self.view callAsyncJavaScript:@"catGlass(); await new Promise((r) => requestAnimationFrame(r))"
+                         arguments:nil inFrame:nil inContentWorld:WKContentWorld.pageWorld
+                 completionHandler:^(id result, NSError *error) { once(); }];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), once);
+}
+
 - (void)setGroupBy:(NSString *)mode {  // one of two fixed words (MenuBar), so it can go in as it is
     [self call:@"setGroupBy" arguments:[NSString stringWithFormat:@"'%@'", mode]];
 }

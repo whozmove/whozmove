@@ -61,7 +61,7 @@ page's, kept with its own.
 - The page sends `spotify`: a press on the now-playing strip, `{action, fraction}`, where `action` is `playpause`,
   `next`, `previous`, `seek`, `open` (also the lyrics' Open Spotify) or `settings`; `lyrics`, `{on}`, your answer about
   lyrics; `folded`, once the strip has folded away, so the token comes out only then; and `collapsed`, `{on}`, whether
-  the panel is folded to its header, where the token stands in for the strip.
+  the panel is folded into the cat, when neither the strip nor the token shows.
 - The app calls `setNowPlaying(song)`: `{track, title, artist, album, durationMs, positionMs, at, playing,
   pausedSince, artUrl, allowed}`, or null, where `positionMs` was right at `at`.
 - The app calls `setLyrics(lyrics)`: `{state}`, `ask` until you've answered, `off`, or `on` with nothing playing; for
@@ -103,7 +103,7 @@ song moves on (and for a new song, or the lines coming into the strip or leaving
 for a jump, the old go before the new come, so the two never share the room. From one song's name to the next, the
 title and the artist each roll on their own, and only the one that has changed. Words that come while others roll
 wait, then roll on from what's shown. One timer, set for the next change by the song's own clock, moves them; nothing
-runs every frame, and nothing at all while the panel is folded to its header: its words change at once, out of sight,
+runs every frame, and nothing at all while the panel is folded into the cat: its words change at once, out of sight,
 and the panel opened again shows what's true then.
 
 Pressed before the song's lyrics are here, the strip says why in the same place: "Loading lyrics…" while they're on

@@ -3,6 +3,9 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 if (store.get('collapsed', false)) document.body.classList.add('collapsed');
+// The app makes the window the folded cat's, or the open panel's, as the page was left (fold:instant: in
+// app/core/PanelWindow.m).
+native({ type: 'fold', on: document.body.classList.contains('collapsed'), instant: true });
 
 // ---- Keeping rows in place ----
 
@@ -18,18 +21,22 @@ function followClaude() {
   if (sid && sid !== state.claudeShowed) goTo(sid);
   state.claudeShowed = sid;
 }
-// When you last read each session's reply (classify in whose-move.js): you opened it here, or the app saw you looking
-// at it in Claude or Ghostty after it came (its seenAt, which it forgets when it restarts, so it's kept here once it
-// has read a reply). Kept across launches.
-function markRead(sid, at) {
-  state.seen[sid] = at;
-  store.set('seen', state.seen);
-}
-function keepSeen(sessions) {
-  for (const s of sessions) {
-    const reply = s.lastReplyAt || 0;
-    if (s.seenAt >= reply && (state.seen[s.sessionId] || 0) < reply) markRead(s.sessionId, s.seenAt);
+// When you were last on each session while it was yours (stillOnIt in whose-move.js): you opened it here, the app saw
+// you on it in Claude or Ghostty (its seenAt, which it forgets when it restarts), or you wrote to it. What it replied
+// before then is read (classify), and a reply you've read stays in Your turn until you've moved on (sectionOf). Kept
+// across launches: written down at once when it moves past something new (a reply, or your message), and otherwise at
+// most once a minute while you stay on it, so a restart loses no more than that.
+function noteOnIt(s, at, now) {
+  const kept = state.seen[s.sessionId] || 0, next = stillOnIt(s, kept, at, now, state.readBefore);
+  if (next === kept) return;
+  state.seen[s.sessionId] = next;
+  if (kept < Math.max(s.lastReplyAt || 0, s.lastPromptAt || 0) || now - state.seenKeptAt >= 60 * 1000) {
+    state.seenKeptAt = now;
+    store.set('seen', state.seen);
   }
+}
+function keepSeen(sessions, now) {
+  for (const s of sessions) noteOnIt(s, onItAt(s), now);
 }
 // A row you press (to open it, answer it, or run a step or Deploy from it, or in the reader beside it) keeps its place,
 // so it doesn't move away while you watch what your press did: until you've moved on from the panel, your pointer off
@@ -43,20 +50,6 @@ function heldNow() {
 // How the panel is set up right now, as classify in whose-move.js needs it.
 function view() { return { seen: state.seen, readBefore: state.readBefore }; }
 
-// The header's line, as the list shows it: how many rows are in Your turn (in the requests' colour while a request
-// waits there) and how many in Working; with neither, how many in Seen and how many idle.
-function summaryHTML(placed) {
-  const n = (section) => placed.filter((p) => p.section === section).length, parts = [];
-  const asks = placed.some((p) => p.section === 'turn' && p.kind === 'needs');
-  if (n('turn')) parts.push(`<b style="color:var(${asks ? '--needs' : '--turn'})">${n('turn')} your turn</b>`);
-  if (n('busy')) parts.push(`<b style="color:var(--busy)">${n('busy')} working</b>`);
-  if (!parts.length) {
-    if (n('seen')) parts.push(`${n('seen')} seen`);
-    if (n('idle') || !parts.length) parts.push(`${n('idle')} idle`);
-  }
-  return parts.join(' · ');
-}
-
 // ---- Rendering ----
 
 // A conversation in an app that marks it as shown only once its own record says so (Claude Desktop's, a host with
@@ -69,8 +62,8 @@ function openedNow(s) {
   return it === !!s.focused ? s : { ...s, focused: it };
 }
 
-// The list, rebuilt from the newest update, with the header's summary and the count beside the pawn in the menu
-// bar.
+// The list, rebuilt from the newest update, with the folded cat's counts (cat.js) and the count beside the pawn in the
+// menu bar, the sessions that need your input.
 function render() {
   if (state.opening && (Date.now() - state.opening.at > 4000
       || state.last.sessions.some((s) => s.sessionId === state.opening.sessionId && s.focused))) {
@@ -84,14 +77,21 @@ function render() {
   const sessions = listed.concat(...core.moreRows.map((more) => more(listed)));
   state.owners = checkoutOwners(listed);
   // What each session is now, and where it's shown: the rows you've pressed where you last saw them, the rest in place.
-  keepSeen(listed);
-  state.kinds = Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, now, view())]));
-  const placed = placeRows(sessions.map((s) => ({ s, kind: state.kinds[s.sessionId] })), state.placed, heldNow(), now);
+  keepSeen(listed, now);
+  const read = view();
+  state.kinds = Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, now, read)]));
+  const placed = placeRows(sessions.map((s) => ({ s, kind: state.kinds[s.sessionId] })), state.placed, heldNow(), now,
+                           read);
   for (const { s, section, key, tie, latest } of placed) state.placed[s.sessionId] = { section, key, tie, latest };
   for (const before of core.beforeDraw) before(listed);
 
   const kinds = Object.values(state.kinds);
-  document.getElementById('summary').innerHTML = summaryHTML(placed);
+  // The folded cat (cat.js): it looks at you while something is your turn, watches while something works, and has a
+  // label for each session in the list's order: what's your turn by name, the rest as their dots.
+  const inSection = (section) => placed.filter((p) => p.section === section).length;
+  const counts = { needs: inSection('turn'), working: inSection('busy') };
+  counts.idle = placed.length - counts.needs - counts.working;
+  drawCat(counts, placed.map((p) => p.s), placed.map(({ kind, section }) => ({ kind, section })));
   let html = state.groupBy === 'project' ? projectsHTML(placed, now) : sectionsHTML(placed, now);
   if (!sessions.length) html = '<div class="empty">No Claude Code sessions running</div>';
   morph(document.getElementById('list'), html);
@@ -223,26 +223,35 @@ window.setGroupBy = (mode) => {
   render();
 };
 
-// A click on the header folds the panel to its header, or opens it again (the chevron does the same).
+// A click on the header folds the panel into the cat (cat.js), and a click on the cat opens it again (the chevron folds
+// it too). The app moves the glass (fold:instant: in app/core/PanelWindow.m).
 window.toggleCollapsed = () => {
-  document.body.classList.toggle('collapsed');
-  const collapsed = document.body.classList.contains('collapsed');
+  const collapsed = !document.body.classList.contains('collapsed');
+  // Not while the reader is open: the panel folds from the list alone (app/core/PanelWindow.m).
+  if (collapsed && state.reading) return;
+  const flip = () => document.body.classList.toggle('collapsed', collapsed);
+  if (collapsed) catFolding(flip); else catOpening(flip);
   store.set('collapsed', collapsed);
+  native({ type: 'fold', on: collapsed });
+  if (!collapsed) catHover(false);
+  catLook();
   for (const folded of core.collapses) folded(collapsed);
   reportHeight();
 };
 
-// Where the pointer is over the panel, as the app polls it (see hover.js). Once it has left, the rows you pressed go to
-// their places (heldNow), so the list is drawn again for them: here, as what watches the pointer runs as the list is
-// drawn (syncHover), and drawing it from there would never end. Off the panel `still`, the panel's edge having moved
-// past it (a card folding away, a menu of its own closing where you picked from it), it's taken to be still with the
-// panel until the app says it has moved.
+// Where the pointer is over the panel, as the app polls it (see hover.js); folded, whether it's on the cat or a tag.
+// Once it has left, the rows you pressed go to their places (heldNow), so the list is drawn again for them: here, as
+// what watches the pointer runs as the list is drawn (syncHover), and drawing it from there would never end. Off the
+// panel `still`, the panel's edge having moved past it (a card folding away, a menu of its own closing where you
+// picked from it), it's taken to be still with the panel until the app says it has moved.
 window.hoverAt = (x, y) => {
   state.pointerStill = false;
   pointerAt(x, y);
+  catHover(document.body.classList.contains('collapsed') && catPointedAt(x, y));
 };
 window.hoverEnd = (still) => {
   pointerGone();
+  catHover(false);
   state.pointerStill = !!still;
   if (state.pressedRows.size && !still) renderWhenSettled();
 };

@@ -156,8 +156,6 @@ static int PrintSpotify(NSArray<NSString *> *files) {
         Spotify *spotify = weakSelf.spotify;
         if ([state isEqual:@"missing"]) [spotify getSpotify];
         else if ([state isEqual:@"refused"]) [spotify control:@"settings" fraction:0];
-        else if ([state isEqual:@"playing"] || ([state isEqual:@"paused"] && spotify.collapsed))
-            [spotify control:@"playpause" fraction:0];
         else if (![spotify play]) [weakSelf.token untuck];
     };
     [self applySwitches];
@@ -187,8 +185,8 @@ static int PrintSpotify(NSArray<NSString *> *files) {
     [self applySwitches];
 }
 
-// The now-playing strip's presses, your answer about lyrics, and what the page tells about the panel: folded to its
-// header (the token stands in for the strip), or the strip folded away (a paused song's token comes out).
+// The now-playing strip's presses, your answer about lyrics, and what the page tells about the panel: folded into the
+// cat (neither the strip nor the token shows), or the strip folded away (a paused song's token comes out).
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
     __weak typeof(self) weakSelf = self;
     return @{@"spotify": ^(NSDictionary *msg) {

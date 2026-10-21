@@ -19,7 +19,7 @@
 // nothing to play (signed out, or a new account), Spotify comes forward instead, and plays by itself if a song turns
 // up within a few minutes (once you've signed in). NO if it can't start (Spotify gone, say), so the token comes back.
 - (BOOL)play;
-// Whether the panel is folded to its header: the strip has no room then, so the token stands in for it.
+// Whether the panel is folded into the cat: neither the strip nor the token shows then.
 @property (nonatomic) BOOL collapsed;
 // Spotify's download page, in your browser: Whozmove installs nothing itself, and notices once Spotify is installed.
 - (void)getSpotify;
@@ -54,8 +54,8 @@ BOOL SongInStrip(NSDictionary *song, double now);
 // the page is told: the song was jumped in, in Spotify itself, or it started over.
 BOOL PositionMoved(NSDictionary *song, double positionMs, double at);
 // What the token shows: {state, title, artist, artUrl, progress}, where state is missing (Download), ready (Play),
-// paused (the song, to resume), playing (the song, to pause: only while the panel is folded), refused (macOS hasn't
-// allowed Whozmove to control Spotify: Open Settings) or hidden (Spotify starting, or the song in the strip: then
-// `strip` is YES). `allowed` is macOS's answer, nil until known; `collapsed`, whether the panel is folded.
+// paused (the song, to resume), refused (macOS hasn't allowed Whozmove to control Spotify: Open Settings) or hidden
+// (the panel folded into the cat, Spotify starting, or the song in the strip: then `strip` is YES). `allowed` is
+// macOS's answer, nil until known; `collapsed`, whether the panel is folded.
 NSDictionary *TokenFor(BOOL installed, NSDictionary *song, BOOL starting, NSNumber *allowed, BOOL collapsed,
                        double now);

@@ -11,12 +11,14 @@ with what each is doing, so you can see at a glance which one needs you.
   conversation there (⌥-click: in Ghostty)
 - **Your turn** comes first: the sessions waiting on you, with a request or question (a pulsing red-orange dot) or a
   reply you haven't read (an amber dot), first come, first served. One that comes in joins the end, so nothing above
-  it moves, and a reply waits there until you've read it. A reply you've read gets an empty amber dot and its row goes
-  to **Seen**, below **Working**, then to **Idle** an hour after the last message, Claude's or yours. Opening a
+  it moves, and a reply waits there until you've read it. A reply you've read gets an empty amber dot and stays where
+  it is while you're on its session, and for 10 minutes after you were last on it; then its row goes to **Seen**,
+  below **Working**, and to **Idle** an hour after the last message (Claude's or yours) or the last time you were on
+  it, whichever is later. Once it's in Seen, being on it again leaves it there until something new comes. Opening a
   session here, being on it in Claude or Ghostty for a couple of seconds after it replied (watching the reply come in
-  counts), or writing to it counts as reading its reply; for a session in another terminal, only opening it here or
-  writing to it does. The header's line counts what the sections show ("2 your turn · 1 working", in red-orange while
-  a request waits), or with neither, how many are in Seen and Idle
+  counts), or writing to it counts as reading its reply, and as being on it; for a session in another terminal, only
+  opening it here or writing to it does. The header's line counts what the sections show ("2 your turn · 1 working",
+  in red-orange while a request waits), or with neither, how many are in Seen and Idle
 - **start a conversation** from the ＋ in the panel's header, or ⌃⌥N from any app: a card opens at the top of the
   panel, under the header; write what Claude should do and press ⌘Return (Return starts a new line). The card is
   shaped like the row it becomes.
@@ -281,7 +283,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | Session in the Ghostty tab you're looking at | Ghostty's Apple events, once a second while it's in front: the terminals in its front window's selected tab (and the one with the keyboard, when the tab is split), matched to sessions by their folder and tab title, the way a click finds a session's tab. While that can't tell which session it is, the mark stays where it was |
 | Last prompt / reply / notice | `~/Library/Application Support/Whozmove/sessions/<id>.json`, written by the hook (the folder is yours only: 700) |
 | Live line | the same file: the hook describes each tool call as it starts (a command's own description, the file, the query, …) |
-| Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude or Ghostty (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since. Seen: a reply you've read. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message included |
+| Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude or Ghostty (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
 | Permission requests | `~/Library/Application Support/Whozmove/asks/<id>.json`, left by the permission hook while it waits; your answer goes back in `<id>.answer.json` |
 | Branch and worktree | the session folder's `.git`, read directly (no `git` process) |
 | Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |

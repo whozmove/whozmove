@@ -1,11 +1,11 @@
 /* A new conversation (starts.js): the card that opens under the panel's header, shaped like the row it becomes. The
    card's dot is hollow until it starts; where it starts is on chips under the box for your words, and what it starts in
    is on its Start button. Once it starts, the box settles into the row's "You" line and the chips into its details
-   line. And the pawn hops as it starts.
+   line. And the cat in the name hops as it starts.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* The card's place takes no room until a card is in it: the card's own margins are the room around it, so the place
-   eases open from nothing and shut again. Folded to its header, the panel hides it with the list. */
+   eases open from nothing and shut again. Folded into the cat, the panel hides it with the list. */
 #dock { flex: none; position: relative; }
 body.collapsed #dock { display: none; }
 #dock > .row.compose { margin: 0 6px 6px; }
@@ -98,17 +98,18 @@ body.cmd .c-go:enabled .go-verb { max-width: none; opacity: 1; }
 .c-go.is-hover, .st-app.is-hover, body.cmd .c-go:enabled { background: var(--light-hover); }
 .c-go:disabled { opacity: .4; }
 
-/* The pawn hops once as a conversation starts from the panel: your move, played. */
-header .mark { transform-origin: 50% 100%; }
-header .mark.hop { animation: hop .6s cubic-bezier(.3, .7, .3, 1); }
+/* The cat in the name hops once as a conversation starts from the panel. It's drawn in its own units, about 17 to a
+   point (panel.html), so the hop's heights are in those: 4pt and 1pt. */
+header .name-cat { transform-box: fill-box; transform-origin: 50% 100%; }
+header .name-cat.hop { animation: hop .6s cubic-bezier(.3, .7, .3, 1); }
 @keyframes hop {
   0% { transform: none; }
-  28% { transform: translateY(-4px) scale(.94, 1.08); }
+  28% { transform: translateY(-69px) scale(.94, 1.08); }
   52% { transform: translateY(0) scale(1.1, .9); }
-  72% { transform: translateY(-1px) scale(.98, 1.02); }
+  72% { transform: translateY(-17px) scale(.98, 1.02); }
   100% { transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  header .mark.hop { animation: none; }
+  header .name-cat.hop { animation: none; }
 }

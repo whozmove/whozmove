@@ -132,7 +132,7 @@ function npDraw(view, fresh, now) {
 }
 
 // The strip's words (`want`, from lyricsWords): the song's name, or the line being sung. Drawn at once the first time,
-// under reduced motion and out of sight (the panel folded to its header); otherwise they roll in place, up as the song
+// under reduced motion and out of sight (the panel folded into the cat); otherwise they roll in place, up as the song
 // moves on and down when it goes back a line, or, for a jump, the old go before the new come. From one song's name to
 // the next, its title and its artist each roll on their own, and only if they've changed. Words that come while others
 // are on their way wait for them, then go on from what's shown to the newest, so a quick second change never leaves the
@@ -192,7 +192,7 @@ function npRolled() {
 }
 
 // Words on their way stop where they are, as the strip has gone out of sight (it folded away, or the panel was folded
-// to its header): they're drawn afresh, at once, when it's back. It gets a new box for them, as a roll's own timers go
+// into the cat): they're drawn afresh, at once, when it's back. It gets a new box for them, as a roll's own timers go
 // on, and would otherwise change the words drawn next.
 function npStopRolling() {
   const p = np.parts, text = document.createElement('span');
@@ -204,12 +204,12 @@ function npStopRolling() {
   p.text = text;
 }
 
-// Whether the strip can be seen: it's shown, and the panel isn't folded to its header.
+// Whether the strip can be seen: it's shown, and the panel isn't folded into the cat.
 function npInSight() {
   return !npEl.hidden && !document.body.classList.contains('collapsed');
 }
 
-// The panel is open again after being folded to its header: the strip shows what's true at once, rather than rolling to
+// The panel is open again after being folded into the cat: the strip shows what's true at once, rather than rolling to
 // it from what it showed as it folded.
 function npUnfolded() {
   if (!np.built) return;

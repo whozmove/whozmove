@@ -28,6 +28,16 @@
 - (void)hoverEnd:(BOOL)still;
 // The panel no longer has the keyboard: another app took it, or the panel gave it back.
 - (void)keyboardGone;
+// Where the pointer is from the folded cat's glass, in points with y running down, while it's near; and that it has
+// gone (cat.js).
+- (void)catPointer:(NSPoint)offset;
+- (void)catPointerGone;
+// Which way the folded cat's tags fan out: toward the screen's middle, so right while the cat is on its left half.
+- (void)catSide:(BOOL)right;
+// That the glass is about to spread out from behind the folded cat as the panel opens: the cat shrinks into the name's
+// o (cat.js). `then` runs once the page has started it (its next frame), or a moment later if it
+// doesn't say, so the glass starts with it.
+- (void)catGlass:(void (^)(void))then;
 - (void)setGroupBy:(NSString *)mode;
 - (void)toggleCollapsed;
 - (void)askSwitch:(NSDictionary *)question;

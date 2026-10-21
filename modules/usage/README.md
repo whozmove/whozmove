@@ -11,7 +11,7 @@ asked of the agent every few minutes, its wait at the session limit, and its Sig
   fails, never while the screens sleep or the panel is hidden), what the page is told, and Sign in, run in the first
   terminal on this Mac that runs a command (Ghostty, else macOS's Terminal).
 - `page/usage.js` (what the strip shows: plain functions), `page/strip.js` (drawing it, folding it into one row and
-  back, the line on the collapsed header), `page/waits.js` (its wait styles, chosen by name) and `page/wait-vine.js`
+  back), `page/waits.js` (its wait styles, chosen by name) and `page/wait-vine.js`
   (the first, whose shape and reset are plain numbers too), and `page/usage.css`, the strip's style, with its reduced
   motion. `module.json` lists them for tools/page.sh.
 

@@ -342,10 +342,10 @@ function forgetStarted(sessions) {
     if (start.drawn && !start.flying && listed.has(start.key)) delete state.starts[id];
 }
 
-// The card, opened under the header: its place eases open and the list moves down to make room (at once when the panel
-// was folded to its header, which opens at once). Or the card brought up to date when it's open already, keeping your
-// words and where you are in them. The panel takes the keyboard for its box (wantKeyboard). While a start is still on
-// its way down from there, the new card waits unseen until the way is clear, so nothing passes over it.
+// The card, opened under the header: its place eases open and the list moves down to make room (as the panel opens,
+// when it was folded into the cat). Or the card brought up to date when it's open already, keeping your words and where
+// you are in them. The panel takes the keyboard for its box (wantKeyboard). While a start is still on its way down from
+// there, the new card waits unseen until the way is clear, so nothing passes over it.
 function openCard(folder, app) {
   const folded = document.body.classList.contains('collapsed');
   if (folded) toggleCollapsed();
@@ -823,9 +823,9 @@ function newSessionId() {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-// The pawn hops once: a conversation has started from here.
+// The cat in the name hops once: a conversation has started from here.
 function hop() {
-  const mark = document.querySelector('header .mark');
+  const mark = document.querySelector('header .name-cat');
   if (!mark || !D_START(1)) return;
   mark.classList.remove('hop');
   void mark.getBoundingClientRect();
@@ -939,8 +939,8 @@ function placesMenu(anchor) {
   const r = anchor.getBoundingClientRect(), g = checkoutOf(state.dock.folder, state.last.sessions);
   native({ type: 'startMenu', kind: 'places', x: r.left - 4, y: r.bottom + 4, repo: g?.mainRoot || g?.root || state.dock.folder });
 }
-// The header's ＋ opens the card, and closes it while it's open; with the panel folded to its header, where the card
-// can't be seen, it opens it.
+// The header's ＋ opens the card, and closes it while it's open; with the panel folded into the cat, where the card
+// can't be seen (⌃⌥N), it opens it.
 newButton.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   e.preventDefault();

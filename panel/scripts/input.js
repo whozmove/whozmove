@@ -45,7 +45,7 @@ function pressRow(row) {
 // Brings a session forward in its app, and makes it the one you're on: a row's press, and the reader's Take me there.
 // Its row stays where it is (keepInPlace).
 function openSession(s) {
-  markRead(s.sessionId, Date.now());
+  noteOnIt(s, Date.now(), Date.now());
   if (hostOf(s).marksOpenAtOnce) state.opening = { sessionId: s.sessionId, at: Date.now() };
   keepInPlace(s.sessionId);
   goTo(s.sessionId);
@@ -54,7 +54,7 @@ function openSession(s) {
   render();
 }
 
-// The header's chevron folds the panel to its header, and opens it again.
+// The header's chevron folds the panel into the cat.
 document.querySelector('header .chev').addEventListener('click', () => toggleCollapsed());
 
 // A card's boxes on the list (an answer, a focus for /compact, a command for Deploy): what's typed in one is kept by

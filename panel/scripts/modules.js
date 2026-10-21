@@ -10,7 +10,7 @@ const core = {
   starts: [],          // run once every script has loaded, in the order they were added
   updating: [],        // (sessions) with each update from the app, before the list is drawn again
   updates: [],         // (now) with each update from the app, once the list is drawn
-  collapses: [],       // (collapsed) when the panel folds to its header, or opens again
+  collapses: [],       // (collapsed) when the panel folds into the cat, or opens again
 
   // The list (panel.js, morph.js).
   moreRows: [],        // (listed) → sessions to draw with the app's: ones it hasn't listed yet

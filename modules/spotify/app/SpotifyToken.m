@@ -300,7 +300,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     NSString *state = self.state;
     if ([state isEqual:@"hidden"]) return;
     BOOL missing = [state isEqual:@"missing"], refused = [state isEqual:@"refused"];
-    BOOL song = [state isEqual:@"paused"] || [state isEqual:@"playing"];
+    BOOL song = [state isEqual:@"paused"];
     // Spotify's icon is taken from the app once, when it's there (looking it up can be slow); until then its mark.
     if (missing) self.appIcon = nil;
     else if (!self.appIcon) {
@@ -339,7 +339,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
             SpotifyToken *token = weakSelf;
             if (![token.token[@"artUrl"] isEqual:address]) return;
             token.artShown = address;
-            BOOL song = [token.state isEqual:@"paused"] || [token.state isEqual:@"playing"];
+            BOOL song = [token.state isEqual:@"paused"];
             [CATransaction begin];
             [CATransaction setAnimationDuration:Calm() ? 0 : 0.5];
             token.cover.contents = (__bridge id)ImageOf(image, 96);
@@ -356,8 +356,6 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     else if ([state isEqual:@"ready"]) { what = @"Play"; more = @"Spotify"; }
     else if ([state isEqual:@"paused"]) { what = [@"Resume " stringByAppendingString:self.token[@"title"] ?: @""];
                                           more = self.token[@"artist"]; }
-    else if ([state isEqual:@"playing"]) { what = [@"Pause " stringByAppendingString:self.token[@"title"] ?: @""];
-                                           more = self.token[@"artist"]; }
     else if ([state isEqual:@"refused"]) { what = @"Allow in Settings"; more = @"to control Spotify"; }
     if (!what) return;
     NSFont *font = [NSFont systemFontOfSize:11];
@@ -603,9 +601,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
 - (void)pressed {
     if (!self.visible || !self.onPress) return;
     NSString *state = self.state;
-    // Standing in for the strip (the panel folded), it pauses and resumes in place.
     if (![state isEqual:@"ready"] && ![state isEqual:@"paused"]) return self.onPress(state);
-    if ([self.token[@"folded"] boolValue]) return self.onPress(state);
     [self showLabel:NO];
     self.panel.ignoresMouseEvents = YES;
     __weak typeof(self) weakSelf = self;

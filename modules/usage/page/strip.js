@@ -1,8 +1,8 @@
 // The usage strip, at the bottom of the panel: your plan's session and week (usage.js says what), how long until each
 // resets (pointing at one shows the clock time instead), a note when you're on course to run out first, Sign in when
 // Claude Code isn't signed in, and the wait style while the session limit is reached (waits.js). Its handle folds it
-// into one row of numbers, and that row opens it again; folded or not is kept across launches. Folded to its header,
-// the panel shows the session as a line under the header.
+// into one row of numbers, and that row opens it again; folded or not is kept across launches. Folded into the cat,
+// the panel hides it.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // The strip isn't in the list, so the list's rebuild every second never touches it: it's built once, and only its
@@ -78,7 +78,6 @@ function modeFor(view) {
 function usageTick(now) {
   const view = usageView(usageData(), now);
   if (view.state === 'wait') noteWait(view, now);
-  drawUsageLine(view);
   if (strip.moving) return;
   const mode = modeFor(view);
   if (mode !== strip.mode) {
@@ -403,26 +402,6 @@ function playReset(view, now) {
   })();
 }
 
-// ---- The line on the collapsed header ----
-
-// Folded to its header, the panel still shows the session: a 2px line along the header's bottom edge, as full as the
-// session is and in its colour. It's drawn in from the left as the panel folds.
-const usageLine = document.getElementById('usage-line');
-function drawUsageLine(view) {
-  const on = view.state === 'ok' || view.state === 'wait';
-  usageLine.classList.toggle('on', on);
-  if (!on) return;
-  usageLine.style.setProperty('--used', `${view.session.used}%`);
-  usageLine.style.setProperty('--colour', view.session.colour);
-}
-
-function usageCollapsed(collapsed) {
-  if (!collapsed || calm.matches) return;
-  usageLine.classList.remove('draw');
-  usageLine.offsetWidth;  // restart its drawing
-  usageLine.classList.add('draw');
-}
-
 // ---- Presses ----
 
 function pressUsage(e) {
@@ -482,10 +461,8 @@ window.setUsage = (usage) => {
 // Working on Whozmove's Preview the Wait, in the pawn menu: the strip's wait and reset, played now.
 window.previewWait = () => playPreviewWait();
 
-// It keeps time with the rows' updates (its time left, and its wait), draws its line as the panel folds to its header,
-// and has room made for it under the list.
+// It keeps time with the rows' updates (its time left, and its wait), and has room made for it under the list.
 core.updates.push(usageTick);
-core.collapses.push(usageCollapsed);
 core.strips.push('usage');
 core.pointerTargets.push('.u-strip', '.u-row', '.u-handle', '.u-mini', '.u-sign-in');
 core.starts.push(() => {

@@ -19,7 +19,7 @@
 // Brings the panel back if it was hidden, and leaves it as it is if it's showing (⌃⌥N).
 - (void)bringUp;
 - (void)resetPosition;
-// Tells a freshly loaded page how tall the panel can grow.
+// Tells a freshly loaded page how tall the panel can grow (and, folded, which way the cat's tags go).
 - (void)resendRoom;
 // The height the page asks for, kept within that room.
 - (void)fitHeight:(CGFloat)height;
@@ -27,6 +27,17 @@
 // and the height of the whole panel), within the screen; asked again as what it shows changes. Then folds back.
 - (void)expandReader:(CGFloat)width height:(CGFloat)height;
 - (void)collapse:(CGFloat)height;
+// Folded, the panel is the cat in a small round glass where the name's o is in its header (panel/scripts/cat.js); the
+// page says when it folds and opens, moving, or at once as it loads.
+- (void)fold:(BOOL)on instant:(BOOL)instant;
+// Where the page has the name's o, from the list's top-left corner: where the folded glass's middle is.
+- (void)catAt:(NSPoint)at;
+// Folded, room under and beside the cat for its tags while they're out (cat.js), `width` and `height` points from the
+// cat's square's top corner on the far side from them; and that room taken away once they've gone.
+- (void)catFan:(BOOL)on width:(CGFloat)width height:(CGFloat)height;
+// How many sessions are working: while any are, the folded glass breathes, quicker the more there are; once none are,
+// it finishes the breath it's in and rests.
+- (void)catBreathe:(NSInteger)working;
 // A text box in the page was clicked into (YES), or left (NO).
 - (void)takeKeyboard:(BOOL)on;
 // Gives the keyboard up if the panel has it, so it goes back to the app being opened. YES if it had it.

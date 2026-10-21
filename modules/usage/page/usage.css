@@ -1,11 +1,10 @@
-/* The usage strip at the bottom of the panel (strip.js): its two rows, the one row it folds into, Sign in, the wait
-   style's layer, and the line on the collapsed header.
+/* The usage strip at the bottom of the panel (strip.js): its two rows, the one row it folds into, Sign in, and the wait
+   style's layer.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 #usage { flex: none; position: relative; }
 #usage[hidden] { display: none; }
-/* Folded to its header, the panel hides the strip, and a line along the header's bottom edge stands in for it
-   (#usage-line, below). */
+/* Folded into the cat, the panel hides the strip. */
 body.collapsed #usage { display: none; }
 .u-strip { position: relative; padding: 8px 14px; border-top: 1px solid var(--rule); overflow: hidden; }
 .u-row { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; }
@@ -86,18 +85,7 @@ body.collapsed #usage { display: none; }
 .u-ghost-roll { width: 90px; height: 16px; overflow: hidden; }
 .u-ghost-roll span { position: absolute; left: 0; top: 0; }
 
-/* Folded to its header, the panel shows the session as a 2px line along the header's bottom edge, drawn in from the
-   left as it folds. */
-#usage-line { position: absolute; left: 0; right: 0; bottom: 0; display: none; height: 2px;
-              background: var(--track); }
-body.collapsed #usage-line.on { display: block; }
-#usage-line span { display: block; height: 100%; width: var(--used, 0%); background: var(--colour, transparent);
-                   transform-origin: left center;
-                   transition: width .65s cubic-bezier(.2, .8, .2, 1), background-color .4s ease; }
-#usage-line.draw span { animation: usageLineIn .76s cubic-bezier(.2, .8, .2, 1) .2s both; }
-@keyframes usageLineIn { from { transform: scaleX(0); } to { transform: none; } }
-
 @media (prefers-reduced-motion: reduce) {
-  .u-fill, .u-time, .u-time > span, .u-handle, #usage-line span { transition: none !important; }
-  .u-bud, #usage-line.draw span { animation: none; }
+  .u-fill, .u-time, .u-time > span, .u-handle { transition: none !important; }
+  .u-bud { animation: none; }
 }

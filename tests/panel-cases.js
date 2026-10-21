@@ -27,7 +27,10 @@ show('a turn you stopped: you wrote to it after its reply',
 show('replied 40 min ago, not opened', classify(session(repliedAt(min(40))), NOW, unread));
 show('replied 40 min ago, opened', classify(session({ ...repliedAt(min(40)), sessionId: 'r2' }), NOW, readHere('r2')));
 show('replied 2 h ago, not opened: still waiting for you', classify(session(repliedAt(min(120))), NOW, unread));
-show('replied 61 min ago, opened', classify(session({ ...repliedAt(min(61)), sessionId: 'r2' }), NOW, readHere('r2')));
+show('replied 61 min ago, opened then',
+  classify(session({ ...repliedAt(min(61)), sessionId: 'r2' }), NOW, readHere('r2', min(61))));
+show('replied 2 h ago, opened a minute ago: an hour from when you were last on it',
+  classify(session({ ...repliedAt(min(120)), sessionId: 'r2' }), NOW, readHere('r2')));
 show('replied 61 min ago, and you wrote to it 30 min ago',
   classify(session({ ...repliedAt(min(61)), lastPromptAt: min(30) }), NOW, unread));
 show('a turn you stopped long after its reply, its transcript moving until 5 min ago',
@@ -42,6 +45,9 @@ show('your turn since, a request', turnSince(session({ ask: { id: 'a', tool: 'Ba
 show('…Claude waiting on you, from when its status changed',
   turnSince(session({ status: 'waiting', statusUpdatedAt: min(4) }), 'needs') === min(4));
 show('…a reply', turnSince(session(reply), 'turn') === min(5));
+show('a reply you read 9 min ago: still in Your turn',
+  sectionOf(session({ ...reply, sessionId: 'r2' }), 'seen', NOW, readHere('r2', min(9))));
+show('…10 min ago: in Seen', sectionOf(session({ ...reply, sessionId: 'r2' }), 'seen', NOW, readHere('r2', min(10))));
 
 section('Where each row goes');
 // The rows in the order they're shown, section by section: each row's id, with what it is when that isn't its
@@ -56,11 +62,11 @@ function where(placed) {
   return out;
 }
 // One update after another, each placed as render places it at the app's time `now`: the rows you've pressed (`held`)
-// where they were last shown.
+// where they were last shown, with when you were last on each session as `view` says.
 const placedAt = {};
-const placeAll = (sessions, held = [], now = NOW) => {
-  const placed = placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), placedAt,
-                           (sid) => held.includes(sid), now);
+const placeAll = (sessions, held = [], now = NOW, view = unread) => {
+  const placed = placeRows(sessions.map((s) => ({ s, kind: classify(s, now, view) })), placedAt,
+                           (sid) => held.includes(sid), now, view);
   for (const { s, section, key, tie, latest } of placed) placedAt[s.sessionId] = { section, key, tie, latest };
   return where(placed);
 };
@@ -74,7 +80,7 @@ const lineup = [
   session({ sessionId: 'i1', ...repliedAt(min(90), { lastFocusedAt: min(89) }) }),
   session({ sessionId: 'r2', ...repliedAt(min(12)) }),
   session({ sessionId: 'w2', status: 'busy', lastPromptAt: min(2) }),
-  session({ sessionId: 's2', ...repliedAt(min(10), { lastFocusedAt: min(9) }) }),
+  session({ sessionId: 's2', ...repliedAt(min(14), { lastFocusedAt: min(13) }) }),
   session({ sessionId: 'i2' }),
 ];
 show('Your turn first come, first served; Working and Seen newest first; then Idle', placeAll(lineup));
@@ -103,6 +109,19 @@ show('…while a request that comes joins the end of Your turn',
   placeAll([...atWork, q4, w1Replied], ['w1'], NOW + 8000));
 show("…and once you've moved on, it joins the end after that request, though its reply came first",
   placeAll([...atWork, q4, w1Replied], [], NOW + 9000));
+const m1 = session({ sessionId: 'm1', ...repliedAt(min(5)) });
+const m2 = session({ sessionId: 'm2', ...repliedAt(min(4)) });
+const w3 = session({ sessionId: 'w3', status: 'busy', lastPromptAt: min(3) });
+const later = (minutes) => NOW + 20000 + minutes * 60000;
+const onM1 = { seen: { m1: later(0) } };
+show('two replies waiting, one working', placeAll([m1, m2, w3], [], later(0)));
+show('a reply you read stays in Your turn, where it was, while you are on it',
+  placeAll([m1, m2, w3], [], later(0) + 1000, onM1));
+show('…and for ten minutes after you were last on it', placeAll([m1, m2, w3], [], later(9.9), onM1));
+show('…then it goes to Seen', placeAll([m1, m2, w3], [], later(10), onM1));
+const w3Replied = session({ sessionId: 'w3', ...repliedAt(later(10) + 500) });
+show('a reply that comes in while you are on it joins the end of Your turn',
+  placeAll([m1, m2, w3Replied], [], later(10) + 1000, { seen: { m1: later(0), w3: later(10) + 1000 } }));
 goTo('i1');
 show("the session you're on isn't held: its row goes where it belongs", heldNow()('i1'));
 goTo(null);
@@ -156,12 +175,33 @@ markOn('ta', tabs, min(7));
 markOn('tb', tabs, min(6));
 show('the session you are on follows the mark, which alone reads nothing', [state.current, kindOn('tb')]);
 markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(5) }], min(5));
-keepSeen(state.last.sessions);
+keepSeen(state.last.sessions, min(5));
 show('…the app saw you looking at it after it replied: read', kindOn('tb'));
 markOn('tb', tabs, min(4));
 show('…and still read once the app has restarted, as the page keeps it', kindOn('tb'));
 markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(min(3)), seenAt: min(4) })], min(3));
 show('…a reply that came after you last looked is not read', kindOn('tb'));
+const sectionOn = (sid, now) => {
+  const s = state.last.sessions.find((x) => x.sessionId === sid);
+  return sectionOf(s, classify(s, now, view()), now, view());
+};
+markOn('tb', tabs, min(4));
+show('a reply you have read is in Your turn while you are on it', sectionOn('tb', min(4)));
+markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(1) }], min(1));
+keepSeen(state.last.sessions, min(1));
+show('…what the page keeps follows you while you stay on it', state.seen.tb === min(1));
+markOn('ta', tabs, NOW);
+show('…and once you are on another, it stays in Your turn for ten minutes after you were last on it, then in Seen',
+  [sectionOn('tb', NOW + 8.9 * 60000), sectionOn('tb', NOW + 9 * 60000)]);
+markOn('tb', [tabs[0], { ...tabs[1], seenAt: NOW + 12 * 60000 }], NOW + 12 * 60000);
+keepSeen(state.last.sessions, NOW + 12 * 60000);
+show('once you have moved on, being on it again leaves it in Seen',
+  [state.seen.tb === min(1), sectionOn('tb', NOW + 12 * 60000)]);
+markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(NOW + 13 * 60000), seenAt: NOW + 14 * 60000 })],
+       NOW + 14 * 60000);
+keepSeen(state.last.sessions, NOW + 14 * 60000);
+show('…until something new comes: a reply it sends while you are on it is read, and in Your turn',
+  [kindOn('tb'), sectionOn('tb', NOW + 14 * 60000)]);
 state.opening = { sessionId: 'ta', at: Date.now() };
 markOn('tb', tabs, min(2));
 show('a conversation just opened in Claude is the one you are on at once, before Claude says so', state.current);
@@ -170,16 +210,6 @@ state.last = lastBefore;
 state.seen = {};
 state.claudeShowed = null;
 goTo(null);
-
-section("The header's line");
-const shownAs = (...rows) => rows.map(([section, kind]) => ({ section, kind }));
-show('a request and a reply waiting, one working',
-  summaryHTML(shownAs(['turn', 'needs'], ['turn', 'turn'], ['busy', 'busy'], ['seen', 'seen'], ['idle', 'idle'])));
-show('only replies waiting', summaryHTML(shownAs(['turn', 'turn'], ['turn', 'turn'], ['idle', 'idle'])));
-show('a row you pressed counts where the list shows it', summaryHTML(shownAs(['turn', 'busy'], ['turn', 'turn'])));
-show('only working', summaryHTML(shownAs(['busy', 'busy'], ['seen', 'seen'], ['idle', 'idle'])));
-show('nothing waiting or working', summaryHTML(shownAs(['seen', 'seen'], ['idle', 'idle'], ['idle', 'idle'])));
-show('only idle', summaryHTML(shownAs(['idle', 'idle'], ['idle', 'idle'])));
 
 section('The list');
 // What the list shows, in order: each header with its count (› when it's folded), each project by its folder, where a
@@ -197,7 +227,7 @@ function outline(html) {
 }
 // The rows placed once, those in `held` where it says they were last shown.
 const placeOnce = (sessions, held = {}) =>
-  placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held, NOW);
+  placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held, NOW, unread);
 show('the sections in order, Idle folded', outline(sectionsHTML(placeOnce(lineup), NOW)));
 const inIdle = { i1: { section: 'idle', key: 0, tie: 0, latest: 0 } };
 show('a row you pressed, held in folded Idle with a request: pinned below it', outline(sectionsHTML(placeOnce([
@@ -330,7 +360,7 @@ print(projectsHTML(placeRows([
   session({ sessionId: 'g2', status: 'busy', lastPromptAt: min(1) }),
   session({ sessionId: 'g3', cwd: '/work/other', git: { branch: 'main', root: '/work/other' }, outcome: 'Answered',
     lastReplyAt: min(500), seenAt: min(499) }),
-].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false, NOW), NOW));
+].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false, NOW, unread), NOW));
 state.groupBy = 'status';
 
 section('Command cards');
@@ -970,3 +1000,34 @@ state.editors = { apps: state.editors.apps, choice: 'com.microsoft.VSCode' };
 Object.assign(chState, { split: false, picking: null, layout: 'one', path: 'docs/retries.md' });
 print(changesBodyParts(chRow, chState, chView).map((p) => p.html).join(''));
 state.editors = { apps: [] };
+
+section('The folded cat (cat.js)');
+const catCounts = (needs, working, idle) => ({ needs, working, idle });
+show('nothing running', catPose(catCounts(0, 0, 3)));
+show('no sessions at all', catPose(catCounts(0, 0, 0)));
+show('two working', catPose(catCounts(0, 2, 1)));
+show('one needs your input while two work', catPose(catCounts(1, 2, 1)));
+const inSections = (...sections) => sections.map((section) => ({ section }));
+show('its labels: two waiting by name beside it, the other five as dots in a row under them',
+     catLabels(inSections('turn', 'turn', 'busy', 'busy', 'seen', 'idle', 'idle')));
+show('…nothing waiting: the dots alone, level with the cat', catLabels(inSections('busy', 'idle', 'idle')));
+show('…seven waiting: five by name, the other two first among the dots',
+     catLabels(inSections('turn', 'turn', 'turn', 'turn', 'turn', 'turn', 'turn', 'busy')));
+show('…twenty: the dots go on in a second row after twelve',
+     catLabels(inSections('turn', ...Array(19).fill('idle'))));
+show('a tag\'s place, from the corner of the cat\'s square: on its left, and on its right on the screen\'s left half',
+     [false, true].map((right) => catLabelStyle(CAT_TAG_END, CAT_TAG_STEP, CAT_TAG_TALL, right)));
+show('…and a dot\'s', [false, true].map((right) => catLabelStyle(CAT_DOT_FIRST - CAT_DOT_WIDE / 2, CAT_DOTS_BELOW,
+                                                                  CAT_DOT_TALL, right)));
+show('its eyes, toward a pointer up and to its right while it looks at you', catGaze(30, -30, 0));
+show('…toward one below it while it watches', catGaze(0, 40, 50));
+show('…and only a little toward one on its face, close to its eyes', catGaze(4, 6, 0));
+const eyesAfter = (frames, rate = 60) => {
+  let eyes = { x: -CAT_GLANCE, y: 0, vx: 0, vy: 0 };
+  for (let i = 0; i < frames; i++) eyes = catSpring(eyes, { x: CAT_GLANCE, y: 0 }, 1 / rate);
+  return Math.round(eyes.x * 10) / 10;
+};
+show('…after a quick sweep from its left to its right, catching up over a moment, never past it: where its eyes are '
+     + 'after 2, 5, 10, 15 and 30 frames at 60 a second', [2, 5, 10, 15, 30].map((n) => eyesAfter(n)));
+show('…and at 30 frames a second, each frame further on than the last, without shaking',
+     [1, 2, 3, 4, 5, 6, 8].map((n) => eyesAfter(n, 30)));

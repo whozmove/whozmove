@@ -12,20 +12,18 @@ html, body { background: transparent; color: var(--text);
 html { min-height: 100vh; }
 
 header { flex: none; height: var(--header); display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; }
-header .title { font-weight: 600; font-size: var(--size-title); letter-spacing: -0.01em; white-space: nowrap; }
-/* The pawn, in "your move" amber: the same shape as the menu-bar symbol (app/core/MenuBar.m), the app icon
-   (PawnPath in icon/make-icon.m) and the deploy button's (PAWN_ICON in scripts/icons.js), as one path running
-   clockwise so it fills as one shape. */
-header .mark { flex: none; color: var(--turn); margin-right: -2px; }
-/* The name, and under it, while Show Build in Header is on, the build running now. */
-header .titles { display: flex; flex-direction: column; min-width: 0; }
+/* The name, drawn from its letters with the cat for its first o (panel.html), as Outfit Medium at 17px sets it; and
+   under it, while Show Build in Header is on, the build running now. */
+header .titles { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+header .name { position: relative; display: block; width: 84.4px; height: 12.44px; fill: currentColor;
+               color: var(--cream); }
+header .name svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+/* The cat's eyes and nose, drawn in the dark the folded cat's are (a cut-out of them barely showed at this size). */
+header .name .name-feature { fill: var(--cat-feature); }
 header .build { display: block; max-width: 150px; margin-top: 1px; font-size: var(--size-tag); line-height: 13px;
                 color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
                 font-variant-numeric: tabular-nums; }
 header .build[hidden] { display: none; }
-header .summary { flex: 1; color: var(--muted); font-size: var(--size-small); white-space: nowrap; overflow: hidden;
-                  text-overflow: ellipsis; }
-header .summary b { font-weight: 600; }
 header .chev { width: 24px; height: 24px; border-radius: var(--radius-button); display: grid; place-items: center;
                color: var(--muted); }
 /* The ＋ for a new conversation, which opens its card under the header (starts.js); it turns into a × while that's
@@ -37,9 +35,12 @@ header .add-new svg { transition: transform .4s var(--spring); }
 header .add-new.open svg { transform: rotate(45deg); }
 header .chev.is-hover { background: var(--hover); color: var(--text); }
 header .chev svg { transition: transform .15s ease; }
-body.collapsed header .chev svg { transform: rotate(-90deg); }
-body.collapsed #list { display: none; }
 header { position: relative; }
+/* Folded, the panel is the cat at its list's top-right corner (cat.css): the header and the list fade as the app closes
+   the glass in on it, and come back as it opens. The strips under the list go at once (their modules' styles). */
+header, #list, #dock { transition: opacity .2s ease .1s; }
+body.collapsed header, body.collapsed #list, body.collapsed #dock { opacity: 0; visibility: hidden;
+  transition: opacity .15s ease, visibility 0s linear .15s; }
 
 /* Project group header, styled like Claude's sidebar: the name in muted regular weight with a chevron
    after it, turned sideways while the group is collapsed. */

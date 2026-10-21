@@ -126,10 +126,10 @@ function openingCard(sid, name) {
 }
 
 // A session's row. `row` is what each module's part is given: the session, what it is now (kind: classify), the section
-// it's shown in (a row you've pressed stays where you saw it, so the two can differ), the time the rows were sent
-// (now), whether it speaks for its checkout while Show Next Steps is on (owner), the page's own clock, which Deploy's
-// press and animations are timed by, and what each module found when it first looked at the row (core.rowLooks: the
-// island's stages, Deploy's button).
+// it's shown in (a row you've pressed stays where you saw it, and a reply you've read stays in Your turn until you've
+// moved on, so the two can differ: sectionOf), the time the rows were sent (now), whether it speaks for its checkout
+// while Show Next Steps is on (owner), the page's own clock, which Deploy's press and animations are timed by, and what
+// each module found when it first looked at the row (core.rowLooks: the island's stages, Deploy's button).
 function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
   const row = { s, kind, section, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
                 clock: Date.now() };

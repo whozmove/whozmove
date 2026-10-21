@@ -104,6 +104,17 @@
             [weakSelf.window expandReader:[msg[@"width"] doubleValue] height:[msg[@"height"] doubleValue]];
         },
         @"collapse": ^(NSDictionary *msg) { [weakSelf.window collapse:[msg[@"height"] doubleValue]]; },
+        @"fold": ^(NSDictionary *msg) {
+            [weakSelf.window fold:[msg[@"on"] boolValue] instant:[msg[@"instant"] boolValue]];
+        },
+        @"catAt": ^(NSDictionary *msg) {
+            [weakSelf.window catAt:NSMakePoint([msg[@"x"] doubleValue], [msg[@"y"] doubleValue])];
+        },
+        @"catFan": ^(NSDictionary *msg) {
+            [weakSelf.window catFan:[msg[@"on"] boolValue] width:[msg[@"width"] doubleValue]
+                             height:[msg[@"height"] doubleValue]];
+        },
+        @"catBreathe": ^(NSDictionary *msg) { [weakSelf.window catBreathe:[msg[@"working"] integerValue]]; },
         @"keyboard": ^(NSDictionary *msg) { [weakSelf.window takeKeyboard:[msg[@"on"] boolValue]]; },
         @"badge": ^(NSDictionary *msg) { [weakSelf.menuBar showCount:[msg[@"value"] integerValue]]; },
         @"open": ^(NSDictionary *msg) { [weakSelf.focus open:msg]; },

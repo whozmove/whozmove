@@ -1,5 +1,5 @@
-// MenuBar: the pawn in the menu bar, its count, and its menu: the grouping, Next Steps, Working on Whozmove, and the
-// modules' items, each in its section.
+// MenuBar: Whozmove's mark in the menu bar, its count, and its menu: the grouping, Next Steps, Working on Whozmove, and
+// the modules' items, each in its section.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "MenuBar.h"
 #import "PanelWindow.h"
@@ -14,6 +14,78 @@
 // itself, off until ticked.
 static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @"showDeploy",
                 *const kShowBuild = @"showBuild";
+
+// The mark in the menu bar: the folded cat alone, its head and folded ears in one colour with its eyes and nose cut
+// out, as the name's o has it, a template image so it takes the menu bar's tint. Its shapes are in the cat's own units
+// (panel/scripts/cat.js), scaled to fill a 16-point box but for half a point each side.
+static NSString *const kCatHead =
+    @"M0 74C-46 74 -84 50 -84 10C-84 -20 -76 -40 -64 -52C-62 -64 -54 -72 -42 -72C-34 -72 -28 -68 -24 -64C-8 -68 8 -68 "
+    @"24 -64C28 -68 34 -72 42 -72C54 -72 62 -64 64 -52C76 -40 84 -20 84 10C84 50 46 74 0 74Z";
+static NSString *const kCatEars =
+    @"M-70 -44C-68 -60 -54 -72 -36 -70C-30 -69 -26 -66 -24 -62L-45 -43C-49 -39 -54 -38 -58 -40ZM70 -44C68 -60 54 -72 "
+    @"36 -70C30 -69 26 -66 24 -62L45 -43C49 -39 54 -38 58 -40Z";
+static NSString *const kCatNose = @"M-7 22C-7 18 7 18 7 22C7 26 3 28 0 30C-3 28 -7 26 -7 22Z";
+// Its eyes' middles and size, and its shape's middle and width, in its units.
+static const CGFloat kCatEyeX = 30, kCatEyeY = 6, kCatEyeR = 13, kCatMiddleY = 1, kCatWide = 168;
+
+// An SVG path's absolute M, L, C and Z, as an NSBezierPath.
+static NSBezierPath *PathFrom(NSString *svg) {
+    NSBezierPath *path = [NSBezierPath bezierPath];
+    NSScanner *scan = [NSScanner scannerWithString:svg];
+    scan.charactersToBeSkipped = [NSCharacterSet characterSetWithCharactersInString:@" ,"];
+    NSCharacterSet *letters = [NSCharacterSet characterSetWithCharactersInString:@"MLCZ"];
+    unichar command = 'M';
+    double v[6];
+    while (!scan.isAtEnd) {
+        NSString *next = nil;
+        if ([scan scanCharactersFromSet:letters intoString:&next]) {
+            for (NSUInteger i = 0; i + 1 < next.length; i++)
+                if ([next characterAtIndex:i] == 'Z') [path closePath];
+            command = [next characterAtIndex:next.length - 1];
+            if (command == 'Z') {
+                [path closePath];
+                continue;
+            }
+        }
+        int count = command == 'C' ? 6 : 2;
+        for (int i = 0; i < count; i++)
+            if (![scan scanDouble:&v[i]]) return path;
+        if (command == 'M') [path moveToPoint:NSMakePoint(v[0], v[1])];
+        else if (command == 'L') [path lineToPoint:NSMakePoint(v[0], v[1])];
+        else [path curveToPoint:NSMakePoint(v[4], v[5]) controlPoint1:NSMakePoint(v[0], v[1])
+                  controlPoint2:NSMakePoint(v[2], v[3])];
+        // More points after a move are lines, as in SVG.
+        if (command == 'M') command = 'L';
+    }
+    return path;
+}
+
+static NSImage *MenuBarMark(void) {
+    NSImage *mark = [NSImage imageWithSize:NSMakeSize(16, 16) flipped:YES drawingHandler:^BOOL(NSRect rect) {
+        CGFloat scale = (NSWidth(rect) - 1) / kCatWide;
+        NSAffineTransform *place = [NSAffineTransform transform];
+        [place translateXBy:NSMidX(rect) yBy:NSMidY(rect) - kCatMiddleY * scale];
+        [place scaleBy:scale];
+        // The head and its ears are filled apiece: as one path, the right ear, drawn the other way round, would cancel
+        // out where it overlaps the head.
+        NSBezierPath *head = PathFrom(kCatHead), *ears = PathFrom(kCatEars), *nose = PathFrom(kCatNose);
+        NSBezierPath *eyes = [NSBezierPath bezierPath];
+        for (int side = -1; side <= 1; side += 2)
+            [eyes appendBezierPath:[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(side * kCatEyeX - kCatEyeR,
+                kCatEyeY - kCatEyeR, 2 * kCatEyeR, 2 * kCatEyeR)]];
+        for (NSBezierPath *path in @[head, ears, nose, eyes]) [path transformUsingAffineTransform:place];
+        [NSColor.blackColor setFill];
+        [head fill];
+        [ears fill];
+        NSGraphicsContext.currentContext.compositingOperation = NSCompositingOperationDestinationOut;
+        [eyes fill];
+        [nose fill];
+        return YES;
+    }];
+    mark.template = YES;
+    mark.accessibilityDescription = @"Whozmove";
+    return mark;
+}
 
 @interface MenuBar () <NSMenuDelegate>
 @property (strong) Page *page;
@@ -37,31 +109,7 @@ static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     [defaults registerDefaults:@{kShowNextSteps: @YES, kShowDeploy: @YES, kShowBuild: @NO}];
     self.statusItem = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
-    // The Whozmove pawn ("your move"), drawn as a template image so it follows the menu bar's light/dark
-    // tint. Same shape as the app icon (PawnPath in make-icon.m), the panel's header mark and its deploy button
-    // (PAWN_ICON in panel/scripts/icons.js); keep them in step. One path, so it fills as one shape with no seams
-    // where its parts meet; the body runs the same way round as the oval and rounded rectangles, or the overlaps
-    // would cancel out.
-    NSImage *pawn = [NSImage imageWithSize:NSMakeSize(16, 16) flipped:YES drawingHandler:^BOOL(NSRect rect) {
-        NSBezierPath *shape = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(5.6, 1.5, 4.8, 4.8)];
-        [shape appendBezierPath:[NSBezierPath bezierPathWithRoundedRect:NSMakeRect(4.9, 6.1, 6.2, 1.3)
-                                                                xRadius:0.65 yRadius:0.65]];
-        [shape moveToPoint:NSMakePoint(9.7, 7.3)];
-        [shape curveToPoint:NSMakePoint(11.6, 12.2)
-              controlPoint1:NSMakePoint(9.7, 9.8) controlPoint2:NSMakePoint(11.0, 11.3)];
-        [shape lineToPoint:NSMakePoint(4.4, 12.2)];
-        [shape curveToPoint:NSMakePoint(6.3, 7.3)
-              controlPoint1:NSMakePoint(5.0, 11.3) controlPoint2:NSMakePoint(6.3, 9.8)];
-        [shape closePath];
-        [shape appendBezierPath:[NSBezierPath bezierPathWithRoundedRect:NSMakeRect(3.2, 11.9, 9.6, 2.3)
-                                                                xRadius:1.15 yRadius:1.15]];
-        [NSColor.blackColor setFill];
-        [shape fill];
-        return YES;
-    }];
-    pawn.template = YES;
-    pawn.accessibilityDescription = @"Whozmove";
-    self.statusItem.button.image = pawn;
+    self.statusItem.button.image = MenuBarMark();
     self.statusItem.button.imagePosition = NSImageLeft;
     // Its own items, in the sections modules' items go in too (addEntries:), each with its order there.
     self.groupByStatusItem = [self item:@"Group by Status" action:@selector(groupByStatus) key:@""];

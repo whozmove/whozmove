@@ -291,7 +291,6 @@
   "token-paused-15-minutes.json": {
     "artUrl": "https://i.scdn.co/image/ab67",
     "artist": "Example Artist",
-    "folded": false,
     "progress": 0.25,
     "state": "paused",
     "title": "Example Song"
@@ -299,18 +298,12 @@
   "token-paused-when-found.json": {
     "artUrl": "https://i.scdn.co/image/ab67",
     "artist": "Example Artist",
-    "folded": false,
     "progress": 0.25,
     "state": "paused",
     "title": "Example Song"
   },
   "token-playing-panel-folded.json": {
-    "artUrl": "https://i.scdn.co/image/ab67",
-    "artist": "Example Artist",
-    "folded": true,
-    "progress": 0.25,
-    "state": "playing",
-    "title": "Example Song"
+    "state": "hidden"
   },
   "token-playing.json": {
     "state": "hidden",

@@ -22,15 +22,17 @@ const state = {
   // The session you're on (goTo) and the one the app last marked as shown, in Claude Desktop or Ghostty
   // (followClaude); the rows you've pressed, until you've moved on from the panel (keepInPlace); what each session was
   // at the last render (needs, busy, turn, seen or idle: classify), and where its row was shown, { section, key, tie,
-  // latest } (placeRows); when you last read each session's reply (markRead), and the time before which every reply
-  // counts as read (isRead), both kept across launches; a Claude Desktop conversation just clicked, { sessionId, at }
-  // (openedNow); and the session marked as shown at the last render (revealOpenConversation).
+  // latest } (placeRows); when you were last on each session while it was yours, which reads its replies (noteOnIt),
+  // and when that was last written down, and the time before which every reply counts as read (isRead), the first and
+  // the last kept across launches; a Claude Desktop conversation just clicked, { sessionId, at } (openedNow); and the
+  // session marked as shown at the last render (revealOpenConversation).
   current: null,
   claudeShowed: null,
   pressedRows: new Set(),
   kinds: {},
   placed: {},
   seen: store.get('seen', {}),
+  seenKeptAt: 0,
   readBefore: store.get('readBefore', 0),
   opening: null,
   lastOpenId: null,
@@ -63,4 +65,16 @@ const state = {
   // Whether the panel has the keyboard (wantKeyboard), and whether an input method is mid-word.
   keyboardWanted: false, keyboardTimer: null,
   composing: false,
+
+  // The folded cat (cat.js): the pose it holds, its marks as last drawn, whether the pointer is on it and the timer of
+  // its marks going back once it has left, where the pointer is from its glass while it's near ({ x, y } in points, or
+  // null), whether it has just folded with the pointer still on it, whether the panel is opening out of it, which side
+  // its labels come out on (right, on the screen's left half), what it was last drawn for, where its glass's middle is,
+  // just above the name's o, from #root's top-left corner, as last measured (the app starts from the same, kCatAt in
+  // app/core/PanelWindow.m), what waits for the app to say the glass is about to move as the panel opens (catGlass),
+  // while its eyes follow the pointer, where they are, how fast they're moving, when they were last moved and whether
+  // they're still on their way (catEyes: { x, y, vx, vy, at, moving }, or null), and how many sessions the app was last
+  // told are working, for its glass's breath (catBreathe; null until it's first told, so it always is once).
+  cat: { pose: null, marks: null, hovering: false, leaving: null, near: null, waitForLeave: false, arriving: false,
+         right: false, drawn: null, at: { x: 45, y: 23.15 }, onGlass: null, eyes: null, working: null },
 };

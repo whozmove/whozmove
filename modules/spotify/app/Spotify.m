@@ -101,18 +101,18 @@ BOOL PositionMoved(NSDictionary *song, double positionMs, double at) {
 
 NSDictionary *TokenFor(BOOL installed, NSDictionary *song, BOOL starting, NSNumber *allowed, BOOL collapsed,
                        double now) {
+    // Folded, the panel is the cat alone in its corner: nothing of Spotify's beside it.
+    if (collapsed) return @{@"state": @"hidden"};
     if (!installed) return @{@"state": @"missing"};
     if (starting) return @{@"state": @"hidden"};
-    if (SongInStrip(song, now) && !collapsed) return @{@"state": @"hidden", @"strip": @YES};
+    if (SongInStrip(song, now)) return @{@"state": @"hidden", @"strip": @YES};
     if (allowed && !allowed.boolValue) return @{@"state": @"refused"};
     if (!song) return @{@"state": @"ready"};
-    BOOL playing = [song[@"playing"] boolValue];
+    // A song playing is in the strip, so one here is paused.
     double duration = [song[@"durationMs"] doubleValue];
-    double since = song[@"at"] ? MAX(0, now - [song[@"at"] doubleValue]) : 0;
-    double at = [song[@"positionMs"] doubleValue] + (playing ? since : 0);
-    return @{@"state": playing ? @"playing" : @"paused", @"folded": @(collapsed), @"title": song[@"title"] ?: @"",
+    return @{@"state": @"paused", @"title": song[@"title"] ?: @"",
              @"artist": song[@"artist"] ?: @"", @"artUrl": song[@"artUrl"] ?: @"",
-             @"progress": @(duration > 0 ? MIN(1, at / duration) : 0)};
+             @"progress": @(duration > 0 ? MIN(1, [song[@"positionMs"] doubleValue] / duration) : 0)};
 }
 
 #pragma mark Apple events

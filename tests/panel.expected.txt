@@ -13,7 +13,8 @@ a turn you stopped: you wrote to it after its reply: seen
 replied 40 min ago, not opened: turn
 replied 40 min ago, opened: seen
 replied 2 h ago, not opened: still waiting for you: turn
-replied 61 min ago, opened: idle
+replied 61 min ago, opened then: idle
+replied 2 h ago, opened a minute ago: an hour from when you were last on it: seen
 replied 61 min ago, and you wrote to it 30 min ago: seen
 a turn you stopped long after its reply, its transcript moving until 5 min ago: seen
 never replied: idle
@@ -22,6 +23,8 @@ replied 3 h ago, before the page first kept the replies you had not read, not op
 your turn since, a request: true
 …Claude waiting on you, from when its status changed: true
 …a reply: true
+a reply you read 9 min ago: still in Your turn: turn
+…10 min ago: in Seen: seen
 
 == Where each row goes
 Your turn first come, first served; Working and Seen newest first; then Idle: turn: r2 q1(needs) r1 q2(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1
@@ -34,6 +37,11 @@ a row you pressed in Idle stays there as it starts work again: turn: r2 q1(needs
 a row you pressed that replies meanwhile stays where it was: turn: r2 q1(needs) q2(needs) q3(needs) · busy: w2 w1(turn) · seen: s2 s1 · idle: i2 i1
 …while a request that comes joins the end of Your turn: turn: r2 q1(needs) q2(needs) q3(needs) q4(needs) · busy: w2 w1(turn) · seen: s2 s1 · idle: i2 i1
 …and once you've moved on, it joins the end after that request, though its reply came first: turn: r2 q1(needs) q2(needs) q3(needs) q4(needs) w1 · busy: w2 · seen: s2 s1 · idle: i2 i1
+two replies waiting, one working: turn: m1 m2 · busy: w3
+a reply you read stays in Your turn, where it was, while you are on it: turn: m1(seen) m2 · busy: w3
+…and for ten minutes after you were last on it: turn: m1(seen) m2 · busy: w3
+…then it goes to Seen: turn: m2 · busy: w3 · seen: m1
+a reply that comes in while you are on it joins the end of Your turn: turn: m2 w3(seen) · seen: m1
 the session you're on isn't held: its row goes where it belongs: false
 a row you pressed is held while your pointer is on the panel: true
 …and while you type in one of its boxes, wherever the pointer is: true
@@ -49,15 +57,12 @@ the session you are on follows the mark, which alone reads nothing: ["tb","turn"
 …the app saw you looking at it after it replied: read: seen
 …and still read once the app has restarted, as the page keeps it: seen
 …a reply that came after you last looked is not read: turn
+a reply you have read is in Your turn while you are on it: turn
+…what the page keeps follows you while you stay on it: true
+…and once you are on another, it stays in Your turn for ten minutes after you were last on it, then in Seen: ["turn","seen"]
+once you have moved on, being on it again leaves it in Seen: [true,"seen"]
+…until something new comes: a reply it sends while you are on it is read, and in Your turn: ["seen","turn"]
 a conversation just opened in Claude is the one you are on at once, before Claude says so: ta
-
-== The header's line
-a request and a reply waiting, one working: <b style="color:var(--needs)">2 your turn</b> · <b style="color:var(--busy)">1 working</b>
-only replies waiting: <b style="color:var(--turn)">2 your turn</b>
-a row you pressed counts where the list shows it: <b style="color:var(--turn)">2 your turn</b>
-only working: <b style="color:var(--busy)">1 working</b>
-nothing waiting or working: 1 seen · 2 idle
-only idle: 2 idle
 
 == The list
 the sections in order, Idle folded: [Your turn 4] r2.turn q1.needs r1.turn q2.needs [Working 2] w2.busy w1.busy [Seen 2] s2.seen s1.seen [Idle 2 ›] (folded) i2.idle i1.idle
@@ -903,3 +908,20 @@ a little colour for code: ["  <span class=\"c-cm\">// a &lt;note&gt;</span>","sa
       <span class="c-path"><i>docs/</i>retries.md</span>
       <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
       <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Visual Studio Code</button></span></div><table class="c-lines"></table></section>
+
+== The folded cat (cat.js)
+nothing running: asleep
+no sessions at all: asleep
+two working: watch
+one needs your input while two work: turn
+its labels: two waiting by name beside it, the other five as dots in a row under them: {"names":[{"i":0,"y":0},{"i":1,"y":30}],"dots":[{"i":2,"x":57,"y":56},{"i":3,"x":74,"y":56},{"i":4,"x":91,"y":56},{"i":5,"x":108,"y":56},{"i":6,"x":125,"y":56}]}
+…nothing waiting: the dots alone, level with the cat: {"names":[],"dots":[{"i":0,"x":57,"y":0},{"i":1,"x":74,"y":0},{"i":2,"x":91,"y":0}]}
+…seven waiting: five by name, the other two first among the dots: {"names":[{"i":0,"y":0},{"i":1,"y":30},{"i":2,"y":60},{"i":3,"y":90},{"i":4,"y":120}],"dots":[{"i":5,"x":57,"y":146},{"i":6,"x":74,"y":146},{"i":7,"x":91,"y":146}]}
+…twenty: the dots go on in a second row after twelve: {"names":[{"i":0,"y":0}],"dots":[{"i":1,"x":57,"y":26},{"i":2,"x":74,"y":26},{"i":3,"x":91,"y":26},{"i":4,"x":108,"y":26},{"i":5,"x":125,"y":26},{"i":6,"x":142,"y":26},{"i":7,"x":159,"y":26},{"i":8,"x":176,"y":26},{"i":9,"x":193,"y":26},{"i":10,"x":210,"y":26},{"i":11,"x":227,"y":26},{"i":12,"x":244,"y":26},{"i":13,"x":57,"y":44},{"i":14,"x":74,"y":44},{"i":15,"x":91,"y":44},{"i":16,"x":108,"y":44},{"i":17,"x":125,"y":44},{"i":18,"x":142,"y":44},{"i":19,"x":159,"y":44}]}
+a tag's place, from the corner of the cat's square: on its left, and on its right on the screen's left half: ["right: 95.0px; top: 69.0px","left: -7.0px; top: 69.0px"]
+…and a dot's: ["right: 99.5px; top: 67.0px","left: -2.5px; top: 67.0px"]
+its eyes, toward a pointer up and to its right while it looks at you: {"x":8.08883460828741,"y":-8.864014591581618}
+…toward one below it while it watches: {"x":0,"y":12}
+…and only a little toward one on its face, close to its eyes: {"x":3,"y":2.34375}
+…after a quick sweep from its left to its right, catching up over a moment, never past it: where its eyes are after 2, 5, 10, 15 and 30 frames at 60 a second: [-7.4,2.3,9.8,11.6,12]
+…and at 30 frames a second, each frame further on than the last, without shaking: [-7.4,-0.6,4.6,7.9,9.8,10.9,11.7]
