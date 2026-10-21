@@ -148,6 +148,14 @@ static NSString *JSONText(id value) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), once);
 }
 
+- (void)foldFromSide:(NSPoint)at {
+    [self call:@"foldFromSide" arguments:[NSString stringWithFormat:@"%.0f, %.0f", at.x, at.y]];
+}
+
+- (void)catLanded {
+    [self call:@"catLanded" arguments:nil];
+}
+
 - (void)setGroupBy:(NSString *)mode {  // one of two fixed words (MenuBar), so it can go in as it is
     [self call:@"setGroupBy" arguments:[NSString stringWithFormat:@"'%@'", mode]];
 }

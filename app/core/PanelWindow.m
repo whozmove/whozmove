@@ -4,6 +4,8 @@
 #import "Page.h"
 #import "Appearance.h"
 #import "Browser.h"
+#import "EdgeIcon.h"
+#import "Easing.h"
 #import <QuartzCore/QuartzCore.h>
 
 // The panel's width; its header's height (--header in panel/styles/tokens.css) and the buttons at the header's right
@@ -45,6 +47,11 @@ static const CGFloat kTurnDepth = 1100, kEdge = 6, kEdgeInset = 12;
 // Turned over, the back's header leaves its left end to its page, for the ‹ back to its apps; the drag strip covers the
 // rest, up to its buttons, as on the list's.
 static const CGFloat kBackLead = 44;
+// A sideways swipe: how far the fingers go before it's taken to be sideways or not, how far the panel leans with them
+// at most, how fast they must be going as they lift for a flick (points a second), and how long the panel takes to go
+// off the screen's edge, and to come back, at least and at most.
+static const CGFloat kSwipeDecide = 6, kLeanMost = 20, kFlickSpeed = 800;
+static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 
 // Clicking the panel doesn't take the keyboard from the app being typed in (a click on a row, say, leaves it with
 // Claude's message box): the panel becomes the key window only while one of its own text boxes is being typed in
@@ -61,9 +68,8 @@ static const CGFloat kBackLead = 44;
 // Transparent strip over the header: drag moves the panel, a plain click is handed to the page.
 @interface DragStrip : NSView
 @property (copy) void (^onClick)(void);
-@property (copy) void (^onMoved)(void);
-@property (copy) BOOL (^mayDrag)(void);           // not while the panel changes size
-@property (copy) void (^onShift)(NSPoint by);     // each step of a drag: how far the panel really moved
+@property (copy) BOOL (^onDrag)(NSPoint by);  // each step of a drag (PanelWindow's dragBy:): NO if it can't move now
+@property (copy) void (^onDragged)(void);     // the drag is over (draggedByHand)
 @end
 
 @implementation DragStrip {
@@ -78,24 +84,13 @@ static const CGFloat kBackLead = 44;
 - (void)mouseDragged:(NSEvent *)event {
     NSPoint now = [NSEvent mouseLocation];
     if (!_dragged && hypot(now.x - _start.x, now.y - _start.y) < 3) return;
-    if (self.mayDrag && !self.mayDrag()) return;
+    if (!self.onDrag(NSMakePoint(now.x - _start.x, now.y - _start.y))) return;
     _dragged = YES;
-    NSRect was = self.window.frame, frame = was;
-    frame.origin.x += now.x - _start.x;
-    frame.origin.y += now.y - _start.y;
-    [self.window setFrame:frame display:YES];
     _start = now;
-    // By where the window is now, not by how far the pointer went: macOS rounds a window's place to whole pixels and
-    // keeps it below the menu bar, so the pointer's moves added up would drift from it over a long drag.
-    NSRect is = self.window.frame;
-    if (self.onShift) self.onShift(NSMakePoint(NSMinX(is) - NSMinX(was), NSMinY(is) - NSMinY(was)));
 }
 - (void)mouseUp:(NSEvent *)event {
     if (!_dragged && self.onClick) self.onClick();
-    // Not while the reader is open, which turns the name off: that size isn't the one to come back at.
-    if (_dragged && self.window.frameAutosaveName.length)
-        [self.window saveFrameUsingName:self.window.frameAutosaveName];
-    if (_dragged && self.onMoved) self.onMoved();
+    if (_dragged) self.onDragged();
 }
 @end
 
@@ -197,6 +192,25 @@ static const CGFloat kBackLead = 44;
 @property (assign) BOOL pageKeys;
 @property (weak) Browser *pointedBrowser;
 @property (strong) id clickWatch;
+// A sideways swipe on the panel (swiped:): whether it's allowed, whether it has been taken to be sideways or not and
+// is the panel's, how far the fingers have gone, how fast they were going, and when the last part of it came; and
+// where the panel was as it started.
+@property (strong) id swipeWatch;
+@property (assign) BOOL swipeAllowed, swipeDecided, swipeMine;
+@property (assign) BOOL foldedSwipe;    // a swipe on the folded cat, moving it (swipedFolded:), and its momentum
+@property (assign) NSPoint foldedFrom, foldedTotal;  // where the folded glass started, and how far the swipe has gone
+@property (assign) CGFloat swipeX, swipeY, swipeSpeed;
+@property (assign) NSTimeInterval swipeAt;
+@property (assign) NSPoint swipeFrom;
+@property (assign) CGFloat swipeTop;
+// Pushed off the screen's edge (parked), on its way (parkTimer), where it was before and the room on the screen it went
+// from (the screen it's on once it has gone may be another), and who hears it has gone.
+@property (assign) BOOL parked;
+@property (strong) NSTimer *parkTimer;
+@property (assign) NSPoint parkedFrom;
+@property (assign) CGFloat parkedTop;
+@property (assign) NSRect parkScreen;
+@property (strong) NSMutableArray *awayObservers;
 @property (assign) BOOL expanded;       // grown to the screen for the reader
 @property (assign) NSRect listFrame;    // where the panel was before it grew, to fold back to
 @property (assign) BOOL listOnRight;    // the reader opened to the list's left
@@ -218,7 +232,7 @@ static const CGFloat kBackLead = 44;
 @property (assign) BOOL turning;
 @property (strong) NSNumber *pendingTurn;
 @property (copy) void (^pendingTurnThen)(void);
-@property (assign) CGFloat heightAfterTurn;
+@property (assign) CGFloat heightAsked;
 @property (assign) NSRect turnFrame;    // where the panel is as it turns, the window having taken in room round it
 @property (strong) NSMutableArray *turnObservers;
 @property (assign) BOOL reshaping;
@@ -229,8 +243,14 @@ static const CGFloat kBackLead = 44;
 @property (copy) void (^pendingDone)(void);
 // Moving the glass, the clip and the page together, a step at a time (moveGlassTo:).
 @property (strong) NSTimer *moveTimer;
-// Who follows the glass and the pointer (followGlass:, followPointer:).
+// Who follows the glass and the pointer (followGlass:, followPointer:), and the side the icons at its edge are on.
 @property (strong) NSMutableArray *glassObservers, *pointerObservers;
+// How much of the header shows as it slides away with the list (headerShowing:gone:), and who hears it has gone; who
+// hears the panel fold and open, and its look change.
+@property (assign) CGFloat headerPoints;
+@property (assign) BOOL headerGone;
+@property (strong) NSMutableArray *headerObservers, *foldObservers, *lookObservers;
+@property (copy) NSString *edgeSide;
 // Folded into the cat (fold:instant:); how tall the panel was as it folded, to open at again; a fold or an opening
 // asked for while one was moving, taken next (nil for none).
 @property (assign) BOOL folded;
@@ -263,27 +283,6 @@ static const CGFloat kBackLead = 44;
 @end
 
 // The glass's rounded corners, as a mask that stretches to any size.
-// How far along a move is at `x` of its time, on a curve given as CSS gives one, cubic-bezier(x1, y1, x2, y2).
-typedef struct { CGFloat x1, y1, x2, y2; } Easing;
-// The reader's: quick, then settling. Folding and opening: gentle at both ends, as the cat changes size with the glass.
-static const Easing kSettle = {0.2, 0.8, 0.2, 1}, kFoldEasing = {0.4, 0, 0.2, 1};
-
-static CGFloat Eased(Easing e, CGFloat x) {
-    if (x <= 0) return 0;
-    if (x >= 1) return 1;
-    // The curve's own time for `x` (Newton's method), then how far along it is there.
-    CGFloat t = x;
-    for (int i = 0; i < 8; i++) {
-        CGFloat u = 1 - t;
-        CGFloat off = 3 * u * u * t * e.x1 + 3 * u * t * t * e.x2 + t * t * t - x;
-        CGFloat slope = 3 * u * u * e.x1 + 6 * u * t * (e.x2 - e.x1) + 3 * t * t * (1 - e.x2);
-        if (fabs(off) < 1e-6 || fabs(slope) < 1e-6) break;
-        t = MIN(1, MAX(0, t - off / slope));
-    }
-    CGFloat u = 1 - t;
-    return 3 * u * u * t * e.y1 + 3 * u * t * t * e.y2 + t * t * t;
-}
-
 // The rectangle `along` of the way from `a` to `b`.
 static NSRect Between(NSRect a, NSRect b, CGFloat along) {
     return NSMakeRect(NSMinX(a) + (NSMinX(b) - NSMinX(a)) * along, NSMinY(a) + (NSMinY(b) - NSMinY(a)) * along,
@@ -398,6 +397,11 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     self.stillWaiters = [NSMutableArray array];
     self.catAt = kCatAt;
     self.pointerObservers = [NSMutableArray array];
+    self.headerObservers = [NSMutableArray array];
+    self.foldObservers = [NSMutableArray array];
+    self.lookObservers = [NSMutableArray array];
+    self.awayObservers = [NSMutableArray array];
+    self.headerPoints = kHeaderHeight;
     NSRect screen = NSScreen.mainScreen.visibleFrame;
     NSRect frame = NSMakeRect(NSMaxX(screen) - kWidth - 16, NSMaxY(screen) - 200 - 16, kWidth, 200);
     self.panel = [[FloatingPanel alloc] initWithContentRect:frame
@@ -491,13 +495,8 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     readerStrip.autoresizingMask = NSViewMinYMargin;
     readerStrip.hidden = YES;
     for (DragStrip *each in @[strip, readerStrip]) {
-        each.onMoved = ^{ [weakSelf updateRoom]; };
-        each.mayDrag = ^BOOL { return !weakSelf.reshaping; };
-        // While the reader is open, the list moves with the panel, and folds back to where it is then.
-        each.onShift = ^(NSPoint by) {
-            if (weakSelf.expanded) weakSelf.listFrame = NSOffsetRect(weakSelf.listFrame, by.x, by.y);
-            [weakSelf tellGlass:[weakSelf glassOnScreen] over:0];
-        };
+        each.onDrag = ^BOOL(NSPoint by) { return [weakSelf dragBy:by]; };
+        each.onDragged = ^{ [weakSelf draggedByHand]; };
     }
     [NSNotificationCenter.defaultCenter addObserverForName:NSApplicationDidChangeScreenParametersNotification object:nil
                                                      queue:NSOperationQueue.mainQueue
@@ -520,6 +519,11 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
                                                             handler:^NSEvent *(NSEvent *event) {
         if (event.window == weakSelf.panel) [weakSelf clickedAt:event.locationInWindow];
         return event;
+    }];
+    // A sideways two-finger swipe on the panel moves it (swiped:): seen before the page gets it, which then doesn't.
+    self.swipeWatch = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel
+                                                            handler:^NSEvent *(NSEvent *event) {
+        return [weakSelf swiped:event];
     }];
     // The edge between the panel's two sides, seen only while it turns: a strip of the panel's own colour, lighter in
     // its middle as a rounded edge would catch the light (paintEdge). It's see-through but while its animation runs
@@ -583,7 +587,8 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 // What the panel holds under itself (Spotify's token) goes and comes back with it: macOS does that for a window's
 // children, as long as they're left attached.
 - (void)toggle {
-    if (self.panel.isVisible) [self.panel orderOut:nil];
+    if (self.parked) [self unpark];
+    else if (self.panel.isVisible) [self.panel orderOut:nil];
     else [self bringUp];
 }
 
@@ -597,16 +602,19 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
 
 - (void)setLook:(NSString *)look {
     self.tint.look = look;
+    for (void (^observer)(void) in self.lookObservers) observer();
 }
 
 // Back on the screen, the shadow is held just under it again, over what was held under it while it was away.
 - (void)bringUp {
+    if (self.parked) return [self unpark];
     if (self.panel.isVisible) return;
     [self.panel orderFrontRegardless];
     [self holdShade];
 }
 
 - (void)resetPosition {
+    if (self.parked || self.parkTimer) [self backAtOnce];
     NSRect screen = NSScreen.mainScreen.visibleFrame;
     NSRect frame = self.panel.frame;
     // Folded, the cat goes where the name's o is in the panel put back there.
@@ -652,7 +660,7 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     // as it was then rather than following the list out of sight: the height the list asks for meanwhile is taken once
     // the panel is back on its list side.
     if (self.turned || self.turning) {
-        self.heightAfterTurn = height;
+        self.heightAsked = height;
         return;
     }
     if (self.expanded || self.reshaping || self.folded) return;
@@ -684,10 +692,320 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     [self.pointerObservers addObject:observer];
 }
 
+- (void)headerShowing:(CGFloat)showing gone:(BOOL)gone {
+    self.headerPoints = showing;
+    if (!self.reshaping) [self placeStrips];
+    if (gone == self.headerGone) return;
+    self.headerGone = gone;
+    for (void (^observer)(BOOL) in self.headerObservers) observer(gone);
+}
+
+- (void)followHeader:(void (^)(BOOL))observer {
+    [self.headerObservers addObject:observer];
+}
+
+- (void)followFold:(void (^)(BOOL, BOOL))observer {
+    [self.foldObservers addObject:observer];
+}
+
+- (void)tellFold:(BOOL)done {
+    for (void (^observer)(BOOL, BOOL) in self.foldObservers) observer(self.folded, done);
+}
+
+- (void)followLook:(void (^)(void))observer {
+    [self.lookObservers addObject:observer];
+}
+
+- (NSPoint)listCorner {
+    return [self rootAt];
+}
+
+- (BOOL)dragBy:(NSPoint)by {
+    if (self.reshaping) return NO;
+    NSRect was = self.panel.frame;
+    [self.panel setFrame:NSOffsetRect(was, by.x, by.y) display:YES];
+    // By where the window is now, not by how far the pointer went: macOS rounds a window's place to whole pixels and
+    // keeps it below the menu bar, so the pointer's moves added up would drift from it over a long drag. While the
+    // reader is open, the list moves with the panel, and folds back to where it is then.
+    NSRect is = self.panel.frame;
+    if (self.expanded)
+        self.listFrame = NSOffsetRect(self.listFrame, NSMinX(is) - NSMinX(was), NSMinY(is) - NSMinY(was));
+    [self tellGlass:[self glassOnScreen] over:0];
+    return YES;
+}
+
+// Not while the reader is open, which turns the name off: that size isn't the one to come back at.
+- (void)draggedByHand {
+    if (self.panel.frameAutosaveName.length) [self.panel saveFrameUsingName:self.panel.frameAutosaveName];
+    [self updateRoom];
+}
+
+- (void)hold:(NSWindow *)window over:(BOOL)over {
+    [self.panel removeChildWindow:window];
+    [self.panel addChildWindow:window ordered:over ? NSWindowAbove : NSWindowBelow];
+    if (!over && self.panel.isVisible) [self holdShade];
+}
+
+#pragma mark Flicked off the screen's edge
+
+NSPoint FoldedMove(NSRect glass, NSPoint by, NSRect visible) {
+    // How far it may go each way: up to the screen's edge, and nowhere further out where it's past that already.
+    CGFloat left = MIN(0, NSMinX(visible) - NSMinX(glass)), right = MAX(0, NSMaxX(visible) - NSMaxX(glass));
+    CGFloat down = MIN(0, NSMinY(visible) - NSMinY(glass)), up = MAX(0, NSMaxY(visible) - NSMaxY(glass));
+    return NSMakePoint(MAX(left, MIN(right, by.x)), MAX(down, MIN(up, by.y)));
+}
+
+// Folded, a two-finger swipe on the cat, any way, moves it with the fingers, and as they lift it goes on with the
+// trackpad's own momentum, as far as the swipe was quick, slowing to a stop: always within the screen, stopping at its
+// edge. Its place is kept once the swipe, and then its momentum, has ended. Not while it's folding or opening.
+- (NSEvent *)swipedFolded:(NSEvent *)event {
+    if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin) {
+        self.foldedFrom = [self foldedGlassIn:self.panel.frame].origin;
+        self.foldedTotal = NSZeroPoint;
+        return nil;
+    }
+    if (self.folded) {
+        // Which way the fingers went, whichever way scrolling goes on this Mac; the screen's y runs up. The swipe's
+        // total so far, kept within the screen from where the glass started, places it: macOS rounds a window's place,
+        // so a fraction of a point added each time would be lost, and a turn back moves it at once.
+        CGFloat way = event.isDirectionInvertedFromDevice ? 1 : -1;
+        NSPoint total = NSMakePoint(self.foldedTotal.x + event.scrollingDeltaX * way,
+                                    self.foldedTotal.y - event.scrollingDeltaY * way);
+        NSRect visible = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame;
+        NSRect glass = [self foldedGlassIn:self.panel.frame];
+        self.foldedTotal = total = FoldedMove((NSRect){self.foldedFrom, glass.size}, total, visible);
+        NSPoint by = NSMakePoint(self.foldedFrom.x + total.x - NSMinX(glass),
+                                 self.foldedFrom.y + total.y - NSMinY(glass));
+        if (by.x || by.y) [self dragBy:by];  // not while it changes shape (dragBy:): the next step catches up
+    }
+    BOOL ends = event.momentumPhase == NSEventPhaseEnded || event.momentumPhase == NSEventPhaseCancelled
+                || (event.momentumPhase == NSEventPhaseNone
+                    && (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled));
+    if (ends) [self draggedByHand];
+    // A swipe with momentum to come stays the cat's until that has run out.
+    if (event.momentumPhase == NSEventPhaseEnded || event.momentumPhase == NSEventPhaseCancelled) self.foldedSwipe = NO;
+    return nil;
+}
+
+int SwipeWay(CGFloat x, CGFloat y) {
+    if (hypot(x, y) < kSwipeDecide) return 0;
+    return fabs(x) > 2 * fabs(y) ? 1 : -1;
+}
+
+BOOL SwipeFlicks(CGFloat speed, CGFloat x) {
+    return fabs(speed) > kFlickSpeed && speed * x > 0;
+}
+
+NSPoint ParkedOrigin(NSRect frame, NSRect visible, BOOL right) {
+    return NSMakePoint(right ? NSMaxX(visible) : NSMinX(visible) - NSWidth(frame), NSMinY(frame));
+}
+
+CGFloat ParkedShows(NSRect frame, NSRect visible) {
+    CGFloat inside = NSWidth(NSIntersectionRect(frame, visible)) / NSWidth(frame);
+    return inside * inside;
+}
+
+- (void)followAway:(void (^)(BOOL))observer {
+    [self.awayObservers addObject:observer];
+}
+
+// A two-finger swipe on the panel, as the trackpad says it goes: from the fingers landing (began), as they move
+// (changed), to their lifting (ended), the trackpad's momentum after it. One whose first moves are mostly sideways is
+// the panel's, from then till its momentum has run out, and the page doesn't get it; up and down stay the list's. Only
+// on the open panel's list, with the reader closed, and not while one of the page's boxes has the keyboard.
+- (NSEvent *)swiped:(NSEvent *)event {
+    if (event.window != self.panel || !event.hasPreciseScrollingDeltas) return event;
+    // A swipe that starts on the folded cat is the cat's, to its end, momentum and all.
+    if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin)
+        self.foldedSwipe = self.folded && !self.reshaping;
+    if (self.foldedSwipe) return [self swipedFolded:event];
+    if (event.momentumPhase != NSEventPhaseNone) return self.swipeMine ? nil : event;
+    if (event.phase == NSEventPhaseBegan || event.phase == NSEventPhaseMayBegin) {
+        self.swipeMine = self.swipeDecided = NO;
+        self.swipeX = self.swipeY = self.swipeSpeed = 0;
+        self.swipeAt = event.timestamp;
+        // Not while one of the page's boxes has the keyboard: a sideways swipe there moves through its words.
+        self.swipeAllowed = !self.folded && !self.expanded && !self.turned && !self.turning && !self.reshaping
+                            && !self.parked && !self.parkTimer && !self.panel.wantsKeyboard;
+        return event;
+    }
+    if (!self.swipeAllowed) return event;
+    if (event.phase == NSEventPhaseChanged) {
+        // Which way the fingers went, whichever way scrolling goes on this Mac.
+        CGFloat way = event.isDirectionInvertedFromDevice ? 1 : -1;
+        CGFloat dx = event.scrollingDeltaX * way, dy = event.scrollingDeltaY * way;
+        self.swipeX += dx;
+        self.swipeY += dy;
+        if (!self.swipeDecided) {
+            int way = SwipeWay(self.swipeX, self.swipeY);
+            if (!way) return event;
+            self.swipeDecided = YES;
+            self.swipeMine = way > 0;
+            if (!self.swipeMine) return event;
+            // Its place is kept as it was, not where it leans or goes.
+            self.swipeFrom = self.panel.frame.origin;
+            self.swipeTop = NSMaxY(self.panel.frame);
+            [self.panel saveFrameUsingName:@"Whozmove"];
+            self.panel.frameAutosaveName = @"";
+        }
+        if (!self.swipeMine) return event;
+        NSTimeInterval dt = event.timestamp - self.swipeAt;
+        self.swipeAt = event.timestamp;
+        if (dt > 0.001) self.swipeSpeed = 0.6 * dx / dt + 0.4 * self.swipeSpeed;
+        // It leans with the fingers, less the further they go.
+        CGFloat lean = kLeanMost * tanh(self.swipeX / 60);
+        [self.panel setFrameOrigin:NSMakePoint(self.swipeFrom.x + lean, self.swipeTop - NSHeight(self.panel.frame))];
+        [self tellGlass:[self glassOnScreen] over:0];
+        return nil;
+    }
+    if (event.phase == NSEventPhaseEnded || event.phase == NSEventPhaseCancelled) {
+        if (!self.swipeMine) return event;
+        BOOL flick = event.phase == NSEventPhaseEnded && SwipeFlicks(self.swipeSpeed, self.swipeX);
+        if (flick) [self parkToward:self.swipeSpeed > 0 speed:fabs(self.swipeSpeed)];
+        else [self slideTo:NSMakePoint(self.swipeFrom.x, self.swipeTop) over:0.25 fading:NO then:^(PanelWindow *me) {
+            [me.panel saveFrameUsingName:@"Whozmove"];
+            me.panel.frameAutosaveName = @"Whozmove";
+        }];
+        return nil;
+    }
+    return event;
+}
+
+// Off that edge of the screen it was flicked toward, carrying on at the flick's speed and easing out, fading as it goes
+// past the edge (on a display beside it, it never shows): just past the edge, Whozmove peeks out from it. The icons at
+// its edge take the side facing back onto the screen at once, while still out of sight, and keep it while it's away,
+// so Whozmove comes out at the screen's edge as the panel arrives. What's held over or under it goes as it starts; with
+// reduced motion, once the panel has faded and gone, so Whozmove fades in at the edge.
+- (void)parkToward:(BOOL)right speed:(CGFloat)speed {
+    NSRect visible = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame, frame = self.panel.frame;
+    CGFloat x = ParkedOrigin(frame, visible, right).x;
+    self.parked = YES;
+    self.parkScreen = visible;
+    self.parkedFrom = self.swipeFrom;
+    self.parkedTop = self.swipeTop;
+    self.edgeSide = right ? @"left" : @"right";
+    [self tellGlass:[self glassOnScreen] over:0];
+    [self dropKeyboard];
+    void (^gone)(PanelWindow *) = ^(PanelWindow *me) {
+        for (void (^observer)(BOOL) in me.awayObservers) observer(YES);
+    };
+    if (NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion)
+        return [self fadeTo:NSMakePoint(x, NSMaxY(frame)) coming:NO then:^(PanelWindow *me) {
+            me.panel.ignoresMouseEvents = YES;
+            gone(me);
+        }];
+    gone(self);
+    NSTimeInterval seconds = MAX(kParkLeast, MIN(kParkMost, 3 * fabs(x - NSMinX(frame)) / speed));
+    [self slideTo:NSMakePoint(x, NSMaxY(frame)) over:seconds fading:YES then:^(PanelWindow *me) {
+        me.panel.ignoresMouseEvents = YES;
+    }];
+}
+
+// Where it was before it was flicked away: its top-left corner. Its place is found from that and its height as it is
+// then (originAt:), as it keeps growing and shrinking from its top while it's away or on its way.
+- (NSPoint)parkedCorner {
+    return NSMakePoint(self.parkedFrom.x, self.parkedTop);
+}
+
+- (NSPoint)originAt:(NSPoint)corner {
+    return NSMakePoint(corner.x, corner.y - NSHeight(self.panel.frame));
+}
+
+// With reduced motion, it fades out where it is, then goes (parking); or comes back, then fades in: to its top-left
+// `corner`.
+- (void)fadeTo:(NSPoint)corner coming:(BOOL)coming then:(void (^)(PanelWindow *me))then {
+    __weak typeof(self) weakSelf = self;
+    void (^go)(void) = ^{
+        [weakSelf.panel setFrameOrigin:[weakSelf originAt:corner]];
+        [weakSelf tellGlass:[weakSelf glassOnScreen] over:0];
+    };
+    if (coming) go();
+    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+        context.duration = 0.2;
+        weakSelf.panel.animator.alphaValue = coming ? 1 : 0;
+        weakSelf.shade.animator.alphaValue = coming ? 1 : 0;
+    } completionHandler:^{
+        if (!coming) go();
+        if (weakSelf) then(weakSelf);
+    }];
+}
+
+// Back where it was, sliding in from the screen's edge, what's held over or under it coming back with it as it does.
+// With reduced motion, Whozmove fades at the edge first, then the panel fades in where it was.
+- (void)unpark {
+    if (!self.parked) return;
+    self.parked = NO;
+    self.panel.ignoresMouseEvents = NO;
+    for (void (^observer)(BOOL) in self.awayObservers) observer(NO);
+    void (^back)(PanelWindow *) = ^(PanelWindow *me) { [me backAtOnce]; };
+    if (NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion) {
+        __weak typeof(self) weakSelf = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [weakSelf fadeTo:[weakSelf parkedCorner] coming:YES then:back];
+        });
+        return;
+    }
+    [self slideTo:[self parkedCorner] over:kUnpark fading:YES then:back];
+}
+
+// Back where it was, at once: in sight, and its place kept again, saved first as it is, as given its name back the
+// window also moves to what's saved under it.
+- (void)backAtOnce {
+    [self.parkTimer invalidate];
+    self.parkTimer = nil;
+    BOOL wasParked = self.parked;
+    self.parked = NO;
+    [self.panel setFrameOrigin:[self originAt:[self parkedCorner]]];
+    self.panel.alphaValue = self.shade.alphaValue = 1;
+    self.panel.ignoresMouseEvents = NO;
+    [self.panel saveFrameUsingName:@"Whozmove"];
+    self.panel.frameAutosaveName = @"Whozmove";
+    [self tellGlass:[self glassOnScreen] over:0];
+    if (wasParked) for (void (^observer)(BOOL) in self.awayObservers) observer(NO);
+}
+
+// The panel slides its top-left corner to `corner` over `seconds`, easing out, its place found each step from that
+// and its height then (it may grow or shrink from its top on the way), and those following the glass are told each
+// step; then `then`. Fading, it's as faint as it is past the screen's edge.
+- (void)slideTo:(NSPoint)corner over:(NSTimeInterval)seconds fading:(BOOL)fading
+            then:(void (^)(PanelWindow *me))then {
+    [self.parkTimer invalidate];
+    NSPoint from = NSMakePoint(NSMinX(self.panel.frame), NSMaxY(self.panel.frame));
+    CFTimeInterval start = CACurrentMediaTime();
+    __weak typeof(self) weakSelf = self;
+    void (^step)(CGFloat) = ^(CGFloat along) {
+        PanelWindow *me = weakSelf;
+        CGFloat e = 1 - pow(1 - along, 3);
+        [me.panel setFrameOrigin:[me originAt:NSMakePoint(round(from.x + (corner.x - from.x) * e),
+                                                         from.y + (corner.y - from.y) * e)]];
+        if (fading) me.panel.alphaValue = me.shade.alphaValue = ParkedShows(me.panel.frame, me.parkScreen);
+        [me tellGlass:[me glassOnScreen] over:0];
+    };
+    if (seconds <= 0) {
+        step(1);
+        self.parkTimer = nil;
+        then(self);
+        return;
+    }
+    self.parkTimer = [NSTimer timerWithTimeInterval:1.0 / 120 repeats:YES block:^(NSTimer *timer) {
+        CGFloat along = MIN(1, (CACurrentMediaTime() - start) / seconds);
+        step(along);
+        if (along < 1) return;
+        [timer invalidate];
+        PanelWindow *me = weakSelf;
+        if (me.parkTimer == timer) me.parkTimer = nil;
+        if (me) then(me);
+    }];
+    [NSRunLoop.mainRunLoop addTimer:self.parkTimer forMode:NSRunLoopCommonModes];
+}
+
 - (void)tellGlass:(NSRect)glass over:(NSTimeInterval)duration {
     NSScreen *screen = self.panel.screen ?: NSScreen.mainScreen;
+    NSRect list = self.expanded ? self.listFrame : glass;
+    // Flicked away, or on its way there or back, the icons keep the side facing back onto the screen (parkToward:).
+    if (!self.parked && !self.parkTimer) self.edgeSide = EdgeSideFor(list, screen.visibleFrame, self.edgeSide);
     for (void (^observer)(NSRect, NSRect, NSRect, NSTimeInterval) in self.glassObservers)
-        observer(glass, self.expanded ? self.listFrame : glass, screen.visibleFrame, duration);
+        observer(glass, list, screen.visibleFrame, duration);
 }
 
 #pragma mark The reader
@@ -1023,9 +1341,13 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
         return;
     }
     if (!self.expanded) {
+        // Only over the part of the header that still shows as it slides away with the list, so a press on the rows
+        // that have come up under it goes to them; none once it has gone. The back's header stays where it is.
         CGFloat lead = self.turned ? kBackLead : 0;
-        self.strip.frame = NSMakeRect(lead, top, NSWidth(bounds) - kButtonsWidth - lead, kHeaderHeight);
-        self.strip.hidden = NO;
+        CGFloat showing = self.turned ? kHeaderHeight : MAX(0, MIN(kHeaderHeight, self.headerPoints));
+        self.strip.frame = NSMakeRect(lead, NSHeight(bounds) - showing, NSWidth(bounds) - kButtonsWidth - lead,
+                                      showing);
+        self.strip.hidden = showing < 1;
         self.readerStrip.hidden = YES;
         return;
     }
@@ -1054,7 +1376,11 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     if (!self.shade) return;
     NSRect window = self.panel.frame, room = NSInsetRect(window, -kShadeRoom, -kShadeRoom);
     if (!NSEqualRects(room, self.shade.frame)) [self.shade setFrame:room display:NO];
-    NSRect glass = NSOffsetRect(self.glass.frame, kShadeRoom, kShadeRoom);
+    // From where the shadow's window really is: near the top of the screen, macOS keeps it below the menu bar, lower
+    // than the room above the panel would put it, and a shadow placed as if it weren't would hang below the panel,
+    // round nothing.
+    NSRect shade = self.shade.frame;
+    NSRect glass = NSOffsetRect(self.glass.frame, NSMinX(window) - NSMinX(shade), NSMinY(window) - NSMinY(shade));
     CGFloat radius = MIN(self.glassRadius ?: kCorner, MIN(NSWidth(glass), NSHeight(glass)) / 2);
     // How far it is from the open panel's corners to the folded cat's circle.
     CGFloat circle = MAX(0, MIN(1, (radius - kCorner) / (kFoldGlass / 2 - kCorner)));
@@ -1153,9 +1479,11 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     if (!on) [self stopBreathing];
     if (!changed || instant) {
         [self placeAtOnce];
+        if (changed) [self tellFold:YES];
         return;
     }
     if (on) self.openHeight = NSHeight(self.panel.frame);
+    [self tellFold:NO];
     [self foldMoving];
 }
 
@@ -1305,6 +1633,7 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
         [weakSelf settle];
         [weakSelf.panel saveFrameUsingName:@"Whozmove"];
         if (!weakSelf.folded) [weakSelf resendRoom];
+        [weakSelf tellFold:YES];
         [weakSelf takePending];
     };
     if (self.folded) {
@@ -1453,9 +1782,9 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     self.back.away = !over;
     if (!over) [self becomeTurned:NO];
     [self settle];
-    if (!over && self.heightAfterTurn > 0) {
-        CGFloat height = self.heightAfterTurn;
-        self.heightAfterTurn = 0;
+    if (!over && self.heightAsked > 0) {
+        CGFloat height = self.heightAsked;
+        self.heightAsked = 0;
         [self fitHeight:height];
     }
     if (then) then();
@@ -1588,7 +1917,7 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     [self becomeTurned:NO];
     [self placeStrips];
     // It's folding: the page says how tall it is again once it opens.
-    self.heightAfterTurn = 0;
+    self.heightAsked = 0;
 }
 
 // The edge in the panel's own colour, from the tint's: a little lighter on the dark panel and darker on the light one,

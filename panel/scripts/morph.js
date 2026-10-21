@@ -5,7 +5,9 @@
 // place, height and lines, rebuilds, and animates the difference:
 // - a new line (Claude's live line, its reply, a PR) grows in from nothing, fading and lifting into place;
 // - a line that's gone stays a moment as a copy that folds away;
-// - changed text cross-fades, and a row whose height changed otherwise resizes smoothly;
+// - your message and Claude's line are written: new text writes in from the left, old text erases from the right
+//   (rewriteLine), a new one writes in as it grows, and one that's gone erases before it folds;
+// - other changed text cross-fades, and a row whose height changed otherwise resizes smoothly;
 // - a row or section header that moved slides from where it was, and a new one eases in;
 // - one that left view (its session ended, or it went into a folded group) fades out where it was, while the
 //   rest close the gap.
@@ -36,7 +38,8 @@ function keptInOrder(moves) {
   return kept;
 }
 // A row's lines, top to bottom (rowHTML): the title, the chat, a card, the work line, a step's note and the bottom line.
-const ROW_LINES = ['.line1', '.you', '.claude', '.perm', '.work', '.step-note', '.where'];
+// (Claude's line is `.claude.work` while it works, which isn't the work line.)
+const ROW_LINES = ['.line1', '.you', '.claude', '.perm', '.work:not(.claude)', '.step-note', '.where'];
 function rowParts() { return ROW_LINES; }
 // The text that counts as a change for each line (the live line's timer ticks every second; that doesn't, and nor do
 // the bits that cross-fade by themselves: the numbers on the work line, and the agent's setup and Deploy's button on
@@ -44,13 +47,13 @@ function rowParts() { return ROW_LINES; }
 // said in its place; the bottom line with where the session runs. A card is another one when its data attributes are (which request, session or step it's
 // for), or it shows another question, or it was answered. The modules say what counts in their lines (core.lines'
 // `text`).
-// (`:scope > .what`: a line's own text, not that of the copies rolling inside it.)
+// (`:scope > .what`: a line's own text.)
 const PART_TEXT = { '.you': (el) => el.querySelector(':scope > .what')?.textContent,
                     '.claude': (el) => el.dataset.mode + ' ' + el.querySelector(':scope > .what')?.textContent,
                     '.perm': (el) => Object.values(el.dataset).join('') + ' '
                                      + (el.querySelector('.q')?.dataset.q ?? '')
                                      + (el.querySelector('.perm-sent') ? ' sent' : ''),
-                    '.work': (el) => (el.querySelector(':scope > .work-note')?.textContent ?? '') + '|'
+                    '.work:not(.claude)': (el) => (el.querySelector(':scope > .work-note')?.textContent ?? '') + '|'
                                      + (el.querySelector('.prs, .nopr')?.textContent ?? '') + '|'
                                      + [...el.querySelectorAll('[data-step]')].map((s) => s.dataset.step).join(' '),
                     '.where': (el) => el.querySelector('.place')?.textContent ?? '',
@@ -102,11 +105,10 @@ function tween(el, from, to, done, ms = MORPH_MS, ease = MORPH_EASE) {
   }, ms + 30);
 }
 
-// A chat line taking new text (your next message, or Claude's line going from working to its reply): the old text
-// rolls out as the new rolls in, clipped to the line like a ticker, and the line eases between their heights.
-// Yours rolls up (sent, as in a chat) and Claude's down (arriving from its side): `down` is true for Claude's line.
-// Only the text rolls; the label ("You", "Claude") stays put and just changes. The rolling copies ride inside
-// the line (its own text hidden underneath), so they move with it when the line above changes height too.
+// A line taking new text that rolls like a ticker (the header's build name, Spotify's song): the old text rolls out as
+// the new rolls in, clipped to the line, and the line eases between their heights. It rolls up, or down with `down`.
+// Only the text rolls; a label in the line (`.who`) stays put and just changes. The rolling copies ride inside the line
+// (its own text hidden underneath), so they move with it when the line above changes height too.
 function rollLine(row, el, was, down) {
   const oldH = was.height, newH = el.offsetHeight;
   const leaving = was.el.cloneNode(true), arriving = el.cloneNode(true);
@@ -134,6 +136,283 @@ function rollLine(row, el, was, down) {
         { transform: `translateY(${-way * oldH}px)`, opacity: '0' });
   tween(arriving, { transform: `translateY(${way * newH}px)`, opacity: '0' },
         { transform: 'translateY(0)', opacity: '1' });
+}
+
+// ---- Your message and Claude's line, written in and erased ----
+// A chat line's text changes as if written: the old text erases from its end back to its start, then the new text
+// writes in from there, each by a soft edge (CHAT_EDGE points wide), so the two never meet. What they share at their
+// start, by whole words, stays, and only the rest is rewritten (the next step's "Reading "). A reply on two lines
+// writes its first line, then its second, and erases the other way round. Claude's time beside its working text rides
+// just past what shows; it's written and erased with the line only when the line turns into or out of working. The
+// label changes as the new text starts. Writing keeps a steady pace and lands softly, erasing is its mirror, a little
+// quicker, and the whole of it, with both lines', fits in the time the rest of the rebuild's motion takes (MORPH_MS),
+// so the next rebuild never cuts it short. A new line writes in as its room opens; one that's gone erases, then folds.
+// When both lines change at once, yours goes first and Claude's follows (CHAT_STAGGER); going, Claude's goes first.
+const CHAT_EDGE = 26, CHAT_GAP = 40, CHAT_LEAD = 100, CHAT_STAGGER = 240, CHAT_STAGGER_GONE = 140;
+const MASK_KEYS = ['webkitMaskImage', 'maskImage', 'webkitMaskSize', 'maskSize', 'webkitMaskPosition', 'maskPosition',
+                   'webkitMaskRepeat', 'maskRepeat'];
+
+// The easing a CSS cubic-bezier() draws, as a function of how far through it is (0 to 1), for motion run frame by
+// frame (the chat lines' edge) and for the list's height while some of it starts late (listFrames).
+function cubicBezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const x = (t) => ((ax * t + bx) * t + cx) * t;
+  return (p) => {
+    if (!(p > 0)) return 0;
+    if (p >= 1) return 1;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      if (x(mid) < p) lo = mid; else hi = mid;
+    }
+    const t = (lo + hi) / 2;
+    return ((ay * t + by) * t + cy) * t;
+  };
+}
+const morphCurve = cubicBezier(0.2, 0.8, 0.2, 1);  // MORPH_EASE's
+const writeCurve = cubicBezier(0, 0, 0.58, 1), eraseCurve = cubicBezier(0.42, 0, 1, 1);
+
+// What two texts share at their start, by whole words, which stays as the rest is rewritten: the next step's verb.
+// All of it when they're the same; none when they part within their first word.
+function sharedStart(a, b) {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  if ((i === a.length || a[i] === ' ') && (i === b.length || b[i] === ' ')) return i;
+  return a.slice(0, i).lastIndexOf(' ') + 1;
+}
+
+// How long writing and erasing a stretch of text take, by its length along the way (points): a steady pace, erasing a
+// little quicker.
+const writeMs = (d) => Math.min(560, Math.max(200, 140 + d * 0.9));
+const eraseMs = (d) => Math.min(340, Math.max(140, 100 + d * 0.6));
+
+// When each part of a chat line's change runs, from the start of the rebuild's motion: after `delay`, its old text
+// erases (`erase` ms; none for a new line), a moment's pause unless part of it stays (`keeps`), then the new text
+// writes (`write` ms; none for a line that's gone). Erasing and writing are made quicker, if they must be, to end
+// within MORPH_MS.
+function chatTimes(delay, eraseLength, writeLength, keeps) {
+  const erase = eraseLength > 0 ? eraseMs(eraseLength) : 0, write = writeLength > 0 ? writeMs(writeLength) : 0;
+  const gap = erase && write && !keeps ? CHAT_GAP : 0, total = delay + erase + gap + write, room = MORPH_MS - 40;
+  const k = total > room ? Math.max(0, room - delay) / (total - delay) : 1;
+  return { delay, erase: erase * k, gap: gap * k, write: write * k };
+}
+
+// The list's own height, as keyframes for its easing from `from` to `to`: on the motion's curve from the start, but
+// for the chat lines that give up their room only once their old text has gone (`late`: how much each gives, from
+// when, for how long, on the same curve), so the panel's bottom edge stays with them.
+function listFrames(from, to, late, count = 30) {
+  const rest = to - from - late.reduce((sum, l) => sum + l.delta, 0), frames = [];
+  for (let i = 0; i <= count; i++) {
+    const t = (i / count) * MORPH_MS;
+    let h = from + rest * morphCurve(t / MORPH_MS);
+    for (const l of late) h += l.delta * morphCurve((t - l.start) / l.ms);
+    frames.push({ height: `${h.toFixed(2)}px`, offset: i / count });
+  }
+  return frames;
+}
+
+// Where a chat line's text runs, as rows in reading order, in its `.what`'s own points: each row from the text's start
+// to its end, cut at the box's edge (a row cut short ends at the edge, where its "…" is), a row's length and the edge's
+// width along the way for each. With `keep`, how far along the way its first `keep` letters end; with `withTime`, the
+// time beside Claude's working text as the last part of the way.
+function textPath(line, keep, withTime) {
+  const what = line.querySelector(':scope > .what'), box = what.getBoundingClientRect();
+  const lh = parseFloat(getComputedStyle(what).lineHeight) || 15, range = document.createRange();
+  const bandOf = (r) => Math.floor((r.top - box.top + r.height / 2) / lh);
+  range.selectNodeContents(what);
+  const ends = new Map();
+  for (const r of range.getClientRects()) {
+    const band = bandOf(r);
+    if (r.width < 0.5 || band < 0 || (band + 1) * lh > box.height + 1) continue;  // past the lines it shows
+    ends.set(band, Math.max(ends.get(band) ?? 0, Math.min(r.right, box.right) - box.left));
+  }
+  const rows = [...ends].sort((a, b) => a[0] - b[0]).map(([band, len]) => ({ band, top: band * lh, len }));
+  if (rows.length && (what.scrollWidth > what.clientWidth + 1 || what.scrollHeight > what.clientHeight + 1))
+    rows[rows.length - 1].len = box.width;
+  let off = 0;
+  for (const row of rows) { row.off = off; off += row.len + CHAT_EDGE; }
+  let keepPos = 0;
+  const text = what.querySelector('.shine')?.firstChild ?? what.firstChild;
+  if (keep && text?.nodeType === Node.TEXT_NODE) {
+    range.setStart(text, 0);
+    range.setEnd(text, Math.min(keep, text.length));
+    const last = [...range.getClientRects()].filter((r) => r.width >= 0.5).pop();
+    const band = last && bandOf(last), row = last && rows.find((r) => r.band === band), end = rows[rows.length - 1];
+    if (row) keepPos = row.off + Math.min(last.right, box.right) - box.left;
+    else if (last && end && band > end.band) keepPos = end.off + end.len;  // past the lines it shows: all of them stay
+  }
+  const el = withTime && line.querySelector(':scope > .elapsed');
+  const time = el ? { el, off, w: el.getBoundingClientRect().width } : null;
+  return { what, rows, lh, width: box.width, keepPos, time, length: off + (time ? time.w + CHAT_EDGE : 0) };
+}
+
+function setMask(el, images, sizes, places) {
+  const s = el.style;
+  s.webkitMaskImage = s.maskImage = images.join(', ') || 'linear-gradient(transparent, transparent)';
+  s.webkitMaskSize = s.maskSize = sizes.join(', ');
+  s.webkitMaskPosition = s.maskPosition = places.join(', ');
+  s.webkitMaskRepeat = s.maskRepeat = 'no-repeat';
+}
+
+// Shows a line's text (textPath) up to `pos` along the way, and all of it before `keep`, through a soft edge on each
+// row; returns where what shows of its first row ends.
+function showPath(path, pos, keep) {
+  const images = [], sizes = [], places = [];
+  let shown = 0;
+  path.rows.forEach((row, i) => {
+    const e = Math.min(Math.max(pos - row.off, 0), row.len + CHAT_EDGE);
+    const a = Math.max(Math.min(Math.max(keep - row.off, 0), row.len), e - CHAT_EDGE), b = Math.max(a + 0.01, e);
+    images.push(`linear-gradient(to right, #000 ${a.toFixed(1)}px, transparent ${b.toFixed(1)}px)`);
+    sizes.push(`${path.width}px ${path.lh}px`);
+    places.push(`0 ${row.top}px`);
+    if (i === 0) shown = Math.min(b, row.len);
+  });
+  setMask(path.what, images, sizes, places);
+  if (path.time) {
+    const e = Math.min(Math.max(pos - path.time.off, 0), path.time.w + CHAT_EDGE);
+    setMask(path.time.el, [`linear-gradient(to right, #000 ${Math.max(0, e - CHAT_EDGE).toFixed(1)}px, `
+                           + `transparent ${Math.max(0.01, e).toFixed(1)}px)`], ['100% 100%'], ['0 0']);
+  }
+  return shown;
+}
+
+// A chat line as it is at rest: no mask, its time and label where they belong. With `whole`, the line's own styles go
+// too (a copy of a line that was moving).
+function settleLine(line, whole = false) {
+  for (const part of line.querySelectorAll(':scope > .what, :scope > .elapsed'))
+    for (const k of [...MASK_KEYS, 'transform']) part.style[k] = '';
+  const label = line.querySelector(':scope > .who');
+  if (label) label.style.visibility = '';
+  if (whole) line.removeAttribute('style');
+}
+
+// A copy of a line, just put on the page, keeps its breathing label and its shimmer in step with the line it copies:
+// a copy starts its animations over, with the delays worked out when that line was drawn (phase), a second or more
+// ago.
+function keepInStep(copy) {
+  for (const el of [copy, ...copy.querySelectorAll('*')]) {
+    const ms = parseFloat(getComputedStyle(el).animationDuration) * 1000;
+    if (ms > 0) el.style.animationDelay = `-${Math.round(performance.now() % ms)}ms`;
+  }
+}
+
+// Runs `draw(t)` each frame, `t` being the time since it started, until `ms` have gone, then `done`; or until `el` has
+// left the page (a rebuild replaced it), with nothing more to do.
+function everyFrame(el, ms, draw, done) {
+  const start = performance.now();
+  (function step(now) {
+    if (!el.isConnected) return;
+    const t = Math.min(ms, Math.max(0, now - start));
+    draw(t);
+    if (t < ms) requestAnimationFrame(step); else done?.();
+  })(start);
+}
+
+// A chat line taking new text (your next message, Claude's next step, its reply): `was` is the line as it was
+// ({el, height}), `delay` when it starts, `late` where to note a fold that starts late for the list's height. A copy of
+// the old line lies over the new one and erases (its label hidden, or, when the label's look changes, the new one hidden
+// until the new text starts); then the copy goes and the line's own text writes in. The copy is the row's, not the
+// line's, so the new line's look (Claude's working line on one line) never reaches the old text, and it follows the
+// line's place each frame. A line that grows has its room at once, with the rest of the rebuild; one that shrinks keeps
+// its room until its old text has gone.
+function rewriteLine(el, was, delay = 0, late = null) {
+  const what = el.querySelector(':scope > .what'), label = el.querySelector(':scope > .who');
+  const row = el.closest('.row');
+  if (!what || !label || !row || !was.el.querySelector(':scope > .what')) return;
+  const working = (line) => line.dataset.mode === 'work';
+  const ride = working(was.el) && working(el), sameLabel = working(was.el) === working(el);
+  const old = was.el.cloneNode(true);
+  settleLine(old, true);
+  old.classList.add('rewrite-old');
+  old.inert = true;
+  const place = () => Object.assign(old.style, { top: `${el.offsetTop}px`, left: `${el.offsetLeft}px`,
+                                                 width: `${el.offsetWidth}px` });
+  Object.assign(old.style, { position: 'absolute', margin: '0', pointerEvents: 'none' });
+  place();
+  row.append(old);
+  keepInStep(old);
+  const oldLabel = old.querySelector(':scope > .who');
+  if (sameLabel) oldLabel.style.visibility = 'hidden';
+  else label.style.visibility = 'hidden';
+  const oldWhat = old.querySelector(':scope > .what');
+  const keep = was.el.dataset.mode === el.dataset.mode ? sharedStart(oldWhat.textContent, what.textContent) : 0;
+  const from = textPath(old, keep, !ride), to = textPath(el, keep, !ride);
+  const time = ride && el.querySelector(':scope > .elapsed');
+  if (ride) old.querySelector(':scope > .elapsed')?.style.setProperty('visibility', 'hidden');
+  // Riding, the time keeps the gap it has at rest from the end of what shows (`shown`, in the text's points): it ends
+  // where it belongs as the new text's first row ends.
+  const timeAt = to.rows[0]?.len ?? 0;
+  const tm = chatTimes(delay, from.length - from.keepPos, to.length - to.keepPos, keep > 0);
+  const swapAt = tm.delay + tm.erase + tm.gap;
+  const oldH = was.height, newH = el.offsetHeight;
+  if (newH > oldH + 0.5) {
+    el.style.overflow = 'hidden';
+    tween(el, { height: oldH + 'px' }, { height: newH + 'px' }, () => { el.style.overflow = ''; });
+  } else if (newH < oldH - 0.5) {
+    const start = tm.delay + tm.erase, ms = MORPH_MS - start;
+    el.style.height = oldH + 'px';
+    late?.push({ delta: newH - oldH, start, ms });
+    setTimeout(() => tween(el, { height: oldH + 'px' }, { height: newH + 'px' }, null, ms), start);
+  }
+  showPath(to, 0, 0);  // all of the new text hidden under the old, what they share too
+  let swapped = false;
+  everyFrame(el, swapAt + tm.write, (t) => {
+    let shown;
+    if (t < swapAt) {
+      place();
+      const p = tm.erase ? eraseCurve((t - tm.delay) / tm.erase) : 1;
+      shown = showPath(from, from.length - (from.length - from.keepPos) * p, from.keepPos);
+    } else {
+      if (!swapped) {
+        swapped = true;
+        old.remove();
+        label.style.visibility = '';
+      }
+      shown = showPath(to, to.keepPos + (to.length - to.keepPos) * writeCurve((t - swapAt) / tm.write), to.keepPos);
+    }
+    if (time) time.style.transform = `translateX(${(shown - timeAt).toFixed(1)}px)`;
+  }, () => {
+    old.remove();
+    settleLine(el);
+  });
+}
+
+// When each of a row's chat lines that changes in a rebuild starts ({'.you': ms, '.claude': ms}, only those that
+// change): at once, but when both do, yours first and Claude's after it, or, both going, Claude's first.
+function chatDelays(main, old) {
+  const changes = {};
+  for (const sel of ['.you', '.claude']) {
+    const el = main.querySelector(':scope > ' + sel), was = old.parts[sel];
+    if (el ? !was || partText(sel)(el) !== was.text : was) changes[sel] = el ? (was ? 'changed' : 'new') : 'gone';
+  }
+  const sels = Object.keys(changes), both = sels.length === 2;
+  const going = both && changes['.you'] === 'gone' && changes['.claude'] === 'gone';
+  return Object.fromEntries(sels.map((sel) => [sel, !both ? 0
+    : going ? (sel === '.you' ? CHAT_STAGGER_GONE : 0) : (sel === '.claude' ? CHAT_STAGGER : 0)]));
+}
+
+// A chat line that's new (a turn starting): its text writes in after `delay`, as its room opens (morph).
+function writeIn(el, delay) {
+  if (!el.querySelector(':scope > .what')) return;
+  const path = textPath(el, 0, true), tm = chatTimes(delay, 0, path.length, false);
+  showPath(path, 0, 0);
+  everyFrame(el, tm.delay + tm.write,
+             (t) => showPath(path, path.length * writeCurve((t - tm.delay) / tm.write), 0), () => settleLine(el));
+}
+
+// A chat line that's gone (the session gone quiet), as its copy where it was (`ghost`, .folding): its text erases
+// after `delay`, then it folds away, `late` noting the fold for the list's height.
+function eraseOut(ghost, delay, late) {
+  settleLine(ghost);
+  keepInStep(ghost);
+  const path = textPath(ghost, 0, true), tm = chatTimes(delay, path.length, 0, false);
+  const h = ghost.offsetHeight, start = tm.delay + tm.erase, ms = MORPH_MS - start;
+  late?.push({ delta: -(h + (parseFloat(getComputedStyle(ghost).marginTop) || 0)), start, ms });
+  showPath(path, path.length, 0);
+  everyFrame(ghost, start, (t) => showPath(path, path.length * (1 - eraseCurve((t - tm.delay) / tm.erase)), 0));
+  setTimeout(() => tween(ghost, { height: h + 'px', opacity: '1' }, { height: '0px', ...FLAT, opacity: '0' },
+                         () => ghost.remove(), ms), start);
 }
 
 // A copy of what was there, laid over the list where it was, fading out (.fading, so nothing takes it for the row).
@@ -191,7 +470,7 @@ function morph(list, html) {
   if (!before) return;
   const height = list.offsetHeight;  // as rebuilt, before the lines below are given their starting sizes
   let changed = false;
-  const rows = [];
+  const rows = [], late = [];  // late: the chat lines' folds that wait for their text to erase (listFrames)
   for (const row of list.querySelectorAll('.row[data-id]')) {
     const old = before.get(rowKey(row));
     if (!old) {
@@ -202,12 +481,14 @@ function morph(list, html) {
     if (old.hidden || row.closest('.prows.closed')) continue;  // in a collapsed group: its own slide handles it
     const main = row.querySelector(':scope > .main');
     let grewOrShrank = false;
-    const lines = rowParts();
+    const lines = rowParts(), chatAfter = chatDelays(main, old);
     lines.forEach((sel, i) => {
       const el = main.querySelector(':scope > ' + sel), was = old.parts[sel], line = core.lines[sel];
+      const chat = sel in chatAfter;
       if (el && !was) {  // a new line: grow it in
         const h = el.offsetHeight, cs = getComputedStyle(el), box = {};
         for (const k of BOX_KEYS) box[k] = cs[k];
+        if (chat) writeIn(el, chatAfter[sel] + CHAT_LEAD);  // its text writes in as its room opens
         el.style.overflow = 'hidden';
         tween(el, { height: '0px', ...FLAT, opacity: '0', transform: 'translateY(-4px)' },
                   { height: h + 'px', ...box, opacity: '1', transform: 'translateY(0)' },
@@ -221,19 +502,19 @@ function morph(list, html) {
         main.insertBefore(ghost, next || null);
         ghost.style.overflow = 'hidden';
         ghost.style.pointerEvents = 'none';
-        tween(ghost, { height: was.height + 'px', opacity: '1' },
-                     { height: '0px', ...FLAT, opacity: '0' }, () => ghost.remove());
+        // A chat line's text erases first; one that was already going (a rebuild came as it erased) folds on from
+        // where it is, so its text doesn't come back to erase again.
+        if (chat && !was.el.classList.contains('folding')) eraseOut(ghost, chatAfter[sel], late);
+        else tween(ghost, { height: was.height + 'px', opacity: '1' },
+                          { height: '0px', ...FLAT, opacity: '0' }, () => ghost.remove());
         line?.fold?.(ghost);  // and how it goes
         grewOrShrank = changed = true;
       } else if (el && was && partText(sel) && partText(sel)(el) !== was.text) {  // new text in the same line
-        // Your message (rolling up), and Claude's line turning from one thing to another (its reply arriving where
-        // it was working, or the start of a turn, rolling down) roll like a ticker; the next step while it works
-        // cross-fades.
-        const step = sel === '.claude' && el.dataset.mode === 'work' && was.el.dataset.mode === 'work';
-        if (sel === '.you' || (sel === '.claude' && !step)) {
-          rollLine(row, el, was, sel === '.claude');
+        // Your message and Claude's line are rewritten (rewriteLine); a module's line cross-fades.
+        if (chat) {
+          rewriteLine(el, was, chatAfter[sel], late);
           grewOrShrank = true;
-        } else (step ? el.querySelector(':scope > .what') : line?.swap ? line.swap(el) : el)?.classList.add('swap');
+        } else (line?.swap ? line.swap(el) : el)?.classList.add('swap');
         changed = true;
       } else if (el && was && line?.morph?.(el, was.shape)) {  // a line a module animates by itself
         changed = true;
@@ -281,7 +562,10 @@ function morph(list, html) {
   }
   // The list's own box eases between its heights with the rows, so what's below it (the now-playing strip) and the
   // panel's bottom edge move with them, rather than jumping to where they end up while the rows are still on their way.
-  if (Math.abs(height - wasHeight) > 1) {
+  if (late.length) {
+    listResize = list.animate(listFrames(wasHeight, height, late), { duration: MORPH_MS, easing: 'linear' });
+    changed = true;
+  } else if (Math.abs(height - wasHeight) > 1) {
     listResize = list.animate([{ height: `${wasHeight}px` }, { height: `${height}px` }],
                               { duration: MORPH_MS, easing: MORPH_EASE });
     changed = true;

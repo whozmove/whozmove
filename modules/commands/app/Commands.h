@@ -33,3 +33,7 @@ NSString *WhyNoPick(Row *row, NSString *field, id<Reach> reach, NSArray<NSArray<
 // Why it can't be compacted from the Compact card now, as the card says it, or nil. `compacting`: a compaction sent
 // from the panel hasn't ended yet.
 NSString *WhyNoCompact(id<Reach> reach, BOOL compacting);
+// Whether a compaction certainly couldn't go in now, from what's known without asking a terminal (so it can be asked of
+// every row each second): the session has ended, runs in no terminal the panel can type into, or is open twice. The
+// rest of WhyNoCompact's reasons need its tab looked for, which the card does once pressed.
+BOOL CantCompactNow(id<Reach> reach);

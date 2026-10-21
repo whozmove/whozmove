@@ -12,14 +12,21 @@
 // The tooltip over the header, which the drag strip covers (so the page's own can't show there): the running
 // build's details, while Show Build in Header is ticked; nil for none.
 @property (copy) NSString *headerTip;
+// The header slides away with the list's scroll (panel/scripts/header.js): how many of its points still show at the
+// panel's top, which the drag strip covers and no more, and whether it has gone. Those following it hear whether it
+// has gone, as it changes.
+- (void)headerShowing:(CGFloat)showing gone:(BOOL)gone;
+@property (readonly) BOOL headerGone;
+- (void)followHeader:(void (^)(BOOL gone))observer;
 // The menu bar's Show / Hide Panel and Reset Position.
 - (void)toggle;
-// Whether the panel is on screen (not hidden from the menu bar).
+// Whether the panel is on screen (not hidden from the menu bar), or flicked off its edge (parked).
 @property (readonly) BOOL shown;
 // How the panel looks, from the Look menu (MenuBar): "grey" or "black" (white on the light panel), solid, or "glass",
 // what's behind it showing through, blurred and tinted. Light or dark as the app is, which the Look menu sets too.
 @property (nonatomic, copy) NSString *look;
-// Brings the panel back if it was hidden, and leaves it as it is if it's showing (⌃⌥N).
+// Brings the panel back if it was hidden or flicked off the screen's edge, and leaves it as it is if it's showing
+// (⌃⌥N).
 - (void)bringUp;
 - (void)resetPosition;
 // Tells a freshly loaded page how tall the panel can grow (and, folded, which way the cat's tags go).
@@ -68,6 +75,9 @@
 - (void)popUpMenu:(NSMenu *)menu atPagePoint:(NSPoint)point;
 // A small window held under the panel, moving with it (Spotify's token).
 - (void)attachBelow:(NSWindow *)window;
+// A window held under the panel held over it instead, or back under it (Whozmove beside the panel, coming in front of
+// the glass as the panel folds round it).
+- (void)hold:(NSWindow *)window over:(BOOL)over;
 // The same, held over the panel instead, so the panel's shadow doesn't fall on it: for a window that draws nothing
 // where the panel is (the usage card).
 - (void)attachAbove:(NSWindow *)window;
@@ -76,4 +86,42 @@
 - (void)followGlass:(void (^)(NSRect glass, NSRect list, NSRect screen, NSTimeInterval duration))observer;
 // Each told the pointer's place on the screen, wherever it is, as often as it's polled.
 - (void)followPointer:(void (^)(NSPoint screen))observer;
+// The side of the panel the icons at its edge are on (EdgeIcon.h), left or right, facing the screen's middle: worked
+// out once each time the glass moves, before those following it are told, so the icons always agree.
+@property (readonly, copy) NSString *edgeSide;
+// Folded into the cat, or on its way there; and each told as the panel starts folding or opening (`done` NO), and once
+// it has (`done` YES), or once only, at once, for a fold that doesn't move.
+@property (readonly) BOOL folded;
+- (void)followFold:(void (^)(BOOL folded, BOOL done))observer;
+// Each told when the Look menu changes the panel's look (light or dark comes to each view by itself).
+- (void)followLook:(void (^)(void))observer;
+// Where the page's list's top-left corner is on the screen, which the page's places (catAt) count from.
+@property (readonly) NSPoint listCorner;
+// The panel dragged by hand, by `by` points (the drag strip over the header, or Whozmove beside the panel): it moves as
+// far as macOS lets it, and what follows the glass hears. NO while it's changing size, when it can't be dragged.
+- (BOOL)dragBy:(NSPoint)by;
+// The drag is over: the panel's place is kept, and the room it has below worked out again.
+- (void)draggedByHand;
+// A sideways two-finger flick on the open panel's list pushes it off that edge of the screen, out of sight, with
+// Whozmove peeking out where it went (SideCat.h); it comes back where it was from there, or from Show / Hide Panel or
+// ⌃⌥N (unpark). Whether it's away, and each told as it goes (YES) and as it starts back (NO): what's held over or under
+// it stays out of sight meanwhile. It isn't kept away when the app starts again.
+@property (readonly) BOOL parked;
+- (void)followAway:(void (^)(BOOL away))observer;
+- (void)unpark;
 @end
+
+// A two-finger swipe whose fingers have gone `x` across and `y` down so far: 0 while it's too soon to say, 1 once it's
+// sideways (the panel's), -1 once it isn't (the list's, to scroll).
+int SwipeWay(CGFloat x, CGFloat y);
+// Whether fingers lifting at `speed` points a second across, having gone `x`, flick the panel off the screen's edge:
+// fast enough, and the way they went.
+BOOL SwipeFlicks(CGFloat speed, CGFloat x);
+// Folded, how far its round glass `glass` moves for a swipe that would move it `by`: as far as that, up to the edge of
+// the screen's room `visible` and no further; one already past an edge isn't pulled back, but goes no further out.
+NSPoint FoldedMove(NSRect glass, NSPoint by, NSRect visible);
+// Where the panel goes, flicked toward the right or the left of the screen's room `visible`: just past its edge.
+NSPoint ParkedOrigin(NSRect frame, NSRect visible, BOOL right);
+// How much the panel shows as it goes past the screen's edge or comes back from there: none of it past the edge, less
+// and less as less of it is on the screen, so on a display beside it, it never shows.
+CGFloat ParkedShows(NSRect frame, NSRect visible);

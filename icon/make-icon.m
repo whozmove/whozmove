@@ -12,8 +12,8 @@ static NSColor *Hex(unsigned hex, CGFloat alpha) {
 }
 
 // The cat as the logo draws it, in its own units: its head and folded ears one flat shape, its eyes and nose cut out so
-// the glass shows through. Its shapes are the folded panel's (panel/scripts/cat.js), as the menu bar's are
-// (app/core/MenuBar.m): a change to the cat goes in all three.
+// the glass shows through. Its shapes are the folded panel's (panel/scripts/cat.js), as the menu bar's and Whozmove's
+// beside the panel are (app/core/CatShape.m): a change to the cat goes in all three.
 static NSString *const kCatHead =
     @"M0 74C-46 74 -84 50 -84 10C-84 -20 -76 -40 -64 -52C-62 -64 -54 -72 -42 -72C-34 -72 -28 -68 -24 -64C-8 -68 8 -68 "
     @"24 -64C28 -68 34 -72 42 -72C54 -72 62 -64 64 -52C76 -40 84 -20 84 10C84 50 46 74 0 74Z";

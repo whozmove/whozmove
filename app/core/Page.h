@@ -40,6 +40,12 @@
 // o (cat.js). `then` runs once the page has started it (its next frame), or a moment later if it
 // doesn't say, so the glass starts with it.
 - (void)catGlass:(void (^)(void))then;
+// Whozmove beside the panel was pressed while the header was gone: the panel folds round it where it is, `at` its
+// place from the list's top-left corner, in whole points with y running down (cat.js).
+- (void)foldFromSide:(NSPoint)at;
+// The cat beside the panel has grown into the folded cat where the glass has closed round it: the page's own takes
+// over there, and says so (catShown).
+- (void)catLanded;
 - (void)setGroupBy:(NSString *)mode;
 - (void)toggleCollapsed;
 - (void)askSwitch:(NSDictionary *)question;

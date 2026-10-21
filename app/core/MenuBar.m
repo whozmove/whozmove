@@ -9,6 +9,7 @@
 #import "Builds.h"
 #import "Module.h"
 #import "Appearance.h"
+#import "CatShape.h"
 
 // The panel's switches, kept in the app's preferences as the grouping is: Show Next Steps (each row's next steps) and
 // Show Deploy (its Deploy step), on until turned off on Git's page on the panel's back; and the menu's Show
@@ -22,49 +23,7 @@ static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appeara
 
 // The mark in the menu bar: the folded cat alone, its head and folded ears in one colour with its eyes and nose cut
 // out, as the name's o has it, a template image so it takes the menu bar's tint. Its shapes are in the cat's own units
-// (panel/scripts/cat.js), scaled to fill a 16-point box but for half a point each side.
-static NSString *const kCatHead =
-    @"M0 74C-46 74 -84 50 -84 10C-84 -20 -76 -40 -64 -52C-62 -64 -54 -72 -42 -72C-34 -72 -28 -68 -24 -64C-8 -68 8 -68 "
-    @"24 -64C28 -68 34 -72 42 -72C54 -72 62 -64 64 -52C76 -40 84 -20 84 10C84 50 46 74 0 74Z";
-static NSString *const kCatEars =
-    @"M-70 -44C-68 -60 -54 -72 -36 -70C-30 -69 -26 -66 -24 -62L-45 -43C-49 -39 -54 -38 -58 -40ZM70 -44C68 -60 54 -72 "
-    @"36 -70C30 -69 26 -66 24 -62L45 -43C49 -39 54 -38 58 -40Z";
-static NSString *const kCatNose = @"M-7 22C-7 18 7 18 7 22C7 26 3 28 0 30C-3 28 -7 26 -7 22Z";
-// Its eyes' middles and size, and its shape's middle and width, in its units.
-static const CGFloat kCatEyeX = 30, kCatEyeY = 6, kCatEyeR = 13, kCatMiddleY = 1, kCatWide = 168;
-
-// An SVG path's absolute M, L, C and Z, as an NSBezierPath.
-static NSBezierPath *PathFrom(NSString *svg) {
-    NSBezierPath *path = [NSBezierPath bezierPath];
-    NSScanner *scan = [NSScanner scannerWithString:svg];
-    scan.charactersToBeSkipped = [NSCharacterSet characterSetWithCharactersInString:@" ,"];
-    NSCharacterSet *letters = [NSCharacterSet characterSetWithCharactersInString:@"MLCZ"];
-    unichar command = 'M';
-    double v[6];
-    while (!scan.isAtEnd) {
-        NSString *next = nil;
-        if ([scan scanCharactersFromSet:letters intoString:&next]) {
-            for (NSUInteger i = 0; i + 1 < next.length; i++)
-                if ([next characterAtIndex:i] == 'Z') [path closePath];
-            command = [next characterAtIndex:next.length - 1];
-            if (command == 'Z') {
-                [path closePath];
-                continue;
-            }
-        }
-        int count = command == 'C' ? 6 : 2;
-        for (int i = 0; i < count; i++)
-            if (![scan scanDouble:&v[i]]) return path;
-        if (command == 'M') [path moveToPoint:NSMakePoint(v[0], v[1])];
-        else if (command == 'L') [path lineToPoint:NSMakePoint(v[0], v[1])];
-        else [path curveToPoint:NSMakePoint(v[4], v[5]) controlPoint1:NSMakePoint(v[0], v[1])
-                  controlPoint2:NSMakePoint(v[2], v[3])];
-        // More points after a move are lines, as in SVG.
-        if (command == 'M') command = 'L';
-    }
-    return path;
-}
-
+// (CatShape.h), scaled to fill a 16-point box but for half a point each side.
 static NSImage *MenuBarMark(void) {
     NSImage *mark = [NSImage imageWithSize:NSMakeSize(16, 16) flipped:YES drawingHandler:^BOOL(NSRect rect) {
         CGFloat scale = (NSWidth(rect) - 1) / kCatWide;
@@ -73,7 +32,7 @@ static NSImage *MenuBarMark(void) {
         [place scaleBy:scale];
         // The head and its ears are filled apiece: as one path, the right ear, drawn the other way round, would cancel
         // out where it overlaps the head.
-        NSBezierPath *head = PathFrom(kCatHead), *ears = PathFrom(kCatEars), *nose = PathFrom(kCatNose);
+        NSBezierPath *head = CatPath(kCatHead), *ears = CatPath(kCatEars), *nose = CatPath(kCatNose);
         NSBezierPath *eyes = [NSBezierPath bezierPath];
         for (int side = -1; side <= 1; side += 2)
             [eyes appendBezierPath:[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(side * kCatEyeX - kCatEyeR,

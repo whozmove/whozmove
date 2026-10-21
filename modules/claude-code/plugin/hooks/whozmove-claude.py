@@ -215,6 +215,32 @@ def audit_of(tool_input):
     return dict(found=len(findings), left=left, settled=settled)
 
 
+def branch_of(cwd):
+    """The branch checked out where a session runs, read from its checkout's HEAD as the app reads it (GitInfo, in
+    app/shared/Git.m), without running git: its name, or for a detached HEAD the first 7 characters of its commit;
+    None outside git."""
+    if not cwd:
+        return None
+    try:
+        root = git_root(os.path.join(cwd, "-"))  # git_root starts from a file's folder
+        if not root:
+            return None
+        git_dir = os.path.join(root, ".git")
+        if os.path.isfile(git_dir):  # a linked worktree or a submodule: its .git names the real git folder
+            with open(git_dir) as f:
+                pointer = f.read()
+            if "gitdir:" not in pointer:
+                return None
+            git_dir = os.path.normpath(os.path.join(root, pointer.split("gitdir:", 1)[1].strip()))
+        with open(os.path.join(git_dir, "HEAD")) as f:
+            head = f.read().strip()
+    except (OSError, ValueError):
+        return None
+    if head.startswith("ref: refs/heads/"):
+        return head[16:]
+    return head[5:] if head.startswith("ref: ") else head[:7] or None
+
+
 def humanize(name):
     """"getPageContent" / "pull_request_read" -> "get page content" / "pull request read"."""
     words = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", name).replace("_", " ").replace("-", " ").split()
@@ -334,7 +360,11 @@ def main():
     elif name == "PostToolUse":
         reached = outcome_for(event.get("tool_name"), event.get("tool_input"))
         if event.get("tool_name") == "ReportFindings":
+            # Noted with the branch it was run on, so a checkout switched to another branch doesn't show it.
             audit = audit_of(event.get("tool_input"))
+            branch = branch_of(event.get("cwd") or "")
+            if branch:
+                audit["branch"] = branch
         # Remember which checkout the session's edits land in (it can differ from the folder it runs in), and when it
         # last edited there: the session that edited a checkout last is the one its next step goes to.
         tool_input = event.get("tool_input") or {}
@@ -391,6 +421,11 @@ def main():
             state["workCommitted"] = True
         if audit is not None:
             state["audit"] = dict(audit, at=now)
+            # A review of work already committed that leaves something to fix starts a round of its own on it: its
+            # fixes are that work still, so the first of them mustn't count as the next piece of work and take the
+            # review away. One with nothing left is done with once that work changes.
+            if audit["left"]:
+                state["workCommitted"] = False
         if name == "Stop":
             # The furthest stage this turn reached. A turn that only talked keeps the previous outcome:
             # answering a question doesn't move the work back. Nor does one that only looked things up

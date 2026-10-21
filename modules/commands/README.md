@@ -8,7 +8,8 @@ once and takes it back if it doesn't go through.
 ## Its pieces
 
 - `app/CommandsModule.m`: its face for the core (contracts/Module.h): the page's `pick`, `compact` and `switchAnswer`,
-  its part of each row (a pick the session hasn't confirmed yet, which its details show, and a compaction under way),
+  its part of each row (a pick the session hasn't confirmed yet, which its details show, a compaction under way, and
+  `noCompact` where one certainly couldn't go in now, `CantCompactNow`),
   and its print mode.
 - `app/Commands.m`: the menus and the Compact card, from the press to the result. A terminal session gets the pick
   typed into its tab (a mode by Shift+Tab presses, as many as its agent says take it there for certain); a Claude
@@ -18,6 +19,8 @@ once and takes it back if it doesn't go through.
 - `app/Command.m`: one slash command, from going in to its end.
 - `page/commands.js`: the model, effort and mode labels at the start of a row's bottom line, the context ring and the
   Compact card.
+  The ring opens by itself into "Compact now" when it's a good time to compact (`compactNow`: a plain function,
+  checked by tests/panel.sh).
   `module.json` lists it for tools/page.sh.
 
 tests/rows.sh checks why each sample session's menus, Compact card and next steps would offer nothing now

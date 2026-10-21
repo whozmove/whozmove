@@ -1,6 +1,6 @@
 // SpotifyModule: Spotify's face for the core (Module). It makes Spotify, its token and its lyrics when the app starts,
-// holds the token under the panel and follows the glass and the pointer for it, answers the now-playing strip's
-// presses, has Spotify's page on the panel's back, with its switches, and the print mode the tests check.
+// has the panel hold the token under its glass (the core's EdgeIcon), answers the now-playing strip's presses, has
+// Spotify's page on the panel's back, with its switches, and the print mode the tests check.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Module.h"
 #import "Core.h"
@@ -73,7 +73,7 @@ static int PrintSpotify(NSArray<NSString *> *files) {
                 return n.count == 4 ? NSMakeRect([n[0] doubleValue], [n[1] doubleValue], [n[2] doubleValue],
                                                  [n[3] doubleValue]) : NSZeroRect;
             };
-            found = TokenSideFor(rect(json[@"list"]), rect(json[@"screen"]), AsText(json[@"current"]));
+            found = EdgeSideFor(rect(json[@"list"]), rect(json[@"screen"]), AsText(json[@"current"]));
         }
         else if ([name hasPrefix:@"lyrics-ask-"] && [json isKindOfClass:NSDictionary.class])
             found = [LyricsAsksFor(json) valueForKey:@"absoluteString"];
@@ -117,7 +117,6 @@ static int PrintSpotify(NSArray<NSString *> *files) {
 @property (strong) Spotify *spotify;
 @property (strong) SpotifyToken *token;
 @property (strong) Lyrics *lyrics;
-@property (assign) BOOL turned;  // the panel is turned over to its back, so the token stays out of sight
 @end
 
 @implementation SpotifyModule
@@ -144,22 +143,8 @@ static int PrintSpotify(NSArray<NSString *> *files) {
     self.spotify.onSong = ^(NSDictionary *song) { [weakSelf.lyrics songIs:song]; };
     self.lyrics.onFollowing = ^(BOOL following) { weakSelf.spotify.following = following; };
     self.token = [SpotifyToken new];
-    [self.core.window attachBelow:self.token.window];
-    [self.core.window followGlass:^(NSRect glass, NSRect list, NSRect screen, NSTimeInterval duration) {
-        [weakSelf.token glassAt:glass list:list screen:screen duration:duration];
-    }];
-    [self.core.window followPointer:^(NSPoint point) { [weakSelf.token pointerAt:point]; }];
-    // As the panel turns over, the token goes from sight, as the panel's edge would otherwise turn away from over it;
-    // once it's back on its list side, it comes out from under the glass again.
-    [self.core.window followTurn:^(BOOL turned) {
-        weakSelf.turned = turned;
-        if (turned)
-            [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-                context.duration = 0.15;
-                weakSelf.token.window.animator.alphaValue = 0;
-            }];
-        [weakSelf applySwitches];
-    }];
+    // Under the panel's glass, following it, the pointer and the turn (the core's EdgeIcon).
+    [self.token holdBy:self.core.window];
     self.spotify.onToken = ^(NSDictionary *token) { [weakSelf.token show:token]; };
     self.token.onPress = ^(NSString *state) {
         Spotify *spotify = weakSelf.spotify;
@@ -181,7 +166,7 @@ static int PrintSpotify(NSArray<NSString *> *files) {
 // away before the lyrics beside the list close.
 - (void)applySwitches {
     BOOL on = SwitchedOn(kSpotifyOn);
-    self.token.shown = on && SwitchedOn(kSpotifySideIcon) && !self.turned;
+    self.token.shown = on && SwitchedOn(kSpotifySideIcon);
     if (!on) self.spotify.shown = NO;
     [self.lyrics shown:on on:SwitchedOn(kSpotifyLyrics) asked:SwitchedOn(kSpotifyLyricsAsked)];
     self.spotify.shown = on;

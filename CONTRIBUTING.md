@@ -51,17 +51,24 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   - `main.m` starts the app, or runs one of the print modes the tests check. `AppDelegate` makes the page, the panel's
     window, the pawn and the core, and starts them.
   - The core's pieces each keep only their own state: `Page` (loading the page; every call into it), `PanelWindow`
-    (FloatingPanel, DragStrip, size, hover, growing beside the list to fit the reader, and back, turning over to the
-    panel's back, which a module's view shows, its tint: grey, black or glass, light or dark, and its shadow, in a
-    window of its own under it, a module's view held over the page, moving with it, and the keyboard and the pointer for
-    a site shown in it), `MenuBar` (the pawn, grouping, the Look menu, the modules' items, and the panel's switches,
+    (FloatingPanel, DragStrip, which covers only what shows of the header as it slides away, size, hover, growing beside
+    the list to fit the reader, and back, turning over to the panel's back, which a module's view shows, its tint: grey,
+    black or glass, light or dark, and its shadow, in a window of its own under it, a module's view held over the page,
+    moving with it, the keyboard and the pointer for a site shown in it, and a sideways flick sending it off the
+    screen's edge and back), `MenuBar` (the pawn, grouping, the Look menu, the modules' items, and the panel's switches,
     Show Next Steps and Show Deploy, which Git's page on the panel's back sets), `Rows` (the rows read once a second,
     each module adding its part), `Focus` (the session you're on, when you last looked at each, and opening a session
     from its row), `Send` (words into a session, and why they can't go in now), `Work` (who's at work in a checkout),
-    `Builds` (the running build, for the header), `Printing` (what the print runs share) and `Browser` (web pages that
-    aren't the panel's own, each in a web view of its own, for a module to show in the panel's window: what it may load,
-    whether what it's signed in to is kept, where a link that goes somewhere else opens, how it introduces itself, and
-    what a page asks, passed to the module that shows it).
+    `Builds` (the running build, for the header), `Printing` (what the print runs share), `EdgeIcon` (an icon tucked
+    half under the glass at the panel's edge, on the side facing the screen's middle, Spotify's token among them: its
+    own window, following the glass, changing sides under it, coming out once the panel has opened, out of sight while
+    it's turned over, and its label), `SideCat` (Whozmove beside the panel while the header has gone, an edge icon: its
+    moves, folding the panel round it, a drag moving the panel, and bringing the panel back from the screen's edge),
+    `CatShape` (the cat's shapes, for the menu bar's mark and `SideCat`), `Easing` (the curves the panel moves on,
+    shared by `PanelWindow`, `EdgeIcon` and `SideCat`) and `Browser` (web pages that aren't the
+    panel's own, each in a web view of its own, for a module to show in the panel's window: what it may load, whether
+    what it's signed in to is kept, where a link that goes somewhere else opens, how it introduces itself, and what a
+    page asks, passed to the module that shows it).
   - The agent that runs the sessions is a module: `claude-code` (its sessions and its hooks' records, its terminal
     sessions kept once they've ended, what's new in each transcript, a session's details, the words of the panel's
     commands and what their results say, typing into a session's prompt while keeping its draft, your plan's usage
@@ -126,14 +133,17 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     list), `rows` (a row's template, with its places for the modules' parts, and the group and project headers), `hover`
     (what's pointed at, and the card something pointed at shows), `input` (presses, typing and the keyboard), `reader`
     (the reader beside the list, which its modes fill, each about a session, or, like Spotify's lyrics, about none),
-    `sticky` (the row you're on, held at the list's edge as the list scrolls past it, folded down: see Animation; how
-    it folds is plain functions, checked by `tests/panel.sh`), and `panel` (`render`, and the functions the app calls
-    on the core). Then each module's, from its `page/`, one per job, each plugging into the core as it loads: Claude
-    Code's `agent` (what a Claude Code session's model, mode and context mean) and `requests` (its requests, questions
-    and plans on a row); Claude Desktop's `switch-model` (Claude's "Switch model?"); the commands module's `commands`
-    (the model, effort and mode labels, the context ring and the Compact card); the next steps (`steps`: which a
-    checkout has to take, `stepsOf`, and where a branch stands while commits wait, plain functions; `git-steps`: their
-    icons on the work line, their words as they're pointed at, Create PR and its card, and where the branch stands;
+    `header` (the header sliding away with the list's scroll, and back: see Animation; how far it has gone is plain
+    functions, checked by `tests/panel.sh`), `sticky` (the row you're on, held at the list's edge as the list scrolls
+    past it, folded down: see Animation; how it folds is plain functions, checked by `tests/panel.sh`), and `panel`
+    (`render`, and the functions the app calls on the core). Then each module's, from its `page/`, one per job, each
+    plugging into the core as it loads: Claude Code's `agent` (what a Claude Code session's model, mode and context
+    mean) and `requests` (its requests, questions and plans on a row); Claude Desktop's `switch-model` (Claude's
+    "Switch model?"); the commands module's `commands` (the model, effort and mode labels, the context ring and the
+    Compact card); the next steps (`steps`: which a
+    checkout has to take, `stepsOf`, how its last code review went, and where a branch stands while commits wait, plain
+    functions; `git-steps`: their icons on the work line, their words as they're pointed at, Create PR and its card,
+    and the review or where the branch stands;
     `prs`: the pull requests and their card); Deploy (`deploys`: whether a row has its round button, how it looks, and
     the set-up card, plain functions; `deploy-row`: the button, the line and the card on a row); the reader's `writings`
     (what a session wrote:
@@ -165,7 +175,11 @@ view's ⌄), `prBranches` (the branches on GitHub, for Create PR's card), `stepM
 `deploy`, `checkDeployCommand` (a command on Deploy's set-up card, about to be confirmed), `saveDeployCommand`, `expand`
 (the reader's size, `{width, height}`: the panel grows beside the list to fit it, and is asked again as what's shown
 changes) and `collapse` (back to the list), `turn` (`{on}`: the header's four squares turn the panel over to its
-back), `readWriting` (one of a session's writings, `{sessionId, id}`), `prototype` (the reader's prototype, shown from
+back), `header` (`{showing, gone}`: how many of the header's points still show as it slides away with the list, which
+the drag strip covers, and whether it has gone, for Whozmove beside the panel), `catShown` (the page's folded cat has
+taken over from Whozmove beside the panel, where the panel folded round it), `catPose` (`{pose}`: the folded cat's
+mood, asleep, watch or turn, which Whozmove beside the panel keeps too), `readWriting` (one of a session's
+writings, `{sessionId, id}`), `prototype` (the reader's prototype, shown from
 its file over its space: `{action: show, sessionId, id, at, rect}`, `{action: place, rect}`, `{action: hide}` or
 `{action: outside, sessionId, id}`, Open in Browser), `closeCopy` (from an "open twice" card: the conversation's other
 copies in terminals closed, `{sessionId}`), `readChanges` (one of the changes view's tabs, `{sessionId, scope}`, asked
@@ -186,7 +200,9 @@ moved there: the panel's edge went past it, or one of its menus closed there; `h
 `keyboardGone` (the panel no longer has the keyboard), `turned` (the panel is turning over to its back, or back on its
 list side), `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
 it says how something went that worked), `setRunningBuild` and `setSwitches` (the core's, in
-`panel/scripts/panel.js`); `readerOpened(side, width)` (which side the list stays on, and the reader's width) and
+`panel/scripts/panel.js`); `foldFromSide(x, y)` (Whozmove beside the panel was pressed: the panel folds round it,
+there) and `catLanded` (it has grown into the folded cat, which takes over) (in `cat.js`); `readerOpened(side,
+width)` (which side the list stays on, and the reader's width) and
 `readerClosed` (in `reader.js`); and each feature's, in its own script: `askSwitch` (`switch-model.js`),
 `compactNote` (`commands.js`), `setDeploys`, `openDeploySetup` and `deployChecked` (what that command really runs,
 `{command, production, runs, more}`) (`deploy-row.js`), `setPRBranches(sid, {base, branches})` (`git-steps.js`),
@@ -315,6 +331,10 @@ tests/build.sh        # build.sh against a throwaway HOME: when a build waits an
                       # putting it and its hooks in place, and what it restarts, vs tests/build.expected.txt
 tests/browser.sh      # where each kind of address goes from a Browser's sample setups, and the folders, stores and
                       # names it keeps to, for a sample folder, vs tests/browser.expected.txt
+tests/edges.sh        # the panel's edge for sample panels and screens: the side its icons are on, where it folds
+                      # round Whozmove beside it, whether a swipe is the panel's and flicks it off the screen's edge,
+                      # how far a swipe moves the folded cat, where a flicked panel goes and how much shows on its
+                      # way, vs tests/edges.expected.txt
 tests/checks.sh       # the checks that keep modules apart (prints only problems): no page function in two
                       # scripts, every page call and message has its other end, no module imports another, no
                       # class styled on its own by both the core and a module (or two modules), each module's
@@ -365,6 +385,10 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   web, a site with its links out, the folder's pages with and without the web's parts), which folders a page can be
   shown from, the store each sample name's sign-ins are kept in, and how a Browser introduces itself; tests/browser.sh
   checks it.
+- `Whozmove --print-edges` prints what the panel's edge does with sample panels and screens: the side the icons at
+  its edge are on, where the panel folds round Whozmove beside it, whether a two-finger swipe is the panel's and flicks
+  it off the screen's edge, how far a swipe moves the folded cat, and where a flicked panel goes and how much of it
+  shows on its way; tests/edges.sh checks it.
 - `Whozmove --print-apps` prints the apps every module lists for the panel's back, in their order, each with what it
   says, its permission and its switches (those other modules add among them); the apps module's tests check it.
 - `Whozmove --print-starts` prints what sample starts would run (a terminal tab's command, Claude Desktop's link), and
@@ -473,7 +497,7 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   itself. It never starts while the row's agent works or asks, or another session's agent works in the same folder
   (as its own, or where the turn it's on has edited files; one waiting on you doesn't count, as it may wait for days)
   (`WhyStepsWait`, and the button is dimmed): what goes in place shouldn't be half-way through a change. The next
-  steps wait the same way, dimmed, while they stay on the row.
+  steps wait the same way; while the row's own agent is at work, the work line they're on isn't there (`workHTML`).
 - **Don't name a script or flag for a deploy.** The session hook counts commands named for one as production
   deploys (`names_deploy` in the hook `whozmove-claude.py`), so building and deploying Whozmove use `build.sh`,
   `--now` and `swap-in.sh`.
@@ -496,10 +520,16 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
 
 `morph(list, html)` (in `panel/scripts/morph.js`) snapshots every row and line, swaps the HTML, then animates
 the difference: lines grow and fold (`rowParts`, with how a module's part of a line moves from `core.lines`), changed
-text
-rolls in place (`rollLine`; Claude's line rolls downward, your message upward), rows slide to their new place (FLIP),
-and the list's own height eases with them, so the now-playing strip below it and the panel's bottom edge go with the
-rows.
+text cross-fades, rows slide to their new place (FLIP), and the list's own height eases with them, so the now-playing
+strip below it and the panel's bottom edge go with the rows.
+Your message and Claude's line are written (`rewriteLine`): the old text erases from its end back to its start, then the
+new text writes in from there, each by a soft edge, so the two never meet; what they share at their start, by whole
+words, stays (the next step's "Reading "). A reply on two lines writes its first line, then its second, and erases the
+other way round. Claude's time beside its working text rides just past what shows, and its label changes as the new
+text starts. A new line writes in as its room opens; one that's gone erases, then folds. When both change at once,
+yours goes first and Claude's follows, and going, Claude's goes first. All of it fits in the rebuild's own second
+(`chatTimes`), and a line that shrinks keeps its room until its old text has gone, the list's height following that
+too (`listFrames`).
 Rows that keep their order slide underneath; one that passes others glides over them with only a frosted backdrop
 (`.row.glide`, `keptInOrder`). Reduced motion (`calm`) skips it all.
 
@@ -515,27 +545,30 @@ the moving edge first (from the bottom up at the top edge, so Claude's line come
 down at the bottom edge), until its title line, Claude's line and its bottom line are left. A folding line keeps its
 size and gives up its room, the line beside it covering it as it fades (`stickyLineFold`), so nothing in it moves or
 squeezes and nothing passes through text. As it attaches, its tint spreads to the list's sides and squares off against
-the edge; what's under it is hidden by a mask on the list, as under the header, and once rows are under it a line shows
-along its
-edge. The row itself is hidden too (`.row.sticky-away`): WebKit scrolls the list a frame or so ahead of the page laying
-out the copy and the mask, and in a quick scroll the row's place would otherwise show past the mask's edge, the row
-there twice. It follows the scroll position, and every frame anything else moves the list or the row in it
-(`reportHeight`), so scrolling back runs it backwards. Back in view, it hands back to the row at once, however far the
-row came in a frame: a quick scroll moves it tens of points from one frame to the next, and the row is where the list
-put it. Where it can't take over from the row in place (it starts holding on with the row already past the edge, or the
-row's session ends), it fades in or out, the mask fading the other way. When the session you're on changes while it
-holds on (you press another row, or switch to another session in Claude or a terminal), it hands its tint over
-(`stickyHandOff`): the copy slides off at its edge, out of sight, fading, the list under it uncovered as it moves off,
-while its tint goes to the new session's row, where that is in each frame, whose own tint takes over as it lands. The
-tint is on a layer of its own under the list (`#sticky-under`), so as it goes it's drawn behind the rows' text, as a
-row's own tint is. It takes no pointer events, so a scroll over it scrolls the list, and what the pointer is on there is
-found by where it is (`stickyAt`); a press on it scrolls back to the row, which keeps its place meanwhile. Back in view,
-what's on the row counts as only just shown (`showAgain`), so a card that came while it was away can't take a press
-meant for the copy. The copy is inert and has none of the data the page finds a row by, and leaves out what a module's
-line has only while it moves (`core.lines`' `still`). Its lines change as the row's do: what cross-fades on the row does
-on the copy too, a reply rolls in, and a copy of other lines cross-fades in. It fades with the list as the panel folds
-into the cat. Under reduced motion it still follows the scroll, which is your own motion, while its fades, text changes
-and the move back to the row happen at once.
+the edge; what's under it is hidden by a mask on the list, as under the header, and attached at the list's top, it meets
+the header with no line between them. The row itself is hidden too (`.row.sticky-away`): WebKit scrolls the list a frame
+or so ahead of the page laying out the copy and the mask, and in a quick scroll the row's place would otherwise show
+past the mask's edge, the row there twice. It follows the scroll position, and every frame anything else moves the list
+or the row in it (`reportHeight`), so scrolling back runs it backwards. It follows at once as far as a slow scroll goes
+in a frame; what's past that (a quick scroll moves the row tens of points from one frame to the next, as does the list
+moving it by itself) it catches up with, all but there in about 0.2 s, without ever passing the row's place
+(`stickyEase`), so its lines still fold one after another, and the rows going by meanwhile go under it. Back in view, it
+opens out and glides from the edge to the row's place the same way, however far the row came in a frame, and hands back
+to the row once it's there. Where it can't take over from the row in place (it starts holding on with the row already
+past the edge, or the row's session ends), it fades in or out, the mask fading the other way. When the session you're on
+changes while it holds on (you press another row, or switch to another session in Claude or a terminal), it hands its
+tint over (`stickyHandOff`): the copy slides off at its edge, out of sight, fading, the list under it uncovered as it
+moves off and coming back as it fades, while its tint goes to the new session's row, where that is in each frame, whose
+own tint takes over as it lands. The tint is on a layer of its own under the list (`#sticky-under`), so as it goes it's
+drawn behind the rows' text, as a row's own tint is. It takes no pointer events, so a scroll over it scrolls the list,
+and what the pointer is on there is found by where it is (`stickyAt`); a press on it scrolls back to the row, which
+keeps its place meanwhile. Back in view, what's on the row counts as only just shown (`showAgain`), so a card that came
+while it was away can't take a press meant for the copy. The copy is inert and has none of the data the page finds a row
+by, and leaves out what a module's line has only while it moves (`core.lines`' `still`). Its lines change as the row's
+do: what cross-fades on the row does on the copy too, its chat line is written as the row's is, and a copy of other
+lines cross-fades in. It
+fades with the list as the panel folds into the cat. Under reduced motion it still follows the scroll at once, which is
+your own motion, while its fades, text changes and the move back to the row happen at once.
 
 A step's word coming in beside its icon as it's pointed at is CSS (`motion.css`): its room opens, then the word fades
 in, lifting 3px as it lands, while what's to its left slides over; pointed away, the word fades first, then its room
@@ -549,8 +582,9 @@ coming in around them; folding runs the other way round (modules/usage/README.md
 reset, a function of the time since it started (the vine's is `vineFrame`), so the usage module's tests check its
 frames as numbers.
 
-Spotify's token moves natively, as a window of its own under the panel: modules/spotify/README.md says how, and how a
-song's lines roll into the now-playing strip and follow along beside the list.
+Spotify's token moves natively, as a window of its own under the panel: the core's `EdgeIcon` holds it under the glass
+and takes it across to the other side, and modules/spotify/README.md says how it moves, and how a song's lines roll
+into the now-playing strip and follow along beside the list.
 
 The reader's panel grows and folds natively (`reshapeTo:` in PanelWindow.m): the window takes in everything the
 panel covers on the way at once, the page is laid out and drawn there once, and then only the glass's and the page's
@@ -572,6 +606,31 @@ seen taller than the panel, the glass and the page staying where they are, and i
 What's held over or under the panel (the usage card, Spotify's token) goes from sight in the same frame the turn starts
 (`followTurn:`), and comes back in the frame it lands on its list side; an open reader folds back first. Reduced motion
 fades one side into the other.
+
+The header slides away with the list's scroll (`header.js`), point for point, and comes back by as much as you scroll
+back up, from anywhere in the list; a scroll that stops with it part-way finishes the way it was going. It lies over the
+list's top, in room the list keeps for it, the list clipped at its edge, so nothing is laid out again as it moves, and
+the row you're on holds on at that edge wherever it is (`headerInset`). The drag strip over it covers only what still
+shows (`headerShowing:gone:` in PanelWindow.m), so a press on the rows that have come up under it goes to them.
+
+Whozmove beside the panel (`SideCat.m`, an `EdgeIcon` as Spotify's token is) comes out once the header has gone, at the
+panel's top corner on the side facing the screen's middle, and goes back once the header has come back a few points. It
+reacts with its face, each of its values on a spring worked out exactly for however long a frame was, on the edge icon's
+timer, which runs only while something moves; its eyes' drift is Core Animation's. Pressed, it's held over the panel
+instead of under it, and the page folds the panel round it where it is (`foldFromSide`): the page stays put, the list
+fading in place, and as the glass closes, the cat grows on the glass's own curve into the folded cat there, its head's
+middle never moving. Once the fold has finished, the page puts the folded cat's place back on the name's o, the app
+moving the page under the glass, out of sight, and the page's own folded cat takes over in the same place at the same
+size (`catLanded`, `catShown`). So opening is the ordinary opening: the panel grows round the cat, which stays put.
+
+A sideways two-finger swipe on the panel's list is the panel's (`swiped:` in PanelWindow.m), taken before the page gets
+it; up and down stay the list's, and while one of the page's boxes has the keyboard, the swipe is the box's. The panel
+leans with the fingers, and lifting them fast enough sends it off that edge of the screen at the flick's speed, easing
+out, fading by how much of it has gone past the edge, so on a display beside it, it never shows. Whozmove beside the
+panel stays, peeking out from the screen's edge, and brings the panel back the way it went. What's held over or under
+the panel goes as it leaves and comes back as it starts back (`followAway:`). With reduced motion it fades out and back
+in. Folded, a two-finger swipe on the cat, any way, is the cat's (`swipedFolded:`): it moves with the fingers and goes
+on with the trackpad's own momentum, so as far as the swipe was quick, stopping at the screen's edge (`FoldedMove`).
 
 The style: motion is quiet and continuous. A row never vanishes and reappears; no lifted cards, shadows or
 dimming of other rows. Every animation also keeps to these rules, which the vine's tests check:

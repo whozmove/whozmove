@@ -48,6 +48,11 @@ NSString *WhyNoCompact(id<Reach> reach, BOOL compacting) {
     return WhyNoTab(reach, @"compacted from here", @"compact it there") ?: reach.whyNotType.onCard;
 }
 
+BOOL CantCompactNow(id<Reach> reach) {
+    if (reach.ended) return YES;
+    return !reach.desktop && (!reach.terminal || reach.openTwice);
+}
+
 // Whether a setting as a session's details show it is the value picked: a model by its id, which the details may
 // follow with more ("[1m]").
 static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {

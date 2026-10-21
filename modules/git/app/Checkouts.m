@@ -10,7 +10,7 @@
 // results go in, so nothing a failed read couldn't confirm stays up.
 static NSArray<NSString *> *ReadKeys(void) {
     return @[@"changes", @"ahead", @"behind", @"upstream", @"remotes", @"base", @"aheadOfBase",
-             @"newFiles", @"filesStaged", @"filesPartly", @"filesUnstaged"];
+             @"newFiles", @"filesStaged", @"filesPartly", @"filesUnstaged", @"headAt"];
 }
 
 @interface Checkouts ()

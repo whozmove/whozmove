@@ -38,6 +38,7 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
   if (!m || (!s && !m.sessionless)) return;
   if (!state.reading) {
     state.reading = { mode, sessionId: sid, id: wid, session: s, scope };
+    headerGlideTo(0);  // the header is all there while the reader is open (header.js)
     document.body.classList.add('reading');
     reader.innerHTML = `<div class="r-in"><div class="r-head"></div><div class="r-main"><nav class="r-shelf"></nav>
         <div class="r-view"><div class="r-src"></div><div class="r-body"></div><div class="r-answer"></div></div>
@@ -62,13 +63,15 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
 
 // How tall the panel is with the list alone: as reportHeight measures it once the reader has closed (the header and the
 // list's rows, together at most 640pt as base.css keeps them, and the strips on top of that, within the room it has),
-// measured now, so the panel folds straight to it.
+// measured now, so the panel folds straight to it. The header lies over the list's top, in room the list keeps for it
+// (base.css), which its rows' places count from, unless a card under the header takes that room above the list; the
+// card comes on top of the 640pt, as the strips do.
 function listHeight() {
-  const list = document.getElementById('list'), last = list.lastElementChild;
-  const rows = last ? last.offsetTop + last.offsetHeight : 0;
-  const header = document.querySelector('header').offsetHeight;
+  const list = document.getElementById('list'), last = list.lastElementChild, dock = document.getElementById('dock');
+  const rows = last ? last.offsetTop + last.offsetHeight : 0, card = dock.firstElementChild ? dock.offsetHeight : 0;
   const strips = core.strips.reduce((sum, id) => sum + (document.getElementById(id)?.offsetHeight || 0), 0);
-  return Math.min(Math.ceil(Math.min(header + 1 + rows + 6, 640) + strips), state.panelMax || 640);
+  const head = list.offsetTop - card + list.clientTop;
+  return Math.min(Math.ceil(Math.min(head + rows + 6, 640) + card + strips), state.panelMax || 640);
 }
 
 // A row's tag (or its numbers, for its changes) opens the reader on that session, or, where it's open already in that

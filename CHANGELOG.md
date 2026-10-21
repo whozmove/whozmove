@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- **More room for the list.** The header slides away as you scroll the list down, point for point, and comes back as
+  soon as you scroll up, from anywhere in the list; a scroll that stops with it part-way finishes the way you were
+  going. While it's gone, Whozmove peeks out beside the panel's top corner, on the side facing the middle of the screen,
+  and keeps its moods: it looks up as your pointer comes near, blinks slowly when you rest on it, and flicks an ear when
+  something new needs you. Press it and it grows a little, right where it is, as the panel folds round it; drag it to
+  move the panel. The panel opens round it again, with the header back. With reduced motion it fades in and out where it
+  rests.
+- **Flick the panel away.** A quick sideways two-finger swipe on the panel pushes it off that side of the screen, fading
+  as it goes, and Whozmove peeks out from the screen's edge; press it, or Show / Hide Panel, or ⌃⌥N, and the panel
+  slides back where it was. Up and down still scroll the list. Folded, a two-finger swipe any way moves the panel,
+  gliding on as far as the swipe was quick, and stopping at the screen's edge.
+- **Your message and Claude's line are written in.** New text writes in from the left once the old has erased from
+  the right, and Claude's next step keeps what it shares with the one before ("Reading …"), rewriting only the rest. A
+  reply on two lines writes one line, then the next; Claude's time stays just past its text as it goes. While Claude
+  works, its "Claude" label fades in and out in cream. With reduced motion, the lines change at once.
 - **The panel turns over to the apps Whozmove works with.** The four squares in the header turn the whole panel over,
   about its middle, with its back already there as it comes round, at the panel's size. Behind the list are Claude,
   Ghostty, iTerm2, Terminal, Spotify and Git, those on your Mac, each with its own icon; press one for what Whozmove
@@ -21,9 +36,10 @@
 - **The row of the session you're on stays in view**, whether you scroll the list past it or the list moves it out of
   sight (down to Working as it starts on your message): it holds on at the top of the list, or at its bottom while it's
   further down, folding a line at a time, the row next to it touching it all the way, until its name, Claude's line and
-  where it runs are left. The rest of the list goes under it as under the header. Back in view it opens out into its
-  place, and pressing it scrolls back to it. Switch to another session and its tint moves over to that one's row as
-  it slides away. A row you're typing in, or one too tall to show whole, goes out of sight as any row does.
+  where it runs are left. The rest of the list goes under it as under the header. However quickly the list moves, its
+  lines fold one after another, catching up within a moment. Back in view it opens out and glides into its place, and
+  pressing it scrolls back to it. Switch to another session and its tint moves over to that one's row as it slides
+  away. A row you're typing in, or one too tall to show whole, goes out of sight as any row does.
 - **Your turn** now comes first in the list: the sessions waiting on you, a request or question (a pulsing red-orange
   dot) and a reply you haven't read (amber), first come, first served, so one that comes in joins the end and nothing
   above it moves. A reply waits there until you've read it: opened it here, been on it in Claude, Ghostty or iTerm2 for
@@ -67,7 +83,10 @@
   (meanwhile the steps are dimmed, and a press says what they wait for). A commit takes only what's staged when
   something is, as git does. While commits wait to go, everything else is committed and no pull request shows, the
   line's start says where the branch stands ("Ahead of origin · 2 commits", or "Not published · 3 commits"), and
-  pressed, opens those commits. Once everything is pushed, a branch with no pull request shows **No pull request** and
+  pressed, opens those commits. After a code review that reports what it found to Claude Code, it says how the review
+  went instead, uncommitted changes and all: "Reviewed · 5 to fix", then "Reviewed · all fixed" with a green tick
+  once the review reports them fixed, or "Changed since the review" when files are edited after it with something
+  still to fix. Once everything is pushed, a branch with no pull request shows **No pull request** and
   **Create PR**: pointed at, it says the branch it goes into, the repo's default to begin with, and a press there
   picks another of the repo's branches on GitHub, then **Create PR** or **Create Draft PR**. The numbers, the steps
   and Deploy stay on one row per checkout for as long as there's work left there: of the sessions running in that
@@ -80,6 +99,10 @@
   it and on which branch, its folder and the app it runs in. Rows no longer show the app's icon. Pointed at, the
   context ring's Compact button says how full the context is too ("98% · Compact"), and the branch makes way for it.
   Short of room, a long branch or worktree name shortens first, to about a dozen letters, before the model and effort.
+- **Compact now.** When it's a good time to compact a session, its context ring opens by itself and says so ("98% ·
+  Compact now"), and why when you point at it: while it sits idle, once its conversation is nearly full or long, or,
+  once it's big, when its work has just been committed or you've been away from it for an hour. Not where the panel
+  couldn't compact it.
 - **Deploy**, a round play button at the end of that bottom line, for any project Whozmove can work out a deploy
   command for: it puts that checkout's code in place on this Mac, so in a worktree it runs that worktree's code. The
   first press suggests the command and you confirm it twice, seeing what a package script or Makefile target in it

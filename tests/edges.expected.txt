@@ -1,0 +1,35 @@
+The side the icons are on, on a screen 1440 wide (its middle at 720, 40 either side before it changes):
+  a panel at the left, at first: right
+  at the right, at first: left
+  its middle at 750, on the right: right
+  …at 761: left
+  its middle at 690, on the left: left
+  …at 679: right
+Where the folded glass's middle goes, from the list's top-left corner at (1000, 800), y running down:
+  the head 30 down at the panel's left edge, level: (0, 29)
+  …dipped under the press, 2 up: (0, 27)
+  …turned 3.5 to the left: (-4, 29)
+  at the right edge, 9 out: (349, 27)
+A two-finger swipe, the fingers gone so far (1 the panel's, -1 the list's, 0 too soon to say):
+  3 across, 1 down: 0
+  8 across, 1 down: 1
+  -8 across, 3 down: 1
+  8 across, 5 down: -1
+  2 across, 9 down: -1
+  0 across, -7 down: -1
+Fingers lifting, at a speed in points a second, having gone so far across: whether they flick it:
+  1200, gone 40: yes
+  -1500, gone -60: yes
+  500, gone 40: no
+  1200, gone -10: no
+  801, gone 5: yes
+A panel at (1000, 200), 340 wide, flicked: to the right, to (1440, 200); to the left, to (-340, 200)
+The folded glass at (1300, 700), 76 across, swiped by, and one already 12 past the top:
+  (-200, -100): moves (-200, -100)
+  (60, 0): moves (60, 0)
+  (0, 120): moves (0, 99)
+  (500, -900): moves (64, -700)
+  past the top, (30, 0): moves (30, 0)
+  past the top, (0, 20): moves (0, 0)
+  past the top, (0, -20): moves (0, -20)
+How much shows on its way to the right, its left edge at 1000, 1100, 1270, 1355, 1440: 1.000 1.000 0.250 0.062 0.000

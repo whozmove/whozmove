@@ -39,7 +39,9 @@
         [weakSelf.card glassAt:glass list:list duration:duration];
     }];
     [self.core.window followPointer:^(NSPoint point) { [weakSelf.card pointerAt:point]; }];
-    [self.core.window followTurn:^(BOOL turned) { weakSelf.card.away = turned; }];
+    // Out of sight while the panel is turned over, or pushed off the screen's edge.
+    [self.core.window followTurn:^(BOOL turned) { weakSelf.card.away = turned || weakSelf.core.window.parked; }];
+    [self.core.window followAway:^(BOOL away) { weakSelf.card.away = away || weakSelf.core.window.turned; }];
     self.answers = [self messages];
     self.card.onMessage = ^(NSString *type, NSDictionary *message) {
         void (^answer)(NSDictionary *) = weakSelf.answers[type];

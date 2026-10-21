@@ -167,6 +167,39 @@ exit=0
    stageAt = "ms"
    turnReached = ["Built"]
    workSteps = ["Built"]
+== 14 a code review of committed work: kept through its fixes, settled by its second report
+exit=0
+exit=0
+exit=0
+   audit = {"found": 2, "left": 2, "settled": false, "branch": "main", "at": "ms"}
+   editedAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Committed", "Implemented"]
+   workCommitted = false
+   workRoot = "T/repo"
+exit=0
+   audit = {"found": 2, "left": 1, "settled": true, "branch": "main", "at": "ms"}
+   editedAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Committed", "Implemented"]
+   workCommitted = false
+   workRoot = "T/repo"
+== 15 …and gone once that's committed and the next piece of work starts
+exit=0
+exit=0
+   editedAt = "ms"
+   stageAt = "ms"
+   turnReached = ["Committed", "Implemented"]
+   workCommitted = false
+   workRoot = "T/repo"
+   workSteps = []
+== 16 a code review in a worktree, noted on its branch; one with nothing found leaves a commit as it was
+exit=0
+exit=0
+   audit = {"found": 0, "left": 0, "settled": false, "branch": "side", "at": "ms"}
+   stageAt = "ms"
+   turnReached = ["Committed"]
+   workCommitted = true
 == P1 panel not running
 exit=0
 0

@@ -162,10 +162,10 @@ NSString *LocalBaseBranch(NSString *root) {
     return main ? GitInfo(main)[@"branch"] : nil;
 }
 
-// A checkout's base branch, how many commits the branch has that the base doesn't, and how many new files there are:
-// {base, aheadOfBase, newFiles}, or nil. The base is the branch GitHub's copy points at (origin/HEAD), else main or
-// master: GitHub's copy of it if there is one, else the local one. Without any, the work is measured from the last
-// commit. Blocking.
+// A checkout's base branch, how many commits the branch has that the base doesn't, how many new files there are, and
+// when its last commit was made (git's commit time, in seconds): {base, aheadOfBase, newFiles, headAt}, or nil. The
+// base is the branch GitHub's copy points at (origin/HEAD), else main or master: GitHub's copy of it if there is one,
+// else the local one. Without any, the work is measured from the last commit. Blocking.
 NSDictionary *FetchChangeCounts(NSString *root) {
     // What git prints, as it prints it (a name that isn't UTF-8 read as Latin-1), or nil when it fails.
     NSString *(^output)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
@@ -182,12 +182,15 @@ NSDictionary *FetchChangeCounts(NSString *root) {
     };
     NSString *base = nil, *baseRef = nil;
     BranchStart(root, &base, &baseRef);
-    if (!git(@[@"rev-parse", @"--verify", @"--quiet", @"HEAD"]).length) return nil;  // no commit yet, or not a checkout
+    // The last commit's time, which a code review's note on the row is measured against: a commit after it, and edits
+    // after that, are new work. Without the signature check that git's log.showSignature would print before it.
+    NSString *headAt = git(@[@"log", @"--no-show-signature", @"-1", @"--format=%ct", @"HEAD"]);
+    if (!headAt.length) return nil;  // no commit yet, or not a checkout
     NSString *others = output(@[@"ls-files", @"--others", @"--exclude-standard", @"-z"]) ?: @"";
     NSInteger newFiles = 0;
     for (NSString *path in [others componentsSeparatedByString:@"\0"])
         if (path.length) newFiles++;
-    NSMutableDictionary *counts = [@{@"newFiles": @(newFiles)} mutableCopy];
+    NSMutableDictionary *counts = [@{@"newFiles": @(newFiles), @"headAt": @(headAt.longLongValue)} mutableCopy];
     if (base) {
         counts[@"base"] = base;
         counts[@"aheadOfBase"] = @([git(@[@"rev-list", @"--count", [baseRef stringByAppendingString:@"..HEAD"]])

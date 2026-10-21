@@ -128,6 +128,11 @@ function drawCat(counts, sessions, kinds) {
     catLook();
   }
   catBreathe(counts.working);
+  // Whozmove beside the panel keeps the same mood, so it grows into this one as it sits (app/core/SideCat.m).
+  if (pose !== state.cat.toldPose) {
+    state.cat.toldPose = pose;
+    native({ type: 'catPose', pose });
+  }
   const names = sessions.map((s) => s.name || base(s.cwd));
   state.cat.drawn = { counts, sessions, kinds };
   const right = state.cat.right;
@@ -347,23 +352,29 @@ window.catPointer = (x, y) => {
 
 // --- Opening and folding -------------------------------------------------------------------------------------------
 
-// Where the folded glass's middle is, from #root's top-left corner: just above the name's o as laid out now, so the
-// cat's raised head is on the o (cat.css), and the app keeps the folded glass there (catAt, in
-// app/core/PanelWindow.m), so the panel opens round the cat. Measured with each update, as the name moves up while the
-// build shows under it; not while the cat is on its way.
+// Where the folded glass's middle is, from #root's top-left corner: just above the name's o as laid out now, with the
+// header all there however far it has slid away (header.js), so the cat's raised head is on the o (cat.css), and the
+// app keeps the folded glass there (catAt, in app/core/PanelWindow.m), so the panel opens round the cat. Measured with
+// each update, as the name moves up while the build shows under it; not while the cat is on its way.
 function catPlace() {
-  if (state.cat.arriving || document.body.classList.contains('departing')) return;
+  if (state.cat.arriving || state.cat.fromSide || document.body.classList.contains('departing')) return;
   const o = document.querySelector('header .name-cat')?.getBoundingClientRect();
   const root = document.getElementById('root').getBoundingClientRect();
   if (!o || !o.width) return;
-  const x = Math.round((o.left + o.width / 2 - root.left) * 100) / 100;
-  const y = Math.round((o.top + o.height / 2 - root.top - CAT_HEAD_AT) * 100) / 100;
+  const { x, y } = catPlaceFrom(o, root, headerOff());
   if (state.cat.at && state.cat.at.x === x && state.cat.at.y === y) return;
   state.cat.at = { x, y };
   const rootEl = document.getElementById('root');
   rootEl.style.setProperty('--cat-x', `${x}px`);
   rootEl.style.setProperty('--cat-y', `${y}px`);
   native({ type: 'catAt', x, y });
+}
+
+// Where the folded glass's middle is for the name's o laid out at `o`, from #root's top-left corner at `root` (each a
+// rectangle as the page measures one), with the header `off` points slid away: where it is with the header all there.
+function catPlaceFrom(o, root, off) {
+  return { x: Math.round((o.left + o.width / 2 - root.left) * 100) / 100,
+           y: Math.round((o.top + o.height / 2 - root.top - CAT_HEAD_AT + off) * 100) / 100 };
 }
 
 // The cat's change of size between the glass and its place as the o of the name in the header: a transform for #cat
@@ -429,9 +440,11 @@ function catOpening(show) {
 // The panel folding round the cat (toggleCollapsed): the name's o grows back into the folded cat at once, as the click
 // lands, "Wh" and "zmove" going out at its sides as it does and the list fading, while the glass closes in round it
 // (app/core/PanelWindow.m). The labels don't come back, nor, while the pointer is still on the cat, until the pointer
-// has left it once. `hide` puts the folded look on.
+// has left it once. `hide` puts the folded look on. Folding round Whozmove beside the panel, with the header gone,
+// there's no o to grow from: catFromSide.
 function catFolding(hide) {
   state.cat.waitForLeave = true;
+  if (state.cat.fromSide) return catFromSide(hide);
   if (calm.matches) { hide(); return; }
   // Its head goes up at once, while it's out of sight, so it's as the name's o has it when it takes the o's place.
   catEl.classList.add('hover', 'snap');
@@ -457,6 +470,61 @@ function catFolding(hide) {
   // Once the glass has closed in round it, it settles into its pose, unless the pointer is on it.
   setTimeout(() => { if (!state.cat.hovering) catEl.classList.remove('hover'); }, 800);
 }
+
+// Whozmove beside the panel was pressed, with the header gone (app/core/SideCat.m): the panel folds round it where it
+// is, `x` and `y` from #root's top-left corner, as catPlace's are. The page stays where it is as the glass closes in,
+// so the list fades in place, and the folded cat is there, out of sight, until it takes over (catLanded).
+window.foldFromSide = (x, y) => {
+  if (document.body.classList.contains('collapsed') || state.reading) return;
+  state.cat.fromSide = true;
+  state.cat.at = { x, y };
+  const rootEl = document.getElementById('root');
+  rootEl.style.setProperty('--cat-x', `${x}px`);
+  rootEl.style.setProperty('--cat-y', `${y}px`);
+  native({ type: 'catAt', x, y });
+  toggleCollapsed();
+};
+
+// The cat beside the panel grows into the folded cat in front of the glass as the glass closes round it (SideCat.m):
+// this one waits out of sight, raised, its eyes where its pose starts them (cat.css), and takes over from it once it
+// has grown (catLanded), then settles into its pose as it does after any fold.
+function catFromSide(hide) {
+  catEl.classList.add('hover', 'snap', 'from-side');
+  void catEl.getBoundingClientRect();
+  catEl.classList.remove('snap');
+  hide();
+  clearTimeout(state.cat.landing);
+  state.cat.landing = setTimeout(window.catLanded, 1500);
+}
+
+// Opened before the fold round Whozmove beside the panel has landed: the folded cat shows where it is, and its place
+// goes back to the name's o, as at the hand-off (catLanded).
+function catFromSideEnds() {
+  clearTimeout(state.cat.landing);
+  state.cat.fromSide = false;
+  catEl.classList.remove('from-side');
+  catPlace();
+}
+
+// The cat beside the panel has grown into the folded cat where the glass closed round it. The folded cat's place goes
+// back to the name's o first (catPlace), the app moving the page under the glass to put it there, all out of sight;
+// then this one shows there, as it is, and once it's drawn the one beside the panel goes (catShown).
+window.catLanded = () => {
+  clearTimeout(state.cat.landing);
+  if (!catEl.classList.contains('from-side')) return;
+  state.cat.fromSide = false;
+  catPlace();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    catEl.classList.add('landing');
+    catEl.classList.remove('from-side');
+    void catEl.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      catEl.classList.remove('landing');
+      native({ type: 'catShown' });
+    }));
+  }));
+  setTimeout(() => { if (!state.cat.hovering) catEl.classList.remove('hover'); }, 800);
+};
 
 // Runs `go` when the app says the glass is about to spread out from behind the cat (catGlass), or after `wait` ms if it
 // hasn't, once either way.

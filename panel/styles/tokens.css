@@ -10,8 +10,9 @@
 
   /* The panel's own colour, under everything: grey, as the prototypes have it, or black from the Look menu (data-look,
      at the end of this file), and about the same under glass. The window's tint (Tint in app/core/PanelWindow.m) has
-     the same colours: keep them matching. What has to match the panel exactly takes it from here: the cat's eyes and
-     nose, and a changed file's head as its lines scroll under it. */
+     the same colours, and Whozmove beside the panel (PanelColour in app/core/SideCat.m) each look's: keep them
+     matching. What has to match the panel exactly takes it from here: the cat's eyes and nose, and a changed file's
+     head as its lines scroll under it. */
   --panel: #202023;
 
   /* Words on the panel, brightest first. */
@@ -36,10 +37,10 @@
      lyrics mark on a song's cover. */
   --on-colour: #fff;
 
-  /* Colour says whose move it is: red-orange something's blocked or wrong, amber your move, blue work
-     underway, teal waiting on others, green finished, grey nothing to do. */
+  /* Colour says whose move it is: red-orange something's blocked or wrong, amber your move, a warm cream work
+     underway (--cream's), teal waiting on others, green finished, grey nothing to do. */
   --needs: #ff6b4a;
-  --busy: #4aa8ff;
+  --busy: var(--cream);
   --turn: #ffc53d;
   --pr: #56d364;
   --idle: rgba(255, 255, 255, 0.28);
@@ -157,7 +158,8 @@
   --compose-dot: rgba(255, 255, 255, 0.5);  /* the new conversation's dot, a ring */
   --code-fill: rgba(0, 0, 0, 0.3);
   /* The folded panel's cat (cat.js) and the name in the header; and the cat's eyes and nose, the panel's own colour
-     showing through. The app icon (icon/make-icon.m) draws its cat in the dark --cream too: keep them matching. */
+     showing through. The app icon (icon/make-icon.m) draws its cat in the dark --cream too, and Whozmove beside the
+     panel (app/core/SideCat.m) in both: keep them matching. */
   --cream: #f3ebe2;
   --cat-feature: var(--panel);
   /* The labels beside the cat: a tag for each session waiting on you, and the name a dot shows when pointed at. */
@@ -216,7 +218,7 @@
   --radius-pill: 999px;
 
   /* The layout. */
-  --header: 46px;  /* must match kHeaderHeight in app/core/PanelWindow.m */
+  --header: 46px;  /* must match kHeaderHeight in app/core/PanelWindow.m, and HEADER_TALL (and its line) in header.js */
   /* The page is laid out at one width always, with room for the reader on either side of the list (kReaderRoom in
      app/core/PanelWindow.m, which shows only the part in use): the list's column starts this far in. */
   --side: 1254px;
@@ -255,7 +257,6 @@
     --on-colour: #fff;
 
     --needs: #c93412;
-    --busy: #0b6bcb;
     --turn: #bf8300;
     --pr: #1a7f37;
     --idle: rgba(0, 0, 0, 0.3);

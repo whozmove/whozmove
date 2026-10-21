@@ -167,14 +167,15 @@ static int PrintWhyNot(Core *core) {
     };
 }
 
-// Each session's work: a compaction sent from the panel that hasn't ended, and a pick its details show until the
-// session confirms it. Once the rows are whole, picks for sessions long gone are forgotten.
+// Each session's work: a compaction sent from the panel that hasn't ended, a pick its details show until the session
+// confirms it, and whether a compaction certainly couldn't go in now. Once the rows are whole, picks for sessions long gone are forgotten.
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase {
     if (phase == RowPhaseWork) {
         for (Row *row in rows) {
             NSString *sid = row.sessionId;
             if ([self.commands compactingSince:sid]) row.compacting = [self.commands compactingSince:sid];
             row.chosen = [self.commands chosenFor:sid];
+            row.noCompact = CantCompactNow([self.core.send reachOf:row]);
         }
     } else if (phase == RowPhaseListed) {
         [self.commands keepPicksOf:rows];

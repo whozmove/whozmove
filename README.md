@@ -22,9 +22,20 @@ with what each is doing, so you can see at a glance which one needs you.
 - **the row you're on stays in view**: scroll the list past the session you're on, or let the list move its row out of
   sight (down to Working as it starts on your message, say), and the row holds on at the top of the list (or at its
   bottom, while it's further down), folding a line at a time until its name, Claude's line and where it runs are left,
-  and the rest of the list goes under it. Back in view it opens out into its place again; press it to scroll back to
-  it. Switch to another session and its tint moves over to that one's row as it slides away. A row you're typing in,
-  or one too tall to show whole, goes out of sight as any row does
+  and the rest of the list goes under it. However quickly the list moves, the lines fold one after another, catching
+  up within a moment. Back in view it opens out and glides into its place again; press it to scroll back to it.
+  Switch to another session and its tint moves over to that one's row as it slides away. A row you're typing in, or
+  one too tall to show whole, goes out of sight as any row does
+- **more room for the list**: the header slides away as you scroll the list down, point for point, and comes back as
+  soon as you scroll up, from anywhere in the list; it's always there at the top. While it's gone, Whozmove peeks out
+  beside the panel's top corner, on the side facing the middle of the screen: it looks up as your pointer comes near,
+  blinks slowly when you rest on it, and flicks an ear when something new needs you. Press it and the panel folds round
+  it right where it is; drag it to move the panel. Opened again, the panel grows round it, the header back
+- **flick the panel away**: a quick sideways two-finger swipe on the panel pushes it off that side of the screen, and
+  Whozmove peeks out from the screen's edge; press it (or **Show / Hide Panel**, or ⌃⌥N) and the panel slides back where
+  it was. Up and down still scroll the list, and while you're typing in one of its boxes, a sideways swipe stays the
+  box's. Folded, a two-finger swipe any way moves it, gliding on as far as the swipe was quick, and never past the
+  screen's edge
 - **start a conversation** from the ＋ in the panel's header, or ⌃⌥N from any app: a card opens at the top of the
   panel, under the header; write what Claude should do and press ⌘Return (Return starts a new line). The card is
   shaped like the row it becomes.
@@ -75,19 +86,23 @@ with what each is doing, so you can see at a glance which one needs you.
   until you've moved on from the panel: your pointer off it (and moved, when the panel shrank under it or one of its
   menus closed there) and none of its boxes typed in. Then it goes to its place
 - the last exchange, as a chat: your message, and below it Claude's line. While Claude works, its "Claude"
-  label fades in and out in blue and the line says what it's doing, timed from your message like Claude's own
-  progress row: the command's description ("Run the tests"), "Reading app.ts", "Editing styles.css",
-  "Searching the web: …", "Calendar: list events", and so on. As in Claude, the latest step stays up while
-  Claude thinks, and the reply takes its place at the end. Both lines stay from turn to turn, so your
-  message, each step and the reply change the text in place, and Claude shows thinking the moment you
-  send. A step shows once it starts running: a hook can't see it while Claude is still writing it. A
-  working session's dot fades on and off
+  label fades in and out in cream (a warm dark brown on a light panel) and the line says what it's doing, timed
+  from your message like Claude's own progress row: the command's description ("Run the tests"), "Reading app.ts",
+  "Editing styles.css", "Searching the web: …", "Calendar: list events", and so on. As in Claude, the latest step
+  stays up while Claude thinks, and the reply takes its place at the end. Both lines stay from turn to turn, so
+  your message, each step and the reply change the text in place, and Claude shows thinking the moment you send.
+  New text writes in from the left once the old has erased from the right, and the next step keeps what it shares
+  with the one before ("Reading …"), rewriting only the rest. A step shows once it starts running: a hook can't see
+  it while Claude is still writing it. A working session's dot fades on and off
 - a ring for how full each session's context is. Pointed at, it widens into a **Compact** button that says
   how full it is ("98% · Compact"), filled the same way, and where the session runs makes way for it. A
   click opens a card with how much is left before auto-compact ("427k left") and three ways to compact:
   Compact, Keep details and Keep essentials (the last two are `/compact` with instructions for what the
   summary keeps), or your own focus. It goes in like a model pick, while the session is idle. Claude's line
-  says "Compacting the conversation" until it's done, and the ring drops to the new size straight away
+  says "Compacting the conversation" until it's done, and the ring drops to the new size straight away.
+  When it's a good time to compact, the ring opens by itself and says "98% · Compact now", and why when you
+  point at it. That happens only while the session sits idle, once its conversation is nearly full or long,
+  or, once it's big, when its work has just been committed or you've been away from it for an hour
 - each session's model, effort and permission mode: click one to change it while the session sits idle.
   Never while it's working or asking you something, since a key typed into a permission prompt would
   answer it.
@@ -113,12 +128,21 @@ with what each is doing, so you can see at a glance which one needs you.
   cloud for a branch never pushed. Pointed at, each says its step beside it (**Commit**, **Push**, **Publish**);
   pressed, it asks the session's agent in words ("Commit the staged changes."), the way a model pick goes in, only
   while that agent is idle and no other agent is working in that checkout (there, or editing files there; one waiting
-  on you doesn't count). A commit takes only what's staged when something is, as git does. While an agent works there,
-  the steps are dimmed and say they wait. A press says, for a few seconds in the work line's place, that it's asking,
-  or why it can't go in.
+  on you doesn't count). A commit takes only what's staged when something is, as git does. A press says, for a few
+  seconds in the work line's place, that it's asking, or why it can't go in.
+  While the session's agent works, or asks you something along the way, its row has no work line (no pull requests,
+  numbers or steps); it comes back once the agent is done.
   While commits wait to go, everything else is committed and no pull request shows, the line's start says where the
   branch stands, in git's words: "Ahead of origin · 2 commits", or "Not published · 3 commits" for a branch never
   pushed; pressing it opens those commits in the changes view (below), on Outgoing.
+  After a code review in a session there that reports what it found to Claude Code (as /code-review does), the line's
+  start says how it went instead, changes not committed yet and all, on the branch it was run on: "Reviewed · 5 to
+  fix", then "Reviewed · all fixed" or "Reviewed · 1 left" once the review reports what became of each, or "Reviewed
+  · nothing to fix". With nothing left to fix, a green tick in a ring comes before it, until files there are edited
+  again. With something left, a session editing files after it makes it "Changed since the review", until that's
+  committed and new work starts. Pointed at, it says so in full, naming the session the review ran in when it isn't
+  that row's; pressed with nothing left uncommitted, it opens the commits not on GitHub yet, as "Not published" does.
+  It shows only while there's work to go.
   Once everything is pushed, a branch other than the repo's default with no pull request shows **No pull request**
   where its pull requests would be, with **Create PR**: pointed at, it says the branch it goes into, the repo's default
   to begin with; press that to pick another of the repo's branches on GitHub, then **Create PR** or **Create Draft
@@ -264,7 +288,7 @@ A label's colour says whose move it is:
 |---|---|---|
 | red-orange | blocked or broken: fix it | a request or question waiting |
 | amber | your move: a routine next step | Your turn |
-| blue | work underway | Working |
+| cream | work underway | "Claude", beside what it's doing |
 
 ## Install
 

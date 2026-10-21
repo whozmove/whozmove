@@ -63,17 +63,24 @@ const state = {
   // list and its session; the edge it holds on at (top, bottom or null); whether its place was in view, and where it
   // and the list's bottom edge were, when last looked at; the copy that holds on while it does, with its chat line's
   // text, its lines' kinds, each line as measured and its height; what it was last laid out for, and how many copies
-  // have been made; the part of the list it covers and the list's border above that; how far it has faded in, the timer
-  // of its fade or of its tint going to another row, and whether it's going; and the scroll back to the row after a
-  // press.
+  // have been made; where the copy has got to on its way to the row's place, how fast it's going, when that was worked
+  // out, and the frame it's laid out again in until it's there; the part of the list it covers, the list's border above
+  // that, and how far it's attached there at the list's top; how far it has faded in, the timer of its fade or of its
+  // tint going to another row, and whether it's going; as it slides off, the part it covered as it began to, and how
+  // far what it has uncovered there has come back; and the scroll back to the row after a press.
   sticky: { row: null, sid: null, edge: null, inView: false, lastT: null, lastV: 0, copy: null, chat: null, shape: '',
-            lines: [], full: 0, drawn: '', copies: 0, band: [0, 0], clientTop: 0, fade: 1, ramp: 0, leaving: false,
-            mover: 0 },
+            lines: [], full: 0, drawn: '', copies: 0, at: null, speed: 0, easedAt: 0, follow: 0, band: [0, 0],
+            clientTop: 0, attached: 0, fade: 1, ramp: 0, leaving: false, covered: null, back: 1, mover: 0 },
 
-  // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd);
-  // the card it opened (and what a press on one of its buttons does, for one that has them), where that ends, and
-  // its timer. How tall the panel can grow where it is (down to where the screen ends; setRoom). The card's HTML as
-  // last drawn, and the room it took below the list, kept a moment after it goes (hideCard).
+  // The header sliding away with the list's scroll (header.js): how far it has gone, where the list was last scrolled
+  // to and which way it was going, the timers of its glide and of its settling once the scroll stops, whether it counts
+  // as gone, and what the app was last told of it, once a frame at most.
+  header: { off: 0, last: 0, dir: 1, glide: 0, quiet: 0, gone: false, told: null, telling: false },
+
+  // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd); the
+  // card it opened (and what a press on one of its buttons does, for one that has them), where that ends, and its
+  // timer. How tall the panel can grow where it is (down to where the screen ends; setRoom). The card's HTML as last
+  // drawn, and the room it took below the list, kept a moment after it goes (hideCard).
   pointer: null, pointerStill: false, cardKey: null, cardPress: null, cardBottom: 0, cardHTML: '', cardHeld: null,
   panelMax: 640,
 
@@ -89,7 +96,11 @@ const state = {
   // app/core/PanelWindow.m), what waits for the app to say the glass is about to move as the panel opens (catGlass),
   // while its eyes follow the pointer, where they are, how fast they're moving, when they were last moved and whether
   // they're still on their way (catEyes: { x, y, vx, vy, at, moving }, or null), and how many sessions the app was last
-  // told are working, for its glass's breath (catBreathe; null until it's first told, so it always is once).
+  // told are working, for its glass's breath (catBreathe; null until it's first told, so it always is once), and its
+  // pose as the app was last told it, for Whozmove beside the panel (likewise); and while the panel folds round
+  // Whozmove beside it (foldFromSide), that it does, and the timer that hands over if the app doesn't say the cat
+  // beside the panel has grown into the folded cat (catLanded).
   cat: { pose: null, marks: null, hovering: false, leaving: null, near: null, waitForLeave: false, arriving: false,
-         right: false, drawn: null, at: { x: 45, y: 23.15 }, onGlass: null, eyes: null, working: null },
+         right: false, drawn: null, at: { x: 45, y: 23.15 }, onGlass: null, eyes: null, working: null,
+         toldPose: null, fromSide: false, landing: 0 },
 };

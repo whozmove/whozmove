@@ -264,6 +264,24 @@ show('…but a row you pressed keeps its project where it was, as it starts work
 show("…until you've moved on", outline(projectsHTML(placeOnce([one, twoAtWork]), NOW)));
 state.groupBy = 'status';
 
+section('Your message and Claude\'s line, written in and erased');
+show('what the next text keeps of the one before, by whole words: the same verb, nothing, all of it, a word that goes '
+     + 'on, a shared start within a word', [sharedStart('Reading checkout.tsx', 'Reading cart.tsx'),
+       sharedStart('Thinking', 'Reading app.ts'), sharedStart('Editing a.ts', 'Editing a.ts'),
+       sharedStart('Reading', 'Reading cart.tsx'), sharedStart('Run tests', 'Running npm test')]);
+// When a change ends, from the start of the rebuild's motion, for lengths along the text (points) as the panel has them:
+// "Thinking" about 70, a step about 110, a full line about 280, a reply on two lines about 560.
+const chatEnds = (...args) => Math.round(Object.values(chatTimes(...args)).reduce((sum, ms) => sum + ms, 0));
+show(`how long each change takes, all within the rebuild's motion (${MORPH_MS} ms): a turn starting, Claude's line `
+     + 'after yours; the next step, its verb kept; a step to a two-line reply; a new turn after one; a long reply after '
+     + 'a long one, after yours', [chatEnds(CHAT_STAGGER + CHAT_LEAD, 0, 70, false), chatEnds(0, 60, 40, true),
+       chatEnds(0, 110, 560, false), chatEnds(CHAT_STAGGER, 560, 70, false), chatEnds(CHAT_STAGGER, 560, 560, false)]);
+show('…erasing a little quicker than writing the same text', [chatTimes(0, 280, 0, false).erase,
+                                                             chatTimes(0, 0, 280, false).write]);
+const frames = listFrames(200, 185, [{ delta: -15, start: 400, ms: 600 }]);
+show('the list\'s height while a line gives up its room only once its text has gone (15 points, from 400 ms): where it '
+     + 'starts, at 400 ms, and where it ends', [frames[0].height, frames[12].height, frames[30].height]);
+
 section("The row you're on, held at the edge");
 show('in view', stickyEdge(10, 150, 500));
 show('just past the top: under the header', stickyEdge(-1, 150, 500));
@@ -276,13 +294,11 @@ const rowLines = [['title', 17, true], ['you', 18, false], ['claude', 18, true],
                   ['note', 18, false], ['where', 21, true]]
   .map(([name, extent, keep]) => ({ name, extent, keep }));
 const rowFull = 18 + rowLines.reduce((sum, l) => sum + l.extent, 0);
-// The copy `past` points past the edge: its height, what has folded off which line, how attached it is, and how far
-// rows are under it.
+// The copy `past` points past the edge: its height, what has folded off which line, and how attached it is.
 const foldAt = (past, edge) => {
   const f = stickyFold(rowLines, rowFull, rowFull - past, edge);
   const folded = rowLines.map((l, i) => (f.folds[i] ? `${l.name} −${f.folds[i]}` : '')).filter(Boolean);
-  return `${f.height} tall | ${folded.join(', ') || 'nothing folded'} | attached ${+f.attach.toFixed(2)}, `
-    + `under ${+f.under.toFixed(2)}`;
+  return `${f.height} tall | ${folded.join(', ') || 'nothing folded'} | attached ${+f.attach.toFixed(2)}`;
 };
 for (const past of [0, 12, 30, 52, 60, 74, 130]) show(`at the top edge, ${past} points past it`, foldAt(past, 'top'));
 for (const past of [12, 30, 52, 60, 74]) show(`at the bottom edge, ${past} points past it`, foldAt(past, 'bottom'));
@@ -303,6 +319,23 @@ const lineAt = (f, edge) => {
 for (const f of [0, 2, 8, 22])
   show(`a line folding ${f} points at the top edge: its foot goes under`, lineAt(f, 'top'));
 for (const f of [2, 8, 22]) show(`…and at the bottom edge: its margin, then its head`, lineAt(f, 'bottom'));
+// The copy catching up with the row's place, a frame (16.7 ms) at a time, as the place's top goes from one point to
+// the next: where the copy's top is in each frame.
+const easeAlong = (places) => {
+  let at = places[0], speed = 0;
+  return places.slice(1).map((to, i) => {
+    ({ at, speed } = stickyEase(at, speed, places[i], to, 16.7));
+    return +at.toFixed(1);
+  }).join(' ');
+};
+const still = (place, frames) => Array(frames).fill(place);
+show('a slow scroll, 3 points a frame: it keeps up exactly', easeAlong([0, -3, -6, -9, -12, -15]));
+show('the row taken 150 points past the edge in one frame: its lines fold one after another, there in about 0.25 s',
+  easeAlong([0, ...still(-150, 17)]));
+show('a quick scroll, 30 points a frame, then still: it catches up once the scroll stops',
+  easeAlong([0, -30, -60, -90, -120, ...still(-120, 14)]));
+show('…and brought back before it has caught up: it turns, and never goes past the row\'s place',
+  easeAlong([0, -60, -120, -60, 0, 40, ...still(40, 14)]));
 // Whether it holds on: the row 150 tall in a list showing 500, with how it was till now and whether its top has moved
 // toward the edge it's past.
 const holdAt = (t, how) => JSON.stringify(stickyHold(t, 150, 500, { was: null, inView: true, away: true,
@@ -316,9 +349,11 @@ show('…but not when it\'s brought back toward view', holdAt(356, { inView: fal
 show('one of its boxes typed in: never', holdAt(-2, { typing: true }));
 show('taller than the list: never', JSON.stringify(stickyHold(-2, 520, 500, { away: true, inView: true })));
 show('holding on, the list moving it further or back: still holds on', holdAt(-40, { was: 'top', away: false }));
-show('back in view: hands back at once, however far it came in one frame',
+show('back in view, its copy caught up with its place: hands back, however far it came in one frame',
   [0.5, 30, 120].map((t) => holdAt(t, { was: 'top' })).join(' '));
 show('…and from the bottom edge', [349.6, 200].map((t) => holdAt(t, { was: 'bottom' })).join(' '));
+show('…its copy still on its way there: holds on, gliding there, until it has caught up',
+  [30, 200].map((t) => holdAt(t, { was: 'top', behind: true })).join(' '));
 show('still past the edge but now typed in, or too tall: fades out',
   [holdAt(-20, { was: 'top', typing: true }), JSON.stringify(stickyHold(-20, 520, 500, { was: 'top' }))].join(' '));
 show('from one edge to the other at once: fades in there', holdAt(400, { was: 'top' }));
@@ -383,6 +418,33 @@ const ringColour = (agent) => (/color:([^;]+);/.exec(contextRing(session({ agent
 show('ring colour, 10% used', ringColour({ model: 'claude-opus-5-5', tokens: 100000 }));
 show('ring colour, 70% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 140000 }));
 show('ring colour, 90% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 180000 }));
+const opus = (tokens) => ({ model: 'claude-opus-5-5', tokens });
+const nowWhy = (fields) => compactNow(session({ ...reply, ...fields }), NOW);
+show('compact now: nearly full', nowWhy({ agent: { model: 'claude-sonnet-5-5', tokens: 175000 } }));
+show('compact now: long', nowWhy({ agent: opus(450000) }));
+show('compact now: big, its work committed', nowWhy({ agent: opus(250000), outcome: 'Committed' }));
+show('compact now: big, after an hour away', nowWhy({ agent: opus(250000), ...repliedAt(min(61)) }));
+show('not now: big, its edits not committed yet', nowWhy({ agent: opus(250000), editedAt: min(10),
+  workRoot: '/work/app', checkout: { changes: 3 } }));
+show('not now: committed, but small', nowWhy({ agent: opus(150000), outcome: 'Committed' }));
+show('not now: small, after an hour away', nowWhy({ agent: opus(150000), ...repliedAt(min(61)) }));
+show('not now: at work', nowWhy({ agent: opus(950000), status: 'busy' }));
+show('not now: asking', nowWhy({ agent: opus(950000), ask: { id: 'a', tool: 'Bash', input: {} } }));
+show('not now: compacting', nowWhy({ agent: opus(950000), compacting: min(1) }));
+show('not now: ended', nowWhy({ agent: opus(950000), status: 'closed', pid: 0 }));
+show("not now: the app says a compaction couldn't go in", nowWhy({ agent: opus(950000), noCompact: true }));
+show('not now: big, its edits left in another checkout', nowWhy({ agent: opus(250000), editedAt: min(10),
+  workRoot: '/work/app-x', checkout: { changes: 0 } }));
+show('compact now: big, its edits in its own checkout all committed', nowWhy({ agent: opus(250000),
+  editedAt: min(10), workRoot: '/work/app', checkout: { changes: 0 } }));
+show('not now: big, quiet for an hour, but you were on it since', nowWhy({ agent: opus(250000),
+  ...repliedAt(min(61)), seenAt: min(5) }));
+show("not now: big, quiet for an hour, and it's the one you're on", nowWhy({ agent: opus(250000),
+  ...repliedAt(min(61)), focused: true }));
+state.last.now = NOW;
+const nowRing = contextRing(session({ ...reply, sessionId: 'n1', agent: opus(980000) }));
+show('a ring that says compact now', /class="ctx open now"/.test(nowRing) && /% · Compact now</.test(nowRing));
+show('…and why, in its tip', /title="([^"·]*)/.exec(nowRing)?.[1]);
 
 section('Projects');
 show('a worktree counts toward its repo', projectOf(session({
@@ -794,6 +856,48 @@ show('…a closed one when none there is running', [...checkoutOwners([
   session({ sessionId: 'closed-earlier', status: 'closed', outcome: 'Researched', lastPromptAt: min(30) }),
   session({ sessionId: 'closed-later', status: 'closed', outcome: 'Researched', lastPromptAt: min(3) }),
 ])]);
+// A code review's record, as the hook keeps it from the review's report (and its second, with outcomes, settled), with
+// the branch it ran on once the hook notes it, on a checkout with changed files (on main), its last commit made `headAt`
+// (in seconds, as git says it).
+const audit = (found, left, at, settled = false, branch = null) =>
+  ({ audit: { found, left, settled, at, ...(branch ? { branch } : {}) } });
+const reviewed = (fields, checkout = {}) => session({ ...fields, checkout: { ...remote, changes: 2, ...checkout } });
+const reviews = [
+  reviewed(audit(5, 5, min(30))), reviewed(audit(5, 0, min(10), true)), reviewed(audit(5, 1, min(10), true)),
+  reviewed(audit(0, 0, min(10))), reviewed({ ...audit(5, 5, min(30)), ...edited('/work/app', min(20)) }),
+];
+show('how the last code review went: what it found, then what it settled once it reports again; none: null',
+  [...reviews.slice(0, 4).map((s) => reviewOf(s, [s])), reviewOf(reviewed({}), [])]);
+show('…edited after it last reported: changed since; not its fixes, before its second report, nor edits elsewhere', [
+  reviewOf(reviews[4], []),
+  reviewOf(reviewed({ ...audit(5, 0, min(10), true), ...edited('/work/app', min(20)) }), []),
+  reviewOf(reviewed({ ...audit(5, 5, min(30)), ...edited('/work/other', min(5)) }), [])]);
+show('…edited here from a session running elsewhere: changed since all the same',
+  reviewOf(reviewed(audit(5, 5, min(30))), [session({ sessionId: 'from-the-fix', git: fixHover,
+                                                      ...edited('/work/app', min(5)) })]));
+show('…with nothing left to fix, gone once anything is edited after it: what it passed has changed', [
+  reviewOf(reviewed({ ...audit(0, 0, min(30)), ...edited('/work/app', min(20)) }), []),
+  reviewOf(reviewed({ ...audit(5, 0, min(30), true), ...edited('/work/app', min(20)) }), [])]);
+show('…with some left, gone once new work starts, a commit since and an edit since that; kept with only the commit, or'
+  + ' a review of what was committed before it', [
+  reviewOf(reviewed({ ...audit(5, 1, min(30), true), ...edited('/work/app', min(10)) },
+                    { headAt: min(20) / 1000 }), []),
+  reviewOf(reviewed(audit(5, 0, min(30), true), { headAt: min(20) / 1000 }), []),
+  reviewOf(reviewed({ ...audit(5, 5, min(30)), ...edited('/work/app', min(10)) }, { headAt: min(40) / 1000 }), [])]);
+show('…only one run on the branch the checkout is on now (or noted on none, by an older hook)', [
+  reviewOf(reviewed(audit(5, 5, min(30), false, 'other')), []),
+  reviewOf(reviewed(audit(5, 5, min(30), false, 'main')), []), reviewOf(reviewed(audit(5, 5, min(30))), [])]);
+const reviewer = session({ sessionId: 'reviewer', name: 'search-review', ...audit(3, 3, min(5)) });
+show('…the newest review in the checkout, from whichever session ran it, named when it isn\'t the row\'s; another'
+  + ' checkout\'s doesn\'t count',
+  reviewOf(reviewed({ sessionId: 'worker', ...audit(9, 9, min(50)) }), [reviewer,
+    session({ sessionId: 'elsewhere', git: fixHover, ...audit(7, 7, min(1)) })]));
+show('what the work line\'s start says of each, and over it',
+  [...reviews.map((s) => reviewWords(reviewOf(s, []))),
+   reviewWords({ found: 1, left: 1, settled: true, changed: false })]);
+show('…naming the session the review ran in, when it isn\'t the row\'s', [
+  reviewWords({ found: 3, left: 3, settled: false, changed: false, by: 'search-review' }),
+  reviewWords({ found: 3, left: 3, settled: false, changed: true, by: 'search-review' })]);
 
 print('-- a row with changed files: the commit icon at the end of the work line');
 state.owners = new Set(['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7']);
@@ -813,6 +917,21 @@ print('-- commits to push with an open pull request: the pull request where it g
 print(workHTML({ s: withSteps('w1', { ahead: 1, aheadOfBase: 3, upstream: 'origin/f' },
                               { git: { branch: 'f', root: '/work/app' }, prs: [pr({ headRefName: 'f' })] }),
                  kind: 'idle', owner: true, steps: { push: 1 } }));
+print('-- a code review\'s findings still to fix: said where the pull requests go, uncommitted changes and all');
+print(workHTML({ s: withSteps('w4', { changes: 3 }, audit(5, 5, min(30))), kind: 'idle', owner: true,
+                 steps: { commit: { staged: 0 } } }));
+print('-- …all fixed, with commits never pushed and nothing else: the review, ticked, opening those commits');
+print(workHTML({ s: withSteps('w4', { upstream: false, aheadOfBase: 2 }, { git: { branch: 'f', root: '/work/app' },
+                              ...audit(5, 0, min(10), true) }), kind: 'idle', owner: true, steps: { publish: 2 } }));
+print('-- …with an open pull request, or Create PR offered: those, and no review');
+print(workHTML({ s: withSteps('w4', { ahead: 1, upstream: 'origin/f' }, { git: { branch: 'f', root: '/work/app' },
+                              prs: [pr({ headRefName: 'f' })], ...audit(5, 5, min(30)) }),
+                 kind: 'idle', owner: true, steps: { push: 1 } }));
+print(workHTML({ s: withSteps('w4', { ahead: 0, aheadOfBase: 1, pr: null }, { git: { branch: 'f', root: '/work/app' },
+                              ...audit(5, 5, min(30)) }), kind: 'idle', owner: true, steps: { pr: { into: 'main' } } }));
+print('-- …nothing left to go: no review, as no work line');
+print(JSON.stringify(workHTML({ s: withSteps('w4', { changes: 0 }, audit(5, 0, min(10), true)), kind: 'idle',
+                                owner: true, steps: null })));
 print('-- a branch pushed with no pull request yet, as GitHub says: Create PR where the pull requests go');
 const noPR = withSteps('w3', { ahead: 0, aheadOfBase: 1, pr: null }, { git: { branch: 'f', root: '/work/app' } });
 print(rowHTML(noPR, 'idle', NOW));
@@ -848,6 +967,14 @@ print('-- a row with no work line: its note on a line of its own, over the botto
 state.stepNotes.w6 = { text: 'Closed the other copy', quiet: true, at: Date.now() };
 print(rowHTML(withSteps('w6', {}), 'idle', NOW));
 state.stepNotes = {};
+const hasWorkLine = (kind, fields = {}) => /class="work[ "]/.test(rowHTML(withSteps('w4', { changes: 3, ahead: 1 },
+  fields), kind, NOW));
+show('while its agent works, asks you something along the way or compacts, the row has no work line; done, it\'s back',
+     [hasWorkLine('busy', { status: 'busy' }), hasWorkLine('needs', { status: 'waiting' }),
+      hasWorkLine('idle', { compacting: min(1) }), hasWorkLine('idle')]);
+state.stepNotes.w4 = { text: 'Asked Claude to commit the changes', quiet: true, at: Date.now() };
+show('…but for a note, which it keeps saying in its place', hasWorkLine('busy', { status: 'busy' }));
+state.stepNotes = {};
 // Deploy's button and line go by the page's own clock: held at NOW while they're drawn, so they read the same each run.
 const pageClock = Date.now;
 Date.now = () => NOW;
@@ -855,7 +982,7 @@ print("-- Deploy's button at the end of the bottom line, with the dot; why its l
 state.deploys = { projects: { '/work/app': { command: 'make install' } },
                   folders: { '/work/app': { at: min(30), run: failedRun } } };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
-print('-- while the agent works: Deploy and the step dimmed, shown all the same');
+print('-- while the agent works: Deploy dimmed, shown all the same, and the work line only for its note');
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5), { status: 'busy' })), 'busy', NOW));
 state.shownAt['deploy:w5'] -= 5000;  // up a while
 state.owners.delete('w5');  // another row speaks for the folder for a while
@@ -1055,3 +1182,25 @@ show('…after a quick sweep from its left to its right, catching up over a mome
      + 'after 2, 5, 10, 15 and 30 frames at 60 a second', [2, 5, 10, 15, 30].map((n) => eyesAfter(n)));
 show('…and at 30 frames a second, each frame further on than the last, without shaking',
      [1, 2, 3, 4, 5, 6, 8].map((n) => eyesAfter(n, 30)));
+
+section('The header, sliding away with the list (header.js)');
+show('scrolled down 20 points from the top: 20 points of it gone', headerAfterScroll(0, 20, 20));
+show('…down 300 more: all of it gone, and no further', headerAfterScroll(20, 300, 320));
+show('…back up 10 from far down the list: 10 points of it back', headerAfterScroll(HEADER_TALL, -10, 310));
+show('…back up 32 to 8 points from the very top: only as far gone as the list has scrolled',
+     headerAfterScroll(HEADER_TALL, -32, 8));
+show('a scroll stopped with it part-way, going down: all gone', headerSettle(20, 1, 400));
+show('…going down, only 30 points from the top: as far as the list has scrolled', headerSettle(20, 1, 30));
+show('…going up: all there', headerSettle(20, -1, 400));
+show('…all there or all gone already: as it is', [headerSettle(0, 1, 400), headerSettle(HEADER_TALL, -1, 400)]);
+show('gone: once all of it has (within half a point), and until it has come back 6 points',
+     [[46.4, false], [46.6, false], [44, true], [41.5, true], [40.9, true]].map(([off, was]) => headerGone(off, was)));
+const mayGo = { folded: false, reading: false, carded: false, room: 300 };
+show('it may slide away with a list that scrolls; not folded, with the reader open, with a card under it, nor with '
+     + 'a list a point or less from scrolling',
+     [mayGo, { ...mayGo, folded: true }, { ...mayGo, reading: true }, { ...mayGo, carded: true },
+      { ...mayGo, room: 1 }, { ...mayGo, room: 1.5 }].map(headerMayGo));
+const nameO = { left: 40, top: 15, width: 10, height: 10 }, rootAt = { left: 0, top: 0 };
+show('the folded cat\'s place from the name\'s o, with the header all there, and with it slid 47 points away (the o '
+     + '47 points up): the same', [catPlaceFrom(nameO, rootAt, 0),
+                                   catPlaceFrom({ ...nameO, top: nameO.top - 47 }, rootAt, 47)]);

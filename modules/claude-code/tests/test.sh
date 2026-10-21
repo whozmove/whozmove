@@ -33,7 +33,9 @@ D="$T/$APPDIR"
 trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
 detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
 mkdir -p "$D/sessions" "$T/.claude/sessions" "$T/.claude/projects/p" "$T/repo"
-git -C "$T/repo" init -q && git -C "$T/repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+git -C "$T/repo" init -q -b main && git -C "$T/repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
+# A worktree of it, whose .git is a file naming the real git folder: a code review there is noted on its own branch.
+git -C "$T/repo" worktree add -q -b side "$T/side"
 # The permission hook asks only while a process with the app's name (the panel) is running. A compiled
 # stand-in, not a copy of /bin/sleep: macOS kills a copied system binary.
 printf '#include <unistd.h>\nint main(void){sleep(600);return 0;}\n' > "$T/fake.c"
@@ -47,6 +49,7 @@ d = json.load(open(sys.argv[1]))
 for k in sorted(d):
     v = d[k]
     if k.endswith('At') and isinstance(v, (int, float)): v = 'ms' if v > 1e12 else v
+    if isinstance(v, dict) and isinstance(v.get('at'), (int, float)): v = dict(v, at='ms')  # a review's, say
     print(f'   {k} = {json.dumps(v)[:160]}')
 PY
 }
@@ -115,6 +118,31 @@ echo "== 13 a build: when it was built is noted"
 run "{\"session_id\":\"s4\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",
      \"tool_input\":{\"command\":\"./build.sh\"},\"tool_response\":{},$C}"
 show s4
+echo "== 14 a code review of committed work: kept through its fixes, settled by its second report"
+F1="{\"file\":\"a.py\",\"summary\":\"a\",\"failure_scenario\":\"x\""
+F2="{\"file\":\"b.py\",\"summary\":\"b\",\"failure_scenario\":\"y\""
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",
+     \"tool_input\":{\"command\":\"git commit -m work\"},$C}"
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"ReportFindings\",
+     \"tool_input\":{\"findings\":[$F1},$F2}]},$C}"
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",
+     \"tool_input\":{\"file_path\":\"$T/repo/a.py\"},$C}"
+show s5
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"ReportFindings\",
+     \"tool_input\":{\"findings\":[$F1,\"outcome\":\"fixed\"},$F2,\"outcome\":\"skipped\"}]},$C}"
+show s5
+echo "== 15 …and gone once that's committed and the next piece of work starts"
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",
+     \"tool_input\":{\"command\":\"git commit -m fixes\"},$C}"
+run "{\"session_id\":\"s5\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",
+     \"tool_input\":{\"file_path\":\"$T/repo/c.py\"},$C}"
+show s5
+echo "== 16 a code review in a worktree, noted on its branch; one with nothing found leaves a commit as it was"
+run "{\"session_id\":\"s6\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",
+     \"tool_input\":{\"command\":\"git commit -m work\"},\"cwd\":\"$T/side\"}"
+run "{\"session_id\":\"s6\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"ReportFindings\",
+     \"tool_input\":{\"findings\":[]},\"cwd\":\"$T/side\"}"
+show s6
 
 # Permission hook. perl's alarm is the timeout for cases that must end on their own at once.
 echo "== P1 panel not running"

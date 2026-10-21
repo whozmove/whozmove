@@ -38,6 +38,9 @@
 @property (copy) NSArray<NSDictionary *> *prs, *writings;
 @property (strong) NSNumber *messageAt, *compacting, *seenAt;
 @property (assign) BOOL focused;
+// A compaction from the panel certainly couldn't go in now, as far as can be told without asking its terminal: it runs
+// in no terminal the panel can type into, or it's open twice. The page doesn't suggest compacting it then.
+@property (assign) BOOL noCompact;
 // For a terminal session that has ended: the app id of the terminal it last ran in, as its agent kept it (not sent),
 // and the name of the terminal a press on its row opens it again in.
 @property (copy) NSString *ranIn, *opensIn;

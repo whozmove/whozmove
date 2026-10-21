@@ -36,7 +36,17 @@ header .add-new svg { transition: transform .4s var(--spring); }
 header .add-new.open svg { transform: rotate(45deg); }
 header .chev.is-hover { background: var(--hover); color: var(--text); }
 header .chev svg { transition: transform .15s ease; }
+/* The header lies over the list's top, in room the list keeps for it, its line under it going with it, and slides away
+   with the list's scroll (header.js), the list clipped where its edge is, so rows go under it. A card under the header
+   (a new conversation's) takes that room instead, and the line goes back to the list's top. The panel's back has a
+   header of its own (modules/apps), which stays where it is. Over the list, under the cat as it grows from the name's
+   o or shrinks onto it (#cat, cat.css). */
 header { position: relative; }
+#root > header { position: absolute; top: 0; left: 0; right: 0; z-index: 2; }
+#root > header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+                        background: var(--rule); opacity: var(--line, 1); }
+#dock:not(:empty) { margin-top: var(--header); }
+#root:has(#dock:not(:empty)) > header::after { display: none; }
 /* Folded, the panel is the cat at its list's top-right corner (cat.css): the header and the list fade as the app closes
    the glass in on it, and come back as it opens, the row you're on held at the list's edge (#sticky, #sticky-under)
    with the list. The strips under the list go at once (their modules' styles). */
@@ -65,13 +75,16 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
                 display: grid; place-items: center; color: var(--muted); }
 .project .add.is-hover { background: var(--hover); color: var(--text); }
 
-/* The header and the list are at most 640pt tall together: the list takes what the header leaves, and scrolls. A new
-   conversation's card under the header and the strips under the list come on top of that, and the panel grows to fit
-   them, down to where the screen ends (setRoom), where the list gives way. A new conversation moves from its card down
-   to its row over the list, on a layer of its own (#flight), and never crosses the strips. */
+/* The header and the list are at most 640pt tall together: the list keeps the header's room at its top, under it, and
+   scrolls; with a card under the header, the card has that room, and the list takes what the header leaves. A new
+   conversation's card and the strips under the list come on top of that, and the panel grows to fit them, down to where
+   the screen ends (setRoom), where the list gives way. A new conversation moves from its card down to its row over the
+   list, on a layer of its own (#flight), and never crosses the strips. */
 #root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); width: var(--column); }
-#list { position: relative; flex: 1 1 auto; min-height: 0; max-height: calc(640px - var(--header)); overflow-y: auto;
-        padding: 0 6px 6px; border-top: 1px solid var(--rule); }
+#list { position: relative; flex: 1 1 auto; min-height: 0; max-height: 640px; overflow-y: auto;
+        padding: calc(var(--header) + 1px) 6px 6px; }
+#dock:not(:empty) ~ #list { padding-top: 0; border-top: 1px solid var(--rule);
+                            max-height: calc(640px - var(--header)); }
 #list::-webkit-scrollbar { width: 0; }
 
 .group { padding: 8px 8px 3px; font-size: var(--size-tag); font-weight: 600; letter-spacing: .06em;

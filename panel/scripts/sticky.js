@@ -1,18 +1,17 @@
 // The row you're on, held at the list's edge: it never leaves the list's visible part. As the list scrolls past the
-// session you're on, or moves its row out of sight by itself, the row holds on at the list's top (past it) or at its
-// bottom (past that), folded down to its title line, Claude's line and where it runs, and opens back into its place as
-// it comes back.
+// session you're on, or moves its row out of sight by itself, the row holds on at the list's top (past it: the header's
+// edge, wherever that has slid to) or at its bottom (past that), folded down to its title line, Claude's line and where
+// it runs, and opens back into its place as it comes back.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // The row stays in the list, keeping its place, so nothing in the list moves: a copy of it, laid over the list's edge,
 // is what holds on, made as the row starts holding on and gone once it lets go. The row itself is hidden meanwhile, and
 // what's under the copy by a mask on the list, as the rows under the header are. Everything follows where the row's
-// place is, so scrolling back runs it all backwards. The plain functions come first, which tests/panel.sh checks; the
-// rest measure and lay out the copy.
+// place is, catching up with it where it moves faster than a slow scroll, so scrolling back runs it all backwards. The
+// plain functions come first, which tests/panel.sh checks; the rest measure and lay out the copy.
 
-// How far past the edge the row has gone when its copy is fully part of the edge, and how far rows have gone under it
-// when the line along its edge is fully drawn.
-const STICKY_ATTACH = 24, STICKY_UNDER = 10;
+// How far past the edge the row has gone when its copy is fully part of the edge.
+const STICKY_ATTACH = 24;
 // What stays on the copy beside its chat line (Claude's, or with none, yours): the title line and the bottom line, with
 // how the agent is set up and where it runs.
 const STICKY_KEEPS = ['.line1', '.where'];
@@ -23,6 +22,10 @@ const STICKY_FADE_MS = 240;
 // How long the copy takes to slide off at its edge, and its tint to go to the row of the session you're on now, when
 // that changes while it holds on.
 const STICKY_HANDOFF_MS = 320;
+// How the copy keeps up with the row's place when that moves faster than a slow scroll: as much of each move as a slow
+// scroll makes (points a millisecond) it follows at once, and the rest it catches up with, all but there after six of
+// these (milliseconds), about 0.2 s.
+const STICKY_KEEP_UP = 0.4, STICKY_EASE_MS = 34;
 // How far inside the list's edge a row the list scrolls to is put: the row you're on, pressed at the edge, the session
 // you've switched to, a new conversation's.
 const SHOW_GAP = 4;
@@ -45,13 +48,29 @@ function stickyEdge(t, h, v) {
 // view, and grows in as any row does. It never holds on while one of its boxes is typed in (`typing`), nor when it's
 // taller than the list's visible part, which could then never show it whole. Returns { edge, fade }: the edge (or
 // null), and whether the copy fades in or out rather than taking over from the row, or handing back to it, in place.
-function stickyHold(t, h, v, { was, inView, away, typing }) {
+function stickyHold(t, h, v, { was, inView, away, typing, behind }) {
   const edge = stickyEdge(t, h, v);
   if (edge && !typing && h <= v + 0.25 && (was || away)) return { edge, fade: was ? was !== edge : !inView };
-  // Back in view, it hands back to the row at once, however far the row came since the last frame (a quick scroll
-  // moves it tens of points from one to the next): the row is where the list put it, moving with it. Still past the
-  // edge but not to be held any more (typed in, or now too tall), the copy fades out where it is.
+  // Back in view, it hands back to the row once its copy has caught up with the row's place (`behind`: not yet),
+  // opening out and gliding there from the edge (stickyEase), however far the row came since the last frame (a quick
+  // scroll moves it tens of points from one to the next). Still past the edge but not to be held any more (typed in,
+  // or now too tall), the copy fades out where it is.
+  if (was && !edge && behind) return { edge: was, fade: false };
   return { edge: null, fade: !!(was && edge) };
+}
+
+// Where the copy has got to, catching up with the row's place: its top `at`, moving `speed` points a millisecond, `dt`
+// milliseconds on, the place's top having gone from `from` to `to` meanwhile. As much of the place's move as a slow
+// scroll makes it follows at once, so a slow scroll folds it exactly as the place goes; the rest it catches up with
+// smoothly, from rest or at the speed it's going, all but there in about 0.2 s and never past the place, so a quick
+// scroll, or the list moving the row by itself, folds its lines one after another rather than all in a frame, and
+// coming back, it opens out the same way. Returns { at, speed }; caught up, `at` is `to`.
+function stickyEase(at, speed, from, to, dt) {
+  const keep = STICKY_KEEP_UP * dt, x0 = at + Math.max(-keep, Math.min(keep, to - from)) - to;
+  const k = 1 / STICKY_EASE_MS, e = Math.exp(-k * dt), x = (x0 + (speed + k * x0) * dt) * e;
+  const v = (speed - (speed + k * x0) * k * dt) * e;
+  if (x * x0 <= 0 || (Math.abs(x) < 0.5 && Math.abs(v) < 0.02)) return { at: to, speed: 0 };
+  return { at: to + x, speed: v };
 }
 
 // How the copy folds as it holds on at `edge`. It's as tall as the part of the row's place still in view (`visible`),
@@ -61,7 +80,7 @@ function stickyHold(t, h, v, { was, inView, away, typing }) {
 // line comes up under the title last, and from the top down at the bottom edge, where the title comes down onto them.
 // `lines` are the row's lines top to bottom, each { extent, keep }: its height with its margin, and whether it stays;
 // `full` is the copy's height. Returns its height, each line's fold in `lines`' order, and, from 0 to 1, how attached
-// to the edge it is and how far rows have gone under it.
+// to the edge it is.
 function stickyFold(lines, full, visible, edge) {
   const least = full - lines.reduce((sum, l) => sum + (l.keep ? 0 : l.extent), 0);
   const height = Math.max(least, visible);
@@ -73,8 +92,7 @@ function stickyFold(lines, full, visible, edge) {
     left -= folds[i];
   }
   const part = (x) => Math.max(0, Math.min(1, x));
-  return { height, folds, attach: part((full - visible) / STICKY_ATTACH),
-           under: part((least - visible) / STICKY_UNDER) };
+  return { height, folds, attach: part((full - visible) / STICKY_ATTACH) };
 }
 
 // How a line of the copy folds by `f` points, `line` being its height `h` and its margin above `m`. It keeps its size,
@@ -108,7 +126,7 @@ function stickyCovers(t, h, v, least, by) {
 
 // ---- Laying it out ----
 
-// Its two layers: over the list, the copy and the line along its edge; under it, the tint.
+// Its two layers: over the list, the copy; under it, the tint.
 const stickyEl = document.getElementById('sticky'), stickyUnder = document.getElementById('sticky-under');
 const stickyPx = (n) => `${Math.round(n * 100) / 100}px`;
 
@@ -120,12 +138,15 @@ function focusedRow(list) {
 }
 
 // A copy of the row as it ends up, without what the list's own motion has put on it for the moment (a line folding
-// away, text rolling, what a module's line has only while it moves: core.lines' `still`). It keeps what's cross-fading
-// on the row, so that does on the copy too. Without what makes it the row: the data the page's parts find a row and
-// its parts by (so none of them ever takes the copy for it) and what could take the keyboard (it's inert).
+// away, text being written or erased, what a module's line has only while it moves: core.lines' `still`). It keeps
+// what's cross-fading on the row, so that does on the copy too. Without what makes it the row: the data the page's
+// parts find a row and its parts by (so none of them ever takes the copy for it) and what could take the keyboard
+// (it's inert).
 function stickyCopyOf(row) {
   const copy = row.cloneNode(true);
-  copy.querySelectorAll('.roll-copy, .folding').forEach((el) => el.remove());
+  copy.querySelectorAll('.folding, .rewrite-old').forEach((el) => el.remove());
+  for (const sel of [':scope > .main > .you', ':scope > .main > .claude'])
+    copy.querySelectorAll(sel).forEach((line) => settleLine(line));
   for (const [sel, line] of Object.entries(core.lines)) if (line.still) copy.querySelectorAll(sel).forEach(line.still);
   copy.classList.remove('is-hover', 'arrive', 'glide', 'landing');
   for (const el of [copy, ...copy.querySelectorAll('*')])
@@ -161,13 +182,12 @@ function stickyLeast(row) {
 }
 
 // Makes the copy of the row you're on, as it starts holding on and after each rebuild while it does, and measures it.
-// Its chat line takes new text as the row's does: rolling in, or cross-fading where the row does that (the next step,
-// marked on the row by morph, which the copy keeps). A copy of other lines than before (a line came or went, or
-// Claude's line gave way to yours) cross-fades in over the old one.
+// Its chat line takes new text as the row's does, the old erasing and the new writing in (rewriteLine). A copy of other
+// lines than before (a line came or went, or Claude's line gave way to yours) cross-fades in over the old one.
 function stickyCopy() {
   const st = state.sticky, row = st.row, holder = stickyEl.querySelector('.sticky-copy');
   const chatLine = stickyChat(row), sel = chatLine?.matches('.claude') ? '.claude' : '.you';
-  const chat = chatLine && { sel, text: partText(sel)(chatLine), work: chatLine.dataset.mode === 'work' };
+  const chat = chatLine && { sel, text: partText(sel)(chatLine) };
   const shape = [...row.querySelector(':scope > .main').children].filter((l) => !l.matches('.folding'))
     .map((l) => l.classList[0]).join(' ');
   const old = st.copy?.parentNode === holder ? st.copy : null, oldChat = old && stickyChat(old);
@@ -184,9 +204,8 @@ function stickyCopy() {
   const before = st.chat, same = shape === st.shape;
   Object.assign(st, { copy, chat, shape, lines: stickyMeasure(copy), full: copy.getBoundingClientRect().height,
                       copies: st.copies + 1, drawn: '' });
-  const rolls = was && same && before && chat && before.sel === chat.sel && before.text !== chat.text
-    && !(before.work && chat.work);
-  if (rolls && !calm.matches) rollLine(null, stickyChat(copy), was, chat.sel === '.claude');
+  const rewrites = was && same && before && chat && before.sel === chat.sel && before.text !== chat.text;
+  if (rewrites && !calm.matches) rewriteLine(stickyChat(copy), was);
 }
 
 // After each rebuild of the list the row you're on is a new one, and while it holds on, so is its copy. When it's
@@ -221,14 +240,31 @@ function stickyPlace() {
     if (st.edge) stickyLetGo(true);
     return;
   }
-  const ct = list.clientTop, lr = list.getBoundingClientRect(), rr = row.getBoundingClientRect();
+  // The list's visible part starts at the header's edge, wherever the header has slid to (headerInset, header.js).
+  const ct = list.clientTop + headerInset(), lr = list.getBoundingClientRect(), rr = row.getBoundingClientRect();
   const root = list.parentElement.getBoundingClientRect(), top = lr.top + ct, left = lr.left + list.clientLeft;
-  const t = rr.top - top, h = rr.height, v = list.clientHeight, w = list.clientWidth, x = rr.left - left;
+  const t = rr.top - top, h = rr.height, v = list.clientHeight - headerInset(), w = list.clientWidth;
+  const x = rr.left - left;
+  // Where the copy has got to since it was last laid out, catching up with the row's place (stickyEase), or under
+  // reduced motion, there at once. Past where it has folded all it can at `edge`, and attached, nothing more of it
+  // changes, so it goes no further than that, and comes back from there. A frame or so at most has gone by: before
+  // that, nothing was moving.
+  const now = performance.now(), dt = Math.min(20, now - st.easedAt), lastT = st.lastT ?? t;
+  const reach = (edge, y) => {
+    const least = st.full - st.lines.reduce((sum, l) => sum + (l.keep ? 0 : l.extent), 0);
+    const folded = Math.min(least, st.full - STICKY_ATTACH);
+    return edge === 'top' ? Math.max(y, folded - h) : Math.min(y, v - folded);
+  };
+  const catchUp = (edge, at, speed) => (calm.matches ? { at: reach(edge, t), speed: 0 }
+    : stickyEase(at, speed, reach(edge, lastT), reach(edge, t), dt));
+  st.easedAt = now;
+  if (st.edge) Object.assign(st, catchUp(st.edge, st.at ?? t, st.speed));
   // Whether its top has moved toward the edge it's past since it was last looked at (at the bottom edge, from the
   // bottom edge, which a shorter list moves), not just its foot grown past the bottom one.
   const away = st.lastT != null && (t < -0.25 ? t < st.lastT - 0.1 : t - v > st.lastT - st.lastV + 0.1);
   const hold = stickyHold(t, h, v, { was: st.edge, inView: st.inView, away,
-                                     typing: row.contains(document.activeElement) });
+                                     typing: row.contains(document.activeElement),
+                                     behind: !!st.edge && st.at !== reach(st.edge, t) });
   Object.assign(st, { inView: !stickyEdge(t, h, v), lastT: t, lastV: v });
   if (!hold.edge) {
     if (st.edge) stickyLetGo(hold.fade);
@@ -245,19 +281,28 @@ function stickyPlace() {
     cancelAnimationFrame(st.ramp);
     st.fade = hold.fade && !calm.matches ? 0 : 1;
     if (st.fade < 1) stickyRamp(1);
+    // Taking over from the row in place, the copy starts where the row was last laid out, and catches up with it from
+    // there; fading in, or at the other edge, it's where the row's place is.
+    Object.assign(st, hold.fade ? { at: reach(st.edge, t), speed: 0 } : catchUp(st.edge, lastT, 0));
   }
-  // Its lines that stay as they are now (Claude's line may be rolling between heights).
+  // Until it has caught up, it's laid out again each frame.
+  cancelAnimationFrame(st.follow);
+  if (st.at !== reach(st.edge, t)) st.follow = requestAnimationFrame(() => stickyPlace());
+  // Its lines that stay as they are now (Claude's line may be easing between heights as it's rewritten).
   const lines = st.lines.map((l) => (l.keep ? { ...l, h: l.el.getBoundingClientRect().height } : l));
   lines.forEach((l) => { if (l.keep) l.extent = l.m + l.h; });
   const full = st.full + lines.reduce((sum, l, i) => sum + l.h - st.lines[i].h, 0);
-  const drawn = [t, h, v, w, x, rr.width, top - root.top, full, st.copies].join(' ');
+  const drawn = [t, h, v, w, x, rr.width, top - root.top, full, st.copies, st.at].join(' ');
   if (drawn === st.drawn) return;
   st.drawn = drawn;
-  const edge = st.edge, fold = stickyFold(lines, full, edge === 'top' ? t + h : v - t, edge);
+  // It's laid out for the row's place where the copy has got to: past the edge, folded to the part of it in view;
+  // on its way back to the row, whole, where it has got to.
+  const edge = st.edge, at = st.at, shown = Math.min(h, edge === 'top' ? at + h : v - at);
+  const fold = stickyFold(lines, full, shown, edge);
   lines.forEach((line, i) => stickyFoldLine(st.lines[i], fold.folds[i], edge));
-  // The band it covers. Its tint spreads from the row's sides to the list's as it attaches; once rows are under it, a
-  // line marks its edge, and they're hidden there as they are under the header.
-  const [a, b] = edge === 'top' ? [0, fold.height] : [v - fold.height, v];
+  // The band it covers. Its tint spreads from the row's sides to the list's as it attaches; rows under it are hidden
+  // there, as they are under the header.
+  const a = edge === 'top' ? Math.max(0, at) : Math.min(v, at + h) - fold.height, b = a + fold.height;
   Object.assign(st, { band: [a, b], clientTop: ct });
   const holder = stickyEl.querySelector('.sticky-copy'), tint = stickyUnder.querySelector('.sticky-tint');
   for (const layer of [stickyEl, stickyUnder]) {
@@ -271,8 +316,7 @@ function stickyPlace() {
   Object.assign(tint.style, { left: stickyPx(x - spreadLeft), width: stickyPx(rr.width + spreadLeft + spreadRight),
                               top: stickyPx(a), height: stickyPx(b - a) });
   stickyUnder.style.setProperty('--attach', String(attach));
-  stickyEl.style.setProperty('--under', String(stickySmooth(fold.under)));
-  stickyEl.querySelector('.sticky-rule').style.top = stickyPx(edge === 'top' ? b - 1 : a);
+  st.attached = edge === 'top' && a <= 0 ? attach : 0;
   stickyShade();
   if (started && state.pointer) syncHover();  // what's under a pointer that hasn't moved may be the copy now
 }
@@ -295,14 +339,22 @@ function stickyFoldLine(line, f, edge) {
 // The copy's fade, coming or going (--fade), and the mask hiding the list under it, which fades the other way, so the
 // rows there come back as the copy goes. Once the copy is wholly there, the row itself is hidden too (.sticky-away):
 // WebKit scrolls the list a frame or so ahead of the page laying out the copy and the mask, and in a quick scroll the
-// row's place would otherwise show past the mask's edge, the row there twice.
+// row's place would otherwise show past the mask's edge, the row there twice. As it attaches at the list's top, the
+// line along that, under the header, goes too (`attached`), so the copy meets the header with no line between them:
+// the header's own (headerLine, header.js), or with a card under the header, the list's top border, which the mask
+// covers. As it slides off (stickyHandOff), what it uncovers of the part it covered comes back as it fades (`covered`,
+// `back`), so the row's own lines there don't show beside the copy's going.
 function stickyShade() {
   const st = state.sticky, list = document.getElementById('list');
   for (const layer of [stickyEl, stickyUnder]) layer.style.setProperty('--fade', String(st.fade));
   st.row?.classList.toggle('sticky-away', !!st.edge && !st.leaving && st.fade >= 1);
-  const [a, b] = st.band, m = st.clientTop, under = `rgb(0 0 0 / ${Math.round((1 - st.fade) * 1000) / 1000})`;
-  list.style.webkitMaskImage = list.style.maskImage = `linear-gradient(to bottom, black ${m + a}px, `
-    + `${under} ${m + a}px, ${under} ${m + b}px, black ${m + b}px)`;
+  const shown = (x) => `rgb(0 0 0 / ${Math.round(x * 1000) / 1000})`, [a, b] = st.band, m = st.clientTop;
+  const [a0, b0] = st.covered ?? st.band, back = shown(st.back);
+  const under = shown(1 - st.fade), line = shown(1 - st.attached * st.fade);
+  list.style.webkitMaskImage = list.style.maskImage = `linear-gradient(to bottom, ${line} ${m}px, black ${m}px, `
+    + `black ${m + a0}px, ${back} ${m + a0}px, ${back} ${m + a}px, ${under} ${m + a}px, ${under} ${m + b}px, `
+    + `${back} ${m + b}px, ${back} ${m + b0}px, black ${m + b0}px)`;
+  headerLine(1 - st.attached * st.fade);
 }
 
 // Eases the copy's fade to `to` (1, there; 0, gone), then runs `done`.
@@ -332,6 +384,7 @@ function stickyLetGo(fade) {
   const s = state.last.sessions.find((x) => x.sessionId === st.sid);
   if (s) showAgain(s);
   cancelAnimationFrame(st.ramp);
+  cancelAnimationFrame(st.follow);
   if (fade) cancelAnimationFrame(st.mover);  // handed back in place, a scroll back to the row goes on to its end
   if (!fade || calm.matches) return stickyGone();
   st.leaving = true;
@@ -342,22 +395,23 @@ function stickyLetGo(fade) {
 }
 
 // The session you're on changed while its copy held on (you pressed another row, or switched to another session in
-// Claude or a terminal): the copy slides off at its edge, out of sight, uncovering the list under it as it goes, while its
-// tint goes to the new session's row, where that is in each frame (the list may be scrolling to show it), and that
-// row's own tint takes over as it lands. With no row for the new session, the tint goes with the copy.
+// Claude or a terminal): the copy slides off at its edge, out of sight, uncovering the list under it as it goes, which
+// comes back as the copy fades, while its tint goes to the new session's row, where that is in each frame (the list may
+// be scrolling to show it), and that row's own tint takes over as it lands. With no row for the new session, the tint
+// goes with the copy.
 function stickyHandOff() {
   const st = state.sticky, list = document.getElementById('list'), edge = st.edge, [a, b] = st.band;
-  const holder = stickyEl.querySelector('.sticky-copy'), rule = stickyEl.querySelector('.sticky-rule');
-  const tint = stickyUnder.querySelector('.sticky-tint');
+  const holder = stickyEl.querySelector('.sticky-copy'), tint = stickyUnder.querySelector('.sticky-tint');
   const s = state.last.sessions.find((x) => x.sessionId === st.sid);
   if (s) showAgain(s);
   cancelAnimationFrame(st.ramp);
+  cancelAnimationFrame(st.follow);
   cancelAnimationFrame(st.mover);
   st.leaving = true;
   // How far the copy goes to be out of sight; where the tint starts, in its layer; how attached it was.
-  const out = edge === 'top' ? -b : list.clientHeight - a, layer = stickyUnder.getBoundingClientRect();
+  const out = edge === 'top' ? -b : list.clientHeight - headerInset() - a, layer = stickyUnder.getBoundingClientRect();
   const r0 = tint.getBoundingClientRect(), from = [r0.left - layer.left, r0.top - layer.top, r0.width, r0.height];
-  const attach = parseFloat(stickyUnder.style.getPropertyValue('--attach')) || 0;
+  const attach = parseFloat(stickyUnder.style.getPropertyValue('--attach')) || 0, attached = st.attached;
   const start = performance.now();
   state.settleUntil = Math.max(state.settleUntil, start + STICKY_HANDOFF_MS + 40);  // the rows stay as they are
   let landing = null;
@@ -365,10 +419,11 @@ function stickyHandOff() {
     // Both start at once, the copy easing out of sight and the tint into its new place.
     const p = Math.min(1, (now - start) / STICKY_HANDOFF_MS), slide = 1 - (1 - p) ** 2, come = 1 - (1 - p) ** 3;
     const d = out * slide;
-    holder.style.transform = rule.style.transform = `translateY(${stickyPx(d)})`;
+    holder.style.transform = `translateY(${stickyPx(d)})`;
     // The list under it is uncovered as it moves off, never through it, and it fades as it goes; its tint doesn't,
     // going to the new row.
     st.band = edge === 'top' ? [a, Math.max(a, b + d)] : [Math.min(b, a + d), b];
+    Object.assign(st, { covered: [a, b], back: p, attached: attached * (1 - p) });
     stickyShade();
     stickyEl.style.setProperty('--fade', String(1 - p));
     const row = focusedRow(list);
@@ -389,7 +444,7 @@ function stickyHandOff() {
       return;
     }
     landing?.classList.remove('sticky-landing');
-    holder.style.transform = rule.style.transform = '';
+    holder.style.transform = '';
     tint.classList.remove('is-hover');
     stickyGone();
     stickyPlace();
@@ -400,11 +455,13 @@ function stickyHandOff() {
 // The copy is gone: both its layers, and the mask.
 function stickyGone() {
   const st = state.sticky, list = document.getElementById('list');
-  Object.assign(st, { edge: null, leaving: false, copy: null, chat: null, shape: '', lines: [], drawn: '', fade: 1 });
+  Object.assign(st, { edge: null, leaving: false, copy: null, chat: null, shape: '', lines: [], drawn: '', fade: 1,
+                      at: null, speed: 0, attached: 0, covered: null, back: 1 });
   stickyEl.classList.remove('on');
   stickyUnder.classList.remove('on');
   stickyEl.querySelector('.sticky-copy').replaceChildren();
   list.style.webkitMaskImage = list.style.maskImage = '';
+  headerLine(1);
   if (state.pointer) syncHover();
 }
 
@@ -427,7 +484,8 @@ function stickyBack() {
   const by = () => {
     const r = st.row?.isConnected ? st.row.getBoundingClientRect() : null;
     if (!r) return 0;
-    return r.top - list.getBoundingClientRect().top - list.clientTop - showAt(r.height, list.clientHeight, edge);
+    return r.top - list.getBoundingClientRect().top - list.clientTop - headerInset()
+      - showAt(r.height, list.clientHeight - headerInset(), edge);
   };
   const first = by();
   if (calm.matches) {
@@ -450,7 +508,11 @@ function stickyBack() {
 // conversation's row. For the row you're on itself, the copy goes as the row comes into view.
 function showInList(el) {
   const st = state.sticky, list = document.getElementById('list');
-  const top = list.getBoundingClientRect().top + list.clientTop, v = list.clientHeight;
+  // Scrolling up brings the header back by as much as the list moves (header.js), so for a row above, the header is
+  // put back first, and the row lands just under it.
+  if (headerOff() > 0 && el.getBoundingClientRect().top < list.getBoundingClientRect().top + list.clientTop
+      + headerInset()) headerAllThere();
+  const top = list.getBoundingClientRect().top + list.clientTop + headerInset(), v = list.clientHeight - headerInset();
   const r = el.getBoundingClientRect(), t = r.top - top, h = r.height;
   const held = el !== st.row && st.row?.isConnected && !st.row.contains(document.activeElement) ? st.row : null;
   const fr = held?.getBoundingClientRect(), least = held ? stickyLeast(held) : 0;

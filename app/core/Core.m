@@ -11,6 +11,7 @@
 #import "Row.h"
 #import "Processes.h"
 #import "Browser.h"
+#import "SideCat.h"
 
 @interface Core ()
 @property Page *page;
@@ -25,6 +26,8 @@
 @property (copy) NSArray<id<Agent>> *agents;
 // Whether each app is on this Mac, by its app id, and when that was looked up: {found, at}.
 @property (strong) NSMutableDictionary<NSString *, NSArray *> *apps;
+// Whozmove beside the panel, while the header has gone (SideCat.h); none in a print run.
+@property (strong) SideCat *sideCat;
 @end
 
 // The terminal picked on New Conversation's menu, by its app id: new sessions start there from then on.
@@ -40,6 +43,8 @@ static const NSTimeInterval kAppsKnownFor = 30;
     self.window = window;
     self.menuBar = menuBar;
     [self makeParts];
+    self.sideCat = [[SideCat alloc] initWithPage:page];
+    [self.sideCat holdBy:window];
     return self;
 }
 
@@ -182,8 +187,18 @@ static const NSTimeInterval kAppsKnownFor = 30;
                              height:[msg[@"height"] doubleValue]];
         },
         @"catBreathe": ^(NSDictionary *msg) { [weakSelf.window catBreathe:[msg[@"working"] integerValue]]; },
+        @"catPose": ^(NSDictionary *msg) {
+            if ([msg[@"pose"] isKindOfClass:NSString.class]) [weakSelf.sideCat takeMood:msg[@"pose"]];
+        },
+        @"catShown": ^(NSDictionary *msg) { [weakSelf.sideCat tookOver]; },
+        @"header": ^(NSDictionary *msg) {
+            [weakSelf.window headerShowing:[msg[@"showing"] doubleValue] gone:[msg[@"gone"] boolValue]];
+        },
         @"keyboard": ^(NSDictionary *msg) { [weakSelf.window takeKeyboard:[msg[@"on"] boolValue]]; },
-        @"badge": ^(NSDictionary *msg) { [weakSelf.menuBar showCount:[msg[@"value"] integerValue]]; },
+        @"badge": ^(NSDictionary *msg) {
+            [weakSelf.menuBar showCount:[msg[@"value"] integerValue]];
+            [weakSelf.sideCat needs:[msg[@"value"] integerValue]];
+        },
         @"open": ^(NSDictionary *msg) { [weakSelf.focus open:msg]; },
     };
 }

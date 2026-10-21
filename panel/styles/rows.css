@@ -44,7 +44,7 @@
 .you, .claude { display: flex; align-items: flex-start; margin-top: 3px; font-size: var(--size-small);
                 line-height: 15px; color: var(--muted); }
 .you .who, .claude .who { flex: none; width: 42px; color: var(--faint); }
-/* While Claude works, its label is the panel's working blue, fading gently in and out. */
+/* While Claude works, its label is the panel's working cream, fading gently in and out. */
 .claude.work .who { color: var(--busy); animation: breathe 2.8s ease-in-out infinite; }
 .you .what { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .claude .what { min-width: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
@@ -64,8 +64,9 @@
   animation: shine 3s linear infinite;
 }
 /* The work line (workHTML), while there's something on it: the pull requests at its start, or Create PR; at its end
-   what isn't committed and the steps to take. */
-.work { display: flex; align-items: flex-start; gap: 8px; margin-top: 5px; font-size: var(--size-small); }
+   what isn't committed and the steps to take. (Claude's line is `.claude.work` while it works, which isn't it.) */
+.work:not(.claude) { display: flex; align-items: flex-start; gap: 8px; margin-top: 5px;
+                     font-size: var(--size-small); }
 .work .prs { flex: 1; min-width: 0; margin-top: 0; }
 .work-end { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 2px; height: 19px;
             margin-right: -5px; }
@@ -78,7 +79,6 @@
 .step-word { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; }
 .step.open .step-word { max-width: 70px; margin-left: 4px; opacity: 1; }
 .step.is-hover { color: var(--text); background: var(--hover-firm); }
-.step.waits { opacity: 0.45; }
 /* Where the pull requests go, while a pushed branch has none (noPRHTML): saying so, with Create PR, whose card picks
    the branch it goes into. */
 .nopr { display: inline-flex; align-items: center; gap: 6px; min-width: 0; margin-left: -6px; padding: 2px 6px;
@@ -87,9 +87,10 @@
 .nopr .create-pr { padding: 0 7px; border-radius: var(--radius-button); background: var(--button); color: var(--text);
                    white-space: nowrap; }
 .nopr.is-hover .create-pr { background: var(--hover-strong); }
-/* There too, while none shows and commits wait to go to GitHub (outgoingHTML): where the branch stands, which opens
-   those commits. */
-.outgoing .out-n { color: var(--faint); }
+/* There too, while none shows (outgoingHTML): how the last code review went, or, while commits wait to go to GitHub,
+   where the branch stands, which opens those commits. */
+.nopr .out-n { color: var(--faint); }
+.review .review-tick { flex: none; color: var(--done-text); }  /* nothing left to fix: green, as what's finished is */
 .outgoing.is-hover { background: var(--hover-firm); }
 .outgoing.is-hover .pt { color: var(--text); }
 
@@ -99,8 +100,8 @@
 .where { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: var(--size-small);
          color: var(--faint); white-space: nowrap; }
 .where .gap { flex: 1 1 8px; min-width: 8px; }
-/* Where the session runs makes way while Compact is pointed at (the ring open): it fades, and gives up the room Compact
-   needs before anything else does, its name kept whole and still, the room going from its left; it fades back in as
+/* Where the session runs makes way while Compact shows (the ring open: pointed at, its card up, or saying Compact now):
+   it fades, and gives up the room Compact needs before anything else does, its name kept whole and still, the room going from its left; it fades back in as
    Compact folds, and has its room back once Compact has. */
 .where .place { display: inline-flex; justify-content: flex-end; min-width: 34px; flex-shrink: 1; overflow: hidden;
                 transition: opacity .2s ease, flex-shrink 0s .25s, min-width 0s .25s; }
@@ -150,8 +151,8 @@
 .where .pick[data-pick="effort"] { flex-shrink: 20; }
 .where .pick[data-pick="mode"] { flex: none; }
 .where .pick.is-hover { background: var(--hover-strong); color: var(--text); }
-/* The context ring, which pointed at widens into a Compact button that's the same gauge: its fill is the
-   context in use, in the ring's colour. */
+/* The context ring, which pointed at, or when it's a good time to compact, widens into a Compact button that's the
+   same gauge: its fill is the context in use, in the ring's colour. */
 .where .ctx { position: relative; flex: none; margin-left: 3px; display: inline-flex; align-items: center;
               height: 16px;
               border-radius: 8px; padding: 0; transition: padding .25s ease; cursor: default; }
@@ -166,7 +167,7 @@
 .where .ctx.open { padding: 0 9px; }
 .ctx.open::before { opacity: 1; }
 .ctx.open svg { width: 0; opacity: 0; }
-.ctx.open .ctx-label { max-width: 96px; opacity: 1; }
+.ctx.open .ctx-label { max-width: 124px; opacity: 1; }
 .where .ctx svg { transform: rotate(-90deg); }
 
 .prs { margin-top: 5px; display: flex; flex-direction: column; gap: 1px; }
@@ -200,16 +201,18 @@
 /* The row you're on, held at the list's edge as it would leave the list's visible part (sticky.js): two layers laid
    over that part and clipped to it, so they never reach the header or the strips under the list. Its tint is under the
    list (#sticky-under, before it on the page), so it's drawn behind the rows' text, as a row's own tint is; the copy of
-   the row and the line along its edge are over it (#sticky). Neither takes pointer events, so a scroll over them
+   the row is over it (#sticky). Neither takes pointer events, so a scroll over them
    scrolls the list; what the pointer is on there, and a press, are found by where they are (stickyAt). They fade with
    the list as the panel folds into the cat and opens again (base.css, cat.css), and stay under the cat. A new
-   conversation on its way to its row (#flight) passes over them. */
+   conversation on its way to its row (#flight) passes over them. The copy is under the header (base.css), which may
+   come back over it while it slides off or fades (stickyHandOff, stickyLetGo), and over the list, which its clip makes
+   a layer of its own. */
 #sticky, #sticky-under { position: absolute; overflow: hidden; pointer-events: none; visibility: hidden; }
-#sticky { z-index: 2; }
+#sticky { z-index: 1; }
 #sticky.on, #sticky-under.on { visibility: visible; }
 /* The tint is the row's. Holding on, it spreads to the list's sides and its corners on the edge's side square off
-   (--attach, from 0 to 1). The tint, the copy and the line along its edge fade in and out together where it doesn't
-   take over from the row in place (--fade). */
+   (--attach, from 0 to 1). The tint and the copy fade in and out together where it doesn't take over from the row in
+   place (--fade). */
 .sticky-tint { position: absolute; background: var(--focused); border-radius: var(--radius-box);
                opacity: var(--fade, 1); }
 .sticky-tint.is-hover { background: var(--focused-hover); }
@@ -221,9 +224,6 @@
   border-bottom-left-radius: calc(var(--radius-box) * (1 - var(--attach, 0)));
   border-bottom-right-radius: calc(var(--radius-box) * (1 - var(--attach, 0)));
 }
-/* Once rows are under it, a line along its edge, as the header has (--under, from 0 to 1). */
-.sticky-rule { position: absolute; left: 0; right: 0; height: 1px; background: var(--rule);
-               opacity: calc(var(--under, 0) * var(--fade, 1)); }
 .sticky-copy { position: absolute; overflow: hidden; opacity: var(--fade, 1); }
 .sticky-copy .row.focused { background: none; }
 /* The row itself while its copy holds on: still there, keeping its place, unseen. Not hidden from the keyboard's way

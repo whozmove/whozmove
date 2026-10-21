@@ -26,6 +26,13 @@ T=$(cd "$T" && pwd -P) || exit 1
 # Stand-in session processes are started detached, their pids kept in $T/pids so they're stopped however this ends.
 trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; kill -CONT $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
 detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
+# Pausing one (as Ctrl+Z does) waits until the subshell that started it has gone, its parent then being launchd: macOS
+# wakes the paused processes a parent leaves behind (their process group orphaned), so one paused sooner could be
+# running again by the time the app looks.
+pause() {
+  for _ in $(seq 1 200); do [ "$(ps -o ppid= -p "$1" | tr -d ' ')" = 1 ] && break; sleep 0.01; done
+  kill -STOP "$1"
+}
 . "$REPO/tests/lib.sh"
 APP=$(built_app "$T") || exit 1
 
@@ -82,9 +89,9 @@ TOPIC_PID=$(detached sleep 600); CLONE_PID=$(detached sleep 600)
 RUN_PID=$(detached sleep 600)  # a deploy still running
 GONE_PID=999999
 # And s-term again, resumed while its first process was paused in its terminal (Ctrl+Z): one row, the running one's.
-PAUSED_PID=$(detached sleep 600); kill -STOP "$PAUSED_PID"
+PAUSED_PID=$(detached sleep 600); pause "$PAUSED_PID"
 # And s-halt, paused in its terminal with no other copy: nothing goes into it, as its keys would go to the shell.
-HALT_PID=$(detached sleep 600); kill -STOP "$HALT_PID"
+HALT_PID=$(detached sleep 600); pause "$HALT_PID"
 # Conversations open more than once (s-twice, s-ask, s-idle, s-both, two copies each), and s-near beside s-ask.
 TWICE_PIDS=$(for _ in 1 2 3 4 5 6 7 8 9; do detached sleep 600; done | paste -sd , -)
 
@@ -582,6 +589,8 @@ def stable(value, key=""):
         return "pid"
     if key == "v" and isinstance(value, int):  # how many times the changes were counted, which depends on timing
         return "v"
+    if key == "headAt" and isinstance(value, int):  # when a sample was committed, however long the tests took since
+        return "headAt"
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         for scale in (1000, 1):  # ms or s since 1970
             if 1.5e9 < value / scale < 2.5e9:

@@ -28,10 +28,12 @@ body.arriving header .name-cat, body.departing header .name-cat { opacity: 0; }
    .name-in as the cat starts). Each is a drawing of its own, so WebKit moves it as it moves the cat, in step. */
 body.arriving header { transition: none; }
 /* Nothing of the header but the cat shows, nor the list, until the cat starts to shrink (.name-in, catOpening). */
-body.arriving:not(.name-in) header .add-new, body.arriving:not(.name-in) header .chev,
+body.arriving:not(.name-in) header .add-new, body.arriving:not(.name-in) header .apps,
+body.arriving:not(.name-in) header .chev,
 body.arriving:not(.name-in) #list, body.arriving:not(.name-in) #dock, body.arriving:not(.name-in) #sticky,
 body.arriving:not(.name-in) #sticky-under { opacity: 0; transition: none; }
-body.arriving.name-in header .add-new, body.arriving.name-in header .chev { animation: cat-fade-in .2s ease .15s both; }
+body.arriving.name-in header .add-new, body.arriving.name-in header .apps, body.arriving.name-in header .chev {
+  animation: cat-fade-in .2s ease .15s both; }
 @keyframes cat-fade-in { from { opacity: 0; } to { opacity: 1; } }
 body.arriving header .name-before, body.arriving header .name-after { opacity: 0; }
 body.arriving header .name-before { transform: translateX(-12.36px); }
@@ -43,13 +45,20 @@ body.arriving #list, body.arriving #dock, body.arriving #sticky, body.arriving #
    at its sides as they came in, fading, while the header's buttons and the list fade and the panel closes in round
    it. Once it has grown, the name stays out of sight until the header has gone (.name-out). */
 body.departing header { opacity: 1; visibility: visible; transition: none; }
-body.departing header .add-new, body.departing header .chev, body.departing header .build {
+body.departing header .add-new, body.departing header .apps, body.departing header .chev,
+body.departing header .build {
   opacity: 0; transition: opacity .15s ease; }
 body.departing.name-out header .name-before { transform: translateX(-12.36px); }
 body.departing.name-out header .name-after { transform: translateX(12.36px); }
 body.departing.name-out header .name-before, body.departing.name-out header .name-after {
   opacity: 0; transition: transform .3s cubic-bezier(.4, 0, .2, 1), opacity .25s ease; }
 body.name-out header .name-before, body.name-out header .name-after, body.name-out header .name-cat { opacity: 0; }
+/* Folding round Whozmove beside the panel (catFromSide): the folded cat waits out of sight, raised, its eyes where its
+   pose starts them, while that one grows into it in front of the glass, and shows at once where it lands (catLanded),
+   as it is there. */
+body.collapsed #cat.from-side { opacity: 0; transition: none; }
+body #cat.from-side:not(.tracking) .cat-drift { animation: none; }
+body.collapsed #cat.landing { transition: none; }
 #cat svg { display: block; width: 102px; height: 102px; overflow: visible; }
 
 .cat-face { fill: var(--cream); }

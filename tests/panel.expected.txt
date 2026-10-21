@@ -75,28 +75,34 @@ projects by their newest row: [/work/one] (rows) a1.turn [/work/two] (rows) b1.s
 …but a row you pressed keeps its project where it was, as it starts work: [/work/one] (rows) a1.turn [/work/two] (rows) b1.busy
 …until you've moved on: [/work/two] (rows) b1.busy [/work/one] (rows) a1.turn
 
+== Your message and Claude's line, written in and erased
+what the next text keeps of the one before, by whole words: the same verb, nothing, all of it, a word that goes on, a shared start within a word: [8,0,12,7,0]
+how long each change takes, all within the rebuild's motion (1000 ms): a turn starting, Claude's line after yours; the next step, its verb kept; a step to a two-line reply; a new turn after one; a long reply after a long one, after yours: [543,340,766,823,960]
+…erasing a little quicker than writing the same text: [268,392]
+the list's height while a line gives up its room only once its text has gone (15 points, from 400 ms): where it starts, at 400 ms, and where it ends: ["200.00px","200.00px","185.00px"]
+
 == The row you're on, held at the edge
 in view: null
 just past the top: under the header: top
 just past the bottom: above the bottom edge: bottom
 wholly above, and wholly below: ["top","bottom"]
 right at either edge: still in view: [null,null]
-at the top edge, 0 points past it: 134 tall | nothing folded | attached 0, under 0
-at the top edge, 12 points past it: 122 tall | note −12 | attached 0.5, under 0
-at the top edge, 30 points past it: 104 tall | work −12, note −18 | attached 1, under 0
-at the top edge, 52 points past it: 82 tall | you −10, work −24, note −18 | attached 1, under 0
-at the top edge, 60 points past it: 74 tall | you −18, work −24, note −18 | attached 1, under 0
-at the top edge, 74 points past it: 74 tall | you −18, work −24, note −18 | attached 1, under 1
-at the top edge, 130 points past it: 74 tall | you −18, work −24, note −18 | attached 1, under 1
-at the bottom edge, 12 points past it: 122 tall | you −12 | attached 0.5, under 0
-at the bottom edge, 30 points past it: 104 tall | you −18, work −12 | attached 1, under 0
-at the bottom edge, 52 points past it: 82 tall | you −18, work −24, note −10 | attached 1, under 0
-at the bottom edge, 60 points past it: 74 tall | you −18, work −24, note −18 | attached 1, under 0
-at the bottom edge, 74 points past it: 74 tall | you −18, work −24, note −18 | attached 1, under 1
+at the top edge, 0 points past it: 134 tall | nothing folded | attached 0
+at the top edge, 12 points past it: 122 tall | note −12 | attached 0.5
+at the top edge, 30 points past it: 104 tall | work −12, note −18 | attached 1
+at the top edge, 52 points past it: 82 tall | you −10, work −24, note −18 | attached 1
+at the top edge, 60 points past it: 74 tall | you −18, work −24, note −18 | attached 1
+at the top edge, 74 points past it: 74 tall | you −18, work −24, note −18 | attached 1
+at the top edge, 130 points past it: 74 tall | you −18, work −24, note −18 | attached 1
+at the bottom edge, 12 points past it: 122 tall | you −12 | attached 0.5
+at the bottom edge, 30 points past it: 104 tall | you −18, work −12 | attached 1
+at the bottom edge, 52 points past it: 82 tall | you −18, work −24, note −10 | attached 1
+at the bottom edge, 60 points past it: 74 tall | you −18, work −24, note −18 | attached 1
+at the bottom edge, 74 points past it: 74 tall | you −18, work −24, note −18 | attached 1
 as tall as what of its place is in view, so the row next to it stays touching it: true
 …what has gone all folded off the lines that go: true
 …and never less than the lines that stay: 74
-a place still taller than the copy (a line it lost folding away there): as tall as the place, nothing folded: 148 tall | nothing folded | attached 0, under 0
+a place still taller than the copy (a line it lost folding away there): as tall as the place, nothing folded: 148 tall | nothing folded | attached 0
 a line folding 0 points at the top edge: its foot goes under: margins 3/0, cut 0/0, faded to 1
 a line folding 2 points at the top edge: its foot goes under: margins 3/-2, cut 0/2, faded to 0.94
 a line folding 8 points at the top edge: its foot goes under: margins 3/-8, cut 0/8, faded to 0.34
@@ -104,6 +110,10 @@ a line folding 22 points at the top edge: its foot goes under: margins 3/-22, cu
 …and at the bottom edge: its margin, then its head: margins 1/0, cut 0/0, faded to 0.94
 …and at the bottom edge: its margin, then its head: margins -5/0, cut 5/0, faded to 0.34
 …and at the bottom edge: its margin, then its head: margins -19/0, cut 19/0, faded to 0
+a slow scroll, 3 points a frame: it keeps up exactly: -3 -6 -9 -12 -15
+the row taken 150 points past the edge in one frame: its lines fold one after another, there in about 0.25 s: -19.2 -43.6 -68.8 -90.4 -107.5 -120.3 -129.6 -136.1 -140.7 -143.8 -145.9 -147.3 -148.2 -148.8 -149.2 -150 -150
+a quick scroll, 30 points a frame, then still: it catches up once the scroll stops: -8.7 -21.4 -38.2 -58.5 -72.9 -85.3 -95.2 -102.7 -108.1 -111.9 -114.5 -116.3 -117.6 -118.4 -119 -119.3 -120 -120
+…and brought back before it has caught up: it turns, and never goes past the row's place: -11.3 -31.8 -38.9 -35.8 -22.2 -10.3 1.8 12.1 20.1 26.1 30.5 33.5 35.6 37.1 38.1 38.7 39.2 39.5 40
 taken just past the top (scrolled, or moved by the list): holds on in place, no fade: {"edge":"top","fade":false}
 …past the bottom (moved to a section further down as it starts working): {"edge":"bottom","fade":false}
 only grown past the bottom, its top where it was (a card opening on it): stays as it is, in view: {"edge":null,"fade":false}
@@ -112,8 +122,9 @@ only grown past the bottom, its top where it was (a card opening on it): stays a
 one of its boxes typed in: never: {"edge":null,"fade":false}
 taller than the list: never: {"edge":null,"fade":false}
 holding on, the list moving it further or back: still holds on: {"edge":"top","fade":false}
-back in view: hands back at once, however far it came in one frame: {"edge":null,"fade":false} {"edge":null,"fade":false} {"edge":null,"fade":false}
+back in view, its copy caught up with its place: hands back, however far it came in one frame: {"edge":null,"fade":false} {"edge":null,"fade":false} {"edge":null,"fade":false}
 …and from the bottom edge: {"edge":null,"fade":false} {"edge":null,"fade":false}
+…its copy still on its way there: holds on, gliding there, until it has caught up: {"edge":"top","fade":false} {"edge":"top","fade":false}
 still past the edge but now typed in, or too tall: fades out: {"edge":null,"fade":true} {"edge":null,"fade":true}
 from one edge to the other at once: fades in there: {"edge":"bottom","fade":true}
 a row 150 tall, shown from the top and from the bottom: [4,346]
@@ -165,6 +176,24 @@ elapsed 3780s: 1h 3m
 ring colour, 10% used: var(--level-normal)
 ring colour, 70% used: var(--level-warning)
 ring colour, 90% used: var(--level-limit)
+compact now: nearly full: it's nearly full, and would soon compact by itself
+compact now: long: it's getting long
+compact now: big, its work committed: your work is saved
+compact now: big, after an hour away: you've been away from it for an hour, so Claude would read all of it again with your next message
+not now: big, its edits not committed yet: null
+not now: committed, but small: null
+not now: small, after an hour away: null
+not now: at work: null
+not now: asking: null
+not now: compacting: null
+not now: ended: null
+not now: the app says a compaction couldn't go in: null
+not now: big, its edits left in another checkout: null
+compact now: big, its edits in its own checkout all committed: your work is saved
+not now: big, quiet for an hour, but you were on it since: null
+not now: big, quiet for an hour, and it's the one you're on: null
+a ring that says compact now: true
+…and why, in its tip: A good time to compact: it's nearly full, and would soon compact by itself 
 
 == Projects
 a worktree counts toward its repo: {"key":"/work/app","name":"app"}
@@ -264,10 +293,10 @@ x
         </div>
         <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
         
-        <div class="work"><div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt">Fix the tests</span></div><div class="pr draft " data-url="https://github.com/e/app/pull/2"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#2</span><span class="pt">Draft</span></div></div></div><div class="where"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:var(--level-warning);--fill:75%">
+        <div class="work"><div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt">Fix the tests</span></div><div class="pr draft " data-url="https://github.com/e/app/pull/2"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#2</span><span class="pt">Draft</span></div></div></div><div class="where"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx open now" data-ctx="t1" title="A good time to compact: it's getting long · 75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:var(--level-warning);--fill:75%">
       <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
       <circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--level-warning)" stroke-width="1.6" stroke-linecap="round"
-              stroke-dasharray="23.56 31.42"/></svg><span class="ctx-label">75% · Compact</span></span><span class="gap"></span><span class="place" data-place="t1"><span class="wt branch"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">feature</span></span></span></div>
+              stroke-dasharray="23.56 31.42"/></svg><span class="ctx-label">75% · Compact now</span></span><span class="gap"></span><span class="place" data-place="t1"><span class="wt branch"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">feature</span></span></span></div>
       </div>
     </div>
 -- a reply you have read
@@ -332,10 +361,10 @@ x
         </div>
         
         <div class="perm compact" data-compact="c1"><div class="q-top"><span class="q-head">Compact the conversation</span><span class="c-left" title="before auto-compact">67k left</span><button class="q-close" title="Close">×</button></div><div class="q-opts"><button class="opt" data-level="0"><span class="opt-label">Compact</span><span class="opt-desc">Summarize the conversation so far</span></button><button class="opt" data-level="1"><span class="opt-label">Keep details</span><span class="opt-desc">Older work summarized; the current task kept in detail</span></button><button class="opt" data-level="2"><span class="opt-label">Keep essentials</span><span class="opt-desc">Only decisions, open tasks and key files</span></button></div><input class="q-type c-focus" placeholder="Or your own focus, then Return" value=""></div>
-        <div class="where"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span></span><span class="ctx open" data-ctx="c1" title="90% · 900k of 1M tokens in context · 67k left before auto-compact" style="color:var(--level-limit);--fill:90%">
+        <div class="where"><span class="agent"><span class="pick" data-pick="model" title="Change model">Opus 5.5</span></span><span class="ctx open now" data-ctx="c1" title="A good time to compact: it's nearly full, and would soon compact by itself · 90% · 900k of 1M tokens in context · 67k left before auto-compact" style="color:var(--level-limit);--fill:90%">
       <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
       <circle cx="6" cy="6" r="5" fill="none" style="stroke:var(--level-limit)" stroke-width="1.6" stroke-linecap="round"
-              stroke-dasharray="28.27 31.42"/></svg><span class="ctx-label">90% · Compact</span></span><span class="gap"></span><span class="place" data-place="c1"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span></div>
+              stroke-dasharray="28.27 31.42"/></svg><span class="ctx-label">90% · Compact now</span></span><span class="gap"></span><span class="place" data-place="c1"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span></div>
       </div>
     </div>
 a terminal session that's the one you're on says where it's open: true
@@ -593,6 +622,15 @@ who speaks for each checkout or folder: the session that edited files there last
 no listed session edited there: the session last active there: ["asked-since"]
 …one still running before a closed one, though the closed one was used later: ["running"]
 …a closed one when none there is running: ["closed-later"]
+how the last code review went: what it found, then what it settled once it reports again; none: null: [{"found":5,"left":5,"settled":false,"changed":false,"by":null},{"found":5,"left":0,"settled":true,"changed":false,"by":null},{"found":5,"left":1,"settled":true,"changed":false,"by":null},{"found":0,"left":0,"settled":false,"changed":false,"by":null},null]
+…edited after it last reported: changed since; not its fixes, before its second report, nor edits elsewhere: [{"found":5,"left":5,"settled":false,"changed":true,"by":null},{"found":5,"left":0,"settled":true,"changed":false,"by":null},{"found":5,"left":5,"settled":false,"changed":false,"by":null}]
+…edited here from a session running elsewhere: changed since all the same: {"found":5,"left":5,"settled":false,"changed":true,"by":null}
+…with nothing left to fix, gone once anything is edited after it: what it passed has changed: [null,null]
+…with some left, gone once new work starts, a commit since and an edit since that; kept with only the commit, or a review of what was committed before it: [null,{"found":5,"left":0,"settled":true,"changed":false,"by":null},{"found":5,"left":5,"settled":false,"changed":true,"by":null}]
+…only one run on the branch the checkout is on now (or noted on none, by an older hook): [null,{"found":5,"left":5,"settled":false,"changed":false,"by":null},{"found":5,"left":5,"settled":false,"changed":false,"by":null}]
+…the newest review in the checkout, from whichever session ran it, named when it isn't the row's; another checkout's doesn't count: {"found":3,"left":3,"settled":false,"changed":false,"by":"search-review"}
+what the work line's start says of each, and over it: [["Reviewed","5 to fix","A code review found 5 problems",false],["Reviewed","all fixed","A code review found 5 problems, and none is left to fix",true],["Reviewed","1 left","A code review found 5 problems, and 1 is still to fix",false],["Reviewed","nothing to fix","A code review found nothing to fix",true],["Changed since the review","","Files were edited after the last code review",false],["Reviewed","1 left","A code review found 1 problem, and 1 is still to fix",false]]
+…naming the session the review ran in, when it isn't the row's: [["Reviewed","3 to fix","A code review in search-review found 3 problems",false],["Changed since the review","","Files were edited after the code review in search-review",false]]
 -- a row with changed files: the commit icon at the end of the work line
 <div class="row idle" data-id="w1" >
       <span class="dot" style=""></span>
@@ -647,6 +685,15 @@ no listed session edited there: the session last active there: ["asked-since"]
     </div>
 -- commits to push with an open pull request: the pull request where it goes, and no words
 <div class="work"><div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt"></span></div></div><span class="work-end"><span class="step" data-step="push" data-sid="w1" title="Push 1 commit to GitHub"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.6V1.8M2.2 4.5 5 1.6 7.8 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="step-n">1</span><span class="step-word">Push</span></span></span></div>
+-- a code review's findings still to fix: said where the pull requests go, uncommitted changes and all
+<div class="work"><div class="nopr review" title="A code review found 5 problems"><span class="pt">Reviewed</span><span class="out-n">5 to fix</span></div><span class="work-end"><span class="step" data-step="commit" data-sid="w4" title="Commit the changes"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 8h3.6M10.9 8h3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="step-word">Commit</span></span></span></div>
+-- …all fixed, with commits never pushed and nothing else: the review, ticked, opening those commits
+<div class="work"><div class="nopr review outgoing" data-outgoing="w4" title="A code review found 5 problems, and none is left to fix. See the commits not on GitHub yet"><svg class="review-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pt">Reviewed</span><span class="out-n">all fixed</span></div><span class="work-end"><span class="step" data-step="publish" data-sid="w4" title="Publish this branch on GitHub"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 12.5h7.1a3 3 0 0 0 .4-6 4.1 4.1 0 0 0-7.9-1A3.5 3.5 0 0 0 4.6 12.5Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 11V7.2M6.4 8.7 8 7l1.6 1.7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="step-word">Publish</span></span></span></div>
+-- …with an open pull request, or Create PR offered: those, and no review
+<div class="work"><div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt"></span></div></div><span class="work-end"><span class="step" data-step="push" data-sid="w4" title="Push 1 commit to GitHub"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.6V1.8M2.2 4.5 5 1.6 7.8 4.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="step-n">1</span><span class="step-word">Push</span></span></span></div>
+<div class="work"><div class="nopr" data-pr-for="w4"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="pt">No pull request</span><span class="create-pr">Create PR</span></div></div>
+-- …nothing left to go: no review, as no work line
+""
 -- a branch pushed with no pull request yet, as GitHub says: Create PR where the pull requests go
 <div class="row idle" data-id="w3" >
       <span class="dot" style=""></span>
@@ -711,6 +758,8 @@ where it runs, with a long name: it shortens first, before the model and effort:
         <div class="step-note quiet">Closed the other copy</div><div class="where"><span class="gap"></span><span class="place" data-place="w6"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span></div>
       </div>
     </div>
+while its agent works, asks you something along the way or compacts, the row has no work line; done, it's back: [false,false,false,true]
+…but for a note, which it keeps saying in its place: true
 -- Deploy's button at the end of the bottom line, with the dot; why its last deploy didn't go through
 <div class="row idle" data-id="w5" >
       <span class="dot" style=""></span>
@@ -727,7 +776,7 @@ The last deploy didn&#39;t go through: make: *** No rule to make target `install
 Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span></div>
       </div>
     </div>
--- while the agent works: Deploy and the step dimmed, shown all the same
+-- while the agent works: Deploy dimmed, shown all the same, and the work line only for its note
 <div class="row busy" data-id="w5" >
       <span class="dot" style="animation-delay:-0ms"></span>
       <div class="main">
@@ -737,7 +786,7 @@ Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" h
         </div>
         <div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Thinking</span></span><span class="elapsed">1h 0m</span></div>
         
-        <div class="work noted"><span class="work-end"><span class="step waits" data-step="commit" data-sid="w5" title="Waits until the agent is done"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 8h3.6M10.9 8h3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="step-word">Commit</span></span></span><div class="work-note" title="Couldn&#39;t deploy: make: *** No rule to make target `install`.">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div></div><div class="where"><span class="gap"></span><span class="place" data-place="w5"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span><span class="play off new" data-deploy="w5" title="Deploy waits until the agent is done
+        <div class="work noted"><span class="work-end"><span class="step" data-step="commit" data-sid="w5" title="Commit the changes"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M1.5 8h3.6M10.9 8h3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="step-word">Commit</span></span></span><div class="work-note" title="Couldn&#39;t deploy: make: *** No rule to make target `install`.">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div></div><div class="where"><span class="gap"></span><span class="place" data-place="w5"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span><span class="play off new" data-deploy="w5" title="Deploy waits until the agent is done
 Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span></div>
       </div>
     </div>
@@ -956,3 +1005,16 @@ its eyes, toward a pointer up and to its right while it looks at you: {"x":8.088
 …and only a little toward one on its face, close to its eyes: {"x":3,"y":2.34375}
 …after a quick sweep from its left to its right, catching up over a moment, never past it: where its eyes are after 2, 5, 10, 15 and 30 frames at 60 a second: [-7.4,2.3,9.8,11.6,12]
 …and at 30 frames a second, each frame further on than the last, without shaking: [-7.4,-0.6,4.6,7.9,9.8,10.9,11.7]
+
+== The header, sliding away with the list (header.js)
+scrolled down 20 points from the top: 20 points of it gone: 20
+…down 300 more: all of it gone, and no further: 47
+…back up 10 from far down the list: 10 points of it back: 37
+…back up 32 to 8 points from the very top: only as far gone as the list has scrolled: 8
+a scroll stopped with it part-way, going down: all gone: 47
+…going down, only 30 points from the top: as far as the list has scrolled: 30
+…going up: all there: 0
+…all there or all gone already: as it is: [0,47]
+gone: once all of it has (within half a point), and until it has come back 6 points: [false,true,true,true,false]
+it may slide away with a list that scrolls; not folded, with the reader open, with a card under it, nor with a list a point or less from scrolling: [true,false,false,false,false,true]
+the folded cat's place from the name's o, with the header all there, and with it slid 47 points away (the o 47 points up): the same: [{"x":45,"y":18.15},{"x":45,"y":18.15}]

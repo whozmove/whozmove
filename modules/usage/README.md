@@ -9,7 +9,8 @@ and open with its two rows, its wait at the session limit, and its Sign in.
 - `app/UsageModule.m`: its face for the core (contracts/Module.h): a check when one is due, on every tick; the card,
   held by the panel, over it (PanelWindow's `attachAbove:`), following the glass and the pointer; what the card's page
   says, answered as the panel's page's messages are; Sign in; and Working on Whozmove's Preview the Wait. While the
-  panel is turned over to its back, the card stays out of sight (`followTurn:`).
+  panel is turned over to its back, or flicked off the screen's edge, the card stays out of sight (`followTurn:`,
+  `followAway:`).
 - `app/Usage.m`: when to ask (every 3 minutes, soon after a window resets, often after Sign in, less often while asking
   fails, never while the screens sleep or the panel is hidden), what the card's page is told, and Sign in, run in the
   first terminal on this Mac that runs a command (Ghostty, else iTerm2, else macOS's Terminal).

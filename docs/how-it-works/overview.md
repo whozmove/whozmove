@@ -34,10 +34,13 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
   page, the window, the menu bar, the rows, the agents and the hosts), `Rows` (the rows read and sent), `Focus` (the
   session you're on, when you last looked at each, and opening one from its row), `Send` (words into a session, and why
   they can't go in now), `Work` (who's at work in a checkout), `Page`, `PanelWindow`, `MenuBar`, `Builds`, `Printing`
-  (what the tests' print runs share) and `Browser` (web pages that aren't the panel's own, each in a web view of its own
-  with no way to talk to the app, for a module to show). On the page: the rows and their places for the modules' parts,
-  sorting, the animation (`morph`), the row you're on held at the list's edge as the list scrolls past it (`sticky`),
-  the pointer, presses and typing, the reader's frame, and `modules.js`, every list a module plugs into.
+  (what the tests' print runs share), `EdgeIcon` (an icon tucked half under the glass at the panel's edge, as Spotify's
+  token is), `SideCat` (Whozmove beside the panel while the header has gone), `CatShape` (the cat's shapes, drawn
+  natively), `Easing` (the curves the panel moves on) and `Browser` (web pages that aren't the panel's own, each in a
+  web view of its own with no way to talk to the app, for a module to show). On the page: the rows and their places for
+  the modules' parts, sorting, the animation (`morph`), the header sliding away with the list's scroll (`header`), the
+  row you're on held at the list's edge as the list scrolls past it (`sticky`), the pointer, presses and typing, the
+  reader's frame, and `modules.js`, every list a module plugs into.
 - **The contracts**, in `app/contracts`: what a module fills in and what it passes. `Module.h` is every module's;
   `Agent.h` is the agent's, with what it can do in small protocols of their own (`AgentWork`, `AgentCommands`,
   `AgentPrompt`, `AgentUsage`, `AgentStarts`); `Host.h` is an app sessions run in (`Host`, and `TypingHost`,

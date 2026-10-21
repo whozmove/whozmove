@@ -189,15 +189,20 @@ function renderWhenSettled() {
   else render();
 }
 
-// The newest rows, about once a second; while something moves, the newest data waits (renderWhenSettled). The strips
-// under the list aren't in it, so they keep time on their own, each module's through core.updates (Spotify's song
-// line).
+// The newest rows, about once a second; while something moves, the newest data waits (renderWhenSettled), but for the
+// session you're on changing in its app (another tab in a terminal, another conversation in Claude), which shows at once,
+// as a press here does, cutting short what's moving. The strips under the list aren't in it, so they keep time on their
+// own, each module's through core.updates (Spotify's song line).
 window.update = (sessions, now) => {
   state.last = { sessions, now };
   if (!state.readBefore) store.set('readBefore', (state.readBefore = now - IDLE_AFTER_MS));
   forgetGone(sessions);
   for (const updating of core.updating) updating(sessions);
-  renderWhenSettled();
+  const on = sessions.map(openedNow).find((s) => s.focused)?.sessionId || null;
+  if (on !== state.claudeShowed && !state.sliding && !state.composing) {
+    clearTimeout(state.settleTimer);
+    render();
+  } else renderWhenSettled();
   for (const updated of core.updates) updated(now);
 };
 
@@ -223,6 +228,11 @@ window.toggleCollapsed = () => {
   // Not while the reader is open: the panel folds from the list alone (app/core/PanelWindow.m).
   if (collapsed && state.reading) return;
   const flip = () => document.body.classList.toggle('collapsed', collapsed);
+  // The cat grows from the name's o, or shrinks onto it, where the header has it all there (header.js); folding round
+  // Whozmove beside the panel, the header fades where it has gone. Opened before that fold has landed, the folded cat
+  // goes back to the o first, and the panel opens round it there.
+  if (!collapsed && state.cat.fromSide) catFromSideEnds();
+  if (!collapsed || !state.cat.fromSide) headerAllThere();
   if (collapsed) catFolding(flip); else catOpening(flip);
   store.set('collapsed', collapsed);
   native({ type: 'fold', on: collapsed });

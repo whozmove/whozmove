@@ -62,11 +62,14 @@ function chatHTML(s, kind, now) {
 }
 
 // The work line, while there's something on it: at its start the session's pull requests (or Create PR, once its
-// branch is pushed with none, or where it stands while commits wait), and at its end what isn't committed in the
-// checkout and the steps its work has to take. The row's note (stepLine), when it has one, is said in the line's place,
-// over what it holds, which stays laid out unseen, so the row keeps its height and nothing under it moves; cut short to
-// one line, with all of it over it.
+// branch is pushed with none, or how the checkout's last code review went, or where it stands while commits wait), and
+// at its end what isn't committed in the checkout and the steps its work has to take. The row's note (stepLine), when it
+// has one, is said in the line's place, over what it holds, which stays laid out unseen, so the row keeps its height and
+// nothing under it moves; cut short to one line, with all of it over it. While the session's agent is at work (asking
+// you something along the way, or compacting, too), the line goes, but for a note, which it keeps saying in its place: a
+// step it was just asked, or a deploy still running.
 function workHTML(row, note = null) {
+  if (!note && (row.kind === 'busy' || row.kind === 'needs' || row.s.compacting)) return '';
   const start = slot('workStart', row), end = slot('numbers', row) + slot('steps', row);
   if (!start && !end) return '';
   const said = note ? `<div class="work-note${note.quiet ? ' quiet' : ''}" title="${esc(note.text)}">`

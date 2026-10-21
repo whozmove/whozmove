@@ -85,6 +85,7 @@
     json[@"seenAt"] = self.seenAt;
     json[@"opensIn"] = self.opensIn;
     if (self.focused) json[@"focused"] = @YES;
+    if (self.noCompact) json[@"noCompact"] = @YES;
     return json;
 }
 

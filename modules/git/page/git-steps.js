@@ -1,8 +1,8 @@
 // The next steps on a row's work line: an icon for each step its checkout has to take (stepsOf), its word coming in
 // beside it as it's pointed at, a press asking the session's agent to take it; once a branch is pushed with no pull
 // request, Create PR where the pull requests go, whose card says which branch it goes into, the repo's default picked,
-// another to be picked there; and, while commits wait to go and no pull request shows, where the branch stands, there
-// too.
+// another to be picked there; and, while no pull request shows, how the last code review went while there's work to
+// go, else, while commits wait to go, where the branch stands, there too.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The step pointed at ("sid:step"), drawn open as the list is drawn again, so its word doesn't come in afresh each
@@ -26,16 +26,19 @@ const STEP_ICONS = {
 };
 const PICKED_ICON = '<svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" '
   + 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// A tick in a ring: a code review with nothing left to fix, in the colour of what's finished.
+const REVIEWED_ICON = '<svg class="review-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle '
+  + 'cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" '
+  + 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 // A step's icon on the work line, with the count of commits to push, and its word, which comes in beside it while it's
-// pointed at. Dimmed while the row's agent works or asks, as the step would wait for it.
+// pointed at. While the row's agent works or asks, the work line isn't there (workHTML).
 function stepHTML(row, step) {
   const sid = row.s.sessionId, [word, tip] = stepWords(step, row.steps);
   const open = state.hoverStep === `${sid}:${step}` ? ' open' : '';
-  const waits = row.kind === 'busy' || row.kind === 'needs' ? ' waits' : '';
   const count = step === 'push' ? `<span class="step-n">${thousands(row.steps.push)}</span>` : '';
-  return `<span class="step${open}${waits}" data-step="${step}" data-sid="${esc(sid)}"`
-    + ` title="${esc(waits ? 'Waits until the agent is done' : tip)}">${STEP_ICONS[step]}${count}`
+  return `<span class="step${open}" data-step="${step}" data-sid="${esc(sid)}"`
+    + ` title="${esc(tip)}">${STEP_ICONS[step]}${count}`
     + `<span class="step-word">${word}</span></span>`;
 }
 
@@ -46,10 +49,23 @@ function noPRHTML(row) {
     + '<span class="create-pr">Create PR</span></div>';
 }
 
-// Where the pull requests go, while none shows and the branch has commits to push or publish: where it stands, in git's
-// words (outgoingWords); pressed, those commits, in the changes view's Outgoing.
+// Where the pull requests go, while none shows and Create PR isn't offered, and the work has a step still to take: how
+// the checkout's last code review went (reviewOf, reviewWords), uncommitted changes and all, as that's when it matters
+// most; else, while the branch has commits to push or publish, where it stands, in git's words (outgoingWords), which
+// pressed opens those commits, in the changes view's Outgoing. With nothing left uncommitted, the numbers that open the
+// changes view aren't there, so the review opens those commits too; otherwise a press on it is the row's.
 function outgoingHTML(row) {
-  const words = !shownPRs(row.s).length && outgoingWords(row.s.checkout, row.steps);
+  if (!row.steps || row.steps.pr || shownPRs(row.s).length) return '';
+  const review = reviewOf(row.s, state.last.sessions);
+  if (review) {
+    const [word, left, tip, done] = reviewWords(review);
+    const opens = !row.steps.commit && (row.steps.push || row.steps.publish);
+    const press = opens ? ` outgoing" data-outgoing="${esc(row.s.sessionId)}` : '';
+    return `<div class="nopr review${press}" title="${esc(opens ? `${tip}. See the commits not on GitHub yet` : tip)}">`
+      + `${done ? REVIEWED_ICON : ''}<span class="pt">${esc(word)}</span>`
+      + `${left ? `<span class="out-n">${esc(left)}</span>` : ''}</div>`;
+  }
+  const words = outgoingWords(row.s.checkout, row.steps);
   if (!words) return '';
   return `<div class="nopr outgoing" data-outgoing="${esc(row.s.sessionId)}" title="See the commits not on GitHub yet">`
     + `<span class="pt">${esc(words[0])}</span><span class="out-n">${words[1]}</span></div>`;
@@ -90,7 +106,8 @@ core.rowLooks.push((row) => {
   if (row.steps) state.shownAt['steps:' + row.s.sessionId] ??= Date.now();
   else delete state.shownAt['steps:' + row.s.sessionId];
 });
-// Create PR first where the pull requests go (prs.js's come after it); the steps after the numbers.
+// Create PR first where the pull requests go (prs.js's come after it), then the review or where the branch stands; the
+// steps after the numbers.
 core.slots.workStart.push(noPRHTML, outgoingHTML);
 core.slots.steps.push((row) => (row.steps ? ['commit', 'push', 'publish'].filter((step) => row.steps[step])
   .map((step) => stepHTML(row, step)).join('') : ''));

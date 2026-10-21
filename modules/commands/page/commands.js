@@ -3,8 +3,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The Compact card, per session: open, its note, and the focus typed in it. The session whose context ring is pointed
-// at.
-moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null });
+// at. The sessions whose ring has opened by itself to say now is a good time to compact (compactNow), once it has.
+moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null, compactNowShown: {} });
 
 // ---- The setup line ----
 
@@ -22,27 +22,60 @@ function agentSetupHTML(s) {
   return (agent ? `<span class="agent">${agent}</span>` : '') + contextRing(s);
 }
 
+// Whether now is a good time to compact, and why, or null: only while the session sits idle, and then once its
+// context is nearly full or long, or, once it's big, when its work has just been saved (a turn that committed or went
+// further, or its edits in its checkout with nothing left to commit there), or when neither it nor you have been on it
+// for an hour, after which the next message has Claude read all of it again. Compacting then is cheap and loses
+// nothing half done, where auto-compact comes in the middle of a task. Never where the app says a compaction couldn't
+// go in (`noCompact`: it runs in no terminal the panel can type into, or it's open twice), as the card would only
+// say why.
+const COMPACT_SAVED = new Set(['Committed', 'Pushed', 'PR raised', 'Merged', 'On staging', 'Deployed']);
+function compactNow(s, now) {
+  const a = s.agent || {}, tokens = a.tokens;
+  if (!tokens || s.status !== 'idle' || s.ask || s.compacting || s.noCompact) return null;
+  const window = core.agent.contextWindow(a.model, tokens), pct = Math.round(tokens / window * 100);
+  if (pct >= 85) return "it's nearly full, and would soon compact by itself";
+  if (tokens >= Math.min(400000, window * 0.75)) return "it's getting long";
+  if (tokens < Math.min(200000, window / 2)) return null;
+  const edited = editedAt(s, (s.git || s.workGit)?.root);
+  if (COMPACT_SAVED.has(s.outcome) || (edited && s.checkout?.changes === 0)) return 'your work is saved';
+  const moved = Math.max(s.lastReplyAt || 0, s.messageAt || 0, onItAt(s));
+  if (moved && !s.focused && now - moved >= 3600000)
+    return "you've been away from it for an hour, so Claude would read all of it again with your next message";
+  return null;
+}
+
 // A ring filling up with the context in use. Neutral below 60%, amber from 60% (filling up), red-orange from 85%
 // (near auto-compact: start fresh or compact). Pointed at, it widens into a Compact button that is the same gauge
 // (its fill is the context in use) and says how full it is first, where the ring was; a click opens the Compact card
 // (compactHTML). It's drawn open while pointed at or while its card is up, so the rebuild every second doesn't replay
-// the widening.
+// the widening. When it's a good time to compact (compactNow), it opens by itself and stays open, saying "Compact
+// now", and why in its tip: drawn closed the first time (`now-soon`), it widens in the next frame, as it does
+// pointed at; once it no longer is, it's drawn open once more (`now-going`) and folds in the next frame, as it does
+// pointed away.
 function contextRing(s) {
   const a = s.agent || {}, tokens = a.tokens, model = a.model;
   if (!tokens) return '';
   const window = core.agent.contextWindow(model, tokens), pct = Math.min(100, Math.round(tokens / window * 100));
   const color = pct >= 85 ? GAUGE.limit : pct >= 60 ? GAUGE.warning : GAUGE.normal;
   const r = 5, length = 2 * Math.PI * r, left = Math.max(0, core.agent.compactLimit(a) - tokens);
-  const open = state.hoverCtx === s.sessionId || state.compactOpen[s.sessionId] ? ' open' : '';
-  const title = `${pct}% · ${kTokens(tokens)} of ${kTokens(window)} tokens in context`
+  const why = compactNow(s, state.last.now), sid = s.sessionId;
+  const was = !!state.compactNowShown[sid], going = !why && was && !calm.matches;
+  if (!why && !going) delete state.compactNowShown[sid];
+  else if (why && calm.matches) state.compactNowShown[sid] = true;
+  const shown = !!why && !!state.compactNowShown[sid];
+  const open = state.hoverCtx === sid || state.compactOpen[sid] || shown || going ? ' open' : '';
+  const now = why ? (shown ? ' now' : ' now now-soon') : going ? ' now-going' : '';
+  const title = (why ? `A good time to compact: ${why} · ` : '')
+    + `${pct}% · ${kTokens(tokens)} of ${kTokens(window)} tokens in context`
     + ` · ${kTokens(left)} left before auto-compact`;
-  return `<span class="ctx${open}" data-ctx="${esc(s.sessionId)}" title="${title}"`
+  return `<span class="ctx${open}${now}" data-ctx="${esc(s.sessionId)}" title="${title}"`
     + ` style="color:${color};--fill:${pct}%">
       <svg width="12" height="12" viewBox="0 0 12 12">`
     + `<circle cx="6" cy="6" r="${r}" fill="none" style="stroke:var(--ring-track)" stroke-width="1.6"/>
       <circle cx="6" cy="6" r="${r}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="${(length * pct / 100).toFixed(2)} ${length.toFixed(2)}"/></svg>`
-    + `<span class="ctx-label">${pct}% · Compact</span></span>`;
+    + `<span class="ctx-label">${pct}% · Compact${why || going ? ' now' : ''}</span></span>`;
 }
 
 // A row's model, effort or mode: the app's menu for it, below the label.
@@ -135,11 +168,39 @@ core.returns.push(['.c-focus', (box) => {
   if (box.value.trim()) sendCompact(box.closest('.perm').dataset.compact, box.value.trim());
 }]);
 core.pointerTargets.push('.pick');
-// The ring pointed at widens into its Compact button, and stays wide while its card is up.
+// The ring pointed at widens into its Compact button, and stays wide while its card is up, or while it says now is a
+// good time to compact.
 core.pointerWatchers.push((el) => {
   state.hoverCtx = el?.closest('.ctx[data-ctx]')?.dataset.ctx || null;
-  for (const ring of document.querySelectorAll('.ctx[data-ctx]'))
-    ring.classList.toggle('open', ring.dataset.ctx === state.hoverCtx || !!state.compactOpen[ring.dataset.ctx]);
+  for (const ring of document.querySelectorAll('.ctx[data-ctx]')) {
+    const sid = ring.dataset.ctx;
+    ring.classList.toggle('open', sid === state.hoverCtx || !!state.compactOpen[sid]
+                                  || (ring.classList.contains('now') && !!state.compactNowShown[sid])
+                                  || ring.classList.contains('now-going'));
+  }
 });
-core.forgotten.keys.push('compactOpen', 'compactNotes', 'compactFocus');
+// A ring that has only just become a good time to compact is drawn closed, then widens once that's been laid out; one
+// that no longer is is drawn open, then folds, unless it's pointed at or its card is up. The copy of the row you're on
+// held at the list's edge (sticky.js) is made from the row before this, without the row's data, so it's found by its
+// mark alone and moves in the same frame.
+core.afterDraw.push(() => {
+  const soon = [...document.querySelectorAll('.ctx.now-soon')];
+  const going = [...document.querySelectorAll('.ctx.now-going')];
+  if (!soon.length && !going.length) return;
+  for (const ring of [...soon, ...going]) void ring.offsetWidth;
+  requestAnimationFrame(() => {
+    for (const ring of soon) {
+      if (ring.dataset.ctx) state.compactNowShown[ring.dataset.ctx] = true;
+      ring.classList.remove('now-soon');
+      ring.classList.add('open');
+    }
+    for (const ring of going) {
+      const sid = ring.dataset.ctx;
+      if (sid) delete state.compactNowShown[sid];
+      ring.classList.remove('now-going');
+      if (!sid || (sid !== state.hoverCtx && !state.compactOpen[sid])) ring.classList.remove('open');
+    }
+  });
+});
+core.forgotten.keys.push('compactOpen', 'compactNotes', 'compactFocus', 'compactNowShown');
 core.forgotten.prefixes.push('compact');

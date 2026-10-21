@@ -18,6 +18,7 @@ var matchMedia = () => ({ matches: true });
 var performance = { now: () => 0 };
 var requestAnimationFrame = () => {};
 var addEventListener = () => {};  // the window's own, as a module's start-up listens for its size
+var MutationObserver = class { observe() {} };  // the header's, as it watches for a card under it (header.js)
 
 arguments.forEach((file) => load(file));  // the page's scripts, in the order the page loads them
 

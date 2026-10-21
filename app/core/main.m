@@ -1,5 +1,5 @@
 // main: starts Whozmove, or runs one of the print modes the tests check (PrintRun): --print-rows, --print-waits,
-// --print-browsing and --print-routes here, and the modules' own.
+// --print-browsing, --print-edges and --print-routes here, and the modules' own.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "AppDelegate.h"
 #import "Row.h"
@@ -9,6 +9,9 @@
 #import "Modules.h"
 #import "Printing.h"
 #import "Browser.h"
+#import "PanelWindow.h"
+#import "EdgeIcon.h"
+#import "SideCat.h"
 
 // `Whozmove --print-rows`: the rows the panel would get for the home folder in $HOME, as JSON, then quit.
 // tests/rows.sh runs it against a sample home and compares with a recorded copy, so any change to how rows
@@ -117,12 +120,71 @@ static int PrintBrowsing(NSArray<NSString *> *arguments) {
     return 0;
 }
 
+// `Whozmove --print-edges`: what the panel's edge does with sample panels and screens, then quit: the side the icons
+// at its edge are on (EdgeSideFor), where the panel folds round Whozmove beside it (SideCatFoldAt), whether a
+// two-finger swipe is the panel's and whether it flicks the panel (SwipeWay, SwipeFlicks), how far a swipe moves the
+// folded glass within the screen (FoldedMove), and where a flicked panel goes and how much of it shows on its way
+// (ParkedOrigin, ParkedShows). tests/edges.sh compares it with a recorded
+// copy.
+static int PrintEdges(void) {
+    NSRect screen = NSMakeRect(0, 0, 1440, 875), list = NSMakeRect(0, 0, 340, 600);
+    printf("The side the icons are on, on a screen 1440 wide (its middle at 720, 40 either side before it changes):\n");
+    struct { const char *what; CGFloat middle; NSString *current; } sides[] = {
+        {"a panel at the left, at first", 200, nil}, {"at the right, at first", 1200, nil},
+        {"its middle at 750, on the right", 750, @"right"}, {"…at 761", 761, @"right"},
+        {"its middle at 690, on the left", 690, @"left"}, {"…at 679", 679, @"left"}};
+    for (size_t i = 0; i < sizeof sides / sizeof *sides; i++)
+        printf("  %s: %s\n", sides[i].what,
+               EdgeSideFor(NSOffsetRect(list, sides[i].middle - 170, 0), screen, sides[i].current).UTF8String);
+    printf("Where the folded glass's middle goes, from the list's top-left corner at (1000, 800), y running down:\n");
+    struct { const char *what; NSPoint middle; CGFloat shift, lift; } folds[] = {
+        {"the head 30 down at the panel's left edge, level", {1000, 770}, 0, 0},
+        {"…dipped under the press, 2 up", {1000, 770}, 0, -2}, {"…turned 3.5 to the left", {1000, 770}, -3.5, 0},
+        {"at the right edge, 9 out", {1349, 770}, 0, -2}};
+    for (size_t i = 0; i < sizeof folds / sizeof *folds; i++) {
+        NSPoint at = SideCatFoldAt(folds[i].middle, folds[i].shift, folds[i].lift, NSMakePoint(1000, 800));
+        printf("  %s: (%.0f, %.0f)\n", folds[i].what, at.x, at.y);
+    }
+    printf("A two-finger swipe, the fingers gone so far (1 the panel's, -1 the list's, 0 too soon to say):\n");
+    CGFloat swipes[][2] = {{3, 1}, {8, 1}, {-8, 3}, {8, 5}, {2, 9}, {0, -7}};
+    for (size_t i = 0; i < sizeof swipes / sizeof *swipes; i++)
+        printf("  %.0f across, %.0f down: %d\n", swipes[i][0], swipes[i][1], SwipeWay(swipes[i][0], swipes[i][1]));
+    printf("Fingers lifting, at a speed in points a second, having gone so far across: whether they flick it:\n");
+    CGFloat flicks[][2] = {{1200, 40}, {-1500, -60}, {500, 40}, {1200, -10}, {801, 5}};
+    for (size_t i = 0; i < sizeof flicks / sizeof *flicks; i++)
+        printf("  %.0f, gone %.0f: %s\n", flicks[i][0], flicks[i][1],
+               SwipeFlicks(flicks[i][0], flicks[i][1]) ? "yes" : "no");
+    NSRect room = NSMakeRect(0, 0, 1440, 875), panel = NSMakeRect(1000, 200, 340, 600);
+    NSPoint right = ParkedOrigin(panel, room, YES), left = ParkedOrigin(panel, room, NO);
+    printf("A panel at (1000, 200), 340 wide, flicked: to the right, to (%.0f, %.0f); to the left, to (%.0f, %.0f)\n",
+           right.x, right.y, left.x, left.y);
+    printf("The folded glass at (1300, 700), 76 across, swiped by, and one already 12 past the top:\n");
+    NSRect glass = NSMakeRect(1300, 700, 76, 76), over = NSMakeRect(1300, 811, 76, 76);
+    CGFloat moves[][2] = {{-200, -100}, {60, 0}, {0, 120}, {500, -900}};
+    for (size_t i = 0; i < sizeof moves / sizeof *moves; i++) {
+        NSPoint by = FoldedMove(glass, NSMakePoint(moves[i][0], moves[i][1]), room);
+        printf("  (%.0f, %.0f): moves (%.0f, %.0f)\n", moves[i][0], moves[i][1], by.x, by.y);
+    }
+    CGFloat overMoves[][2] = {{30, 0}, {0, 20}, {0, -20}};
+    for (size_t i = 0; i < sizeof overMoves / sizeof *overMoves; i++) {
+        NSPoint by = FoldedMove(over, NSMakePoint(overMoves[i][0], overMoves[i][1]), room);
+        printf("  past the top, (%.0f, %.0f): moves (%.0f, %.0f)\n", overMoves[i][0], overMoves[i][1], by.x, by.y);
+    }
+    printf("How much shows on its way to the right, its left edge at 1000, 1100, 1270, 1355, 1440:");
+    CGFloat lefts[] = {1000, 1100, 1270, 1355, 1440};
+    for (size_t i = 0; i < sizeof lefts / sizeof *lefts; i++)
+        printf(" %.3f", ParkedShows(NSMakeRect(lefts[i], 200, 340, 600), room));
+    printf("\n");
+    return 0;
+}
+
 // The print modes main.m runs itself, by flag, until each moves into the module it tests.
 static NSDictionary<NSString *, PrintMode> *CorePrintModes(void) {
     return @{
         @"--print-rows": ^(Core *core, NSArray *a) { return PrintRows(core); },
         @"--print-waits": ^(Core *core, NSArray *a) { return PrintWaits(core); },
         @"--print-browsing": ^(Core *core, NSArray *a) { return PrintBrowsing(a); },
+        @"--print-edges": ^(Core *core, NSArray *a) { return PrintEdges(); },
         @"--print-routes": ^(Core *core, NSArray *a) { return 0; },  // PrintRun runs it, before checking for clashes
     };
 }

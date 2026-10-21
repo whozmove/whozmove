@@ -6,13 +6,14 @@ list when the strip is pressed, once they're here; and Spotify's round token, tu
 corner, which plays, resumes or gets Spotify. Its page on the panel's back (the apps module) takes the whole module
 out of the panel (Show the song), turns the lyrics on or off (Lyrics), hides the token (Its icon at the panel's corner)
 and brings Spotify forward (Open Spotify, as the strip opens the lyrics once they're on). As the panel turns over, the
-token goes from sight, and comes back out from under the glass once the panel is on its list side again.
+token goes from sight, and comes back out from under the glass once the panel is on its list side again; the same as
+the panel is flicked off the screen's edge and comes back.
 
 ## Its pieces
 
 - `app/SpotifyModule.m`: its face for the core (contracts/Module.h). It makes Spotify, its lyrics and the token when
-  the app starts, holds the token under the panel and follows the glass and the pointer for it (PanelWindow's
-  `attachBelow:`, `followGlass:`, `followPointer:`, `followTurn:`), answers the page's `spotify` messages, lists
+  the app starts, has the panel hold the token under its glass (the core's `EdgeIcon`, `holdBy:`), answers the page's
+  `spotify` messages, lists
   Spotify for the panel's back with its switches (`appEntries`), and has the print mode the tests check
   (`--print-spotify`).
 - `app/Spotify.m`: the song, from what Spotify tells the whole Mac when it changes; its cover and its controls through
@@ -33,9 +34,10 @@ token goes from sight, and comes back out from under the glass once the panel is
 - `app/LyricsStore.m`: what LRCLIB found, kept on this Mac, so a song played again needs no asking: one file a song, in
   `lyrics/` in Whozmove's folder, for the last 1,000 songs played. Lyrics without times, or none, count for a week,
   then the song is asked about again. Read and written on a queue of its own.
-- `app/SpotifyToken.m`: the token, a small window of its own that the panel holds under itself; it takes clicks only
-  over its disc. Its ring, edges and label are the panel's colours, light or dark as the panel is, painted again when
-  that changes.
+- `app/SpotifyToken.m`: the token, an icon at the panel's edge (app/core/EdgeIcon.h, which has its window, the glass
+  and the pointer followed, its side, its coming out and its label): what's Spotify's own is its disc, ring and badge,
+  the magnet and its press. Its ring, edges and label are the panel's colours, light or dark as the panel is, painted
+  again when that changes.
 - `app/SpotifyFacts.h`: everything the module relies on about Spotify that Spotify could change: its app id, what it
   announces and in which fields, how a song's track id starts, the codes in its scripting dictionary, and where to get
   it. When Spotify changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
@@ -90,14 +92,14 @@ page's, kept with its own.
 
 ## How the token moves
 
-The token moves natively (`SpotifyToken.m`), as a window of its own under the panel. It's always the same token: it
-sits on the panel's side facing the screen's middle, and when the panel is dragged across the middle (past a little
-leeway) it waits a moment, then the panel takes it in under the glass at one corner, across beneath itself and out at
-the other, going a little past where it rests and settling back, once. Near the pointer it leans out and slides along
-the edge to meet it, each frame closing a share of the way, so it eases and follows smoothly. Pressed, it squashes and
-goes under the glass before Spotify is asked to play, so it's gone before the strip grows; paused for 15 minutes, the
-strip folds first and tells the app (`folded`), and only then does the token come out. Opening out of the cat, it
-waits under the glass until the panel has opened, then comes out with that same small bounce.
+The token moves natively (`SpotifyToken.m`, on the core's `EdgeIcon`), as a window of its own under the panel. It's
+always the same token: it sits on the panel's side facing the screen's middle, and when the panel is dragged across the
+middle (past a little leeway) it waits a moment, then the panel takes it in under the glass at one corner, across
+beneath itself and out at the other, going a little past where it rests and settling back, once. Near the pointer it
+leans out and slides along the edge to meet it, each frame closing a share of the way, so it eases and follows smoothly.
+Pressed, it squashes and goes under the glass before Spotify is asked to play, so it's gone before the strip grows;
+paused for 15 minutes, the strip folds first and tells the app (`folded`), and only then does the token come out.
+Opening out of the cat, it waits under the glass until the panel has opened, then comes out with that same small bounce.
 
 ## How the lines move
 
