@@ -32,7 +32,6 @@ modules/spotify/page/now-playing.css  size  14px  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.32)  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.42)  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.5)  1
-modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.04)  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.1)  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.35)  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.7)  1

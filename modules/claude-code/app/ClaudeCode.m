@@ -3,7 +3,10 @@
 #import "ClaudeCode.h"
 #import "Core.h"
 #import "Page.h"
+#import "Rows.h"
 #import "Row.h"
+#import "Files.h"
+#import "Log.h"
 #import "Text.h"
 #import "ClaudeCodeFacts.h"
 #import "ClaudeSessions.h"
@@ -77,6 +80,20 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
     return @{
         // A request answered in the panel, for the permission hook to pass on.
         @"answerAsk": ^(NSDictionary *msg) { AnswerAsk(msg); },
+        // The other copies of a conversation open in more than one terminal, closed from its "open twice" card: the
+        // copy its row follows stays. The row's note says how it went.
+        @"closeCopy": ^(NSDictionary *msg) {
+            NSString *sid = AsText(msg[@"sessionId"]);
+            Row *row = sid ? weakSelf.core.rows.byId[sid] : nil;
+            if (!row || row.pid <= 0) return;
+            NSUInteger closed = 0;
+            NSString *why = CloseOtherCopies(sid, row.pid, PendingAsks()[sid] != nil, &closed);
+            NSString *done = closed > 1 ? @"Closing the other copies" : @"Closing the other copy";
+            PanelLog(@"%@ -> %@", sid, why ?: done);
+            if (why) NSBeep();
+            [weakSelf.core.page stepNote:sid text:why ?: done quiet:!why];
+            [weakSelf.core.rows refresh];
+        },
         // One of a session's writings, for the reader.
         @"readWriting": ^(NSDictionary *msg) {
             NSString *sid = msg[@"sessionId"], *wid = msg[@"id"];
@@ -184,6 +201,11 @@ static NSString *StartCommand(NSString *sessionId, NSString *wordsFile) {
 // Its transcript's topic, which Claude Code also puts in its terminal tab's title ("✳ <topic>").
 - (NSString *)titleOf:(Row *)row now:(BOOL)now {
     return now ? [self.transcripts topicOf:row.sessionId] : [self.transcripts lastTopicOf:row.sessionId];
+}
+
+- (BOOL)titleShowsWork:(NSString *)title {
+    return title.length && [[NSCharacterSet characterSetWithCharactersInString:kClaudeCodeTitleWorking]
+                               characterIsMember:[title characterAtIndex:0]];
 }
 
 - (NSArray<NSString *> *)environmentMarks {

@@ -1,5 +1,5 @@
-// make-icon: draws the Whozmove app icon, an amber pawn ("your move") on a dark tile with a pill of the panel's
-// status colours, and writes AppIcon.icns next to this file.
+// make-icon: draws the Whozmove app icon, the folded cat in cream on a dark tile like the folded panel's glass, and
+// writes AppIcon.icns next to this file.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // It only needs running again when the design changes:
@@ -11,45 +11,56 @@ static NSColor *Hex(unsigned hex, CGFloat alpha) {
                                 blue:(hex & 0xff) / 255.0 alpha:alpha];
 }
 
-static void FillRounded(NSRect rect, CGFloat radius, NSColor *color) {
-    [color setFill];
-    [[NSBezierPath bezierPathWithRoundedRect:rect xRadius:radius yRadius:radius] fill];
+// The cat as the logo draws it, in its own units: its head and folded ears one flat shape, its eyes and nose cut out so
+// the glass shows through. Its shapes are the folded panel's (panel/scripts/cat.js), as the menu bar's are
+// (app/core/MenuBar.m): a change to the cat goes in all three.
+static NSString *const kCatHead =
+    @"M0 74C-46 74 -84 50 -84 10C-84 -20 -76 -40 -64 -52C-62 -64 -54 -72 -42 -72C-34 -72 -28 -68 -24 -64C-8 -68 8 -68 "
+    @"24 -64C28 -68 34 -72 42 -72C54 -72 62 -64 64 -52C76 -40 84 -20 84 10C84 50 46 74 0 74Z";
+static NSString *const kCatEars =
+    @"M-70 -44C-68 -60 -54 -72 -36 -70C-30 -69 -26 -66 -24 -62L-45 -43C-49 -39 -54 -38 -58 -40ZM70 -44C68 -60 54 -72 "
+    @"36 -70C30 -69 26 -66 24 -62L45 -43C49 -39 54 -38 58 -40Z";
+static NSString *const kCatNose = @"M-7 22C-7 18 7 18 7 22C7 26 3 28 0 30C-3 28 -7 26 -7 22Z";
+// The cat's eyes, as the logo places them; and the cat on the tile, where (kCatX, kCatY) is its own (0, 0), a unit
+// above its middle. Its middle sits a little above the tile's (at 509 of 1024), since the head is wider at the bottom
+// than at its ears, so it looks centred.
+static const CGFloat kCatEyeX = 30, kCatEyeY = 6, kCatEyeR = 13, kCatX = 512, kCatY = 506, kCatScale = 2.9;
+
+// An SVG path's absolute M, L, C and Z, as an NSBezierPath.
+static NSBezierPath *PathFrom(NSString *svg) {
+    NSBezierPath *path = [NSBezierPath bezierPath];
+    NSScanner *scan = [NSScanner scannerWithString:svg];
+    scan.charactersToBeSkipped = [NSCharacterSet characterSetWithCharactersInString:@" ,"];
+    NSCharacterSet *letters = [NSCharacterSet characterSetWithCharactersInString:@"MLCZ"];
+    unichar command = 'M';
+    double v[6];
+    while (!scan.isAtEnd) {
+        NSString *next = nil;
+        if ([scan scanCharactersFromSet:letters intoString:&next]) {
+            for (NSUInteger i = 0; i + 1 < next.length; i++)
+                if ([next characterAtIndex:i] == 'Z') [path closePath];
+            command = [next characterAtIndex:next.length - 1];
+            if (command == 'Z') {
+                [path closePath];
+                continue;
+            }
+        }
+        int count = command == 'C' ? 6 : 2;
+        for (int i = 0; i < count; i++)
+            if (![scan scanDouble:&v[i]]) return path;
+        if (command == 'M') [path moveToPoint:NSMakePoint(v[0], v[1])];
+        else if (command == 'L') [path lineToPoint:NSMakePoint(v[0], v[1])];
+        else [path curveToPoint:NSMakePoint(v[4], v[5]) controlPoint1:NSMakePoint(v[0], v[1])
+                  controlPoint2:NSMakePoint(v[2], v[3])];
+        // More points after a move are lines, as in SVG.
+        if (command == 'M') command = 'L';
+    }
+    return path;
 }
 
-// The pawn on a 16-unit grid with a top-left origin: head, collar, flared body, base. The menu-bar symbol
-// (app/core/MenuBar.m) and the panel's header mark (panel/panel.html) draw this same shape; keep the
-// three in step. It's one path, so it fills as one shape: parts filled separately leave a faint seam where
-// their soft edges meet. The parts overlap, so the body runs the same way round as the oval and rounded
-// rectangles; run the other way, the overlaps would cancel out. The body's foot lands on the base's flat
-// top, inside its rounded corners.
-static NSBezierPath *PawnPath(void) {
-    NSBezierPath *pawn = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(5.6, 1.5, 4.8, 4.8)];
-    [pawn appendBezierPath:[NSBezierPath bezierPathWithRoundedRect:NSMakeRect(4.9, 6.1, 6.2, 1.3) xRadius:0.65
-                                                           yRadius:0.65]];
-    [pawn moveToPoint:NSMakePoint(9.7, 7.3)];
-    [pawn curveToPoint:NSMakePoint(11.6, 12.2) controlPoint1:NSMakePoint(9.7, 9.8)
-         controlPoint2:NSMakePoint(11.0, 11.3)];
-    [pawn lineToPoint:NSMakePoint(4.4, 12.2)];
-    [pawn curveToPoint:NSMakePoint(6.3, 7.3) controlPoint1:NSMakePoint(5.0, 11.3)
-         controlPoint2:NSMakePoint(6.3, 9.8)];
-    [pawn closePath];
-    [pawn appendBezierPath:[NSBezierPath bezierPathWithRoundedRect:NSMakeRect(3.2, 11.9, 9.6, 2.3) xRadius:1.15
-                                                           yRadius:1.15]];
-    return pawn;
-}
-
-// The pawn scaled from its grid so its head's top sits at `top`, centred on `centerX`, one grid unit = `unit`.
-// The placement and the gradient both come from the path's own bounds, so reshaping it needs no other change.
-static void DrawPawn(CGFloat centerX, CGFloat top, CGFloat unit, NSGradient *fill) {
-    NSBezierPath *pawn = PawnPath();
-    NSRect grid = pawn.bounds;
-    NSAffineTransform *place = [NSAffineTransform transform];
-    [place translateXBy:centerX - NSMidX(grid) * unit yBy:top - NSMinY(grid) * unit];
-    [place scaleBy:unit];
-    [fill drawInBezierPath:[place transformBezierPath:pawn] angle:90];
-}
-
-// Draws in a 1024×1024 space with a top-left origin, on Apple's icon grid (824pt body, 100pt margin).
+// Draws in a 1024×1024 space with a top-left origin, on Apple's icon grid (824pt body, 100pt margin): the dark glass,
+// and the cat on it. The cat's head and ears are filled apiece: as one path, the right ear, drawn the other way round,
+// would cancel out where it overlaps the head.
 static void DrawIcon(CGFloat pixelScale) {
     NSRect body = NSMakeRect(100, 100, 824, 824);
     NSBezierPath *tile = [NSBezierPath bezierPathWithRoundedRect:body xRadius:185 yRadius:185];
@@ -57,51 +68,41 @@ static void DrawIcon(CGFloat pixelScale) {
     // Drop shadow (shadow geometry is in device pixels, unaffected by the CTM).
     [NSGraphicsContext saveGraphicsState];
     NSShadow *shadow = [NSShadow new];
-    shadow.shadowColor = [NSColor colorWithWhite:0 alpha:0.35];
+    shadow.shadowColor = [NSColor colorWithWhite:0 alpha:0.30];
     shadow.shadowBlurRadius = 28 * pixelScale;
     shadow.shadowOffset = NSMakeSize(0, -12 * pixelScale);
     [shadow set];
-    [Hex(0x12141f, 1) setFill];
+    [Hex(0x17171a, 1) setFill];
     [tile fill];
     [NSGraphicsContext restoreGraphicsState];
 
-    // Dark ink body, lighter at the top, with a soft rim.
-    NSGradient *ink = [[NSGradient alloc] initWithStartingColor:Hex(0x30354d, 1) endingColor:Hex(0x181b2a, 1)];
-    [ink drawInBezierPath:tile angle:90];
+    // The glass, a shade darker toward the bottom.
+    NSGradient *glass = [[NSGradient alloc] initWithStartingColor:Hex(0x2c2c31, 1) endingColor:Hex(0x17171a, 1)];
+    [glass drawInBezierPath:tile angle:90];
+
+    // A faint light rim round the tile.
     [Hex(0xffffff, 0.10) setStroke];
     NSBezierPath *rim = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect(body, 2, 2) xRadius:183 yRadius:183];
     rim.lineWidth = 4;
     [rim stroke];
 
-    // The pawn in the panel's "your move" amber (--turn in panel/styles/tokens.css), with a faint shadow so it lifts
-    // off the tile. The gradient fill is clipped to the pawn, and a clipped fill casts no shadow of its own, so
-    // it's drawn into a transparency layer, which casts the shadow for it.
-    NSShadow *lift = [NSShadow new];
-    lift.shadowColor = [NSColor colorWithWhite:0 alpha:0.30];
-    lift.shadowBlurRadius = 18 * pixelScale;
-    lift.shadowOffset = NSMakeSize(0, -8 * pixelScale);
-    [NSGraphicsContext saveGraphicsState];
-    [lift set];
-    CGContextRef cg = NSGraphicsContext.currentContext.CGContext;
-    CGContextBeginTransparencyLayer(cg, NULL);
-    DrawPawn(452, 184, 39.4, [[NSGradient alloc] initWithStartingColor:Hex(0xffd76e, 1) endingColor:Hex(0xf2a41f, 1)]);
-    CGContextEndTransparencyLayer(cg);
-    [NSGraphicsContext restoreGraphicsState];
+    NSAffineTransform *place = [NSAffineTransform transform];
+    [place translateXBy:kCatX yBy:kCatY];
+    [place scaleBy:kCatScale];
+    NSBezierPath *head = PathFrom(kCatHead), *ears = PathFrom(kCatEars), *features = PathFrom(kCatNose);
+    for (int side = -1; side <= 1; side += 2)
+        [features appendBezierPath:[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(side * kCatEyeX - kCatEyeR,
+            kCatEyeY - kCatEyeR, 2 * kCatEyeR, 2 * kCatEyeR)]];
+    for (NSBezierPath *path in @[head, ears, features]) [path transformUsingAffineTransform:place];
 
-    // A pill of agent statuses (needs you, working, your turn), tucked into the lower right, a shade lighter
-    // than the tile so it reads against it.
-    NSRect pill = NSMakeRect(512, 712, 336, 132);
+    [Hex(0xf3ebe2, 1) setFill];
+    [head fill];
+    [ears fill];
+    // The eyes and nose show the glass under them, its gradient where it falls on the tile.
     [NSGraphicsContext saveGraphicsState];
-    [lift set];
-    FillRounded(pill, 66, Hex(0x2a3047, 0.96));
+    [features addClip];
+    [glass drawInRect:body angle:90];
     [NSGraphicsContext restoreGraphicsState];
-    // The panel's --needs, --busy and --turn (panel/styles/tokens.css): keep them matching.
-    NSColor *dots[] = {Hex(0xff6b4a, 1), Hex(0x4aa8ff, 1), Hex(0xffc53d, 1)};
-    for (int i = 0; i < 3; i++) {
-        NSPoint dot = NSMakePoint(NSMinX(pill) + 72 + i * 96, NSMidY(pill));
-        [dots[i] setFill];
-        [[NSBezierPath bezierPathWithOvalInRect:NSMakeRect(dot.x - 32, dot.y - 32, 64, 64)] fill];
-    }
 }
 
 static NSData *RenderPNG(NSInteger pixels) {

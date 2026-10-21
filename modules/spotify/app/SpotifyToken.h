@@ -18,6 +18,9 @@
 - (void)pointerAt:(NSPoint)point;
 // The now-playing strip has folded away: a paused song's token comes out now, not before.
 - (void)stripFolded;
+// The panel is opening out of the cat: the token stays under the glass until the glass has come to rest, then comes
+// out with one small bounce.
+- (void)panelOpening;
 // Back out after a press that couldn't go through.
 - (void)untuck;
 // The token was pressed, in the state it showed. For Play, it's called once the token has gone under the glass.

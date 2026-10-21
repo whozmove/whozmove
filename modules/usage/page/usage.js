@@ -1,5 +1,5 @@
-// Plan usage: from what the app found (app/Usage.m) to what the usage strip shows: each window's bar, colour and time
-// left, the pace, and whether you're waiting for the session limit to reset.
+// Plan usage: from what the app found (app/Usage.m) to what the usage card shows: each window's bar, colour and time
+// left, the pace, whether you're waiting for the session limit to reset, and what the card shows while it's folded.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Plain functions: they take what they need (`now` among it) and change nothing, so tests/panel.sh checks every case.
@@ -54,23 +54,31 @@ function timeLeft(ms) {
   return `${minutes}m`;
 }
 
-// The hours left next to Session in the one-line row: the nearest hour ("3h" for 2h 59m), in minutes under an hour.
-function hoursLeft(ms) {
-  if (!(ms > 0)) return '';
-  const minutes = Math.ceil(ms / 60000);
-  if (minutes < 60) return `${minutes}m`;
-  return minutes >= 1440 ? `${Math.round(minutes / 1440)}d` : `${Math.round(minutes / 60)}h`;
+// What the folded card shows (card.js): the window nearer its limit (the session, unless the week's colour says the
+// week is further on), how much of it is used and in which colour, and the words on it when it slides out: that
+// window's name and time left (at the session limit, when it's back), then the other window's name and percent.
+function edgeView(view, now, locale, timeZone) {
+  const rank = { normal: 0, warning: 1, limit: 2 };
+  const isWeek = rank[view.week.severity] > rank[view.session.severity];
+  const [shown, other] = isWeek ? [view.week, view.session] : [view.session, view.week];
+  let detail = timeLeft(shown.left) ? `${timeLeft(shown.left)} left` : '';
+  if (view.state === 'wait' && !isWeek) {
+    const back = backLine(view.session.left, now, view.session.resetsAt, locale, timeZone);
+    detail = back[0].toLowerCase() + back.slice(1);
+  }
+  return { window: isWeek ? 'week' : 'session', label: isWeek ? 'Week' : 'Session', used: shown.used,
+           colour: shown.colour, detail, other: { label: isWeek ? 'Session' : 'Week', used: other.used } };
 }
 
-// The clock time something happens, in the Mac's own way of writing times: "3:00 PM" today or within the next 12 hours
-// (it can only be the next one), "Fri 9:00 AM" later this week, "Mar 3, 9:00 AM" further off. `locale` and `timeZone`
+// The clock time something happens, in the Mac's own way of writing times: "3:00 PM" today, "Fri 9:00 AM" on another
+// day this week (tomorrow too, so it's never taken for today), "Mar 3, 9:00 AM" further off. `locale` and `timeZone`
 // are for tests; the page leaves them out.
 function clockAt(at, now, locale, timeZone) {
   if (!(at > 0)) return '';
   const time = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone }).format(at);
   const day = (t) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone })
     .format(t);
-  if (day(at) === day(now) || (at > now && at - now < 12 * 3600 * 1000)) return time;
+  if (day(at) === day(now)) return time;
   const far = at - now >= 6 * 24 * 3600 * 1000;
   const date = new Intl.DateTimeFormat(locale, far ? { month: 'short', day: 'numeric', timeZone }
                                                    : { weekday: 'short', timeZone }).format(at);

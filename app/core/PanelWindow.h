@@ -46,6 +46,9 @@
 - (void)popUpMenu:(NSMenu *)menu atPagePoint:(NSPoint)point;
 // A small window held under the panel, moving with it (Spotify's token).
 - (void)attachBelow:(NSWindow *)window;
+// The same, held over the panel instead, so the panel's shadow doesn't fall on it: for a window that draws nothing
+// where the panel is (the usage card).
+- (void)attachAbove:(NSWindow *)window;
 // Each told whenever the glass moves or changes size: where it is on the screen, where the list is (the reader grows
 // beside it), the screen's room, and how long it takes to get there (0 for at once).
 - (void)followGlass:(void (^)(NSRect glass, NSRect list, NSRect screen, NSTimeInterval duration))observer;

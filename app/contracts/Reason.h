@@ -10,6 +10,8 @@ typedef NS_ENUM(NSInteger, ReasonKind) {
     ReasonAsking,          // Claude is asking something
     ReasonRequestWaiting,  // a permission request is waiting in the panel
     ReasonOtherStatus,     // the registry gives the session another status
+    ReasonOpenTwice,       // its conversation runs in another terminal too
+    ReasonPaused,          // it's paused in its terminal (Ctrl+Z)
 };
 
 // A reason prints (with %@) the way the log says it; `onCard` is how the Compact card says it.

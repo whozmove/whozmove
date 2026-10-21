@@ -1,0 +1,45 @@
+
+== Plan usage
+time left, 2h 59m: 2h 59m
+time left, 1d 17h: 1d 17h
+time left, 2h 5m: 2h 05m
+time left, 42m: 42m
+time left, 20 seconds (rounded up): 1m
+time left, none: 
+clock time, later today: 5:33 AM
+clock time, tomorrow, within 12 hours: Thu 1:33 AM
+clock time, in two days: Thu 8:33 PM
+clock time, a week off: May 24, 3:33 PM
+Claude Code not signed in: signin
+signed in with an API key or another provider: hidden
+no claude on this Mac: hidden
+not asked yet: hidden
+20% half an hour in: {"state":"ok","session":[20,"normal","rgba(255, 255, 255, 0.55)"],"pace":"At this pace you'll hit the session limit around 5:33 AM."}
+30% three hours in: on course, no note: null
+82% two hours in, Claude says warning: ["warning","#ffc53d","normal"]
+82% two hours in: the pace: At this pace you'll hit the session limit around 3:59 AM.
+82% with no severity from Claude: warning
+90% and a word past warning: limit
+at the session limit: wait
+at the limit with extra usage on: no wait: ok
+the limit has just reset: 0% until the app asks again: ["ok",0,0]
+while waiting, hours off: Back at 5:33 AM
+while waiting, the last hour: Back in 42m
+while waiting, the last minute: Back in 9s
+how far through the wait: [0.5,1]
+folded, both windows calm: the session: {"window":"session","label":"Session","used":34,"colour":"rgba(255, 255, 255, 0.55)","detail":"4h 10m left","other":{"label":"Week","used":12}}
+folded, the session getting close: {"window":"session","label":"Session","used":82,"colour":"#ffc53d","detail":"2h 59m left","other":{"label":"Week","used":30}}
+folded, the week the one running low: {"window":"week","label":"Week","used":92,"colour":"#ffc53d","detail":"1d 4h left","other":{"label":"Session","used":20}}
+folded, both close: the session: {"window":"session","label":"Session","used":80,"colour":"#ffc53d","detail":"2h 00m left","other":{"label":"Week","used":90}}
+folded, at the session limit: {"window":"session","label":"Session","used":100,"colour":"#ff6b4a","detail":"back at 5:33 AM","other":{"label":"Week","used":61}}
+folded, at the limit, the last hour: back in 42m
+folded, a window just reset: no time left: {"window":"session","label":"Session","used":0,"colour":"rgba(255, 255, 255, 0.55)","detail":"","other":{"label":"Week","used":30}}
+
+== The vine's growth and reset (wait-vine.js)
+growth at the limit, halfway, at the reset: [{"leaves":0,"bud":false},{"leaves":4,"bud":true},{"leaves":8,"bud":false}]
+both ends of the stem start moving together (1.1s): [true,true]
+and land together on the bar (2.1s): [[74,20],[276,20]]
+the drain carries on at the speed the stem landed with (px a ms): ["-0.026","-0.027"]
+no leaf flies into the text lane (above y 32): clear
+the session line is clear before the stem rises into it: {"at":1870,"message":0,"right":0}
+the last frame is the normal strip: {"stem":false,"flower":null,"fill":0,"height":61,"week":1,"percent":1,"message":0,"right":0}

@@ -82,22 +82,24 @@
 - Any tool without a card of its own (a connector's, like a widget or a Slack message) is listed field by field, as
   in Claude's own prompt: each field under its name, the shortest first, code and messages with their line breaks,
   instead of raw JSON.
-- Your Claude plan's **usage** at the bottom of the panel, asked of Claude Code itself every 3 minutes: the session and
+- Your Claude plan's **usage** on a card under the panel, asked of Claude Code itself every 3 minutes: the session and
   the week, how long until each resets (pointing at one shows the clock time), in Claude's own colours, with a note
-  when you're on course to run out. Its handle folds it into one row, and the collapsed panel shows the session as a
-  line under its header. At the session limit a vine grows from the panel's corner until the reset, then pulls taut
-  into the session's bar and drains as usage starts over (Working on Whozmove ▸ **Preview the Wait** plays it). Not
-  signed in, **Sign in** opens a tab running `claude auth login`. The page is now rounded with the panel's corners.
+  when you're on course to run out. A press folds the card away behind the panel, a little narrower than it, of
+  which only a thin line then shows along the panel's bottom edge, coloured as far as the session is used; pointed
+  at, the card slides out with the numbers on it, widening a little, and pressed, it opens again, growing to the
+  panel's width as its colour shrinks into the session's bar and the rows come in. At the session limit a vine grows from the card's corner until the reset, then pulls taut into the session's bar and
+  drains as usage starts over (Working on Whozmove ▸ **Preview the Wait** plays it). Not signed in, **Sign in** opens a
+  tab running `claude auth login`. The page is now rounded with the panel's corners.
 - **Spotify**, from a round token tucked half under the panel's bottom corner, on the side facing the middle of the
   screen; dragged across the screen, the panel takes it under itself to the other corner. It leans out toward the pointer
   as it comes near. **Play** opens Spotify in the background if it's closed and plays what it last had; paused, the
   token wears the song's cover and resumes it. Without Spotify it offers **Download** and turns into Play by itself
   once Spotify is installed, so it's two presses from nothing to music.
-- **Now playing**, above the usage strip, while a song plays: its cover, song, artist and time, with a thin line for how
-  far in it is. Pointing at it shows back, pause and next, the line jumps where it's pressed, and pressing the strip
-  brings Spotify forward (once lyrics are on, it opens them); paused, it greys and offers Play, and after 15 minutes
-  folds into the token. The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon** and
-  **Remove Spotify** (the token and the strip go, and Whozmove leaves Spotify alone), then **Add Spotify**. With the
+- **Now playing**, at the bottom of the panel, while a song plays: its cover, song, artist and time, with a thin line
+  for how far in it is. Pointing at it shows back, pause and next, the line jumps where it's pressed, and pressing the
+  strip brings Spotify forward (once lyrics are on, it opens them); paused, it greys and offers Play, and after 15
+  minutes folds into the token. The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon**
+  and **Remove Spotify** (the token and the strip go, and Whozmove leaves Spotify alone), then **Add Spotify**. With the
   panel folded to its header, the token stands in for the strip.
 - **Lyrics** for Spotify's song, from LRCLIB, once you say yes to the strip's question: while a line is sung it takes
   the place of the song's name in the strip, rolling in as the singer starts it, and the name comes back between verses.
@@ -107,9 +109,20 @@
   Lyrics** in the pawn menu's Spotify ▸ turns them on or off. Nothing is looked up before you say yes; when LRCLIB is
   busy, Whozmove asks again, a little later each time; and the lyrics found are kept on this Mac, so a song played again
   shows them at once, until you turn lyrics off.
+- The header and the list keep to 640pt, and what opens with them (a new conversation's card, the now-playing strip)
+  comes on top: the panel grows to fit it, as far down as the screen goes, and only there does the list give way and
+  scroll.
 - A click on a terminal session's row switches Ghostty to its tab before bringing Ghostty forward, so it lands on that
   session every time, and the session in the Ghostty tab you're looking at is marked as the one you're on, as Claude
   Desktop's open conversation is.
+- A conversation open in two places at once (resumed in a second tab while it still runs, or open in Claude Desktop
+  and a terminal) is one row instead of two, following the copy that needs you: one asking you something, then one at
+  work, and otherwise the one it followed already, which pressing the row opens; either of its Ghostty tabs in front
+  marks it as the one you're on. Its details line says **open twice**, and pointed at, where else it's open, as each
+  copy knows only what was said in it since the second opened, with **Close the other copy** for those in other
+  terminal tabs. The panel types nothing into it while another copy runs in a terminal, and doesn't change its mode
+  while one is open in Claude Desktop. Deploy and next steps wait while any copy is at work.
+- Nothing is typed into a session paused in its terminal (Ctrl+Z), where the keys would go to the shell.
 - When a row comes or goes, the panel's bottom edge eases with the rows instead of jumping to its new height, and the
   panel no longer flashes lighter at its bottom edge as it grows. Moving the pointer over something no longer restarts
   its hover effect with every move.

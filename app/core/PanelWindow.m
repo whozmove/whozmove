@@ -5,8 +5,8 @@
 #import <QuartzCore/QuartzCore.h>
 
 // The panel's width; its header's height (--header in panel/styles/tokens.css) and the buttons at the header's right
-// end, which the drag strip leaves to the page; and the most the panel grows to.
-static const CGFloat kWidth = 340, kHeaderHeight = 46, kButtonsWidth = 72, kMaxHeight = 640;
+// end, which the drag strip leaves to the page.
+static const CGFloat kWidth = 340, kHeaderHeight = 46, kButtonsWidth = 72;
 // The reader's ✕, at its header's right end (.r-close in panel/styles/reader.css, with the header's padding), which
 // the reader's drag strip leaves to the page.
 static const CGFloat kCloseWidth = 46;
@@ -398,8 +398,9 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 #pragma mark Size
 
-// How tall the panel can grow from where its top edge is: down to the bottom of the screen, and no more
-// than kMaxHeight. The page caps itself to that (its list scrolls), so the panel never runs off the screen.
+// How tall the panel can grow from where its top edge is: down to the bottom of the screen. The page keeps itself to
+// that (its list gives way and scrolls), so the panel never runs off the screen; within it, the page keeps its header
+// and list to 640pt, and what opens under the list or the header comes on top of that (panel/styles/base.css).
 - (void)updateRoom {
     if (self.expanded || self.folded) return;
     CGFloat room = [self roomFor:self.panel.frame];
@@ -410,7 +411,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 - (CGFloat)roomFor:(NSRect)frame {
     NSRect screen = (self.panel.screen ?: NSScreen.mainScreen).visibleFrame;
-    return floor(MAX(kHeaderHeight + 80, MIN(kMaxHeight, NSMaxY(frame) - NSMinY(screen))));
+    return floor(MAX(kHeaderHeight + 80, NSMaxY(frame) - NSMinY(screen)));
 }
 
 - (void)resendRoom {
@@ -422,7 +423,7 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 - (void)fitHeight:(CGFloat)height {
     if (self.expanded || self.reshaping || self.folded) return;
-    height = MIN(height, self.room ?: kMaxHeight);
+    height = MIN(height, self.room ?: [self roomFor:self.panel.frame]);
     NSRect frame = self.panel.frame;
     if (fabs(frame.size.height - height) < 1) return;
     frame.origin.y += frame.size.height - height;  // keep the top edge where the user put it
@@ -433,6 +434,10 @@ static CGFloat BreathLevel(Breath breath, CGFloat along) {
 
 - (void)attachBelow:(NSWindow *)window {
     [self.panel addChildWindow:window ordered:NSWindowBelow];
+}
+
+- (void)attachAbove:(NSWindow *)window {
+    [self.panel addChildWindow:window ordered:NSWindowAbove];
 }
 
 // Where the glass is, for what's held under the panel: the list is where the panel is, or, while the reader is open,

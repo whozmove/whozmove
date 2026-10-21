@@ -38,9 +38,9 @@ static NSArray<NSString *> *AskEveryTerminal(pid_t pid, OSType property, NSApple
     return values;
 }
 
-// Every terminal, as [its id, its folder, its bare title], or nil without an answer. The lists are asked for one after
-// another, and a terminal opened or closed meanwhile would shift them against each other, so they're used only if the
-// ids are the same at the end as at the start.
+// Every terminal, as [its id, its folder, its bare title, its whole title], or nil without an answer. The lists are
+// asked for one after another, and a terminal opened or closed meanwhile would shift them against each other, so
+// they're used only if the ids are the same at the end as at the start.
 static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     NSArray<NSString *> *ids = AskEveryTerminal(pid, kGhosttyTerminalId, nil),
                         *folders = AskEveryTerminal(pid, kGhosttyWorkingDirectory, nil),
@@ -48,7 +48,8 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     if (!ids || folders.count != ids.count || titles.count != ids.count
         || ![AskEveryTerminal(pid, kGhosttyTerminalId, nil) isEqualToArray:ids]) return nil;
     NSMutableArray *terminals = [NSMutableArray array];
-    for (NSUInteger i = 0; i < ids.count; i++) [terminals addObject:@[ids[i], folders[i], BareTitle(titles[i])]];
+    for (NSUInteger i = 0; i < ids.count; i++)
+        [terminals addObject:@[ids[i], folders[i], BareTitle(titles[i]), titles[i]]];
     return terminals;
 }
 
@@ -91,9 +92,9 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     return kGhosttyName;
 }
 
-// Every terminal, as [its id, its folder, its bare title]. Each list is asked for at once, rather than each
-// terminal's id, folder and title one by one, which took nearly half a second with a few tabs open; they're used
-// only if the ids are the same at the end as at the start (AskTerminals says why).
+// Every terminal, as [its id, its folder, its bare title, its whole title]. Each list is asked for at once, rather
+// than each terminal's id, folder and title one by one, which took nearly half a second with a few tabs open; they're
+// used only if the ids are the same at the end as at the start (AskTerminals says why).
 - (NSArray<NSArray<NSString *> *> *)terminalsNow {
     // `sep` is bound outside the tell block: inside it, `tab` names Ghostty's tab class, not the character.
     NSString *list = RunAppleScript(@"set sep to tab\n"
@@ -112,17 +113,17 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     NSMutableArray *terminals = [NSMutableArray array];
     for (NSString *line in [list componentsSeparatedByString:@"\n"]) {
         NSArray *fields = [line componentsSeparatedByString:@"\t"];
-        if (fields.count >= 3) [terminals addObject:@[fields[0], fields[1], BareTitle(fields[2])]];
+        if (fields.count >= 3) [terminals addObject:@[fields[0], fields[1], BareTitle(fields[2]), fields[2]]];
     }
     return terminals;
 }
 
 // Ghostty's scripting exposes each terminal's title and working directory but not its tty, so the session is
-// matched by folder, then by the tab title Claude Code sets (its topic, else its name, else "Claude Code").
-// *unique says whether nothing else in that folder fits as well, which typing into it requires.
-- (NSString *)tabFor:(Row *)row topic:(NSString *)topic among:(NSArray<NSArray<NSString *> *> *)terminals
-              unique:(BOOL *)unique {
-    *unique = NO;
+// matched by folder, then by the tab title Claude Code sets (its topic, else its name, else "Claude Code"): the
+// terminals that fit it best, as [id, folder, bare title, whole title]. More than one fit as well when a conversation
+// is open in two tabs, or two sessions in one folder have the same title.
+- (NSArray<NSArray<NSString *> *> *)tabsFor:(Row *)row topic:(NSString *)topic
+                                      among:(NSArray<NSArray<NSString *> *> *)terminals {
     NSMutableArray<NSArray<NSString *> *> *sameFolder = [NSMutableArray array];
     for (NSArray<NSString *> *terminal in terminals)
         if ([terminal[1] isEqualToString:row.cwd]) [sameFolder addObject:terminal];
@@ -132,23 +133,43 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     if ([row.name length]) [wanted addObject:row.name];
     if (!topic.length) [wanted addObject:@"Claude Code"];
 
-    NSString *match = nil;
-    for (NSString *title in wanted) {
-        NSArray *hits = [sameFolder filteredArrayUsingPredicate:
-                             [NSPredicate predicateWithBlock:^BOOL(NSArray *t, id _) {
-            return [t[2] isEqualToString:title];
-        }]];
-        if (hits.count) { match = hits[0][0]; *unique = hits.count == 1; break; }
-    }
-    if (!match && sameFolder.count == 1) { match = sameFolder[0][0]; *unique = YES; }
-
     NSCharacterSet *notId =
         [[NSCharacterSet characterSetWithCharactersInString:@"0123456789ABCDEFabcdef-"] invertedSet];
-    if (!match.length || [match rangeOfCharacterFromSet:notId].location != NSNotFound) {
-        *unique = NO;
-        return nil;
+    for (NSString *title in wanted) {
+        NSArray *hits = [sameFolder filteredArrayUsingPredicate:
+                             [NSPredicate predicateWithBlock:^BOOL(NSArray<NSString *> *t, id _) {
+            return [t[2] isEqualToString:title] && t[0].length
+                && [t[0] rangeOfCharacterFromSet:notId].location == NSNotFound;
+        }]];
+        if (hits.count) return hits;
     }
-    return match;
+    return sameFolder.count == 1 && [sameFolder[0][0] rangeOfCharacterFromSet:notId].location == NSNotFound
+        ? sameFolder : @[];
+}
+
+// The session's tab: *unique says whether nothing else in that folder fits as well, which typing into it requires. Of
+// tabs that fit as well, as a conversation open in two tabs does, the one whose title says its agent works as the row
+// does goes first (titleShowsWork:), so the row brings forward the copy it shows.
+- (NSString *)tabFor:(Row *)row topic:(NSString *)topic among:(NSArray<NSArray<NSString *> *> *)terminals
+              unique:(BOOL *)unique {
+    NSArray<NSArray<NSString *> *> *hits = [self tabsFor:row topic:topic among:terminals];
+    *unique = hits.count == 1;
+    if (hits.count > 1) {
+        id<Agent> agent = [self.core agentOf:row];
+        BOOL working = [row.status isEqual:@"busy"];
+        for (NSArray<NSString *> *t in hits)
+            if ([agent titleShowsWork:t[3]] == working) return t[0];
+    }
+    return hits.firstObject[0];
+}
+
+// How many tabs a session's conversation can be in: its own, and one for each other copy that runs in a terminal (one
+// paused there may still have its tab's title). Claude Desktop's copies have none.
+- (NSUInteger)tabsOpenFor:(Row *)row {
+    NSUInteger tabs = 1;
+    for (NSDictionary *copy in row.alsoOpen)
+        if (![self.core hostHolding:[[Row alloc] initWithFields:copy]]) tabs++;
+    return tabs;
 }
 
 - (NSString *)tabFor:(Row *)row unique:(BOOL *)unique {
@@ -247,11 +268,19 @@ static NSArray<NSArray<NSString *> *> *AskTerminals(pid_t pid) {
     BOOL unsure = NO;
     for (Row *candidate in rows) {
         if (![folders containsObject:candidate.cwd]) continue;
-        BOOL unique = NO;
-        NSString *tab = [self tabFor:candidate topic:[self titleOf:candidate now:NO] among:terminals unique:&unique];
-        if (!unique) unsure = YES;
-        else if (![inTab containsObject:tab]) continue;  // certainly in another tab
-        else if (found[tab]) [claimedTwice addObject:tab];
+        NSArray<NSArray<NSString *> *> *hits = [self tabsFor:candidate topic:[self titleOf:candidate now:NO]
+                                                       among:terminals];
+        // Tabs that fit as well are all this session's when there are no more of them than tabs its conversation is
+        // open in: then whichever is in front, it's this one.
+        if (!hits.count || hits.count > [self tabsOpenFor:candidate]) {
+            unsure = YES;
+            continue;
+        }
+        NSString *tab = nil;
+        for (NSArray<NSString *> *t in hits)
+            if ([inTab containsObject:t[0]] && (!tab || [t[0] isEqual:focused])) tab = t[0];
+        if (!tab) continue;  // certainly in another tab
+        if (found[tab]) [claimedTwice addObject:tab];
         else found[tab] = candidate;
     }
     [found removeObjectsForKeys:claimedTwice.allObjects];

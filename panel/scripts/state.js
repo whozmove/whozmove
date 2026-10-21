@@ -55,11 +55,11 @@ const state = {
   // Whether the list has been drawn before, and until when the next rebuild waits for an animation to finish.
   morphed: false, settleUntil: 0, settleTimer: null,
 
-  // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd); the
-  // card it opened, where that ends, and its timer. How tall the panel can grow where it is (kMaxHeight in
-  // app/core/PanelWindow.m, or less where the screen ends; setRoom). The card's HTML as last drawn, and the room it
-  // took below the list, kept a moment after it goes (hideCard).
-  pointer: null, pointerStill: false, cardKey: null, cardBottom: 0, cardHTML: '', cardHeld: null,
+  // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd);
+  // the card it opened (and what a press on one of its buttons does, for one that has them), where that ends, and
+  // its timer. How tall the panel can grow where it is (down to where the screen ends; setRoom). The card's HTML as
+  // last drawn, and the room it took below the list, kept a moment after it goes (hideCard).
+  pointer: null, pointerStill: false, cardKey: null, cardPress: null, cardBottom: 0, cardHTML: '', cardHeld: null,
   panelMax: 640,
 
   // Whether the panel has the keyboard (wantKeyboard), and whether an input method is mid-word.

@@ -198,8 +198,8 @@ function renderWhenSettled() {
 }
 
 // The newest rows, about once a second; while something moves, the newest data waits (renderWhenSettled). The strips
-// under the list aren't in it, so they keep time on their own, each module's through core.updates (the usage strip's
-// time left and wait, Spotify's song line).
+// under the list aren't in it, so they keep time on their own, each module's through core.updates (Spotify's song
+// line).
 window.update = (sessions, now) => {
   state.last = { sessions, now };
   if (!state.readBefore) store.set('readBefore', (state.readBefore = now - IDLE_AFTER_MS));
@@ -209,8 +209,9 @@ window.update = (sessions, now) => {
   for (const updated of core.updates) updated(now);
 };
 
-// How tall the panel can grow where it is: kMaxHeight in app/core/PanelWindow.m, or less where the screen ends below
-// it. The list scrolls beyond that.
+// How tall the panel can grow where it is: down to where the screen ends below it (app/core/PanelWindow.m). Within
+// that, the header and the list keep to 640pt (base.css), with what opens under them on top; where the screen ends
+// first, the list gives way and scrolls.
 window.setRoom = (h) => {
   state.panelMax = h;
   document.getElementById('root').style.maxHeight = h + 'px';

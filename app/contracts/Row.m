@@ -54,6 +54,7 @@
     json[@"procStart"] = self.procStart;
     json[@"pid"] = @(self.pid);
     json[@"statusUpdatedAt"] = self.statusUpdatedAt;
+    json[@"alsoOpen"] = self.alsoOpen;
     json[@"activityAt"] = self.activityAt;
     json[@"lastFocusedAt"] = self.lastFocusedAt;
     json[@"lastPrompt"] = self.lastPrompt;

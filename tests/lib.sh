@@ -5,8 +5,10 @@
 #   app=$(built_app "$T") || exit 1    the app: tests/all.sh's build when it made one (WHOZMOVE_APP), else built
 #                                      into that folder now
 #   … | in_minutes                     JSON with its times as "now-<minutes>m", so it reads the same on every run
-#   page_cases <cases.js>              runs a file of the page's cases outside the app (macOS's jsc, in UTC, the page's
-#                                      scripts loaded first, its modules' included), printing what they print
+#   page_cases <cases.js> [<module>/<page>]
+#                                      runs a file of the page's cases outside the app (macOS's jsc, in UTC, the page's
+#                                      scripts loaded first, its modules' included), printing what they print; or one of
+#                                      a module's own pages' cases, with that page's scripts (tools/page.sh --pages)
 
 built_app() {
   if [ -n "${WHOZMOVE_APP_FAILED:-}" ]; then
@@ -38,10 +40,11 @@ print(json.dumps(stable(json.load(sys.stdin)), indent=2, sort_keys=True, ensure_
 }
 
 # A file of the page's cases, run as tests/panel.sh runs the core's: with macOS's JavaScriptCore, in UTC so the clock
-# times read the same everywhere, after the page's scripts in the order the page loads them (tools/page.sh).
+# times read the same everywhere, after the page's scripts in the order the page loads them (tools/page.sh), or a
+# module page's.
 page_cases() {
   local jsc=/System/Library/Frameworks/JavaScriptCore.framework/Versions/Current/Helpers/jsc srcs
   [ -x "$jsc" ] || { echo "Couldn't find macOS's jsc at $jsc"; return 1; }
-  srcs=$(tools/page.sh --scripts) || return 1
+  srcs=$(tools/page.sh --scripts ${2:+"$2"}) || return 1
   TZ=UTC "$jsc" "$1" -- $srcs 2>&1
 }

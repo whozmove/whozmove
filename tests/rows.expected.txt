@@ -259,6 +259,59 @@
       "model": "claude-sonnet-5-5",
       "tokens": 0
     },
+    "alsoOpen": [
+      {
+        "busy": true,
+        "entrypoint": "cli",
+        "paused": false
+      }
+    ],
+    "cwd": "T/ask",
+    "entrypoint": "cli",
+    "messageAt": "now-60m",
+    "name": "plan the trip",
+    "pid": "pid",
+    "procStart": "start-s-ask-0",
+    "prs": [],
+    "sessionId": "s-ask",
+    "status": "waiting",
+    "statusUpdatedAt": "now-20m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "alsoOpen": [
+      {
+        "busy": false,
+        "entrypoint": "claude-desktop",
+        "hostSessionId": "local_s-both",
+        "paused": false
+      }
+    ],
+    "cwd": "T/both",
+    "entrypoint": "cli",
+    "messageAt": "now-60m",
+    "name": "draft the invite",
+    "pid": "pid",
+    "procStart": "start-s-both-1",
+    "prs": [],
+    "sessionId": "s-both",
+    "status": "idle",
+    "statusUpdatedAt": "now-5m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
     "changes": {
       "added": 15,
       "files": [],
@@ -407,6 +460,69 @@
     "statusUpdatedAt": "now-30m"
   },
   {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/idle",
+    "entrypoint": "cli",
+    "messageAt": "now-40m",
+    "name": "rest a while",
+    "pid": "pid",
+    "procStart": "start-halt",
+    "prs": [],
+    "sessionId": "s-halt",
+    "status": "idle",
+    "statusUpdatedAt": "now-40m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "alsoOpen": [
+      {
+        "busy": false,
+        "entrypoint": "cli",
+        "paused": false
+      }
+    ],
+    "cwd": "T/idle",
+    "entrypoint": "cli",
+    "messageAt": "now-60m",
+    "name": "sort the photos",
+    "pid": "pid",
+    "procStart": "start-s-idle-0",
+    "prs": [],
+    "sessionId": "s-idle",
+    "status": "idle",
+    "statusUpdatedAt": "now-3m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "cwd": "T/ask",
+    "entrypoint": "cli",
+    "name": "pack the bags",
+    "pid": "pid",
+    "procStart": "start-near",
+    "prs": [],
+    "sessionId": "s-near",
+    "status": "idle",
+    "statusUpdatedAt": "now-25m"
+  },
+  {
     "activityAt": "now-9m",
     "agent": {
       "compactWindow": 800000,
@@ -415,6 +531,13 @@
       "model": "claude-opus-5-5",
       "tokens": 424200
     },
+    "alsoOpen": [
+      {
+        "busy": false,
+        "entrypoint": "cli",
+        "paused": true
+      }
+    ],
     "ask": {
       "at": "now-2m",
       "cwd": "T/repo",
@@ -633,6 +756,32 @@
     "sessionId": "s-topic",
     "status": "busy",
     "statusUpdatedAt": "now-15m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "tokens": 0
+    },
+    "alsoOpen": [
+      {
+        "busy": false,
+        "entrypoint": "cli",
+        "paused": false
+      }
+    ],
+    "cwd": "T/twice",
+    "entrypoint": "cli",
+    "messageAt": "now-30m",
+    "name": "tidy the docs",
+    "pid": "pid",
+    "procStart": "start-twice-busy",
+    "prs": [],
+    "sessionId": "s-twice",
+    "status": "busy",
+    "statusUpdatedAt": "now-4m"
   },
   {
     "activity": "Run the tests",
@@ -989,7 +1138,141 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
     "whyNotEditDraft" : null,
     "whyNotType" : null
   },
+  "s-ask" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session is waiting",
+    "whyNotType" : {
+      "card" : "It's open more than once: close all but one first",
+      "log" : "session is open more than once"
+    }
+  },
+  "s-both" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
   "s-clone" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "s-halt" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session is paused",
+    "whyNotType" : {
+      "card" : "It's paused in its terminal: bring it back with fg first",
+      "log" : "session is paused"
+    }
+  },
+  "s-idle" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : {
+      "card" : "It's open more than once: close all but one first",
+      "log" : "session is open more than once"
+    }
+  },
+  "s-near" : {
     "mode" : "default",
     "possibleCycles" : [
       [
@@ -1068,6 +1351,34 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
     "whyNotType" : {
       "card" : "Claude is working: compact it when it's done",
       "log" : "session is busy"
+    }
+  },
+  "s-twice" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : {
+      "card" : "It's open more than once: close all but one first",
+      "log" : "session is open more than once"
     }
   },
   "s-wt" : {
@@ -1265,6 +1576,20 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "pick mode" : null,
       "pick model" : null
     },
+    "s-ask" : {
+      "ask" : "It's open more than once: close all but one first",
+      "compact" : "It's open more than once: close all but one first",
+      "pick effort" : "It's open more than once: close all but one first",
+      "pick mode" : "It's open more than once: close all but one first",
+      "pick model" : "It's open more than once: close all but one first"
+    },
+    "s-both" : {
+      "ask" : null,
+      "compact" : null,
+      "pick effort" : null,
+      "pick mode" : "It's open elsewhere too: change its mode in the terminal",
+      "pick model" : null
+    },
     "s-clone" : {
       "ask" : null,
       "compact" : null,
@@ -1286,6 +1611,27 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "pick mode" : "Send this conversation's first message in Claude first",
       "pick model" : "Send this conversation's first message in Claude first"
     },
+    "s-halt" : {
+      "ask" : "It's paused in its terminal: bring it back with fg first",
+      "compact" : "It's paused in its terminal: bring it back with fg first",
+      "pick effort" : "It's paused in its terminal: bring it back with fg first",
+      "pick mode" : "It's paused in its terminal: bring it back with fg first",
+      "pick model" : "It's paused in its terminal: bring it back with fg first"
+    },
+    "s-idle" : {
+      "ask" : "It's open more than once: close all but one first",
+      "compact" : "It's open more than once: close all but one first",
+      "pick effort" : "It's open more than once: close all but one first",
+      "pick mode" : "It's open more than once: close all but one first",
+      "pick model" : "It's open more than once: close all but one first"
+    },
+    "s-near" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
     "s-term" : {
       "ask" : "Claude is waiting for your answer",
       "compact" : "Claude is waiting for your answer",
@@ -1299,6 +1645,13 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "pick effort" : "Claude is working in this session: change it when it's done",
       "pick mode" : "Claude is working in this session: change it when it's done",
       "pick model" : "Claude is working in this session: change it when it's done"
+    },
+    "s-twice" : {
+      "ask" : "It's open more than once: close all but one first",
+      "compact" : "It's open more than once: close all but one first",
+      "pick effort" : "It's open more than once: close all but one first",
+      "pick mode" : "It's open more than once: close all but one first",
+      "pick model" : "It's open more than once: close all but one first"
     },
     "s-wt" : {
       "ask" : "Claude is working: ask again when it's done",
@@ -1364,6 +1717,27 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
     "pick mode" : "Only sessions running in Ghostty can be changed here",
     "pick model" : "Only sessions running in Ghostty can be changed here"
   },
+  "s-clone, open in another terminal too" : {
+    "ask" : "It's open more than once: close all but one first",
+    "compact" : "It's open more than once: close all but one first",
+    "pick effort" : "It's open more than once: close all but one first",
+    "pick mode" : "It's open more than once: close all but one first",
+    "pick model" : "It's open more than once: close all but one first"
+  },
+  "s-clone, open in another terminal too, with no terminal the panel can type into" : {
+    "ask" : "Only sessions running in Ghostty can be asked from here",
+    "compact" : "Only sessions running in Ghostty can be compacted from here",
+    "pick effort" : "Only sessions running in Ghostty can be changed here",
+    "pick mode" : "Only sessions running in Ghostty can be changed here",
+    "pick model" : "Only sessions running in Ghostty can be changed here"
+  },
+  "s-clone, open in Claude Desktop too" : {
+    "ask" : null,
+    "compact" : null,
+    "pick effort" : null,
+    "pick mode" : "It's open elsewhere too: change its mode in the terminal",
+    "pick model" : null
+  },
   "s-desk, its first message sent" : {
     "ask" : null,
     "compact" : null,
@@ -1373,6 +1747,13 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
   },
   "s-desk, its first message sent, Claude not allowed to be controlled" : {
     "ask" : "Whozmove needs the Accessibility permission for this",
+    "compact" : null,
+    "pick effort" : null,
+    "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
+    "pick model" : null
+  },
+  "s-desk, its first message sent, open in a terminal too" : {
+    "ask" : null,
     "compact" : null,
     "pick effort" : null,
     "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
@@ -1450,11 +1831,17 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
   "m-noauto-in-auto" : null,
   "m-noauto-plan" : null,
   "m-plan" : null,
+  "s-ask" : "These wait until the agent is done",
+  "s-both" : null,
   "s-clone" : "These wait until the agent in “clone” is done",
   "s-closed" : null,
   "s-desk" : null,
+  "s-halt" : null,
+  "s-idle" : null,
+  "s-near" : "These wait until the agent in “plan the trip” is done",
   "s-term" : "These wait until the agent is done",
   "s-topic" : "These wait until the agent is done",
+  "s-twice" : "These wait until the agent is done",
   "s-wt" : "These wait until the agent is done",
   "x-allowed" : null,
   "x-asks" : null,

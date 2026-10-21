@@ -16,6 +16,10 @@
 @property (readonly) BOOL mayControl;
 // Its first message is sent: it has a transcript.
 @property (readonly) BOOL started;
+// Its conversation runs in another process as well, not paused (the row's alsoOpen); and one of those runs in a
+// terminal while this one does too, where a key for one could land in the other's tab, so nothing goes in.
+@property (readonly) BOOL openElsewhere;
+@property (readonly) BOOL openTwice;
 // Else the terminal it runs in, by name, if the panel can type into it (nil when it can't), and the terminals it can
 // type into, by name; whether the session's tab there is found, and whether it's certainly its.
 @property (readonly, copy) NSString *terminal;
@@ -52,7 +56,8 @@
 @end
 
 // Why no words can be typed into the session's tab: there's no terminal the panel can type into, its tab isn't found,
-// or another tab fits as well. `here` and `there` end the sentences ("can be changed here", "change it there").
+// its conversation is open in another terminal too, or another tab fits as well. `here` and `there` end the sentences
+// ("can be changed here", "change it there").
 NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there);
 // Why its agent can't be asked in words now, as the row's note says it, or nil.
 NSString *WhyNoAsk(id<Reach> reach);

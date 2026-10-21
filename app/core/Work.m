@@ -23,12 +23,19 @@ static BOOL EditingThisTurn(Row *row) {
     return !row.editedAt || !row.lastPromptAt || row.editedAt.doubleValue >= row.lastPromptAt.doubleValue;
 }
 
+static BOOL CopyAtWork(Row *row) {
+    for (NSDictionary *copy in row.alsoOpen)
+        if ([copy[@"busy"] boolValue]) return YES;
+    return NO;
+}
+
 NSArray<Row *> *OthersAtWork(Row *row, NSArray<Row *> *rows) {
     NSString *folder = FolderOf(row);
     NSMutableArray<Row *> *others = [NSMutableArray array];
     for (Row *other in folder ? rows : @[]) {
-        // Working, or compacting: one waiting on you changes nothing until you answer it, and may wait for days.
-        BOOL working = ([other.status isEqual:@"busy"] && !other.ask) || other.compacting;
+        // Working, or compacting: one waiting on you changes nothing until you answer it, and may wait for days. A
+        // conversation open more than once works wherever one of its copies does, though its row shows another.
+        BOOL working = ([other.status isEqual:@"busy"] && !other.ask) || other.compacting || CopyAtWork(other);
         if ([other.sessionId isEqual:row.sessionId] || !working) continue;
         if ([folder isEqual:other.git[@"root"] ?: other.cwd]
             || ([folder isEqual:other.workRoot] && EditingThisTurn(other)))

@@ -35,6 +35,14 @@ extern NSString *const kClaudeCodeSubagents;
 // The marks Claude Code puts on the commands an agent runs, as environment variables, separated by spaces. A command
 // you set off from the panel (Deploy, an extra stage's) is yours, so they're taken off it.
 extern NSString *const kClaudeCodeAgentMarks;
+// The marks a session's terminal tab title starts with while Claude works, one or the other, turned about once a second
+// (checked with 2.1.302); the rest of the time it starts with ✳. One conversation can run in two tabs at once (a plain
+// `claude --resume` of it while it still runs elsewhere, which its newer ways in refuse or make a copy), each
+// registered with the same id, and with the same title but for this mark.
+extern NSString *const kClaudeCodeTitleWorking;
+// How the registry marks a session started from a terminal (its `entrypoint`); Claude Desktop's are claude-desktop, and
+// the SDK's sdk-cli.
+extern NSString *const kClaudeCodeTerminalEntrypoint;
 // Claude Code's command. A new session takes the id it's given (--session-id <uuid>, checked with 2.1.300), which is
 // how the panel knows its row before it's listed, and its first message as its last argument.
 extern NSString *const kClaudeCodeCommand;

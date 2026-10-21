@@ -59,14 +59,15 @@ function openReader(sid, wid, mode = 'writings', scope = null) {
   drawReader();
 }
 
-// How tall the panel is with the list alone: as reportHeight measures it once the reader has closed (the header, the
-// list's rows, and the strips under them, within the room it has), measured now, so the panel folds straight to it.
+// How tall the panel is with the list alone: as reportHeight measures it once the reader has closed (the header and the
+// list's rows, together at most 640pt as base.css keeps them, and the strips on top of that, within the room it has),
+// measured now, so the panel folds straight to it.
 function listHeight() {
   const list = document.getElementById('list'), last = list.lastElementChild;
   const rows = last ? last.offsetTop + last.offsetHeight : 0;
   const header = document.querySelector('header').offsetHeight;
   const strips = core.strips.reduce((sum, id) => sum + (document.getElementById(id)?.offsetHeight || 0), 0);
-  return Math.min(Math.ceil(header + 1 + rows + 6 + strips), state.panelMax || 640);
+  return Math.min(Math.ceil(Math.min(header + 1 + rows + 6, 640) + strips), state.panelMax || 640);
 }
 
 // A row's tag (or its numbers, for its changes) opens the reader on that session, or, where it's open already in that

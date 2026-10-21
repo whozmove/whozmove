@@ -29,6 +29,10 @@ NSString *WhyNoPick(Row *row, NSString *field, id<Reach> reach, NSArray<NSArray<
     }
     NSString *why = WhyNoTab(reach, @"changed here", @"change it there");
     if (why) return why;
+    if (reach.whyNotType && reach.whyNotType.kind == ReasonPaused) return reach.whyNotType.onCard;
+    // Its copies share one record of the mode, so which mode this one is in can't be told.
+    if ([field isEqual:@"mode"] && reach.openElsewhere)
+        return @"It's open elsewhere too: change its mode in the terminal";
     if ([row.status isEqual:@"busy"]) return @"Claude is working in this session: change it when it's done";
     if ([row.status isEqual:@"waiting"] || row.ask) return @"Claude is waiting for your answer in the terminal";
     // The mode is known only as of the session's last event, so a Shift+Tab count can be off if the mode was changed
@@ -213,6 +217,8 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         return;
     }
     if ([field isEqual:@"mode"]) {
+        // Opened elsewhere since the menu came up: which mode this copy is in can't be told any more.
+        if ([self.core.send reachOf:row].openElsewhere) { NSBeep(); return; }
         NSInteger presses = [agent shiftTabsFrom:row.agent[@"mode"] to:value cycles:[agent modeCyclesFor:row]];
         if (presses <= 0) { NSBeep(); return; }
         [terminal press:TerminalKeyShiftTab times:presses inTab:tab];
@@ -492,7 +498,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     // moved on to something a key could answer, or this came so late that someone may be typing there.
     if (!desktop)
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            id why = late ? @"the result came late" : [agent whyNotTypeInto:command.sessionId pid:command.pid];
+            id why = late ? @"the result came late" : [agent whyNotEditDraft:command.sessionId pid:command.pid];
             if (why) PanelLog(@"%@ -> filler left in the prompt: %@", command.sessionId, why);
             else [agent deleteFillerIn:command.terminal tab:command.tab];
         });

@@ -1,12 +1,94 @@
-/* The usage strip at the bottom of the panel (strip.js): its two rows, the one row it folds into, Sign in, and the wait
+/* The usage card behind the panel (card.js), in its own window under the panel (app/UsageCard.m): the card, its colour
+   and the words on it while it's folded, and the strip on it while it's open: its two rows, Sign in, and the wait
    style's layer.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
-#usage { flex: none; position: relative; }
-#usage[hidden] { display: none; }
-/* Folded into the cat, the panel hides the strip. */
-body.collapsed #usage { display: none; }
-.u-strip { position: relative; padding: 8px 14px; border-top: 1px solid var(--rule); overflow: hidden; }
+html, body { margin: 0; background: transparent; color: var(--text);
+             font: var(--size-body)/1.35 -apple-system, BlinkMacSystemFont, sans-serif; -webkit-user-select: none;
+             cursor: default; overflow: hidden; }
+/* The panel's bottom-left corner, in the card's window (kBeside and kCorner in app/UsageCard.m). The card is narrower
+   than the panel while it's folded: at rest, in from each side by the panel's corner (UC_INSET in card.js), so its
+   line runs straight under the flat of the panel's edge; slid out, by half that, so it widens a little as it comes
+   out; open, it's as wide as the panel (card.js widens it as it opens). --uc-in is the folded card's, which its colour
+   and words go by; --uc-card-in is the card's own. */
+#uc { position: absolute; left: 24px; top: 24px; width: var(--column); height: 0; --uc-in: 24px;
+      --uc-card-in: var(--uc-in); }
+#uc.is-out { --uc-in: 12px; }
+#uc.is-open { --uc-card-in: 0px; }
+/* While it opens or folds, card.js moves it; as it settles after, nothing eases into place behind it. */
+#uc.is-settling, #uc.is-settling *, #uc.is-settling *::after { transition: none !important; }
+/* The card slides out from under the panel as it's pointed at, and stays out while it's open; it goes back a moment
+   after the pointer has gone, easing out, and quicker. What widens with it goes on the same timing. */
+.uc-slide { position: absolute; left: 0; top: 0; width: 100%; height: 0;
+            transition: transform .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-slide { transform: translateY(24px); transition: transform .34s cubic-bezier(.2, .8, .2, 1); }
+/* The card's own dark: its top far up behind the panel, its bottom the line at rest. Its shadow comes as it comes
+   out, so at rest the panel looks as it always has. */
+.uc-shell { position: absolute; left: var(--uc-card-in); right: var(--uc-card-in); top: -197px; height: 200px;
+            border-radius: var(--radius-panel); background: var(--usage-card); box-shadow: var(--usage-card-edge);
+            transition: box-shadow .3s ease .12s, left .3s cubic-bezier(.2, .8, .2, 1) .12s,
+                        right .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-shell { box-shadow: var(--usage-card-shadow);
+                       transition: box-shadow .3s ease, left .34s cubic-bezier(.2, .8, .2, 1),
+                                   right .34s cubic-bezier(.2, .8, .2, 1); }
+/* Open, it's as wide as the panel, its top still behind it, so it shows in the panel's rounded corners too, and it
+   reaches down as far as the strip on it (--uc-tall, card.js, from the panel's edge). */
+#uc.is-open .uc-shell { height: calc(var(--uc-tall, 27px) + 173px); }
+/* The panel's shadow on the card, where it's out from under the panel: the panel's window is under the card's, so its
+   own doesn't fall there. It's the shadow of a box shaped like the panel (its top far up behind it), which follows the
+   panel's rounded corners, cut to the card's sides (card.js moves them with the card as it opens and folds). */
+.uc-shade { position: absolute; z-index: 1; left: 0; top: -50px; width: 100%; height: 70px; opacity: 0;
+            clip-path: inset(0 var(--uc-card-in) 0 var(--uc-card-in)); pointer-events: none;
+            transition: opacity .3s ease .12s, clip-path .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-shade { opacity: 1; transition: opacity .3s ease, clip-path .34s cubic-bezier(.2, .8, .2, 1); }
+.uc-shade::before { content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 50px;
+                    border-radius: var(--radius-panel); box-shadow: 0 1px 7px var(--usage-card-shade); }
+/* The strip, on the card from the panel's edge down: while it's open, opening or folding. */
+#usage { position: absolute; left: 0; top: -24px; width: 100%; }
+#uc:not(.is-open):not(.is-moving) #usage { visibility: hidden; }
+/* The folded card's words, where it slides out to: light on the card, and dark in its colour, which is drawn over the
+   light ones (in its box, which starts 100px further up). While words travel, these wait out of sight. */
+.uc-band { position: absolute; left: calc(var(--uc-in) + 12px); right: calc(var(--uc-in) + 12px); top: -24px;
+           height: 27px; display: flex; align-items: center; gap: 4px; font-size: var(--size-small);
+           white-space: nowrap; font-variant-numeric: tabular-nums;
+           transition: left .3s cubic-bezier(.2, .8, .2, 1) .12s, right .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-band { transition: left .34s cubic-bezier(.2, .8, .2, 1), right .34s cubic-bezier(.2, .8, .2, 1); }
+#uc.is-open .uc-band, #uc.is-travel .uc-band { visibility: hidden; }
+.uc-light { color: var(--muted); }
+.uc-light b { font-weight: 600; color: var(--text); }
+.uc-light .uc-d { color: var(--dim); }
+.uc-ink { top: 76px; color: var(--on-light-soft); }
+.uc-ink b { font-weight: 600; color: var(--on-light); }
+.uc-gap { flex: 1; }
+/* The card's shape, as the card is wherever it is (card.js moves it with the card as it opens and folds): its colour is
+   cut to it, so where the colour ends in one of the card's round corners it follows the corner. */
+.uc-face { position: absolute; left: 0; top: -197px; width: 100%; height: 200px;
+           clip-path: inset(0 var(--uc-card-in) 0 var(--uc-card-in) round var(--radius-panel));
+           transition: clip-path .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-face { transition: clip-path .34s cubic-bezier(.2, .8, .2, 1); }
+#uc.is-open .uc-face { height: calc(var(--uc-tall, 27px) + 173px); }
+/* Its colour: from the folded card's left as far as the window it shows is used (--uc-u, from 0 to 1), down to the
+   line at rest, round at the card's corner, over the card's dark (as Claude's grey is see-through). Opening, card.js
+   shrinks it into its row's bar; open, it's the bar's, and this one is out of sight. In the card's shape, whose top is
+   97px further up. */
+.uc-fill { position: absolute; left: 0; top: 97px; width: 100%; height: 300px; background: var(--usage-card);
+           clip-path: inset(0 calc(100% - var(--uc-in) - (100% - 2 * var(--uc-in)) * var(--uc-u, 0)) 197px var(--uc-in)
+                            round 0 0 0 var(--radius-panel));
+           transition: clip-path .3s cubic-bezier(.2, .8, .2, 1) .12s; }
+#uc.is-out .uc-fill { transition: clip-path .34s cubic-bezier(.2, .8, .2, 1); }
+#uc.is-full .uc-fill { clip-path: inset(0 var(--uc-in) 197px var(--uc-in)
+                                         round 0 0 var(--radius-panel) var(--radius-panel)); }
+.uc-fill::before { content: ''; position: absolute; inset: 0; background: var(--uc-colour, transparent);
+                   transition: background-color .4s ease; }
+#uc.is-open:not(.is-moving) .uc-fill { visibility: hidden; }
+/* While it opens or folds, the strip's handle keeps out of the way, as the band's words travel under it. */
+#uc.is-moving .u-strip .u-handle { opacity: 0; transition: opacity .12s ease; }
+/* Where the words travel as the card opens or folds (card.js): the light ones under the colour, the dark ones in it. */
+.uc-travel { position: absolute; left: 0; top: -100px; width: 100%; height: 300px; pointer-events: none; }
+.uc-fill > .uc-travel { top: 0; }
+.uc-traveler { position: absolute; top: 0; left: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.u-strip { position: relative; padding: 8px 14px; overflow: hidden; }
 .u-row { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; }
 .u-label { flex: none; width: 50px; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
 .u-track { flex: 1 1 auto; min-width: 0; height: 4px; border-radius: var(--radius-bar);
@@ -24,15 +106,13 @@ body.collapsed #usage { display: none; }
 .u-time > span { position: absolute; top: 0; right: 0; line-height: 15px;
                  transition: transform .22s cubic-bezier(.4, 0, .2, 1), opacity .22s ease; }
 .u-clock { transform: translateX(-26px); opacity: 0; color: var(--muted); }
-.u-row.is-hover .u-time, .u-mini.is-hover .u-time { width: var(--clock-w, 0px);
-                                                      transition: width .34s cubic-bezier(.2, .8, .2, 1); }
-.u-row.is-hover .u-time > span, .u-mini.is-hover .u-time > span {
-  transition: transform .34s cubic-bezier(.2, .8, .2, 1), opacity .3s ease; }
-.u-row.is-hover .u-left, .u-mini.is-hover .u-left { transform: translateX(26px); opacity: 0; }
-.u-row.is-hover .u-clock, .u-mini.is-hover .u-clock { transform: none; opacity: 1; }
+.u-row.is-hover .u-time { width: var(--clock-w, 0px); transition: width .34s cubic-bezier(.2, .8, .2, 1); }
+.u-row.is-hover .u-time > span { transition: transform .34s cubic-bezier(.2, .8, .2, 1), opacity .3s ease; }
+.u-row.is-hover .u-left { transform: translateX(26px); opacity: 0; }
+.u-row.is-hover .u-clock { transform: none; opacity: 1; }
 /* Only when you're on course to run out before the reset, in "your move" amber. */
-.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn); white-space: nowrap;
-          overflow: hidden; text-overflow: ellipsis; }
+.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn); text-align: center;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .u-pace[hidden], #usage.is-signin .u-pace { display: none; }
 
 /* The handle that folds the strip, along its top edge while it's pointed at. */
@@ -69,23 +149,9 @@ body.collapsed #usage { display: none; }
 .u-bud { animation: breathe 2.4s ease-in-out infinite; }
 .u-bud.still { animation: none; }
 
-/* Folded into one row: Session's percent and hours left at the left, the week's at the right. */
-.u-mini { display: none; position: relative; height: 26px; align-items: center; gap: 6px; padding: 0 14px;
-          border-top: 1px solid var(--rule); font-size: var(--size-small); overflow: hidden; }
-#usage.is-folded .u-mini, #usage.is-folding .u-mini { display: flex; }
-#usage.is-folded .u-strip { display: none; }
-.u-mini.is-hover { background: rgba(255, 255, 255, 0.04); }
-.u-mini .u-label { width: auto; }
-.u-mini .u-pct { width: auto; font-size: var(--size-body); }
-.u-mini .u-time > span { left: 0; right: auto; }
-.u-gap { flex: 1; }
-/* What travels between the strip and the row as it folds or opens. */
-.u-ghost { position: absolute; z-index: 2; line-height: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
-           pointer-events: none; }
-.u-ghost-roll { width: 90px; height: 16px; overflow: hidden; }
-.u-ghost-roll span { position: absolute; left: 0; top: 0; }
-
 @media (prefers-reduced-motion: reduce) {
-  .u-fill, .u-time, .u-time > span, .u-handle { transition: none !important; }
+  .uc-slide, .uc-shell, .uc-shade, .uc-band, .uc-face, .uc-fill, .uc-fill::before, .u-fill, .u-time,
+  .u-time > span, .u-handle {
+    transition: none !important; }
   .u-bud { animation: none; }
 }

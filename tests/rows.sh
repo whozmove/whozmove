@@ -97,6 +97,10 @@ RUN_PID=$(detached sleep 600)  # a deploy still running
 GONE_PID=999999
 # And s-term again, resumed while its first process was paused in its terminal (Ctrl+Z): one row, the running one's.
 PAUSED_PID=$(detached sleep 600); kill -STOP "$PAUSED_PID"
+# And s-halt, paused in its terminal with no other copy: nothing goes into it, as its keys would go to the shell.
+HALT_PID=$(detached sleep 600); kill -STOP "$HALT_PID"
+# Conversations open more than once (s-twice, s-ask, s-idle, s-both, two copies each), and s-near beside s-ask.
+TWICE_PIDS=$(for _ in 1 2 3 4 5 6 7 8 9; do detached sleep 600; done | paste -sd , -)
 
 # The usage check's own session (modules/claude-code/app/ClaudeUsage.m): registered while it runs, in the folder kept
 # for it. Never a row.
@@ -171,7 +175,7 @@ done
 # Everything else the app reads, with times relative to now so that Claude Desktop's three-day window and
 # the like hold whenever this runs. The output turns times back into "now-<minutes>m".
 python3 - "$T" "$TERM_PID" "$WT_PID" "$DESK_PID" "$GONE_PID" "$MODE_PIDS" "$TOPIC_PID" "$STAGE_PIDS" \
-  "$STAGE_COMMAND" "$RUN_PID" "$CLONE_PID" "$PAUSED_PID" <<'PY'
+  "$STAGE_COMMAND" "$RUN_PID" "$CLONE_PID" "$PAUSED_PID" "$TWICE_PIDS" "$HALT_PID" <<'PY'
 import json, os, sys, time
 from datetime import datetime, timezone
 T, term_pid, wt_pid, desk_pid, gone_pid = sys.argv[1], *map(int, sys.argv[2:6])
@@ -182,6 +186,8 @@ stage_command = sys.argv[9]
 run_pid = int(sys.argv[10])
 paused_pid = int(sys.argv[12])
 clone_pid = int(sys.argv[11])
+twice_pids = [int(pid) for pid in sys.argv[13].split(",")]
+halt_pid = int(sys.argv[14])
 now = time.time()
 open(os.path.join(T, "written-at"), "w").write(repr(now))  # what Deploy's sample runs are counted from (in_minutes)
 
@@ -226,6 +232,49 @@ put(f".claude/sessions/{desk_pid}.json", {"pid": desk_pid, "sessionId": "s-desk"
 put(f".claude/sessions/{paused_pid}.json", {"pid": paused_pid, "sessionId": "s-term", "cwd": repo, "status": "busy",
                                      "statusUpdatedAt": ms(9), "entrypoint": "cli", "kind": "interactive",
                                      "name": "the paused one", "procStart": "start-paused", "startedAt": ms(-1)})
+# s-twice, open in two tabs, in a folder of its own: the copy at work speaks for it, though the idle one was started
+# later and changed last, and keys go into neither. It has a transcript, so it's a conversation that has started.
+twice = os.path.join(T, "twice")
+os.makedirs(twice, exist_ok=True)
+for pid, status, changed, started in [(twice_pids[0], "busy", 4, 30), (twice_pids[1], "idle", 1, 10)]:
+    put(f".claude/sessions/{pid}.json", {"pid": pid, "sessionId": "s-twice", "cwd": twice, "status": status,
+                                         "statusUpdatedAt": ms(changed), "entrypoint": "cli", "kind": "interactive",
+                                         "name": "tidy the docs", "procStart": f"start-twice-{status}",
+                                         "startedAt": ms(started)})
+put(".claude/projects/p/s-twice.jsonl", [
+    {"type": "user", "message": {"role": "user", "content": "tidy the docs"}, "timestamp": iso(30),
+     "isSidechain": False}])
+# s-ask, in two tabs: one asks something, so it speaks for the conversation over the one at work, which still counts as
+# at work, so s-near, idle in the same folder, waits for it. s-idle, in two tabs both idle: the one whose state changed
+# last speaks, though the other started later. s-both, in Claude Desktop and a tab: the tab, which changed last; keys
+# may go into it, as none can land in Claude, but not Shift+Tabs, as the two share one record of the mode.
+copies = {
+    "s-ask": ("ask", "plan the trip", [("waiting", 20, 40, "cli"), ("busy", 2, 5, "cli")]),
+    "s-idle": ("idle", "sort the photos", [("idle", 3, 50, "cli"), ("idle", 8, 6, "cli")]),
+    "s-both": ("both", "draft the invite", [("idle", 30, 60, "claude-desktop"), ("idle", 5, 20, "cli")]),
+}
+spare = iter(twice_pids[2:])
+for sid, (folder, name, procs) in copies.items():
+    os.makedirs(os.path.join(T, folder), exist_ok=True)
+    for number, (status, changed, started, entrypoint) in enumerate(procs):
+        pid = next(spare)
+        record = {"pid": pid, "sessionId": sid, "cwd": os.path.join(T, folder), "status": status,
+                  "statusUpdatedAt": ms(changed), "entrypoint": entrypoint, "kind": "interactive", "name": name,
+                  "procStart": f"start-{sid}-{number}", "startedAt": ms(started)}
+        if entrypoint == "claude-desktop":
+            record["hostSessionId"] = f"local_{sid}"
+        put(f".claude/sessions/{pid}.json", record)
+    put(f".claude/projects/p/{sid}.jsonl", [
+        {"type": "user", "message": {"role": "user", "content": name}, "timestamp": iso(60), "isSidechain": False}])
+put(f".claude/sessions/{halt_pid}.json", {"pid": halt_pid, "sessionId": "s-halt", "cwd": os.path.join(T, "idle"),
+                                          "status": "idle", "statusUpdatedAt": ms(40), "entrypoint": "cli",
+                                          "kind": "interactive", "name": "rest a while", "procStart": "start-halt"})
+put(".claude/projects/p/s-halt.jsonl", [
+    {"type": "user", "message": {"role": "user", "content": "rest a while"}, "timestamp": iso(40), "isSidechain": False}])
+near = next(spare)
+put(f".claude/sessions/{near}.json", {"pid": near, "sessionId": "s-near", "cwd": os.path.join(T, "ask"),
+                                      "status": "idle", "statusUpdatedAt": ms(25), "entrypoint": "cli",
+                                      "kind": "interactive", "name": "pack the bags", "procStart": "start-near"})
 put(f".claude/sessions/{gone_pid}.json", {"pid": gone_pid, "sessionId": "s-gone", "cwd": repo, "status": "idle",
                                    "statusUpdatedAt": ms(60), "entrypoint": "cli", "kind": "interactive"})
 # A session on a branch of its own in a clone of the repo (so GitHub's copy is the repo), which committed work there

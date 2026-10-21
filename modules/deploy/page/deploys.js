@@ -75,11 +75,12 @@ function folderWork(sessions) {
 // earlier turn doesn't keep them at work there). `kinds` is what each session is now (classify). Deploy waits while any
 // agent works in its folder, not just the row's own, so what's put in place isn't half-way through a change; so do the
 // island's steps (OthersAtWork in app/core/Work.m), while the island stays up, to show where the work stands. One
-// waiting on you doesn't count: it changes nothing until you answer it, which may be days away.
+// waiting on you doesn't count: it changes nothing until you answer it, which may be days away. A conversation open
+// more than once works wherever one of its copies does (s.alsoOpen), though its row shows another.
 function agentsAtWork(sessions, kinds) {
   const at = {};
   for (const s of sessions) {
-    if (kinds[s.sessionId] !== 'busy' && !s.compacting) continue;
+    if (kinds[s.sessionId] !== 'busy' && !s.compacting && !s.alsoOpen?.some((copy) => copy.busy)) continue;
     const there = editingThisTurn(s) ? s.workRoot : null;
     for (const folder of new Set([s.git?.root || s.cwd, there])) if (folder) (at[folder] ??= []).push(s);
   }

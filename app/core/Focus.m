@@ -4,6 +4,7 @@
 #import <AppKit/AppKit.h>
 #import "Core.h"
 #import "Rows.h"
+#import "Files.h"
 #import "Row.h"
 #import "Log.h"
 #import "Processes.h"
@@ -147,7 +148,10 @@ static BOOL AtTheMac(void) {
 }
 
 - (void)open:(NSDictionary *)message {
-    Row *row = [[Row alloc] initWithFields:message];
+    // The row as listed, with its state, which a terminal goes by to tell two tabs of one conversation apart; the
+    // page's own word for one it hasn't been sent yet.
+    Row *listed = AsText(message[@"sessionId"]) ? self.core.rows.byId[message[@"sessionId"]] : nil;
+    Row *row = listed && listed.pid == [message[@"pid"] intValue] ? listed : [[Row alloc] initWithFields:message];
     id<Host> own = [self.core hostHolding:row];
     if (own) {
         // That app is the one you're in from now: a terminal's session isn't the one you're on while it comes forward.

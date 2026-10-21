@@ -28,8 +28,14 @@ const PLUS_ICON = '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1
   + 'stroke-width="1.6" stroke-linecap="round"/></svg>';
 
 const dockBox = document.getElementById('dock'), flightLayer = document.getElementById('flight');
-const newButton = document.querySelector('header .add-new');
+const newButton = document.querySelector('header .add-new'), newTitle = newButton.title;
 let startsMade = 0;
+
+// The header's ＋ is the card's ×, turned, while the card is open.
+function markNewButton(open) {
+  newButton.classList.toggle('open', open);
+  newButton.title = open ? 'Close (Esc)' : newTitle;
+}
 
 // ---- Where a start goes ----
 
@@ -295,7 +301,7 @@ function startCardHTML(card, sessions) {
   return `<div class="row compose" data-card="${esc(card.id)}">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="${esc(card.id)}-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">${esc(card.text)}</textarea></div>
         ${chipsHTML(card)}${listHTML(card)}${underHTML(card)}
@@ -364,7 +370,7 @@ function openCard(folder, app) {
     text: was?.text || draft?.text || '', problem: null, target: (same && draft.target) || null, list: null,
     picked: was?.picked || (same && draft.picked) || false,
   };
-  newButton.classList.add('open');
+  markNewButton(true);
   if (was && dockCard()) refreshStartCard();
   else {
     const card = rowFrom(startCardHTML(state.dock, sessions));
@@ -397,7 +403,7 @@ function closeCard() {
   const card = dockCard();
   keepDraft();
   state.dock = null;
-  newButton.classList.remove('open');
+  markNewButton(false);
   if (!card) return;
   card.querySelector('.c-box')?.blur();
   if (card.matches('.waiting, .unseen')) {
@@ -559,7 +565,7 @@ function sendStart() {
   state.starts[id] = start;
   el.classList.add('leaving', 'sent');
   state.dock = null;
-  newButton.classList.remove('open');
+  markNewButton(false);
   handOverStart(el, start).then(() => {
     hop();
     moveToRow(el, start);
@@ -605,7 +611,6 @@ function handOverStart(el, start) {
   for (const part of main.querySelectorAll(':scope > .c-list, :scope > .c-under, :scope > .c-busy, :scope > .c-help, '
                                          + ':scope > .st-foot'))
     motions.push(foldPart(part, 320, 0.4));
-  motions.push(animateStart(el.querySelector('.c-x'), [{ opacity: 1 }, { opacity: 0 }], 160, { fill: 'forwards' }));
   motions.push(animateStart(el.querySelector('.name'), [{ color: 'rgba(255, 255, 255, 0.55)' }, { color: 'rgba(255, 255, 255, 0.92)' }],
                             320, { fill: 'forwards' }));
   motions.push(animateStart(el, [{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }, { backgroundColor: 'rgba(255, 255, 255, 0)' }],
@@ -918,7 +923,6 @@ dockBox.addEventListener('mousedown', (e) => {
   if (!t.closest('.row.compose:not(.leaving)') || t.closest('.c-box')) return;  // the box takes the caret as usual
   e.preventDefault();
   const card = state.dock;
-  if (t.closest('.c-x')) return closeCard();
   if (t.closest('.st-app')) return appMenu(t.closest('.st-app'));
   if (t.closest('.c-go')) return sendStart();
   const option = t.closest('.c-opt');
@@ -1083,7 +1087,7 @@ core.presses.push(['.add[data-folder]', (add, e) => {
   e.preventDefault();
   openCard(add.dataset.folder, e.altKey ? 'terminal' : null);
 }]);
-core.pointerTargets.push('.add', '.add-new', '.c-x', '.c-go:not(:disabled)', '.st-app', '.c-proj', '.c-in', '.c-base',
+core.pointerTargets.push('.add', '.add-new', '.c-go:not(:disabled)', '.st-app', '.c-proj', '.c-in', '.c-base',
                          '.c-opt', '.c-place', '.c-usewt');
 core.textBoxes.push('.c-box');
 core.strips.push('dock');

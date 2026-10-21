@@ -48,6 +48,18 @@ with what each is doing, so you can see at a glance which one needs you.
 - Claude Desktop conversations stay listed after Claude quits (those active in the last 3 days)
 - the session **you're on** is marked, and scrolled into view as you switch: the conversation open in Claude, or
   the session in the Ghostty tab you're looking at, whichever of the two apps you were in last
+- a conversation open in two places at once (resumed in a second tab while it still runs, or open in Claude Desktop
+  and a terminal) is one row, which follows the copy that needs you: one asking you something, then one at work, and
+  otherwise the one it followed already. Pressing it opens that copy (in Ghostty, a tab at work is told from one that
+  isn't, but two that aren't look alike, so then it may be either), and either of its tabs in front marks it as the
+  one you're on. Its details line says **open twice**, and pointed at, where else it's open: each copy knows only what
+  was said in it since the second opened, so close one when you can. **Close the other copy** on that card closes
+  those in other terminal tabs, once Claude isn't working in them. While another copy runs in a terminal, the panel
+  types nothing into it; while one is open in Claude Desktop, only its mode can't be changed from the panel. Deploy
+  and next steps wait while any copy is at work. A copy paused in its terminal (Ctrl+Z) is named too, but holds
+  nothing up
+- a session paused in its terminal (Ctrl+Z) gets nothing typed into it: its menus and next steps say to bring it back
+  with `fg` first
 - a row you press (to open it, answer it, or run a step or Deploy) stays where it is, showing what it does there,
   until you've moved on from the panel: your pointer off it (and moved, when the panel shrank under it or one of its
   menus closed there) and none of its boxes typed in. Then it goes to its place
@@ -181,15 +193,19 @@ with what each is doing, so you can see at a glance which one needs you.
 - **open PRs** the session created or worked on, with a hover card (state, author, `+/−`, files)
 - click a session to jump to it: Claude Desktop opens it (launching Claude if needed), and Ghostty switches to
   its tab (and its split, in a tab with several)
-- your Claude plan's **usage**, at the bottom of the panel: the same numbers as Claude's own Usage page, for the
-  session (five hours) and the week, each with how long until it resets ("2h 59m"; point at it for the clock time),
-  coloured as Claude colours them for how close you are, and a note when you're on course to run out before the
-  reset. Its handle (along its top edge, when pointed at) folds it into one row, `Session 40% 3h … Week 10%`, and a
-  click on that row opens it again; folded to its header, the panel shows the session as a line under the header.
-  While the session limit is reached, a vine grows in from the panel's corner until it resets, then blooms, its
+- your Claude plan's **usage**, on a card under the panel, as wide as it: the same numbers as Claude's own Usage
+  page, for the session (five hours) and the week, each with how long until it resets ("2h 59m"; point at it for the
+  clock time), coloured as Claude colours them for how close you are, and a note when you're on course to run out
+  before the reset, which says the day when it isn't today. Press the card anywhere and it folds away behind the
+  panel, a little narrower than it and coloured from the left as far as the session is used (the week, when the week
+  is the one running low): only a thin line of it then shows, straight along the panel's bottom edge. Point at that
+  line and the card slides out from under the panel, widening a little, with the numbers written on it,
+  `Session 40% · 2h 59m left … Week 10%`; press it and it opens again: it grows to the panel's width, its colour
+  shrinking into the session's bar as the numbers move to their places and the week's row comes in.
+  While the session limit is reached, a vine grows in from the card's corner until it resets, then blooms, its
   leaves fly off, and its stem pulls taut into the session's bar, fills it green and drains as usage starts over.
-  It needs the `claude` command signed in once: **Sign in** opens a terminal tab running `claude auth login`.
-  Signed in with an API key, there's no plan to show, and no strip
+  It needs the `claude` command signed in once: **Sign in**, on the card, opens a terminal tab running
+  `claude auth login`. Signed in with an API key, there's no plan to show, and no card
 - **Spotify**, from a round token tucked half under the panel's bottom corner, on the side facing the middle of the
   screen (it travels under the panel to the other corner as you drag the panel across). Bring the pointer near and it leans out
   to meet it; press **Play** and Spotify opens in the background if it's closed and plays what it last had. Paused
@@ -197,13 +213,13 @@ with what each is doing, so you can see at a glance which one needs you.
   offers **Download**, Spotify's download page, and turns into Play by itself once Spotify is installed. Signed
   out, Spotify comes forward to sign in, and the music starts once you have. macOS asks once whether Whozmove may
   control Spotify, at the first Play or song
-- **now playing**, above the usage strip, while a song plays: the cover, the song and artist, how far in it is (a thin
-  line along the top) and the time. Point at it for back, pause and next, and press the line to jump; press the strip to
-  bring Spotify forward (once lyrics are on, to read them). A new song rolls in place; paused, it greys and offers Play,
-  and after 15 minutes it folds into the token; with the panel folded to its header, the token stands in for the strip.
-  The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon** and **Remove Spotify** (the
-  token and the strip go, and Whozmove leaves Spotify alone; **Add Spotify** brings them back). macOS's Allow stays in
-  System Settings → Privacy & Security → Automation
+- **now playing**, at the bottom of the panel, while a song plays: the cover, the song and artist, how far in it is (a
+  thin line along the top) and the time. Point at it for back, pause and next, and press the line to jump; press the
+  strip to bring Spotify forward (once lyrics are on, to read them). A new song rolls in place; paused, it greys and
+  offers Play, and after 15 minutes it folds into the token; with the panel folded to its header, the token stands in
+  for the strip. The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon** and **Remove
+  Spotify** (the token and the strip go, and Whozmove leaves Spotify alone; **Add Spotify** brings them back). macOS's
+  Allow stays in System Settings → Privacy & Security → Automation
 - **lyrics**, once you say yes to the strip's question (or turn on **Show Lyrics**): while a line is sung, it takes the
   place of the song's name in the strip, rolling in as the singer starts it, and the name comes back between verses.
   Press the strip to read the whole song beside the list, the line being sung lit as it plays; press a line to jump
@@ -218,7 +234,7 @@ with what each is doing, so you can see at a glance which one needs you.
 - for working on Whozmove itself, **Working on Whozmove ▸** in that menu, shown only while you hold ⌥ (Option) as
   you open it: **Show Build in Header** puts, under "Whozmove", which worktree (or branch) the running build came
   from and when it was built, with its folder and commit when you point at it; **Preview the Wait** plays the usage
-  strip's wait and its reset in 20 seconds, without a limit to wait for
+  card's wait and its reset in 20 seconds, without a limit to wait for
 
 ### Colours
 
@@ -301,7 +317,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | File | Role |
 |---|---|
 | `app/` | the native app's core, one file per job (`core/`: the floating `NSPanel`, the menu bar item, the bridge to the page, the rows, the session you're on, and words typed into a session or sent to Claude Desktop), what modules fill in (`contracts/`) and the helpers that know no app (`shared/`) |
-| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `island/` (each row's checkout, its stages and their menus, and its PRs), `deploy/`, `changes/` (a session's numbers and the changes view), `reader/`, `usage/` (the usage strip), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
+| `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `island/` (each row's checkout, its stages and their menus, and its PRs), `deploy/`, `changes/` (a session's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card) and `spotify/` (the now-playing strip, its lyrics and Spotify's token) |
 | `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), and `page.sh`, which puts the page together with each module's page files |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
@@ -310,7 +326,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | `icon/make-icon.m` | draws `icon/AppIcon.icns` (re-run only to change the icon) |
 | `build.sh`, `install.sh`, `app/login-item.plist` | build, and install (the plugin and the login item); they read the app's name and id from `app/Info.plist` |
 | `app/swap-in.sh`, `modules/claude-code/plugin.sh` | what puts a build of Whozmove and its hooks in place and restarts the app (every build carries a copy), and the plugin's copy with a version named after its hooks |
-| `tests/` | `all.sh` runs every test: `rows.sh` checks the rows the app builds for a sample home folder, when keys may go into each session, its mode menus' Shift+Tab counts, the keys a command is typed with, what its menus say about why nothing can go in, how a command's result is read, what the usage strip gets from Claude Code's recorded answers, what a new conversation's start runs and how folder trust is read and recorded, and that this README names the macOS permissions the app asks for and no file names one it doesn't, `panel.sh` the page's labels, colours and row HTML, the usage strip's numbers and the vine's reset frame by frame, `build.sh` when a build only compiles and when it goes straight in, against a throwaway home folder, `checks.sh` that the modules stay apart; each compares with its recorded `.expected.txt`, and each module's own tests run too (Claude Code's run both hooks against a throwaway home folder) |
+| `tests/` | `all.sh` runs every test: `rows.sh` checks the rows the app builds for a sample home folder, when keys may go into each session, its mode menus' Shift+Tab counts, the keys a command is typed with, what its menus say about why nothing can go in, how a command's result is read, what the usage card gets from Claude Code's recorded answers, what a new conversation's start runs and how folder trust is read and recorded, and that this README names the macOS permissions the app asks for and no file names one it doesn't, `panel.sh` the page's labels, colours and row HTML, `build.sh` when a build only compiles and when it goes straight in, against a throwaway home folder, `checks.sh` that the modules stay apart; each compares with its recorded `.expected.txt`, and each module's own tests run too (Claude Code's run both hooks against a throwaway home folder; the usage module's check what the usage card shows and the vine's reset frame by frame) |
 | `CONTRIBUTING.md` | how it's built and how to work on it |
 | `CHANGELOG.md` | what changed in each release |
 | `SECURITY.md` | how to report a security problem, and what happens next |

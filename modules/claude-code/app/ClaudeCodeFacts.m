@@ -22,6 +22,8 @@ BOOL ClaudeRecordsShellChanges(NSString *mode, id setting) {
     return [mode isEqualToString:@"auto"] || [mode isEqualToString:@"bypassPermissions"];
 }
 NSString *const kClaudeCodeAgentMarks = @"CLAUDECODE CLAUDE_CODE_SESSION_ID";
+NSString *const kClaudeCodeTitleWorking = @"◐◑";
+NSString *const kClaudeCodeTerminalEntrypoint = @"cli";
 NSString *const kClaudeCodeCommand = @"claude";
 NSString *const kClaudeCodeState = @".claude.json";
 NSString *const kClaudeCodeStateLock = @".lock";

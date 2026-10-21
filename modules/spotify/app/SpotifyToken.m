@@ -11,7 +11,8 @@
 // leans out toward it and slides along the edge to meet it (the "magnet"), and the label saying what a press does
 // comes out beside it, in its own lane outside the panel. Pressed, it squashes, then goes in under the glass before
 // Spotify is asked to play, so it's gone before the strip grows; a song paused comes back out only once the strip has
-// folded. Reduced motion has it fade in place instead.
+// folded. Opening out of the cat, the panel opens first, and only then does the token come out, with the same small
+// bounce as on the other side. Reduced motion has it fade in place instead.
 #import "SpotifyToken.h"
 #import "Spotify.h"
 #import "SpotifyFacts.h"
@@ -29,8 +30,12 @@ static const CGFloat kTucked = -26, kPointedAt = 9, kMostOut = 13, kMostAlong = 
 // it off; the middle has this much leeway either side before it does.
 static const NSTimeInterval kCrossing = 1.0, kCrossingWait = 0.35;
 static const CGFloat kLeeway = 40;
-// Coming out on the other side, it goes this far past where it rests, then settles back: one small bounce.
+// Coming out on the other side, it goes this far past where it rests, then settles back: one small bounce. Once the
+// panel has opened out of the cat, the same bounce brings it out, taking this long.
 static const CGFloat kBounce = 23;
+static const NSTimeInterval kPopOut = 0.35;
+// Opening out of the cat, it waits under the glass until the glass has come to rest, or this long at most.
+static const NSTimeInterval kOpeningAtMost = 1.5;
 // After the panel has moved, the token keeps still this long before it leans toward the pointer again: the pointer
 // was dragging the panel, not reaching for the token.
 static const NSTimeInterval kStillAfterMove = 0.6;
@@ -64,6 +69,16 @@ static CGFloat EdgeCurve(CGFloat t) {
 static NSRect LerpRect(NSRect a, NSRect b, CGFloat t) {
     return NSMakeRect(Lerp(NSMinX(a), NSMinX(b), t), Lerp(NSMinY(a), NSMinY(b), t), Lerp(NSWidth(a), NSWidth(b), t),
                       Lerp(NSHeight(a), NSHeight(b), t));
+}
+static BOOL NearlySame(NSRect a, NSRect b) {
+    return fabs(NSMinX(a) - NSMinX(b)) < 1 && fabs(NSMinY(a) - NSMinY(b)) < 1 && fabs(NSWidth(a) - NSWidth(b)) < 1
+           && fabs(NSHeight(a) - NSHeight(b)) < 1;
+}
+
+// How far out from the glass's edge it is `t` of the way through coming out with one small bounce: from under the
+// glass to past its resting place by the bounce, then back to it.
+static CGFloat Bounced(CGFloat t) {
+    return t < 0.55 ? Lerp(kTucked, kBounce, Ease(t / 0.55)) : Lerp(kBounce, 0, EaseInOut((t - 0.55) / 0.45));
 }
 
 // The token's window: never key, so pressing it leaves the keyboard where it was.
@@ -104,6 +119,9 @@ static NSRect LerpRect(NSRect a, NSRect b, CGFloat t) {
 @property (assign) BOOL tucking;         // pressed: going under the glass before what was pressed happens
 @property (copy) void (^afterTuck)(void);
 @property (assign) BOOL waitingForFold;  // a song paused: out once the strip has folded
+@property (assign) BOOL waitingForOpen;  // the panel opening out of the cat: out once its glass has come to rest
+@property (assign) NSUInteger openingRun;  // which opening the wait is for, so a late fallback can't end a newer one
+@property (assign) CFTimeInterval poppingSince;  // coming out with the bounce once the panel has opened, or 0
 @property (strong) NSNumber *tokenWasInStrip;  // hidden because the strip showed the song
 // Changing sides: from which side, and since when.
 @property (copy) NSString *crossingFrom;
@@ -295,6 +313,30 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     [self aim];
 }
 
+- (void)panelOpening {
+    self.waitingForOpen = YES;
+    NSUInteger run = ++self.openingRun;
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kOpeningAtMost * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        if (weakSelf.openingRun == run) [weakSelf panelOpened];
+    });
+    [self aim];
+}
+
+// The panel has opened: the token comes out from under the glass where it waited, with the bounce.
+- (void)panelOpened {
+    if (!self.waitingForOpen) return;
+    self.waitingForOpen = NO;
+    self.openingRun++;
+    if (self.visible && !Calm() && !self.crossingFrom) {
+        self.panel.alphaValue = 1;
+        self.out = kTucked;
+        self.poppingSince = CACurrentMediaTime();
+    }
+    [self aim];
+}
+
 // What the disc wears for its state. A change while it's out cross-fades; one while it's tucked away just changes.
 - (void)drawState:(BOOL)fade {
     NSString *state = self.state;
@@ -399,6 +441,9 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
 
 - (void)glassAt:(NSRect)glass list:(NSRect)list screen:(NSRect)screen duration:(NSTimeInterval)duration {
     CFTimeInterval now = CACurrentMediaTime();
+    // Opening out of the cat, the glass is told where it's headed as it starts spreading, and told again there once it
+    // has come to rest: the token comes out then.
+    BOOL opened = self.waitingForOpen && duration == 0 && NearlySame(glass, self.glass);
     self.glassFrom = [self glassNow:now];
     self.glass = glass;
     self.glassSince = now;
@@ -429,6 +474,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     }
     [self place];
     [self kick];
+    if (opened) [self panelOpened];
 }
 
 - (void)cross:(NSString *)side {
@@ -442,6 +488,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
         return;
     }
     self.sideAhead = nil;
+    self.poppingSince = 0;
     self.crossingFrom = self.side;
     self.crossingSince = CACurrentMediaTime();
     self.crossingOut = self.out;
@@ -455,12 +502,14 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
 }
 
 - (BOOL)visible {
-    return self.shown && !self.tucking && !self.waitingForFold && ![self.state isEqual:@"hidden"];
+    return self.shown && !self.tucking && !self.waitingForFold && !self.waitingForOpen
+           && ![self.state isEqual:@"hidden"];
 }
 
 // Where the disc is headed, from its state and the pointer.
 - (void)aim {
     if (!self.visible) {
+        self.poppingSince = 0;  // going back under from wherever it is
         self.outTo = kTucked;
         self.alongTo = 0;
         self.over = NO;
@@ -474,7 +523,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
 }
 
 - (void)pointerAt:(NSPoint)point {
-    if (!self.visible || self.crossingFrom || self.sideAhead) return;
+    if (!self.visible || self.crossingFrom || self.sideAhead || self.poppingSince) return;
     BOOL still = CACurrentMediaTime() - self.movedAt < kStillAfterMove || NSEvent.pressedMouseButtons != 0;
     NSPoint rest = [self centerOut:0 along:0 glass:self.glass side:self.side];
     CGFloat dx = point.x - rest.x, dy = point.y - rest.y;
@@ -530,10 +579,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
             if (q >= 0.5 && ![self.boxSide isEqual:to]) [self layoutForSide];
         } else {
             // Out past its resting place by the bounce, then back to it; one that's to stay tucked just stays under.
-            CGFloat landing = self.visible ? 0 : kTucked, past = self.visible ? landing + kBounce : kTucked;
-            CGFloat t = MIN(1, (p - 0.65) / 0.35);
-            CGFloat out = t < 0.55 ? Lerp(kTucked, past, Ease(t / 0.55))
-                                   : Lerp(past, landing, EaseInOut((t - 0.55) / 0.45));
+            CGFloat out = self.visible ? Bounced(MIN(1, (p - 0.65) / 0.35)) : kTucked;
             center = [self centerOut:out along:0 glass:glass side:to];
             self.out = out;
             self.along = 0;
@@ -543,6 +589,13 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
             self.outTo = self.out;
             self.alongTo = 0;
         }
+    } else if (self.poppingSince) {
+        // Out from under the glass once the panel has opened, past its resting place by the bounce, then back to it.
+        CGFloat t = MIN(1, (now - self.poppingSince) / kPopOut);
+        self.out = Bounced(t);
+        self.along = 0;
+        if (t >= 1) self.poppingSince = 0;
+        center = [self centerOut:self.out along:0 glass:glass side:self.side];
     } else {
         center = [self centerOut:self.out along:self.along glass:glass side:self.side];
     }
@@ -574,7 +627,7 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     BOOL calm = Calm();
     // Each frame closes a share of what's left, so it eases out, and follows the pointer smoothly as it moves.
     CGFloat share = calm ? 1 : 0.2;
-    if (!self.crossingFrom) {
+    if (!self.crossingFrom && !self.poppingSince) {
         self.out += (self.outTo - self.out) * share;
         self.along += (self.alongTo - self.along) * share;
         if (fabs(self.outTo - self.out) < 0.2) self.out = self.outTo;
@@ -582,7 +635,8 @@ static CGImageRef ImageOf(NSImage *image, CGFloat size) {
     }
     [self place];
     BOOL glassMoving = self.glassFor > 0 && now - self.glassSince < self.glassFor;
-    BOOL settled = !self.crossingFrom && !glassMoving && self.out == self.outTo && self.along == self.alongTo;
+    BOOL settled = !self.crossingFrom && !self.poppingSince && !glassMoving && self.out == self.outTo
+                   && self.along == self.alongTo;
     if (self.tucking && self.out <= kTucked + 1) {
         void (^then)(void) = self.afterTuck;
         self.afterTuck = nil;

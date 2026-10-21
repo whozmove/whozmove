@@ -16,7 +16,7 @@ the card while the app is asked about its folder: {"help":"","warn":false,"go":"
 <div class="row compose" data-card="card1">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">Add &lt;b&gt;dark&lt;/b&gt; mode</textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span></div>
@@ -29,7 +29,7 @@ the card while the app is asked about its folder: {"help":"","warn":false,"go":"
 <div class="row compose" data-card="card1">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree"></textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app-wt</span></span></div>
@@ -42,7 +42,7 @@ the card while the app is asked about its folder: {"help":"","warn":false,"go":"
 <div class="row compose" data-card="card1">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree"></textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span></div>
@@ -147,7 +147,7 @@ a word while another agent works there: Claude is at work in app.
 <div class="row compose" data-card="card2">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card2-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">fix the login loop</textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span><span class="st-chip c-in" data-k="b" title="Where in it: press, or type #, for a worktree"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="c-under" data-k="u">Runs in ~/work/app, on main</div>
@@ -160,7 +160,7 @@ a word while another agent works there: Claude is at work in app.
 <div class="row compose" data-card="card2">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card2-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">fix the login loop #</textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span><span class="st-chip c-in" data-k="b" title="Where in it: press, or type #, for a worktree"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="c-list" data-k="list"><div class="c-lhead">Where in it</div><div class="c-opt on" data-i="0"><span class="o-l"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="o-s">its own folder</span></div><div class="c-opt" data-i="1"><span class="o-l"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg>usage</span><span class="o-s">a worktree</span></div><div class="c-opt" data-i="2"><span class="o-l"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>release</span><span class="o-s">no folder yet: a new worktree</span></div><div class="c-opt" data-i="3"><span class="o-l"><b class="o-new"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg>New worktree</b>fix-login-loop<span class="o-from">from</span>main</span></div><div class="c-lfoot">Add <b>from</b> and a branch to start it from another: <b>#fix-login-loop from usage</b></div></div>
@@ -173,7 +173,7 @@ a word while another agent works there: Claude is at work in app.
 <div class="row compose" data-card="card2">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card2-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">fix the login loop</textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span><span class="st-chip c-base" data-k="base" title="The branch it starts from"><span class="c-from">from</span><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>usage</span><span class="wt st-chip c-in" data-k="b" title="A new worktree: a new branch, in a folder of its own"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">hello</span></span></div><div class="c-under" data-k="u">New folder: <span class="c-place" title="Where new worktrees of app go: press to choose">~/work/app-worktrees/hello<span class="caret"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div>
@@ -186,7 +186,7 @@ a word while another agent works there: Claude is at work in app.
 <div class="row compose" data-card="card2">
       <span class="dot"></span>
       <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
+        <div class="line1"><span class="name">New conversation</span></div>
         <div class="you"><span class="who">You</span><textarea class="c-box" id="card2-words" rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">fix the login loop</textarea></div>
         <div class="st-chips"><span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another"><i>@</i><span class="c-pname">app</span></span><span class="wt st-chip c-in" data-k="b" title="Where in it: press, or type #, for a worktree"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">usage</span></span></div><div class="c-under" data-k="u">Runs in ~/work/app-wt/usage</div>

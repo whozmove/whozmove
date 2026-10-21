@@ -10,7 +10,11 @@ session's tab, and new conversations and the usage strip's Sign in open in a new
   session's tab found, text and keys typed into it) and a CommandHost (a command run in a new tab). Ghostty's scripting
   gives each terminal's folder and title but not its tty, so a session's tab is found by its folder, then by the title
   its agent gives it (the agent's `titleOf:now:`, which Claude Code puts in the tab's title), and keys go only into a
-  tab that's certainly the session's. What it's told goes in AppleScript (app/shared/AppleScript.h), on the main thread;
+  tab that's certainly the session's. Of tabs that fit as well, as one conversation open in two tabs does, the one
+  whose title shows its agent at work (`titleShowsWork:`) as the row's copy is, or not, goes first, so pressing the row
+  opens the copy it follows. Claude Code marks only a tab at work, so two that aren't (one idle, one asking you
+  something) look alike. Either of a conversation's tabs in front marks it as the one you're on, unless more tabs fit
+  it than it's open in, when another session's tab could be the one. What it's told goes in AppleScript (app/shared/AppleScript.h), on the main thread;
   which tab it shows is asked with Apple events of Whozmove's own (app/shared/AppleEvents.h), on a queue of its own, as
   it's asked every second while Ghostty is in front.
 - `app/GhosttyFacts.h`: what the module relies on about Ghostty that Ghostty could change: its app id, and the codes

@@ -45,10 +45,6 @@ body.collapsed #dock { display: none; }
          cursor: text; }
 .c-box:focus { border-color: rgba(255, 255, 255, 0.42); }
 .c-box::placeholder { color: rgba(255, 255, 255, 0.32); }
-.c-x { flex: none; align-self: center; width: 20px; height: 20px; margin: -2px -4px -2px auto; padding: 0; border: 0;
-       border-radius: var(--radius-small); background: none; color: var(--muted);
-       font: var(--size-close)/19px -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; }
-.c-x.is-hover { background: var(--hover-strong); color: var(--text); }
 /* What @ or # offers, under the box, the one picked lit, with a word under it when there's more to say. */
 .c-list { margin-top: 6px; padding: 3px; border-radius: var(--radius-control); background: var(--field); }
 .c-lhead { padding: 3px 7px 4px; color: var(--faint); font-size: var(--size-meta); }

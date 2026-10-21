@@ -1,8 +1,9 @@
 #!/bin/bash
 # The checks that keep the core and the modules apart, and the page and the app in step. Each prints only what's
 # wrong, so there's no recorded output to keep up to date; exits 1 if anything is.
-#   - no function or constant in two of the page's scripts (they share one scope, so the later one would win);
-#   - every page function the app calls is there, every message the page sends has the one module that answers it, and
+#   - no function or constant in two of the page's scripts (they share one scope, so the later one would win), nor in
+#     two of a module's own page's (tools/page.sh --pages: the usage card's);
+#   - every page function the app calls is there, every message a page sends has the one module that answers it, and
 #     no print mode is claimed twice (Whozmove --print-routes);
 #   - no module imports another module's header, and the core imports none;
 #   - no class is styled on its own (`.name { … }`) by both the core and a module, or by two modules: each would
@@ -24,23 +25,38 @@ APP=$(built_app "$T") || exit 1
 HOME="$T" "$APP" --print-routes > "$T/routes.json" || { echo "Checks: Whozmove --print-routes failed"; exit 1; }
 tools/page.sh --scripts > "$T/scripts" || exit 1
 tools/page.sh --styles > "$T/styles" || exit 1
+# Each module's own page's too.
+tools/page.sh --pages > "$T/pages" || exit 1
+while read -r page; do
+  [ -n "$page" ] || continue
+  tools/page.sh --scripts "$page" > "$T/scripts.${page//\//.}" || exit 1
+  tools/page.sh --styles "$page" > "$T/styles.${page//\//.}" || exit 1
+done < "$T/pages"
 python3 -I - "$T" "${1:-}" <<'PY'
 import collections, json, os, re, sys
 T, update = sys.argv[1], sys.argv[2] == "--update"
 problems = []
 scripts = open(f"{T}/scripts").read().split()
+pages = {"the panel's page": scripts}
+styles = open(f"{T}/styles").read().split()
+for name in open(f"{T}/pages").read().split():
+    key = name.replace("/", ".")
+    pages["the %s page" % name] = open(f"{T}/scripts.{key}").read().split()
+    styles += [path for path in open(f"{T}/styles.{key}").read().split() if path not in styles]
 
-# The page's scripts share one scope.
-defined = {}
-for path in scripts:
-    text = open(path, encoding="utf-8").read()
-    for name in re.findall(r"^(?:async )?function ([\w$]+)|^(?:const|let|var|class) ([\w$]+)", text, re.M):
-        name = name[0] or name[1]
-        defined.setdefault(name, []).append(path)
-for name, where in sorted(defined.items()):
-    if len(where) > 1:
-        problems.append("%s is defined in %s" % (name, " and ".join(where)))
-page = "".join(open(path, encoding="utf-8").read() for path in scripts)
+# Each page's scripts share one scope.
+for scope in pages.values():
+    defined = {}
+    for path in scope:
+        text = open(path, encoding="utf-8").read()
+        for name in re.findall(r"^(?:async )?function ([\w$]+)|^(?:const|let|var|class) ([\w$]+)", text, re.M):
+            name = name[0] or name[1]
+            defined.setdefault(name, []).append(path)
+    for name, where in sorted(defined.items()):
+        if len(where) > 1:
+            problems.append("%s is defined in %s" % (name, " and ".join(where)))
+# What the pages say, together: a function the app calls, or a message, is in one of them.
+page = "".join(open(path, encoding="utf-8").read() for path in dict.fromkeys(p for s in pages.values() for p in s))
 
 def code(top):
     for folder, _, files in sorted(os.walk(top)):
@@ -118,7 +134,7 @@ def blocks(text, context=""):
         i = k
 
 written = collections.Counter()
-for path in open(f"{T}/styles").read().split():
+for path in styles:
     text = re.sub(r"/\*.*?\*/", "", open(path, encoding="utf-8").read(), flags=re.S)
     for selector, body in blocks(text):
         if selector == ":root":
@@ -150,7 +166,7 @@ def alone(selector):
     return selector[1:] if re.fullmatch(r"\.[\w-]+", selector) else None
 
 styled_alone = collections.defaultdict(dict)
-for path in open(f"{T}/styles").read().split():
+for path in styles:
     text = re.sub(r"/\*.*?\*/", "", open(path, encoding="utf-8").read(), flags=re.S)
     for selectors, _ in blocks(text):
         for selector in re.split(r",(?![^(]*\))", selectors):

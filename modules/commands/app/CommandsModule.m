@@ -27,19 +27,22 @@
 @end
 
 // A session's reach as the menus find it (Send's SessionReach, all as the sample home has it: whether an app keeps it
-// as a conversation, its first message, why keys can't go in now, the terminals' names), but for what can't be asked in
-// a test: its terminal and tab are a SampleTerminal's (none when `terminal` is nil), and Whozmove may control Claude,
-// never asked of macOS. A variant can say its first message is sent.
+// as a conversation, its first message, whether it's open twice, why keys can't go in now, the terminals' names), but
+// for what can't be asked in a test: its terminal and tab are a SampleTerminal's (none when `terminal` is nil), and
+// Whozmove may control Claude, never asked of macOS. A variant can say its first message is sent, or that it's open
+// elsewhere too, or in another terminal.
 @interface SampleReach : SessionReach
 @property (strong) SampleTerminal *sample;
 @property (assign) BOOL allowed;
-@property (strong) NSNumber *startedNow;
+@property (strong) NSNumber *startedNow, *openElsewhereNow, *openTwiceNow;
 @end
 
 @implementation SampleReach
 - (id<TypingHost>)typing { return self.desktop ? nil : self.sample; }
 - (BOOL)mayControl { return self.allowed; }
 - (BOOL)started { return self.startedNow ? self.startedNow.boolValue : super.started; }
+- (BOOL)openElsewhere { return self.openElsewhereNow ? self.openElsewhereNow.boolValue : super.openElsewhere; }
+- (BOOL)openTwice { return self.openTwiceNow ? self.openTwiceNow.boolValue : super.openTwice; }
 @end
 
 static SampleReach *SampleReachOf(Row *row, Core *core) {
@@ -89,10 +92,23 @@ static int PrintWhyNot(Core *core) {
     variant(@"s-clone", @"its tab not found", NO, ^(SampleReach *r) { r.sample.found = NO; });
     variant(@"s-clone", @"another tab like its own", NO, ^(SampleReach *r) { r.sample.unique = NO; });
     variant(@"s-clone", @"compacting already", YES, ^(SampleReach *r) {});
+    variant(@"s-clone", @"open in another terminal too", NO, ^(SampleReach *r) {
+        r.openElsewhereNow = r.openTwiceNow = @YES;
+    });
+    variant(@"s-clone", @"open in another terminal too, with no terminal the panel can type into", NO,
+            ^(SampleReach *r) {
+        r.sample = nil;
+        r.openElsewhereNow = r.openTwiceNow = @YES;
+    });
+    variant(@"s-clone", @"open in Claude Desktop too", NO, ^(SampleReach *r) { r.openElsewhereNow = @YES; });
     variant(@"s-desk", @"its first message sent", NO, ^(SampleReach *r) { r.startedNow = @YES; });
     variant(@"s-desk", @"its first message sent, Claude not allowed to be controlled", NO, ^(SampleReach *r) {
         r.startedNow = @YES;
         r.allowed = NO;
+    });
+    variant(@"s-desk", @"its first message sent, open in a terminal too", NO, ^(SampleReach *r) {
+        r.startedNow = @YES;
+        r.openElsewhereNow = @YES;
     });
     return PrintJSON(out);
 }

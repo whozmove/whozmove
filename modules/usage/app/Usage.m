@@ -1,9 +1,9 @@
-// Usage: how much of your Claude plan you've used, in the five-hour session and the week, for the strip at the bottom
-// of the panel: asked of the agent (AgentUsage; Claude Code's module asks the `claude` command) every few minutes, and
-// its Sign in.
+// Usage: how much of your Claude plan you've used, in the five-hour session and the week, for the usage card under the
+// panel: asked of the agent (AgentUsage; Claude Code's module asks the `claude` command) every few minutes, and its Sign
+// in.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Usage.h"
-#import "Page.h"
+#import "UsageCard.h"
 #import "PanelWindow.h"
 #import "Files.h"
 #import "Log.h"
@@ -16,7 +16,7 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
 
 
 @interface Usage ()
-@property (strong) Page *page;
+@property (strong) UsageCard *card;
 @property (strong) PanelWindow *window;
 @property (strong) id<AgentUsage> agent;
 @property (strong) dispatch_queue_t queue;
@@ -25,16 +25,16 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
 @property (assign) NSTimeInterval retryAfter;      // while asking fails, how long until it's asked again
 @property (assign) NSTimeInterval signingInUntil;  // after Sign in, asked often until then
 @property (assign) BOOL asleep;                    // the screens are
-@property (copy) NSDictionary *known;              // what the page has, or gets once it loads
+@property (copy) NSDictionary *known;              // what the card's page has, or gets once it loads
 @property (copy) NSString *signIn;                 // the command that signs in the agent that answered
 @property (copy) NSString *lastState;              // for the log, which says only what changed
 @end
 
 @implementation Usage
 
-- (instancetype)initWithPage:(Page *)page window:(PanelWindow *)window agent:(id<AgentUsage>)agent {
+- (instancetype)initWithCard:(UsageCard *)card window:(PanelWindow *)window agent:(id<AgentUsage>)agent {
     if (!(self = [super init])) return nil;
-    self.page = page;
+    self.card = card;
     self.window = window;
     self.agent = agent;
     self.queue = dispatch_queue_create("whozmove.usage", DISPATCH_QUEUE_SERIAL);
@@ -74,10 +74,10 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
 }
 
 - (void)resend {
-    if (self.known) [self.page call:@"setUsage" with:@[self.known]];
+    if (self.known) [self.card call:@"setUsage" with:@[self.known]];
 }
 
-// On the main thread: what was found goes to the page, and when to ask next is worked out.
+// On the main thread: what was found goes to the card's page, and when to ask next is worked out.
 - (void)took:(NSDictionary *)found {
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
     NSString *state = found[@"state"];
@@ -86,7 +86,7 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
         self.lastState = state;
     }
     if ([state isEqual:@"failed"]) {
-        // What was known stays on the strip (its times keep counting); nothing new is said.
+        // What was known stays on the card (its times keep counting); nothing new is said.
         self.retryAfter = self.retryAfter ? MIN(self.retryAfter * 2, kSlowest) : kFirstRetry;
         self.nextAt = now + self.retryAfter;
     } else {
@@ -96,7 +96,7 @@ static const NSTimeInterval kEvery = 180, kAfterReset = 20, kSignInEvery = 15, k
         [usage removeObjectForKey:@"signIn"];
         usage[@"checkedAt"] = @(now * 1000);
         self.known = usage;
-        if (self.page.ready) [self.page call:@"setUsage" with:@[usage]];
+        if (self.card.ready) [self.card call:@"setUsage" with:@[usage]];
         self.nextAt = now + ([state isEqual:@"none"] ? kNoClaudeAgain : kEvery);
         for (NSString *window in @[@"session", @"week"]) {
             NSTimeInterval resetsAt = [usage[window][@"resetsAt"] doubleValue] / 1000;

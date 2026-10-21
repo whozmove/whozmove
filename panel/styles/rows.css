@@ -76,6 +76,9 @@
 .where .branch { min-width: 34px; }
 .where .branch:not(.wt) { color: rgba(255, 255, 255, 0.7); }
 .where .branch:not(.wt) svg { vertical-align: -1px; margin-right: 3px; }
+/* A conversation open more than once (openTimes), in the colour of something to put right. Pointed at, its card says
+   where else (twiceCardHTML). */
+.where .twice { flex: none; color: var(--needs-text); }
 /* A worktree, wherever it shows (worktreeChip): its icon and name on a chip in the worktree colours. Short of room,
    the name gives way. */
 .wt { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px; border-radius: var(--radius-tag);

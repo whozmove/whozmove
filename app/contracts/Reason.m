@@ -23,6 +23,8 @@
     switch (self.kind) {
         case ReasonSessionGone: return @"session not found";
         case ReasonRequestWaiting: return @"a request is waiting for an answer";
+        case ReasonOpenTwice: return @"session is open more than once";
+        case ReasonPaused: return @"session is paused";
         default: return [NSString stringWithFormat:@"session is %@", _status ?: @"not idle"];
     }
 }
@@ -32,6 +34,8 @@
         case ReasonWorking: return @"Claude is working: compact it when it's done";
         case ReasonAsking:
         case ReasonRequestWaiting: return @"Claude is waiting for your answer";
+        case ReasonOpenTwice: return @"It's open more than once: close all but one first";
+        case ReasonPaused: return @"It's paused in its terminal: bring it back with fg first";
         default: return @"This session isn't running";
     }
 }

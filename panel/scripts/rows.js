@@ -58,11 +58,11 @@ function chatHTML(s, kind, now) {
 }
 
 // The details, on two lines: where the session runs (its app, hostOf; its project, unless grouped by project;
-// branch, a worktree's in its colour), ending in what a module puts there (the session's own numbers); and how its
-// agent is set up (the modules' setup line: its model, effort and mode, and its context ring). Between them, what the
-// modules put under the first line (the island), and a short line when there's something to say (stepLine). A session
-// outside git, grouped by project, has nothing else to say on the first line, so its Desktop/Terminal icon heads the
-// second.
+// branch, a worktree's in its colour; and that it's open twice, when it is), ending in what a module puts there (the
+// session's own numbers); and how its agent is set up (the modules' setup line: its model, effort and mode, and its
+// context ring). Between them, what the modules put under the first line (the island), and a short line when there's
+// something to say (stepLine). A session outside git, grouped by project, has nothing else to say on the first line, so
+// its Desktop/Terminal icon heads the second.
 function metaHTML(row) {
   const { s } = row;
   const end = slot('end', row);
@@ -74,6 +74,7 @@ function metaHTML(row) {
   const where = [];
   if (state.groupBy !== 'project') where.push(`<span class="proj">${esc(projectOf(s).name)}</span>`);
   if (g) where.push(g.worktree ? worktreeChip(branch, 'branch') : `<span class="branch">${BRANCH_ICON}${esc(branch)}</span>`);
+  if (s.alsoOpen?.length) where.push(`<span class="twice" data-sid="${esc(s.sessionId)}">${openTimes(s)}</span>`);
   const host = hostOf(s);
   const tip = [s.cwd, g && `branch ${branch}`, g?.worktree && `worktree ${g.worktree} of ${g.worktreeOf}`,
                host.name].filter(Boolean).join('\n');
@@ -83,6 +84,60 @@ function metaHTML(row) {
   return `<div class="where" title="${esc(tip)}">${icon}${where.join('<span class="sep">·</span>')}${end}</div>`
     + under + noteHTML + (setup ? `<div class="setup">${setup}</div>` : '');
 }
+
+// A conversation open in more than one process at once (s.alsoOpen: resumed in a second tab while it still ran, or open
+// in Claude Desktop and a terminal), as its details line says it.
+function openTimes(s) {
+  const times = s.alsoOpen.length + 1;
+  return times === 2 ? 'open twice' : `open ${times} times`;
+}
+
+// What "open twice" says when pointed at: where else the conversation is open, and what that means. Each copy knows
+// only what was said in it since the second opened. Nothing goes into a terminal's copy from the panel while another
+// runs in a terminal, where a key could land in the other's tab; with the other in an app of its own (Claude Desktop),
+// only its mode can't be changed, as the copies share one record of it. One paused in its terminal (Ctrl+Z), maybe in
+// the very tab the row's copy runs in, takes nothing, but brought back it would carry on from where it stopped. The
+// other copies in terminals can be closed from the card, the one the row follows staying, but not while one works (the
+// app checks again, and that none asks anything); one paused, or in Claude Desktop, is closed where it is.
+function twiceCardHTML(s) {
+  const own = hostOf(s), running = s.alsoOpen.filter((copy) => !copy.paused);
+  const apps = [...new Set(running.map(hostOf).filter((host) => host !== TERMINAL_HOST).map((host) => host.name))];
+  const tabs = running.filter((copy) => hostOf(copy) === TERMINAL_HOST).length;
+  const other = own === TERMINAL_HOST;
+  if (tabs > 1) apps.push(`${tabs} ${other ? 'other ' : ''}terminal tabs`);
+  else if (tabs) apps.push(`${other ? 'another' : 'a'} terminal tab`);
+  const paused = s.alsoOpen.length - running.length;
+  const where = [apps.length && `open in ${apps.join(' and ')}`,
+                 paused && `paused in ${paused > 1 ? `${paused} terminals` : 'a terminal'}`].filter(Boolean);
+  const knows = 'Each copy knows only what was said in it since the second one opened';
+  const help = !running.length
+    ? "Brought back with fg, it would carry on without what's been said here since: close it when you can."
+    : other && tabs ? `${knows}. The panel types nothing into it while another copy runs in a terminal.`
+    : other ? `${knows}, so its mode can't be told here: change it in the terminal.`
+    : `${knows}.`;
+  const working = running.some((copy) => hostOf(copy) === TERMINAL_HOST && copy.busy);
+  const close = tabs
+    ? `<div class="st-steps"><button class="st-step" data-act="close"${working ? ' disabled' : ''}>Close the other `
+      + `${tabs > 1 ? 'copies' : 'copy'}</button></div>`
+      + (working ? `<div class="st-wait">Claude is working there: close it when it's done</div>` : '')
+    : '';
+  const times = openTimes(s);
+  return `<div class="tw-head">${times[0].toUpperCase() + times.slice(1)}</div>
+    <div class="tw-where">Also ${esc(where.join(', and '))}</div>
+    <div class="tw-help">${esc(help)}</div>${close}`;
+}
+
+core.cards.push({
+  selector: '.twice[data-sid]',
+  key: (twice) => 'twice:' + twice.dataset.sid,
+  html(twice) {
+    const s = state.last.sessions.find((x) => x.sessionId === twice.dataset.sid);
+    return s?.alsoOpen?.length ? twiceCardHTML(s) : '';
+  },
+  press(key, act) {
+    if (act === 'close') native({ type: 'closeCopy', sessionId: key.slice('twice:'.length) });
+  },
+});
 
 // The line under the details, { text, quiet } or null: how a step from a row's menus went, or why it couldn't (or why
 // a deploy couldn't start, or its command wasn't saved), for 8s; else what a module has to say there (the folder's

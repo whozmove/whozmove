@@ -15,6 +15,7 @@ NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there) {
     if (!reach.terminal)
         return [NSString stringWithFormat:@"Only sessions running in %@ can be %@", reach.terminals, here];
     if (!reach.hasTab) return [NSString stringWithFormat:@"Couldn't find this session's %@ tab", reach.terminal];
+    if (reach.openTwice) return [Reason kind:ReasonOpenTwice].onCard;
     if (!reach.unique) return [NSString stringWithFormat:@"Another tab in this folder looks the same: %@", there];
     return nil;
 }
@@ -63,6 +64,20 @@ NSString *WhyNoAsk(id<Reach> reach) {
 - (BOOL)started {
     if (!_started) _started = @([[_send agentOf:_row] hasStarted:_row.sessionId]);
     return _started.boolValue;
+}
+
+- (BOOL)openElsewhere {
+    for (NSDictionary *copy in _row.alsoOpen)
+        if (![copy[@"paused"] boolValue]) return YES;
+    return NO;
+}
+
+// A copy that no app keeps as a conversation of its own runs in a terminal.
+- (BOOL)openTwice {
+    if (self.desktop) return NO;
+    for (NSDictionary *copy in _row.alsoOpen)
+        if (![copy[@"paused"] boolValue] && ![_send conversationHostOf:[[Row alloc] initWithFields:copy]]) return YES;
+    return NO;
 }
 
 - (id<TypingHost>)typing {

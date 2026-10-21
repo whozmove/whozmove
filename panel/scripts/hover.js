@@ -6,11 +6,13 @@
 // Neither :hover nor mouse events are used: the panel is rarely the focused window, so WebKit's own hover goes
 // stale, and the list is rebuilt every second.
 const HOVER_TARGETS = ['.row', '.chev', '.group.toggle', '.project', '.perm button', '.opt', '.q-close',
-                       '#reader button'];
+                       '#reader button', '#card button'];
 
 // The card shown while something is pointed at, below it. The modules say what has one (core.cards): each { selector,
 // key(anchor), html(anchor) }, the key saying what the card is about ("pr:<url>"), or null when it shows none now (a
-// session's numbers have none while the reader is open), and the HTML empty when what it's about has gone.
+// session's numbers have none while the reader is open), and the HTML empty when what it's about has gone. One with
+// press(key, act) has buttons (data-act): it stays while the pointer is on what it's about or on the card, which then
+// takes the pointer, and a press on one of them is passed on, unless the card has only just been drawn.
 const card = document.getElementById('card');
 const cardMaker = (anchor) => core.cards.find((c) => anchor.matches(c.selector));
 function cardAnchor(el) {
@@ -25,23 +27,37 @@ function placeCard(anchor) {
   const r = anchor.getBoundingClientRect();
   const h = card.offsetHeight;
   let top = r.bottom + 4;
-  if (top + h + 8 > state.panelMax) top = Math.max(6, r.top - h - 4);
+  const above = top + h + 8 > state.panelMax;
+  if (above) top = Math.max(6, r.top - h - 4);
+  card.classList.toggle('above', above);
   card.style.top = top + 'px';
   state.cardBottom = Math.ceil(top + h + 8);
 }
 
-function showCard(key) {
-  const anchor = cardUnderPointer();
+function showCard(key, anchor = cardUnderPointer()) {
   if (!anchor || cardKey(anchor) !== key) return;
-  const html = cardMaker(anchor).html(anchor);
-  if (!html) return;
+  const maker = cardMaker(anchor), html = maker.html(anchor);
+  if (!html) { hideCard(); return; }
   // The same card, pointed at still, is drawn again only when what it says has changed (its row's numbers, say).
   const redraw = state.cardKey !== key || state.cardHTML !== html;
-  if (redraw) card.innerHTML = state.cardHTML = html;
+  if (redraw) {
+    card.innerHTML = state.cardHTML = html;
+    state.shownAt['card:' + key] = Date.now();
+  }
   state.cardKey = key;
+  state.cardPress = maker.press || null;
+  card.classList.toggle('takes', !!maker.press);
   card.hidden = false;
   placeCard(anchor);
   if (redraw) reportHeight();
+}
+
+// What a card that takes the pointer is about, while the pointer is on the card: the list is drawn again every second,
+// so it's found again by its key.
+function anchorOf(key) {
+  for (const maker of core.cards)
+    for (const anchor of document.querySelectorAll(maker.selector)) if (maker.key(anchor) === key) return anchor;
+  return null;
 }
 
 // The card goes at once. Where it reached below the list, the panel keeps that room a moment longer, so a pointer moving
@@ -49,6 +65,7 @@ function showCard(key) {
 function hideCard() {
   if (!state.cardKey) return;
   state.cardKey = null;
+  state.cardPress = null;
   card.hidden = true;
   state.cardHeld = { bottom: state.cardBottom, until: performance.now() + 400 };
   setTimeout(reportHeight, 420);
@@ -75,12 +92,23 @@ function syncHover() {
   // What the modules do with what it's on: the island's gauge opening, its commits stage's card, the context ring
   // widening, the changes asked for ahead of a press.
   for (const watch of core.pointerWatchers) watch(el);
+  if (state.cardPress && el?.closest('#card')) { showCard(state.cardKey, anchorOf(state.cardKey)); return; }
   const key = cardKey(cardAnchor(el));
   if (key && key === state.cardKey) { showCard(key); return; }
   // At once, both ways: the card is up as soon as what it's about is pointed at, and gone as soon as it isn't.
   if (key) showCard(key);
   else hideCard();
 }
+
+// A button on a card that takes the pointer.
+card.addEventListener('mousedown', (e) => {
+  const button = e.target.closest('button[data-act]'), key = state.cardKey, press = state.cardPress;
+  if (e.button !== 0 || !button || button.disabled || !press) return;
+  e.preventDefault();
+  if (justShown('card:' + key)) return;
+  press(key, button.dataset.act);
+  hideCard();
+});
 
 function pointerAt(x, y) { state.pointer = { x, y }; syncHover(); }
 function pointerGone() { state.pointer = null; syncHover(); }

@@ -24,6 +24,11 @@
         pointer-events: none; padding: 10px 12px 11px; border-radius: var(--radius-card); background: var(--card);
         border: 1px solid var(--edge); box-shadow: var(--card-shadow); }
 #card[hidden] { display: none; }
+/* A card with buttons (one whose maker can press) takes the pointer, so they can be pressed, and the gap between it and
+   what it's about counts as the card, so the pointer can go from one to the other without it closing on the way. */
+#card.takes { pointer-events: auto; }
+#card.takes::before { content: ''; position: absolute; left: 0; right: 0; top: -5px; height: 5px; }
+#card.takes.above::before { top: auto; bottom: -5px; }
 /* The files of a part of the island's gauge (filesHTML), while the part or the list itself is pointed at. Unlike the
    PR card it takes the pointer, so its list can be scrolled; folded away, it takes nothing. */
 #files { position: fixed; top: 0; left: calc(var(--side) + 10px); width: 216px; z-index: 11; padding: 9px 0 6px;
@@ -78,6 +83,13 @@
 .c-foot { display: flex; align-items: center; gap: 6px; font-size: var(--size-small); color: var(--muted); }
 .c-foot .avatar { width: 16px; height: 16px; border-radius: var(--radius-circle); background: rgba(255, 255, 255, 0.12); }
 .c-stats { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+/* The card a row's "open twice" shows (twiceCardHTML): how many times, where else, and what that means. */
+.tw-head { font-size: var(--size-body); font-weight: 600; color: var(--text); }
+.tw-where { margin-top: 2px; font-size: var(--size-card); color: var(--needs-text); }
+.tw-help { margin-top: 7px; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
+/* Its step, as the commits stage's card has them, its words lined up with the card's. */
+#card .st-steps { margin: 8px -7px -4px; padding: 5px 0 0; }
+#card .st-wait { padding: 4px 0 0; }
 .c-diff { font-weight: 600; font-variant-numeric: tabular-nums; }
 .c-diff .add { color: var(--added); }
 .c-diff .del { color: var(--removed); }

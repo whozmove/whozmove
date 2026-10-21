@@ -1,6 +1,6 @@
-// The strips under the list (the usage strip, Spotify's now-playing strip): changing a strip's text, and easing it to a
-// new height, growing it in and folding it away, the panel's bottom edge going with it. Plain helpers on the motion
-// engine (morph.js), for any strip.
+// The strips under the list (Spotify's now-playing strip): changing a strip's text, and easing it to a new height,
+// growing it in and folding it away, the panel's bottom edge going with it. Plain helpers on the motion engine
+// (morph.js), for any strip.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // A strip's text, set only when it changes, so nothing is laid out again for nothing.

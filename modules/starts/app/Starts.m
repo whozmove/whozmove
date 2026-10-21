@@ -275,8 +275,13 @@ static NSString *Folder(id value) {
     start.at = NSDate.date.timeIntervalSince1970;
     start.until = start.at + kStartWait;
     NSMutableSet *known = [NSMutableSet set];
-    for (Row *row in self.rows)
-        if (row.hostSessionId && [RealPath(row.cwd ?: @"") isEqual:start.folder]) [known addObject:row.hostSessionId];
+    // A conversation open in Claude Desktop and a terminal is known by its Claude copy too, whichever its row shows.
+    for (Row *row in self.rows) {
+        if (![RealPath(row.cwd ?: @"") isEqual:start.folder]) continue;
+        if (row.hostSessionId) [known addObject:row.hostSessionId];
+        for (NSDictionary *copy in row.alsoOpen)
+            if (AsText(copy[@"hostSessionId"])) [known addObject:copy[@"hostSessionId"]];
+    }
     start.known = known;
     self.waiting[startId] = start;
     PanelLog(@"start %@: %@ in %@%@%@", startId, app, folder, trust ? @", trusting it" : @"",

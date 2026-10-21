@@ -1,15 +1,18 @@
-// UsageModule: the usage strip's face for the core (Module): your plan's usage asked of the agent when a check is due,
-// the strip's Sign in, and Working on Whozmove's Preview the Wait.
+// UsageModule: the usage card's face for the core (Module): your plan's usage asked of the agent when a check is due,
+// the card behind the panel that shows it, its Sign in, and Working on Whozmove's Preview the Wait.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 #import "Module.h"
 #import "Core.h"
-#import "Page.h"
+#import "PanelWindow.h"
 #import "Usage.h"
+#import "UsageCard.h"
 
 @interface UsageModule : NSObject <Module>
 @property (weak) Core *core;
 @property (strong) Usage *usage;  // made as the app starts: it watches the screens sleep and wake
+@property (strong) UsageCard *card;
+@property (copy) NSDictionary<NSString *, void (^)(NSDictionary *)> *answers;  // its page's messages, by type
 @end
 
 @implementation UsageModule
@@ -24,9 +27,24 @@
     return self;
 }
 
+// The card is held by the panel, over its shadow, following the glass and the pointer. Its page has a bridge of its own: what it
+// says is answered here, as the panel's page's messages would be, and once it has loaded it's told what's known.
 - (void)launch {
-    self.usage = [[Usage alloc] initWithPage:self.core.page window:self.core.window
+    self.card = [UsageCard new];
+    self.usage = [[Usage alloc] initWithCard:self.card window:self.core.window
                                        agent:[self.core agentsThat:@protocol(AgentUsage)].firstObject];
+    [self.core.window attachAbove:self.card.window];
+    __weak typeof(self) weakSelf = self;
+    [self.core.window followGlass:^(NSRect glass, NSRect list, NSRect screen, NSTimeInterval duration) {
+        [weakSelf.card glassAt:glass list:list duration:duration];
+    }];
+    [self.core.window followPointer:^(NSPoint point) { [weakSelf.card pointerAt:point]; }];
+    self.answers = [self messages];
+    self.card.onMessage = ^(NSString *type, NSDictionary *message) {
+        void (^answer)(NSDictionary *) = weakSelf.answers[type];
+        if (answer) answer(message);
+    };
+    self.card.onLoad = ^{ [weakSelf.usage resend]; };
 }
 
 // The time is compared on every tick, so a Mac that slept through a check asks as it wakes.
@@ -34,10 +52,7 @@
     [self.usage pollIfDue];
 }
 
-- (void)pageLoaded {
-    [self.usage resend];
-}
-
+// The card's page's messages (page/card.js).
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
     __weak typeof(self) weakSelf = self;
     return @{
@@ -51,10 +66,12 @@
                 }
             [weakSelf.usage signInWith:terminal];
         },
+        // Whether there's a card, and how much of it shows under the panel's edge.
+        @"usageCard": ^(NSDictionary *msg) { [weakSelf.card took:msg]; },
     };
 }
 
-// The wait the strip shows at the session limit, and its reset, played now: to try it without a limit.
+// The wait the card shows at the session limit, and its reset, played now: to try it without a limit.
 - (NSArray<MenuEntry *> *)menuEntries {
     NSMenuItem *preview = [[NSMenuItem alloc] initWithTitle:@"Preview the Wait" action:@selector(previewWait)
                                               keyEquivalent:@""];
@@ -63,7 +80,7 @@
 }
 
 - (void)previewWait {
-    [self.core.page call:@"previewWait" with:@[]];
+    [self.card call:@"previewWait" with:@[]];
 }
 
 @end

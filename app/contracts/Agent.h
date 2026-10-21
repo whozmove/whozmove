@@ -23,6 +23,10 @@
 // The title it gives a session, which it also puts in the session's terminal tab (Claude Code's topic), or nil: as the
 // last read of the rows found it, or, `now`, read again. A terminal finds a session's tab by it.
 - (NSString *)titleOf:(Row *)row now:(BOOL)now;
+// Whether a terminal tab's whole title, as the agent put it there, says it's at work in that tab (Claude Code turns a
+// mark before its topic while it works). Two tabs with the same title, the same conversation open twice, are told
+// apart by it.
+- (BOOL)titleShowsWork:(NSString *)title;
 // The marks it puts on the commands its sessions run, as the names of environment variables. A command you set off from
 // the panel (an extra stage's, say) is yours, so they're taken off it.
 @property (readonly) NSArray<NSString *> *environmentMarks;

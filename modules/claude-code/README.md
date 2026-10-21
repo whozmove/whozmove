@@ -16,7 +16,9 @@ hooks plugin.
   details, with a pick from the panel the session hasn't confirmed yet; and once the rows are whole, it forgets the
   launch flags of sessions that have ended.
 - `app/ClaudeSessions.m`: the running sessions, from Claude Code's registry (leaving out its own usage check), and what
-  the hooks recorded of each.
+  the hooks recorded of each. A conversation running in more than one process at once (resumed in a second tab while
+  it still runs, or open in Claude Desktop and a terminal) is one row: the copy that needs you most, else the one it
+  followed already, naming the others, which its card can close.
 - `app/Transcripts.m`: what's new in each listed session's transcript, read a little at a time on a queue of its own:
   PR links, the context in use, the mode, when it last moved, its topic (which Claude Code also puts in its terminal
   tab's title); and through `Writings.m` and `Edits.m`, what it wrote for you to read and what it edited, its
@@ -35,7 +37,9 @@ hooks plugin.
 - `app/ClaudeUsage.m`: your plan's usage, asked of `claude` itself, run for a moment in a folder of its own, and the
   command that signs it in. How often it's asked, the strip and its Sign in are the usage module's.
 - `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things, its
-  command and what it's run with, and the model, effort and mode choices. When Claude
+  command and what it's run with, the marks its tab titles show while it works, how its registry marks a session run
+  from a terminal, and the model, effort and mode
+  choices. When Claude
   Code changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
 - `app/ClaudeCodePrints.m`: its print modes, for the tests.
 - `page/agent.js`: what a session's model, mode and context mean (`core.agent`); `page/requests.js`: a request, its
@@ -56,15 +60,22 @@ Code's answers (`--print-usage`), and folder trust (`--print-trust`).
 
 - The page sends `answerAsk` (`{id, allow, answers, message, stop}`: allow once or deny; a question's answers; a plan
   sent back with your notes, or stopped), which the permission hook passes on, and `readWriting` (`{sessionId, id}`),
-  which the app answers with the reader's `showWriting(sid, id, {text} or {missing})`.
+  which the app answers with the reader's `showWriting(sid, id, {text} or {missing})`, and `closeCopy` (`{sessionId}`,
+  from an "open twice" card), which closes the conversation's other copies in terminals, the row's note saying how it
+  went.
 
 ## Rules
 
 - A request is only ever allowed once, never "always allow", and a plan is never allowed from the panel (Claude Code
   ignores a hook's approval of one): it's sent back with your notes, or stopped.
-- Keys go into a session's prompt only while it sits idle at its prompt with no request waiting (`WhyNotTypeInto`). The
+- Keys go into a session's prompt only while it sits idle at its prompt with no request waiting (`WhyNotTypeInto`),
+  never while it's paused in its terminal, where they'd go to the shell, and never while its conversation runs in
+  another terminal too, where a key could land in the other copy; a registry file that can't be read counts as one. The
   one key that goes in while Claude works is the Backspace that takes out the filler a request left
-  (`WhyNotEditDraft`).
+  (`WhyNotEditDraft`), into the tab the request went into.
+- A copy of a conversation is closed only from its "open twice" card, only in a terminal (never Claude Desktop's, nor
+  one paused), only while every copy to close sits idle and no request waits, and only by its own process as the
+  registry lists it then, told to quit as closing its tab would (`CloseOtherCopies`); the copy the row follows stays.
 - Claude Code's settings hold secrets: they're read with a JSON parser, key by key, and never logged, and written only
   to put back the `/model` and `/effort` defaults, key by key, through JavaScriptCore's JSON so the rest stays as Claude
   Code wrote it. Its state file holds your account: only a folder's trust is read from it, and written only for a

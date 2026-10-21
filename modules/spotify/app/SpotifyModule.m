@@ -191,7 +191,10 @@ static int PrintSpotify(NSArray<NSString *> *files) {
     __weak typeof(self) weakSelf = self;
     return @{@"spotify": ^(NSDictionary *msg) {
         if ([msg[@"action"] isEqual:@"collapsed"]) {
-            weakSelf.spotify.collapsed = [msg[@"on"] boolValue];
+            BOOL on = [msg[@"on"] boolValue];
+            // Opening out of the cat, the token waits under the glass until the panel has opened.
+            if (!on && weakSelf.spotify.collapsed) [weakSelf.token panelOpening];
+            weakSelf.spotify.collapsed = on;
         } else if ([msg[@"action"] isEqual:@"folded"]) {
             [weakSelf.spotify refreshToken];  // a song paused long enough leaves the strip now, not at the next look
             [weakSelf.token stripFolded];

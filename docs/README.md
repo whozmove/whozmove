@@ -36,6 +36,6 @@ between the page and the app, and its rules.
 | [changes](../modules/changes/README.md) | what a session changed, line by line: a row's numbers and the changes view |
 | [reader](../modules/reader/README.md) | what a session wrote for you to read: its plans, prototypes and notes |
 | [commands](../modules/commands/README.md) | a session's model, effort and mode changed from its row, and Compact |
-| [usage](../modules/usage/README.md) | your plan's usage, in the strip at the bottom of the panel |
+| [usage](../modules/usage/README.md) | your plan's usage, on a card under the panel |
 | [starts](../modules/starts/README.md) | new conversations from the panel's card, and ⌃⌥N |
 | [spotify](../modules/spotify/README.md) | the song Spotify is playing, in its strip, its lyrics, and Spotify's token |

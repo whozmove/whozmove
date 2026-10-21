@@ -282,8 +282,8 @@ function morph(list, html) {
     tween(row, from, to, () => { row.style.overflow = ''; row.classList.remove('glide'); }, ms);
     changed = true;
   }
-  // The list's own box eases between its heights with the rows, so what's below it (the usage strip) and the panel's
-  // bottom edge move with them, rather than jumping to where they end up while the rows are still on their way.
+  // The list's own box eases between its heights with the rows, so what's below it (the now-playing strip) and the
+  // panel's bottom edge move with them, rather than jumping to where they end up while the rows are still on their way.
   if (Math.abs(height - wasHeight) > 1) {
     listResize = list.animate([{ height: `${wasHeight}px` }, { height: `${height}px` }],
                               { duration: MORPH_MS, easing: MORPH_EASE });
@@ -299,8 +299,8 @@ function morph(list, html) {
   }
 }
 
-// Keeps the panel's window the height of its page, frame by frame, for `ms`: for motion outside the list (the usage
-// strip's), which changes the page's height as it goes.
+// Keeps the panel's window the height of its page, frame by frame, for `ms`: for motion outside the list (a strip's
+// under it), which changes the page's height as it goes.
 function followHeight(ms) {
   const until = performance.now() + ms;
   (function follow() {

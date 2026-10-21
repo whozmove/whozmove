@@ -61,7 +61,8 @@ page's, kept with its own.
 - The page sends `spotify`: a press on the now-playing strip, `{action, fraction}`, where `action` is `playpause`,
   `next`, `previous`, `seek`, `open` (also the lyrics' Open Spotify) or `settings`; `lyrics`, `{on}`, your answer about
   lyrics; `folded`, once the strip has folded away, so the token comes out only then; and `collapsed`, `{on}`, whether
-  the panel is folded into the cat, when neither the strip nor the token shows.
+  the panel is folded into the cat, when neither the strip nor the token shows (opening, the token comes out once the
+  panel has opened).
 - The app calls `setNowPlaying(song)`: `{track, title, artist, album, durationMs, positionMs, at, playing,
   pausedSince, artUrl, allowed}`, or null, where `positionMs` was right at `at`.
 - The app calls `setLyrics(lyrics)`: `{state}`, `ask` until you've answered, `off`, or `on` with nothing playing; for
@@ -92,7 +93,8 @@ leeway) it waits a moment, then the panel takes it in under the glass at one cor
 the other, going a little past where it rests and settling back, once. Near the pointer it leans out and slides along
 the edge to meet it, each frame closing a share of the way, so it eases and follows smoothly. Pressed, it squashes and
 goes under the glass before Spotify is asked to play, so it's gone before the strip grows; paused for 15 minutes, the
-strip folds first and tells the app (`folded`), and only then does the token come out.
+strip folds first and tells the app (`folded`), and only then does the token come out. Opening out of the cat, it
+waits under the glass until the panel has opened, then comes out with that same small bounce.
 
 ## How the lines move
 

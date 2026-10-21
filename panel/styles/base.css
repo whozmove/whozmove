@@ -62,13 +62,13 @@ body.collapsed header, body.collapsed #list, body.collapsed #dock { opacity: 0; 
                 display: grid; place-items: center; color: var(--muted); }
 .project .add.is-hover { background: var(--hover); color: var(--text); }
 
-/* The panel is at most 640pt tall (kMaxHeight); the list takes what the header, a new conversation's card under it
-   and the strips under the list leave, and scrolls. A new conversation moves from its card down to its row over the
-   list, on a layer of its own (#flight), and never crosses the strips. */
-#root { position: relative; max-height: 640px; display: flex; flex-direction: column; margin-left: var(--side);
-        width: var(--column); }
-#list { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 6px 6px;
-        border-top: 1px solid var(--rule); }
+/* The header and the list are at most 640pt tall together: the list takes what the header leaves, and scrolls. A new
+   conversation's card under the header and the strips under the list come on top of that, and the panel grows to fit
+   them, down to where the screen ends (setRoom), where the list gives way. A new conversation moves from its card down
+   to its row over the list, on a layer of its own (#flight), and never crosses the strips. */
+#root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); width: var(--column); }
+#list { position: relative; flex: 1 1 auto; min-height: 0; max-height: calc(640px - var(--header)); overflow-y: auto;
+        padding: 0 6px 6px; border-top: 1px solid var(--rule); }
 #list::-webkit-scrollbar { width: 0; }
 
 .group { padding: 8px 8px 3px; font-size: var(--size-tag); font-weight: 600; letter-spacing: .06em;

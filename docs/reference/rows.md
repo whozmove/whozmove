@@ -13,7 +13,11 @@ Code lists that run in its registry like any session; it runs in a folder kept f
 
 ## From Claude Code's registry
 
-`~/.claude/sessions/<pid>.json`: one file per running session, written by Claude Code.
+`~/.claude/sessions/<pid>.json`: one file per running session, written by Claude Code. A conversation can run in more
+than one process at once: resumed in a second tab while it still runs, or open in Claude Desktop and a terminal. It's
+still one row, whose fields here are those of the copy that needs you most: one asking you something, then one at
+work, and otherwise the one the row followed already (when the row is new, the one whose state changed last, then the
+one started last). One paused in its terminal (Ctrl+Z) never speaks for it while another runs.
 
 | Field | What it is |
 |---|---|
@@ -26,6 +30,7 @@ Code lists that run in its registry like any session; it runs in a folder kept f
 | `entrypoint` | `cli` for a terminal, `claude-desktop` for Claude Desktop |
 | `status` | `idle`, `busy` or `waiting` (asking something); `closed` for a conversation with no process |
 | `statusUpdatedAt` | when the status last changed |
+| `alsoOpen` | the conversation's other copies, when it runs in more than one process: each `{entrypoint, paused, busy, hostSessionId}`, `paused` for one stopped in its terminal, `busy` for one at work, and `hostSessionId` for one in Claude Desktop |
 
 ## From Claude Desktop
 

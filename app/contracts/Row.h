@@ -14,6 +14,11 @@
 @property (copy) NSString *sessionId, *hostSessionId, *cwd, *name, *entrypoint, *status, *procStart;
 @property (assign) pid_t pid;
 @property (strong) NSNumber *statusUpdatedAt;
+// The conversation's other copies, when it's open more than once (resumed in a second tab while it still runs, or open
+// in Claude Desktop and a terminal): each {entrypoint, paused, busy, hostSessionId}, `paused` for one stopped in its
+// terminal (Ctrl+Z), `busy` for one at work, and Claude Desktop's id for one there. The row is the copy that needs you
+// most; these are the rest.
+@property (copy) NSArray<NSDictionary *> *alsoOpen;
 
 // What the app that keeps the conversation knows of it (Claude Desktop's own record): when it last did something and
 // was last looked at.
