@@ -38,6 +38,8 @@ ended one's, and its hooks plugin.
 - `app/Prompt.m`: typing a command into a session's prompt through its terminal, keeping your draft (Ctrl+S stashes
   it, and Claude Code puts it back), and when keys may go in at all.
 - `app/Asks.m`: the requests the permission hook leaves for the panel, and the answers given there.
+- `app/Switches.m`: a model switch the panel makes, noted for the permission hook's PreModelSwitch part, its
+  question while it waits for the panel, and the answer given there.
 - `app/SettingsFile.m`: putting back the defaults `/model` and `/effort` save, key by key.
 - `app/Trust.m`: whether Claude may work in a folder, and recording your yes, where Claude Code and Claude Desktop
   both look.
@@ -53,7 +55,8 @@ ended one's, and its hooks plugin.
   questions or a plan on a row, and your answers. `module.json` lists them for tools/page.sh.
 - `plugin/`: Whozmove's hooks, as the Claude Code plugin `whozmove`: `hooks/whozmove-claude.py` (what each session is
   doing, recorded in Whozmove's folder) and `hooks/whozmove-claude-permission.py` (a request left for the panel, and
-  its answer passed back), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy install.sh and
+  its answer passed back; and Claude Code's "Switch model?" for a switch the panel made, asked in the panel when
+  Claude Code would ask it), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy install.sh and
   build.sh put in place, with a version named after the hooks' contents. CONTRIBUTING describes the hooks and their
   rules.
 
@@ -90,6 +93,12 @@ dropped (`--print-kept`).
   folder you trusted on the card, under the lock Claude Code takes.
 - The plugin's contents decide its version: a changed hook gets a new one, and reaches only sessions started after it
   goes in.
+- The hook's PreModelSwitch part decides only a switch the panel noted right before typing `/model`, for that session
+  and that model, and each note is read once and lasts 20 seconds. It allows the switch only while the conversation's
+  cache isn't warm, or once you've said Switch model on the row; Cancel denies it; and with no answer in a minute it
+  steps aside, so Claude asks in the terminal. Any other switch, yours in the terminal among them, is left to Claude
+  Code. The panel takes a note back once its command is over, and asks on the row only in a session started after the
+  hook was in place, as an older one runs the plugin without it.
 - A kept session's record holds no prompt or reply (those stay in the hooks' own record), only you may read it, and
   it's written only from launch on, never in a print run. Only sessions started in a terminal (`cli`) that have a
   transcript are kept; one whose process has gone on to another conversation (`/clear`, or `/resume` of another) is

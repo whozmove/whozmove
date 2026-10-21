@@ -1908,6 +1908,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick model" : "Claude is working in this session: change it when it's done"
     }
   },
+  "s-clone, a change from the panel still going in" : {
+    "ask" : "A change from the panel is still going in: finish that first",
+    "compact" : "A change from the panel is still going in: finish that first",
+    "pick effort" : "A change from the panel is still going in: finish that first",
+    "pick mode" : "A change from the panel is still going in: finish that first",
+    "pick model" : "A change from the panel is still going in: finish that first"
+  },
   "s-clone, another tab like its own" : {
     "ask" : "Another tab in this folder looks the same: ask there",
     "compact" : "Another tab in this folder looks the same: compact it there",
@@ -1936,12 +1943,27 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick mode" : "Whozmove is asking macOS whether it may control the terminal",
     "pick model" : "Whozmove is asking macOS whether it may control the terminal"
   },
+  "s-clone, its tab not found, with its terminal's reason and a way past it" : {
+    "ask" : "Whozmove is asking macOS whether it may control the terminal",
+    "compact" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick effort" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick mode" : "Whozmove is asking macOS whether it may control the terminal",
+    "pick model" : "Whozmove is asking macOS whether it may control the terminal"
+  },
   "s-clone, its terminal's own reason" : {
     "ask" : "Its window has other tabs, which the terminal could type into: ask there",
     "compact" : "Its window has other tabs, which the terminal could type into: compact it there",
     "pick effort" : "Its window has other tabs, which the terminal could type into: change it there",
     "pick mode" : "Its window has other tabs, which the terminal could type into: change it there",
     "pick model" : "Its window has other tabs, which the terminal could type into: change it there"
+  },
+  "s-clone, its terminal's own reason, with a way past it" : {
+    "ask" : "Its window has other tabs, which the terminal could type into: ask there",
+    "compact" : "Its window has other tabs, which the terminal could type into: compact it there",
+    "pick effort" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick mode" : "Its window has other tabs, which the terminal could type into: change it there",
+    "pick model" : "Its window has other tabs, which the terminal could type into: change it there",
+    "way past" : "Turn On the Terminal's Way Past…"
   },
   "s-clone, no terminal the panel can type into" : {
     "ask" : "Only sessions running in Ghostty or iTerm2 can be asked from here",
@@ -1978,12 +2000,26 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick mode" : "It's paused in its terminal: bring it back with fg first",
     "pick model" : "It's paused in its terminal: bring it back with fg first"
   },
+  "s-clone, paused, with its terminal's reason and a way past it" : {
+    "ask" : "It's paused in its terminal: bring it back with fg first",
+    "compact" : "It's paused in its terminal: bring it back with fg first",
+    "pick effort" : "It's paused in its terminal: bring it back with fg first",
+    "pick mode" : "It's paused in its terminal: bring it back with fg first",
+    "pick model" : "It's paused in its terminal: bring it back with fg first"
+  },
   "s-desk, its first message sent" : {
     "ask" : null,
     "compact" : null,
     "pick effort" : null,
     "pick mode" : "Plan is the only mode a slash command can set: change it in Claude",
     "pick model" : null
+  },
+  "s-desk, its first message sent, a change from the panel still going in" : {
+    "ask" : "A change from the panel is still going in: finish that first",
+    "compact" : "A change from the panel is still going in: finish that first",
+    "pick effort" : "A change from the panel is still going in: finish that first",
+    "pick mode" : "A change from the panel is still going in: finish that first",
+    "pick model" : "A change from the panel is still going in: finish that first"
   },
   "s-desk, its first message sent, Claude not allowed to be controlled" : {
     "ask" : "Whozmove needs the Accessibility permission for this",

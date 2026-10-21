@@ -82,6 +82,8 @@
     json[@"changes"] = self.changes;
     json[@"messageAt"] = self.messageAt;
     json[@"compacting"] = self.compacting;
+    json[@"goingIn"] = self.goingIn;
+    json[@"switchAsk"] = self.switchAsk;
     json[@"seenAt"] = self.seenAt;
     json[@"opensIn"] = self.opensIn;
     if (self.focused) json[@"focused"] = @YES;

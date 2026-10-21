@@ -15,8 +15,9 @@ its line in the docs' map, and an empty container in the page if it needs a plac
   `AgentUsage` (your plan's usage) and `AgentStarts` (a new session's command, and folder trust).
 - **A host** is an app sessions run in (Ghostty, iTerm2, Claude Desktop). It fills in `app/contracts/Host.h`: `Host`,
   and `TypingHost` if keys can go into a session there (with the terminal's own reason when they can't,
-  `whyNotTypeIn:`, as iTerm2's says when other sessions share the window), `CommandHost` if it can open a tab running
-  a command, or `ConversationHost` if it keeps conversations of its own. A terminal whose sessions can have no
+  `whyNotTypeIn:`, as iTerm2's says when other sessions share the window, and a button past it the panel can take for
+  you, `wayPastIn:`, as iTerm2's turns its Python API on), `CommandHost` if it can open a tab running a command, or
+  `ConversationHost` if it keeps conversations of its own. A terminal whose sessions can have no
   ordinary app above them (under a server of its own, which outlives the app, or with the app kept out of the Dock)
   says which processes it runs (`runsProcess:`, as iTerm2's does).
 - **A feature** (git, Deploy) fills in only `app/contracts/Module.h`, and reaches the agents and the hosts

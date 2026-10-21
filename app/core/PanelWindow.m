@@ -65,6 +65,15 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 - (BOOL)canBecomeMainWindow { return NO; }
 @end
 
+// A window that can't be seen, which takes the keyboard from the panel and goes at once (giveBackKeyboard).
+@interface HandOffPanel : NSPanel
+@end
+
+@implementation HandOffPanel
+- (BOOL)canBecomeKeyWindow { return YES; }
+- (BOOL)canBecomeMainWindow { return NO; }
+@end
+
 // Transparent strip over the header: drag moves the panel, a plain click is handed to the page.
 @interface DragStrip : NSView
 @property (copy) void (^onClick)(void);
@@ -211,6 +220,7 @@ static const NSTimeInterval kParkLeast = 0.25, kParkMost = 0.7, kUnpark = 0.45;
 @property (assign) CGFloat parkedTop;
 @property (assign) NSRect parkScreen;
 @property (strong) NSMutableArray *awayObservers;
+@property (strong) NSPanel *handOff;  // the keyboard's way back to the app in front (giveBackKeyboard)
 @property (assign) BOOL expanded;       // grown to the screen for the reader
 @property (assign) NSRect listFrame;    // where the panel was before it grew, to fold back to
 @property (assign) BOOL listOnRight;    // the reader opened to the list's left
@@ -451,6 +461,20 @@ static void PassPointer(NSView *view, NSEventType type, NSPoint at) {
     [glass addSubview:tint];
     tint.look = @"grey";
     self.tint = tint;
+
+    // A window of its own that can't be seen, which the keyboard goes to on its way back (giveBackKeyboard).
+    self.handOff = [[HandOffPanel alloc] initWithContentRect:NSMakeRect(NSMinX(frame), NSMinY(frame), 1, 1)
+                                                   styleMask:NSWindowStyleMaskBorderless
+                                                             | NSWindowStyleMaskNonactivatingPanel
+                                                     backing:NSBackingStoreBuffered
+                                                       defer:NO];
+    self.handOff.level = self.panel.level;
+    self.handOff.collectionBehavior = self.panel.collectionBehavior;
+    self.handOff.hidesOnDeactivate = NO;
+    self.handOff.opaque = NO;
+    self.handOff.backgroundColor = NSColor.clearColor;
+    self.handOff.hasShadow = NO;
+    self.handOff.ignoresMouseEvents = YES;
 
     // The panel's shadow, in a window of its own under it that takes no clicks, with room round the glass for it.
     self.shade = [[NSPanel alloc] initWithContentRect:NSInsetRect(frame, -kShadeRoom, -kShadeRoom)
@@ -1954,18 +1978,34 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 }
 
 - (void)wantKeyboard:(BOOL)on {
-    if (on == self.panel.wantsKeyboard) return;
+    if (on && self.panel.wantsKeyboard) return;
     self.panel.wantsKeyboard = on;
     if (on) [self.panel makeKeyWindow];
-    else if (self.panel.isKeyWindow)  // the keyboard goes back to the app it came from
-        [NSWorkspace.sharedWorkspace.frontmostApplication activateWithOptions:0];
+    else [self giveBackKeyboard];
 }
 
 - (BOOL)releaseKeyboard {
     self.browserKeys = self.pageKeys = NO;
     if (!self.panel.isKeyWindow) return NO;
     self.panel.wantsKeyboard = NO;
+    [self giveBackKeyboard];
     return YES;
+}
+
+// The keyboard goes back to the app it came from, the one in front. Asking that app to come forward does nothing while
+// it's in front already, and the panel would keep the keyboard; so the panel hands it to a window of its own that can't
+// be seen, which goes at once, and macOS gives the keyboard back to the app in front, as when any panel that has it
+// closes.
+- (void)giveBackKeyboard {
+    if (!self.panel.isKeyWindow) return;
+    [self.handOff setFrameOrigin:self.panel.frame.origin];
+    [self.handOff orderWindow:NSWindowBelow relativeTo:self.panel.windowNumber];
+    [self.handOff makeKeyWindow];
+    [self.handOff orderOut:nil];
+}
+
+- (BOOL)keptKeyboard {
+    return self.panel.isKeyWindow && !self.panel.wantsKeyboard;
 }
 
 // Whoever in the panel has the keyboard gives it back: the panel folds or turns over.

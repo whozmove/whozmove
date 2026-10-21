@@ -3,14 +3,18 @@
 #import <Cocoa/Cocoa.h>
 #import "Send.h"
 #import "Core.h"
+#import "Rows.h"
 #import "Page.h"
 #import "Row.h"
 #import "Reason.h"
 #import "Log.h"
+#import "Files.h"
 #import "Text.h"
 
+NSString *const kStillChanging = @"A change from the panel is still going in: finish that first";
+
 // Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, it's
-// paused in its terminal, its tab isn't found (the terminal's reason, when it knows one), another tab fits as well, or
+// paused in its terminal, a change from the panel is still going in, its tab isn't found (the terminal's reason, when it knows one), another tab fits as well, or
 // the terminal has a reason of its own. A paused session (Ctrl+Z) has left its terminal's foreground, where a terminal
 // that finds a session by its terminal device (iTerm2) finds no tab for it, so the pause is said first. `here` and
 // `there` end the sentences ("can be changed here", "change it there").
@@ -19,12 +23,18 @@ NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there) {
     if (!reach.terminal)
         return [NSString stringWithFormat:@"Only sessions running in %@ can be %@", reach.terminals, here];
     if (reach.whyNotType && reach.whyNotType.kind == ReasonPaused) return reach.whyNotType.onCard;
+    if (reach.changing) return kStillChanging;
     if (!reach.hasTab)
         return reach.tabWhyNot ?: [NSString stringWithFormat:@"Couldn't find this session's %@ tab", reach.terminal];
     if (reach.openTwice) return [Reason kind:ReasonOpenTwice].onCard;
     if (!reach.unique) return [NSString stringWithFormat:@"Another tab in this folder looks the same: %@", there];
     if (reach.tabWhyNot) return [NSString stringWithFormat:@"%@: %@", reach.tabWhyNot, there];
     return nil;
+}
+
+NSString *WayPast(id<Reach> reach, NSString *why) {
+    NSString *own = why ? reach.tabWhyNot : nil;
+    return own && [why hasPrefix:own] ? reach.wayPast : nil;
 }
 
 Reason *WhyTerminalRefuses(id<TypingHost> terminal, NSString *tab) {
@@ -41,8 +51,10 @@ Reason *WhyNotSendTo(id<AgentPrompt> agent, Row *row) {
 
 NSString *WhyNoAsk(id<Reach> reach) {
     if (!reach.started) return @"Send this conversation's first message first";
-    if (reach.desktop)
+    if (reach.desktop) {
+        if (reach.changing) return kStillChanging;
         return !reach.mayControl ? @"Whozmove needs the Accessibility permission for this" : reach.whyNotType.onButton;
+    }
     return WhyNoTab(reach, @"asked from here", @"ask there") ?: reach.whyNotType.onButton;
 }
 
@@ -50,9 +62,9 @@ NSString *WhyNoAsk(id<Reach> reach) {
     Row *_row;
     __weak Send *_send;
     NSNumber *_started, *_mayControl;
-    BOOL _lookedForTerminal, _lookedForTab, _unique, _askedTabWhyNot, _askedWhyNot;
+    BOOL _lookedForTerminal, _lookedForTab, _unique, _askedTabWhyNot, _askedWayPast, _askedWhyNot;
     id<TypingHost> _typing;
-    NSString *_tab, *_tabWhyNot;
+    NSString *_tab, *_tabWhyNot, *_wayPast;
     Reason *_whyNotType;
 }
 
@@ -140,6 +152,20 @@ NSString *WhyNoAsk(id<Reach> reach) {
     return _tabWhyNot;
 }
 
+- (NSString *)wayPast {
+    if (!_askedWayPast) {
+        _askedWayPast = YES;
+        id<TypingHost> typing = self.typing;
+        NSString *tab = self.tab;
+        _wayPast = tab && [typing respondsToSelector:@selector(wayPastIn:)] ? [typing wayPastIn:tab] : nil;
+    }
+    return _wayPast;
+}
+
+- (BOOL)changing {
+    return _row.goingIn.count > 0 || _row.switchAsk.count > 0;
+}
+
 // A Claude Desktop conversation by WhyNotSendTo, a terminal session by its agent; with no agent to say, never.
 - (Reason *)whyNotType {
     if (!_askedWhyNot) {
@@ -207,7 +233,7 @@ NSString *WhyNoAsk(id<Reach> reach) {
     if (why) {
         PanelLog(@"%@ -> \"%@\" not asked: %@", sid, text, why);
         NSBeep();
-        [self.core.page stepNote:sid text:why];
+        [self.core.page stepNote:sid text:why way:WayPast(reach, why)];
         return;
     }
     PanelLog(@"%@ -> asking \"%@\"", sid, text);
@@ -241,6 +267,26 @@ NSString *WhyNoAsk(id<Reach> reach) {
             if (edit) PanelLog(@"%@ -> filler left in the prompt: %@", sid, edit);
             else [agent deleteFillerIn:terminal tab:tab];
         });
+    }];
+}
+
+// The terminal says how its way went, on the row: where it waits for you now (quietly), or what's left for you to do.
+// With nothing in the way any more (it was taken meanwhile), the row says so, rather than a press doing nothing.
+- (void)takeWayPast:(NSDictionary *)msg {
+    Row *row = self.core.rows.byId[AsText(msg[@"sessionId"])];
+    if (!row) return;
+    NSString *sid = row.sessionId;
+    SessionReach *reach = [self reachOf:row];
+    NSString *way = reach.wayPast;
+    if (!way) {
+        PanelLog(@"%@ -> nothing in the way to take now", sid);
+        [self.core.page stepNote:sid text:@"Nothing's in the way now: try again" quiet:YES];
+        return;
+    }
+    PanelLog(@"%@ -> %@", sid, way);
+    __weak typeof(self) weakSelf = self;
+    [reach.typing takeWayPastIn:reach.tab done:^(NSString *note, BOOL worked) {
+        if (note) [weakSelf.core.page stepNote:sid text:note quiet:worked];
     }];
 }
 

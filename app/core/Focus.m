@@ -41,6 +41,8 @@
 @property (strong) NSMutableDictionary<NSString *, Reopening *> *reopening;
 @property (copy) NSString *pressedEnding, *pressedEndingIn;  // and the name of the terminal it was in
 @property (assign) NSTimeInterval pressedEndingUntil;
+// Each press that brings a terminal's tab forward counts, so only the last one's keyboard is checked (keyboardTo:).
+@property (assign) NSUInteger tabPresses;
 // The session you're looking at (lookingAt:) and since when, and when you were last looking at each session you
 // stayed on (noteSeen:).
 @property (copy) NSString *looking;
@@ -56,6 +58,10 @@ static const double kSeenAfterMs = 2000, kAwayAfterSeconds = 5 * 60;
 // session is then waited for to be running again in it, as a long conversation takes Claude Code a while to load; and
 // how long a row pressed as its session was ending is waited for to turn grey: a read or two, as Claude Code shuts down.
 static const NSTimeInterval kListedWithin = 60, kTabWithin = 300, kResumeWithin = 30, kEndingWithin = 5;
+// How long after a press brings a terminal's tab forward the terminal should have the keyboard, and how many times
+// it's then given to it, at most, before the log says it still doesn't.
+static const NSTimeInterval kKeyboardWithin = 0.5;
+static const NSUInteger kKeyboardTries = 2;
 
 @implementation Focus
 
@@ -246,16 +252,16 @@ static BOOL AtTheMac(void) {
     if ([self.core hasEnded:row]) return [self reopen:row];
     // Terminal session: bring forward the app it runs in (Terminal, Ghostty, iTerm2, VS Code…), as the core finds it.
     // The panel gives the keyboard back first, as one of its boxes may have it (the new conversation card's, say).
-    BOOL hadKeyboard = [self.core.window releaseKeyboard];
+    [self.core.window releaseKeyboard];
     NSRunningApplication *app = [self.core appOf:row.pid];
     id<Host> terminal = [self.core hostOf:row];
     NSRunningApplication *front = NSWorkspace.sharedWorkspace.frontmostApplication;
     // The session you're on already, in the terminal with the keyboard: there's nothing to bring forward, and a
-    // terminal told to show the tab it shows can lose the keyboard over it. Unless the panel held the keyboard, which
-    // the terminal takes back as it brings its tab forward.
-    if (!hadKeyboard && terminal && [front.bundleIdentifier isEqualToString:terminal.appId]
+    // terminal told to show the tab it shows can lose the keyboard over it.
+    if (terminal && [front.bundleIdentifier isEqualToString:terminal.appId]
         && [self.terminalShows[terminal.appId] isEqualToString:row.sessionId]) {
         PanelLog(@"open terminal session pid %d -> already on its tab in %@", row.pid, terminal.name);
+        [self keyboardTo:front tries:0];
         return;
     }
     if (!app) {
@@ -286,6 +292,7 @@ static BOOL AtTheMac(void) {
     BOOL findsTabs = [terminal respondsToSelector:@selector(open:)]
         && ![terminal conformsToProtocol:@protocol(ConversationHost)];
     if (findsTabs && [terminal open:row]) {
+        [self keyboardTo:app tries:0];
         // At the session's own tab, so it's the one you're on now, without waiting for the terminal's next answer.
         [self tabCameForward:terminal session:row.sessionId];
         [self.core.rows refresh];
@@ -296,6 +303,33 @@ static BOOL AtTheMac(void) {
     if (findsTabs) [self pressedAsItEnds:row in:terminal];
     [app activateWithOptions:NSApplicationActivateAllWindows];
     PanelLog(@"open terminal session pid %d -> activated %@", row.pid, app.localizedName);
+}
+
+// A moment after a press brought a terminal's tab forward, the terminal should have the keyboard. If the panel still
+// has it, though nothing in the panel asks for it, it gives it back again; if another app is in front (macOS can turn a
+// terminal down as it asks to come forward), the terminal is brought forward; and the log says who had it. A later
+// press takes over.
+- (void)keyboardTo:(NSRunningApplication *)app tries:(NSUInteger)tries {
+    NSUInteger press = tries ? self.tabPresses : ++self.tabPresses;
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kKeyboardWithin * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        Focus *focus = weakSelf;
+        if (!focus || press != focus.tabPresses || app.terminated) return;
+        BOOL kept = [focus.core.window keptKeyboard];
+        NSRunningApplication *front = NSWorkspace.sharedWorkspace.frontmostApplication;
+        if (!kept && front.processIdentifier == app.processIdentifier) return;
+        NSString *had = kept ? @"the panel" : front.localizedName ?: @"no app";
+        if (tries == kKeyboardTries) {
+            PanelLog(@"open in %@: it still doesn't have the keyboard (%@ has it)", app.localizedName, had);
+            return;
+        }
+        PanelLog(@"open in %@: it didn't have the keyboard after the press (%@ had it), so it's given to it",
+                 app.localizedName, had);
+        if (kept) [focus.core.window releaseKeyboard];
+        else [app activateWithOptions:0];
+        [focus keyboardTo:app tries:tries + 1];
+    });
 }
 
 #pragma mark Ended sessions

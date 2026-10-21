@@ -295,10 +295,10 @@ window.setSwitches = (switches) => {
 // How a step from a row's menus went (`quiet`: it worked), or why it couldn't go in, or why a deploy couldn't start or
 // its command wasn't saved: the row's note for a few seconds, in its work line's place. What it settles for a module goes first
 // (core.noted: a Deploy pressed there stops standing in for a run).
-window.stepNote = (sid, text, quiet) => {
+window.stepNote = (sid, text, quiet, way) => {
   const s = state.last.sessions.find((x) => x.sessionId === sid);
   if (s) for (const noted of core.noted) noted(s);
-  state.stepNotes[sid] = { text, quiet: !!quiet, at: Date.now() };
+  state.stepNotes[sid] = { text, quiet: !!quiet, way: way || null, at: Date.now() };
   renderWhenSettled();
 };
 

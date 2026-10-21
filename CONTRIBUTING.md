@@ -26,13 +26,17 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   always exits 0. Works out the live line, `stageAt` (when a step or the turn last started or ended),
   `turnReached`/`outcome` (how far a turn took the work), `workSteps` (built/tested/validated) and `audit` (local code
   review findings).
-- **`whozmove-claude-permission.py`**: synchronous PermissionRequest hook (timeout 3600). Leaves the
-  request for the panel and waits for its answer, while Claude's own prompt stays usable; whichever is
-  answered first wins. Steps aside at once when the panel isn't running, for sub-agents and non-interactive
-  sessions; steps aside later when the call's result shows up in the transcript (settled in Claude) or the session
-  ends. Only ever allows once, never "always allow". A plan (ExitPlanMode) is never allowed from the panel, only sent
-  back with your notes or stopped: Claude Code ignores a hook's approval of a plan, so approving stays in Claude's own
-  prompt. All of this is deliberate.
+- **`whozmove-claude-permission.py`**: synchronous PermissionRequest hook (timeout 3600). Leaves the request for the
+  panel and waits for its answer, while Claude's own prompt stays usable; whichever is answered first wins. Steps
+  aside at once when the panel isn't running, for sub-agents and non-interactive sessions; steps aside later when the
+  call's result shows up in the transcript (settled in Claude) or the session ends. Only ever allows once, never
+  "always allow". A plan (ExitPlanMode) is never allowed from the panel, only sent back with your notes or stopped:
+  Claude Code ignores a hook's approval of a plan, so approving stays in Claude's own prompt. The same hook runs
+  before each switch of a session's model (PreModelSwitch, timeout 90): only a switch the panel noted just before
+  typing `/model` (`switches/<session>.panel.json`) is its business, which it allows while the conversation's cache
+  isn't warm, and otherwise asks in the panel (`switches/<session>.ask.json`, answered in `.answer.json`), stepping
+  aside after a minute so Claude asks in the terminal. It never decides a re-read on its own. All of this is
+  deliberate.
 - **`modules/claude-code/plugin/`** (`hooks/hooks.json` and `.claude-plugin/`): the two hooks as a Claude Code plugin,
   `whozmove` (in a marketplace of the same name), which is all Claude Code needs to run them. `install.sh` copies it
   into `AppDir/plugin` and adds it from there with `claude plugin`, so installing it never edits `settings.json`.
@@ -58,28 +62,28 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     screen's edge and back), `MenuBar` (the pawn, grouping, the Look menu, the modules' items, and the panel's switches,
     Show Next Steps and Show Deploy, which Git's page on the panel's back sets), `Rows` (the rows read once a second,
     each module adding its part), `Focus` (the session you're on, when you last looked at each, and opening a session
-    from its row), `Send` (words into a session, and why they can't go in now), `Work` (who's at work in a checkout),
-    `Builds` (the running build, for the header), `Printing` (what the print runs share), `EdgeIcon` (an icon tucked
-    half under the glass at the panel's edge, on the side facing the screen's middle, Spotify's token among them: its
-    own window, following the glass, changing sides under it, coming out once the panel has opened, out of sight while
-    it's turned over, and its label), `SideCat` (Whozmove beside the panel while the header has gone, an edge icon: its
-    moves, folding the panel round it, a drag moving the panel, and bringing the panel back from the screen's edge),
-    `CatShape` (the cat's shapes, for the menu bar's mark and `SideCat`), `Easing` (the curves the panel moves on,
-    shared by `PanelWindow`, `EdgeIcon` and `SideCat`) and `Browser` (web pages that aren't the
-    panel's own, each in a web view of its own, for a module to show in the panel's window: what it may load, whether
-    what it's signed in to is kept, where a link that goes somewhere else opens, how it introduces itself, and what a
-    page asks, passed to the module that shows it).
+    from its row), `Send` (words into a session, why they can't go in now, and the way past a terminal's reason), `Work`
+    (who's at work in a checkout), `Builds` (the running build, for the header), `Printing` (what the print runs share),
+    `EdgeIcon` (an icon tucked half under the glass at the panel's edge, on the side facing the screen's middle,
+    Spotify's token among them: its own window, following the glass, changing sides under it, coming out once the panel
+    has opened, out of sight while it's turned over, and its label), `SideCat` (Whozmove beside the panel while the
+    header has gone, an edge icon: its moves, folding the panel round it, a drag moving the panel, and bringing the
+    panel back from the screen's edge), `CatShape` (the cat's shapes, for the menu bar's mark and `SideCat`), `Easing`
+    (the curves the panel moves on, shared by `PanelWindow`, `EdgeIcon` and `SideCat`) and `Browser` (web pages that
+    aren't the panel's own, each in a web view of its own, for a module to show in the panel's window: what it may load,
+    whether what it's signed in to is kept, where a link that goes somewhere else opens, how it introduces itself, and
+    what a page asks, passed to the module that shows it).
   - The agent that runs the sessions is a module: `claude-code` (its sessions and its hooks' records, its terminal
     sessions kept once they've ended, what's new in each transcript, a session's details, the words of the panel's
     commands and what their results say, typing into a session's prompt while keeping its draft, your plan's usage
     asked of `claude`, folder trust, a new session's command and an ended one's, and its hooks plugin).
   - The apps sessions run in are hosts, each a module too: `ghostty` (finding a session's tab, typing into it, which tab
-    it shows), `iterm2` (finding a session's tab by its terminal device, typing into it while it's alone in its window,
-    which tab it shows, and a command in a new tab; its sessions can outlive the app, under a server of its own, so it
-    says which processes it runs), `claude-desktop` (its conversations, its message box, new conversations, "Switch
-    model?") and `terminal-app` (macOS's Terminal, which only runs a command: Sign in, on a Mac without Ghostty or
-    iTerm2). A session in any other terminal app opens by bringing that app forward. Another terminal is one new module
-    that fills in the host contract.
+    it shows), `iterm2` (finding a session's tab by its terminal device, typing into it through its Python API, else
+    while it's alone in its window, which tab it shows, and a command in a new tab; its sessions can outlive the app,
+    under a server of its own, so it says which processes it runs), `claude-desktop` (its conversations, its message
+    box, new conversations, "Switch model?") and `terminal-app` (macOS's Terminal, which only runs a command: Sign in,
+    on a Mac without Ghostty or iTerm2). A session in any other terminal app opens by bringing that app forward. Another
+    terminal is one new module that fills in the host contract.
   - Each feature is a module: `git` (`Checkouts`: git status, each checkout's base branch and new files, and which of
     its files are staged; `NextSteps`: the steps a checkout has to take, Commit and its ways, Push, Publish and Create
     PR into the branch you pick, each asked of the agent in fixed words, and the branches on GitHub for Create PR's
@@ -138,15 +142,14 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     past it, folded down: see Animation; how it folds is plain functions, checked by `tests/panel.sh`), and `panel`
     (`render`, and the functions the app calls on the core). Then each module's, from its `page/`, one per job, each
     plugging into the core as it loads: Claude Code's `agent` (what a Claude Code session's model, mode and context
-    mean) and `requests` (its requests, questions and plans on a row); Claude Desktop's `switch-model` (Claude's
-    "Switch model?"); the commands module's `commands` (the model, effort and mode labels, the context ring and the
-    Compact card); the next steps (`steps`: which a
-    checkout has to take, `stepsOf`, how its last code review went, and where a branch stands while commits wait, plain
-    functions; `git-steps`: their icons on the work line, their words as they're pointed at, Create PR and its card,
-    and the review or where the branch stands;
-    `prs`: the pull requests and their card); Deploy (`deploys`: whether a row has its round button, how it looks, and
-    the set-up card, plain functions; `deploy-row`: the button, the line and the card on a row); the reader's `writings`
-    (what a session wrote:
+    mean) and `requests` (its requests, questions and plans on a row); the commands module's `commands` (the model,
+    effort and mode labels, the context ring, the Compact card, and the card while a pick goes into a terminal session)
+    and `switch-model` ("Switch model?", asked on its row for Claude Desktop and terminal sessions alike); the next
+    steps (`steps`: which a checkout has to take, `stepsOf`, how its last code review went, and where a branch stands
+    while commits wait, plain functions; `git-steps`: their icons on the work line, their words as they're pointed at,
+    Create PR and its card, and the review or where the branch stands; `prs`: the pull requests and their card); Deploy
+    (`deploys`: whether a row has its round button, how it looks, and the set-up card, plain functions; `deploy-row`:
+    the button, the line and the card on a row); the reader's `writings` (what a session wrote:
     its tag, and the reader's `writings` mode, where a plan is sent back or stopped, and a prototype's space and the
     line above it); `changes` (the view's tabs, git's letters for each file, what its head says, and how lines are laid
     side by side: plain functions) and `changes-view` (the numbers, their card, and the reader's `changes` mode); and
@@ -167,7 +170,8 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     own `apps` (what an app's permission says, and the switches once one is pressed: plain functions) and `back`
     (drawing the apps and each one's page, the pointer and presses, and the functions the app calls).
 
-Bridge, page → native (`type`): `height`, `open`, `pick`, `compact`, `switchAnswer`,
+Bridge, page → native (`type`): `height`, `open`, `pick`, `compact`, `wayPast` (the button past a terminal's reason, on
+the Compact card or a step's note, `{sessionId}`: `Send` asks the session's host to take it), `switchAnswer`,
 `answerAsk`, `openPR`, `keyboard`, `badge`, `gitStep` (a step pressed on a row or in the changes view, `{step, into}`:
 `commit`, `push`, `publish`, `pr` or `draftPR`, asked only if the checkout has it to take; `into`, the branch a pull
 request goes into, one of the repo's on GitHub, else its default), `gitWays` (the ways to commit, in a menu under the
@@ -199,12 +203,13 @@ that answers it: `Modules`).
 moved there: the panel's edge went past it, or one of its menus closed there; `hoverEnd` comes again once it moves),
 `keyboardGone` (the panel no longer has the keyboard), `turned` (the panel is turning over to its back, or back on its
 list side), `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
-it says how something went that worked), `setRunningBuild` and `setSwitches` (the core's, in
-`panel/scripts/panel.js`); `foldFromSide(x, y)` (Whozmove beside the panel was pressed: the panel folds round it,
-there) and `catLanded` (it has grown into the folded cat, which takes over) (in `cat.js`); `readerOpened(side,
-width)` (which side the list stays on, and the reader's width) and
-`readerClosed` (in `reader.js`); and each feature's, in its own script: `askSwitch` (`switch-model.js`),
-`compactNote` (`commands.js`), `setDeploys`, `openDeploySetup` and `deployChecked` (what that command really runs,
+it says how something went that worked, and `way`, the button past a terminal's reason, when there is one),
+`setRunningBuild` and `setSwitches` (the core's, in `panel/scripts/panel.js`); `foldFromSide(x, y)` (Whozmove beside
+the panel was pressed: the panel folds round it, there) and `catLanded` (it has grown into the folded cat, which takes
+over) (in `cat.js`); `readerOpened(side, width)` (which side the list stays on, and the reader's width) and
+`readerClosed` (in `reader.js`); and each feature's, in its own script: `compactNote` (why a compaction didn't go in,
+and the button past it, `(sid, text, way)`) (`commands.js`),
+`setDeploys`, `openDeploySetup` and `deployChecked` (what that command really runs,
 `{command, production, runs, more}`) (`deploy-row.js`), `setPRBranches(sid, {base, branches})` (`git-steps.js`),
 `openStart`
 (⌃⌥N, New Conversation), `folderChecked` (`{trusted}` or `{gone}`), `startUpdate` (how a start went: `{sessionId}`
@@ -424,7 +429,11 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   of the panel's own text boxes is clicked into (`keyboard` message), while the new conversation card is open from ⌃⌥N
   or New Conversation, until it starts or closes, or while a site shown in the panel (a `Browser`) has been clicked
   into, until a click anywhere else in the panel, the panel folding or turning over, or the site going. Clicking a row
-  leaves the keyboard with Claude, which is what lets "open a conversation, type straight away" work. Don't synthesize
+  leaves the keyboard with Claude, which is what lets "open a conversation, type straight away" work. When the panel
+  lets go of the keyboard, it hands it to an unseen window of its own, which goes at once, so macOS gives it back to the
+  app in front (`giveBackKeyboard`): asking that app to come forward does nothing while it's in front already. A moment
+  after a press brings a terminal's tab forward, the terminal is checked to have it (`keyboardTo:tries:` in Focus.m),
+  and the log says who had it when it hasn't. Don't synthesize
   clicks or move the pointer to focus things in Claude: it makes the mouse pointer jump. When another app takes the
   keyboard, the page lets go of the box that had it (`keyboardGone`): asking for the keyboard makes the panel key at
   once, so a box focused again as the list is redrawn would take it back.
@@ -442,31 +451,34 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   `Browser`) is passed the pointer only while the panel has the keyboard, once you've clicked into it: WebKit follows
   the pointer only in the window you type in, and the panel never seems to be that window when it isn't.
 - **Typing into a session only when it's safe.** Ghostty: only while idle at its prompt with no request pending
-  (`WhyNotTypeInto`), since a stray Enter would approve a permission prompt, and Shift+Tab would allow all edits.
-  Never while it's paused in its terminal (Ctrl+Z), where keys go to the shell, nor while its conversation runs in
-  another terminal too (open twice: resumed in a second tab), where a key could land in the other copy, whose tab can
-  look just the same; and no Shift+Tab while it's open anywhere else too (Claude Desktop), as the copies share one
-  record of the mode. iTerm2: the same, and only into a session alone in its window, no other tab or pane there
-  (`whyNotTypeIn:`, and again in the script that types, right before): its Broadcast Input copies scripted typing into
-  the window's other sessions, hidden floating panes among them, and nothing in its scripting says whether it's on. A
-  key it refuses stops the rest of the command, so none goes in half. Claude Desktop: only while idle (`WhyNotSendTo`)
-  and only if its message box is empty; text goes in through the
-  Accessibility API ("Prompt" text area, Submit button), not keystrokes. The one exception is a Return when Claude shows
-  no Submit button, and only while Claude is in front (`submit:` in modules/claude-desktop/app/DesktopMessageBox.m). A
-  new conversation's first message is sent with Claude's Send button, never a key, only in the conversation Whozmove has
-  just opened with your words, once Claude shows its page, and only while its box holds exactly those words
-  (`sendFirst:` in DesktopNewConversation.m) and Claude shows the folder the conversation is for. Claude loses a folder
-  that comes in its link, so the folder is chosen as you would: its environment pressed among the recent ones Claude's
-  page lists, once, which environment is which folder read from Claude's own record and never written
-  (`chooseEnvironment:`), or on Claude's older screen its folder button pressed and the folder picked from its Recent
-  ones, by path, the one time its list opens (`chooseFolder:`); never "Open folder…" or a new environment. Claude can
-  let a press go by while it gets the folder ready, so Send is pressed again, a few times, until Claude's log says it's
-  starting the conversation or its box empties (`pressSend:`); the words are never taken out of Claude's box. The one
-  key that goes into a terminal session while Claude works is the Backspace that takes out the filler of a next step's
-  request (`WhyNotEditDraft`): Claude Code puts the stashed draft back the moment a message is sent, and there a
-  Backspace only edits it. Never while Claude asks something or a request waits. A step's words are fixed in the app
-  (`StepRequest`); the page only names the step, and the branch a pull request goes into, which goes in its words only
-  if it's the repo's default or one of its branches on GitHub as the app read them for Create PR's card.
+  (`WhyNotTypeInto`), since a stray Enter would approve a permission prompt, and Shift+Tab would allow all edits. Never
+  while it's paused in its terminal (Ctrl+Z), where keys go to the shell, nor while its conversation runs in another
+  terminal too (open twice: resumed in a second tab), where a key could land in the other copy, whose tab can look just
+  the same; and no Shift+Tab while it's open anywhere else too (Claude Desktop), as the copies share one record of the
+  mode. iTerm2: the same, and only into a session alone in its window, no other tab or pane there (`whyNotTypeIn:`, and
+  again in the script that types, right before): its Broadcast Input copies scripted typing into the window's other
+  sessions, hidden floating panes among them, and nothing in its scripting says whether it's on. While a connection to
+  its Python API is open (`ITerm2API`), keys go through that instead, into the session alone (`suppress_broadcast`), so
+  the window rule is lifted. The API is turned on only in iTerm2's own Settings, as you would, for a press of yours
+  (the button `wayPastIn:` names, which `takeWayPastIn:done:` answers, or its switch on the panel's back), where iTerm2 asks you first; never by writing its settings. A key
+  it refuses stops the rest of the command, so none goes in half. Claude Desktop: only while idle (`WhyNotSendTo`) and
+  only if its message box is empty; text goes in through the Accessibility API ("Prompt" text area, Submit button), not
+  keystrokes. The one exception is a Return when Claude shows no Submit button, and only while Claude is in front
+  (`submit:` in modules/claude-desktop/app/DesktopMessageBox.m). A new conversation's first message is sent with
+  Claude's Send button, never a key, only in the conversation Whozmove has just opened with your words, once Claude
+  shows its page, and only while its box holds exactly those words (`sendFirst:` in DesktopNewConversation.m) and Claude
+  shows the folder the conversation is for. Claude loses a folder that comes in its link, so the folder is chosen as you
+  would: its environment pressed among the recent ones Claude's page lists, once, which environment is which folder read
+  from Claude's own record and never written (`chooseEnvironment:`), or on Claude's older screen its folder button
+  pressed and the folder picked from its Recent ones, by path, the one time its list opens (`chooseFolder:`); never
+  "Open folder…" or a new environment. Claude can let a press go by while it gets the folder ready, so Send is pressed
+  again, a few times, until Claude's log says it's starting the conversation or its box empties (`pressSend:`); the
+  words are never taken out of Claude's box. The one key that goes into a terminal session while Claude works is the
+  Backspace that takes out the filler of a next step's request (`WhyNotEditDraft`): Claude Code puts the stashed draft
+  back the moment a message is sent, and there a Backspace only edits it. Never while Claude asks something or a request
+  waits. A step's words are fixed in the app (`StepRequest`); the page only names the step, and the branch a pull
+  request goes into, which goes in its words only if it's the repo's default or one of its branches on GitHub as the app
+  read them for Create PR's card.
 - **`/model` and `/effort` also save a default** for new sessions; the panel puts those settings keys back
   (`holdDefaults`/`releaseDefaults`). Keep that if you add commands.
 - **Folder trust is recorded only for a folder you trusted on the card.** `~/.claude.json` holds your account and more:

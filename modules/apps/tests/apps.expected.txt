@@ -30,7 +30,7 @@
     ]
   },
   {
-    "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt, alone in its window, and starts new conversations in a new tab.",
+    "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt (with its Python API off, only into a session alone in its window), and starts new conversations in a new tab.",
     "for" : "Finds each session's tab, types into it, and opens new ones",
     "id" : "com.googlecode.iterm2",
     "listed" : "when on this Mac",
@@ -38,6 +38,12 @@
     "order" : 30,
     "permission" : "automation",
     "switches" : [
+      {
+        "group" : null,
+        "help" : "Turns on iTerm2's Python API in its Settings, which ask you first",
+        "key" : "pythonAPI",
+        "title" : "Type into sessions that share a window"
+      },
       {
         "group" : "startTerminal",
         "help" : "In a new tab, from the new conversation card",

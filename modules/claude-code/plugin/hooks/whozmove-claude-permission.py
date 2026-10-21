@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# The permission hook: a request for your OK in Claude Code is asked in the Whozmove panel too.
+# The permission hook: a request for your OK in Claude Code is asked in the Whozmove panel too, and so is Claude Code's
+# "Switch model?" for a switch the panel asked for.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 """When a tool needs your OK, Claude Code shows its own prompt and runs this hook alongside it, and whichever is
 answered first wins. The hook leaves the request in ~/Library/Application Support/Whozmove/asks/<id>.json, where
@@ -25,10 +26,26 @@ asking) and a session that isn't interactive (`claude -p`).
 
 It's wired in hooks/hooks.json as a synchronous hook, since a hook that returns a decision can't be async, with a
 long timeout, so a request can wait for you. Claude's own prompt stays usable meanwhile.
+
+The same hook runs before every switch of a session's model (PreModelSwitch), a /model typed in the terminal too. Only
+a switch the panel has just asked for is its business: right before it types /model, the panel leaves a note for the
+session in switches/<session>.panel.json, with the model and when, and the hook takes it, once, only within 20
+seconds (Claude Code checks the model with its servers first), and only for that model; the panel takes it back once
+its pick is over, so a note left by a pick that never went in can't make a later switch the panel's. Any
+other switch is left alone: the hook says nothing, and Claude Code asks as usual. For the panel's switch, Claude Code
+says whether the conversation's prompt cache is warm, which is when it would ask "Switch model?" (switching re-reads
+the whole conversation). While it isn't, the hook allows the switch, and nothing is asked. While it is, the hook asks
+in the panel instead: the question goes in <session>.ask.json, with the model it's leaving, the one it's switching to
+and how much the conversation holds, and the panel's answer comes in <session>.answer.json: allowed, the switch goes
+on without Claude's own question; turned down, it's blocked, and the session stays on its model. If the panel isn't
+running, or doesn't answer within a minute, the hook says nothing, and Claude asks in the terminal as usual: the hook
+never decides on its own to re-read a cached conversation. Its timeout in hooks/hooks.json is longer than that wait, as
+Claude Code blocks a switch whose hook times out.
 """
 import glob
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -39,6 +56,9 @@ import uuid
 ROOT = os.path.expanduser("~/Library/Application Support/Whozmove")
 ASKS = os.path.join(ROOT, "asks")
 WAIT_LIMIT = 3500  # seconds; just under the hook's timeout in hooks/hooks.json
+SWITCHES = os.path.join(ROOT, "switches")
+NOTE_LASTS = 20  # seconds a panel's note that it's switching a session's model counts for (kNoteLasts, Switches.m)
+SWITCH_WAIT = 60  # seconds the panel's answer to "Switch model?" is waited for; well under the hook's timeout
 
 
 def alive(pid):
@@ -150,14 +170,103 @@ def write_atomically(path, data):
     os.replace(tmp, path)
 
 
+def take_note(session_id, event):
+    """Whether the panel left a note that it's switching this session to the model the switch is for, within the
+    last NOTE_LASTS seconds. The note is taken as it's read, so it counts once."""
+    path = os.path.join(SWITCHES, session_id + ".panel.json")
+    try:
+        with open(path) as f:
+            note = json.load(f)
+        os.remove(path)
+    except (OSError, ValueError):
+        return False
+    if not isinstance(note, dict) or not isinstance(note.get("at"), (int, float)) \
+            or not isinstance(note.get("to"), str) or not note["to"]:
+        return False
+    if time.time() * 1000 - note["at"] > NOTE_LASTS * 1000:
+        return False
+    asked = [m for m in (event.get("requested_model"), event.get("to_model")) if isinstance(m, str)]
+    return any(m.startswith(note["to"]) for m in asked)
+
+
+def switch_decision(decision, reason=None):
+    output = {"hookEventName": "PreModelSwitch", "permissionDecision": decision}
+    if reason:
+        output["permissionDecisionReason"] = reason
+    print(json.dumps({"hookSpecificOutput": output}))
+
+
+def model_switch(event):
+    session_id = event["session_id"]
+    if not re.fullmatch(r"[A-Za-z0-9-]{1,128}", session_id) or not take_note(session_id, event):
+        return
+    if event.get("prompt_cache_warm") is False:  # nothing to re-read: Claude Code wouldn't ask
+        switch_decision("allow")
+        return
+    panel = panel_pid()
+    if not panel:
+        return
+    os.umask(0o077)
+    os.makedirs(SWITCHES, exist_ok=True)
+    question = os.path.join(SWITCHES, session_id + ".ask.json")
+    answer = os.path.join(SWITCHES, session_id + ".answer.json")
+
+    def clean_up(*_):
+        for path in (question, answer):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+    def cancelled(*_):  # stopped by Claude Code
+        clean_up()
+        sys.exit(0)
+
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(sig, cancelled)
+    clean_up()  # an answer left from an earlier question isn't this one's
+    tokens = event.get("context_tokens")
+    write_atomically(question, {
+        "sessionId": session_id,
+        "from": event.get("from_model") if isinstance(event.get("from_model"), str) else "",
+        "to": event.get("to_model") if isinstance(event.get("to_model"), str) else "",
+        "tokens": tokens if isinstance(tokens, int) and tokens > 0 else None,
+        "at": int(time.time() * 1000),
+        "pid": os.getpid(),
+    })
+    try:
+        started = time.time()
+        while time.time() - started < SWITCH_WAIT:
+            try:
+                with open(answer) as f:
+                    reply = json.load(f)
+            except (OSError, ValueError):
+                reply = {}
+            allow = reply.get("allow") if isinstance(reply, dict) else None
+            if allow is True:
+                switch_decision("allow")
+                return
+            if allow is False:
+                switch_decision("deny", "You kept this model in Whozmove.")
+                return
+            if not alive(panel):
+                return
+            time.sleep(0.25)
+    finally:
+        clean_up()
+
+
 def main():
     try:
         event = json.load(sys.stdin)
     except ValueError:
         return
-    if not isinstance(event, dict) or not event.get("session_id"):
+    if not isinstance(event, dict) or not isinstance(event.get("session_id"), str) or not event["session_id"]:
         return
     if event.get("agent_id"):
+        return
+    if event.get("hook_event_name") == "PreModelSwitch":
+        model_switch(event)
         return
     panel = panel_pid()
     if not panel or not interactive_session(event["session_id"]):

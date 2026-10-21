@@ -46,7 +46,7 @@
   .step-word { transform: none; transition: none !important; }
   .play-icon, .play.going .play-ring, .play.done .play-ring { animation: none; }
   .play.going .play-ring { opacity: 1; }
-  .busy .dot, .claude.work .who { animation: none; }
+  .busy .dot, .perm.going .dot, .claude.work .who { animation: none; }
   .claude .shine { animation: none; color: var(--work-text); -webkit-text-fill-color: currentColor;
                    background: none; }
 }

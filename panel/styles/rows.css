@@ -12,7 +12,9 @@
        background: var(--idle); }
 .needs .dot { background: var(--needs); box-shadow: 0 0 0 0 var(--needs); animation: ping 1.6s ease-out infinite; }
 /* Working: a grey dot fading on and off, as Claude's sidebar shows a conversation it's working in. */
-.busy .dot { background: var(--working-dot); animation: blink 1.4s ease-in-out infinite; }
+.busy .dot, .perm.going .dot { background: var(--working-dot); animation: blink 1.4s ease-in-out infinite; }
+/* The same dot on a pick going into a session (commands.js), whatever the row's own dot is. */
+.perm.going .dot { border: 0; box-shadow: none; margin-top: 3px; }
 .turn .dot { background: var(--turn); }
 /* A reply you've read: your colour's ring, empty. */
 .seen .dot { background: transparent; border: 1.5px solid var(--turn); }
@@ -132,6 +134,8 @@
 .work .counts .del { color: var(--removed); }
 .step-note { margin-top: 4px; font-size: var(--size-small); color: var(--needs-text); }
 .step-note.quiet { color: var(--muted); }
+/* The button past why a step couldn't go in (noteHTML): a small one, after the words. */
+.step-note .note-way { margin-left: 6px; padding: 2px 9px; font-size: var(--size-small); }
 /* The row's note said in the work line's place (workHTML): what the line holds stays laid out, unseen, so the row keeps
    its height; the note, on one line, cut short if it must. */
 .work.noted { position: relative; }

@@ -177,15 +177,21 @@ core.cards.push({
 // The icon cross-fades as it comes, and as how many times changes.
 core.swaps.push(':scope > .main > .line1 .twice');
 
-// The row's note, { text, quiet } or null: how a step went, or why it couldn't (or why a deploy couldn't start, or its
-// command wasn't saved), for 8s; else what a module has to say (the folder's deploy). It's said in the work line's
-// place (workHTML), or, on a row without one, on a line of its own over the bottom line (noteHTML).
+// The row's note, { text, quiet, way, sid } or null: how a step went, or why it couldn't (or why a deploy couldn't
+// start, or its command wasn't saved), for 8s, or for 20s with a button past why it couldn't (`way`: iTerm2's Python
+// API turned on), which waits to be seen before it takes a press; else what a module has to say (the folder's deploy).
+// It's said in the work line's place (workHTML), or, on a row without one, on a line of its own over the bottom line
+// (noteHTML).
 function noteHTML(note) {
-  return note ? `<div class="step-note${note.quiet ? ' quiet' : ''}">${esc(note.text)}</div>` : '';
+  if (!note) return '';
+  const way = note.way ? ` <button class="button note-way" data-way="${esc(note.sid)}">${esc(note.way)}</button>` : '';
+  return `<div class="step-note${note.quiet ? ' quiet' : ''}">${esc(note.text)}${way}</div>`;
 }
 function stepLine(row) {
   const note = state.stepNotes[row.s.sessionId];
-  if (note && Date.now() - note.at < 8000) return { text: note.text, quiet: note.quiet };
+  if (note && Date.now() - note.at < (note.way ? 20000 : 8000))
+    return note.way ? { text: note.text, quiet: note.quiet, way: note.way, sid: row.s.sessionId }
+      : { text: note.text, quiet: note.quiet };
   for (const say of core.rowNotes) {
     const said = say(row);
     if (said) return said;

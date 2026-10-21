@@ -1,5 +1,5 @@
-// Claude Desktop's part of the page: how a row of one of its conversations is named, its scratch conversations' group,
-// and "Switch model?" (switch-model.js).
+// Claude Desktop's part of the page: how a row of one of its conversations is named, and its scratch conversations'
+// group. "Switch model?" is the commands module's (switch-model.js).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The folders Claude Desktop makes for conversations started with no folder of yours: they share one group, Scratch,

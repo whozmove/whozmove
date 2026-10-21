@@ -107,22 +107,32 @@ with what each is doing, so you can see at a glance which one needs you.
   Never while it's working or asking you something, since a key typed into a permission prompt would
   answer it.
   - In Ghostty or iTerm2, the panel types `/model …` or `/effort …` into the session's tab (a half-typed draft
-    is stashed and comes back), or presses Shift+Tab for the mode. In iTerm2, it types only into a session
-    alone in its window, with no other tabs or panes there: iTerm2's Broadcast Input can copy what's typed
-    into the others, and no script can tell whether it's on, so for a session that shares its window the menu
-    says to change it there. Those commands also save your choice as the default for new sessions, so the
-    panel puts your default back (only that setting, and only when the command says it saved it). The mode
-    menu offers only the modes it can reach with a known number of presses. Auto isn't in every session's
-    Shift+Tab cycle, so unless the session is in Auto now or your settings turn Auto off, the menu offers just
-    the moves that are the same either way, and says to change the others in the terminal. If Claude Code asks
-    to confirm (switching model on a cached conversation), the tab comes forward.
-  - In Claude Desktop, the same slash command goes into the conversation's own message box and is sent
-    with its Send button through the Accessibility API, so nothing is typed and no menus open. Return is
-    pressed only if Claude shows no Send button, and only while Claude is in front. Claude switches to the
+    is stashed and comes back), or presses Shift+Tab for the mode. In iTerm2, with its Python API switched on
+    (iTerm2's Settings ▸ General ▸ Magic ▸ Enable Python API), the keys go into that session alone, whatever
+    else its window holds. With it off, the panel types only into a session alone in its window, with no other
+    tabs or panes there: iTerm2's Broadcast Input can copy what's typed into the others, and no script can
+    tell whether it's on, so for a session that shares its window the menu says so, and offers Turn On
+    iTerm2's Python API…, which brings iTerm2 forward with its Settings turned to that box and ticks it;
+    iTerm2 asks you to confirm. A switch on iTerm2's page on the panel's back does the same. Those commands
+    also save your choice as the default for new sessions, so the panel puts your default back (only that
+    setting, and only when the command says it saved it). The mode menu offers only the modes it can reach
+    with a known number of presses. Auto isn't in every session's Shift+Tab cycle, so unless the session is in
+    Auto now or your settings turn Auto off, the menu offers just the moves that are the same either way, and
+    says to change the others in the terminal. When switching model would re-read a cached conversation,
+    Claude Code's "Switch model?" is asked on its row in the panel instead (Claude Code 2.1.304 or later, in
+    sessions started since Whozmove's hooks were put in place), saying how much the conversation holds: Switch
+    goes on, Cancel keeps the model, and with no answer within a minute Claude asks in the terminal. While a
+    pick goes in, its row says so ("Switching to Opus 5.5…"); if Claude Code asks anything else first (its
+    "Change effort level?", which no hook can answer), the row says Claude is asking in the terminal, with
+    Take me there, until it has your answer. The tab doesn't come forward by itself. Meanwhile the other menus,
+    Compact and next steps say a change from the panel is still going in.
+  - In Claude Desktop, the same slash command goes into the conversation's own message box and is sent with
+    its Send button through the Accessibility API, so nothing is typed and no menus open. Return is pressed
+    only if Claude shows no Send button, and only while Claude is in front. Claude switches to the
     conversation first if it isn't showing it. The mode menu offers only Plan, since `/plan` is the only
     slash command for a mode, and nothing is sent while you have a message half-written there. Claude's
-    "Switch model?" (a model switch re-reads a cached conversation) is asked in the panel instead, and your
-    answer goes to Claude's box. This needs the Accessibility permission for Whozmove
+    "Switch model?" (a model switch re-reads a cached conversation) is asked on its row in the panel
+    instead, and your answer goes to Claude's box. This needs the Accessibility permission for Whozmove
 - the **next steps** its checkout has to take, as git sees it, at the end of the row's work line, in git checkouts
   only: a commit icon while something isn't committed, **↑2** while the branch is ahead of its copy on GitHub, or a
   cloud for a branch never pushed. Pointed at, each says its step beside it (**Commit**, **Push**, **Publish**);
@@ -225,7 +235,8 @@ with what each is doing, so you can see at a glance which one needs you.
 - click a session to jump to it: Claude Desktop opens it (launching Claude if needed), Ghostty switches to its
   tab (and its split, in a tab with several), and iTerm2 to its window, tab and pane, its hotkey window too (but not
   one that floats over every Space, which iTerm2 doesn't let scripts reach). When iTerm2 has quit while its sessions
-  live on, the click starts it, and the next one, once it has taken them back, goes to the session
+  live on, the click starts it, and the next one, once it has taken them back, goes to the session. The keyboard
+  goes with it, even right after you've typed in the panel, so you can type there straight away
 - your Claude plan's **usage**, on a card under the panel, as wide as it: the same numbers as Claude's own Usage
   page, for the session (five hours) and the week, each with how long until it resets ("2h 59m"; point at it for the
   clock time), coloured as Claude colours them for how close you are, and a note when you're on course to run out
@@ -294,12 +305,12 @@ A label's colour says whose move it is:
 
 Needs macOS, Xcode Command Line Tools (`clang`, and the `python3` the hooks run on) and Claude Code.
 Optional: `gh`, signed in, for PR status; Claude Desktop, Ghostty and iTerm2, for jumping to and controlling their
-sessions (in iTerm2, a session alone in its window); the `claude` command, signed in to a Claude plan, for your
-plan's usage (Claude Desktop's own copy will do). Sessions in other terminals are listed too, but a click only
-brings their app forward (not the exact tab), they aren't marked as the one you're on, and their model, effort and
-mode can't be changed from the panel.
+sessions (in iTerm2, any session once its Python API is on, else one alone in its window); the `claude` command,
+signed in to a Claude plan, for your plan's usage (Claude Desktop's own copy will do). Sessions in other terminals
+are listed too, but a click only brings their app forward (not the exact tab), they aren't marked as the one
+you're on, and their model, effort and mode can't be changed from the panel.
 
-Tested with Claude Code 2.1.302 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
+Tested with Claude Code 2.1.304 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
 1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
 all, and asks Claude Code for your plan's usage a way it doesn't document either, so an update to one of them can
 break part of the panel until Whozmove catches up. The fix goes in the module of the app that changed
@@ -323,7 +334,9 @@ macOS asks for two permissions the first time they're needed: **Accessibility** 
 compact, focus the message box and send a new conversation's first message in Claude Desktop), and **Automation** of
 Ghostty and of iTerm2 (to switch to and type into their tabs, open new ones, and see which one you're looking at)
 and of Spotify (to show its song's cover and control it, asked at the first Play or the first song it plays). Both
-can be granted later in System Settings → Privacy & Security.
+can be granted later in System Settings → Privacy & Security. Switching on iTerm2's Python API from the panel uses
+Accessibility too, to tick its box in iTerm2's Settings, and asks for nothing more: Whozmove gets each connection's
+one-time cookie from iTerm2 through that same Automation, and iTerm2 lists the connection in its Script Console.
 
 After changing anything in `app/`, `modules/`, `panel/`, `icon/` or the hooks, run `./build.sh` again in your
 terminal. It puts the app in place and restarts it, with the hooks too once they're installed as the plugin (a hook
@@ -348,7 +361,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | Your turn, Seen, Idle | Your turn: a request waiting, or a reply (from the hook) you haven't read, however long ago: not opened here since, nor looked at since in Claude, Ghostty or iTerm2 (on it for 2 seconds or more with that app in front, while the screen is awake and unlocked and the keyboard or mouse was used in the last 5 minutes; and Claude's own `lastFocusedAt`), with nothing written to it since; or one you've read, while you're on its session and for 10 minutes after you were last on it. Seen: a reply you've read, once you've been away from it for 10 minutes. Idle: no reply yet, or one you've read with nothing since for an hour, the transcript's newest message and the last time you were on it included |
 | Permission requests | `~/Library/Application Support/Whozmove/asks/<id>.json`, left by the permission hook while it waits; your answer goes back in `<id>.answer.json` |
 | Branch and worktree | the session folder's `.git`, read directly (no `git` process) |
-| Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); iTerm2's AppleScript (`write text … newline no`, each key as the characters it sends: Return, Backspace, Ctrl+S, and Esc `[Z` for Shift+Tab), into the session found by its own terminal device (tty), only while it's alone in its window, which the same script checks right before typing; Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
+| Changing model, effort, mode | Ghostty's AppleScript (`input text`, `send key`, `perform action "text:\x13"` for Ctrl+S); iTerm2's Python API while it's on (`send_text` with `suppress_broadcast`, over its Unix socket in `~/Library/Application Support/iTerm2/private`, opened with a one-time cookie from its AppleScript `request cookie and key`), else its AppleScript (`write text … newline no`), each key as the characters it sends (Return, Backspace, Ctrl+S, and Esc `[Z` for Shift+Tab), into the session found by its own terminal device (tty), and through AppleScript only while it's alone in its window, which the same script checks right before typing; Claude Desktop's message box ("Prompt") and Submit button via the Accessibility API; the result from the transcript's `<local-command-stdout>` or Claude's conversation file |
 | PRs | `pr-link` entries in the session transcript; open/merged state from `gh pr view` |
 | The next steps | `git status` (which files are staged, partly staged or not, and how far the branch is ahead of its upstream), and per checkout its base branch (`origin/HEAD`'s, else `main` or `master`) and `git rev-list --count` from there; for Create PR's card, the branches on GitHub as this Mac last fetched them (`git for-each-ref refs/remotes/origin`); the PRs from `gh` |
 | What isn't committed | per checkout, every 3 seconds at most while something there changes, `git diff` from the last commit, `git diff` alone (not staged), `git diff --cached` (staged) and new files; while there are commits not on GitHub yet, `git log` and `git show` for each; and the edits each session's transcript records (Edit, MultiEdit and Write, with the lines each put in and took out; what Claude Code recorded each shell command changed), with `bashEditDiffEnabled` in the machine's, the project's and your Claude Code settings, which each changed line is matched with |
@@ -366,7 +379,7 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 | `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), and `page.sh`, which puts the page together with each module's page files |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
-| `modules/claude-code/plugin/hooks/whozmove-claude-permission.py` | Claude Code PermissionRequest hook: asks in the panel as well as in Claude |
+| `modules/claude-code/plugin/hooks/whozmove-claude-permission.py` | Claude Code PermissionRequest hook: asks in the panel as well as in Claude; and its PreModelSwitch hook: asks "Switch model?" in the panel for a switch the panel made |
 | `modules/claude-code/plugin/` (`hooks/hooks.json`, `.claude-plugin/`) | the Claude Code plugin that runs both hooks; `install.sh` adds it from a copy in Whozmove's folder |
 | `icon/make-icon.m` | draws `icon/AppIcon.icns` (re-run only to change the icon) |
 | `build.sh`, `install.sh`, `app/login-item.plist` | build, and install (the plugin and the login item); they read the app's name and id from `app/Info.plist` |

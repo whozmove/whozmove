@@ -149,6 +149,26 @@ echo "== P1 panel not running"
 echo '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' | HOME="$T" python3 "$P"
 echo "exit=$?"
 ls "$D/asks" 2>/dev/null | wc -l | tr -d ' '
+# The same hook's part for model switches (PreModelSwitch): only a switch the panel noted is its business. The note
+# says the model and how long ago (in seconds).
+note() {
+  mkdir -p "$D/switches"
+  python3 -c "import json, sys, time
+json.dump({'to': sys.argv[1], 'at': int(time.time() * 1000) - int(sys.argv[2]) * 1000}, open(sys.argv[3], 'w'))" \
+    "$1" "${2:-0}" "$D/switches/m1.panel.json"
+}
+switch_event() {
+  echo "{\"hook_event_name\":\"PreModelSwitch\",\"session_id\":\"m1\",\"from_model\":\"claude-opus-5-5\",
+         \"to_model\":\"$1\",\"requested_model\":\"$1\",\"source\":\"command\",\"prompt_cache_warm\":$2,
+         \"context_tokens\":152000}"
+}
+switched() { echo "exit=$?"; echo "   left in switches: $(ls "$D/switches" 2>/dev/null | wc -l | tr -d ' ')"; }
+echo "== M1 a switch the panel didn't note"
+switch_event claude-sonnet-5-5 true | HOME="$T" python3 "$P"; switched
+echo "== M2 the panel's switch, with the panel not running: Claude asks as usual"
+note claude-sonnet-5-5; switch_event claude-sonnet-5-5 true | HOME="$T" python3 "$P"; switched
+echo "== M3 the panel's switch, with its cache not warm: allowed, nothing asked"
+note claude-sonnet-5-5; switch_event claude-sonnet-5-5 false | HOME="$T" python3 "$P"; switched
 OTHER=$(detached sleep 600); echo $OTHER > "$D/panel.pid"
 echo "== P0 stale panel.pid (another process)"
 echo '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' \
@@ -196,6 +216,25 @@ echo "== P6 question dismissed"
 answer '{"session_id":"s1","tool_name":"AskUserQuestion","tool_input":{"questions":[]}}' '{"behavior":"deny"}'
 echo "== P7 cancelled by Claude (SIGTERM)"
 answer '{"session_id":"s1","tool_name":"Bash","tool_input":{"command":"ls"}}' SIGTERM
+# The panel's switch with a warm cache, asked in the panel: the question, the panel's answer, and what's passed back.
+switch_answer() {
+  note claude-sonnet-5-5
+  (switch_event claude-sonnet-5-5 true | HOME="$T" python3 "$P" > "$T/out" 2>&1; echo "exit=$?" >> "$T/out") & HP=$!
+  for i in $(seq 1 40); do [ -f "$D/switches/m1.ask.json" ] && break; sleep 0.1; done
+  python3 - "$D/switches/m1.ask.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print('   question', {k: d[k] for k in ('sessionId', 'from', 'to', 'tokens')})
+PY
+  echo "$1" > "$D/switches/m1.answer.json"
+  wait $HP; cat "$T/out"; echo "   left in switches: $(ls "$D/switches" | wc -l | tr -d ' ')"
+}
+echo "== M4 a note for another model: not the panel's switch"
+note claude-haiku-5-5; switch_event claude-sonnet-5-5 true | HOME="$T" python3 "$P"; switched
+echo "== M5 a note from two minutes ago: not the panel's switch"
+note claude-sonnet-5-5 120; switch_event claude-sonnet-5-5 true | HOME="$T" python3 "$P"; switched
+echo "== M6 asked in the panel: switch"; switch_answer '{"allow":true}'
+echo "== M7 asked in the panel: keep the model"; switch_answer '{"allow":false}'
 PLAN='{"session_id":"s1","tool_name":"ExitPlanMode","tool_input":{"plan":"# Plan","planFilePath":"/p.md"}}'
 echo "== P7a plan sent back with notes"; answer "$PLAN" '{"behavior":"deny","message":"  Split step 2.  "}'
 echo "== P7b plan stopped"; answer "$PLAN" '{"behavior":"deny","stop":true,"message":"ignored"}'
@@ -273,6 +312,8 @@ for event in sorted(hooks):
             print(f"   {event}: {run}{' async' if hook.get('async') else ''}{timeout}")
 wait = int(re.search(r"^WAIT_LIMIT = (\d+)", open(sys.argv[2]).read(), re.M).group(1))
 print("   the permission hook stops waiting first:", wait < hooks["PermissionRequest"][0]["hooks"][0]["timeout"])
+switch_wait = int(re.search(r"^SWITCH_WAIT = (\d+)", open(sys.argv[2]).read(), re.M).group(1))
+print("   and for a model switch:", switch_wait < hooks["PreModelSwitch"][0]["hooks"][0]["timeout"])
 print("   the plugin's version is the app's:", json.load(open(sys.argv[3]))["version"] == sys.argv[4])
 PY
 }

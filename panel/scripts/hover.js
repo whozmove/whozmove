@@ -6,6 +6,7 @@
 // Neither :hover nor mouse events are used: the panel is rarely the focused window, so WebKit's own hover goes
 // stale, and the list is rebuilt every second.
 const HOVER_TARGETS = ['.row', '.chev', '.apps', '.group.toggle', '.project', '.perm button', '.opt', '.q-close',
+                       '.step-note button',
                        '#reader button', '#card button'];
 
 // The card shown while something is pointed at, below it. The modules say what has one (core.cards): each { selector,

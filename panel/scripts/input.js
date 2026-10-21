@@ -22,6 +22,7 @@ function toggleProject(key) {
 // rebuilt every second, and a click whose press and release land on different (rebuilt) elements never fires.
 const list = document.getElementById('list');
 const PRESSES = [
+  ['.step-note .note-way', pressNoteWay],
   ['.group.toggle', () => toggleIdle()],
   ['.project[data-key]', (project) => toggleProject(project.dataset.key)],
   ['.row', pressRow],
@@ -35,6 +36,17 @@ list.addEventListener('mousedown', (e) => {
     if (target) return press(target, e);
   }
 });
+
+// The button past why a step couldn't go in (a step's note, rows.js): the app takes the way past, and says how it went
+// in the note's place. It waits to be seen first, as the note has only just come.
+function pressNoteWay(button, e) {
+  e.preventDefault();
+  const sid = button.dataset.way, note = state.stepNotes[sid];
+  if (!note || Date.now() - note.at < FRESH_MS) return;
+  note.way = null;
+  native({ type: 'wayPast', sessionId: sid });
+  render();
+}
 
 // A row, anywhere a module doesn't take the press: opens the session, which becomes the one you're on.
 function pressRow(row) {

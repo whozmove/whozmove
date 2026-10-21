@@ -200,6 +200,7 @@ static const NSTimeInterval kAppsKnownFor = 30;
             [weakSelf.sideCat needs:[msg[@"value"] integerValue]];
         },
         @"open": ^(NSDictionary *msg) { [weakSelf.focus open:msg]; },
+        @"wayPast": ^(NSDictionary *msg) { [weakSelf.send takeWayPast:msg]; },
     };
 }
 

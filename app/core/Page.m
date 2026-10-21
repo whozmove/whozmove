@@ -164,13 +164,8 @@ static NSString *JSONText(id value) {
     [self call:@"toggleCollapsed" arguments:nil];
 }
 
-- (void)askSwitch:(NSDictionary *)question {
-    NSString *json = JSONText(question);
-    if (json) [self call:@"askSwitch" arguments:json];
-}
-
-- (void)compactNote:(NSString *)sid text:(NSString *)text {
-    NSString *json = JSONText(@[sid ?: @"", text ?: @""]);
+- (void)compactNote:(NSString *)sid text:(NSString *)text way:(NSString *)way {
+    NSString *json = JSONText(@[sid ?: @"", text ?: @"", way ?: NSNull.null]);
     if (json) [self call:@"compactNote" arguments:[@"..." stringByAppendingString:json]];
 }
 
@@ -217,6 +212,11 @@ static NSString *JSONText(id value) {
 
 - (void)stepNote:(NSString *)sid text:(NSString *)text quiet:(BOOL)quiet {
     NSString *json = JSONText(@[sid ?: @"", text ?: @"", @(quiet)]);
+    if (json) [self call:@"stepNote" arguments:[@"..." stringByAppendingString:json]];
+}
+
+- (void)stepNote:(NSString *)sid text:(NSString *)text way:(NSString *)way {
+    NSString *json = JSONText(@[sid ?: @"", text ?: @"", @NO, way ?: NSNull.null]);
     if (json) [self call:@"stepNote" arguments:[@"..." stringByAppendingString:json]];
 }
 

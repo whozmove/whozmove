@@ -26,17 +26,18 @@ message box and sent, new conversations started there with your words, and its "
   and its log's lines, its links, its environments (its presets file), and how its window's controls are labelled. When
   Claude Desktop changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
 - `page/claude-desktop.js`: how a row of one of its conversations is named (its icon, "Claude Desktop", "in Claude",
-  "Open in Claude now"), and its scratch conversations' group; `page/switch-model.js`: "Switch model?", asked in the
-  panel. `module.json` lists them for tools/page.sh.
+  "Open in Claude now"), and its scratch conversations' group. `module.json` lists it for tools/page.sh. "Switch
+  model?" is asked in the panel by the commands module's card.
 
 tests/rows.sh checks its rows in a sample home (`--print-rows`), and the starts module's tests the links it starts
 conversations with (`--print-starts`).
 
 ## Between the page and the app
 
-- The app calls `askSwitch({sessionId, from, to})`, before sending `/model` to a conversation whose cache is warm, or
-  when Claude asks anyway. Its card sends your answer back as `switchAnswer`, `{sessionId, ok, never}`, which the
-  commands answer (they send `/model`, or pass the answer on to Claude's own box).
+- "Switch model?" is the commands module's card on the row (its `switchAsk`), before `/model` goes to a conversation
+  whose cache is warm, or when Claude asks anyway. The card sends your answer back as `switchAnswer`,
+  `{sessionId, ok, never}`, which the commands answer (they send `/model`, or pass the answer on to Claude's own
+  box).
 
 ## Rules
 

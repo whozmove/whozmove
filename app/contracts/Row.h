@@ -37,6 +37,12 @@
 @property (copy) NSDictionary *git, *workGit, *checkout, *ask, *agent, *changes;
 @property (copy) NSArray<NSDictionary *> *prs, *writings;
 @property (strong) NSNumber *messageAt, *compacting, *seenAt;
+// A pick from the panel on its way into the session, {field, value, inTerminal}: `inTerminal` once Claude Code is
+// asking about it in the session's terminal before it goes in.
+@property (copy) NSDictionary *goingIn;
+// "Switch model?" asked on its row, {from, to, tokens, never}: before /model goes to a Claude Desktop conversation, once
+// Claude's own box asks it there, or while a terminal session's hook waits for the answer.
+@property (copy) NSDictionary *switchAsk;
 @property (assign) BOOL focused;
 // A compaction from the panel certainly couldn't go in now, as far as can be told without asking its terminal: it runs
 // in no terminal the panel can type into, or it's open twice. The page doesn't suggest compacting it then.

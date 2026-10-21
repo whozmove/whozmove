@@ -21,6 +21,10 @@
     "PermissionRequest": [{ "hooks": [{
       "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
       "timeout": 3600
+    }] }],
+    "PreModelSwitch": [{ "hooks": [{
+      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
+      "timeout": 90
     }] }]
   }
 }

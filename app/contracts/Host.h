@@ -56,6 +56,12 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 // terminal knows. One that refuses a key as it goes in refuses everything after it in that tab, and says why here,
 // until the tab is looked for again (tabFor:), so a command never goes in half.
 - (NSString *)whyNotTypeIn:(NSString *)tab;
+// A way past its own reason (whyNotTypeIn:), when it has one the panel can take for you: what a button for it says
+// ("Turn On iTerm2's Python API…"), else nil; and taking it, for a press on that button. `done` gets, on the main
+// thread, what the panel says of it next, and whether it went as far as it can from here (`worked`): where it's
+// waiting for you now, or what you have left to do.
+- (NSString *)wayPastIn:(NSString *)tab;
+- (void)takeWayPastIn:(NSString *)tab done:(void (^)(NSString *note, BOOL worked))done;
 @end
 
 // A terminal that can run a command in a new tab, in a folder (a new conversation, or the usage card's Sign in:

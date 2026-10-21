@@ -78,6 +78,17 @@
 // put back if it saved its own. One release for each hold.
 - (void)holdDefaults:(NSString *)field;
 - (void)releaseDefaults:(NSString *)field saved:(BOOL)saved;
+// "Switch model?" for a session in a terminal, asked in the panel through the agent's hooks when the agent would ask
+// it: a note, right before the command that switches a session's model goes in, that the switch is the panel's (nil
+// for the model takes it back, once the command is over, so a switch typed in the terminal is never taken for it); what's
+// asked of the panel for it now ({from, to, tokens}: the models, and how much the conversation holds, or NSNull), else
+// nil; and the panel's answer.
+- (void)noteSwitchOf:(NSString *)sessionId to:(NSString *)model;
+// Whether the session's hooks would ask its "Switch model?" in the panel (a session started before they could has
+// Claude ask in the terminal).
+- (BOOL)asksSwitchInPanel:(Row *)row;
+- (NSDictionary *)switchAskedIn:(NSString *)sessionId;
+- (void)answerSwitchIn:(NSString *)sessionId allow:(BOOL)allow;
 @end
 
 // Words put into a session's prompt, in a terminal keeping any draft there.

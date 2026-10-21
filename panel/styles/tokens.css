@@ -99,7 +99,7 @@
   /* Lines, edges and fills on the panel. */
   --rule: rgba(255, 255, 255, 0.08);     /* a line between parts */
   --edge: rgba(255, 255, 255, 0.12);     /* around a card, a choice, the song's cover */
-  --edge-firm: rgba(255, 255, 255, 0.14);  /* around the Compact card and "Switch model?" */
+  --edge-firm: rgba(255, 255, 255, 0.14);  /* around the Compact card and a pick going in */
   --box-edge: rgba(255, 255, 255, 0.4);  /* an unpicked choice's mark, a task's box */
   --tickbox-edge: rgba(255, 255, 255, 0.35);  /* "Don't ask again"'s box, unticked */
   --quote-line: rgba(255, 255, 255, 0.16);  /* beside a quote, in the reader */
@@ -167,7 +167,7 @@
   --cat-tag-edge: rgba(255, 255, 255, 0.09);
   --cat-tag-pointed: #34343c;
   --cat-tag-shadow: rgba(10, 12, 20, 0.35);
-  /* The cards that float over the list: a PR's, Create PR's, where a session runs, "Switch model?". */
+  /* The cards that float over the list: a PR's, Create PR's, where a session runs. */
   --card: #232327;
   --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
   /* On the panel's back (modules/apps), the tile drawn for an app with no icon of its own (git), and its mark. */
@@ -211,7 +211,7 @@
   --radius-control: 7px;                 /* a card's buttons, choices and text boxes; the reader's list */
   --radius-box: 8px;                     /* a row, a card on a row, a code block, a switch */
   --radius-menu: 9px;                    /* Open With's list of editors */
-  --radius-card: 10px;                   /* the PR card, "Switch model?" */
+  --radius-card: 10px;                   /* the PR card */
   --radius-panel: 24px;                  /* the panel's own corners, and the usage card's under it (kCorner) */
   --radius-icon: 22.5%;                  /* an app's tile on the panel's back, rounded as macOS's app icons are */
   --radius-circle: 50%;

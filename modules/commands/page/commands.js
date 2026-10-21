@@ -1,9 +1,11 @@
 // The commands a row offers its agent: its model, effort and mode on the details' second line, each opening the app's
-// menu to change it, and the context ring, which opens the Compact card.
+// menu to change it, and the context ring, which opens the Compact card; and a card while a pick goes into a terminal
+// session.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
-// The Compact card, per session: open, its note, and the focus typed in it. The session whose context ring is pointed
-// at. The sessions whose ring has opened by itself to say now is a good time to compact (compactNow), once it has.
+// The Compact card, per session: open, its note ({text, way}: why it didn't compact, and the words of a button past
+// that, or null), and the focus typed in it. The session whose context ring is pointed at. The sessions whose ring has
+// opened by itself to say now is a good time to compact (compactNow), once it has.
 moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null, compactNowShown: {} });
 
 // ---- The setup line ----
@@ -129,23 +131,72 @@ function compactHTML(s) {
     + `<div class="q-opts">${options}</div>`
     + '<input class="q-type c-focus" placeholder="Or your own focus, then Return"'
     + ` value="${esc(state.compactFocus[s.sessionId] || '')}">`
-    + (note ? `<div class="c-note">${esc(note)}</div>` : '') + '</div>';
+    + (note ? `<div class="c-note">${esc(note.text)}</div>` : '')
+    + (note?.way ? `<div class="perm-actions"><button class="c-way">${esc(note.way)}</button></div>` : '') + '</div>';
 }
 
-// A choice sends /compact, once the card has been up long enough to be seen; × closes it; a press in its box puts the
-// caret there, as usual.
+// A choice sends /compact, once the card has been up long enough to be seen, as its button past a reason is taken; ×
+// closes it; a press in its box puts the caret there, as usual.
 function pressCompactCard(card, e) {
   const sid = card.dataset.compact, button = e.target.closest('button');
   if (!button) return;
   e.preventDefault();
   if (button.classList.contains('q-close')) return toggleCompact(sid);
   if (justShown('compact:' + sid)) return;  // only just opened: not seen yet
+  if (button.classList.contains('c-way')) {
+    if (state.compactNotes[sid]) state.compactNotes[sid].way = null;
+    native({ type: 'wayPast', sessionId: sid });
+    return render();
+  }
   const level = COMPACT_LEVELS[+button.dataset.level];
   if (level) sendCompact(sid, level[0]);
 }
 
-// A /compact sent from the Compact card didn't go through: the card opens again, saying why.
-window.compactNote = (sid, text) => { state.compactOpen[sid] = true; state.compactNotes[sid] = text; render(); };
+// A pick on its way into a terminal session (goingIn), from the moment it's typed until its result: going in, with a
+// dot fading on and off as a working row's does, started partway in so the list's rebuild each second doesn't restart
+// it; or, once no result has come, Claude Code asking about it in the terminal, which only the terminal can answer (its
+// "Change effort level?", say), and the way there. Right after Switch model is pressed on the row's "Switch model?",
+// it shows the switch going in at once, while the app passes the answer on. Each of its states is its own (data-stage),
+// so changing from one to another cross-fades, and a button that has only just come counts as only just shown.
+function goingOf(s) {
+  if (s.goingIn) return s.goingIn;
+  const answered = switchAnswered(s.sessionId);
+  return answered?.ok ? { field: 'model', value: answered.to, inTerminal: false } : null;
+}
+
+function goingHTML(s) {
+  const { field, value, inTerminal } = goingOf(s), sid = esc(s.sessionId);
+  const stage = inTerminal ? 'terminal' : 'going';
+  state.shownAt[`going:${s.sessionId}:${stage}`] ??= Date.now();
+  const name = field === 'model' ? esc(core.agent.modelName(value) || value) : esc(value);
+  if (!inTerminal) {
+    const what = field === 'model' ? `Switching to ${name}…` : `Changing the ${esc(field)} to ${name}…`;
+    return `<div class="perm going" data-going="${sid}" data-stage="going">`
+      + `<div class="going-line"><span class="dot" style="${phase(1400)}"></span>`
+      + `<span class="perm-title">${what}</span></div></div>`;
+  }
+  const what = field === 'model' ? `switches to ${name}` : `changes the ${esc(field)} to ${name}`;
+  return `<div class="perm going in-terminal" data-going="${sid}" data-stage="terminal">`
+    + `<div class="perm-title">Claude is asking in the terminal before it ${what}</div>`
+    + '<div class="perm-actions"><button class="perm-go">Take me there</button></div></div>';
+}
+
+// Take me there goes to the session, once its button has been up long enough to be seen.
+function pressGoingCard(card, e) {
+  const sid = card.dataset.going, s = state.last.sessions.find((x) => x.sessionId === sid);
+  if (!s || !e.target.closest('.perm-go') || justShown(`going:${sid}:terminal`)) return;
+  e.preventDefault();
+  openSession(s);
+}
+
+// A /compact sent from the Compact card didn't go through: the card opens again, saying why, with a button past that
+// when its terminal has one (iTerm2's Python API, turned on).
+window.compactNote = (sid, text, way) => {
+  state.compactOpen[sid] = true;
+  state.compactNotes[sid] = { text, way };
+  state.shownAt['compact:' + sid] = Date.now();  // its button is new: it waits to be seen before it takes a press
+  render();
+};
 
 // ---- What it plugs into ----
 
@@ -153,6 +204,16 @@ window.compactNote = (sid, text) => { state.compactOpen[sid] = true; state.compa
 core.slots.setup.push((row) => agentSetupHTML(row.s));
 core.swaps.push(':scope > .main > .where .agent');
 // The Compact card comes after a request waiting on the row, and closes for Deploy's set-up card.
+// A pick going in comes after a request waiting on the row, and before the Compact card. Away, what it showed is
+// forgotten, so a button that comes back waits again before it takes a press.
+core.rowCards.push({
+  name: 'going', order: 15,
+  wants: (row) => !!goingOf(row.s),
+  html: (row) => goingHTML(row.s),
+  away: (row) => {
+    for (const stage of ['going', 'terminal']) delete state.shownAt[`going:${row.s.sessionId}:${stage}`];
+  },
+});
 core.rowCards.push({
   name: 'compact', order: 20,
   wants: (row) => !!state.compactOpen[row.s.sessionId],
@@ -161,7 +222,8 @@ core.rowCards.push({
 });
 core.presses.push(['.pick[data-pick]', pressPick],
                   ['.ctx[data-ctx]', (ring, e) => { e.preventDefault(); toggleCompact(ring.dataset.ctx); }],
-                  ['.perm[data-compact]', pressCompactCard]);
+                  ['.perm[data-compact]', pressCompactCard],
+                  ['.perm[data-going]', pressGoingCard]);
 // Words typed in the card's box are kept the same way as an answer's; Return sends them as the focus.
 core.typing.push(['.c-focus', (box) => { state.compactFocus[box.closest('.perm').dataset.compact] = box.value; }]);
 core.returns.push(['.c-focus', (box) => {
@@ -203,4 +265,4 @@ core.afterDraw.push(() => {
   });
 });
 core.forgotten.keys.push('compactOpen', 'compactNotes', 'compactFocus', 'compactNowShown');
-core.forgotten.prefixes.push('compact');
+core.forgotten.prefixes.push('compact', 'going');

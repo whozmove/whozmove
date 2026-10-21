@@ -493,6 +493,32 @@ state.compactOpen.c1 = true;
 const compacting = session({ sessionId: 'c1', agent: { model: 'claude-opus-5-5', tokens: 900000 } });
 print(`-- the Compact card open\n${rowHTML(compacting, classify(compacting, NOW, view()), NOW)}`);
 delete state.compactOpen.c1;
+// A pick going into a terminal session, then Claude Code asking about it in the terminal: a model by its name, anything
+// else by its value.
+for (const inTerminal of [false, true])
+  for (const [field, value] of [['effort', 'low'], ['model', 'claude-sonnet-5-5']]) {
+    const going = session({ sessionId: 'a1', goingIn: { field, value, inTerminal } });
+    const html = rowHTML(going, classify(going, NOW, view()), NOW);
+    const words = /class="perm-title">([^<]*)</.exec(html)?.[1];
+    show(`the ${field} picked, going in${inTerminal ? ', Claude asking in the terminal' : ''}`,
+         `${words}${/perm-go/.test(html) ? ' [Take me there]' : ''}`);
+  }
+// "Switch model?" on its row (switchAsk), in the place of the pick going in: how much the conversation holds, and Don't
+// ask again only where it's offered.
+for (const never of [false, true]) {
+  const asked = session({ sessionId: 'a1', goingIn: { field: 'model', value: 'claude-opus-5-5', inTerminal: false },
+    switchAsk: { from: 'claude-sonnet-5-5', to: 'claude-opus-5-5', tokens: 152000, never } });
+  const html = rowHTML(asked, classify(asked, NOW, view()), NOW);
+  show(`"Switch model?" on its row${never ? ", with Don't ask again" : ''}`,
+       [/class="perm-title">([^<]*)</, /class="perm-why">([^<]*)</].map((r) => r.exec(html)?.[1]).join(' / ')
+       + (/class="never/.test(html) ? " / Don't ask again" : '') + (/going-line/.test(html) ? ' / and going in' : ''));
+}
+// A step that couldn't go in, with the button past its reason in its note.
+state.stepNotes.n1 = { text: 'It shares its iTerm2 window, and iTerm2\'s Python API is off: ask there', quiet: false,
+                       way: "Turn On iTerm2's Python API…", at: Date.now() };
+show("a step's note with the button past its reason",
+     /<div class="step-note">[^]*?<\/div>/.exec(rowHTML(session({ sessionId: 'n1' }), 'idle', NOW))?.[0]);
+delete state.stepNotes.n1;
 show("a terminal session that's the one you're on says where it's open",
      /title="Open in your terminal now"/.test(rowHTML(session({ sessionId: 'f1', focused: true }), 'idle', NOW)));
 const tipOf = (fields) => /title="([^"]*)"/.exec(rowHTML(session({ sessionId: 'k2', status: 'closed', pid: 0,

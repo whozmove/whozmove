@@ -15,6 +15,7 @@
 #import "Edits.h"
 #import "AgentDetails.h"
 #import "Asks.h"
+#import "Switches.h"
 #import "SettingsFile.h"
 #import "Trust.h"
 #import "ClaudeUsage.h"
@@ -322,6 +323,22 @@ static NSString *ResumeCommand(NSString *sessionId) {
 
 - (void)releaseDefaults:(NSString *)field saved:(BOOL)saved {
     [self.settingsFile releaseDefaults:field saved:saved];
+}
+
+- (void)noteSwitchOf:(NSString *)sessionId to:(NSString *)model {
+    NoteSwitch(sessionId, model);
+}
+
+- (BOOL)asksSwitchInPanel:(Row *)row {
+    return row.pid > 0 && SessionAsksSwitches(row.pid);
+}
+
+- (NSDictionary *)switchAskedIn:(NSString *)sessionId {
+    return SwitchQuestion(sessionId);
+}
+
+- (void)answerSwitchIn:(NSString *)sessionId allow:(BOOL)allow {
+    AnswerSwitch(sessionId, allow);
 }
 
 #pragma mark Prompt

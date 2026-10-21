@@ -203,6 +203,16 @@ exit=0
 == P1 panel not running
 exit=0
 0
+== M1 a switch the panel didn't note
+exit=0
+   left in switches: 0
+== M2 the panel's switch, with the panel not running: Claude asks as usual
+exit=0
+   left in switches: 0
+== M3 the panel's switch, with its cache not warm: allowed, nothing asked
+{"hookSpecificOutput": {"hookEventName": "PreModelSwitch", "permissionDecision": "allow"}}
+exit=0
+   left in switches: 0
 == P0 stale panel.pid (another process)
 exit=0
 0
@@ -241,6 +251,22 @@ exit=0
    tool Bash session s1
 exit=0
    left in asks: 0
+== M4 a note for another model: not the panel's switch
+exit=0
+   left in switches: 0
+== M5 a note from two minutes ago: not the panel's switch
+exit=0
+   left in switches: 0
+== M6 asked in the panel: switch
+   question {'sessionId': 'm1', 'from': 'claude-opus-5-5', 'to': 'claude-sonnet-5-5', 'tokens': 152000}
+{"hookSpecificOutput": {"hookEventName": "PreModelSwitch", "permissionDecision": "allow"}}
+exit=0
+   left in switches: 0
+== M7 asked in the panel: keep the model
+   question {'sessionId': 'm1', 'from': 'claude-opus-5-5', 'to': 'claude-sonnet-5-5', 'tokens': 152000}
+{"hookSpecificOutput": {"hookEventName": "PreModelSwitch", "permissionDecision": "deny", "permissionDecisionReason": "You kept this model in Whozmove."}}
+exit=0
+   left in switches: 0
 == P7a plan sent back with notes
    request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
    tool ExitPlanMode session s1
@@ -310,8 +336,10 @@ exit=0
    PermissionRequest: python3 hooks/whozmove-claude-permission.py timeout 3600
    PostToolUse: python3 hooks/whozmove-claude.py async
    PostToolUseFailure: python3 hooks/whozmove-claude.py async
+   PreModelSwitch: python3 hooks/whozmove-claude-permission.py timeout 90
    PreToolUse: python3 hooks/whozmove-claude.py async
    Stop: python3 hooks/whozmove-claude.py async
    UserPromptSubmit: python3 hooks/whozmove-claude.py async
    the permission hook stops waiting first: True
+   and for a model switch: True
    the plugin's version is the app's: True

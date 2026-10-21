@@ -3,8 +3,10 @@
 # quoting, and what iTerm2 would be told to open it with, only plain words, or that it wouldn't be told (Whozmove
 # --print-iterm2-tab, compared with tabs.expected.txt); and what it would be told to find a session's tab, how its
 # answers would be read, and what it would be told to type and press there, only into a session alone in its window
-# (Whozmove --print-iterm2-typing, compared with typing.expected.txt). Nothing is sent to iTerm2, so it needn't be on
-# the Mac.
+# (Whozmove --print-iterm2-typing, compared with typing.expected.txt); and what it would be asked for a cookie for its
+# Python API, the request that opens a connection, what would be sent there for text and keys, and how its answers
+# would be read (Whozmove --print-iterm2-api, compared with api.expected.txt). Nothing is sent to iTerm2, so it needn't
+# be on the Mac.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -49,4 +51,18 @@ echo "== Names a script can't take"
 HOME="$T" "$APP" --print-iterm2-typing '/dev/ttys012"; quit' 'not-an-id"' "x"
 } 2>&1)
 compare "iTerm2's typing" "$HERE/typing.expected.txt" "$out" "${1:-}" || status=1
+
+# Through its Python API: the same text, sent with what iTerm2 could answer, recorded as it sends them (api.proto):
+# taken, no such session, an error, a notification, another request's answer, an answer with a field it doesn't know
+# first, a status it doesn't know, an answer cut short, and bytes that aren't a message. The request's lines end in a
+# carriage return, as HTTP's do, which git takes off the files it keeps, so it's shown as \r.
+out=$({
+echo "== A session's id, and text with quotes, a backslash, a tab and an Escape"
+HOME="$T" "$APP" --print-iterm2-api "$id" $'/compact keep the "draft" plan,\tnot C:\\old\e[Z' \
+  "08 01 da 06 02 08 00" "08 01 da 06 02 08 01" "08 01 12 04 6f 6f 70 73" "c2 3e 02 0a 00" \
+  "08 02 da 06 02 08 00" "18 07 08 01 da 06 00" "08 01 da 06 02 08 05" "08 01 da 06 05 08" "ff"
+echo "== A name that isn't a session's id"
+HOME="$T" "$APP" --print-iterm2-api all "x"
+} 2>&1 | LC_ALL=C sed $'s/\r$/\\\\r/')
+compare "iTerm2's Python API" "$HERE/api.expected.txt" "$out" "${1:-}" || status=1
 exit ${status:-0}

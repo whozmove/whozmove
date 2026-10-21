@@ -49,7 +49,10 @@ typedef NS_ENUM(NSInteger, SwitchAnswer) {
 @property (assign) BOOL showsPick;
 @property (strong) id pickBefore, pickBeforeAt;  // NSNull when there was none
 @property (assign) SwitchAnswer switchAnswer;
-@property (assign) BOOL switchAnswerGiven;      // passed on to Claude's box
+@property (assign) BOOL switchAnswerGiven;      // passed on to Claude's box, or to its agent's hook
+@property (assign) BOOL askedInPanel;           // its agent's hook asked "Switch model?" in the panel
+@property (assign) BOOL hookAsks;               // its session's hook asks "Switch model?" in the panel
 // Why it didn't go through, as the panel says it.
 @property (copy) NSString *why;
+@property (copy) NSString *way;  // the words of a button past its terminal's refusal (TypingHost's wayPastIn:), if any
 @end

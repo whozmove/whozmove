@@ -48,8 +48,8 @@
 - (void)catLanded;
 - (void)setGroupBy:(NSString *)mode;
 - (void)toggleCollapsed;
-- (void)askSwitch:(NSDictionary *)question;
-- (void)compactNote:(NSString *)sid text:(NSString *)text;
+// Why a /compact from the Compact card didn't go in, and the words of a button past it (WayPast in Send.h), or nil.
+- (void)compactNote:(NSString *)sid text:(NSString *)text way:(NSString *)way;
 - (void)setRunningBuild:(NSDictionary *)running;
 - (void)setSwitches:(NSDictionary *)switches;
 - (void)readerOpened:(NSString *)side width:(CGFloat)width;
@@ -61,4 +61,6 @@
 - (void)stepNote:(NSString *)sid text:(NSString *)text;
 // A quiet note says how something went that worked; the other kind, why something couldn't happen.
 - (void)stepNote:(NSString *)sid text:(NSString *)text quiet:(BOOL)quiet;
+// Why a step couldn't go in, with the words of a button past that (WayPast in Send.h), which stays a while longer.
+- (void)stepNote:(NSString *)sid text:(NSString *)text way:(NSString *)way;
 @end

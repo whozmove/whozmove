@@ -367,6 +367,13 @@ x
               stroke-dasharray="28.27 31.42"/></svg><span class="ctx-label">90% · Compact now</span></span><span class="gap"></span><span class="place" data-place="c1"><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></span></div>
       </div>
     </div>
+the effort picked, going in: Changing the effort to low…
+the model picked, going in: Switching to Sonnet 5.5…
+the effort picked, going in, Claude asking in the terminal: Claude is asking in the terminal before it changes the effort to low [Take me there]
+the model picked, going in, Claude asking in the terminal: Claude is asking in the terminal before it switches to Sonnet 5.5 [Take me there]
+"Switch model?" on its row: Switch model? / This session is cached for Sonnet 5.5. Switching to Opus 5.5 means Claude re-reads the whole session (about 152k tokens) on your next message, which uses more of your limit.
+"Switch model?" on its row, with Don't ask again: Switch model? / This session is cached for Sonnet 5.5. Switching to Opus 5.5 means Claude re-reads the whole session (about 152k tokens) on your next message, which uses more of your limit. / Don't ask again
+a step's note with the button past its reason: <div class="step-note">It shares its iTerm2 window, and iTerm2&#39;s Python API is off: ask there <button class="button note-way" data-way="n1">Turn On iTerm2&#39;s Python API…</button></div>
 a terminal session that's the one you're on says where it's open: true
 a terminal session that has ended says where a press opens it again: Not running: click to open it in iTerm2
 …with no terminal to name: Not running

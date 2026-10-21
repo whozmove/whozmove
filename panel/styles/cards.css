@@ -92,6 +92,11 @@
 .perm button { overflow-wrap: anywhere; }
 .perm-title { font-size: var(--size-body); font-weight: 600; color: var(--text); }
 .perm-why { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
+/* A pick going into a session (commands.js): its working dot beside the words, edged quietly as the Compact card is,
+   until Claude asks about it in the terminal, which waits on you. */
+.perm.going { border-color: var(--edge-firm); }
+.perm.going.in-terminal { border-color: var(--needs-edge); }
+.perm.going .going-line { display: flex; align-items: flex-start; gap: 8px; }
 .perm-detail { margin-top: 6px; max-height: 140px; overflow: auto; padding: 6px 8px; border-radius: 6px;
                background: var(--code-fill);
                font: var(--size-small)/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code);
@@ -160,25 +165,14 @@ stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .q-number .q-type { width: 96px; }
 .q-unit { font-size: var(--size-card); color: var(--muted); }
 
-/* Claude's "Switch model?", asked here instead of in Claude (see askSwitch). */
-#ask { position: fixed; left: calc(var(--side) + 10px); width: calc(var(--column) - 20px); z-index: 11;
-       padding: 12px 13px 11px; border-radius: var(--radius-card); background: var(--card);
-       border: 1px solid var(--edge-firm); box-shadow: var(--card-shadow); }
-#ask[hidden] { display: none; }
-#ask h3 { font-size: var(--size-title); font-weight: 600; margin-bottom: 6px; }
-#ask p { font-size: var(--size-card); line-height: 1.4; color: var(--muted); }
-#ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; font-size: var(--size-card); }
-#ask .box { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--tickbox-edge); display: grid;
-            place-items: center; }
-#ask .never.on .box { background: var(--main-button); border-color: var(--main-button); }
-#ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700; color: var(--on-main-button); }
-#ask .buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
-#ask button { font: inherit; font-size: var(--size-body); padding: 5px 12px; border-radius: var(--radius-control);
-              color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
-#ask button.is-hover { background: var(--button-hover); }
-#ask button.go { background: var(--main-button); border-color: transparent; color: var(--on-main-button);
-                 font-weight: 600; }
-#ask button.go.is-hover { background: var(--main-button-hover); }
+/* "Switch model?", asked on its row (switch-model.js): Don't ask again, where it's offered, as a box to tick. */
+.perm.switch-ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px;
+                          font-size: var(--size-card); }
+.perm.switch-ask .box { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--tickbox-edge);
+                        display: grid; place-items: center; }
+.perm.switch-ask .never.on .box { background: var(--main-button); border-color: var(--main-button); }
+.perm.switch-ask .never.on .box::after { content: '✓'; font-size: 10px; font-weight: 700;
+                                         color: var(--on-main-button); }
 
 /* A plan waiting for your OK (planAskHTML), edged in the plan tag's colour. */
 .perm.plan-ask { border-color: var(--plan-edge); }

@@ -4,6 +4,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ITerm2.h"
 #import "ITerm2Facts.h"
+#import "ITerm2API.h"
+#import "ITerm2Settings.h"
 #import <AppKit/AppKit.h>
 #include <sys/param.h>
 #import "Row.h"
@@ -12,6 +14,7 @@
 #import "AppleScript.h"
 #import "Processes.h"
 #import "Text.h"
+#import "Accessibility.h"
 
 // How long an iTerm2 started for a new tab is waited for while it starts.
 static const NSTimeInterval kStartingFor = 20;
@@ -64,11 +67,15 @@ static BOOL IsSessionId(NSString *text) {
 }
 
 // What the panel says when keys can't go into a session's tab: others share its window, where iTerm2's Broadcast Input
-// could copy them; it's gone; or iTerm2 didn't take them.
-static NSString *const kSharedWindow =
-    @"Its iTerm2 window has other tabs or panes, which Broadcast Input could type into";
+// could copy them, and there's no Python API to type past it, or Whozmove hasn't connected to it yet; it's gone; or
+// iTerm2 didn't take them.
+static NSString *const kSharedWindow = @"It shares its iTerm2 window, and iTerm2's Python API is off";
+static NSString *const kConnecting = @"It shares its iTerm2 window, and Whozmove is still connecting to iTerm2's "
+                                     @"Python API";
 static NSString *const kTabGone = @"Couldn't find this session's iTerm2 tab";
 static NSString *const kNotTaken = @"iTerm2 didn't take the keys";
+// The button past the first of those: the Python API turned on, in iTerm2's Settings (turnAPI:).
+static NSString *const kTurnOnAPI = @"Turn On iTerm2's Python API…";
 
 // What finds the session on a terminal device (Nameable), and says its id and whether it's alone in its window, as
 // "<id> alone" or "<id> shared", or nothing when no session is on it. The session found is held by what iTerm2 answers
@@ -101,22 +108,20 @@ static NSString *FoundTab(NSString *answer, BOOL *alone) {
     return said && IsSessionId(parts[0]) ? parts[0] : nil;
 }
 
-// A key as the characters a terminal sends for it, as AppleScript makes them (ITerm2Facts.h).
-static NSString *KeyText(TerminalKey key) {
+// The characters a key sends (ITerm2Facts.h).
+static NSString *KeyCharacters(TerminalKey key) {
     switch (key) {
-        case TerminalKeyReturn: return [NSString stringWithFormat:@"character id %d", kITerm2Return];
-        case TerminalKeyBackspace: return [NSString stringWithFormat:@"character id %d", kITerm2Backspace];
-        case TerminalKeyShiftTab: return [NSString stringWithFormat:@"(character id %d) & \"%@\"", kITerm2Escape,
-                                                                    kITerm2ShiftTabAfterEscape];
-        case TerminalKeyControlS: return [NSString stringWithFormat:@"character id %d", kITerm2ControlS];
+        case TerminalKeyReturn: return [NSString stringWithFormat:@"%C", (unichar)kITerm2Return];
+        case TerminalKeyBackspace: return [NSString stringWithFormat:@"%C", (unichar)kITerm2Backspace];
+        case TerminalKeyShiftTab:
+            return [NSString stringWithFormat:@"%C%@", (unichar)kITerm2Escape, kITerm2ShiftTabAfterEscape];
+        case TerminalKeyControlS: return [NSString stringWithFormat:@"%C", (unichar)kITerm2ControlS];
     }
     return nil;
 }
 
-// Text as AppleScript makes it, for a /compact's focus, which is free text: its quotes and backslashes escaped, and
-// each control character (a tab, an Escape) a space, since what's typed goes in as keys, where one would be pressed:
-// an Escape and "[Z" make a Shift+Tab, which would change the mode.
-static NSString *TextToType(NSString *text) {
+// The control characters: C0, Delete and C1.
+static NSCharacterSet *ControlCharacters(void) {
     static NSCharacterSet *controls;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
@@ -124,8 +129,41 @@ static NSString *TextToType(NSString *text) {
         [set addCharactersInRange:NSMakeRange(0x7f, 0x21)];
         controls = set;
     });
-    NSString *plain = [[text componentsSeparatedByCharactersInSet:controls] componentsJoinedByString:@" "];
-    return [NSString stringWithFormat:@"\"%@\"", AppleScriptText(plain)];
+    return controls;
+}
+
+// Text as it's typed, for a /compact's focus, which is free text: each control character (a tab, an Escape) a space,
+// since what's typed goes in as keys, where one would be pressed: an Escape and "[Z" make a Shift+Tab, which would
+// change the mode.
+static NSString *TypedText(NSString *text) {
+    return [[text componentsSeparatedByCharactersInSet:ControlCharacters()] componentsJoinedByString:@" "];
+}
+
+// Keys as AppleScript makes them: each run of other characters as text, its quotes and backslashes escaped, and each
+// control character by its number, joined.
+static NSString *AppleScriptKeys(NSString *keys) {
+    NSMutableArray<NSString *> *parts = [NSMutableArray array];
+    NSMutableString *run = [NSMutableString string];
+    void (^endRun)(void) = ^{
+        if (!run.length) return;
+        [parts addObject:[NSString stringWithFormat:@"\"%@\"", AppleScriptText(run)]];
+        [run setString:@""];
+    };
+    for (NSUInteger i = 0; i < keys.length; i++) {
+        unichar c = [keys characterAtIndex:i];
+        if (![ControlCharacters() characterIsMember:c]) {
+            [run appendFormat:@"%C", c];
+            continue;
+        }
+        endRun();
+        [parts addObject:[NSString stringWithFormat:@"character id %d", c]];
+    }
+    endRun();
+    if (parts.count < 2) return parts.firstObject ?: @"\"\"";
+    NSMutableArray<NSString *> *joined = [NSMutableArray array];
+    for (NSString *part in parts)
+        [joined addObject:[part hasPrefix:@"character"] ? [NSString stringWithFormat:@"(%@)", part] : part];
+    return [joined componentsJoinedByString:@" & "];
 }
 
 // What puts `toType`, `times` times, 0.05s apart, into the session with that id, only while it's alone in its window:
@@ -257,6 +295,12 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
     return RunAppleScript(ITerm2Script(given, body));
 }
 
+// What asks iTerm2 for a one-time cookie and key for its Python API, for a connection under Whozmove's name: "<cookie>
+// <key>". It errs while the API is off.
+static NSString *CookieScript(void) {
+    return [NSString stringWithFormat:@"return (request cookie and key for app named \"%@\")", ITerm2APIClientName];
+}
+
 @interface ITerm2 ()
 // Asking which tab iTerm2 shows (whichShows:done:), and whether Whozmove may control it, on a queue of its own.
 @property (strong) dispatch_queue_t queue;
@@ -271,6 +315,10 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
 // when it knows. On the main thread only.
 @property (strong) NSMutableDictionary<NSString *, NSString *> *refusals;
 @property (copy) NSString *missedWhy;
+// iTerm2's Python API, through which keys go into one session only while a connection is open (connectAPI); and
+// turning it on or off in iTerm2's own Settings, on a queue of its own, as iTerm2 holds a press there as it asks you.
+@property (strong) ITerm2API *api;
+@property (strong) dispatch_queue_t settingsQueue;
 @end
 
 @implementation ITerm2
@@ -283,15 +331,41 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
     if (!(self = [super init])) return nil;
     self.queue = dispatch_queue_create("whozmove.iterm2", DISPATCH_QUEUE_SERIAL);
     self.refusals = [NSMutableDictionary dictionary];
+    self.api = [ITerm2API new];
+    self.settingsQueue = dispatch_queue_create("whozmove.iterm2-settings", DISPATCH_QUEUE_SERIAL);
     return self;
+}
+
+// Bytes as hex, two digits a byte, a space between; and back, nil for text that isn't.
+static NSString *Hex(NSData *data) {
+    NSMutableArray<NSString *> *bytes = [NSMutableArray array];
+    const uint8_t *at = data.bytes;
+    for (NSUInteger i = 0; i < data.length; i++) [bytes addObject:[NSString stringWithFormat:@"%02x", at[i]]];
+    return [bytes componentsJoinedByString:@" "];
+}
+
+static NSData *FromHex(NSString *hex) {
+    NSString *digits = [hex stringByReplacingOccurrencesOfString:@" " withString:@""];
+    if (digits.length % 2) return nil;
+    NSMutableData *data = [NSMutableData data];
+    for (NSUInteger i = 0; i < digits.length; i += 2) {
+        unsigned value;
+        NSScanner *scanner = [NSScanner scannerWithString:[digits substringWithRange:NSMakeRange(i, 2)]];
+        if (![scanner scanHexInt:&value] || !scanner.atEnd) return nil;
+        uint8_t byte = (uint8_t)value;
+        [data appendBytes:&byte length:1];
+    }
+    return data;
 }
 
 // `Whozmove --print-iterm2-tab <shell> <file> <folder> <command>`: what a new tab running the command in the folder,
 // through that shell, would have in its file of commands at that path, and what iTerm2 would be told to open it, or
 // that it wouldn't be, then quit. `Whozmove --print-iterm2-typing <tty> <session id> <text> <answer>…`: what iTerm2
 // would be told to find the session on that terminal device, how each answer to it would be read, and what it would be
-// told to type the text into the session with that id and to press each key. Nothing is written, and nothing is sent
-// to iTerm2.
+// told to type the text into the session with that id and to press each key. `Whozmove --print-iterm2-api <session
+// id> <text> <answer in hex>…`: what iTerm2 would be asked for a cookie, the request that opens a connection to its
+// Python API, what would be sent for the text and for two keys, and how each answer would be read. Nothing is written,
+// and nothing is sent to iTerm2.
 + (NSDictionary<NSString *, PrintMode> *)printModes {
     return @{@"--print-iterm2-tab": ^(Core *core, NSArray<NSString *> *a) {
         if (a.count != 4) {
@@ -324,22 +398,53 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
             printf("-- typing into %s: never, as a script can't name it\n", a[1].UTF8String);
             return 0;
         }
-        NSString *text = [NSString stringWithFormat:@"set toType to %@\n", TextToType(a[2])];
+        NSString *text = [NSString stringWithFormat:@"set toType to %@\n", AppleScriptKeys(TypedText(a[2]))];
         printf("-- typing the text\n%s\n", ITerm2Script(text, TypeScript(a[1], 1)).UTF8String);
         NSArray *keys = @[@[@"Return", @(TerminalKeyReturn), @1], @[@"Backspace", @(TerminalKeyBackspace), @1],
                           @[@"Ctrl+S", @(TerminalKeyControlS), @1],
                           @[@"Shift+Tab, 3 times", @(TerminalKeyShiftTab), @3]];
         for (NSArray *key in keys) {
-            NSString *given = [NSString stringWithFormat:@"set toType to %@\n", KeyText([key[1] integerValue])];
+            NSString *given = [NSString stringWithFormat:@"set toType to %@\n",
+                                                         AppleScriptKeys(KeyCharacters([key[1] integerValue]))];
             printf("-- pressing %s\n%s\n", [key[0] UTF8String],
                    ITerm2Script(given, TypeScript(a[1], [key[2] integerValue])).UTF8String);
+        }
+        return 0;
+    }, @"--print-iterm2-api": ^(Core *core, NSArray<NSString *> *a) {
+        if (a.count < 2) {
+            fprintf(stderr, "usage: Whozmove --print-iterm2-api <session id> <text> <answer in hex>…\n");
+            return 2;
+        }
+        printf("-- asking iTerm2 for a cookie\n%s\n", ITerm2Script(nil, CookieScript()).UTF8String);
+        printf("-- the request that opens a connection, with a sample cookie, key and Sec-WebSocket-Key\n%s",
+               ITerm2APIHandshake(@"0f1e2d3c4b5a69788796a5b4c3d2e1f0", @"5A1E9C2D-7B44-4E0A-9F3B-2C8D6E1A4B70",
+                                  @"AAAAAAAAAAAAAAAAAAAAAA==").UTF8String);
+        if (!IsSessionId(a[0])) {
+            printf("-- sending to %s: never, as it isn't a session's id\n", a[0].UTF8String);
+            return 0;
+        }
+        NSArray<NSArray *> *sends = @[@[@"the text", TypedText(a[1])], @[@"Return", KeyCharacters(TerminalKeyReturn)],
+                                      @[@"Shift+Tab", KeyCharacters(TerminalKeyShiftTab)]];
+        int64_t messageId = 0;
+        for (NSArray *send in sends) {
+            NSData *message = ITerm2APISendTextMessage(++messageId, a[0], send[1]);
+            printf("-- sending %s, as request %lld\nmessage: %s\nframe, masked with 01020304: %s\n",
+                   [send[0] UTF8String], (long long)messageId, Hex(message).UTF8String,
+                   Hex(ITerm2APIFrame(message, 0x01020304)).UTF8String);
+        }
+        for (NSString *hex in [a subarrayWithRange:NSMakeRange(2, a.count - 2)]) {
+            NSInteger answer = ITerm2APIAnswerIn(FromHex(hex), 1);
+            printf("-- read from \"%s\", for request 1: %s\n", hex.UTF8String,
+                   answer < 0 ? "not its answer" : answer == ITerm2APITaken ? "taken"
+                   : answer == ITerm2APISessionGone ? "no such session" : "refused");
         }
         return 0;
     }};
 }
 
 // Whether macOS lets Whozmove control iTerm2 already, found out without asking you, so a press, a menu or a new tab
-// needn't wait to know. Files of commands left from new tabs that never ran go, once they're a minute old: one for a
+// needn't wait to know, and iTerm2's Python API connected once it does, and again as iTerm2 starts, its API a moment
+// after it. Files of commands left from new tabs that never ran go, once they're a minute old: one for a
 // tab still opening as the panel restarts is still wanted. A press waiting for macOS's answer is let go once you go to
 // another app, as it isn't what you're after any more.
 - (void)launch {
@@ -361,14 +466,32 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
             && ![app.bundleIdentifier isEqualToString:kITerm2AppId])
             weakSelf.onceAllowed = nil;
     }];
+    [NSWorkspace.sharedWorkspace.notificationCenter addObserverForName:NSWorkspaceDidLaunchApplicationNotification
+                                                                object:nil queue:NSOperationQueue.mainQueue
+                                                            usingBlock:^(NSNotification *note) {
+        if (![[note.userInfo[NSWorkspaceApplicationKey] bundleIdentifier] isEqualToString:kITerm2AppId]) return;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [weakSelf connectAPI];
+        });
+    }];
     pid_t pid = ITerm2Process();
     if (pid <= 0) return;
     dispatch_async(self.queue, ^{
         OSStatus status = AutomationPermission(pid, NO);
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (status == noErr) self.allowed = YES;
+            if (status != noErr) return;
+            self.allowed = YES;
+            [self connectAPI];
         });
     });
+}
+
+// Connects to iTerm2's Python API, while macOS lets Whozmove control iTerm2 (the cookie is asked of its scripting) and
+// iTerm2 runs: as the panel starts and as iTerm2 does, and as the panel asks iTerm2 which tab it shows or finds a
+// session's tab, a few seconds apart at most, so a connection is open by the time a menu wants one once the API is on.
+- (void)connectAPI {
+    if (!self.allowed || ITerm2Process() <= 0) return;
+    [self.api connectWithCookie:^NSString *{ return RunInITerm2(nil, CookieScript()); }];
 }
 
 - (NSString *)appId {
@@ -471,9 +594,10 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
 // terminal device can pass to a later one; it's found by the session's terminal device, which iTerm2 says, so it's
 // certainly the session's. The answer says whether it's alone in its window too: iTerm2's Broadcast Input, which no
 // script can see, can copy what's typed to the other sessions in a window, hidden floating panes among them, and never
-// beyond it, so keys go only into a session alone in its window. Until macOS has let Whozmove control iTerm2, that's
-// asked first, off the main thread, as its question waits for your answer, and no tab is found meanwhile; the menu
-// says so (whyNotTypeIn:).
+// beyond it, so keys go only into a session alone in its window, unless iTerm2's Python API takes them, which puts them
+// into the session alone; a connection to it is made meanwhile, for the next time. Until macOS has let Whozmove control
+// iTerm2, that's asked first, off the main thread, as its question waits for your answer, and no tab is found
+// meanwhile; the menu says so (whyNotTypeIn:).
 - (NSString *)tabFor:(Row *)row unique:(BOOL *)unique {
     *unique = YES;
     self.missedWhy = nil;
@@ -508,7 +632,11 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
         PanelLog(@"terminal session pid %d -> no iTerm2 session on %@", row.pid, tty);
         return nil;
     }
-    self.refusals[tab] = alone ? nil : kSharedWindow;
+    // While iTerm2's settings have the API on and the connection isn't made yet, it's made now, and the menu says so
+    // rather than that the API is off.
+    BOOL api = self.api.open;
+    if (!api) [self connectAPI];
+    self.refusals[tab] = alone || api ? nil : ITerm2APIOn() ? kConnecting : kSharedWindow;
     return tab;
 }
 
@@ -516,25 +644,88 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
     return tab ? self.refusals[tab] : self.missedWhy;
 }
 
+// The way past the window rule is the Python API, turned on.
+- (NSString *)wayPastIn:(NSString *)tab {
+    return [self.refusals[tab] isEqualToString:kSharedWindow] ? kTurnOnAPI : nil;
+}
+
+- (void)takeWayPastIn:(NSString *)tab done:(void (^)(NSString *note, BOOL worked))done {
+    [self turnAPI:YES done:done];
+}
+
+// Turns iTerm2's Python API on or off in its own Settings (ITerm2SetAPI), with iTerm2 in front, for a press on the
+// button past the window rule or on its switch on the panel's back. Pressing there takes the Accessibility permission,
+// which macOS is asked to offer while Whozmove hasn't it. `done` gets what the panel says next: that iTerm2 is asking
+// (worked), that the API is on already and is being connected to (worked), or what's left for you to do there. Once the
+// API is on, it's connected to as iTerm2 is asked which tab it shows, while it's in front.
+- (void)turnAPI:(BOOL)on done:(void (^)(NSString *note, BOOL worked))done {
+    pid_t pid = ITerm2Process();
+    if (pid <= 0) {
+        if (done) done(@"iTerm2 isn't running: open it, then try again", NO);
+        return;
+    }
+    RunInITerm2(nil, @"activate");
+    if (!MayUseAccessibility()) {
+        PanelLog(@"iTerm2's Python API: its Settings need the Accessibility permission to be opened from here");
+        if (done) done(@"Allow Whozmove in System Settings, Privacy & Security, Accessibility, then press it again", NO);
+        return;
+    }
+    dispatch_async(self.settingsQueue, ^{
+        BOOL already = NO;
+        NSString *missed = ITerm2SetAPI(pid, on, &already);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (missed) {
+                PanelLog(@"iTerm2's Python API: didn't find %@, so it's left to you there", missed);
+                if (done) done(on ? @"Tick Enable Python API in iTerm2's Settings, General, Magic"
+                                  : @"Untick Enable Python API in iTerm2's Settings, General, Magic", NO);
+                return;
+            }
+            PanelLog(@"iTerm2's Python API: Enable Python API %@ in its Settings, to turn it %@",
+                     already ? @"found so already" : @"pressed", on ? @"on" : @"off");
+            if (!on || !done) return;
+            if (already) {
+                [self connectAPI];
+                done(@"iTerm2's Python API is on: Whozmove is connecting to it, try again in a moment", YES);
+            } else {
+                done(@"iTerm2 is asking whether to turn on its Python API: answer there", YES);
+            }
+        });
+    });
+}
+
 - (void)type:(NSString *)text inTab:(NSString *)tab {
-    [self put:TextToType(text) times:1 inTab:tab];
+    [self put:TypedText(text) times:1 inTab:tab];
 }
 
 - (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab {
-    [self put:KeyText(key) times:times inTab:tab];
+    [self put:KeyCharacters(key) times:times inTab:tab];
 }
 
-// Puts `keys` (AppleScript that makes them) into a tab `times` times, checking once first that the session is still
-// alone in its window, then all of them 0.05s apart, as a part of a Shift+Tab count would land in another mode. Nothing
-// goes into a tab that refused keys since it was last looked for, so a command that's refused part-way stops there.
+// Puts `keys` into a tab `times` times, 0.05s apart, as Ghostty's presses go. While a connection to iTerm2's Python API
+// is open, each goes through it, into the session alone, past Broadcast Input; else through its scripting, which checks
+// once first that the session is still alone in its window, then puts all of them in, as a part of a Shift+Tab count
+// would land in another mode. Either way, nothing goes into a tab that refused keys since it was last looked for, so a
+// command that's refused part-way stops there.
 - (void)put:(NSString *)keys times:(NSInteger)times inTab:(NSString *)tab {
     if (!tab.length) return;
     if (self.refusals[tab]) {
         PanelLog(@"iTerm2 session %@ -> no keys typed: %@", tab, self.refusals[tab]);
         return;
     }
+    if (IsSessionId(tab) && self.api.open) {
+        for (NSInteger i = 0; i < times; i++) {
+            if (i) [NSThread sleepForTimeInterval:0.05];
+            ITerm2APIAnswer answer = [self.api send:keys toSession:tab];
+            if (answer == ITerm2APITaken) continue;
+            self.refusals[tab] = answer == ITerm2APISessionGone ? kTabGone : kNotTaken;
+            PanelLog(@"iTerm2 session %@ -> keys not taken by its Python API: %@", tab, self.refusals[tab]);
+            return;
+        }
+        return;
+    }
     NSString *done = IsSessionId(tab)
-        ? RunInITerm2([NSString stringWithFormat:@"set toType to %@\n", keys], TypeScript(tab, times)) : nil;
+        ? RunInITerm2([NSString stringWithFormat:@"set toType to %@\n", AppleScriptKeys(keys)], TypeScript(tab, times))
+        : nil;
     if ([done isEqualToString:@"typed"]) return;
     if (!done) self.allowed = NO;
     self.refusals[tab] = [done isEqualToString:@"shared"] ? kSharedWindow : done ? kTabGone : kNotTaken;
@@ -620,10 +811,12 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
 // the ttys of the sessions in its current window's current tab, and when the tab is split, the one with the keyboard.
 // Each session's own terminal is found there too, as that takes a few system calls for each process up its tree, and
 // devices are compared as numbers. The tab marks the session with the keyboard, else the only one of these in it; none
-// of them in it says it's certainly none; two of them, neither with the keyboard, can't be told apart.
+// of them in it says it's certainly none; two of them, neither with the keyboard, can't be told apart. Its Python API
+// is connected meanwhile, if it can be, once it's switched on in iTerm2 in front.
 - (void)whichShows:(NSArray<Row *> *)rows done:(void (^)(Row *row))done {
     pid_t pid = ITerm2Process();
     if (pid <= 0 || self.asking) return;
+    [self connectAPI];
     NSSet<NSNumber *> *apps = ITerm2Processes();
     NSMutableArray<NSNumber *> *pids = [NSMutableArray array];
     for (Row *row in rows) [pids addObject:@(row.pid)];
@@ -665,11 +858,20 @@ static NSString *RunInITerm2(NSString *given, NSString *body) {
 - (NSArray<AppEntry *> *)appEntries {
     AppEntry *iterm = [AppEntry appWithId:self.appId name:self.name
                                      does:@"Lists the Claude Code sessions in its tabs and opens them, types the "
-                                          @"panel's commands while a session waits at its prompt, alone in its "
-                                          @"window, and starts new conversations in a new tab."
+                                          @"panel's commands while a session waits at its prompt (with its Python "
+                                          @"API off, only into a session alone in its window), and starts new "
+                                          @"conversations in a new tab."
                                     order:30];
     iterm.permission = AppPermissionAutomation;
     iterm.permissionFor = @"Finds each session's tab, types into it, and opens new ones";
+    // Its Python API, on as iTerm2's settings say, turned on or off in its Settings while it runs (turnAPI:).
+    __weak typeof(self) weakSelf = self;
+    AppSwitch *api = [AppSwitch switchWithKey:@"pythonAPI" title:@"Type into sessions that share a window"
+                                         help:@"Turns on iTerm2's Python API in its Settings, which ask you first"
+                                           on:^BOOL { return ITerm2APIOn(); }
+                                          set:^(BOOL on) { [weakSelf turnAPI:on done:nil]; }];
+    api.enabled = ^BOOL { return ITerm2Process() > 0; };
+    iterm.switches = @[api];
     return @[iterm];
 }
 

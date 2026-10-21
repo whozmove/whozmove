@@ -5,7 +5,8 @@
 // The version these were last checked with is in the README ("Tested with").
 //
 // What isn't here, and why: the layout of a file is known only to the code that reads it (transcripts, the settings
-// files), so it is still in one place each. The hooks know Claude Code's tool names and events. build.sh knows the mark
+// files), so it is still in one place each. The hooks know Claude Code's tool names and events (the permission hook
+// also what a PreModelSwitch hook is told and how it answers). build.sh knows the mark
 // Claude Code puts on the commands an agent runs (CLAUDECODE; the app's own copy is kClaudeCodeAgentMarks), plugin.sh
 // and app/swap-in.sh how it keeps an installed plugin (a copy per version, refreshed by `claude plugin update`),
 // Prompt.m how its prompt keeps a draft through Ctrl+S, and Results.m how it words a command's result. The module's

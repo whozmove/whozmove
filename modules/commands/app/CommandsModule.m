@@ -12,10 +12,10 @@
 #import "Send.h"
 
 // A terminal that answers for a session's tab without being asked, for --print-why-not: under the panel's first
-// terminal's name, with the tab found and certainly the session's, and no reason of its own, unless a variant says
-// otherwise.
+// terminal's name, with the tab found and certainly the session's, and no reason of its own, nor a way past one,
+// unless a variant says otherwise.
 @interface SampleTerminal : NSObject <TypingHost>
-@property (strong) NSString *name, *whyNot;
+@property (strong) NSString *name, *whyNot, *wayPast;
 @property (assign) BOOL found, unique;
 @end
 
@@ -26,22 +26,26 @@
 - (void)type:(NSString *)text inTab:(NSString *)tab {}
 - (void)press:(TerminalKey)key times:(NSInteger)times inTab:(NSString *)tab {}
 - (NSString *)whyNotTypeIn:(NSString *)tab { return self.whyNot; }
+- (NSString *)wayPastIn:(NSString *)tab { return self.wayPast; }
+- (void)takeWayPastIn:(NSString *)tab done:(void (^)(NSString *, BOOL))done {}
 @end
 
 // A session's reach as the menus find it (Send's SessionReach, all as the sample home has it: whether an app keeps it
 // as a conversation, its first message, whether it's open twice, why keys can't go in now, the terminals' names), but
 // for what can't be asked in a test: its terminal and tab are a SampleTerminal's (none when `terminal` is nil), and
 // Whozmove may control Claude, never asked of macOS. A variant can say its first message is sent, that it's open
-// elsewhere too, or in another terminal, or that it's paused in its terminal.
+// elsewhere too, or in another terminal, that it's paused in its terminal, or that a change from the panel is still
+// going in.
 @interface SampleReach : SessionReach
 @property (strong) SampleTerminal *sample;
-@property (assign) BOOL allowed, pausedNow;
+@property (assign) BOOL allowed, pausedNow, changingNow;
 @property (strong) NSNumber *startedNow, *openElsewhereNow, *openTwiceNow;
 @end
 
 @implementation SampleReach
 - (id<TypingHost>)typing { return self.desktop ? nil : self.sample; }
 - (Reason *)whyNotType { return self.pausedNow ? [Reason kind:ReasonPaused] : super.whyNotType; }
+- (BOOL)changing { return self.changingNow || super.changing; }
 - (BOOL)mayControl { return self.allowed; }
 - (BOOL)started { return self.startedNow ? self.startedNow.boolValue : super.started; }
 - (BOOL)openElsewhere { return self.openElsewhereNow ? self.openElsewhereNow.boolValue : super.openElsewhere; }
@@ -57,7 +61,8 @@ static SampleReach *SampleReachOf(Row *row, Core *core) {
     return reach;
 }
 
-// What a row's menus, Compact card and next steps would say about why nothing can go in now (null: it can).
+// What a row's menus, Compact card and next steps would say about why nothing can go in now (null: it can), and the
+// button past it the menus and the card would offer, only where they would.
 static NSDictionary *WhyNotOf(Row *row, SampleReach *reach, BOOL compacting, Core *core) {
     NSMutableDictionary *said = [NSMutableDictionary dictionary];
     for (NSString *field in @[@"model", @"effort", @"mode"]) {
@@ -67,6 +72,8 @@ static NSDictionary *WhyNotOf(Row *row, SampleReach *reach, BOOL compacting, Cor
     }
     said[@"compact"] = WhyNoCompact(reach, compacting) ?: NSNull.null;
     said[@"ask"] = WhyNoAsk(reach) ?: NSNull.null;
+    NSString *way = WayPast(reach, WhyNoCompact(reach, compacting));
+    if (way) said[@"way past"] = way;
     return said;
 }
 
@@ -98,6 +105,22 @@ static int PrintWhyNot(Core *core) {
     variant(@"s-clone", @"its terminal's own reason", NO, ^(SampleReach *r) {
         r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
     });
+    // A way past the terminal's reason is offered beside that reason only: not for a tab that isn't found, nor beside
+    // another reason that comes first.
+    variant(@"s-clone", @"its terminal's own reason, with a way past it", NO, ^(SampleReach *r) {
+        r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
+        r.sample.wayPast = @"Turn On the Terminal's Way Past…";
+    });
+    variant(@"s-clone", @"its tab not found, with its terminal's reason and a way past it", NO, ^(SampleReach *r) {
+        r.sample.found = NO;
+        r.sample.whyNot = @"Whozmove is asking macOS whether it may control the terminal";
+        r.sample.wayPast = @"Turn On the Terminal's Way Past…";
+    });
+    variant(@"s-clone", @"paused, with its terminal's reason and a way past it", NO, ^(SampleReach *r) {
+        r.pausedNow = YES;
+        r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
+        r.sample.wayPast = @"Turn On the Terminal's Way Past…";
+    });
     variant(@"s-clone", @"its tab not found, with its terminal's reason", NO, ^(SampleReach *r) {
         r.sample.found = NO;
         r.sample.whyNot = @"Whozmove is asking macOS whether it may control the terminal";
@@ -107,6 +130,16 @@ static int PrintWhyNot(Core *core) {
     variant(@"s-clone", @"paused in its terminal, its tab not found", NO, ^(SampleReach *r) {
         r.pausedNow = YES;
         r.sample.found = NO;
+    });
+    // A change from the panel still going in comes before its tab and its terminal's reason, in a terminal and in
+    // Claude Desktop alike.
+    variant(@"s-clone", @"a change from the panel still going in", NO, ^(SampleReach *r) {
+        r.changingNow = YES;
+        r.sample.whyNot = @"Its window has other tabs, which the terminal could type into";
+    });
+    variant(@"s-desk", @"its first message sent, a change from the panel still going in", NO, ^(SampleReach *r) {
+        r.startedNow = @YES;
+        r.changingNow = YES;
     });
     // The terminal's own reason comes before what the session is doing.
     variant(@"s-topic", @"working, with its terminal's own reason", NO, ^(SampleReach *r) {
@@ -168,13 +201,19 @@ static int PrintWhyNot(Core *core) {
 }
 
 // Each session's work: a compaction sent from the panel that hasn't ended, a pick its details show until the session
-// confirms it, and whether a compaction certainly couldn't go in now. Once the rows are whole, picks for sessions long gone are forgotten.
+// confirms it, a pick on its way in and "Switch model?" while it's asked, and whether a compaction certainly couldn't
+// go in now. Once the rows are whole, picks for sessions long gone are forgotten.
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase {
     if (phase == RowPhaseWork) {
         for (Row *row in rows) {
             NSString *sid = row.sessionId;
             if ([self.commands compactingSince:sid]) row.compacting = [self.commands compactingSince:sid];
             row.chosen = [self.commands chosenFor:sid];
+            // A session that has ended has nothing going in, nor a question asked for it.
+            BOOL ended = [self.core hasEnded:row];
+            row.goingIn = ended ? nil : [self.commands goingIn:sid];
+            row.switchAsk = ended ? nil : [self.commands switchQuestionFor:row];
+            // After those, as a change still going in is one reason it couldn't.
             row.noCompact = CantCompactNow([self.core.send reachOf:row]);
         }
     } else if (phase == RowPhaseListed) {

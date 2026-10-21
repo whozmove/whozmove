@@ -17,6 +17,10 @@
   the right, and Claude's next step keeps what it shares with the one before ("Reading …"), rewriting only the rest. A
   reply on two lines writes one line, then the next; Claude's time stays just past its text as it goes. While Claude
   works, its "Claude" label fades in and out in cream. With reduced motion, the lines change at once.
+- Once you've typed in the panel (Compact's words, a plan's notes, a new conversation) or clicked into a prototype in
+  the reader, the keyboard goes back to the app you were in as you leave, and pressing a terminal session's row leaves
+  it in the terminal, so you can type there straight away. Before, the panel could keep it, press after press, until
+  you clicked into the terminal.
 - **The panel turns over to the apps Whozmove works with.** The four squares in the header turn the whole panel over,
   about its middle, with its back already there as it comes round, at the panel's size. Behind the list are Claude,
   Ghostty, iTerm2, Terminal, Spotify and Git, those on your Mac, each with its own icon; press one for what Whozmove
@@ -179,12 +183,24 @@
   its mode while one is open in Claude Desktop. Deploy and next steps wait while any copy is at work.
 - Nothing is typed into a session paused in its terminal (Ctrl+Z), where the keys would go to the shell.
 - **iTerm2**: a click on a session's row brings forward its window, its tab and its pane, found by the session's own
-  terminal, and the session in the iTerm2 tab you're looking at is marked as the one you're on. A session alone in its
-  window takes the model, effort and mode menus, Compact and next steps, typed in as in Ghostty; for one that shares
-  its window with other tabs or panes, they say to change it there, as iTerm2's Broadcast Input could copy the keys
-  into those. When iTerm2 has gone while its sessions live on (after a crash), the click starts it. A conversation
-  started in iTerm2 opens in a new tab of its front window, and the usage card's Sign in goes there too on a Mac
-  without Ghostty.
+  terminal, and the session in the iTerm2 tab you're looking at is marked as the one you're on. With iTerm2's Python
+  API switched on (Settings ▸ General ▸ Magic), every session takes the model, effort and mode menus, Compact and next
+  steps, the keys going into that session alone; with it off, only a session alone in its window does, and for one
+  that shares its window with other tabs or panes, they say so, as iTerm2's Broadcast Input could copy the keys into
+  those, and offer Turn On iTerm2's Python API…, which opens iTerm2's Settings at that box and ticks it, for iTerm2 to
+  ask you, the row saying how that went or what to do instead; a switch on iTerm2's page on the panel's back does the
+  same. Until Whozmove has connected to the Python API, the menus say it's still connecting. When iTerm2 has gone while its sessions live
+  on (after a crash), the click starts it. A conversation started in iTerm2 opens in a new tab of its front window,
+  and the usage card's Sign in goes there too on a Mac without Ghostty.
+- Claude Code's "Switch model?" for a model picked in the panel (switching re-reads a cached conversation) is asked on
+  its row in the panel, as Claude Desktop's now is too (no longer over the list), saying how much the conversation
+  holds, and only when Claude Code would ask it: Switch goes on, Cancel keeps the model, and with no answer within a
+  minute Claude asks in the terminal as before. It takes Claude Code 2.1.304 or later, and sessions started since
+  Whozmove's hooks were put in place. A pick going into a terminal session shows on its row at once ("Switching to
+  Opus 5.5…"), and anything else Claude Code asks in the terminal before it goes in (its "Change effort level?") shows
+  there too, with Take me there, until it has your answer, instead of the tab jumping forward. Meanwhile the other
+  menus, Compact and next steps say a change from the panel is still going in, so nothing else is typed into Claude's
+  question.
 - When a row comes or goes, the panel's bottom edge eases with the rows instead of jumping to its new height, and the
   panel no longer flashes lighter at its bottom edge as it grows. Moving the pointer over something no longer restarts
   its hover effect with every move.

@@ -69,8 +69,11 @@
 - (void)catBreathe:(NSInteger)working;
 // A text box in the page was clicked into (YES), or left (NO).
 - (void)takeKeyboard:(BOOL)on;
-// Gives the keyboard up if the panel has it, so it goes back to the app being opened. YES if it had it.
+// Gives the keyboard back to the app in front if the panel has it, before the app being opened comes forward. YES if
+// it had it.
 - (BOOL)releaseKeyboard;
+// Whether the panel still has the keyboard though nothing in it asks for it now, as a box or a site let it go.
+- (BOOL)keptKeyboard;
 // Opens a menu at a point in the page's coordinates.
 - (void)popUpMenu:(NSMenu *)menu atPagePoint:(NSPoint)point;
 // A small window held under the panel, moving with it (Spotify's token).

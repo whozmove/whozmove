@@ -31,6 +31,12 @@
 // The terminal's own reason keys can't go into that tab now, or why it found none, as the panel says it, or nil
 // (TypingHost's whyNotTypeIn:).
 @property (readonly, copy) NSString *tabWhyNot;
+// What a button for the terminal's way past that reason says, when it has one the panel can take (TypingHost's
+// wayPastIn:), or nil.
+@property (readonly, copy) NSString *wayPast;
+// A change from the panel is still going into it (the row's goingIn, or its switchAsk): nothing more goes in until
+// it's done, as a key meant for the next command could answer what Claude asks about that one.
+@property (readonly) BOOL changing;
 // Why keys can't go into it now, or nil.
 @property (readonly) Reason *whyNotType;
 @end
@@ -60,6 +66,9 @@
 // The session's agent asked in words, as you'd type them, while it's idle: one of a row's next steps. The row says
 // it's asking, or why they can't go in (stepNote).
 - (void)ask:(NSString *)words row:(Row *)row;
+// A press on the button past a terminal's reason (WayPast), on a menu, a card or a step's note, `{sessionId}`: the
+// terminal takes it, if it's still that reason, and the row says how it went, or what's left to do.
+- (void)takeWayPast:(NSDictionary *)msg;
 @end
 
 // Why no words can be typed into the session's tab: it has ended, there's no terminal the panel can type into, its tab
@@ -69,6 +78,11 @@ NSString *WhyNoTab(id<Reach> reach, NSString *here, NSString *there);
 // The terminal's own reason keys can't go into a tab now, or nil: what the last check before a key goes in asks, and
 // each key typed after it, as a terminal that refused one refuses the rest.
 Reason *WhyTerminalRefuses(id<TypingHost> terminal, NSString *tab);
+// What a button beside `why` says, when `why` is the terminal's own reason and it has a way past it the panel can take
+// (the reach's wayPast), else nil: what a menu, a card or a step's note offers, so you're never left with only a reason.
+NSString *WayPast(id<Reach> reach, NSString *why);
+// Why nothing more goes into a session while a change from the panel is still going in, as the panel says it.
+extern NSString *const kStillChanging;
 // Why its agent can't be asked in words now, as the row's note says it, or nil.
 NSString *WhyNoAsk(id<Reach> reach);
 // Why a command can't go into a Claude Desktop conversation now, or nil: one that runs takes it only while it sits

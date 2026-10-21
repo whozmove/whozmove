@@ -1,0 +1,69 @@
+== A session's id, and text with quotes, a backslash, a tab and an Escape
+-- asking iTerm2 for a cookie
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+return (request cookie and key for app named "Whozmove")
+    end tell
+  end if
+end timeout
+return ""
+-- the request that opens a connection, with a sample cookie, key and Sec-WebSocket-Key
+GET / HTTP/1.1\r
+Host: localhost\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Version: 13\r
+Sec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r
+Sec-WebSocket-Protocol: api.iterm2.com\r
+Origin: ws://localhost/\r
+x-iterm2-library-version: objc 1.0\r
+x-iterm2-advisory-name: Whozmove\r
+x-iterm2-disable-auth-ui: true\r
+x-iterm2-cookie: 0f1e2d3c4b5a69788796a5b4c3d2e1f0\r
+x-iterm2-key: 5A1E9C2D-7B44-4E0A-9F3B-2C8D6E1A4B70\r
+\r
+-- sending the text, as request 1
+message: 08 01 da 06 57 0a 24 34 46 31 43 39 41 32 45 2d 37 42 33 44 2d 34 45 38 41 2d 39 43 32 31 2d 30 44 35 45 36 46 37 41 38 42 39 30 12 2d 2f 63 6f 6d 70 61 63 74 20 6b 65 65 70 20 74 68 65 20 22 64 72 61 66 74 22 20 70 6c 61 6e 2c 20 6e 6f 74 20 43 3a 5c 6f 6c 64 20 5b 5a 18 01
+frame, masked with 01020304: 82 dc 01 02 03 04 09 03 d9 02 56 08 27 30 47 33 40 3d 40 30 46 29 36 40 30 40 2c 36 46 3c 40 2f 3a 47 33 33 2e 34 45 37 46 32 47 35 42 3c 43 3b 33 16 2c 2d 60 6b 6c 72 62 67 75 22 68 61 64 72 23 70 69 67 23 26 65 70 62 62 75 20 23 74 6d 63 6d 28 21 6c 6c 70 21 41 39 58 6e 6e 67 24 5a 58 1b 05
+-- sending Return, as request 2
+message: 08 02 da 06 2b 0a 24 34 46 31 43 39 41 32 45 2d 37 42 33 44 2d 34 45 38 41 2d 39 43 32 31 2d 30 44 35 45 36 46 37 41 38 42 39 30 12 01 0d 18 01
+frame, masked with 01020304: 82 b0 01 02 03 04 09 00 d9 02 2a 08 27 30 47 33 40 3d 40 30 46 29 36 40 30 40 2c 36 46 3c 40 2f 3a 47 33 33 2e 34 45 37 46 32 47 35 42 3c 43 3b 33 16 00 0f 1b 05
+-- sending Shift+Tab, as request 3
+message: 08 03 da 06 2d 0a 24 34 46 31 43 39 41 32 45 2d 37 42 33 44 2d 34 45 38 41 2d 39 43 32 31 2d 30 44 35 45 36 46 37 41 38 42 39 30 12 03 1b 5b 5a 18 01
+frame, masked with 01020304: 82 b2 01 02 03 04 09 01 d9 02 2c 08 27 30 47 33 40 3d 40 30 46 29 36 40 30 40 2c 36 46 3c 40 2f 3a 47 33 33 2e 34 45 37 46 32 47 35 42 3c 43 3b 33 16 02 19 58 5e 19 03
+-- read from "08 01 da 06 02 08 00", for request 1: taken
+-- read from "08 01 da 06 02 08 01", for request 1: no such session
+-- read from "08 01 12 04 6f 6f 70 73", for request 1: refused
+-- read from "c2 3e 02 0a 00", for request 1: not its answer
+-- read from "08 02 da 06 02 08 00", for request 1: not its answer
+-- read from "18 07 08 01 da 06 00", for request 1: taken
+-- read from "08 01 da 06 02 08 05", for request 1: refused
+-- read from "08 01 da 06 05 08", for request 1: not its answer
+-- read from "ff", for request 1: not its answer
+== A name that isn't a session's id
+-- asking iTerm2 for a cookie
+with timeout of 2 seconds
+  if application id "com.googlecode.iterm2" is running then
+    tell application id "com.googlecode.iterm2"
+return (request cookie and key for app named "Whozmove")
+    end tell
+  end if
+end timeout
+return ""
+-- the request that opens a connection, with a sample cookie, key and Sec-WebSocket-Key
+GET / HTTP/1.1\r
+Host: localhost\r
+Upgrade: websocket\r
+Connection: Upgrade\r
+Sec-WebSocket-Version: 13\r
+Sec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r
+Sec-WebSocket-Protocol: api.iterm2.com\r
+Origin: ws://localhost/\r
+x-iterm2-library-version: objc 1.0\r
+x-iterm2-advisory-name: Whozmove\r
+x-iterm2-disable-auth-ui: true\r
+x-iterm2-cookie: 0f1e2d3c4b5a69788796a5b4c3d2e1f0\r
+x-iterm2-key: 5A1E9C2D-7B44-4E0A-9F3B-2C8D6E1A4B70\r
+\r
+-- sending to all: never, as it isn't a session's id

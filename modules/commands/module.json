@@ -1,5 +1,5 @@
 {
   "order": 90,
-  "scripts": ["page/commands.js"],
+  "scripts": ["page/commands.js", "page/switch-model.js"],
   "styles": []
 }
