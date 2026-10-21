@@ -61,8 +61,8 @@ static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
 #pragma mark The rows
 
 // What Claude Desktop's own record of a conversation adds to its row: when it last did something and was last looked at
-// (the registry's statusUpdatedAt moves whenever a process merely starts), Claude's verdict on its last turn, and the
-// record itself, for its model, effort and mode. Running sessions are read here, as rows, on the sessions' queue.
+// (the registry's statusUpdatedAt moves whenever a process merely starts), and the record itself, for its model, effort
+// and mode. Running sessions are read here, as rows, on the sessions' queue.
 - (NSArray<Row *> *)readRows:(NSArray<Row *> *)running {
     NSArray<NSDictionary *> *conversations = [self.conversations all];
     NSMutableDictionary<NSString *, NSDictionary *> *conversationById = [NSMutableDictionary dictionary];
@@ -146,7 +146,6 @@ static const NSTimeInterval kRecentConversationWindow = 3 * 24 * 3600;
 - (void)take:(NSDictionary *)c into:(Row *)row {
     if ([c[@"lastActivityAt"] isKindOfClass:NSNumber.class]) row.activityAt = c[@"lastActivityAt"];
     if ([c[@"lastFocusedAt"] isKindOfClass:NSNumber.class]) row.lastFocusedAt = c[@"lastFocusedAt"];
-    if ([c[@"summaryStatus"] isKindOfClass:NSString.class]) row.summaryStatus = c[@"summaryStatus"];
     // Its model, effort and permission mode, for the details line, and when Claude last saved them.
     NSMutableDictionary *details = [NSMutableDictionary dictionary];
     for (NSArray<NSString *> *key in @[@[@"model", @"model"], @[@"effort", @"effort"], @[@"permissionMode", @"mode"],

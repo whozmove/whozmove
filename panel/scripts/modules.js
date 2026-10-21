@@ -14,11 +14,14 @@ const core = {
 
   // The list (panel.js, morph.js).
   moreRows: [],        // (listed) → sessions to draw with the app's: ones it hasn't listed yet
-  beforeDraw: [],      // (listed) once each session's section is known (state.shownKind), before the list is drawn
+  beforeDraw: [],      // (listed) once what each session is (state.kinds) and where it's shown are known, before the
+                       // list is drawn
   drawn: [],           // (list) as soon as the list's new HTML is in, before anything measures it
   afterDraw: [],       // () once the list is drawn and what's under the pointer looked at again
 
-  // A row (rows.js). `row` is { s, kind, now, owner, clock }, and what the modules' looks add to it.
+  // A row (rows.js). `row` is { s, kind, section, now, owner, clock }, and what the modules' looks add to it: `kind` is
+  // what the session is now (classify), `section` where its row is shown, which differs while a row you've pressed
+  // stays put.
   rowLooks: [],        // (row) a module's first look at a row, which keeps what it found on `row` for its parts
   // The cards that can show under a row's chat, one at a time: { name, order, wants(row), html(row), away(row),
   // close(sid) }. The most pressing (lowest order) that wants to show does; the others are away.
@@ -41,7 +44,7 @@ const core = {
   cards: [],           // the card shown while something is pointed at: { selector, key(anchor), html(anchor) }
 
   // The panel's height (reportHeight, listHeight).
-  strips: [],          // the ids of the strips under the list, which the panel makes room for
+  strips: [],          // the ids of what's above or under the list (its strips), which the panel makes room for
   overhangs: [],       // () → how far down something hanging below the list reaches, or 0
 
   // The reader (reader.js): what it can show, by name ({ draw, … }), and the presses in it.

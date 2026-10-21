@@ -56,7 +56,6 @@
     json[@"statusUpdatedAt"] = self.statusUpdatedAt;
     json[@"activityAt"] = self.activityAt;
     json[@"lastFocusedAt"] = self.lastFocusedAt;
-    json[@"summaryStatus"] = self.summaryStatus;
     json[@"lastPrompt"] = self.lastPrompt;
     json[@"lastPromptAt"] = self.lastPromptAt;
     json[@"lastReply"] = self.lastReply;
@@ -82,6 +81,7 @@
     json[@"changes"] = self.changes;
     json[@"messageAt"] = self.messageAt;
     json[@"compacting"] = self.compacting;
+    json[@"seenAt"] = self.seenAt;
     if (self.focused) json[@"focused"] = @YES;
     return json;
 }

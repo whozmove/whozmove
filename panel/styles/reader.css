@@ -49,7 +49,7 @@ body.reader-shown .r-in { opacity: 1; transition: opacity .12s ease; }
 
 /* A plan or notes, as Markdown (markdownHTML): a column of comfortable reading width, selectable. */
 .md { max-width: 70ch; margin: 0 auto; padding: 14px 28px 24px; font-size: var(--size-reading); line-height: 1.6;
-      color: rgba(255, 255, 255, 0.84); -webkit-user-select: text; cursor: text; overflow-wrap: anywhere; }
+      color: var(--reading-text); -webkit-user-select: text; cursor: text; overflow-wrap: anywhere; }
 .md h1 { font-size: 22px; line-height: 1.25; letter-spacing: -0.015em; color: var(--text); margin: 4px 0 10px; }
 .md h2 { font-size: var(--size-heading); color: var(--text); margin: 26px 0 8px; }
 .md h3, .md h4, .md h5, .md h6 { font-size: var(--size-reading); color: var(--text); margin: 20px 0 6px; }

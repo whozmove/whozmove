@@ -38,4 +38,4 @@ between the page and the app, and its rules.
 | [commands](../modules/commands/README.md) | a session's model, effort and mode changed from its row, and Compact |
 | [usage](../modules/usage/README.md) | your plan's usage, in the strip at the bottom of the panel |
 | [starts](../modules/starts/README.md) | new conversations from the panel's card, and ⌃⌥N |
-| [spotify](../modules/spotify/README.md) | the song Spotify is playing, in its strip, and Spotify's token |
+| [spotify](../modules/spotify/README.md) | the song Spotify is playing, in its strip, its lyrics, and Spotify's token |

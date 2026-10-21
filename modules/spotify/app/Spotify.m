@@ -11,10 +11,11 @@
 // while one waits just doesn't answer. Whozmove starts Spotify only when you press the token's Play.
 //
 // The page gets the song as {track, title, artist, album, durationMs, positionMs, at, playing, pausedSince, artUrl,
-// allowed}: positionMs was right at `at` (ms since 1970) and moves on from there while it plays; pausedSince is when a
-// paused song was paused (0 for one found paused, as when Whozmove starts); artUrl is the cover once known;
-// allowed is NO once macOS has refused Whozmove control of Spotify, YES once it has allowed it. Nothing (null) while
-// Spotify plays nothing, isn't running, or Spotify is removed from Whozmove (the pawn menu's Spotify ▸).
+// allowed}: positionMs was right at `at` (ms since 1970: when Spotify said it, or was asked it) and moves on from there
+// while it plays, which the lyrics follow line by line; pausedSince is when a paused song was paused (0 for one found
+// paused, as when Whozmove starts); artUrl is the cover once known; allowed is NO once macOS has refused Whozmove
+// control of Spotify, YES once it has allowed it. Nothing (null) while Spotify plays nothing, isn't running, or Spotify
+// is removed from Whozmove (the pawn menu's Spotify ▸).
 #import "Spotify.h"
 #import "Page.h"
 #import "Files.h"
@@ -36,6 +37,10 @@ static const NSTimeInterval kRecheck = 15;
 // A read that failed (Spotify busy, say) is tried again after this, a few times.
 static const NSTimeInterval kRetry = 5;
 static const NSUInteger kRetries = 3;
+// While the song's lyrics follow it, its position alone is asked this often; and a position further than this (ms)
+// from where the song should be by then is a jump, which the page is told.
+static const NSTimeInterval kFollowEvery = 5;
+static const double kDriftMs = 400;
 // A song paused stays in the strip this long (ms), then folds into the token; page/now-playing.js's
 // PAUSED_IN_STRIP_MS is the same.
 static const double kPausedInStripMs = 15 * 60 * 1000;
@@ -88,6 +93,12 @@ BOOL SongInStrip(NSDictionary *song, double now) {
     return [song[@"playing"] boolValue] || now - [song[@"pausedSince"] doubleValue] < kPausedInStripMs;
 }
 
+BOOL PositionMoved(NSDictionary *song, double positionMs, double at) {
+    if (![song[@"playing"] boolValue]) return NO;
+    double expected = [song[@"positionMs"] doubleValue] + MAX(0, at - [song[@"at"] doubleValue]);
+    return fabs(expected - positionMs) > kDriftMs;
+}
+
 NSDictionary *TokenFor(BOOL installed, NSDictionary *song, BOOL starting, NSNumber *allowed, BOOL collapsed,
                        double now) {
     if (!installed) return @{@"state": @"missing"};
@@ -117,8 +128,10 @@ static NSAppleEventDescriptor *Get(pid_t pid, NSAppleEventDescriptor *property, 
     return Send(pid, kAECoreSuite, kAEGetData, property, nil, status);
 }
 
-// The song now, in the order SongFromReply takes (none while Spotify is stopped), or nil with why in `status`.
-static NSArray *ReadSong(pid_t pid, OSStatus *status) {
+// The song now, in the order SongFromReply takes (none while Spotify is stopped), or nil with why in `status`; and in
+// `positionAt`, when its position was right: halfway through asking it, so the cover asked for after it (which can be
+// slow) doesn't make the lyrics late.
+static NSArray *ReadSong(pid_t pid, OSStatus *status, double *positionAt) {
     NSAppleEventDescriptor *state = Get(pid, AppleEventProperty(kSpotifyPlayerState, nil), status);
     if (!state) return nil;
     FourCharCode code = state.enumCodeValue;
@@ -132,8 +145,10 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
         BOOL number = property.unsignedIntValue == kSpotifyTrackDuration;
         [fields addObject:number ? @(value.doubleValue) : value.stringValue ?: @""];
     }
+    double before = NowMs();
     NSAppleEventDescriptor *position = Get(pid, AppleEventProperty(kSpotifyPlayerPosition, nil), status);
     if (!position) return nil;
+    if (positionAt) *positionAt = (before + NowMs()) / 2;
     [fields addObject:@(position.doubleValue)];
     [fields addObject:code == kSpotifyStatePlaying ? @"playing" : @"paused"];
     // A track without a cover answers "missing value", which isn't text.
@@ -160,6 +175,8 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
 @property (strong) NSTimer *installTimer;
 @property (assign) BOOL installed;          // as last looked for: asking LaunchServices can be slow
 @property (copy) NSDictionary *tokenSent;   // what the token was last told
+@property (strong) NSTimer *followTimer;    // while the lyrics follow the song: its position, asked every few seconds
+@property (assign) BOOL checking;           // its position being asked
 @end
 
 @implementation Spotify
@@ -245,18 +262,19 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
     pid_t pid = spotify.processIdentifier;
     dispatch_async(self.queue, ^{
         OSStatus status = AutomationPermission(pid, ask);
-        NSArray *fields = status == noErr ? ReadSong(pid, &status) : nil;
+        double at = 0;
+        NSArray *fields = status == noErr ? ReadSong(pid, &status, &at) : nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             self.reading = NO;
-            [self answered:fields status:status since:since];
+            [self answered:fields status:status since:since at:at];
         });
     });
 }
 
-// On the main thread: what Spotify answered, or why it didn't. An answer overtaken by an announcement (the song
-// changed while Spotify was being asked) gives only the cover, if it's still the same song, and the new song is asked
-// about in turn.
-- (void)answered:(NSArray *)fields status:(OSStatus)status since:(NSUInteger)since {
+// On the main thread: what Spotify answered, or why it didn't, with when its position was right (`at`). An answer
+// overtaken by an announcement (the song changed while Spotify was being asked) gives only the cover, if it's still the
+// same song, and the new song is asked about in turn.
+- (void)answered:(NSArray *)fields status:(OSStatus)status since:(NSUInteger)since at:(double)at {
     if (!self.shown || !RunningSpotify()) return;
     if (!fields) {
         [self failed:status];
@@ -264,7 +282,7 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
     }
     [self allow:YES];
     self.retries = 0;
-    NSDictionary *song = SongFromReply(fields, NowMs());
+    NSDictionary *song = SongFromReply(fields, at > 0 ? at : NowMs());
     if (since == self.heardCount) {
         self.askedAbout = song[@"track"];
         [self take:song];
@@ -310,6 +328,7 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
     self.song = kept;
     [self send];
     [self tokenChanged];
+    if (self.onSong) self.onSong(self.shown ? self.song : nil);
 }
 
 // Spotify has quit, or is removed from Whozmove: the strip folds away, and the token shows Play.
@@ -320,6 +339,53 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
     [self endPending];
     [self send];
     [self tokenChanged];
+    if (self.onSong) self.onSong(nil);
+}
+
+#pragma mark Following the song, for its lyrics
+
+- (void)setFollowing:(BOOL)following {
+    if (following == _following) return;
+    _following = following;
+    [self.followTimer invalidate];
+    self.followTimer = nil;
+    if (!following) return;
+    __weak typeof(self) weakSelf = self;
+    self.followTimer = [NSTimer scheduledTimerWithTimeInterval:kFollowEvery repeats:YES block:^(NSTimer *timer) {
+        [weakSelf checkPosition];
+    }];
+    self.followTimer.tolerance = 0.5;
+}
+
+// Where Spotify is in the song, asked alone (one Apple event), while a song plays and Whozmove is allowed to ask. The
+// page is told only when it's further off than a jump's worth; and not at all when news of the song came meanwhile (an
+// announcement, a read, another song, a pause), as that's newer.
+- (void)checkPosition {
+    NSRunningApplication *spotify = RunningSpotify();
+    if (!self.shown || !spotify || self.reading || self.checking || ![self.song[@"playing"] boolValue] ||
+        ![self.allowed boolValue]) return;
+    self.checking = YES;
+    NSUInteger since = self.heardCount;
+    NSString *track = self.song[@"track"];
+    pid_t pid = spotify.processIdentifier;
+    dispatch_async(self.queue, ^{
+        OSStatus status = AutomationPermission(pid, NO);
+        double before = NowMs();
+        NSAppleEventDescriptor *position =
+            status == noErr ? Get(pid, AppleEventProperty(kSpotifyPlayerPosition, nil), &status) : nil;
+        double at = (before + NowMs()) / 2;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.checking = NO;
+            if (!position || since != self.heardCount || self.reading || ![self.song[@"track"] isEqual:track] ||
+                ![self.song[@"playing"] boolValue]) return;
+            double positionMs = round(position.doubleValue * 1000);
+            if (!PositionMoved(self.song, positionMs, at)) return;
+            NSMutableDictionary *song = [self.song mutableCopy];
+            song[@"positionMs"] = @(positionMs);
+            song[@"at"] = @(at);
+            [self take:song];
+        });
+    });
 }
 
 - (void)tokenChanged {
@@ -350,6 +416,16 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
 
 - (void)getSpotify {
     OpenLink(kSpotifyDownloadPage);
+}
+
+// As its Dock icon would: a Spotify with no window open shows one.
+- (void)open {
+    NSURL *app = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:kSpotifyAppId];
+    if (!self.shown || !app) return;
+    [NSWorkspace.sharedWorkspace openApplicationAtURL:app configuration:[NSWorkspaceOpenConfiguration configuration]
+                                    completionHandler:^(NSRunningApplication *opened, NSError *error) {
+        if (!opened) PanelLog(@"Spotify didn't open: %@", error.localizedDescription);
+    }];
 }
 
 - (BOOL)play {
@@ -400,7 +476,8 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
         } while (until.timeIntervalSinceNow > 0);
         BOOL loaded = state && state.enumCodeValue != kSpotifyStateStopped;
         BOOL played = loaded && Send(pid, kSpotifySuite, kSpotifyPlay, nil, nil, &status) != nil;
-        NSMutableArray *fields = played ? [ReadSong(pid, &status) mutableCopy] : nil;
+        double at = 0;
+        NSMutableArray *fields = played ? [ReadSong(pid, &status, &at) mutableCopy] : nil;
         // Spotify may not say it's playing yet, a moment after it was told to: it is.
         if (fields.count == 8) fields[6] = @"playing";
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -411,7 +488,7 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
                 [self startPending];
             }
             if (state) [self allow:YES];
-            if (fields) [self answered:fields status:status since:since];
+            if (fields) [self answered:fields status:status since:since at:at];
             else if (!state || loaded) [self failed:status];
             [self tokenChanged];
         });
@@ -489,15 +566,20 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status) {
             (seek ? Send(pid, kAECoreSuite, kAESetData, AppleEventProperty(kSpotifyPlayerPosition, nil),
                          [NSAppleEventDescriptor descriptorWithDouble:seconds], &status)
                   : Send(pid, kSpotifySuite, command.unsignedIntValue, nil, nil, &status)) != nil;
-        NSMutableArray *fields = done ? [ReadSong(pid, &status) mutableCopy] : nil;
+        // A jump is where it was sent the moment Spotify took it.
+        double jumped = NowMs(), at = 0;
+        NSMutableArray *fields = done ? [ReadSong(pid, &status, &at) mutableCopy] : nil;
         if (fields.count == 8 && [fields[0] isEqual:track]) {
             if (toggle) fields[6] = wasPlaying ? @"paused" : @"playing";
-            if (seek) fields[5] = @(seconds);
+            if (seek) {
+                fields[5] = @(seconds);
+                at = jumped;
+            }
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             // The page showed a pause or a jump ahead of Spotify: if it didn't go through, it's told what's true.
             if (!done) self.sent = nil;
-            [self answered:fields status:status since:since];
+            [self answered:fields status:status since:since at:at];
             [self send];
         });
     });

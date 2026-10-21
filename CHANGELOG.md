@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Your turn** now comes first in the list: the sessions waiting on you, a request or question (a pulsing red-orange
+  dot) and a reply you haven't read (amber), first come, first served, so one that comes in joins the end and nothing
+  above it moves. A reply waits there until you've read it: opened it here, been on it in Claude or Ghostty for a
+  couple of seconds since it came (watching it come in counts), or written to it. One you've read gets an empty dot
+  and its row goes to **Seen**, below **Working**, then to **Idle** an hour after the last message; before, a reply
+  went to Idle after 30 minutes, or as soon as you'd read it. A row you press, to answer it, say, stays where it is
+  until your pointer has left the panel. The header's line counts what the sections show. **Group by Activity** is
+  gone: a panel set to it groups by status.
 - Each row's details line ends in what its session changed that isn't committed yet ("+26 −13"), like Claude
   Desktop's own bar, even with other sessions or you working in the same checkout: each changed line goes to whoever
   wrote it, a session's shell commands included, as Claude Code records what they change in auto mode. Pointing at
@@ -17,11 +25,16 @@
   without reaching anything else. While Claude waits on a plan, its row asks for your OK, with **Read plan** and
   **Take me there**: the plan can be sent back with your notes or stopped, and approving it happens in the session.
   Drag the panel by either header to move it, reader and all.
-- **Start a conversation** from the panel: a box under the list, the ＋ in its header, a project's ＋, or ⌃⌥N from any
-  app (New Conversation in the pawn menu, which can also turn the shortcut off). Write what Claude should do, choose
-  Claude Desktop or Ghostty and the folder on the card's details line, and press Return: the card turns into the
-  conversation's row and rises to its place in the list, saying it's starting until Claude lists it. ⌘Return keeps a
-  card open for the next one. A folder Claude hasn't worked in before is asked about on the card, once, for both apps.
+- **Start a conversation** from the panel: the ＋ in its header, a project's ＋, or ⌃⌥N from any app (New
+  Conversation in the pawn menu, which can also turn the shortcut off) opens a card at the top of the panel. Write what
+  Claude should do and press ⌘Return: the card turns into the conversation's row and moves down to its place in the
+  list, saying it's starting until Claude lists it. Chips under your words say where it starts: **@** in your words (or
+  the project's chip) chooses the project, and **#** where in it, its own folder, a worktree that's there, or a new
+  worktree, for a branch that's there or a new one (**#name from release** starts it from that branch), in a folder
+  beside the repo (`shop-worktrees` for `shop`) or one you choose. Anything in a worktree starts in Ghostty, and
+  nothing switches the branch of a folder in use. Start names the app, Claude Desktop or Ghostty, with an arrow to
+  switch it. A card closed before it starts comes back as you left it. A folder Claude hasn't worked in before is
+  asked about on the card, once, for both apps.
 - Under each row's details line, while there's work in flight, is the **island**: a glass capsule with a stage for
   each place the work can be, the files changed, commits not on GitHub yet and GitHub, each with its count, the one
   where your next move is brighter. The files stage is a gauge, filled as far as its files are staged; pointing at it
@@ -30,11 +43,10 @@
   card, and a click on it opens what those commits changed, beside the list. A click on another stage opens its menu,
   with what it holds and its steps (Commit, Push, Create PR, Open PR), which ask the session's agent in words, only
   while it's idle and no other agent is working in that checkout (its menus still open meanwhile, saying which
-  session the steps wait for). The row's action tag gives way to the island. It stays on one row per checkout for as
-  long as there's work left there: of the sessions running in that checkout, the one that edited files there last,
-  or, if none did, the one you used last there. A row is always about the checkout its session runs in: editing files
-  in another checkout doesn't bring that checkout's island or Deploy to it. The pawn menu's **Next Steps ▸** turns the
-  island and Deploy, or just Deploy, off.
+  session the steps wait for). The island stays on one row per checkout for as long as there's work left there: of the
+  sessions running in that checkout, the one that edited files there last, or, if none did, the one you used last
+  there. A row is always about the checkout its session runs in: editing files in another checkout doesn't bring that
+  checkout's island or Deploy to it. The pawn menu's **Next Steps ▸** turns the island and Deploy, or just Deploy, off.
 - An **extra stage** on the island for a repo whose own git config names a command for one (`whozmove.stage`): a
   tool that keeps changes on their way to a commit, such as a review queue, shows its count there, with its own list
   and steps in the stage's menu. While it holds something, the files stage counts only the files outside it, and its
@@ -52,6 +64,8 @@
   or forgets the command.
   Whozmove's own is `./build.sh --now`: once it's set up, an agent's `./build.sh` only compiles, and Deploy puts the
   build in place.
+- Rows no longer show a coloured label for where an idle session's work stands ("Ready to commit", "In review", "Done"
+  and the like), or what that work has been through ("built · tested", the audit) at the end of the details line.
 - **Working on Whozmove ▸** in the pawn menu, shown while ⌥ is held: **Show Build in Header** says which worktree
   the running build came from and when.
 - `./build.sh` puts the hooks in place too, once they're installed as the plugin, and running `./install.sh` again
@@ -79,10 +93,19 @@
   token wears the song's cover and resumes it. Without Spotify it offers **Download** and turns into Play by itself
   once Spotify is installed, so it's two presses from nothing to music.
 - **Now playing**, above the usage strip, while a song plays: its cover, song, artist and time, with a thin line for how
-  far in it is. Pointing at it shows back, pause and next, the line jumps where it's pressed, and clicking the song
-  brings Spotify forward; paused, it greys and offers Play, and after 15 minutes folds into the token. The pawn menu's
-  **Spotify ▸** has **Hide Side Icon** and **Remove Spotify** (the token and the strip go, and Whozmove leaves Spotify
-  alone), then **Add Spotify**. With the panel folded to its header, the token stands in for the strip.
+  far in it is. Pointing at it shows back, pause and next, the line jumps where it's pressed, and pressing the strip
+  brings Spotify forward (once lyrics are on, it opens them); paused, it greys and offers Play, and after 15 minutes
+  folds into the token. The pawn menu's **Spotify ▸** has **Open Spotify**, **Show Lyrics**, **Hide Side Icon** and
+  **Remove Spotify** (the token and the strip go, and Whozmove leaves Spotify alone), then **Add Spotify**. With the
+  panel folded to its header, the token stands in for the strip.
+- **Lyrics** for Spotify's song, from LRCLIB, once you say yes to the strip's question: while a line is sung it takes
+  the place of the song's name in the strip, rolling in as the singer starts it, and the name comes back between verses.
+  Pressing the strip opens the whole song beside the list, the line being sung lit as it plays; pressing a line jumps
+  the song there; pressed before a song's lyrics are here, the strip says "Loading lyrics…" or "Lyrics not available"
+  for a moment. **Show lyrics in the strip**, at their foot, turned off keeps the strip on the song's name, and **Show
+  Lyrics** in the pawn menu's Spotify ▸ turns them on or off. Nothing is looked up before you say yes; when LRCLIB is
+  busy, Whozmove asks again, a little later each time; and the lyrics found are kept on this Mac, so a song played again
+  shows them at once, until you turn lyrics off.
 - A click on a terminal session's row switches Ghostty to its tab before bringing Ghostty forward, so it lands on that
   session every time, and the session in the Ghostty tab you're looking at is marked as the one you're on, as Claude
   Desktop's open conversation is.

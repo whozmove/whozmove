@@ -24,7 +24,7 @@ extern NSString *const kClaudeDesktopScratchFolders;
 // (?q=<words>): Claude puts it in the new conversation's message box, and sends nothing until Send is pressed. It cuts
 // longer words short, so only so many go in this way. The new one's link takes a folder as well (&folder=<path>), but
 // Claude then asks to trust it every time, and loses it, starting the conversation with "No folder": so the folder is
-// chosen in Claude's own folder list instead (its button and list below).
+// chosen in Claude itself instead (its environment, or on its older screen its folder list: both below).
 extern NSString *const kClaudeDesktopOpenLink;
 extern NSString *const kClaudeDesktopNewLink;
 extern const NSUInteger kClaudeDesktopLinkWordsMax;
@@ -35,9 +35,18 @@ extern NSString *const kClaudeDesktopSwitchModelLabel;  // "Switch model?": its 
 extern NSString *const kClaudeDesktopCancelLabel;       // and its other button
 extern NSString *const kClaudeDesktopDontAskSuffix;     // and its "Don't ask again" box, either apostrophe
 extern NSString *const kClaudeDesktopTrustLabel;        // "Trust this workspace?": its button
-// A new conversation's folder button shows the name of the folder it will start in, or one of these with none; its
-// list names each Recent folder with its path as its tooltip. The branch box beside it shows a dash until the folder
-// chosen is ready (in a git repository: there's no branch box outside one).
+// Since 2.42304.0 a new conversation starts in an environment: one of Claude's saved folders, with its model and
+// effort, kept in its presets file (each one's `name`, and its `target`: `kind` local, and the folder, `cwd`). The
+// button beside Send names the one chosen ("Environment: <name>"), and the new conversation's page lists the recent
+// ones: the one chosen shows its name and then its folder, and the others are buttons named for theirs, which choose
+// them.
+extern NSString *const kClaudeDesktopPresets;
+extern NSString *const kClaudeDesktopLocalTarget;
+extern NSString *const kClaudeDesktopEnvironmentPrefix;
+extern NSString *const kClaudeDesktopRecentEnvironmentsLabel;
+// On its older screen, a new conversation's folder button shows the name of the folder it will start in, or one of
+// these with none; its list names each Recent folder with its path as its tooltip. The branch box beside it shows a
+// dash until the folder chosen is ready (in a git repository: there's no branch box outside one).
 extern NSString *const kClaudeDesktopNoFolderLabel;
 extern NSString *const kClaudeDesktopSelectFolderLabel;
 extern NSString *const kClaudeDesktopNoBranchLabel;

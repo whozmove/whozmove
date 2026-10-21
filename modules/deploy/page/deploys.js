@@ -72,7 +72,7 @@ function folderWork(sessions) {
 
 // The sessions whose agent is working (or compacting), by each folder they work in: their own checkout (or folder,
 // outside git), and the one their edits land in while the turn they're on has edited files there (an edit from an
-// earlier turn doesn't keep them at work there). `kinds` is each session's section (classify). Deploy waits while any
+// earlier turn doesn't keep them at work there). `kinds` is what each session is now (classify). Deploy waits while any
 // agent works in its folder, not just the row's own, so what's put in place isn't half-way through a change; so do the
 // island's steps (OthersAtWork in app/core/Work.m), while the island stays up, to show where the work stands. One
 // waiting on you doesn't count: it changes nothing until you answer it, which may be days away.

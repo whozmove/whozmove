@@ -23,16 +23,24 @@
 @property (nonatomic) BOOL collapsed;
 // Spotify's download page, in your browser: Whozmove installs nothing itself, and notices once Spotify is installed.
 - (void)getSpotify;
+// Spotify comes forward, opening if it isn't running (the pawn menu's Spotify ▸ Open Spotify).
+- (void)open;
 // What the token shows, as TokenFor gives it, each time that changes; and looked at again now (the strip has folded).
 @property (copy) void (^onToken)(NSDictionary *token);
 - (void)refreshToken;
+// The song each time it changes, as the page gets it, or nil once nothing plays or Spotify is removed: for its lyrics.
+@property (copy) void (^onSong)(NSDictionary *song);
+// While the song's lyrics follow it: where Spotify is in it is asked every few seconds, so a jump made in Spotify
+// itself (or the song starting over) shows in the lyrics within a few seconds, rather than at the next full read.
+@property (nonatomic) BOOL following;
 @end
 
 // Whether Spotify is on this Mac (and not in the Bin).
 BOOL SpotifyInstalled(void);
 
-// The parts tests/rows.sh checks, through --print-spotify. Each gives the song as the page gets it (docs say what's
-// in it, in Spotify.m), with `now` in milliseconds since 1970 as when its position was right; nil when nothing plays.
+// The parts modules/spotify/tests/test.sh checks, through --print-spotify. Each gives the song as the page gets it
+// (docs say what's in it, in Spotify.m), with `now` in milliseconds since 1970 as when its position was right; nil
+// when nothing plays.
 // From what Spotify tells the whole Mac when the song or its state changes:
 NSDictionary *SongFromAnnouncement(NSDictionary *info, double now);
 // From what reading it returns: the track's id, name, artist, album, length (ms), position (s), the state and the
@@ -42,6 +50,9 @@ NSDictionary *SongFromReply(NSArray *fields, double now);
 BOOL ControlRefused(OSStatus status);
 // Whether the song is in the now-playing strip at `now`: while it plays, and for 15 minutes after it's paused.
 BOOL SongInStrip(NSDictionary *song, double now);
+// Whether Spotify's position `positionMs`, read at `at`, is far enough from where `song` says it would be by then that
+// the page is told: the song was jumped in, in Spotify itself, or it started over.
+BOOL PositionMoved(NSDictionary *song, double positionMs, double at);
 // What the token shows: {state, title, artist, artUrl, progress}, where state is missing (Download), ready (Play),
 // paused (the song, to resume), playing (the song, to pause: only while the panel is folded), refused (macOS hasn't
 // allowed Whozmove to control Spotify: Open Settings) or hidden (Spotify starting, or the song in the strip: then

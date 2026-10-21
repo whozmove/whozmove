@@ -21,9 +21,11 @@ function showSwitchQuestion({ sessionId, from, to }) {
   reportHeight();
 }
 
-// Just below its row, or above it when there's no room below.
+// Just below its row (the one in view: a row pinned below its folded group is there twice), or above it when there's no
+// room below.
 function placeAsk() {
-  const row = [...document.querySelectorAll('.row')].find((r) => r.dataset.id === state.asking.sessionId);
+  const row = [...document.querySelectorAll('.row')]
+    .find((r) => r.dataset.id === state.asking.sessionId && !r.closest('.prows.closed'));
   const r = row?.getBoundingClientRect(), h = switchCard.offsetHeight;
   let top = r ? r.bottom + 4 : 56;
   if (top + h + 8 > state.panelMax) top = Math.max(6, (r ? r.top : 56) - h - 4);

@@ -188,6 +188,7 @@ function sendPlanAnswer(how) {
   if (!w || w.id !== r.id || !s.ask) return;
   const message = r.notes.trim();
   if (how === 'revise' && !message) return;
+  keepInPlace(s.sessionId);  // sent with Return too, not only a press: its row stays where it is
   answered(s.ask.id, 'deny');
   r.sent[w.id] = how;
   r.revising = false;

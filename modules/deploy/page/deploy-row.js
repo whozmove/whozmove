@@ -168,7 +168,7 @@ core.pointerTargets.push('.play:not(.off)');
 // When each folder's sessions last changed or built something, and which are at work in it, from the sessions listed.
 core.beforeDraw.push((listed) => {
   state.folderWork = folderWork(listed);
-  state.atWork = agentsAtWork(listed, state.shownKind);
+  state.atWork = agentsAtWork(listed, state.kinds);
 });
 // A step's note (why a deploy couldn't start, say): a Deploy pressed there stops standing in for a run.
 core.noted.push((s) => { delete state.deployPressed[folderOf(s)]; });

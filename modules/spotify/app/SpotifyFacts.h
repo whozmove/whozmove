@@ -14,6 +14,9 @@ extern NSString *const kSpotifyAnnouncement;
 extern NSString *const kSpotifyTrackKey, *const kSpotifyNameKey, *const kSpotifyArtistKey, *const kSpotifyAlbumKey,
                 *const kSpotifyDurationKey, *const kSpotifyPositionKey, *const kSpotifyStateKey;
 extern NSString *const kSpotifyPlaying, *const kSpotifyStopped;
+// How a song's track id starts, and one kept on this Mac rather than on Spotify (a local file). An ad's and a podcast
+// episode's start otherwise (spotify:ad:, spotify:episode:): they have no lyrics to look up.
+extern NSString *const kSpotifySongIdPrefix, *const kSpotifyLocalIdPrefix;
 extern NSString *const kSpotifyDownloadPage;
 // Spotify's scripting dictionary: its own suite's commands, the application's properties, a track's, and the player's
 // states. A track's duration comes in milliseconds, though the dictionary says seconds.

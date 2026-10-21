@@ -2,12 +2,19 @@
 // modules show on it goes in its places (core.slots), each giving its HTML or nothing.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
-const STATUS_ORDER = { needs: 0, busy: 1, turn: 2, idle: 3 };
+// Each section's name on its header, in the order they're shown (SECTIONS in whose-move.js).
+const SECTION_NAMES = { turn: 'Your turn', busy: 'Working', seen: 'Seen', idle: 'Idle' };
 
 // The app a session runs in, as a row names it (core.hosts): the module's that holds it (Claude Desktop), else a terminal.
 const TERMINAL_HOST = { name: 'Terminal', icon: TERMINAL_ICON, openNow: 'Open in your terminal now', inName: '' };
 function hostOf(s) {
   return core.hosts.find((host) => host.holds(s)) || TERMINAL_HOST;
+}
+
+// A worktree, wherever it shows (a row's details line, the new conversation card): its icon and its branch's name on a
+// chip in the worktree colours. Where it sits adds its own classes and attributes (`cls`, `attrs`), and its size.
+function worktreeChip(name, cls = '', attrs = '') {
+  return `<span class="wt${cls ? ` ${cls}` : ''}"${attrs}>${WORKTREE_ICON}<span class="wt-name">${esc(name)}</span></span>`;
 }
 
 // What a place on a row (or a project's header) shows: each module's part there, in the order they were added.
@@ -20,12 +27,11 @@ function slot(name, of) {
 // out; when it needs you, what for; then its reply. Both lines stay from one turn to the next, so every change is
 // text replaced in place (morph) and nothing moves. A step's name stays up after the step finishes, as in Claude's
 // own progress row, and a step shows once it starts running (a hook can't see it sooner). The chat shows while
-// Claude works or needs you, and for a reply while "Your turn" lasts (dimmer once read). A conversation started from
-// the panel and not listed yet (starts.js) says it's starting, or what it waits for, or why it didn't start.
+// Claude works or needs you, and for a reply until its session goes Idle (dimmer once read). Claude's line is its
+// reply only when that answers your message: after a turn you stopped, there's only yours. A conversation started
+// from the panel and not listed yet (starts.js) says it's starting, or what it waits for, or why it didn't start.
 function chatHTML(s, kind, now) {
-  const replied = s.lastReplyAt || 0;
-  const recentReply = s.lastReply && replied > (s.lastPromptAt || 0) && now - replied < YOUR_TURN_MS;
-  if (kind === 'idle' && !recentReply && !s.compacting) return '';
+  if (kind === 'idle' && !s.compacting) return '';
   const you = s.lastPrompt
     ? `<div class="you"><span class="who">You</span><span class="what">${esc(s.lastPrompt)}</span></div>` : '';
   let claude = '';
@@ -43,8 +49,8 @@ function chatHTML(s, kind, now) {
   } else {
     const wants = kind === 'needs'
       && (s.ask ? (s.ask.tool === 'AskUserQuestion' ? 'Has a question for you' : 'Needs your OK to go on') : s.notice);
-    const text = wants || s.lastReply;
-    const look = wants ? 'wait' : kind === 'idle' || isRead(s, state.seen) ? 'reply read' : 'reply';
+    const text = wants || ((s.lastReplyAt || 0) >= (s.lastPromptAt || 0) ? s.lastReply : '');
+    const look = wants ? 'wait' : isRead(s, view()) ? 'reply read' : 'reply';
     if (text) claude = `<div class="claude ${look}" data-mode="${wants ? 'wait' : 'reply'}">`
       + `<span class="who">Claude</span><span class="what">${esc(text)}</span></div>`;
   }
@@ -52,14 +58,14 @@ function chatHTML(s, kind, now) {
 }
 
 // The details, on two lines: where the session runs (its app, hostOf; its project, unless grouped by project;
-// branch; worktree), ending in what a module puts there (the session's own numbers) or else in what the work has been
-// through (proofHTML); and how its agent is set up (the modules' setup line: its model, effort and mode, and its
-// context ring). Between them, what the modules put under the first line (the island), and a short line when there's
-// something to say (stepLine). A session outside git, grouped by project, has nothing else to say on the first line, so
-// its Desktop/Terminal icon heads the second.
+// branch, a worktree's in its colour), ending in what a module puts there (the session's own numbers); and how its
+// agent is set up (the modules' setup line: its model, effort and mode, and its context ring). Between them, what the
+// modules put under the first line (the island), and a short line when there's something to say (stepLine). A session
+// outside git, grouped by project, has nothing else to say on the first line, so its Desktop/Terminal icon heads the
+// second.
 function metaHTML(row) {
-  const { s, kind } = row;
-  const end = slot('end', row) || proofHTML(s, kind);
+  const { s } = row;
+  const end = slot('end', row);
   const under = slot('underWhere', row);
   const note = stepLine(row);
   const noteHTML = note ? `<div class="step-note${note.quiet ? ' quiet' : ''}">${esc(note.text)}</div>` : '';
@@ -67,8 +73,7 @@ function metaHTML(row) {
   const branch = g && (g.branch || 'detached @' + g.detached);
   const where = [];
   if (state.groupBy !== 'project') where.push(`<span class="proj">${esc(projectOf(s).name)}</span>`);
-  if (g) where.push(`<span class="branch">${BRANCH_ICON}${esc(branch)}</span>`);
-  if (g?.worktree) where.push(`<span class="wt">worktree</span>`);
+  if (g) where.push(g.worktree ? worktreeChip(branch, 'branch') : `<span class="branch">${BRANCH_ICON}${esc(branch)}</span>`);
   const host = hostOf(s);
   const tip = [s.cwd, g && `branch ${branch}`, g?.worktree && `worktree ${g.worktree} of ${g.worktreeOf}`,
                host.name].filter(Boolean).join('\n');
@@ -90,21 +95,6 @@ function stepLine(row) {
     if (said) return said;
   }
   return null;
-}
-
-// What the work has been through, beside its state (workProof in whose-move.js).
-function proofHTML(s, kind) {
-  const proof = workProof(s, kind);
-  return proof ? `<span class="proof" title="${esc(proof.tip)}">${esc(proof.text)}</span>` : '';
-}
-
-// An idle row's current action (currentAction), as a coloured tag. A working row shows what it's doing on Claude's
-// line instead (chatHTML), and a row that needs you shows what for. A row whose work a module shows in more detail
-// (`shown`: its island) leaves it to that.
-function stageHTML(s, kind, shown) {
-  if (kind === 'busy' || kind === 'needs' || shown) return '';
-  const action = currentAction(s);
-  return action ? `<span class="stage o-${action[1]}">${esc(action[0])}</span>` : '';
 }
 
 // The card under a row's chat: of the modules' cards that want to show there (a request, Compact, Deploy's set-up, the
@@ -135,12 +125,14 @@ function openingCard(sid, name) {
   }
 }
 
-// A session's row. `row` is what each module's part is given: the session, its section (kind), the time the rows were
-// sent (now), whether it speaks for its checkout while Show Next Steps is on (owner), the page's own clock, which
-// Deploy's press and animations are timed by, and what each module found when it first looked at the row
-// (core.rowLooks: the island's stages, Deploy's button).
-function rowHTML(s, kind, now) {
-  const row = { s, kind, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId), clock: Date.now() };
+// A session's row. `row` is what each module's part is given: the session, what it is now (kind: classify), the section
+// it's shown in (a row you've pressed stays where you saw it, so the two can differ), the time the rows were sent
+// (now), whether it speaks for its checkout while Show Next Steps is on (owner), the page's own clock, which Deploy's
+// press and animations are timed by, and what each module found when it first looked at the row (core.rowLooks: the
+// island's stages, Deploy's button).
+function rowHTML(s, kind, now, section = SECTION_OF[kind]) {
+  const row = { s, kind, section, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
+                clock: Date.now() };
   for (const look of core.rowLooks) look(row);
   // How long ago, on the title line; not while it works (or compacts), when Claude's line has the time.
   const since = kind === 'needs' ? s.statusUpdatedAt || 0 : lastActive(s);
@@ -154,7 +146,6 @@ function rowHTML(s, kind, now) {
       <div class="main">
         <div class="line1">
           <span class="name">${esc(s.name || base(s.cwd))}</span>${slot('name', row)}
-          ${stageHTML(s, kind, row.workShown)}
           ${kind === 'busy' || s.compacting ? '' : `<span class="time">${time}</span>`}${slot('time', row)}
         </div>
         ${chatHTML(s, kind, now)}
@@ -165,40 +156,59 @@ function rowHTML(s, kind, now) {
     </div>`;
 }
 
-// A group's rows in a body that folds to nothing. The conversation open in Claude, any session that needs you (a
-// request or question waiting), and one just started from the panel stay in view: while the group is folded, a copy of
-// their row is pinned below it. The original stays in the body, in place, so opening the group slides to its true
-// height.
+// A group's rows in a body that folds to nothing. The conversation open in Claude, any session waiting on you (a
+// request, a question or a reply you haven't read), a row you've pressed, and one just started from the panel stay in
+// view: while the group is folded, a copy of their row is pinned below it. The original stays in the body, in place, so
+// opening the group slides to its true height.
 function groupBody(rows, closed) {
-  const pinned = closed ? rows.filter((r) => r.s.focused || r.kind === 'needs' || r.s.pending) : [];
+  const pinned = closed ? rows.filter((r) => r.s.focused || SECTION_OF[r.kind] === 'turn' || r.held || r.s.pending)
+    : [];
   return `<div class="prows${closed ? ' closed' : ''}">${rows.map((r) => r.html).join('')}</div>`
     + (pinned.length ? `<div class="pinned">${pinned.map((r) => r.html).join('')}</div>` : '');
 }
 
-// Projects ordered by most recent activity; inside each, sessions by status, then recency (sortKey). A project's header
-// has its name, its chevron, and what the modules put there (＋ for a new conversation in it).
-function projectsHTML(sessions, now) {
+// The rows as they're placed (placeRows), each section under its header with its count: Your turn, Working and Seen,
+// then Idle, folded until you open it.
+function sectionsHTML(placed, now) {
+  let html = '';
+  for (const section of SECTIONS) {
+    const rows = placed.filter((p) => p.section === section)
+      .map(({ s, kind, held }) => ({ s, kind, held, html: rowHTML(s, kind, now, section) }));
+    if (!rows.length) continue;
+    const name = `${SECTION_NAMES[section]}<span class="n">${rows.length}</span>`;
+    if (section !== 'idle') {
+      html += `<div class="group" data-key="g:${section}">${name}</div>${rows.map((r) => r.html).join('')}`;
+      continue;
+    }
+    html += `<div class="group toggle${state.showIdle ? '' : ' collapsed'}" data-key="g:idle">${name}`
+      + `<span class="pchev">${CHEVRON_ICON}</span></div>` + groupBody(rows, !state.showIdle);
+  }
+  return html;
+}
+
+// Projects ordered by most recent activity (each row's latest, from placeRows, so one you've pressed doesn't move its
+// project); inside each, its rows as they're placed: Your turn, Working, Seen, Idle. A project's header has its name,
+// its chevron, and what the modules put there (＋ for a new conversation in it).
+function projectsHTML(placed, now) {
   const projects = new Map();
-  for (const s of sessions) {
-    const p = projectOf(s);
-    if (!projects.has(p.key)) projects.set(p.key, { ...p, sessions: [], latest: 0 });
-    const entry = projects.get(p.key);
-    entry.sessions.push(s);
-    entry.latest = Math.max(entry.latest, sortKey(s, classify(s, now, view())));
+  for (const p of placed) {
+    const of = projectOf(p.s);
+    if (!projects.has(of.key)) projects.set(of.key, { ...of, rows: [], latest: 0 });
+    const entry = projects.get(of.key);
+    entry.rows.push(p);
+    entry.latest = Math.max(entry.latest, p.latest);
   }
   return [...projects.values()]
     .sort((a, b) => b.latest - a.latest)
     .map((p) => {
       const closed = !!state.closedProjects[p.key];
-      const rows = p.sessions
-        .map((s) => ({ s, kind: classify(s, now, view()) }))
-        .sort((a, b) => STATUS_ORDER[a.kind] - STATUS_ORDER[b.kind]
-                        || sortKey(b.s, b.kind) - sortKey(a.s, a.kind));
       const head = `<div class="project${closed ? ' collapsed' : ''}" data-key="${esc(p.key)}" title="${esc(p.key)}">
             <span class="pname">${esc(p.name)}</span><span class="pchev">${CHEVRON_ICON}</span>
             ${slot('project', p)}
           </div>`;
-      return head + groupBody(rows.map(({ s, kind }) => ({ s, kind, html: rowHTML(s, kind, now) })), closed);
+      const rows = p.rows.map(({ s, kind, section, held }) =>
+        ({ s, kind, held, html: rowHTML(s, kind, now, section) }));
+      return head + groupBody(rows, closed);
     })
     .join('');
 }

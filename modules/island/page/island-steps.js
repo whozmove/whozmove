@@ -28,7 +28,7 @@ function syncSteps(el) {
 function keepStageCards() {
   for (const seg of document.querySelectorAll('.island .seg[data-stage="commits"]')) {
     const sid = seg.closest('.island').dataset.sid;
-    if (!(+seg.dataset.count > 0) || seg.closest('.closed')) continue;
+    if (!(+seg.dataset.count > 0) || seg.closest('.prows.closed')) continue;
     native({ type: 'stageCard', sessionId: sid, stage: 'commits', step: seg.dataset.step || '',
              count: +seg.dataset.count, quiet: true });
   }
@@ -67,7 +67,7 @@ function stepsHTML(card) {
 // A stage of a row's island, the one in view (a row pinned below its folded group is there twice).
 function segAt(sid, stage) {
   return [...document.querySelectorAll(`.island[data-sid="${CSS.escape(sid)}"] .seg[data-stage="${stage}"]`)]
-    .find((seg) => !seg.closest('.closed')) || null;
+    .find((seg) => !seg.closest('.prows.closed')) || null;
 }
 
 // Just below the stage, or above it when the panel can't grow to fit it below.
@@ -89,13 +89,15 @@ function hideSteps() {
   reportHeight();
 }
 
-// A step on the card: the app asks the agent, in the step's own words, if the card still offers it.
+// A step on the card: the app asks the agent, in the step's own words, if the card still offers it. Its row stays where
+// it is while you watch the step go in (keepInPlace).
 stepsCard.addEventListener('mousedown', (e) => {
   const button = e.target.closest('.st-step[data-step]');
   const shown = state.stepsShown;
   if (e.button !== 0 || !button || button.disabled || !shown) return;
   e.preventDefault();
   if (justShown('steps:' + shown.sid)) return;
+  keepInPlace(shown.sid);
   native({ type: 'stageStep', sessionId: shown.sid, from: shown.step, step: button.dataset.step });
   hideSteps();
 });

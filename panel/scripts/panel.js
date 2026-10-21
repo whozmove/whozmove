@@ -4,22 +4,60 @@
 
 if (store.get('collapsed', false)) document.body.classList.add('collapsed');
 
-// ---- Rendering ----
+// ---- Keeping rows in place ----
 
-// The session you're on (last opened from here, or switched to in Claude Desktop or in Ghostty's tabs) keeps its place
-// under "Your turn" once its reply is read; the reply just dims. It goes to Idle when you move to another one, so the
-// list doesn't rearrange itself around the session you're working in. Only a session that was under "Your turn" is
-// held there: one opened from Idle stays in Idle.
-function goTo(sid) { state.current = state.shownKind[sid] === 'turn' ? sid : null; }
+// The session you're on: last opened from here, or switched to in Claude Desktop or in Ghostty's tabs, where a new
+// conversation starts unless you choose another place (starts.js). Its row goes where it belongs, as every row does
+// but one you've pressed.
+function goTo(sid) { state.current = sid; }
 // The app marks the session you're on (`focused`): the conversation Claude Desktop shows, or the session in the
-// Ghostty tab you're looking at, whichever of the two apps you were in last. When the mark moves, so does goTo's.
+// Ghostty tab you're looking at, whichever of the two apps you were in last. When the mark moves, so does goTo's: as
+// the page shows it, so a conversation just opened in Claude counts at once (openedNow).
 function followClaude() {
-  const shown = state.last.sessions.find((s) => s.focused)?.sessionId || null;
-  if (shown && shown !== state.claudeShowed) goTo(shown);  // you moved to another session, in Claude or Ghostty
-  state.claudeShowed = shown;
+  const sid = state.last.sessions.map(openedNow).find((s) => s.focused)?.sessionId || null;
+  if (sid && sid !== state.claudeShowed) goTo(sid);
+  state.claudeShowed = sid;
+}
+// When you last read each session's reply (classify in whose-move.js): you opened it here, or the app saw you looking
+// at it in Claude or Ghostty after it came (its seenAt, which it forgets when it restarts, so it's kept here once it
+// has read a reply). Kept across launches.
+function markRead(sid, at) {
+  state.seen[sid] = at;
+  store.set('seen', state.seen);
+}
+function keepSeen(sessions) {
+  for (const s of sessions) {
+    const reply = s.lastReplyAt || 0;
+    if (s.seenAt >= reply && (state.seen[s.sessionId] || 0) < reply) markRead(s.sessionId, s.seenAt);
+  }
+}
+// A row you press (to open it, answer it, or run a step or Deploy from it, or in the reader beside it) keeps its place,
+// so it doesn't move away while you watch what your press did: until you've moved on from the panel, your pointer off
+// it (and moved, when the panel's edge went past it) and none of the panel's boxes with the keyboard.
+function keepInPlace(sid) { if (sid) state.pressedRows.add(sid); }
+// Which rows keep the place they were last shown in (placeRows in whose-move.js): the ones you've pressed.
+function heldNow() {
+  if (!state.pointer && !state.pointerStill && !state.keyboardWanted) state.pressedRows.clear();
+  return (sid) => state.pressedRows.has(sid);
 }
 // How the panel is set up right now, as classify in whose-move.js needs it.
-function view() { return { groupBy: state.groupBy, current: state.current, seen: state.seen }; }
+function view() { return { seen: state.seen, readBefore: state.readBefore }; }
+
+// The header's line, as the list shows it: how many rows are in Your turn (in the requests' colour while a request
+// waits there) and how many in Working; with neither, how many in Seen and how many idle.
+function summaryHTML(placed) {
+  const n = (section) => placed.filter((p) => p.section === section).length, parts = [];
+  const asks = placed.some((p) => p.section === 'turn' && p.kind === 'needs');
+  if (n('turn')) parts.push(`<b style="color:var(${asks ? '--needs' : '--turn'})">${n('turn')} your turn</b>`);
+  if (n('busy')) parts.push(`<b style="color:var(--busy)">${n('busy')} working</b>`);
+  if (!parts.length) {
+    if (n('seen')) parts.push(`${n('seen')} seen`);
+    if (n('idle') || !parts.length) parts.push(`${n('idle')} idle`);
+  }
+  return parts.join(' · ');
+}
+
+// ---- Rendering ----
 
 // A conversation in an app that marks it as shown only once its own record says so (Claude Desktop's, a host with
 // marksOpenAtOnce), clicked here, shows as the one open at once, rather than a second or so later when Claude's log
@@ -45,43 +83,22 @@ function render() {
   // With them, the rows the modules add that the app hasn't listed yet: the conversations started here (starts.js).
   const sessions = listed.concat(...core.moreRows.map((more) => more(listed)));
   state.owners = checkoutOwners(listed);
-  state.shownKind = Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, now, view())]));
+  // What each session is now, and where it's shown: the rows you've pressed where you last saw them, the rest in place.
+  keepSeen(listed);
+  state.kinds = Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, now, view())]));
+  const placed = placeRows(sessions.map((s) => ({ s, kind: state.kinds[s.sessionId] })), state.placed, heldNow(), now);
+  for (const { s, section, key, tie, latest } of placed) state.placed[s.sessionId] = { section, key, tie, latest };
   for (const before of core.beforeDraw) before(listed);
-  const groups = { needs: [], busy: [], turn: [], idle: [] };
-  for (const s of sessions) groups[classify(s, now, view())].push(s);
-  for (const [kind, g] of Object.entries(groups)) g.sort((a, b) => sortKey(b, kind) - sortKey(a, kind));
 
-  const parts = [];
-  if (groups.needs.length) parts.push(`<b style="color:var(--needs)">${groups.needs.length} need you</b>`);
-  if (groups.busy.length) parts.push(`<b style="color:var(--busy)">${groups.busy.length} working</b>`);
-  if (groups.turn.length) parts.push(`<b style="color:var(--turn)">${groups.turn.length} your turn</b>`);
-  if (!parts.length) parts.push(`${sessions.length} idle`);
-  document.getElementById('summary').innerHTML = parts.join(' · ');
-
-  const section = (key, label, kind) => {
-    const g = groups[key];
-    if (!g.length) return '';
-    return `<div class="group" data-key="g:${key}">${label}<span class="n">${g.length}</span></div>`
-      + g.map((s) => rowHTML(s, kind, now)).join('');
-  };
-  let html;
-  if (state.groupBy === 'project') {
-    html = projectsHTML(sessions, now);
-  } else {
-    html = section('needs', 'Needs you', 'needs') + section('busy', 'Working', 'busy')
-      + section('turn', 'Your turn', 'turn');
-    if (groups.idle.length) {
-      html += `<div class="group toggle${state.showIdle ? '' : ' collapsed'}" data-key="g:idle">Idle`
-        + `<span class="n">${groups.idle.length}</span><span class="pchev">${CHEVRON_ICON}</span></div>`;
-      html += groupBody(groups.idle.map((s) => ({ s, html: rowHTML(s, 'idle', now) })), !state.showIdle);
-    }
-  }
+  const kinds = Object.values(state.kinds);
+  document.getElementById('summary').innerHTML = summaryHTML(placed);
+  let html = state.groupBy === 'project' ? projectsHTML(placed, now) : sectionsHTML(placed, now);
   if (!sessions.length) html = '<div class="empty">No Claude Code sessions running</div>';
   morph(document.getElementById('list'), html);
   revealOpenConversation();
   nameRunningBuild();
 
-  native({ type: 'badge', value: groups.needs.length + groups.turn.length });
+  native({ type: 'badge', value: kinds.filter((k) => k === 'needs' || k === 'turn').length });
   syncHover();  // the rows under the pointer were just replaced
   for (const after of core.afterDraw) after();
   reportHeight();
@@ -132,16 +149,20 @@ function reportHeight() {
     // The reader sizes the panel until it closes (fitReader), the list's column as it changes included.
     if (state.reading) { fitReader(); return; }
     const content = Math.ceil(document.getElementById('root').getBoundingClientRect().height);
-    const held = state.cardHeld && performance.now() < state.cardHeld.until ? state.cardHeld.bottom : 0;
-    native({ type: 'height', value: Math.max(content, state.cardKey ? state.cardBottom : 0, held,
-                                             ...core.overhangs.map((reach) => reach())) });
+    native({ type: 'height', value: Math.max(content, hangingBelow()) });
   });
 }
 
+// How far down what hangs below the list reaches: the card pointed at, or one held a moment after, and the modules'.
+function hangingBelow() {
+  const held = state.cardHeld && performance.now() < state.cardHeld.until ? state.cardHeld.bottom : 0;
+  return Math.max(state.cardKey ? state.cardBottom : 0, held, ...core.overhangs.map((reach) => reach()));
+}
+
 // What the page keeps for a session or a request goes once it has been gone from the list for a minute: a session
-// that ended, a request answered or dismissed. A moment's absence (a file caught mid-write) keeps it. What you've
-// read stays for as long as it can still matter: while a reply counts as your turn. The modules name what they keep
-// (core.forgotten).
+// that ended, a request answered or dismissed, and where its row was last shown. A moment's absence (a file caught
+// mid-write) keeps it. What you've read stays for as long as it can still matter: the hour a reply you've read waits.
+// The modules name what they keep (core.forgotten).
 const FORGET_MS = 60 * 1000;
 function forgetGone(sessions) {
   const now = Date.now();
@@ -150,14 +171,14 @@ function forgetGone(sessions) {
     if (s.ask) state.listedAt[s.ask.id] = now;
   }
   const gone = (id) => now - (state.listedAt[id] ?? state.loadedAt) > FORGET_MS;
-  for (const key of ['answering', 'answeredAt', 'stepNotes', ...core.forgotten.keys])
+  for (const key of ['answering', 'answeredAt', 'stepNotes', 'placed', ...core.forgotten.keys])
     for (const id of Object.keys(state[key])) if (gone(id)) delete state[key][id];
   // A card, island or button first shown for a session ('compact:<id>', 'island:<id>', …) goes with it, as does a
   // request's card, kept by the request's id.
   const shown = new RegExp(`^(${core.forgotten.prefixes.join('|')}):`);
   const ofKey = (key) => key.replace(shown, '').replace(/:.*$/, '');
   for (const key of Object.keys(state.shownAt)) if (gone(ofKey(key))) delete state.shownAt[key];
-  const read = Object.keys(state.seen).filter((id) => gone(id) && now - state.seen[id] > YOUR_TURN_MS);
+  const read = Object.keys(state.seen).filter((id) => gone(id) && now - state.seen[id] > IDLE_AFTER_MS);
   for (const id of read) delete state.seen[id];
   if (read.length) store.set('seen', state.seen);
   for (const id of Object.keys(state.listedAt)) if (gone(id)) delete state.listedAt[id];
@@ -181,6 +202,7 @@ function renderWhenSettled() {
 // time left and wait, Spotify's song line).
 window.update = (sessions, now) => {
   state.last = { sessions, now };
+  if (!state.readBefore) store.set('readBefore', (state.readBefore = now - IDLE_AFTER_MS));
   forgetGone(sessions);
   for (const updating of core.updating) updating(sessions);
   renderWhenSettled();
@@ -195,7 +217,7 @@ window.setRoom = (h) => {
   reportHeight();
 };
 
-// The grouping chosen from the menu bar item (status, activity or project), set before the first update.
+// The grouping chosen from the menu bar item (status or project), set before the first update.
 window.setGroupBy = (mode) => {
   state.groupBy = mode;
   render();
@@ -210,9 +232,29 @@ window.toggleCollapsed = () => {
   reportHeight();
 };
 
-// Where the pointer is over the panel, as the app polls it (see hover.js).
-window.hoverAt = pointerAt;
-window.hoverEnd = pointerGone;
+// Where the pointer is over the panel, as the app polls it (see hover.js). Once it has left, the rows you pressed go to
+// their places (heldNow), so the list is drawn again for them: here, as what watches the pointer runs as the list is
+// drawn (syncHover), and drawing it from there would never end. Off the panel `still`, the panel's edge having moved
+// past it (a card folding away, a menu of its own closing where you picked from it), it's taken to be still with the
+// panel until the app says it has moved.
+window.hoverAt = (x, y) => {
+  state.pointerStill = false;
+  pointerAt(x, y);
+};
+window.hoverEnd = (still) => {
+  pointerGone();
+  state.pointerStill = !!still;
+  if (state.pressedRows.size && !still) renderWhenSettled();
+};
+
+// The panel no longer has the keyboard: another app took it (you clicked into it), or the panel gave it back. The box
+// it was typed into lets go of it too, so the list being drawn again doesn't put the keyboard back there, and the rows
+// you pressed go once your pointer is off the panel.
+window.keyboardGone = () => {
+  if (document.activeElement?.closest?.(textBoxes())) document.activeElement.blur();
+  state.keyboardWanted = false;
+  if (state.pressedRows.size) renderWhenSettled();
+};
 
 // The build of Whozmove running now, as build.sh recorded it (app/core/Builds.m), or null: the header's name for it.
 window.setRunningBuild = (running) => {

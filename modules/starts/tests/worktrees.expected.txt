@@ -1,0 +1,173 @@
+== Worktrees: what a repo has (its own folder, its worktrees, its branches with no folder), and whether each target
+   can have one (a new branch's name, name:base for another base, +branch for a branch that's there), or why not
+{
+  "has": {
+    "base": "main",
+    "branches": [
+      "release",
+      "taken"
+    ],
+    "folder": "~/shop-worktrees",
+    "folderPath": "T/shop-worktrees",
+    "here": {
+      "branch": "main",
+      "path": "T/shop",
+      "where": "~/shop"
+    },
+    "worktrees": []
+  },
+  "targets": {
+    "+main": {
+      "why": "main is checked out in a folder already: start there"
+    },
+    "+nope": {
+      "why": "There's no branch named nope here"
+    },
+    "+release": {
+      "base": null,
+      "name": "release",
+      "path": "T/shop-worktrees/release",
+      "where": "~/shop-worktrees/release"
+    },
+    "-dash-first": {
+      "why": "A worktree's name takes letters, digits and dashes"
+    },
+    "feat/slash": {
+      "why": "A worktree's name takes letters, digits and dashes"
+    },
+    "fix-2:release": {
+      "base": "release",
+      "name": "fix-2",
+      "path": "T/shop-worktrees/fix-2",
+      "where": "~/shop-worktrees/fix-2"
+    },
+    "fix-3:nope": {
+      "why": "There's no branch named nope to start it from"
+    },
+    "fix-login": {
+      "base": "main",
+      "name": "fix-login",
+      "path": "T/shop-worktrees/fix-login",
+      "where": "~/shop-worktrees/fix-login"
+    },
+    "in-the-way": {
+      "why": "Something's in ~/shop-worktrees/in-the-way already"
+    },
+    "taken": {
+      "why": "There's a branch named taken already: pick it with #taken, or rename this one"
+    },
+    "two..dots": {
+      "why": "A worktree's name takes letters, digits and dashes"
+    }
+  }
+}
+{
+  "has": {
+    "none": true,
+    "where": "~/plain"
+  },
+  "targets": {
+    "fix-login": {
+      "why": "plain isn't in a git repository"
+    }
+  }
+}
+== Making them: a new branch following the base branch, one following release, and a worktree for release itself;
+   then the repo lists them, and the names are taken
+{
+  "has": {
+    "base": "main",
+    "branches": [
+      "taken"
+    ],
+    "folder": "~/shop-worktrees",
+    "folderPath": "T/shop-worktrees",
+    "here": {
+      "branch": "main",
+      "path": "T/shop",
+      "where": "~/shop"
+    },
+    "worktrees": [
+      {
+        "branch": "fix-2",
+        "path": "T/shop-worktrees/fix-2",
+        "where": "~/shop-worktrees/fix-2"
+      },
+      {
+        "branch": "fix-login",
+        "path": "T/shop-worktrees/fix-login",
+        "where": "~/shop-worktrees/fix-login"
+      },
+      {
+        "branch": "release",
+        "path": "T/shop-worktrees/release",
+        "where": "~/shop-worktrees/release"
+      }
+    ]
+  },
+  "targets": {
+    "+release": {
+      "base": null,
+      "name": "release",
+      "path": "T/shop-worktrees/release",
+      "where": "~/shop-worktrees/release"
+    },
+    "fix-2:release": {
+      "base": "release",
+      "name": "fix-2",
+      "path": "T/shop-worktrees/fix-2",
+      "where": "~/shop-worktrees/fix-2"
+    },
+    "fix-login": {
+      "base": "main",
+      "name": "fix-login",
+      "path": "T/shop-worktrees/fix-login",
+      "where": "~/shop-worktrees/fix-login"
+    }
+  }
+}
+fix-login follows: main
+fix-2 follows: release
+release is on: release
+the repo's own folder is still on: main
+and has nothing new in it: []
+{
+  "has": {
+    "base": "main",
+    "branches": [
+      "taken"
+    ],
+    "folder": "~/shop-worktrees",
+    "folderPath": "T/shop-worktrees",
+    "here": {
+      "branch": "main",
+      "path": "T/shop",
+      "where": "~/shop"
+    },
+    "worktrees": [
+      {
+        "branch": "fix-2",
+        "path": "T/shop-worktrees/fix-2",
+        "where": "~/shop-worktrees/fix-2"
+      },
+      {
+        "branch": "fix-login",
+        "path": "T/shop-worktrees/fix-login",
+        "where": "~/shop-worktrees/fix-login"
+      },
+      {
+        "branch": "release",
+        "path": "T/shop-worktrees/release",
+        "where": "~/shop-worktrees/release"
+      }
+    ]
+  },
+  "targets": {
+    "+release": {
+      "why": "release is checked out in a folder already: start there"
+    },
+    "fix-login": {
+      "why": "There's a branch named fix-login already: pick it with #fix-login, or rename this one"
+    }
+  }
+}

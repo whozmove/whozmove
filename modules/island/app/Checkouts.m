@@ -91,10 +91,10 @@ static NSDictionary *SplitNamed(NSArray<NSString *> *named, NSDictionary *tree, 
     return self.reading.count > 0;
 }
 
-// Keeps each listed checkout's real state fresh, for the panel's "current action" and the row's island. Git status
-// (and the extra stage, if the checkout has one you've allowed) is read every 20s, and within 2s of any activity by a
-// session working there (a tool call, Claude stopping), so a commit an agent just made isn't shown against the
-// uncommitted changes from before it. The branch's PR (state, checks, reviews) is read every 60s, or as soon as the
+// Keeps each listed checkout's real state fresh, for the row's island. Git status (and the extra stage, if the checkout
+// has one you've allowed) is read every 20s, and within 2s of any activity by a session working there (a tool call,
+// Claude stopping), so a commit an agent just made isn't shown against the uncommitted changes from before it. While
+// the islands are on (Show Next Steps), the branch's PR (state, checks, reviews) is read every 60s, or as soon as the
 // branch changes.
 - (void)refreshFor:(NSArray<Row *> *)sessions {
     NSString *gh = GhPath();
@@ -128,7 +128,8 @@ static NSDictionary *SplitNamed(NSArray<NSString *> *named, NSDictionary *tree, 
         double checkedAt = [known[@"checkedAt"] doubleValue];
         BOOL treeDue = now - checkedAt >= 20 || ([activity[root] doubleValue] > checkedAt && now - checkedAt >= 2)
             || [self.dueNow containsObject:root];
-        BOOL prDue = gh && [branch isKindOfClass:NSString.class]
+        // The branch's PR is only for the island, so it isn't looked up while the islands are off.
+        BOOL prDue = stages && gh && [branch isKindOfClass:NSString.class]
             && (now - [known[@"prCheckedAt"] doubleValue] >= 60 || ![known[@"prBranch"] isEqual:branch]);
         if (!treeDue && !prDue) continue;
         [self.dueNow removeObject:root];

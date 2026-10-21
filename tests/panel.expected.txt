@@ -1,17 +1,72 @@
 
-== Sections, grouped by status
+== What each session is
 a request waiting: needs
 Claude waiting on you: needs
 working: busy
 replied 5 min ago, not opened: turn
-replied, opened here since: idle
-replied, open in Claude since: idle
-replied and opened, but the one you are on: turn
-replied 40 min ago: idle
+replied, opened here since: seen
+replied, open in Claude since: seen
+replied, looked at since in Claude or Ghostty, as the app saw: seen
+…only before it replied: turn
+replied, opened here only before it replied: turn
+a turn you stopped: you wrote to it after its reply: seen
+replied 40 min ago, not opened: turn
+replied 40 min ago, opened: seen
+replied 2 h ago, not opened: still waiting for you: turn
+replied 61 min ago, opened: idle
+replied 61 min ago, and you wrote to it 30 min ago: seen
+a turn you stopped long after its reply, its transcript moving until 5 min ago: seen
+never replied: idle
+a closed conversation that replied 5 min ago, not opened: turn
+replied 3 h ago, before the page first kept the replies you had not read, not opened: idle
+your turn since, a request: true
+…Claude waiting on you, from when its status changed: true
+…a reply: true
 
-== Sections, grouped by activity
-replied 40 min ago, opened: turn
-replied 2 h ago: idle
+== Where each row goes
+Your turn first come, first served; Working and Seen newest first; then Idle: turn: r2 q1(needs) r1 q2(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1
+a new request joins the end of Your turn, and nothing above it moves: turn: r2 q1(needs) r1 q2(needs) q3(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1
+a row you pressed, to read it: it stays where it was, with what it is now: turn: r2 q1(needs) r1(seen) q2(needs) q3(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1
+…answered, and working again: still there: turn: r2 q1(needs) r1(busy) q2(needs) q3(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1
+…once you've moved on from the panel, it goes where it belongs now: turn: r2 q1(needs) q2(needs) q3(needs) · busy: r1 w2 w1 · seen: s2 s1 · idle: i2 i1
+a row you pressed that wasn't shown yet goes where it belongs: turn: r2 q1(needs) q2(needs) q3(needs) · busy: n1 w2 w1 · seen: s2 s1 · idle: i2 i1
+a row you pressed in Idle stays there as it starts work again: turn: r2 q1(needs) q2(needs) q3(needs) · busy: w2 w1 · seen: s2 s1 · idle: i2 i1(busy)
+a row you pressed that replies meanwhile stays where it was: turn: r2 q1(needs) q2(needs) q3(needs) · busy: w2 w1(turn) · seen: s2 s1 · idle: i2 i1
+…while a request that comes joins the end of Your turn: turn: r2 q1(needs) q2(needs) q3(needs) q4(needs) · busy: w2 w1(turn) · seen: s2 s1 · idle: i2 i1
+…and once you've moved on, it joins the end after that request, though its reply came first: turn: r2 q1(needs) q2(needs) q3(needs) q4(needs) w1 · busy: w2 · seen: s2 s1 · idle: i2 i1
+the session you're on isn't held: its row goes where it belongs: false
+a row you pressed is held while your pointer is on the panel: true
+…and while you type in one of its boxes, wherever the pointer is: true
+…and while your pointer is off the panel but hasn't moved: the panel's edge went past it: true
+…and let go once your pointer has left the panel: false
+your pointer off the panel without moving, as a card folds away: the row you pressed is still held: [0,true]
+…and once it moves, the list is drawn again to let the row go: 1
+…but not with no row pressed: 1
+another app taking the keyboard: the panel no longer has it, and the list is drawn again for the rows pressed: [false,2]
+
+== What you have read
+the session you are on follows the mark, which alone reads nothing: ["tb","turn"]
+…the app saw you looking at it after it replied: read: seen
+…and still read once the app has restarted, as the page keeps it: seen
+…a reply that came after you last looked is not read: turn
+a conversation just opened in Claude is the one you are on at once, before Claude says so: ta
+
+== The header's line
+a request and a reply waiting, one working: <b style="color:var(--needs)">2 your turn</b> · <b style="color:var(--busy)">1 working</b>
+only replies waiting: <b style="color:var(--turn)">2 your turn</b>
+a row you pressed counts where the list shows it: <b style="color:var(--turn)">2 your turn</b>
+only working: <b style="color:var(--busy)">1 working</b>
+nothing waiting or working: 1 seen · 2 idle
+only idle: 2 idle
+
+== The list
+the sections in order, Idle folded: [Your turn 4] r2.turn q1.needs r1.turn q2.needs [Working 2] w2.busy w1.busy [Seen 2] s2.seen s1.seen [Idle 2 ›] (folded) i2.idle i1.idle
+a row you pressed, held in folded Idle with a request: pinned below it: [Working 1] w1.busy [Idle 2 ›] (folded) i2.idle i1.needs (pinned) i1.needs
+…or at work again: pinned too, while you are with it: [Working 1] w1.busy [Idle 2 ›] (folded) i2.idle i1.busy (pinned) i1.busy
+a folded project: a reply waiting in it pinned below it: [/work/app] (rows) g1.turn [/work/other ›] (folded) g3.turn g4.idle (pinned) g3.turn
+projects by their newest row: [/work/one] (rows) a1.turn [/work/two] (rows) b1.seen
+…but a row you pressed keeps its project where it was, as it starts work: [/work/one] (rows) a1.turn [/work/two] (rows) b1.busy
+…until you've moved on: [/work/two] (rows) b1.busy [/work/one] (rows) a1.turn
 
 == Sorting
 working, your message newer than its reply: now-3m
@@ -21,50 +76,8 @@ idle, by its newest message: now-15m
 == A new turn held steady
 says working, but its message is older and replied: idle
 says idle, but a new message is waiting for a reply: busy
-changed over 3 s ago: idle
-
-== Current action: label and colour (the README's table)
-In development: ["In development","dev"]
-Ready to commit: ["Ready to commit","yours"]
-Committed, not pushed: ["Committed","yours"]
-Live in prod: ["Live in prod","done"]
-On staging: ["On staging","wait"]
-Merged this turn: ["Merged","done"]
-CI failing: ["CI failing","urgent"]
-Changes requested: ["Changes requested","urgent"]
-CI running: ["CI running","wait"]
-Draft PR: ["Draft PR","yours"]
-Approved: ["Approved","yours"]
-In review: ["In review","wait"]
-In review, PR just raised: ["In review","wait"]
-the branch's PR, in a worktree: ["CI failing","urgent"]
-Review posted: ["Review posted","done"]
-Exploring: ["Exploring","plain"]
-Planning: ["Planning","plain"]
-Merged, by its PR: ["Merged","done"]
-Pushed, no PR: ["Pushed, no PR","yours"]
-Committed, branch tracks a remote: ["Pushed, no PR","yours"]
-Committed, a remote but no tracking: ["Committed","yours"]
-Committed, no remote: ["Committed","done"]
-Done: ["Done","plain"]
-Done, Claude says completed: ["Done","plain"]
-nothing to say: null
-Waiting on you: ["Waiting on you","yours"]
-blocked, Ready to commit stays: ["Ready to commit","yours"]
-blocked, CI failing stays urgent: ["CI failing","urgent"]
-a chat in a busy checkout doesn't take its state: ["Exploring","plain"]
-a worktree owns its checkout: ["In development","dev"]
-the label as drawn: <span class="stage o-yours">Ready to commit</span>
-no label while working: 
-
-== What the work has been through
-built and tested: <span class="proof" title="Built · Tested">built · tested</span>
-audit, before fixing: <span class="proof" title="Built · Tested · Code review: 15 findings">built · tested · audit: 15 found</span>
-audit, one left: <span class="proof" title="Built · Tested · Code review: 15 findings, 14 settled, 1 left">built · tested · audit: 1 left</span>
-audit, all settled: <span class="proof" title="Built · Tested · Code review: 15 findings, 15 settled, 0 left">built · tested · audit clean</span>
-audit, nothing found: <span class="proof" title="Built · Tested · Code review: 0 findings">built · tested · audit clean</span>
-nothing while working: 
-nothing beside a vague state: 
+your message has just come in, though the status changed long ago: working: busy
+changed over 3 s ago, and your message too: as it is: idle
 
 == Details line
 model name of claude-opus-5-5: Opus 5.5
@@ -108,7 +121,6 @@ outside git: {"key":"/work/notes","name":"notes"}
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
@@ -127,7 +139,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
@@ -149,7 +160,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Needs your OK to go on</span></div>
@@ -171,7 +181,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         <div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Has a question for you</span></div>
@@ -190,7 +199,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         <div class="line1">
           <span class="name">demo</span>
           
-          
         </div>
         <div class="you"><span class="who">You</span><span class="what">run the suite</span></div><div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Run the tests</span></span><span class="elapsed">2m 0s</span></div>
         
@@ -203,13 +211,12 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         
       </div>
     </div>
--- your turn, with PRs, a worktree and an audit
+-- your turn, with PRs and a worktree
 <div class="row turn" data-id="t1" >
       <span class="dot" style=""></span>
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          <span class="stage o-yours">Ready to commit</span>
           <span class="time">5m</span>
         </div>
         <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
@@ -217,11 +224,43 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
         <div class="where" title="/work/app
 branch feature
 worktree app-f of app
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>feature</span><span class="sep">·</span><span class="wt">worktree</span><span class="proof" title="Built · Tested · Code review: 3 findings, 2 settled, 1 left">built · tested · audit: 1 left</span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:#ffc53d;--fill:75%">
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="wt branch"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.2c0-.6.4-1 1-1h3.3l1.4 1.5h6.1c.6 0 1 .4 1 1v6.9c0 .6-.4 1-1 1H2.6c-.6 0-1-.4-1-1z"/><circle cx="6.2" cy="8.2" r="1.05" fill="currentColor"/><circle cx="6.2" cy="11.4" r="1.05" fill="currentColor"/><circle cx="10.2" cy="8.2" r="1.05" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 1.6l-1.1.2"/></svg><span class="wt-name">feature</span></span></div><div class="setup"><span class="agent"><span class="pick" data-pick="model" title="Change model">Sonnet 5.5</span> · <span class="pick" data-pick="effort" title="Change effort">medium</span> · <span class="pick bypass" data-pick="mode" title="Change mode">Bypass</span></span><span class="ctx" data-ctx="t1" title="75% · 150k of 200k tokens in context · 50k left before auto-compact" style="color:#ffc53d;--fill:75%">
       <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
       <circle cx="6" cy="6" r="5" fill="none" stroke="#ffc53d" stroke-width="1.6" stroke-linecap="round"
               stroke-dasharray="23.56 31.42"/></svg><span class="ctx-label">Compact</span></span></div>
         <div class="prs"><div class="pr  " data-url="https://github.com/e/app/pull/1"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#1</span><span class="pt">Fix the tests</span></div><div class="pr draft " data-url="https://github.com/e/app/pull/2"><svg width="11" height="11" viewBox="0 0 16 16"><path fill="currentColor" d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/></svg><span class="num">#2</span><span class="pt">Draft</span></div></div>
+      </div>
+    </div>
+-- a reply you have read
+<div class="row seen" data-id="v1" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          <span class="time">5m</span>
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply read" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
+      </div>
+    </div>
+-- a turn you stopped: only your message, not the reply before it
+<div class="row seen" data-id="v2" >
+      <span class="dot" style=""></span>
+      <div class="main">
+        <div class="line1">
+          <span class="name">demo</span>
+          <span class="time">2m</span>
+        </div>
+        <div class="you"><span class="who">You</span><span class="what">now rename it</span></div>
+        
+        <div class="where" title="/work/app
+branch main
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
+        
       </div>
     </div>
 -- a closed Claude Desktop conversation, open in Claude
@@ -230,7 +269,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">Desk chat</span>
-          <span class="stage o-plain">Done</span>
           <span class="time">5h</span>
         </div>
         
@@ -246,7 +284,6 @@ Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><pa
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
@@ -267,30 +304,28 @@ a Claude Desktop conversation just clicked is the only one marked, not the termi
 <div class="project" data-key="/work/app" title="/work/app">
             <span class="pname">app</span><span class="pchev"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="add" data-folder="/work/app" title="New conversation in app (⌥: in the terminal)"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1.5v9M1.5 6h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-          </div><div class="prows"><div class="row busy" data-id="g2" >
-      <span class="dot" style="animation-delay:-0ms"></span>
+          </div><div class="prows"><div class="row turn" data-id="g1" >
+      <span class="dot" style=""></span>
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
-          
+          <span class="time">5m</span>
         </div>
-        <div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Thinking</span></span><span class="elapsed">1m 0s</span></div>
+        <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
         
         <div class="where" title="/work/app
 branch main
 Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
         
       </div>
-    </div><div class="row turn" data-id="g1" >
-      <span class="dot" style=""></span>
+    </div><div class="row busy" data-id="g2" >
+      <span class="dot" style="animation-delay:-0ms"></span>
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
           
-          <span class="time">5m</span>
         </div>
-        <div class="you"><span class="who">You</span><span class="what">fix it</span></div><div class="claude reply" data-mode="reply"><span class="who">Claude</span><span class="what">Fixed.</span></div>
+        <div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Thinking</span></span><span class="elapsed">1m 0s</span></div>
         
         <div class="where" title="/work/app
 branch main
@@ -305,7 +340,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          <span class="stage o-plain">Done</span>
           <span class="time">8h</span>
         </div>
         
@@ -341,7 +375,7 @@ Drawing the bars<span class="perm-field">Chart code</span>&lt;style&gt;
       <div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
 
 == What the page forgets
-what you read, kept: ["endedJustNow","listed","readRecently"]
+what you read, kept: ["endedJustNow","listed","readRecently","readWithinTheHour"]
 question state, kept: ["askJustAnswered","askWaiting"]
 Compact cards, kept: ["listed"]
 when cards first showed, kept: ["askWaiting","island:listed","steps:listed"]
@@ -383,6 +417,7 @@ confirmed, new work since the last deploy: the dot: {"look":"ready","due":true,"
 confirmed, no work in the folder at all: still there: {"look":"ready","due":false,"running":false}
 confirmed, the agent working: dimmed: {"look":"off","due":true,"running":false}
 confirmed, the agent asking: dimmed: {"look":"off","due":true,"running":false}
+confirmed, a reply waiting or read: ready: ["ready","ready"]
 just pressed: {"look":"going","due":false,"running":false}
 running, whatever the agent does: {"look":"going","due":false,"running":true}
 went through a moment ago: the check: {"look":"done","due":false,"running":false}
@@ -502,20 +537,19 @@ who speaks for each checkout or folder: the session that edited files there last
 no listed session edited there: the session last active there: ["asked-since"]
 …one still running before a closed one, though the closed one was used later: ["running"]
 …a closed one when none there is running: ["closed-later"]
--- a row with changed files it didn't change itself: what the work has been through at the end of the details line, the island under it, no tag
+-- a row with changed files it didn't change itself: the island under the details line
 <div class="row idle" data-id="w1" >
       <span class="dot" style=""></span>
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
         
       </div>
     </div>
@@ -525,14 +559,13 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open gauge" data-stage="files" data-count="66" data-step="commit" data-staged="29" data-partly="31" data-unstaged="6"><span class="band st" data-part="staged"><span class="lbl"><span class="w">29 staged</span><span class="n">29</span></span></span><span class="band pt" data-part="partly"><span class="lbl"><span class="w">31 partly</span><span class="n">31</span></span></span><span class="band un" data-part="unstaged"><span class="lbl"><span class="w">6 unstaged</span><span class="n">6</span></span></span><span class="seg-text rest">66 files</span></span><span class="seg commits open move" data-stage="commits" data-count="2" data-step="push"><span class="seg-text">2 commits</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w1"><span class="cap"><span class="seg files open gauge" data-stage="files" data-count="66" data-step="commit" data-staged="29" data-partly="31" data-unstaged="6"><span class="band st" data-part="staged"><span class="lbl"><span class="w">29 staged</span><span class="n">29</span></span></span><span class="band pt" data-part="partly"><span class="lbl"><span class="w">31 partly</span><span class="n">31</span></span></span><span class="band un" data-part="unstaged"><span class="lbl"><span class="w">6 unstaged</span><span class="n">6</span></span></span><span class="seg-text rest">66 files</span></span><span class="seg commits open move" data-stage="commits" data-count="2" data-step="push"><span class="seg-text">2 commits</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
         
       </div>
     </div>
@@ -544,14 +577,13 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w2"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span></span></div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w2"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span></span></div>
         
       </div>
     </div>
@@ -561,7 +593,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
@@ -573,7 +604,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       </div>
     </div>
 the part of the gauge whose files are listed is drawn lit, so a rebuild doesn't light it afresh: true
-no lines to count (only a binary file changed): what the work has been through, in words: true
 -- the files of a part of the gauge, as its list shows them: each part titled and explained, new ones marked
 <div class="f-head"><span>Staged files</span><span class="f-n">1</span></div><div class="f-help">Ready to commit as they are.</div><div class="f-list"><div class="f-file"><span class="f-dir">app/</span>Git.m</div></div>
 <div class="f-head"><span>Modified staged files</span><span class="f-n">1</span></div><div class="f-help">Staged earlier, then changed again. A commit now takes the staged version; the later changes stay behind.</div><div class="f-list"><div class="f-file"><span class="f-dir">panel/scripts/</span>rows.js</div></div>
@@ -585,14 +615,13 @@ no lines to count (only a binary file changed): what the work has been through, 
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open" data-stage="files" data-count="1" data-step="commit" title="1 file changed"><span class="seg-text">1 file</span></span><span class="seg extra open" data-stage="extra" data-count="2" title="2 to review"><span class="seg-text">2 to review</span></span><span class="seg commits open move" data-stage="commits" data-count="1" data-step="push"><span class="seg-text">1 commit</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note quiet">Done, 1 left.</div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open" data-stage="files" data-count="1" data-step="commit" title="1 file changed"><span class="seg-text">1 file</span></span><span class="seg extra open" data-stage="extra" data-count="2" title="2 to review"><span class="seg-text">2 to review</span></span><span class="seg commits open move" data-stage="commits" data-count="1" data-step="push"><span class="seg-text">1 commit</span></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note quiet">Done, 1 left.</div>
         
       </div>
     </div>
@@ -602,14 +631,13 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Claude is working: ask again when it&#39;s done</div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w4"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Claude is working: ask again when it&#39;s done</div>
         
       </div>
     </div>
@@ -619,14 +647,13 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span>
         </div>
         
         <div class="perm stage-trust" data-trust="w7"><div class="q-top"><span class="q-head">Show this checkout's extra stage?</span></div><pre class="perm-detail">python3 ./review.py --json</pre><div class="q-help">Its git config (whozmove.stage) asks Whozmove to run this in app each time it reads the checkout, and show what it prints between your edits and your commits.</div><div class="c-note">It runs a file in this checkout, which an agent working here could change.</div><div class="perm-actions"><button class="t-no">Not now</button><button class="perm-allow t-yes">Allow</button></div></div>
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w7"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w7"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div>
         
       </div>
     </div>
@@ -643,7 +670,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span><span class="play ready new" data-deploy="w5" title="Deploy: runs make install
 Changed since the last deploy
 The last deploy didn&#39;t go through: make: *** No rule to make target `install`.
@@ -653,7 +679,7 @@ Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" h
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
         
       </div>
     </div>
@@ -663,7 +689,6 @@ Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fil
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="play off new" data-deploy="w5" title="Deploy waits until the agent is done
 Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8"/></svg><svg class="play-icon" width="8" height="8" viewBox="0 0 10 10"><path fill="currentColor" d="M2.6 1.4C2.6 .9 3.1 .6 3.5 .9L8.6 4.3C9 4.6 9 5.2 8.6 5.5L3.5 8.9C3.1 9.2 2.6 8.9 2.6 8.4Z"/></svg></span>
         </div>
@@ -684,7 +709,6 @@ the line when a deploy couldn't start: why, for a few seconds, in place of the d
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          
           <span class="time">1h</span><span class="play ready new" data-deploy="w5" title="Deploy: runs make install
 Changed since the last deploy
 The last deploy didn&#39;t go through: make: *** No rule to make target `install`.
@@ -694,24 +718,23 @@ Right-click for more" style="--since:-200ms"><svg class="play-ring" width="18" h
         <div class="perm deploy-setup" data-setup="w5" data-step="1"><div class="q-top"><span class="q-head">Set up Deploy for app</span><button class="q-close" title="Close">×</button></div><div class="q-help" title="/work/app">What should Deploy run on this Mac? It runs in app, through your login shell, and should finish once it has done its job.</div><input class="q-type d-cmd" placeholder="A command that finishes" maxlength="1000" value="make install"><div class="perm-actions"><button class="d-cancel">Cancel</button><button class="perm-allow d-next">Use this</button></div></div>
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div><div class="island" data-sid="w5"><span class="cap"><span class="seg files open move" data-stage="files" data-count="3" data-step="commit" title="3 files changed"><span class="seg-text">3 files</span></span><span class="seg commits" data-stage="commits" data-count="0" data-step="push" title="No commits waiting"></span><span class="seg github" data-stage="github" data-count="0" title="Nothing on GitHub yet"></span></span></div><div class="step-note">Couldn&#39;t deploy: make: *** No rule to make target `install`.</div>
         
       </div>
     </div>
--- Show Next Steps off: the tag and what the work has been through, as before
+-- Show Next Steps off: no island
 <div class="row idle" data-id="w6" >
       <span class="dot" style=""></span>
       <div class="main">
         <div class="line1">
           <span class="name">demo</span>
-          <span class="stage o-yours">Ready to commit</span>
           <span class="time">1h</span>
         </div>
         
         
         <div class="where" title="/work/app
 branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="proof" title="Built · Tested">built · tested</span></div>
+Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
         
       </div>
     </div>
@@ -814,7 +837,7 @@ no answer bar under a plan that was answered:
 <blockquote><p>quoted <strong>line</strong> second</p></blockquote>
 
 == What a session changed: its numbers, their card, the changes view
--- its numbers end the details line, as a button; the proof goes in their card
+-- its numbers end the details line, as a button
 <div class="where" title="/work/app
 branch main
 Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><span class="end"><span class="counts" data-changes="me"><span class="add">+26</span> <span class="del">−13</span></span></span></div>
@@ -829,7 +852,7 @@ the branch, from its side: itself, the others biggest first, then outside these 
     <div class="cc-bar"><i style="width:2.36%;background:#4aa8ff"></i><i style="width:1.51%;background:#b69cff"></i><i style="width:96.12%;background:#ffc53d"></i></div><div class="cc-legend"><span class="cc-sw" style="background:#4aa8ff"></span><span class="cc-name me">This session<small> · 2 files</small></span><span class="cc-v">+26 −13</span><span class="cc-sw" style="background:#b69cff"></span><span class="cc-name">Retry tests<small></small></span><span class="cc-v">+24 −1</span><span class="cc-sw" style="background:#ffc53d"></span><span class="cc-name">Outside these sessions<small></small></span><span class="cc-v">+1,464 −123</span></div>
     <div class="cc-total"><span>All sessions</span>
       <b>+1,514 −137</b></div>
-    <div class="cc-proof">built · tested</div><div class="cc-hint">Press to see the changes.</div>
+    <div class="cc-hint">Press to see the changes.</div>
 its own files: not staged yet, then staged whole: [["Not staged",["billing/retry.py"]],["Staged",["docs/retries.md"]]]
 the branch's: by whose, a file under the first to change it: [["This session","me",["billing/retry.py","docs/retries.md"]],["Retry tests","tests",["tests/test_retry.py"]],["Outside these sessions","outside",["config/settings.py"]],["Short or repeated lines","short",["billing/queue.py"]]]
 a file's count: its own lines in its view, everyone's in the branch's: [[20,0],[21,0]]
@@ -839,7 +862,7 @@ its line in the list: ["Created, then edited once · 1m · shared","Edited once 
 <span class="end"><span class="counts branch" data-changes="me"><span class="add">+1,514</span> <span class="del">−137</span></span></span>
 <div class="cc-big"><b class="add">+1,514</b><b class="del">−137</b><span>not committed, all sessions</span></div>
       <div class="cc-lede">Claude Code didn&#39;t record what one of this session&#39;s shell commands changed (it records them in auto mode), so which lines this session changed isn&#39;t known.</div>
-      <div class="cc-proof">built</div><div class="cc-hint">Press to see the changes.</div>
+      <div class="cc-hint">Press to see the changes.</div>
 …its branch switch has the branch's total: {"added":1514,"removed":137}
 …and its view names no one: files by how far they've got, each just new or changed: [[["Not staged",4],["Staged",1]],"New"]
 side by side: taken-out lines beside the ones put in after them: [["10 ","10 "],["11-","11+"],["12-",null],["13 ","12 "],[null,"13+"]]
@@ -880,111 +903,3 @@ a little colour for code: ["  <span class=\"c-cm\">// a &lt;note&gt;</span>","sa
       <span class="c-path"><i>docs/</i>retries.md</span>
       <span class="c-nums"><span class="add">+6</span><span class="del">−13</span></span><span class="c-chip">Staged</span>
       <span class="c-grow"></span><span class="c-edwrap"><button class="c-open" data-path="docs/retries.md">Open in Visual Studio Code</button></span></div><table class="c-lines"></table></section>
-
-== New conversations
-the folders a card offers, newest first (a worktree counts as its repo; scratch is left out): [{"folder":"/work/app","name":"app"},{"folder":"/work/api","name":"api"}]
-where a card starts: the session marked as the one you're on, in Claude or Ghostty: {"folder":"/work/api","name":"api"}
-…else the one the list keeps in place for you: {"folder":"/work/api","name":"api"}
-…else the newest: {"folder":"/work/app","name":"app"}
-…nowhere with nothing listed: null
-the card while the app is asked about its folder: {"help":"","warn":false,"go":""}
-…a folder Claude has worked in, with no words: {"help":"","warn":false,"go":"Open"}
-…with words: {"help":"","warn":false,"go":"Start"}
-…a folder Claude hasn't worked in: {"help":"Claude hasn't worked in app before. Trusting it lets Claude Code read, edit and run files there.","warn":true,"go":"Trust and start","trust":true}
-…a folder that has gone: {"help":"app isn't there any more: choose another folder.","warn":true,"go":""}
-…no folder yet: {"help":"Choose the folder it starts in.","warn":false,"go":""}
-…why the last one didn't start, still asking about trust: {"help":"Claude was busy saving its settings: try again","warn":true,"go":"Trust and open","trust":true}
--- the card in Claude, with Ghostty to switch to, asking about trust
-<div class="row compose" data-card="card1">
-      <span class="dot"></span>
-      <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
-        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
-          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?">Add &lt;b&gt;dark&lt;/b&gt; mode</textarea></div>
-        <div class="c-help warn">Claude hasn&#39;t worked in app before. Trusting it lets Claude Code read, edit and run files there.</div>
-        <div class="where c-where"><span class="w-app" title="Starts in Claude: press for Ghostty"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg></span><span class="proj w-proj" title="/work/app
-Press to start it in another folder">app<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Trust and start</span><span class="alt"> + next</span></button></div>
-      </div>
-    </div>
--- in Ghostty, in a worktree
-<div class="row compose" data-card="card1">
-      <span class="dot"></span>
-      <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
-        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
-          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?"></textarea></div>
-        
-        <div class="where c-where"><span class="w-app" title="Starts in Ghostty: press for Claude"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg></span><span class="proj w-proj" title="/work/app-wt
-Press to start it in another folder">app-wt<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>feat</span><span class="sep">·</span><span class="wt">worktree</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Open</span><span class="alt"> + next</span></button></div>
-      </div>
-    </div>
--- with no terminal to switch to: only its icon
-<div class="row compose" data-card="card1">
-      <span class="dot"></span>
-      <div class="main">
-        <div class="line1"><span class="name">New conversation</span><button class="c-x" title="Close (Esc)">×</button></div>
-        <div class="you"><span class="who">You</span><textarea class="c-box" id="card1-words" rows="1"
-          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do?"></textarea></div>
-        
-        <div class="where c-where"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg><span class="proj w-proj" title="/work/app
-Press to start it in another folder">app<span class="caret">▾</span></span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span><button class="c-go" title="Return starts it · ⌘Return starts it and opens another"><span class="go-label">Open</span><span class="alt"> + next</span></button></div>
-      </div>
-    </div>
--- a start not listed yet, as a working row
-<div class="row busy" data-id="u-1" >
-      <span class="dot" style="animation-delay:-0ms"></span>
-      <div class="main">
-        <div class="line1">
-          <span class="name">New conversation</span>
-          
-          
-        </div>
-        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude work" data-mode="work"><span class="who" style="animation-delay:-0ms">Claude</span><span class="what"><span class="shine" style="animation-delay:-0ms">Starting in Ghostty</span></span><span class="elapsed">0s</span></div>
-        
-        <div class="where" title="/work/app
-branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
-        
-      </div>
-    </div>
--- one in Claude that waits on you, and one that didn't start
-<div class="row busy" data-id="u-1" >
-      <span class="dot" style="animation-delay:-0ms"></span>
-      <div class="main">
-        <div class="line1">
-          <span class="name">New conversation</span>
-          
-          
-        </div>
-        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Your words are in Claude&#39;s message box: press Send there</span></div>
-        
-        <div class="where" title="/work/app
-branch main
-Claude Desktop"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2 3h12v8H2zM6 14h4M8 11v3"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
-        
-      </div>
-    </div>
-<div class="row busy" data-id="u-1" >
-      <span class="dot" style="animation-delay:-0ms"></span>
-      <div class="main">
-        <div class="line1">
-          <span class="name">New conversation</span>
-          
-          
-        </div>
-        <div class="you"><span class="who">You</span><span class="what">write the tests</span></div><div class="claude wait" data-mode="wait"><span class="who">Claude</span><span class="what">Nothing started in Ghostty: look there for what Claude Code says</span></div>
-        
-        <div class="where" title="/work/app
-branch main
-Terminal"><svg class="kind" width="11" height="11" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M3 4l4 4-4 4M8.5 12H13"/></svg><span class="proj">app</span><span class="sep">·</span><span class="branch"><svg width="10" height="10" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.493 2.493 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-6 0a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Zm8.25-.75a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg>main</span></div>
-        
-      </div>
-    </div>
-one still handing over in the box isn't drawn yet: 0
-one Claude has listed isn't drawn again: 0
-its row stays hidden while its card hands over: true
-…and while its copy rises to it: true
-…but not once it has landed: false
-a start Claude has listed is let go once its row has landed: []
-…not while its copy is still rising: ["s1"]
-a new session's id, where WebKit has no randomUUID: version 4, in lower case: abababab-abab-4bab-abab-abababababab

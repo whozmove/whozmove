@@ -12,9 +12,9 @@
 # (`--print-results`), that docs/reference/rows.md describes
 # exactly the fields a row has, that the README names the macOS permissions the app asks for while no file in the
 # repo names one it doesn't, the command Deploy suggests for sample projects and how their last runs read
-# (`--print-deploys`), what the set-up card is told sample commands really run (`--print-deploy-checks`), and what
-# the usage strip gets from Claude Code's recorded answers and where `claude` is looked for (`--print-usage`), what
-# a new conversation's start runs (`--print-starts`), and how folder trust is read and recorded (`--print-trust`).
+# (`--print-deploys`), what the set-up card is told sample commands really run (`--print-deploy-checks`), what the
+# usage strip gets from Claude Code's recorded answers and where `claude` is looked for (`--print-usage`), and how
+# folder trust is read and recorded (`--print-trust`).
 # Needs clang, git and python3. Takes a few seconds, most of it compiling the app.
 cd "$(dirname "$0")/.." || exit 1
 REPO=$PWD
@@ -24,7 +24,7 @@ export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-rows.XXXXXX") || exit 1
 T=$(cd "$T" && pwd -P) || exit 1
 # Stand-in session processes are started detached, their pids kept in $T/pids so they're stopped however this ends.
-trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
+trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; kill -CONT $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
 detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
 . "$REPO/tests/lib.sh"
 APP=$(built_app "$T") || exit 1
@@ -95,6 +95,8 @@ TOPIC_PID=$(detached sleep 600); CLONE_PID=$(detached sleep 600)
 STAGE_PIDS=$(for _ in allowed asks later junk; do detached sleep 600; done | paste -sd , -)
 RUN_PID=$(detached sleep 600)  # a deploy still running
 GONE_PID=999999
+# And s-term again, resumed while its first process was paused in its terminal (Ctrl+Z): one row, the running one's.
+PAUSED_PID=$(detached sleep 600); kill -STOP "$PAUSED_PID"
 
 # The usage check's own session (modules/claude-code/app/ClaudeUsage.m): registered while it runs, in the folder kept
 # for it. Never a row.
@@ -169,7 +171,7 @@ done
 # Everything else the app reads, with times relative to now so that Claude Desktop's three-day window and
 # the like hold whenever this runs. The output turns times back into "now-<minutes>m".
 python3 - "$T" "$TERM_PID" "$WT_PID" "$DESK_PID" "$GONE_PID" "$MODE_PIDS" "$TOPIC_PID" "$STAGE_PIDS" \
-  "$STAGE_COMMAND" "$RUN_PID" "$CLONE_PID" <<'PY'
+  "$STAGE_COMMAND" "$RUN_PID" "$CLONE_PID" "$PAUSED_PID" <<'PY'
 import json, os, sys, time
 from datetime import datetime, timezone
 T, term_pid, wt_pid, desk_pid, gone_pid = sys.argv[1], *map(int, sys.argv[2:6])
@@ -178,6 +180,7 @@ topic_pid = int(sys.argv[7])
 stage_pids = [int(pid) for pid in sys.argv[8].split(",")]
 stage_command = sys.argv[9]
 run_pid = int(sys.argv[10])
+paused_pid = int(sys.argv[12])
 clone_pid = int(sys.argv[11])
 now = time.time()
 open(os.path.join(T, "written-at"), "w").write(repr(now))  # what Deploy's sample runs are counted from (in_minutes)
@@ -220,6 +223,9 @@ put(f".claude/sessions/{wt_pid}.json", {"pid": wt_pid, "sessionId": "s-wt", "cwd
 put(f".claude/sessions/{desk_pid}.json", {"pid": desk_pid, "sessionId": "s-desk", "hostSessionId": "local_desk",
                                    "cwd": repo, "status": "idle", "statusUpdatedAt": ms(30),
                                    "entrypoint": "claude-desktop", "kind": "interactive", "procStart": "start-3"})
+put(f".claude/sessions/{paused_pid}.json", {"pid": paused_pid, "sessionId": "s-term", "cwd": repo, "status": "busy",
+                                     "statusUpdatedAt": ms(9), "entrypoint": "cli", "kind": "interactive",
+                                     "name": "the paused one", "procStart": "start-paused", "startedAt": ms(-1)})
 put(f".claude/sessions/{gone_pid}.json", {"pid": gone_pid, "sessionId": "s-gone", "cwd": repo, "status": "idle",
                                    "statusUpdatedAt": ms(60), "entrypoint": "cli", "kind": "interactive"})
 # A session on a branch of its own in a clone of the repo (so GitHub's copy is the repo), which committed work there
@@ -259,15 +265,15 @@ for number, (sid, cwd, mode) in enumerate([("m-auto", repo, "auto"), ("m-plan", 
                                                       "kind": "interactive", "procStart": f"start-mode-{number}"})
     put(f"Library/Application Support/Whozmove/sessions/{sid}.json", {"permissionMode": mode})
 
-# Transcripts. s-term: a prompt in acceptEdits, a reply with its usage, a PR it made, and a sub-agent's reply
-# that must not count. s-wt: a prompt in plan mode (its only record of its mode), a reply, then a compaction
-# that leaves the context smaller.
+# Transcripts. s-term: a prompt in acceptEdits, a reply with its usage and the effort it was made with (over the
+# settings' effort), a PR it made, and a sub-agent's reply that must not count. s-wt: a prompt in plan mode (its only
+# record of its mode), a reply with no effort (the settings' stands), then a compaction that leaves the context smaller.
 put(".claude/projects/p/s-term.jsonl", [
     {"type": "user", "message": {"role": "user", "content": "please fix the tests"}, "timestamp": iso(10),
      "permissionMode": "acceptEdits", "isSidechain": False},
     {"type": "assistant", "message": {"model": "claude-opus-5-5", "content": [{"type": "text", "text": "Done."}],
      "usage": {"input_tokens": 1200, "cache_creation_input_tokens": 3000, "cache_read_input_tokens": 420000,
-               "output_tokens": 800}}, "timestamp": iso(9), "isSidechain": False},
+               "output_tokens": 800}}, "timestamp": iso(9), "isSidechain": False, "effort": "xhigh"},
     {"type": "pr-link", "prUrl": "https://github.com/example/whozmove/pull/7", "prNumber": 7,
      "prRepository": "example/whozmove", "timestamp": iso(8)},
     # What it wrote: a plan sent back and its second version, still waiting; a page and notes it created, and the page
@@ -299,7 +305,7 @@ put(".claude/projects/p/s-term.jsonl", [
         {"type": "tool_result", "tool_use_id": "w6", "content": "The file x has been updated."}]}},
     {"type": "assistant", "message": {"model": "claude-haiku-5-5", "content": [{"type": "text", "text": "sub"}],
      "usage": {"input_tokens": 10, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 5}},
-     "timestamp": iso(7), "isSidechain": True},
+     "timestamp": iso(7), "isSidechain": True, "effort": "low"},
 ])
 put(".claude/projects/p/s-wt.jsonl", [
     {"type": "user", "message": {"role": "user", "content": "run the suite"}, "timestamp": iso(4),
@@ -401,13 +407,11 @@ put(f"{app}/asks/bbbb2222.json", {"id": "bbbb2222", "sessionId": "s-wt", "tool":
 put(f"{app}/asks/cccc3333.json", {"id": "cccc3333", "sessionId": "s-term", "tool": "Bash",
                                   "input": {"command": "ls"}, "cwd": repo, "at": ms(5), "pid": gone_pid})
 
-# Claude Desktop's conversations: the running one (Claude says it ended its turn blocked on you), a closed one
-# whose folder has gone, and ones that mustn't show: too old, archived, not a conversation file.
+# Claude Desktop's conversations: the running one, a closed one whose folder has gone, and ones that mustn't show: too
+# old, archived, not a conversation file.
 put(f"{desktop}/local_desk.json", {"sessionId": "local_desk", "cliSessionId": "s-desk", "title": "Desk chat",
                                    "cwd": repo, "lastActivityAt": ms(30), "model": "claude-sonnet-5-5",
-                                   "effort": "low", "permissionMode": "plan", "isArchived": False,
-                                   "postTurnSummary": {"status_category": "blocked"},
-                                   "postTurnSummaryFor": "u1", "lastAssistantUuid": "u1"})
+                                   "effort": "low", "permissionMode": "plan", "isArchived": False})
 put(f"{desktop}/local_closed.json", {"sessionId": "local_closed", "cliSessionId": "s-closed", "title": "Closed chat",
                                      "cwd": os.path.join(T, "gone"), "originCwd": repo, "lastActivityAt": ms(120),
                                      "model": "claude-haiku-5-5"})
@@ -625,8 +629,6 @@ HOME="$T" "$APP" --print-deploy-checks "$T/check-project" "make install" "make d
 echo "== What the usage strip gets from Claude Code's recorded answers (null: none there) and from \`claude auth"
 echo "   status\`, and where \`claude\` is looked for, best first"
 HOME="$T" USAGE_PATH="$T/bin" "$APP" --print-usage "$T"/usage-replies/*
-echo "== New conversations: the command a terminal start runs in its tab, and Claude Desktop's link"
-HOME="$T" "$APP" --print-starts | in_minutes
 echo "== Whether Claude may work in a folder (the folder, its checkout, its repo or a folder above it is trusted)"
 HOME="$T" "$APP" --print-trust "$T/repo" "$T/repo/sub" "$T/repo-wt" "$T/trust/parent/child" "$T/trust/lone" \
   "$T/trust" | in_minutes

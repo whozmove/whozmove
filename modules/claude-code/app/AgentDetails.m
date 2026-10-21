@@ -27,7 +27,8 @@
 //   up), then --permission-mode, then permissions.defaultMode in the settings.
 // - model: Claude Desktop's conversation (it changes the moment the model is switched), then the latest reply in
 //   the transcript, then --model, then the settings' model.
-// - effort: Claude Desktop, then --effort, then the settings' modelSettings[model].effortLevel, then effortLevel.
+// - effort: Claude Desktop, then the latest reply in the transcript (the effort it was made with), then --effort,
+//   then the settings' modelSettings[model].effortLevel, then effortLevel.
 - (void)describe:(Row *)row transcript:(NSDictionary *)transcript chosen:(NSDictionary *)chosen {
     NSDictionary *usage = transcript[@"usage"];
     NSDictionary *desktop = row.hostDetails;
@@ -38,7 +39,8 @@
                   ?: FlagValue(args, @"--permission-mode") ?: settings[@"permissions"][@"defaultMode"] ?: @"default";
     NSString *model = desktop[@"model"] ?: ([usage[@"model"] length] ? usage[@"model"] : nil)
                    ?: FlagValue(args, @"--model") ?: settings[@"model"];
-    NSString *effort = desktop[@"effort"] ?: FlagValue(args, @"--effort");
+    NSString *replied = [usage[@"effort"] length] ? usage[@"effort"] : nil;
+    NSString *effort = desktop[@"effort"] ?: replied ?: FlagValue(args, @"--effort");
     if (!effort && model) {  // keyed by the exact model, e.g. claude-opus-5 (Opus 5) apart from claude-opus-5-5
         NSString *canonical = [model componentsSeparatedByString:@"["].firstObject;  // drop "[1m]"
         NSDictionary *perModel = settings[@"modelSettings"][canonical];
@@ -46,14 +48,14 @@
     }
     effort = effort ?: settings[@"effortLevel"];
     // A change made in the panel shows at once, until a source above has caught up: Claude Desktop's record the
-    // next time Claude saves it, and in a terminal the hook's mode with the session's next event and the model
-    // with its next reply. Nothing ever records a terminal session's effort.
+    // next time Claude saves it, and in a terminal the hook's mode with the session's next event, and the model and
+    // effort with its next reply.
     double hookAt = MAX(MAX(row.stageAt.doubleValue, row.activityAt.doubleValue),
                         MAX(row.lastPromptAt.doubleValue, row.lastReplyAt.doubleValue));
     double savedAt = [desktop[@"at"] doubleValue];
     double modeSeen = desktop ? savedAt : MAX(hookAt, [transcript[@"modeAt"] doubleValue]);
     double modelSeen = desktop ? savedAt : TimestampMs(usage[@"at"]);
-    double effortSeen = desktop ? savedAt : 0;
+    double effortSeen = desktop ? savedAt : replied ? TimestampMs(usage[@"at"]) : 0;
     if (chosen[@"mode"] && modeSeen < [chosen[@"modeAt"] doubleValue]) mode = chosen[@"mode"];
     if (chosen[@"model"] && modelSeen < [chosen[@"modelAt"] doubleValue]) model = chosen[@"model"];
     if (chosen[@"effort"] && effortSeen < [chosen[@"effortAt"] doubleValue]) effort = chosen[@"effort"];

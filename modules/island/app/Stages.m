@@ -31,27 +31,6 @@ static NSString *FetchStageCommand(NSString *root) {
     return command.length ? command : nil;
 }
 
-// Runs a command from a checkout: in your shell (LoginShell) with your terminal's PATH (LoginPath), but without your
-// shell's startup files, which a command run every 20 seconds shouldn't wait on; and as yours, not an agent's, so the
-// marks agents put on their commands (`marks`, the core's agentMarks) are taken off. With `errors`, its error output
-// joins what it prints. Blocking. Nil, and nothing runs, until the marks are known: what an agent left on the panel's
-// environment must never reach the command.
-static NSDictionary *RunInCheckout(NSString *command, NSString *folder, NSTimeInterval seconds, BOOL errors,
-                                   NSArray<NSString *> *marks) {
-    if (!marks) return nil;
-    NSString *shell = LoginShell();
-    NSArray *noStartupFiles = [shell.lastPathComponent isEqual:@"bash"] ? @[@"--noprofile", @"--norc"] : @[@"-f"];
-    NSString *unset = marks.count ? [NSString stringWithFormat:@"unset %@; ", [marks componentsJoinedByString:@" "]]
-                                  : @"";
-    NSString *script = [unset stringByAppendingString:@"cd -- \"$1\" && eval \"$2\""];
-    NSMutableDictionary *environment = [NSProcessInfo.processInfo.environment mutableCopy];
-    [environment removeObjectsForKeys:marks ?: @[]];
-    environment[@"PATH"] = LoginPath();
-    NSMutableArray *arguments = [noStartupFiles mutableCopy];
-    [arguments addObjectsFromArray:@[@"-c", script, shell.lastPathComponent, folder, command]];
-    return RunBriefly(shell, arguments, environment, seconds, 64 * 1024, errors);
-}
-
 // Text the command gave, for one line of the panel or a menu: control characters (newlines among them) become spaces,
 // and it's cut at `max`. Nil for anything but text, or text that's left empty.
 static NSString *Line(id value, NSUInteger max) {

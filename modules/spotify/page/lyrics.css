@@ -1,0 +1,56 @@
+/* Spotify's lyrics beside the list (lyrics-view.js): the reader with no list down its side, the song's lines following
+   along, and the foot with the strip's switch and Open Spotify.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.k-lyrics .r-shelf, .k-lyrics .r-src { display: none; }
+.k-lyrics .r-answer { display: flex; align-items: center; gap: 10px; padding: 9px 12px 10px 18px; }
+.ly-art { flex: none; width: 22px; height: 22px; border-radius: var(--radius-small); overflow: hidden;
+          background: var(--cover); box-shadow: inset 0 0 0 .5px var(--edge); }
+.ly-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* The lines in a column that moves up (by a transition, lyricsStep) to keep the one being sung about a third of the way
+   down, fading out at the top and bottom edges. */
+.ly-view { position: absolute; inset: 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 36px, black calc(100% - 44px), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, black 36px, black calc(100% - 44px), transparent 100%); }
+.ly-col { position: absolute; left: 0; right: 0; top: 0; padding: 0 34px 0 26px;
+          transition: transform .9s cubic-bezier(.2, .8, .2, 1); }
+.ly-line { display: block; width: 100%; padding: 6px 0; border: none; background: none; text-align: start;
+           font: inherit; font-size: var(--size-lyrics); font-weight: 600; line-height: 21px; letter-spacing: -0.005em;
+           color: var(--label); overflow-wrap: anywhere; transition: color .45s ease; }
+.ly-line.past { color: var(--faint); }
+.ly-line.now { color: var(--bright); }
+.ly-line.is-hover:not(.now) { color: var(--text); }
+.ly-col.paused .ly-line.now { color: var(--text); }
+.ly-dots { display: inline-flex; align-items: center; gap: 6px; height: 21px; vertical-align: top; }
+.ly-dots i { display: block; width: 6px; height: 6px; border-radius: var(--radius-circle); background: currentColor;
+             opacity: .3; transform: scale(.8); }
+.ly-credit { padding: 20px 0 8px; font-size: var(--size-small); color: var(--faint); }
+
+/* Lyrics without times: read, and scrolled, as they are. */
+.ly-plain { position: absolute; inset: 0; overflow-y: auto; padding: 16px 34px 28px 26px;
+            font-size: var(--size-reading); line-height: 1.6; color: var(--reading-text); -webkit-user-select: text;
+            cursor: text; }
+.ly-plain::-webkit-scrollbar { width: 0; }
+.ly-plain p + p { margin-top: 14px; }
+.ly-plain .ly-note, .ly-plain .ly-credit { padding: 0; font-size: var(--size-small); line-height: 1.45;
+                                           color: var(--faint); }
+
+/* The foot: whether the lines show in the strip too, and Spotify. */
+.ly-switch { display: inline-flex; align-items: center; gap: 9px; padding: 3px 4px 3px 0; border: none;
+             background: none; font: inherit; font-size: var(--size-body); color: var(--text); }
+.ly-switch.is-hover { color: var(--bright); }
+.ly-sw { position: relative; flex: none; width: 26px; height: 15px; border-radius: var(--radius-pill);
+         background: var(--switch-off); transition: background-color .2s ease; }
+.ly-sw i { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: var(--radius-circle);
+           background: var(--bright); transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+.ly-switch[aria-checked="true"] .ly-sw { background: var(--tick); }
+.ly-switch[aria-checked="true"] .ly-sw i { transform: translateX(11px); }
+.ly-open { margin-left: auto; flex: none; font: inherit; font-size: var(--size-small); padding: 3px 9px;
+           border-radius: var(--radius-small); border: 1px solid var(--button-edge); background: var(--button);
+           color: var(--text); }
+.ly-open.is-hover { background: var(--button-hover); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ly-col, .ly-line, .ly-sw, .ly-sw i { transition: none; }
+}

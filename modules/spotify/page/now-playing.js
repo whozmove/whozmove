@@ -24,8 +24,9 @@ function songClock(ms) {
 
 // The strip for a song at `now`: while it plays, and for a while after it's paused (since `pausedSince`; 0 for one
 // found paused); then it folds into the token. `noteSeen` is whether the first note ("Spotify's song shows here…") has
-// been seen; a refusal from macOS takes its place, as it needs you.
-function nowPlayingView(song, now, noteSeen) {
+// been seen; a refusal from macOS takes its place, as it needs you. Once it's been seen, the question about lyrics comes
+// while `askLyrics` (one note at a time).
+function nowPlayingView(song, now, noteSeen, askLyrics = false) {
   if (!song || (!song.playing && now - (song.pausedSince || 0) >= PAUSED_IN_STRIP_MS)) return { state: 'hidden' };
   const at = songPosition(song, now);
   return {
@@ -36,12 +37,15 @@ function nowPlayingView(song, now, noteSeen) {
     art: song.artUrl || null,
     progress: song.durationMs > 0 ? at / song.durationMs : 0,
     clock: song.playing ? songClock(at) : 'Paused',
-    note: song.allowed === false ? 'refused' : noteSeen ? null : 'first',
+    note: song.allowed === false ? 'refused' : !noteSeen ? 'first' : askLyrics ? 'lyrics' : null,
   };
 }
 
-// The note's words and its button, by kind.
+// The note's words and its button, by kind, and a × beside it (`close`, saying what it does: `closeTitle`) for one that
+// has two answers.
 const SONG_NOTES = {
   first: { text: 'Spotify’s song shows here while it plays. The pawn menu’s Spotify can remove it.', button: '×', does: 'dismiss' },
   refused: { text: 'Whozmove isn’t allowed to control Spotify.', button: 'Open Settings', does: 'settings' },
+  lyrics: { text: 'Show lyrics as they’re sung? Whozmove finds them on LRCLIB.', button: 'Show Lyrics', does: 'lyrics',
+            close: 'nolyrics', closeTitle: 'Don’t show lyrics. The pawn menu’s Spotify can turn them on.' },
 };

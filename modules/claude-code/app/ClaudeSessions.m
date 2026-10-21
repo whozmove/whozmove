@@ -20,17 +20,38 @@ static BOOL IsUsageCheck(NSDictionary *session) {
     return [cwd isEqualToString:folder] || [RealPath(cwd) isEqualToString:folder];
 }
 
-// Running sessions from Claude Code's registry: one file per process.
+// Whether one process registered for a session speaks for it rather than another: one that runs over one paused in its
+// terminal, then the one started last.
+static BOOL Outranks(NSDictionary *one, NSDictionary *other) {
+    BOOL oneStopped = ProcessStopped([one[@"pid"] intValue]), otherStopped = ProcessStopped([other[@"pid"] intValue]);
+    if (oneStopped != otherStopped) return otherStopped;
+    double oneAt = [one[@"startedAt"] isKindOfClass:NSNumber.class] ? [one[@"startedAt"] doubleValue] : 0;
+    double otherAt = [other[@"startedAt"] isKindOfClass:NSNumber.class] ? [other[@"startedAt"] doubleValue] : 0;
+    return oneAt > otherAt;
+}
+
+// Running sessions from Claude Code's registry: one file per process. A conversation resumed while an earlier process
+// of it is still there (paused with Ctrl+Z, say) has a file for each; it's one session, so it's one row.
 NSArray<Row *> *RunningSessions(void) {
     NSString *registry = ClaudeDir(kClaudeCodeRegistry);
-    NSMutableArray<Row *> *out = [NSMutableArray array];
+    NSMutableArray<NSDictionary *> *found = [NSMutableArray array];
+    NSMutableDictionary<NSString *, NSNumber *> *bySession = [NSMutableDictionary dictionary];
     for (NSString *file in [NSFileManager.defaultManager contentsOfDirectoryAtPath:registry error:nil]) {
         if (![file.pathExtension isEqualToString:@"json"]) continue;
         NSDictionary *s = ReadJSON([registry stringByAppendingPathComponent:file]);
         if (![s isKindOfClass:NSDictionary.class] || !ProcessAlive([s[@"pid"] intValue])) continue;
         if (IsUsageCheck(s)) continue;
-        [out addObject:[[Row alloc] initWithFields:s]];
+        NSString *sessionId = [s[@"sessionId"] isKindOfClass:NSString.class] ? s[@"sessionId"] : nil;
+        NSNumber *seen = sessionId ? bySession[sessionId] : nil;
+        if (seen) {
+            if (Outranks(s, found[seen.unsignedIntegerValue])) found[seen.unsignedIntegerValue] = s;
+            continue;
+        }
+        if (sessionId) bySession[sessionId] = @(found.count);
+        [found addObject:s];
     }
+    NSMutableArray<Row *> *out = [NSMutableArray array];
+    for (NSDictionary *s in found) [out addObject:[[Row alloc] initWithFields:s]];
     return out;
 }
 

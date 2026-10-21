@@ -26,15 +26,12 @@ modules/changes/page/changes.css  colour  rgba(74, 168, 255, 0.25)  1
 modules/changes/page/changes.css  corner  3px  1
 modules/changes/page/changes.css  size  9px  1
 modules/reader/page/reader.css  colour  #ffffff  1
-modules/spotify/page/now-playing.css  colour  rgba(255, 255, 255, 0.08)  1
 modules/spotify/page/now-playing.css  colour  rgba(255, 255, 255, 0.45)  1
 modules/spotify/page/now-playing.css  colour  rgba(255, 255, 255, 0.8)  1
 modules/spotify/page/now-playing.css  size  14px  1
-modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.045)  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.32)  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.42)  1
 modules/starts/page/starts.css  colour  rgba(255, 255, 255, 0.5)  1
-modules/starts/page/starts.css  size  8px  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.04)  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.1)  1
 modules/usage/page/usage.css  colour  rgba(255, 255, 255, 0.35)  1
@@ -71,13 +68,11 @@ panel/styles/reader.css  colour  #e8e2ff  1
 panel/styles/reader.css  colour  rgba(255, 255, 255, 0.07)  1
 panel/styles/reader.css  colour  rgba(255, 255, 255, 0.1)  1
 panel/styles/reader.css  colour  rgba(255, 255, 255, 0.16)  1
-panel/styles/reader.css  colour  rgba(255, 255, 255, 0.84)  1
 panel/styles/reader.css  corner  3px  1
 panel/styles/reader.css  size  12.5px  1
 panel/styles/reader.css  size  13px  2
 panel/styles/reader.css  size  22px  1
 panel/styles/rows.css  colour  #d4e9ff  1
-panel/styles/rows.css  colour  #dcb0ff  1
 panel/styles/rows.css  colour  #e3f0ff  1
 panel/styles/rows.css  colour  #eef6ff  1
 panel/styles/rows.css  colour  rgba(140, 198, 255, 0.07)  1
@@ -85,10 +80,8 @@ panel/styles/rows.css  colour  rgba(140, 198, 255, 0.12)  1
 panel/styles/rows.css  colour  rgba(140, 198, 255, 0.28)  1
 panel/styles/rows.css  colour  rgba(140, 198, 255, 0.45)  1
 panel/styles/rows.css  colour  rgba(170, 140, 255, 0.18)  1
-panel/styles/rows.css  colour  rgba(191, 90, 242, 0.24)  1
 panel/styles/rows.css  colour  rgba(224, 138, 104, 0.12)  1
 panel/styles/rows.css  colour  rgba(224, 138, 104, 0.18)  1
-panel/styles/rows.css  colour  rgba(255, 107, 74, 0.18)  1
 panel/styles/rows.css  colour  rgba(255, 197, 61, 0.32)  1
 panel/styles/rows.css  colour  rgba(255, 255, 255, 0.07)  1
 panel/styles/rows.css  colour  rgba(255, 255, 255, 0.08)  1

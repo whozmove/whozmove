@@ -17,6 +17,7 @@ var document = {
 var matchMedia = () => ({ matches: true });
 var performance = { now: () => 0 };
 var requestAnimationFrame = () => {};
+var addEventListener = () => {};  // the window's own, as a module's start-up listens for its size
 
 arguments.forEach((file) => load(file));  // the page's scripts, in the order the page loads them
 

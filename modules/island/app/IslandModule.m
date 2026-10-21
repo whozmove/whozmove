@@ -99,7 +99,7 @@
         self.lastChecked = now;
         [self.pullRequests check];
     }
-    // Extra stages run only while the islands they're shown on are switched on (Show Next Steps).
+    // Extra stages run, and branches' PRs are looked up, only while the islands showing them are on (Show Next Steps).
     if (self.core.menuBar) self.checkouts.runsStages = self.core.menuBar.showsNextSteps;
     [self.checkouts refreshFor:rows];
     for (Row *row in rows) {

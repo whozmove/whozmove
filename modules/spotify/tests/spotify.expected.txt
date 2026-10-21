@@ -1,5 +1,7 @@
 == What the now-playing strip gets from what Spotify tells the Mac and answers (null: nothing playing), and
-   whether an Apple event's error is macOS refusing Whozmove control of Spotify; what its token shows, and its side
+   whether an Apple event's error is macOS refusing Whozmove control of Spotify; what its token shows, and its side;
+   where LRCLIB is asked about a song, what its answers say, the waits after trouble and what's kept on this Mac;
+   and whether a position is a jump
 {
   "announce-no-track.json": null,
   "announce-paused.json": {
@@ -28,6 +30,226 @@
   },
   "error-refused.json": {
     "refused": true
+  },
+  "lyrics-answer-busy.json": {
+    "kind": "trouble"
+  },
+  "lyrics-answer-empty.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-instrumental.json": {
+    "kind": "instrumental"
+  },
+  "lyrics-answer-long.json": {
+    "kind": "timed",
+    "lrc": "65519 characters, ending: [36:23.00] Example line 02183"
+  },
+  "lyrics-answer-not-found.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-not-json.json": {
+    "kind": "trouble"
+  },
+  "lyrics-answer-nothing-came.json": {
+    "kind": "trouble"
+  },
+  "lyrics-answer-plain.json": {
+    "kind": "plain",
+    "plain": "First line\nSecond line"
+  },
+  "lyrics-answer-refused.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-search-accents.json": {
+    "kind": "timed",
+    "lrc": "[00:08.00] First line"
+  },
+  "lyrics-answer-search-instrumental.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-search-nothing.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-search-untimed.json": {
+    "kind": "plain",
+    "plain": "Live words"
+  },
+  "lyrics-answer-search.json": {
+    "kind": "timed",
+    "lrc": "[00:08.00] Timed words"
+  },
+  "lyrics-answer-server-error.json": {
+    "kind": "trouble"
+  },
+  "lyrics-answer-timed-no-words-at-all.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-timed-no-words.json": {
+    "kind": "plain",
+    "plain": "First line"
+  },
+  "lyrics-answer-timed.json": {
+    "kind": "timed",
+    "lrc": "[00:08.00] First line\n[00:12.40] Second line\n[00:16.00]"
+  },
+  "lyrics-answer-too-big.json": {
+    "kind": "missing"
+  },
+  "lyrics-answer-too-many.json": {
+    "kind": "trouble"
+  },
+  "lyrics-answer-wrong-kinds.json": {
+    "kind": "missing"
+  },
+  "lyrics-ask-ad.json": [],
+  "lyrics-ask-all-in-brackets.json": [
+    "https://lrclib.net/api/get?track_name=%28Example%20Song%29&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=%28Example%20Song%29&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=%28Example%20Song%29&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-an-hour.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&album_name=Example%20Album&duration=3600",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=3600",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-encoded.json": [
+    "https://lrclib.net/api/get?track_name=Caf%C3%A9%20%26%20Cr%C3%A8me%20%2B%201%2F2%3F&artist_name=%C3%8Fda%20North&album_name=Example%20Album&duration=180",
+    "https://lrclib.net/api/get?track_name=Caf%C3%A9%20%26%20Cr%C3%A8me%20%2B%201%2F2%3F&artist_name=%C3%8Fda%20North&duration=180",
+    "https://lrclib.net/api/search?track_name=Caf%C3%A9%20%26%20Cr%C3%A8me%20%2B%201%2F2%3F&artist_name=%C3%8Fda%20North"
+  ],
+  "lyrics-ask-episode.json": [],
+  "lyrics-ask-featuring.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song%20%28feat.%20Other%20Artist%29%20%5BMono%5D&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song%20%28feat.%20Other%20Artist%29%20%5BMono%5D&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-instrumental.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song%20-%20Instrumental&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song%20-%20Instrumental&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song%20-%20Instrumental&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-live.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song%20%E2%80%93%20Live%20at%20Example%20Hall&artist_name=Example%20Artist&album_name=Example%20Album&duration=260",
+    "https://lrclib.net/api/get?track_name=Example%20Song%20%E2%80%93%20Live%20at%20Example%20Hall&artist_name=Example%20Artist&duration=260",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=260",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-local-file.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-no-album.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-no-artist.json": [],
+  "lyrics-ask-no-length.json": [],
+  "lyrics-ask-over-an-hour.json": [
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-remastered.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song%20-%20Remastered%202011&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song%20-%20Remastered%202011&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-rounds-up.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&album_name=Example%20Album&duration=201",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=201",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-ask-song.json": [
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&album_name=Example%20Album&duration=200",
+    "https://lrclib.net/api/get?track_name=Example%20Song&artist_name=Example%20Artist&duration=200",
+    "https://lrclib.net/api/search?track_name=Example%20Song&artist_name=Example%20Artist"
+  ],
+  "lyrics-kept-another-song.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-kept-failed.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-kept-local-file.json": {
+    "file": "2c92b7853ee969320ab6320a3a9dc4eb.json",
+    "found": null
+  },
+  "lyrics-kept-none-a-week-ago.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-kept-none-this-week.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": {
+      "state": "none",
+      "track": "spotify:track:0000000000000000000001"
+    }
+  },
+  "lyrics-kept-timed-long-ago.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": {
+      "lrc": "[00:08.00] First line",
+      "state": "timed",
+      "track": "spotify:track:0000000000000000000001"
+    }
+  },
+  "lyrics-kept-timed-no-words.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-kept-untimed-a-week-ago.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-kept-untimed-this-week.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": {
+      "plain": "First line",
+      "state": "plain",
+      "track": "spotify:track:0000000000000000000001"
+    }
+  },
+  "lyrics-kept-wrong-kinds.json": {
+    "file": "63bf0397fbdc1fd1f3fbec7642a9db00.json",
+    "found": null
+  },
+  "lyrics-wait-as-asked.json": [
+    "30.0 s",
+    "60.0 s"
+  ],
+  "lyrics-wait-at-most-an-hour.json": [
+    "3600.0 s"
+  ],
+  "lyrics-wait-each-try.json": [
+    "1.0 s",
+    "2.0 s",
+    "4.0 s",
+    "8.0 s",
+    "16.0 s",
+    "60.0 s",
+    "60.0 s"
+  ],
+  "lyrics-wait-longest.json": [
+    "1.2 s",
+    "19.2 s",
+    "72.0 s"
+  ],
+  "lyrics-wait-shortest.json": [
+    "0.8 s",
+    "12.8 s",
+    "48.0 s"
+  ],
+  "position-jumped.json": {
+    "moved": true
+  },
+  "position-on-time.json": {
+    "moved": false
+  },
+  "position-paused.json": {
+    "moved": false
   },
   "reply-no-cover.json": {
     "album": "Example Album",

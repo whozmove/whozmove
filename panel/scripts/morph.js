@@ -61,11 +61,6 @@ const PART_TEXT = { '.you': (el) => el.querySelector(':scope > .what')?.textCont
                                      .join(''),
                     '.step-note': (el) => el.textContent };
 const partText = (sel) => PART_TEXT[sel] ?? core.lines[sel]?.text;
-// Bits of a row that cross-fade when their text changes: its tag on the title line, and the modules' (core.swaps).
-const SWAPS = ['.stage'];
-let swapList = null;
-core.starts.push(() => { swapList = [...SWAPS, ...core.swaps]; });
-const swapsOf = () => swapList ?? [...SWAPS, ...core.swaps];
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
 function rowKey(row) { return row.dataset.id + (row.closest('.pinned') ? ':pinned' : ''); }
@@ -90,9 +85,9 @@ function snapshot(list) {
       if (el) parts[sel] = { el, text: partText(sel)?.(el), height: el.offsetHeight, shape: line?.shape?.(el) };
     }
     rows.set(rowKey(row), { ...place(list, row), height: row.offsetHeight, parts, el: row,
-                            swaps: swapsOf().map((sel) => row.querySelector(sel)?.textContent),
+                            swaps: core.swaps.map((sel) => row.querySelector(sel)?.textContent),
                             // in a folded group
-                            hidden: !!row.closest('.closed') || (row.closest('.prows')?.offsetHeight ?? 2) < 2 });
+                            hidden: !!row.closest('.prows.closed') || (row.closest('.prows')?.offsetHeight ?? 2) < 2 });
   }
   return rows;
 }
@@ -169,6 +164,15 @@ function cardOf(box) {
 // during it can stop it where it is.
 let listResize = null;
 
+// Runs `measure` with the list's own box at the height it's easing to, since a list partway through easing measures
+// short (and a list scrolled to its end scrolls back as it grows), and puts the easing back where it was before
+// anything is drawn: for what has to land where the list ends up (a new conversation's row, starts.js).
+function atListEnd(measure) {
+  const ease = listResize?.playState === 'running' ? listResize : null, at = ease?.currentTime ?? 0;
+  if (ease) ease.currentTime = MORPH_MS;
+  try { return measure(); } finally { if (ease) ease.currentTime = at; }
+}
+
 function morph(list, html) {
   const before = state.morphed && !calm.matches ? snapshot(list) : null;
   const wasHeight = before ? list.offsetHeight : 0;  // as it shows now, even partway through easing
@@ -184,7 +188,7 @@ function morph(list, html) {
   for (const d of list.querySelectorAll('.perm .perm-detail')) d.scrollTop = scrolled.get(cardOf(d)) || 0;
   if (caret) {
     const box = [...list.querySelectorAll(`.perm .q-type${caret.q != null ? `[data-q="${caret.q}"]` : ''}`)]
-      .find((b) => cardOf(b) === caret.card && !b.closest('.closed'));
+      .find((b) => cardOf(b) === caret.card && !b.closest('.prows.closed'));
     if (box) { box.focus(); if (caret.start != null) box.setSelectionRange(caret.start, caret.end); }
   }
   state.morphed = true;
@@ -195,11 +199,11 @@ function morph(list, html) {
   for (const row of list.querySelectorAll('.row[data-id]')) {
     const old = before.get(rowKey(row));
     if (!old) {
-      if (!row.classList.contains('landing')) row.classList.add('arrive');  // a new conversation's row arrives by rising
+      if (!row.classList.contains('landing')) row.classList.add('arrive');  // a started one's arrives as its copy lands
       changed = true;
       continue;
     }
-    if (old.hidden || row.closest('.closed')) continue;  // in a collapsed group: its own slide handles it
+    if (old.hidden || row.closest('.prows.closed')) continue;  // in a collapsed group: its own slide handles it
     const main = row.querySelector(':scope > .main');
     let grewOrShrank = false;
     const lines = rowParts();
@@ -238,7 +242,8 @@ function morph(list, html) {
         changed = true;
       }
     });
-    swapsOf().forEach((sel, i) => {
+    // The modules' bits that cross-fade when their text changes (core.swaps).
+    core.swaps.forEach((sel, i) => {
       const bit = row.querySelector(sel);
       if (bit && bit.textContent !== old.swaps[i]) { bit.classList.add('swap'); changed = true; }
     });
@@ -252,7 +257,8 @@ function morph(list, html) {
     rows.push({ row, old, from, to });
   }
   // A row or header that left view fades out where it was, over the list, while the rest close the gap.
-  const shown = new Set([...list.querySelectorAll('.row[data-id]')].filter((r) => !r.closest('.closed')).map(rowKey));
+  const shown = new Set([...list.querySelectorAll('.row[data-id]')].filter((r) => !r.closest('.prows.closed'))
+    .map(rowKey));
   for (const [key, old] of before) if (!old.hidden && !shown.has(key)) { fadeAway(list, old); changed = true; }
   const heads = new Map([...list.querySelectorAll('.group[data-key], .project[data-key]')]
     .map((h) => [h.dataset.key, h]));

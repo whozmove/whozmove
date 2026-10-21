@@ -25,7 +25,7 @@ Tested with: macOS …, Claude Code …, Claude Desktop …, Ghostty …
 - [ ] `./build.sh` builds with no warnings (CI treats a warning as an error)
 - [ ] Tried in the real app, without compacting, switching the model of, or typing into a real session
 - [ ] Any `.expected.txt` re-recorded with `--update` differs only where this change meant it to
-- [ ] A new label or rule on the page has a case in `tests/panel-cases.js`
+- [ ] A new label or rule on the page has a case in `tests/panel-cases.js` (or its module's `tests/page-cases.js`)
 - [ ] A change people can see has a line in `README.md`; a new or changed row field is in `docs/reference/rows.md`
 - [ ] A new fact about Claude Code, Claude Desktop, Ghostty or Spotify (an id, a path, a label, a log line) is in its module's Facts header
 - [ ] The safety rules still hold: requests are only ever allowed once, keys go into a session only while it sits idle with nothing waiting, and the panel never takes the keyboard

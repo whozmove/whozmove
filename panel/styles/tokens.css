@@ -10,8 +10,10 @@
   --code: rgba(255, 255, 255, 0.86);     /* code, and a tool's input on its card */
   --play: rgba(255, 255, 255, 0.85);     /* Deploy's round button: its mark and its ring */
   --work-text: rgba(255, 255, 255, 0.72);  /* what Claude's doing as it works, under its shine */
+  --reading-text: rgba(255, 255, 255, 0.84);  /* what the reader shows to read: a plan, notes, a song's lyrics */
   --muted: rgba(255, 255, 255, 0.55);
-  --label: rgba(255, 255, 255, 0.5);     /* a project's name over its group, and how a session's agent is set up */
+  --label: rgba(255, 255, 255, 0.5);     /* a project's name over its group, how a session's agent is set up, a song's
+                                            lines still to come */
   --dim: rgba(255, 255, 255, 0.4);       /* a group's chevron, a file's folder, a comment in code */
   --faint: rgba(255, 255, 255, 0.32);
 
@@ -34,6 +36,8 @@
   --done-text: #7ee2a0;
   --done-fill: rgba(76, 217, 123, 0.15);
   --link: #8cc6ff;
+  --worktree-text: #d2a8f7;              /* a worktree, its chip wherever it shows (worktreeChip) */
+  --worktree-fill: rgba(191, 90, 242, 0.15);
   /* What a session wrote for you to read. */
   --plan-text: #d9c8ff;
   --prototype-text: #9fe3d6;
@@ -51,11 +55,13 @@
   --part-line: rgba(255, 255, 255, 0.4);  /* between the gauge's parts, while it's open */
   --surface: rgba(255, 255, 255, 0.05);  /* what's set on the glass: the island, a card on a row, the changes switch */
   --track: rgba(255, 255, 255, 0.06);    /* the empty part of a line or a bar */
+  --cover: rgba(255, 255, 255, 0.08);    /* a song's cover, until it has loaded */
+  --scrim: rgba(0, 0, 0, 0.45);          /* under a mark on a picture: the microphone on a song's cover */
   --tag: rgba(255, 255, 255, 0.08);      /* a grey tag */
   --picked: rgba(255, 255, 255, 0.13);   /* a picked choice, a pressed switch */
   /* Pointed at: a row, and firmer for smaller things. */
   --hover: rgba(255, 255, 255, 0.07);
-  --hover-firm: rgba(255, 255, 255, 0.08);  /* a row's numbers, the box under the list */
+  --hover-firm: rgba(255, 255, 255, 0.08);  /* a row's numbers */
   --hover-strong: rgba(255, 255, 255, 0.1);  /* a pick, a ×, the player's buttons, Open */
 
   /* Buttons: a card's own, a soft fill with an edge; its main one (Allow once, Switch, Start, Sign in) light, with
@@ -66,7 +72,8 @@
   --light: #f2f2f3;                      /* and a ticked box */
   --light-hover: #fff;
   --on-light: #18181b;
-  --tick: #3478f6;                       /* a picked choice's mark, a done task: macOS's blue */
+  --tick: #3478f6;                       /* a picked choice's mark, a done task, a switch that's on: macOS's blue */
+  --switch-off: rgba(255, 255, 255, 0.2);  /* a switch that's off */
   /* Text boxes, and code. */
   --field: rgba(0, 0, 0, 0.25);
   --field-edge: rgba(255, 255, 255, 0.14);
@@ -76,7 +83,7 @@
   --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
 
   /* Text sizes, smallest first. */
-  --size-chip: 9.5px;                    /* the worktree tag, a question's chip */
+  --size-chip: 9.5px;                    /* a question's chip */
   --size-tag: 10px;                      /* tags, the island's stages, small capitals, the build line */
   --size-meta: 10.5px;                   /* what's said beside: the Compact label, the shortcut, a writing's details */
   --size-small: 11px;                    /* a row's details and its chat, a card's help, the strips */
@@ -85,6 +92,7 @@
   --size-title: 13px;                    /* the panel's name, a project, a card's title, the reader's */
   --size-reading: 14px;                  /* what the reader shows */
   --size-heading: 16px;                  /* a heading in the reader, the changes card's big numbers */
+  --size-lyrics: 16px;                   /* a song's lines, in the reader */
   --size-close: 16px;                    /* the × that closes a card */
 
   /* Corners, smallest first. */
@@ -93,7 +101,7 @@
   --radius-small: 5px;                   /* a line you can press (a PR, a step, the numbers), a ×, the song's cover */
   --radius-button: 6px;                  /* the buttons in the header, the strips, the reader and the changes view */
   --radius-control: 7px;                 /* a card's buttons, choices and text boxes; the reader's list */
-  --radius-box: 8px;                     /* a row, a card on a row, the box under the list, a code block, a switch */
+  --radius-box: 8px;                     /* a row, a card on a row, a code block, a switch */
   --radius-menu: 9px;                    /* the gauge's lists, the commits card, Open With */
   --radius-card: 10px;                   /* the PR card, "Switch model?" */
   --radius-circle: 50%;

@@ -7,7 +7,7 @@ works with, and each feature, is a module of its own: a folder that holds its na
 and its README.
 
 ```
-               Claude Code      Claude Desktop     Ghostty, Terminal     git, gh       Spotify
+               Claude Code      Claude Desktop     Ghostty, Terminal     git, gh       Spotify, LRCLIB
                     │                  │                   │                 │             │
                     ▼                  ▼                   ▼                 ▼             ▼
  modules/      claude-code      claude-desktop      ghostty,            island,       spotify, usage,
@@ -30,7 +30,8 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
 
 - **The core**, in `app/core` and `panel/`. Natively: `Modules` (the registry), `Core` (what a module is given: the
   page, the window, the menu bar, the rows, the agents and the hosts), `Rows` (the rows read and sent), `Focus` (the
-  session you're on, and opening one from its row), `Send` (words into a session, and why they can't go in now),
+  session you're on, when you last looked at each, and opening one from its row), `Send` (words into a session, and
+  why they can't go in now),
   `Work` (who's at work in a checkout), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing` (what the tests' print
   runs share). On the page: the rows and their places for the modules' parts, sorting, the animation (`morph`), the
   pointer, presses and typing, the reader's frame, and `modules.js`, every list a module plugs into.
@@ -56,8 +57,9 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
    checkout's state first, then the session's work, then its agent's details, and last, once the rows are whole, what
    a module keeps or sends apart from them.
 4. The rows go to the page as JSON: `update(rows, now)`.
-5. The page sorts them into their sections, draws the list again, and animates the difference (`morph`), each module
-   drawing its parts into the row's places, its cards and its strips.
+5. The page works out what each session is and places its row in its section, but for the rows you've pressed,
+   which stay where you saw them until you've moved on from the panel. It draws the list again and animates the
+   difference (`morph`), each module drawing its parts into the row's places, its cards and its strips.
 6. What you press or type on the page goes back to the app as a message, which reaches the one module that answers
    its type.
 

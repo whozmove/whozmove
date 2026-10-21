@@ -1,0 +1,8 @@
+== New conversations: the command a terminal start runs in its tab, and Claude Desktop's link
+{
+  "desktop, no words": "claude://code/new",
+  "desktop, words": "claude://code/new?q=Fix%20the%20%22login%22%20page's%20loop:%2050%25%20of%20tickets%20%26%20%3D%20%2B%20%23%20it%0Athen%20test%20it",
+  "desktop, words too long for a link": "claude://code/new",
+  "terminal, no words": "claude --session-id 0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11",
+  "terminal, words": "claude --session-id 0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11 \"$(cat 'T/Library/Application Support/Whozmove/starts/0b6f6b9e-3c0f-4f53-8e2a-6e1f0d8b2c11.txt')\""
+}

@@ -42,14 +42,6 @@
                                             @"isArchived", @"lastActivityAt", @"lastFocusedAt", @"permissionMode",
                                             @"model", @"effort"])
                         if (c[key] && c[key] != NSNull.null) fields[key] = c[key];
-                    // Claude's own verdict on its last turn, kept only while it's about the latest reply, so an
-                    // old "blocked" doesn't outlive the answer that unblocked it.
-                    NSDictionary *summary = c[@"postTurnSummary"];
-                    BOOL current = [c[@"postTurnSummaryFor"] isKindOfClass:NSString.class]
-                                && [c[@"postTurnSummaryFor"] isEqual:c[@"lastAssistantUuid"]];
-                    if (current && [summary isKindOfClass:NSDictionary.class]
-                        && [summary[@"status_category"] isKindOfClass:NSString.class])
-                        fields[@"summaryStatus"] = summary[@"status_category"];
                     fields[@"savedAt"] = @(mtime.timeIntervalSince1970 * 1000);  // when Claude last wrote it
                     cached = @{@"mtime": mtime ?: NSDate.distantPast, @"fields": fields};
                     self.cache[path] = cached;

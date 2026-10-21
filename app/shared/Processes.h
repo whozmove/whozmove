@@ -4,6 +4,7 @@
 
 BOOL ProcessAlive(pid_t pid);
 long long ProcessStartedAt(pid_t pid);
+BOOL ProcessStopped(pid_t pid);
 NSString *ProcessKey(pid_t pid, NSString *procStart);
 NSRunningApplication *OwningApp(pid_t pid);
 NSArray<NSString *> *ProcessArguments(pid_t pid);
@@ -18,3 +19,5 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               BOOL (^line)(NSData *line), NSTimeInterval seconds);
 NSString *LoginShell(void);
 NSString *LoginPath(void);
+NSDictionary *RunInCheckout(NSString *command, NSString *folder, NSTimeInterval seconds, BOOL errors,
+                            NSArray<NSString *> *marks);

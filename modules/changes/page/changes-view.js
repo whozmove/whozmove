@@ -38,18 +38,17 @@ function changesState(r) {
 }
 
 // What the session itself changed, committed or not, "+26 −13", at the end of the details line. Pointed at, it shows how
-// that sits in the whole branch (changesCardHTML), with what the work has been through (the proof the line shows
-// otherwise); pressed, the changes themselves, beside the list. It shows as pressed while they're open.
-function countsHTML(s, kind) {
+// that sits in the whole branch (changesCardHTML); pressed, the changes themselves, beside the list. It shows as
+// pressed while they're open.
+function countsHTML(s) {
   const c = s.changes;
   if (!c || !(c.added || c.removed)) return '';
-  const proof = workProof(s, kind)?.text;
   const r = state.reading;
   const on = r?.mode === 'changes' && r.sessionId === s.sessionId && !r.closing ? ' on' : '';
   // While what the session changed isn't known, they're the branch's, and look it.
   const branch = c.known === false ? ' branch' : '';
-  return `<span class="end"><span class="counts${on}${branch}" data-changes="${esc(s.sessionId)}"`
-    + `${proof ? ` data-proof="${esc(proof)}"` : ''}><span class="add">+${thousands(c.added)}</span> `
+  return `<span class="end"><span class="counts${on}${branch}" data-changes="${esc(s.sessionId)}">`
+    + `<span class="add">+${thousands(c.added)}</span> `
     + `<span class="del">−${thousands(c.removed)}</span></span></span>`;
 }
 
@@ -460,14 +459,14 @@ core.readerPresses.push(
 // ---- The card ----
 
 // What a row's numbers say when pointed at (core.cards): this session's own changes not committed yet, large; their share
-// of all that isn't committed in the checkout, as one bar with this session's part lit; who made the rest; the whole's
-// total; and what the work has been through.
-function changesCardHTML(s, proof) {
+// of all that isn't committed in the checkout, as one bar with this session's part lit; who made the rest; and the
+// whole's total.
+function changesCardHTML(s) {
   if (s.changes.known === false) {
     return `<div class="cc-big"><b class="add">+${thousands(s.changes.added)}</b><b class="del">−${
         thousands(s.changes.removed)}</b><span>not committed, all sessions</span></div>
       <div class="cc-lede">${esc(UNRECORDED)}</div>
-      ${proof ? `<div class="cc-proof">${esc(proof)}</div>` : ''}<div class="cc-hint">Press to see the changes.</div>`;
+      <div class="cc-hint">Press to see the changes.</div>`;
   }
   const { parts, total, share } = branchParts(s, state.last.sessions), size = total.added + total.removed;
   const mine = s.changes, files = mine.files?.length || 0;
@@ -485,7 +484,7 @@ function changesCardHTML(s, proof) {
     <div class="cc-bar">${bar}</div><div class="cc-legend">${legend}</div>
     <div class="cc-total"><span>All sessions</span>
       <b>+${thousands(total.added)} −${thousands(total.removed)}</b></div>
-    ${proof ? `<div class="cc-proof">${esc(proof)}</div>` : ''}<div class="cc-hint">Press to see the changes.</div>`;
+    <div class="cc-hint">Press to see the changes.</div>`;
 }
 
 // ---- What it plugs into ----
@@ -500,18 +499,19 @@ core.readerModes.changes = {
   cls: 'k-changes',
 };
 
-// The row's numbers, ending its details' first line; pressed, its changes. Pointed at, their card; and what pressing
-// them would open is asked for now, so it's there by the press, as it is for the island's commits stage.
-core.slots.end.push((row) => countsHTML(row.s, row.kind));
+// The row's numbers, ending its details' first line; pressed, its changes. Pointed at, their card (not while the reader
+// shows a session: a mode about none of them leaves it); and what pressing them would open is asked for now, so it's
+// there by the press, as it is for the island's commits stage.
+core.slots.end.push((row) => countsHTML(row.s));
 core.presses.push(['.counts[data-changes]', (counts, e) => { e.preventDefault(); pressCounts(counts.dataset.changes); }]);
 core.pointerTargets.push('.counts[data-changes]');
 core.swaps.push(':scope > .main > .where .counts');
 core.cards.push({
   selector: '.counts[data-changes]',
-  key: (counts) => (state.reading ? null : 'changes:' + counts.dataset.changes),
+  key: (counts) => (state.reading?.sessionId ? null : 'changes:' + counts.dataset.changes),
   html(counts) {
     const s = state.last.sessions.find((x) => x.sessionId === counts.dataset.changes);
-    return s?.changes ? changesCardHTML(s, counts.dataset.proof) : '';
+    return s?.changes ? changesCardHTML(s) : '';
   },
 });
 core.pointerWatchers.push((el) => {

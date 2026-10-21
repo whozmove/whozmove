@@ -13,6 +13,8 @@
 /* Working: a grey dot fading on and off, as Claude's sidebar shows a conversation it's working in. */
 .busy .dot { background: rgba(255, 255, 255, 0.62); animation: blink 1.4s ease-in-out infinite; }
 .turn .dot { background: var(--turn); }
+/* A reply you've read: your colour's ring, empty. */
+.seen .dot { background: transparent; border: 1.5px solid var(--turn); }
 /* A Claude Desktop conversation with no running process (e.g. after Claude quits): hollow dot. */
 .idle.closed .dot { background: transparent; border: 1.5px solid var(--idle); }
 .main { min-width: 0; flex: 1; }
@@ -21,10 +23,6 @@
 .idle .name { color: var(--muted); }
 .time { margin-left: auto; flex: none; color: var(--faint); font-size: var(--size-small);
         font-variant-numeric: tabular-nums; }
-/* An idle row's current action (stageHTML), as a tag; its colours, by kind, are below. */
-.stage { flex: none; margin-left: auto; padding: 1px 6px; border-radius: var(--radius-tag); font-size: var(--size-tag);
-         font-weight: 600; color: var(--busy-text); background: var(--busy-fill); }
-.stage + .time { margin-left: 0; }
 /* Deploy's round button (deployHTML), at the end of the title line: play on a soft circle; a dot when something in its
    folder changed or was built since the last deploy; dimmed while the agent works or asks. Centred on the line
    without making it taller. Its motion is in motion.css. */
@@ -66,16 +64,9 @@
   background-size: 300% 100%; -webkit-background-clip: text; background-clip: text;
   animation: shine 3s linear infinite;
 }
-/* An idle agent's current action ("Ready to commit", "In review", …), coloured by kind. */
-.stage.o-urgent { color: var(--needs-text); background: rgba(255, 107, 74, 0.18); }  /* blocked or broken: fix it */
-.stage.o-yours { color: var(--turn-text); background: var(--turn-fill); }   /* your move: a next step */
-.stage.o-dev { color: var(--busy-text); background: var(--busy-fill); }     /* work underway */
-.stage.o-wait { color: var(--wait-text); background: var(--wait-fill); }    /* waiting on others / CI */
-.stage.o-done { color: var(--done-text); background: var(--done-fill); }    /* finished */
-.stage.o-plain { color: var(--muted); background: var(--tag); }  /* nothing to do */
 /* The details, last in a row, on two lines: where the session runs (Desktop/Terminal, project, branch,
    worktree), then how its agent is set up (model · effort · mode) with its context ring at the right.
-   When a line runs short of room, the project and branch names give way; the worktree tag stays whole. */
+   When a line runs short of room, the project and branch names give way. */
 .where, .setup { display: flex; align-items: center; gap: 5px; margin-top: 4px; font-size: var(--size-small);
                  color: var(--faint); white-space: nowrap; }
 .where .kind, .setup .kind { flex: none; color: rgba(255, 255, 255, 0.45); }
@@ -83,11 +74,15 @@
 /* Short of room, the names give way, but never so far that they're gone. */
 .where .proj { min-width: 22px; }
 .where .branch { min-width: 34px; }
-.where .branch { color: rgba(255, 255, 255, 0.7); }
-.where .branch svg { vertical-align: -1px; margin-right: 3px; }
-/* What the work has been through (proofHTML), at the end of the where line. */
-.where .proof { flex: none; margin-left: auto; padding-left: 6px; color: var(--muted); }
-/* Or, when the session changed something, what it changed (countsHTML). */
+.where .branch:not(.wt) { color: rgba(255, 255, 255, 0.7); }
+.where .branch:not(.wt) svg { vertical-align: -1px; margin-right: 3px; }
+/* A worktree, wherever it shows (worktreeChip): its icon and name on a chip in the worktree colours. Short of room,
+   the name gives way. */
+.wt { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px; border-radius: var(--radius-tag);
+      background: var(--worktree-fill); color: var(--worktree-text); white-space: nowrap; }
+.wt svg { flex: none; }
+.wt-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* When the session changed something, what it changed (countsHTML), at the end of the where line. */
 .where .end { flex: none; margin-left: auto; padding-left: 6px; display: inline-flex; align-items: center; gap: 6px; }
 /* The session's own changes: a button that opens them (changes-view.js), lit while they're open. */
 .where .counts { font-variant-numeric: tabular-nums; padding: 1px 6px; margin: -1px -6px -1px 0;
@@ -164,9 +159,8 @@
 .cap.open .seg.open:not(.gauge)::before { opacity: 0.75; }
 .step-note { margin-top: 3px; font-size: var(--size-small); color: var(--needs-text); }
 .step-note.quiet { color: var(--muted); }
-.where .sep, .where .wt { flex: none; }
-.where .wt { font-size: var(--size-chip); font-weight: 600; padding: 0 4px; border-radius: var(--radius-tag);
-             background: rgba(191, 90, 242, 0.24); color: #dcb0ff; }
+.where .sep { flex: none; }
+
 .setup .agent { color: var(--label); }
 .setup .agent .bypass { color: var(--needs-text); }
 /* Model, effort and mode open a menu to change them (from the native shell). */
@@ -203,7 +197,7 @@
 .pr.more { color: var(--faint); }
 
 /* What the session wrote (writingsTag): the plan waiting for you, or the newest thing, and how many more. It takes
-   the title line's spare room, so what follows it (the action, the time) sits beside it on the right. */
+   the title line's spare room, so what follows it (the time, Deploy's button) sits beside it on the right. */
 .wtag { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px 1px 5px;
         border-radius: var(--radius-tag); font-size: var(--size-tag); font-weight: 600;
         font-variant-numeric: tabular-nums; color: var(--plan-text); background: rgba(170, 140, 255, 0.18); }
@@ -212,4 +206,4 @@
 .wtag.is-hover { filter: brightness(1.3); }
 .wtag.on { box-shadow: inset 0 0 0 1px currentColor; }  /* its reader is open: pressing it again closes it */
 .wtag .more { font-weight: 500; opacity: 0.7; }
-.wtag ~ .stage, .wtag ~ .time, .wtag ~ .play { margin-left: 0; }
+.wtag ~ .time, .wtag ~ .play { margin-left: 0; }

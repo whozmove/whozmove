@@ -11,7 +11,7 @@
 - (instancetype)initWithCore:(Core *)core;
 // Follows which app comes to the front, from now on.
 - (void)start;
-// Marks the session you're on among the rows, once they're whole (Rows).
+// Marks the session you're on among the rows, once they're whole (Rows), and when you last looked at each.
 - (void)mark:(NSArray<Row *> *)rows;
 // Opens the session of a row the page sent back, when it was pressed (the page's "open").
 - (void)open:(NSDictionary *)message;

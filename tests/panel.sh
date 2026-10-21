@@ -1,6 +1,6 @@
 #!/bin/bash
-# Runs the panel page's logic outside the app with macOS's JavaScriptCore (jsc): which section, label and
-# colour each sample session gets, how rows sort, and the HTML of sample rows (tests/panel-cases.js).
+# Runs the panel page's logic outside the app with macOS's JavaScriptCore (jsc): which section each sample session
+# goes in, how rows sort, and the HTML of sample rows (tests/panel-cases.js).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Compares the output with tests/panel.expected.txt; prints the difference and exits 1 if anything changed.

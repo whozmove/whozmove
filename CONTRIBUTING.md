@@ -53,9 +53,9 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   - The core's pieces each keep only their own state: `Page` (loading the page; every call into it), `PanelWindow`
     (FloatingPanel, DragStrip, size, hover, growing beside the list to fit the reader, and back), `MenuBar` (the pawn,
     grouping, Next Steps' switches, and the modules' items), `Rows` (the rows read once a second, each module adding its
-    part), `Focus` (the session you're on, and opening a session from its row), `Send` (words into a session, and why
-    they can't go in now), `Work` (who's at work in a checkout), `Builds` (the running build, for the header) and
-    `Printing` (what the print runs share).
+    part), `Focus` (the session you're on, when you last looked at each, and opening a session from its row), `Send`
+    (words into a session, and why they can't go in now), `Work` (who's at work in a checkout), `Builds` (the running
+    build, for the header) and `Printing` (what the print runs share).
   - The agent that runs the sessions is a module: `claude-code` (its sessions and its hooks' records, what's new in each
     transcript, a session's details, the words of the panel's commands and what their results say, typing into a
     session's prompt while keeping its draft, your plan's usage asked of `claude`, folder trust, a new session's
@@ -79,8 +79,9 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     the ones installed, chosen once, kept, changed from the pawn menu's Open With), `reader` (what a session wrote, on
     the page only), `usage` (`Usage`: your plan's usage, asked of the agent every few minutes, for the strip; Sign in),
     `starts` (`Starts`: a new conversation from the panel's card, the folder's trust checked, the session opened with
-    your words, and watched for until it's listed; `Shortcut`: ⌃⌥N), `commands` (the model, effort and mode menus and
-    the Compact card, from the menu to the command's result) and `spotify` (the now-playing strip and Spotify's token).
+    your words, and watched for until it's listed; `Worktrees`: a worktree of its own for one; `Shortcut`: ⌃⌥N),
+    `commands` (the model, effort and mode menus and the Compact card, from the menu to the command's result) and
+    `spotify` (the now-playing strip, with its lyrics from LRCLIB, which open beside the list, and Spotify's token).
   - The data has a shape: `Row` (app/contracts) is one listed session, field by field as **`docs/reference/rows.md`**
     describes it (the contract between the hooks, the app and the page; `tests/rows.sh` keeps the two in step).
     `Command` (the commands module's) is one slash command sent from the panel, with its stage (asking, going in,
@@ -93,7 +94,8 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     read from both sides is Claude Desktop's log (`DesktopLog`'s `catchUp`), and they take turns.
 - **Facts**: everything Whozmove relies on about another program that it could change is in that program's module
   (`ClaudeCodeFacts.h`: where Claude Code keeps things, its command, the model and mode choices; `ClaudeDesktopFacts.h`,
-  `GhosttyFacts.h`, `SpotifyFacts.h`), and what it knows of the editors Open With offers is in the changes module's
+  `GhosttyFacts.h`, `SpotifyFacts.h`, and beside it `LRCLIBFacts.h`, for the lyrics' web service), and what it knows of
+  the editors Open With offers is in the changes module's
   `Editors.m`. The
   versions they were last checked with are in the README. When one of them changes, the fix goes there.
 - **`panel/`**: HTML, CSS and plain `<script>` files: no modules, no build step, no libraries.
@@ -104,13 +106,14 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   - `scripts/`, one job each. The page's core first: `util` (the bridge's send, storage, escaping, measuring text),
     `state` (everything the page keeps between rebuilds, in one object), `modules` (what the modules plug into the page
     with: see Modules below), `fresh` (whether a card or button has only just been shown, and a request answered here),
-    `whose-move` (which section each session goes in, how it sorts, the label and colour of its work's state, and which
-    session speaks for each checkout: plain functions, checked by `tests/panel.sh`), `icons`, `markdown` (plans and
-    notes as HTML, everything escaped: a plain function), `builds` (the header's name for the running build), `morph`
-    (the animation), `strips` (changing a strip's text, and easing, growing and folding it, for any strip under the
+    `whose-move` (what each session is, where its row goes, and which session speaks for each checkout: plain
+    functions, checked by `tests/panel.sh`), `icons`, `markdown` (plans and notes as HTML, everything escaped:
+    a plain function), `builds` (the header's name for the running build), `morph` (the animation), `strips`
+    (changing a strip's text, and easing, growing and folding it, for any strip under the
     list), `rows` (a row's template, with its places for the modules' parts, and the group and project headers), `hover`
     (what's pointed at, and the card something pointed at shows), `input` (presses, typing and the keyboard), `reader`
-    (the reader beside the list, which its modes fill), and `panel` (`render`, and the functions the app calls on the
+    (the reader beside the list, which its modes fill, each about a session, or, like Spotify's lyrics, about none),
+    and `panel` (`render`, and the functions the app calls on the
     core). Then each module's, from its `page/`, one per job, each plugging into the core as it loads: Claude Code's
     `agent` (what a Claude Code session's model, mode and context mean) and `requests` (its requests, questions and
     plans on a row); Claude Desktop's `switch-model` (Claude's "Switch model?"); the commands module's `commands` (the
@@ -124,9 +127,14 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     and `changes-view` (the numbers, their card, and the reader's `changes` mode); the usage strip (`usage`: what it
     shows, plain functions; `strip`: drawing it, folding it into one row and back, the line on the collapsed header;
     `waits`: its wait styles, chosen by name, each a file of its own, `wait-vine` the first, whose shape and reset are
-    plain numbers too); and `starts` (the box under the list and its card for a new conversation, the pending row a
-    start shows as until it's listed, and the card turning into that row and rising to its place). The strip isn't in
-    the list, so it's never rebuilt: it's built once, and only its text and widths change.
+    plain numbers too); and `starts` (the card for a new conversation, which opens under the header, the pending row a
+    start shows as until it's listed, and the card turning into that row and moving down to its place; `start-words`:
+    what the card reads in your words, @ for the project and # for where in it, and a new worktree's name, plain
+    functions). The strip isn't in the list, so it's never rebuilt: it's built once, and only its text and widths
+    change. Last, Spotify's: `now-playing` (what the now-playing strip shows, plain functions), `lyrics` (a song's lines
+    and pauses from its LRC, and which shows when, plain functions), `np-strip` (drawing the strip, its words rolling in
+    place, and its presses), `lyrics-view` (the one timer that changes the lines, and the reader's `lyrics` mode) and
+    `spotify` (what it plugs in, and the functions the app calls).
 
 Bridge, page → native (`type`): `height`, `open`, `pick`, `compact`, `switchAnswer`,
 `answerAsk`, `openPR`, `keyboard`, `badge`, `stageMenu` (a stage of a row's island, `{stage, step, count, pr}`: the app
@@ -142,12 +150,19 @@ changes) and `collapse` (back to the list), `readWriting` (one of a session's wr
 island's commits stage are pointed at, so the view opens at once, `scope` being `session` or `branch`, of
 what isn't committed, or `commits`, the commits not on GitHub yet),
 `openFile` (one of them in your editor, `{sessionId, path, line}`, with `editor` when it was just chosen), `start` (a
-new conversation, `{startId, folder, app, words, sessionId, trust, stay}`: `sessionId` is the one the page chose for a
-terminal start, `trust` your yes on the card, `stay` a ⌘Return that keeps a card up), `checkFolder` (whether Claude may
-work there), `startMenu` (the card's folder menu) (each routed by its type to the core or the module that answers
-it: `Modules`).
+new conversation, `{startId, folder, app, words, sessionId, trust, target}`: `sessionId` is the one the page
+chose for a terminal start, `trust` your yes on the card, `target` where in the
+folder's repo when not its own folder, `{kind: open, path}`, `{kind: branch, name}` or `{kind: new, name, base}`),
+`checkFolder` (whether Claude may work there), `listBranches` (what a folder's repo has, for the card's #),
+`checkWorktreeName` (whether a new worktree can be made, `{folder, name, base}`), `startMenu` (the card's small menus,
+`{kind}`: `app`, `places` with `repo`, or `choose`), `spotify` (the now-playing strip's presses, `{action}`:
+`playpause`, `next`, `previous`, `seek` with its `fraction`, `open` or `settings`; `folded` once it has folded away;
+`collapsed` `{on}`; and `lyrics` `{on}`, your answer about lyrics) (each routed by its type to the core or the module
+that answers it: `Modules`).
 `answerAsk` for a plan carries `message` (your notes) or `stop`. Native → page:
-`update(rows, now)`, `setRoom`, `hoverAt`/`hoverEnd`, `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
+`update(rows, now)`, `setRoom`, `hoverAt`/`hoverEnd` (with `still` while the pointer is off the panel without having
+moved there: the panel's edge went past it, or one of its menus closed there; `hoverEnd` comes again once it moves),
+`keyboardGone` (the panel no longer has the keyboard), `setGroupBy`, `toggleCollapsed`, `stepNote` (with `quiet` when
 it says how something went that worked), `setRunningBuild` and `setSwitches` (the core's, in
 `panel/scripts/panel.js`); `readerOpened(side, width)` (which side the list stays on, and the reader's width) and
 `readerClosed` (in `reader.js`); and each feature's, in its own script: `askSwitch` (`switch-model.js`),
@@ -160,7 +175,12 @@ week, limits: [{kind, percent, severity, resetsAt, model}], extraUsage, checkedA
 `signedOut`, `other` or `none`) and `previewWait` (Working on Whozmove's Preview the Wait) (`strip.js`), `openStart`
 (⌃⌥N, New Conversation), `folderChecked` (`{trusted}` or `{gone}`), `startUpdate` (how a start went: `{sessionId}`
 once it's listed, `{note}` while it waits on you, `{why}` if it didn't start), `startProject` (a folder picked from the
-card's menu) and `setStartOptions` (`{terminal}`, the terminal a start can open in, or null) (`starts.js`),
+card's chooser), `branchesListed` (`{here, worktrees, branches, base, folder, folderPath}` or `{none, where}`),
+`worktreeNameChecked` (`{path, where, name, base}` or `{why}`), `worktreesMoved` (a repo's worktrees go somewhere else
+now), `startAppChosen` (from Start's menu) and `setStartOptions` (`{terminal}`, the terminal a start can open in, or
+null) (`starts.js`), `setNowPlaying` (the song Spotify is playing, or null) and `setLyrics` (what's known of its lyrics:
+`{state}`, and for a song's `track`, with `lrc` or `plain` once found, or `none` or `failed` when there are none to be
+had) (`spotify.js`),
 `showWriting(sid, id, {text} or {missing})` (`writings.js`), and `showChanges(sid, scope, {scope, v, files, complete}
 or {missing})` (each file `{path, status, binary, saved, complete, counts: {who: [added, removed]}, hunks: [{oldStart,
 newStart, lines: [[sign, text, who]]}]}`, with `cut` past 30,000 lines) and `setEditors({choice, apps: [{id, name}]})`
@@ -179,11 +199,12 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
 
 - **`app/core/`** is the panel itself: start-up (`AppDelegate`, `main.m`), the registry (`Modules`), the services a
   module gets (`Core`: the page, the window, the menu bar, the rows, the hosts, the agents), `Rows` (the rows read once
-  a second, each module adding its part in the phase it belongs to, and sent), `Focus` (the session you're on, and
-  opening a session from its row), `Send` (words into a session through its host and its agent, and why they can't go in
-  now, worded as the menus, cards and steps say it), `Work` (who's at work in a checkout, which the island's steps and
-  Deploy wait for), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing` (what the print runs share: the rows read,
-  and read once what's worked out alongside them has come back). **`app/contracts/`** holds what modules fill in
+  a second, each module adding its part in the phase it belongs to, and sent), `Focus` (the session you're on, when you
+  last looked at each, and opening a session from its row), `Send` (words into a session through its host and its
+  agent, and why they can't go in now, worded as the menus, cards and steps say it), `Work` (who's at work in a
+  checkout, which the island's steps and Deploy wait for), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing`
+  (what the print runs share: the rows read, and read once what's worked out alongside them has come back).
+  **`app/contracts/`** holds what modules fill in
   (`Module.h`, `Host.h`, `Agent.h`) and what they pass (`Row`, `Reason`), and **`app/shared/`** the helpers that know no
   app (`Log`, `Files`, `Processes`, `Git`, `Text`, `AppleEvents`, `AppleScript`, `Accessibility`, `Links`,
   `Menus`).
@@ -223,9 +244,9 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
     line under the details;
   - presses, typing and Return in its boxes, the boxes that take the keyboard, what the pointer can point at, what it
     does with what the pointer is on, and the card something pointed at shows;
-  - the strips under the list and what hangs below it (for the panel's height), the reader's modes and their presses,
-    its lines' motion (`core.lines`), the bits that cross-fade, what a step's note settles, and what's forgotten a
-    minute after a session goes;
+  - the strips above or under the list and what hangs below it (for the panel's height), the reader's modes and their
+    presses, its lines' motion (`core.lines`), the bits that cross-fade, what a step's note settles, and what's
+    forgotten a minute after a session goes;
   - what an agent's details mean (`core.agent`), for the parts that show them.
 - `tools/compile.sh` is the one compile line, for build.sh, the tests and CI. Only `app/` and its `core`, `contracts`
   and `shared` folders are on its include path, so a module can't import another module's header, nor the core a
@@ -269,7 +290,8 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   press it. Tick Show Build in Header (hold ⌥ as you open the pawn menu: Working on Whozmove ▸) and the header says
   which build you're running.
 - `--update` on any of them re-records its expected output after a change you meant; read the diff first.
-- `tests/panel-cases.js` holds the page's sample sessions; add a case there for any new label or rule.
+- `tests/panel-cases.js` holds the page's sample sessions; add a case there, or in a module's own
+  `tests/page-cases.js` when it has one, for any new label or rule.
 - `Whozmove --print-rows` prints the rows the panel would get for the home folder in `$HOME`, as JSON, and
   quits: what `tests/rows.sh` compares. It never asks GitHub, so PRs show as UNKNOWN there.
   `Whozmove --print-mode-moves` prints, for each terminal session, why keys can't go into it now (or that they
@@ -295,7 +317,10 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   Whozmove ▸ Preview the Wait.
 - `Whozmove --print-starts` prints what sample starts would run (a terminal tab's command, Claude Desktop's link), and
   `Whozmove --print-trust [--trust <folder>] <folder>…` whether Claude may work in each folder, as the state file in
-  `$HOME` says, recording your yes for one first with `--trust`. `tests/rows.sh` checks both against its sample home.
+  `$HOME` says, recording your yes for one first with `--trust`. The starts module's tests check the first, and
+  `tests/rows.sh` the second, against its sample home. `Whozmove --print-worktrees [--make] <folder> <name>…` says
+  whether a worktree of the folder's repo can take each name, where it would go and what it would start from, and
+  with `--make` makes each; the starts module's tests run it against a sample repo.
 - Native log: `AppDir/panel.log` (`PanelLog`/`LogProblem`; `swap-in.sh` writes there too). NSLog output isn't kept.
 - The UI has no automated test. To try it with sample rows, put the whole page together in a new folder with
   `tools/page.sh <folder>`
@@ -321,7 +346,9 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   only while one of the panel's own text boxes is clicked into (`keyboard` message), or while the new conversation
   card is open from ⌃⌥N or New Conversation, until it starts or closes. Clicking a row leaves
   the keyboard with Claude, which is what lets "open a conversation, type straight away" work. Don't
-  synthesize clicks or move the pointer to focus things in Claude: it makes the mouse pointer jump.
+  synthesize clicks or move the pointer to focus things in Claude: it makes the mouse pointer jump. When another app
+  takes the keyboard, the page lets go of the box that had it (`keyboardGone`): asking for the keyboard makes the panel
+  key at once, so a box focused again as the list is redrawn would take it back.
 - **Only the panel's own page talks to the app.** The reader shows a prototype a session wrote, scripts and all, in
   a sandboxed frame from its own text; `Page` ignores every message that doesn't come from the main frame, and lets
   the frame load nothing but that text. Keep both: a page Claude wrote must never answer a request.
@@ -337,12 +364,14 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   Return when Claude shows no Submit button, and only while Claude is in front (`submit:` in
   modules/claude-desktop/app/DesktopMessageBox.m). A new conversation's first message is sent with Claude's Send
   button, never a key, only in the conversation Whozmove has just opened with your words, once Claude shows its page,
-  and only while its box holds exactly those words (`sendFirst:` in DesktopNewConversation.m) and its folder button
-  shows the folder the conversation is for. Claude loses a folder that comes
-  in its link, so the folder is chosen as you would: its folder button is pressed and the folder picked from its
-  Recent ones, by path, the one time its list opens (`chooseFolder:`), and never "Open folder…". Claude can let a
-  press go by while it gets the folder ready, so Send is pressed again, a few times, until Claude's log says it's
-  starting the conversation or its box empties (`pressSend:`); the words are never taken out of Claude's box.
+  and only while its box holds exactly those words (`sendFirst:` in DesktopNewConversation.m) and Claude shows the
+  folder the conversation is for. Claude loses a folder that comes in its link, so the folder is chosen as you would:
+  its environment pressed among the recent ones Claude's page lists, once, which environment is which folder read
+  from Claude's own record and never written (`chooseEnvironment:`), or on Claude's older screen its folder button
+  pressed and the folder picked from its Recent ones, by path, the one time its list opens (`chooseFolder:`); never
+  "Open folder…" or a new environment. Claude can let a press go by while it gets the folder ready, so Send is
+  pressed again, a few times, until Claude's log says it's starting the conversation or its box empties
+  (`pressSend:`); the words are never taken out of Claude's box.
   The one key that goes into a terminal session while Claude works is the Backspace that takes out the filler of a
   next step's request (`WhyNotEditDraft`): Claude Code puts the stashed draft back the moment a message is sent, and
   there a Backspace only edits it. Never while Claude asks something or a request waits. A step's words are fixed
@@ -388,11 +417,17 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
 - **Don't name a script or flag for a deploy.** The session hook counts commands named for one as production
   deploys (`names_deploy` in the hook `whozmove-claude.py`), so building and deploying Whozmove use `build.sh`,
   `--now` and `swap-in.sh`.
-- **Sorting and grouping** (`classify` and `sortKey` in whose-move.js, `goTo` and `state.current` in panel.js):
-  Status groups by the agent's state; Activity keeps a session that replied under Your turn until an hour
-  passes with nothing happening. The session you're on stays put until you move to another one; a working row
-  sorts by when its turn began, so two working agents don't trade places with every step. These are deliberate: read
-  the comments in whose-move.js before changing them.
+- **Sorting and grouping** (`classify`, `placeRows` and `sortKey` in whose-move.js; `heldNow`, `keepSeen` and
+  `state.placed` in panel.js; `noteSeen:` in app/core/Focus.m): what a session is (a request, working, a reply you
+  haven't read, however old, one you have, or idle an hour after the last message) is kept apart from where its row is
+  shown, its section and its place there. A reply is read once you've opened its session here (`markRead`), written
+  to it, or been on it for 2 seconds in Claude or Ghostty in front while at the Mac (the app's `seenAt`, kept by the
+  page across launches), after it came. Your turn holds the requests and the replies you haven't read, first come,
+  first served: a row that comes into it joins the end and keeps its place there, so nothing above it moves; a working
+  row sorts by when its turn began, so two working agents don't trade places with every step. Only a row you've
+  pressed (`keepInPlace`) keeps the place it was last shown in, and its project's, showing what it is now there, until
+  you've moved on from the panel: the pointer off it and moved (`hoverEnd`), no box with the keyboard. These are
+  deliberate: read the comments in whose-move.js before changing them.
 
 ## Animation
 
@@ -415,7 +450,8 @@ travels between them (measured where it is and where it lands) while the rest fa
 numbers. Its wait styles each own a reset, a function of the time since it started (the vine's is `vineFrame`), so
 `tests/panel.sh` checks its frames as numbers.
 
-Spotify's token moves natively, as a window of its own under the panel: modules/spotify/README.md says how.
+Spotify's token moves natively, as a window of its own under the panel: modules/spotify/README.md says how, and how a
+song's lines roll into the now-playing strip and follow along beside the list.
 
 The reader's panel grows and folds natively (`reshapeTo:` in PanelWindow.m): the window takes in everything the
 panel covers on the way at once, the page is laid out and drawn there once, and then only the glass's and the page's

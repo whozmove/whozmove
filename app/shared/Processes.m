@@ -29,6 +29,16 @@ long long ProcessStartedAt(pid_t pid) {
     return (long long)started.tv_sec * 1000000 + started.tv_usec;
 }
 
+// Whether a process is paused (Ctrl+Z in its terminal, or SIGSTOP): it's still there, but runs nothing until it's
+// carried on.
+BOOL ProcessStopped(pid_t pid) {
+    struct kinfo_proc info;
+    size_t size = sizeof(info);
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
+    if (pid <= 0 || sysctl(mib, 4, &info, &size, NULL, 0) != 0 || size == 0) return NO;
+    return info.kp_proc.p_stat == SSTOP;
+}
+
 // A session's process, told apart from a later one given the same pid: pid and start time.
 NSString *ProcessKey(pid_t pid, NSString *procStart) {
     return [NSString stringWithFormat:@"%d %@", pid, procStart ?: @""];
@@ -428,4 +438,25 @@ NSString *LoginPath(void) {
     if (path) return path;
     NSString *own = NSProcessInfo.processInfo.environment[@"PATH"] ?: @"/usr/bin:/bin:/usr/sbin:/sbin";
     return [own stringByAppendingString:@":/opt/homebrew/bin:/usr/local/bin"];
+}
+
+// Runs a command from a checkout: in your shell (LoginShell) with your terminal's PATH (LoginPath), but without your
+// shell's startup files, which a command the panel runs often (an extra stage's) shouldn't wait on; and as yours, not
+// an agent's, so the marks agents put on their commands (`marks`, the core's agentMarks) are taken off. With `errors`,
+// its error output joins what it prints. Blocking. Nil, and nothing runs, until the marks are known: what an agent left
+// on the panel's environment must never reach the command.
+NSDictionary *RunInCheckout(NSString *command, NSString *folder, NSTimeInterval seconds, BOOL errors,
+                            NSArray<NSString *> *marks) {
+    if (!marks) return nil;
+    NSString *shell = LoginShell();
+    NSArray *noStartupFiles = [shell.lastPathComponent isEqual:@"bash"] ? @[@"--noprofile", @"--norc"] : @[@"-f"];
+    NSString *unset = marks.count ? [NSString stringWithFormat:@"unset %@; ", [marks componentsJoinedByString:@" "]]
+                                  : @"";
+    NSString *script = [unset stringByAppendingString:@"cd -- \"$1\" && eval \"$2\""];
+    NSMutableDictionary *environment = [NSProcessInfo.processInfo.environment mutableCopy];
+    [environment removeObjectsForKeys:marks ?: @[]];
+    environment[@"PATH"] = LoginPath();
+    NSMutableArray *arguments = [noStartupFiles mutableCopy];
+    [arguments addObjectsFromArray:@[@"-c", script, shell.lastPathComponent, folder, command]];
+    return RunBriefly(shell, arguments, environment, seconds, 64 * 1024, errors);
 }

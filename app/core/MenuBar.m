@@ -20,7 +20,6 @@ static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @
 @property (strong) PanelWindow *window;
 @property (strong) NSStatusItem *statusItem;
 @property (strong) NSMenuItem *groupByStatusItem;
-@property (strong) NSMenuItem *groupByActivityItem;
 @property (strong) NSMenuItem *groupByProjectItem;
 @property (strong) NSMenuItem *showNextStepsItem;
 @property (strong) NSMenuItem *showDeployItem;
@@ -66,7 +65,6 @@ static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @
     self.statusItem.button.imagePosition = NSImageLeft;
     // Its own items, in the sections modules' items go in too (addEntries:), each with its order there.
     self.groupByStatusItem = [self item:@"Group by Status" action:@selector(groupByStatus) key:@""];
-    self.groupByActivityItem = [self item:@"Group by Activity" action:@selector(groupByActivity) key:@""];
     self.groupByProjectItem = [self item:@"Group by Project" action:@selector(groupByProject) key:@""];
     NSMenu *steps = [NSMenu new];
     steps.autoenablesItems = NO;
@@ -124,8 +122,7 @@ static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @
     [menu addItemWithTitle:@"Show / Hide Panel" action:@selector(toggle) keyEquivalent:@""].target = self.window;
     [menu addItemWithTitle:@"Reset Position" action:@selector(resetPosition) keyEquivalent:@""].target = self.window;
     [menu addItem:NSMenuItem.separatorItem];
-    for (NSMenuItem *item in @[self.groupByStatusItem, self.groupByActivityItem, self.groupByProjectItem])
-        put(item, menu);
+    for (NSMenuItem *item in @[self.groupByStatusItem, self.groupByProjectItem]) put(item, menu);
     [menu addItem:NSMenuItem.separatorItem];
     for (NSMenuItem *item in section(MenuSectionFeatures)) put(item, menu);
     // Only for working on Whozmove itself: it shows while ⌥ is held as the menu opens (menuNeedsUpdate:).
@@ -154,25 +151,22 @@ static NSString *const kShowNextSteps = @"showNextSteps", *const kShowDeploy = @
     self.statusItem.button.title = count > 0 ? [NSString stringWithFormat:@" %ld", (long)count] : @"";
 }
 
-// The panel's grouping, chosen from this menu: Status (Needs you, Working, Your turn, Idle), Activity (the same
-// sections, but a session stays under Your turn until it has been quiet for an hour, read or not) or Project.
+// The panel's grouping, chosen from this menu: Status (Your turn, Working, Seen, Idle) or Project.
 - (void)groupByStatus { [self applyGroupBy:@"status"]; }
 
 - (void)groupByProject { [self applyGroupBy:@"project"]; }
-
-- (void)groupByActivity { [self applyGroupBy:@"activity"]; }
 
 - (void)applySavedGrouping {
     [self applyGroupBy:[NSUserDefaults.standardUserDefaults stringForKey:@"groupBy"]];
 }
 
+// Anything but Project is Status, a grouping this menu no longer offers included, and it's saved as such.
 - (void)applyGroupBy:(NSString *)mode {
-    if (![@[@"project", @"activity"] containsObject:mode]) mode = @"status";
+    if (![mode isEqual:@"project"]) mode = @"status";
     [NSUserDefaults.standardUserDefaults setObject:mode forKey:@"groupBy"];
     [self.page setGroupBy:mode];
     self.groupByStatusItem.state = [mode isEqual:@"status"] ? NSControlStateValueOn : NSControlStateValueOff;
     self.groupByProjectItem.state = [mode isEqual:@"project"] ? NSControlStateValueOn : NSControlStateValueOff;
-    self.groupByActivityItem.state = [mode isEqual:@"activity"] ? NSControlStateValueOn : NSControlStateValueOff;
 }
 
 // The switches: each flips its preference, and the page is told.

@@ -110,7 +110,6 @@
 .cc-total { display: flex; justify-content: space-between; margin-top: 9px; padding-top: 8px;
             border-top: 1px solid var(--rule); font-size: var(--size-card); color: var(--muted); }
 .cc-total b { font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
-.cc-proof { margin-top: 8px; font-size: var(--size-small); color: var(--muted); }
 .cc-hint { margin-top: 6px; font-size: var(--size-meta); color: var(--faint); }
 
 @media (prefers-reduced-motion: reduce) {

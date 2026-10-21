@@ -1,5 +1,5 @@
 // StartsModule: new conversations' face for the core (Module): the card's messages, the starts still waiting matched to
-// the sessions they became, New Conversation and ⌃⌥N in the pawn menu, and the print mode the tests check.
+// the sessions they became, New Conversation and ⌃⌥N in the pawn menu, and the print modes the tests check.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 #import "Module.h"
@@ -12,6 +12,7 @@
 #import "Printing.h"
 #import "Starts.h"
 #import "Shortcut.h"
+#import "Worktrees.h"
 
 // ⌃⌥N from any app, on until unticked.
 static NSString *const kNewShortcut = @"newConversationShortcut";
@@ -35,6 +36,28 @@ static int PrintStarts(Core *core) {
                            [desktop newConversationLink:long_].absoluteString ?: NSNull.null});
 }
 
+// `Whozmove --print-worktrees [--make] <folder> <target>…`: what the repo the folder is in has (its own folder, its
+// worktrees, its branches with no folder), then whether each target can have a worktree, where it would go and what it
+// would start from, as JSON, then quit; with --make, each is made in turn. A target is a new branch's name (`name`, or
+// `name:base` to start it from another branch than the repo's base) or a branch that's there (`+branch`).
+static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
+    BOOL make = [arguments.firstObject isEqual:@"--make"];
+    NSArray *rest = make ? [arguments subarrayWithRange:NSMakeRange(1, arguments.count - 1)] : arguments;
+    if (rest.count < 1) {
+        fprintf(stderr, "usage: Whozmove --print-worktrees [--make] <folder> <target>...\n");
+        return 2;
+    }
+    Worktrees *worktrees = [[Worktrees alloc] initWithCore:core];
+    NSMutableDictionary *targets = [NSMutableDictionary dictionary];
+    for (NSString *spec in [rest subarrayWithRange:NSMakeRange(1, rest.count - 1)]) {
+        NSArray *parts = [spec componentsSeparatedByString:@":"];
+        NSDictionary *target = [spec hasPrefix:@"+"] ? @{@"kind": @"branch", @"name": [spec substringFromIndex:1]}
+            : parts.count > 1 ? @{@"kind": @"new", @"name": parts[0], @"base": parts[1]} : @{@"kind": @"new", @"name": spec};
+        targets[spec] = make ? [worktrees make:target in:rest[0]] : [worktrees check:target in:rest[0]];
+    }
+    return PrintJSON(@{@"has": [worktrees listIn:rest[0]], @"targets": targets});
+}
+
 @interface StartsModule : NSObject <Module>
 @property (weak) Core *core;
 @property (strong) Starts *starts;      // made as the app starts: it clears the words left from earlier starts
@@ -56,7 +79,8 @@ static int PrintStarts(Core *core) {
 }
 
 + (NSDictionary<NSString *, PrintMode> *)printModes {
-    return @{@"--print-starts": ^(Core *core, NSArray *a) { return PrintStarts(core); }};
+    return @{@"--print-starts": ^(Core *core, NSArray *a) { return PrintStarts(core); },
+             @"--print-worktrees": ^(Core *core, NSArray *a) { return PrintWorktrees(core, a); }};
 }
 
 - (void)launch {
@@ -81,6 +105,8 @@ static int PrintStarts(Core *core) {
     return @{
         @"start": ^(NSDictionary *msg) { [weakSelf.starts start:msg]; },
         @"checkFolder": ^(NSDictionary *msg) { [weakSelf.starts checkFolder:msg]; },
+        @"checkWorktreeName": ^(NSDictionary *msg) { [weakSelf.starts checkWorktreeName:msg]; },
+        @"listBranches": ^(NSDictionary *msg) { [weakSelf.starts listBranches:msg]; },
         @"startMenu": ^(NSDictionary *msg) { [weakSelf.starts menu:msg]; },
     };
 }

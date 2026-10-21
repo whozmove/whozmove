@@ -114,11 +114,15 @@ static NSString *JSONText(id value) {
     [self call:@"hoverAt" arguments:[NSString stringWithFormat:@"%.0f, %.0f", point.x, point.y]];
 }
 
-- (void)hoverEnd {
-    [self call:@"hoverEnd" arguments:nil];
+- (void)hoverEnd:(BOOL)still {
+    [self call:@"hoverEnd" arguments:still ? @"true" : nil];
 }
 
-- (void)setGroupBy:(NSString *)mode {  // one of three fixed words (MenuBar), so it can go in as it is
+- (void)keyboardGone {
+    [self call:@"keyboardGone" arguments:nil];
+}
+
+- (void)setGroupBy:(NSString *)mode {  // one of two fixed words (MenuBar), so it can go in as it is
     [self call:@"setGroupBy" arguments:[NSString stringWithFormat:@"'%@'", mode]];
 }
 

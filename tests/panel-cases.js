@@ -1,30 +1,234 @@
-// The panel page's logic, run outside the app by tests/panel.sh: which section, label and colour each sample
-// session gets, how rows sort, and the HTML of sample rows. Nothing is drawn.
+// The panel page's logic, run outside the app by tests/panel.sh: which section each sample session goes in, how rows
+// sort, and the HTML of sample rows. Nothing is drawn.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 load('tests/page-harness.js');  // the stand-ins, the page's scripts and the helpers below use
 
-section('Sections, grouped by status');
+section('What each session is');
 const reply = { lastPrompt: 'fix it', lastPromptAt: min(6), lastReply: 'Fixed.', lastReplyAt: min(5) };
-const byStatus = { groupBy: 'status', current: null, seen: {} };
-const openedR2 = { ...byStatus, seen: { r2: min(1) } };
-show('a request waiting', classify(session({ ask: { id: 'a', tool: 'Bash', input: {} } }), NOW, byStatus));
-show('Claude waiting on you', classify(session({ status: 'waiting' }), NOW, byStatus));
-show('working', classify(session({ status: 'busy' }), NOW, byStatus));
-show('replied 5 min ago, not opened', classify(session({ ...reply, sessionId: 'r1' }), NOW, byStatus));
-show('replied, opened here since', classify(session({ ...reply, sessionId: 'r2' }), NOW, openedR2));
+const unread = { seen: {} };
+const readHere = (sid, at = min(1)) => ({ seen: { [sid]: at } });
+const repliedAt = (at, fields) => ({ lastPrompt: 'go on', lastPromptAt: at - 60000, lastReply: 'Done.',
+                                    lastReplyAt: at, ...fields });
+show('a request waiting', classify(session({ ask: { id: 'a', tool: 'Bash', input: {} } }), NOW, unread));
+show('Claude waiting on you', classify(session({ status: 'waiting' }), NOW, unread));
+show('working', classify(session({ status: 'busy' }), NOW, unread));
+show('replied 5 min ago, not opened', classify(session({ ...reply, sessionId: 'r1' }), NOW, unread));
+show('replied, opened here since', classify(session({ ...reply, sessionId: 'r2' }), NOW, readHere('r2')));
 show('replied, open in Claude since',
-  classify(session({ ...reply, sessionId: 'r3', lastFocusedAt: min(1) }), NOW, byStatus));
-show('replied and opened, but the one you are on',
-  classify(session({ ...reply, sessionId: 'r2' }), NOW, { ...openedR2, current: 'r2' }));
-show('replied 40 min ago', classify(session({ ...reply, lastPromptAt: min(41), lastReplyAt: min(40) }), NOW, byStatus));
+  classify(session({ ...reply, sessionId: 'r3', lastFocusedAt: min(1) }), NOW, unread));
+show('replied, looked at since in Claude or Ghostty, as the app saw',
+  classify(session({ ...reply, seenAt: min(4) }), NOW, unread));
+show('…only before it replied', classify(session({ ...reply, seenAt: min(6) }), NOW, unread));
+show('replied, opened here only before it replied',
+  classify(session({ ...reply, sessionId: 'r2' }), NOW, readHere('r2', min(10))));
+show('a turn you stopped: you wrote to it after its reply',
+  classify(session({ ...repliedAt(min(20)), lastPromptAt: min(2) }), NOW, unread));
+show('replied 40 min ago, not opened', classify(session(repliedAt(min(40))), NOW, unread));
+show('replied 40 min ago, opened', classify(session({ ...repliedAt(min(40)), sessionId: 'r2' }), NOW, readHere('r2')));
+show('replied 2 h ago, not opened: still waiting for you', classify(session(repliedAt(min(120))), NOW, unread));
+show('replied 61 min ago, opened', classify(session({ ...repliedAt(min(61)), sessionId: 'r2' }), NOW, readHere('r2')));
+show('replied 61 min ago, and you wrote to it 30 min ago',
+  classify(session({ ...repliedAt(min(61)), lastPromptAt: min(30) }), NOW, unread));
+show('a turn you stopped long after its reply, its transcript moving until 5 min ago',
+  classify(session({ ...repliedAt(min(75)), lastPromptAt: min(70), messageAt: min(5) }), NOW, unread));
+show('never replied', classify(session({}), NOW, unread));
+show('a closed conversation that replied 5 min ago, not opened',
+  classify(session({ ...reply, status: 'closed', entrypoint: 'claude-desktop', pid: 0 }), NOW, unread));
+show('replied 3 h ago, before the page first kept the replies you had not read, not opened',
+  classify(session(repliedAt(min(180))), NOW, { seen: {}, readBefore: min(120) }));
+show('your turn since, a request', turnSince(session({ ask: { id: 'a', tool: 'Bash', input: {}, at: min(3) } }),
+                                             'needs') === min(3));
+show('…Claude waiting on you, from when its status changed',
+  turnSince(session({ status: 'waiting', statusUpdatedAt: min(4) }), 'needs') === min(4));
+show('…a reply', turnSince(session(reply), 'turn') === min(5));
 
-section('Sections, grouped by activity');
-const byActivity = { groupBy: 'activity', current: null, seen: { r4: min(1) } };
-show('replied 40 min ago, opened',
-  classify(session({ ...reply, sessionId: 'r4', lastPromptAt: min(41), lastReplyAt: min(40) }), NOW, byActivity));
-show('replied 2 h ago',
-  classify(session({ ...reply, lastPromptAt: min(121), lastReplyAt: min(120) }), NOW, byActivity));
+section('Where each row goes');
+// The rows in the order they're shown, section by section: each row's id, with what it is when that isn't its
+// section's own (a request in Your turn, or a row you've pressed that has changed).
+function where(placed) {
+  let out = '', at = null;
+  for (const p of placed) {
+    out += p.section === at ? ' ' : `${at ? ' · ' : ''}${p.section}: `;
+    out += p.s.sessionId + (p.kind === p.section ? '' : `(${p.kind})`);
+    at = p.section;
+  }
+  return out;
+}
+// One update after another, each placed as render places it at the app's time `now`: the rows you've pressed (`held`)
+// where they were last shown.
+const placedAt = {};
+const placeAll = (sessions, held = [], now = NOW) => {
+  const placed = placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), placedAt,
+                           (sid) => held.includes(sid), now);
+  for (const { s, section, key, tie, latest } of placed) placedAt[s.sessionId] = { section, key, tie, latest };
+  return where(placed);
+};
+const asked = (id, at) => ({ ask: { id, tool: 'Bash', input: {}, at } });
+const lineup = [
+  session({ sessionId: 'r1', ...repliedAt(min(5)) }),
+  session({ sessionId: 'q2', status: 'waiting', statusUpdatedAt: min(3) }),
+  session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(20) }),
+  session({ sessionId: 's1', ...repliedAt(min(30), { lastFocusedAt: min(29) }) }),
+  session({ sessionId: 'q1', ...asked('q1', min(8)) }),
+  session({ sessionId: 'i1', ...repliedAt(min(90), { lastFocusedAt: min(89) }) }),
+  session({ sessionId: 'r2', ...repliedAt(min(12)) }),
+  session({ sessionId: 'w2', status: 'busy', lastPromptAt: min(2) }),
+  session({ sessionId: 's2', ...repliedAt(min(10), { lastFocusedAt: min(9) }) }),
+  session({ sessionId: 'i2' }),
+];
+show('Your turn first come, first served; Working and Seen newest first; then Idle', placeAll(lineup));
+const q3 = session({ sessionId: 'q3', ...asked('q3', min(1)) });
+show('a new request joins the end of Your turn, and nothing above it moves', placeAll([...lineup, q3], [], NOW + 1000));
+const others = [...lineup.filter((s) => s.sessionId !== 'r1'), q3];
+const r1 = (fields) => session({ sessionId: 'r1', ...repliedAt(min(5)), ...fields });
+show('a row you pressed, to read it: it stays where it was, with what it is now',
+  placeAll([...others, r1({ lastFocusedAt: min(1) })], ['r1'], NOW + 2000));
+show('…answered, and working again: still there',
+  placeAll([...others, r1({ status: 'busy', lastPromptAt: min(1), lastFocusedAt: min(1) })], ['r1'], NOW + 3000));
+show("…once you've moved on from the panel, it goes where it belongs now",
+  placeAll([...others, r1({ status: 'busy', lastPromptAt: min(1), lastFocusedAt: min(1) })], [], NOW + 4000));
+show("a row you pressed that wasn't shown yet goes where it belongs",
+  placeAll([...others, session({ sessionId: 'n1', status: 'busy', lastPromptAt: min(1) })], ['n1'], NOW + 5000));
+const backAtWork = session({ sessionId: 'i1', ...repliedAt(min(90), { lastFocusedAt: min(89) }), status: 'busy',
+                             lastPromptAt: NOW - 1000 });
+show('a row you pressed in Idle stays there as it starts work again',
+  placeAll([...others.filter((s) => s.sessionId !== 'i1'), backAtWork], ['i1'], NOW + 6000));
+const atWork = others.filter((s) => s.sessionId !== 'w1');
+const w1Replied = session({ sessionId: 'w1', ...repliedAt(min(1)) });
+show('a row you pressed that replies meanwhile stays where it was',
+  placeAll([...atWork, w1Replied], ['w1'], NOW + 7000));
+const q4 = session({ sessionId: 'q4', ...asked('q4', NOW - 500) });
+show('…while a request that comes joins the end of Your turn',
+  placeAll([...atWork, q4, w1Replied], ['w1'], NOW + 8000));
+show("…and once you've moved on, it joins the end after that request, though its reply came first",
+  placeAll([...atWork, q4, w1Replied], [], NOW + 9000));
+goTo('i1');
+show("the session you're on isn't held: its row goes where it belongs", heldNow()('i1'));
+goTo(null);
+state.pointer = { x: 20, y: 40 };
+keepInPlace('p1');
+show('a row you pressed is held while your pointer is on the panel', heldNow()('p1'));
+state.pointer = null;
+state.keyboardWanted = true;
+show('…and while you type in one of its boxes, wherever the pointer is', heldNow()('p1'));
+state.keyboardWanted = false;
+state.pointerStill = true;
+show("…and while your pointer is off the panel but hasn't moved: the panel's edge went past it", heldNow()('p1'));
+state.pointerStill = false;
+show('…and let go once your pointer has left the panel', heldNow()('p1'));
+// What the pointer was on is left alone here (hover.js, with its timers).
+const settle = renderWhenSettled, gone = pointerGone;
+let drawnAgain = 0;
+renderWhenSettled = () => { drawnAgain += 1; };
+pointerGone = () => { state.pointer = null; };
+state.pointer = { x: 20, y: 40 };
+keepInPlace('p1');
+hoverEnd(true);
+show('your pointer off the panel without moving, as a card folds away: the row you pressed is still held',
+  [drawnAgain, heldNow()('p1')]);
+hoverEnd();
+show('…and once it moves, the list is drawn again to let the row go', drawnAgain);
+state.pressedRows.clear();
+state.pointer = { x: 20, y: 40 };
+hoverEnd();
+show('…but not with no row pressed', drawnAgain);
+keepInPlace('p1');
+state.keyboardWanted = true;
+keyboardGone();
+show('another app taking the keyboard: the panel no longer has it, and the list is drawn again for the rows pressed',
+  [state.keyboardWanted, drawnAgain]);
+state.pressedRows.clear();
+renderWhenSettled = settle;
+pointerGone = gone;
+
+section('What you have read');
+// One update after another, each with the session the app marks as the one you're on (followClaude runs on them, as
+// render does), at the app's time `now`.
+const lastBefore = state.last;
+const markOn = (sid, sessions, now) => {
+  state.last = { sessions: sessions.map((s) => ({ ...s, focused: s.sessionId === sid })), now };
+  followClaude();
+};
+const kindOn = (sid) => classify(state.last.sessions.find((s) => s.sessionId === sid), NOW, view());
+const tabs = [session({ sessionId: 'ta', ...repliedAt(min(10)) }), session({ sessionId: 'tb', ...repliedAt(min(9)) })];
+markOn('ta', tabs, min(7));
+markOn('tb', tabs, min(6));
+show('the session you are on follows the mark, which alone reads nothing', [state.current, kindOn('tb')]);
+markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(5) }], min(5));
+keepSeen(state.last.sessions);
+show('…the app saw you looking at it after it replied: read', kindOn('tb'));
+markOn('tb', tabs, min(4));
+show('…and still read once the app has restarted, as the page keeps it', kindOn('tb'));
+markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(min(3)), seenAt: min(4) })], min(3));
+show('…a reply that came after you last looked is not read', kindOn('tb'));
+state.opening = { sessionId: 'ta', at: Date.now() };
+markOn('tb', tabs, min(2));
+show('a conversation just opened in Claude is the one you are on at once, before Claude says so', state.current);
+state.opening = null;
+state.last = lastBefore;
+state.seen = {};
+state.claudeShowed = null;
+goTo(null);
+
+section("The header's line");
+const shownAs = (...rows) => rows.map(([section, kind]) => ({ section, kind }));
+show('a request and a reply waiting, one working',
+  summaryHTML(shownAs(['turn', 'needs'], ['turn', 'turn'], ['busy', 'busy'], ['seen', 'seen'], ['idle', 'idle'])));
+show('only replies waiting', summaryHTML(shownAs(['turn', 'turn'], ['turn', 'turn'], ['idle', 'idle'])));
+show('a row you pressed counts where the list shows it', summaryHTML(shownAs(['turn', 'busy'], ['turn', 'turn'])));
+show('only working', summaryHTML(shownAs(['busy', 'busy'], ['seen', 'seen'], ['idle', 'idle'])));
+show('nothing waiting or working', summaryHTML(shownAs(['seen', 'seen'], ['idle', 'idle'], ['idle', 'idle'])));
+show('only idle', summaryHTML(shownAs(['idle', 'idle'], ['idle', 'idle'])));
+
+section('The list');
+// What the list shows, in order: each header with its count (› when it's folded), each project by its folder, where a
+// group's rows are (folded away or not) and the copies pinned below a folded one, and each row's id with its classes.
+function outline(html) {
+  const parts = new RegExp([/<div class="group[^"]*?( collapsed)?" data-key="[^"]*">([^<]*)<span class="n">(\d+)/,
+                             /<div class="project( collapsed)?" data-key="([^"]*)"/,
+                             /<div class="(prows(?: closed)?|pinned)">/, /<div class="row ([^"]*)" data-id="([^"]*)"/]
+    .map((part) => part.source).join('|'), 'g');
+  return [...html.matchAll(parts)].map(([, folded, name, n, projectFolded, project, body, cls, id]) =>
+    name ? `[${name} ${n}${folded ? ' ›' : ''}]`
+      : project ? `[${project}${projectFolded ? ' ›' : ''}]`
+      : body ? `(${body === 'pinned' ? 'pinned' : body === 'prows' ? 'rows' : 'folded'})`
+      : `${id}.${cls.trim().split(' ').join('.')}`).join(' ');
+}
+// The rows placed once, those in `held` where it says they were last shown.
+const placeOnce = (sessions, held = {}) =>
+  placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held, NOW);
+show('the sections in order, Idle folded', outline(sectionsHTML(placeOnce(lineup), NOW)));
+const inIdle = { i1: { section: 'idle', key: 0, tie: 0, latest: 0 } };
+show('a row you pressed, held in folded Idle with a request: pinned below it', outline(sectionsHTML(placeOnce([
+  session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(2) }),
+  session({ sessionId: 'i1', ...asked('i1', min(1)) }),
+  session({ sessionId: 'i2' }),
+], inIdle), NOW)));
+show('…or at work again: pinned too, while you are with it', outline(sectionsHTML(placeOnce([
+  session({ sessionId: 'w1', status: 'busy', lastPromptAt: min(2) }),
+  session({ sessionId: 'i1', status: 'busy', lastPromptAt: min(1) }),
+  session({ sessionId: 'i2' }),
+], inIdle), NOW)));
+state.groupBy = 'project';
+const inRepo = (sessionId, root, fields) => session({ sessionId, cwd: root, git: { branch: 'main', root }, ...fields });
+state.closedProjects['/work/other'] = true;
+show('a folded project: a reply waiting in it pinned below it', outline(projectsHTML(placeOnce([
+  inRepo('g1', '/work/app', reply),
+  inRepo('g3', '/work/other', repliedAt(min(30))),
+  inRepo('g4', '/work/other', {}),
+]), NOW)));
+delete state.closedProjects['/work/other'];
+const one = inRepo('a1', '/work/one', repliedAt(min(2)));
+const two = (fields) => inRepo('b1', '/work/two', { ...repliedAt(min(20), { lastFocusedAt: min(19) }), ...fields });
+const twoWas = Object.fromEntries(placeOnce([one, two({})]).map(({ s, section, key, tie, latest }) =>
+  [s.sessionId, { section, key, tie, latest }]));
+const twoAtWork = two({ status: 'busy', lastPromptAt: NOW - 1000 });
+show('projects by their newest row', outline(projectsHTML(placeOnce([one, two({})]), NOW)));
+show('…but a row you pressed keeps its project where it was, as it starts work',
+  outline(projectsHTML(placeOnce([one, twoAtWork], { b1: twoWas.b1 }), NOW)));
+show("…until you've moved on", outline(projectsHTML(placeOnce([one, twoAtWork]), NOW)));
+state.groupBy = 'status';
 
 section('Sorting');
 const since = (t) => `now-${Math.round((NOW - t) / 60000)}m`;
@@ -41,59 +245,10 @@ show('says working, but its message is older and replied',
   steady(session({ ...fresh, status: 'busy', lastPromptAt: NOW - 10000, lastReplyAt: NOW - 5000 }), NOW).status);
 show('says idle, but a new message is waiting for a reply',
   steady(session({ ...fresh, status: 'idle', lastPromptAt: NOW - 500, lastReplyAt: NOW - 60000 }), NOW).status);
-show('changed over 3 s ago',
+show('your message has just come in, though the status changed long ago: working',
   steady(session({ status: 'idle', statusUpdatedAt: NOW - 5000, lastPromptAt: NOW - 500 }), NOW).status);
-
-section("Current action: label and colour (the README's table)");
-const pr = (fields) => Object.assign({ url: 'https://github.com/e/app/pull/1', number: 1, state: 'OPEN',
-                                       isDraft: false, review: '', checks: 'passing' }, fields);
-const actions = [
-  ['In development', { outcome: 'Implemented', checkout: { changes: 2 } }],
-  ['Ready to commit', { outcome: 'Tested', checkout: { changes: 2 } }],
-  ['Committed, not pushed', { outcome: 'Committed', checkout: { changes: 0, ahead: 1 } }],
-  ['Live in prod', { outcome: 'Deployed' }],
-  ['On staging', { outcome: 'On staging' }],
-  ['Merged this turn', { outcome: 'Merged' }],
-  ['CI failing', { prs: [pr({ checks: 'failing' })] }],
-  ['Changes requested', { prs: [pr({ review: 'CHANGES_REQUESTED' })] }],
-  ['CI running', { prs: [pr({ checks: 'running' })] }],
-  ['Draft PR', { prs: [pr({ isDraft: true })] }],
-  ['Approved', { prs: [pr({ review: 'APPROVED' })] }],
-  ['In review', { prs: [pr({ review: 'REVIEW_REQUIRED' })] }],
-  ['In review, PR just raised', { outcome: 'PR raised' }],
-  ["the branch's PR, in a worktree",
-   { git: { branch: 'f', root: '/work/app-f', worktree: 'app-f' }, checkout: { pr: pr({ checks: 'failing' }) } }],
-  ['Review posted', { outcome: 'Reviewed' }],
-  ['Exploring', { outcome: 'Researched' }],
-  ['Planning', { outcome: 'Planned' }],
-  ['Merged, by its PR', { outcome: 'Answered', prs: [pr({ state: 'MERGED' })] }],
-  ['Pushed, no PR', { outcome: 'Pushed' }],
-  ['Committed, branch tracks a remote', { outcome: 'Committed', checkout: { upstream: true } }],
-  ['Committed, a remote but no tracking', { outcome: 'Committed', checkout: { remotes: 1 } }],
-  ['Committed, no remote', { outcome: 'Committed', checkout: { remotes: 0 } }],
-  ['Done', { outcome: 'Answered' }],
-  ['Done, Claude says completed', { summaryStatus: 'completed' }],
-  ['nothing to say', {}],
-  ['Waiting on you', { summaryStatus: 'blocked' }],
-  ['blocked, Ready to commit stays', { summaryStatus: 'blocked', outcome: 'Tested', checkout: { changes: 1 } }],
-  ['blocked, CI failing stays urgent', { summaryStatus: 'blocked', prs: [pr({ checks: 'failing' })] }],
-  ["a chat in a busy checkout doesn't take its state", { outcome: 'Researched', checkout: { changes: 3 } }],
-  ['a worktree owns its checkout',
-   { outcome: 'Researched', git: { branch: 'f', root: '/work/app-f', worktree: 'app-f' }, checkout: { changes: 3 } }],
-];
-for (const [name, fields] of actions) show(name, currentAction(session(fields)));
-show('the label as drawn', stageHTML(session({ outcome: 'Tested', checkout: { changes: 2 } }), 'idle'));
-show('no label while working', stageHTML(session({ outcome: 'Tested' }), 'busy'));
-
-section('What the work has been through');
-const ready = { outcome: 'Tested', checkout: { changes: 1 }, workSteps: ['Built', 'Tested'] };
-show('built and tested', proofHTML(session(ready), 'idle'));
-show('audit, before fixing', proofHTML(session({ ...ready, audit: { found: 15, left: 15, settled: false } }), 'idle'));
-show('audit, one left', proofHTML(session({ ...ready, audit: { found: 15, left: 1, settled: true } }), 'idle'));
-show('audit, all settled', proofHTML(session({ ...ready, audit: { found: 15, left: 0, settled: true } }), 'idle'));
-show('audit, nothing found', proofHTML(session({ ...ready, audit: { found: 0, left: 0, settled: false } }), 'idle'));
-show('nothing while working', proofHTML(session(ready), 'busy'));
-show('nothing beside a vague state', proofHTML(session({ outcome: 'Answered', workSteps: ['Tested'] }), 'idle'));
+show('changed over 3 s ago, and your message too: as it is',
+  steady(session({ status: 'idle', statusUpdatedAt: NOW - 5000, lastPromptAt: NOW - 4000 }), NOW).status);
 
 section('Details line');
 for (const id of ['claude-opus-5-5', 'claude-sonnet-5-5[1m]', 'claude-haiku-5-5', 'claude-fable-5-1', 'claude-opus-5',
@@ -124,6 +279,8 @@ show('a repo', projectOf(session({ cwd: '/work/app/src', git: { branch: 'main', 
 show('outside git', projectOf(session({ cwd: '/work/notes', git: null })));
 
 section('HTML of sample rows');
+const pr = (fields) => Object.assign({ url: 'https://github.com/e/app/pull/1', number: 1, state: 'OPEN',
+                                       isDraft: false, review: '', checks: 'passing' }, fields);
 const rows = [
   ['a command waiting for your OK', session({ sessionId: 'p1', status: 'waiting',
     ask: { id: 'a1', tool: 'Bash', input: { command: 'npm test', description: 'Run the tests' }, truncated: false } })],
@@ -139,15 +296,18 @@ const rows = [
   ['working', session({ sessionId: 'w1', status: 'busy', statusUpdatedAt: min(2), lastPrompt: 'run the suite',
     lastPromptAt: min(2), activity: 'Run the tests',
     agent: { model: 'claude-opus-5-5', effort: 'high', mode: 'acceptEdits', tokens: 120000 } })],
-  ['your turn, with PRs, a worktree and an audit', session({ sessionId: 't1', ...reply, outcome: 'Tested',
-    workSteps: ['Built', 'Tested'], audit: { found: 3, left: 1, settled: true }, checkout: { changes: 1 },
+  ['your turn, with PRs and a worktree', session({ sessionId: 't1', ...reply, outcome: 'Tested',
+    checkout: { changes: 1 },
     git: { branch: 'feature', root: '/work/app-f', worktree: 'app-f', worktreeOf: 'app', mainRoot: '/work/app' },
     prs: [pr({ title: 'Fix the tests', repo: 'e/app' }),
           pr({ url: 'https://github.com/e/app/pull/2', number: 2, isDraft: true, title: 'Draft' })],
     agent: { model: 'claude-sonnet-5-5', effort: 'medium', mode: 'bypassPermissions', tokens: 150000 } })],
+  ['a reply you have read', session({ sessionId: 'v1', ...reply, outcome: 'Answered', lastFocusedAt: min(1) })],
+  ['a turn you stopped: only your message, not the reply before it', session({ sessionId: 'v2',
+    ...repliedAt(min(20)), lastPrompt: 'now rename it', lastPromptAt: min(2) })],
   ['a closed Claude Desktop conversation, open in Claude', session({ sessionId: 'd1', status: 'closed',
     entrypoint: 'claude-desktop', focused: true, name: 'Desk chat', pid: 0, lastReply: 'Done.', lastReplyAt: min(300),
-    lastPromptAt: min(301), outcome: 'Answered', git: null, cwd: '/work/notes' })],
+    lastPromptAt: min(301), lastFocusedAt: min(299), outcome: 'Answered', git: null, cwd: '/work/notes' })],
 ];
 for (const [name, s] of rows) print(`-- ${name}\n${rowHTML(s, classify(s, NOW, view()), NOW)}`);
 state.compactOpen.c1 = true;
@@ -165,12 +325,12 @@ state.opening = null;
 section('HTML of projects');
 state.groupBy = 'project';
 state.closedProjects['/work/other'] = true;
-print(projectsHTML([
+print(projectsHTML(placeRows([
   session({ sessionId: 'g1', ...reply }),
   session({ sessionId: 'g2', status: 'busy', lastPromptAt: min(1) }),
   session({ sessionId: 'g3', cwd: '/work/other', git: { branch: 'main', root: '/work/other' }, outcome: 'Answered',
-    lastReplyAt: min(500) }),
-], NOW));
+    lastReplyAt: min(500), seenAt: min(499) }),
+].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false, NOW), NOW));
 state.groupBy = 'status';
 
 section('Command cards');
@@ -197,8 +357,8 @@ section('What the page forgets');
 const earlier = (ms) => Date.now() - ms;
 Object.assign(state, {
   loadedAt: earlier(5 * 60000),
-  seen: { listed: earlier(3600000), endedLongAgo: earlier(3600000), endedJustNow: earlier(3600000),
-          readRecently: earlier(60000) },
+  seen: { listed: earlier(7200000), endedLongAgo: earlier(7200000), endedJustNow: earlier(7200000),
+          readRecently: earlier(60000), readWithinTheHour: earlier(40 * 60000) },
   listedAt: { endedJustNow: earlier(10000), askJustAnswered: earlier(10000) },
   quiz: { askWaiting: {}, askJustAnswered: {}, askAnsweredLongAgo: {} },
   compactOpen: { listed: true, endedLongAgo: true },
@@ -288,6 +448,8 @@ show('confirmed, new work since the last deploy: the dot', offer(built, 'idle', 
 show('confirmed, no work in the folder at all: still there', offer({}, 'idle', dep({})));
 show('confirmed, the agent working: dimmed', offer(built, 'busy', dep({ at: min(30) })));
 show('confirmed, the agent asking: dimmed', offer(built, 'needs', dep({})));
+show('confirmed, a reply waiting or read: ready',
+  [offer(built, 'turn', dep({})).look, offer(built, 'seen', dep({})).look]);
 show('just pressed', offer({}, 'idle', dep({ pressed: NOW - 300 })));
 show('running, whatever the agent does', offer({}, 'busy', dep({ run: { running: true, startedAt: NOW - 2000 } })));
 show('went through a moment ago: the check', offer({}, 'idle', dep({ run: doneRun, at: doneRun.finishedAt,
@@ -308,7 +470,7 @@ show('…the row\'s own agent working as well: its own', offer(built, 'busy', de
 show('…a deploy running: whatever the agents do', offer({}, 'idle', dep({ waitsFor: ['codegen'],
   run: { running: true, startedAt: NOW - 2000 } })));
 const byKind = (sessions) => agentsAtWork(sessions,
-  Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, NOW, byStatus)])));
+  Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, NOW, unread)])));
 show('the agents at work, by each folder they work in (their own checkout, and the one their edits land in); not one '
   + 'waiting on you, which changes nothing until you answer it',
   Object.fromEntries(Object.entries(byKind([
@@ -500,8 +662,7 @@ show('…a closed one when none there is running', [...checkoutOwners([
   session({ sessionId: 'closed-later', status: 'closed', outcome: 'Researched', lastPromptAt: min(3) }),
 ])]);
 
-print('-- a row with changed files it didn\'t change itself: what the work has been through at the end of the details line,'
-      + ' the island under it, no tag');
+print('-- a row with changed files it didn\'t change itself: the island under the details line');
 state.owners = new Set(['w1', 'w2', 'w3', 'w4', 'w5', 'w6', 'w7']);
 const withSteps = (sessionId, checkout, fields = {}) => session({ sessionId, outcome: 'Tested', workSteps: ['Built',
   'Tested'], checkout: { ...remote, added: 1493, removed: 62, ...checkout }, ...fields });
@@ -521,9 +682,6 @@ show('the part of the gauge whose files are listed is drawn lit, so a rebuild do
      (state.filesShown = 'w1:staged', /band st is-on/.test(islandHTML(withSteps('w1', {}),
        stagesOf(withSteps('w1', { changes: 64, newFiles: 2, ...split }), true)))));
 state.filesShown = null;
-show('no lines to count (only a binary file changed): what the work has been through, in words',
-     /class="proof"[^>]*>built · tested</.test(rowHTML(withSteps('w1', { changes: 1, added: 0, removed: 0 }), 'idle',
-                                                     NOW)));
 print("-- the files of a part of the gauge, as its list shows them: each part titled and explained, new ones marked");
 state.checkoutFiles = { '/work/app': { staged: ['app/Git.m'], partly: ['panel/scripts/rows.js'],
                                        unstaged: ['README.md'], new: ['docs/stages.md'] } };
@@ -593,7 +751,7 @@ print('-- the set-up card on its row');
 state.deploySetup.w5 = { step: 1, text: 'make install', then: 'save' };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
 state.deploySetup = {};
-print('-- Show Next Steps off: the tag and what the work has been through, as before');
+print('-- Show Next Steps off: no island');
 state.switches = { ...state.switches, nextSteps: false };
 print(rowHTML(withSteps('w6', { changes: 3 }), 'idle', NOW));
 state.switches = { ...state.switches, nextSteps: true };
@@ -747,18 +905,18 @@ const chMine = { added: 26, removed: 13, v: 4, files: [
   { path: 'docs/retries.md', added: 6, removed: 13, edits: 1, at: min(40), created: false, saved: true }],
   parts: { me: [26, 13], tests: [24, 1], outside: [1464, 123] } };
 const chRow = session({ sessionId: 'me', name: 'Retry queue', changes: chMine, checkout: { ...remote, base: 'main' } });
-print('-- its numbers end the details line, as a button; the proof goes in their card');
+print('-- its numbers end the details line, as a button');
 print(metaHTML({ s: chRow, kind: 'idle' }));
 state.reading = { sessionId: 'me', mode: 'changes' };
-show('pressed while its changes are open', countsHTML(chRow, 'idle').includes('counts on'));
+show('pressed while its changes are open', countsHTML(chRow).includes('counts on'));
 state.reading = { sessionId: 'me', mode: 'writings' };
-show('…not while what it wrote is', countsHTML(chRow, 'idle').includes('counts on'));
+show('…not while what it wrote is', countsHTML(chRow).includes('counts on'));
 state.reading = null;
-show('nothing changed: no numbers', countsHTML(session({ changes: { added: 0, removed: 0, files: [] } }), 'idle'));
+show('nothing changed: no numbers', countsHTML(session({ changes: { added: 0, removed: 0, files: [] } })));
 show('the branch, from its side: itself, the others biggest first, then outside these sessions', branchParts(chRow, chSessions));
 show('…from the other session\'s', branchParts({ ...chRow, sessionId: 'tests' }, chSessions).parts.map((p) => p.name));
 state.last = { sessions: chSessions, now: NOW };
-print(changesCardHTML(chRow, 'built · tested'));
+print(changesCardHTML(chRow));
 const chHunk = { oldStart: 10, newStart: 10, lines: [[' ', 'def a():'], ['-', '    old()', 'me'], ['-', '    older()', 'me'],
                                                    ['+', '    new()', 'me'], [' ', ''], ['+', '# tested', 'tests']] };
 const chView = { scope: 'session', v: 4, files: [
@@ -781,8 +939,8 @@ show('…and its group in the branch\'s list is just other changes',
 const chUnknown = session({ sessionId: 'me', name: 'Retry queue', checkout: { ...remote, base: 'main' },
   changes: { known: false, added: 1514, removed: 137, files: [], parts: {}, v: 5 } });
 print('-- a session whose changes aren\'t known: the branch\'s numbers on its row, quieter, and a card saying why');
-print(countsHTML(chUnknown, 'idle'));
-print(changesCardHTML(chUnknown, 'built'));
+print(countsHTML(chUnknown));
+print(changesCardHTML(chUnknown));
 show('…its branch switch has the branch\'s total', branchParts(chUnknown, chSessions).total);
 const chBlind = blindView(chBranch);
 show('…and its view names no one: files by how far they\'ve got, each just new or changed',
@@ -812,66 +970,3 @@ state.editors = { apps: state.editors.apps, choice: 'com.microsoft.VSCode' };
 Object.assign(chState, { split: false, picking: null, layout: 'one', path: 'docs/retries.md' });
 print(changesBodyParts(chRow, chState, chView).map((p) => p.html).join(''));
 state.editors = { apps: [] };
-
-section('New conversations');
-const startable = [
-  session({ sessionId: 'n1', name: 'api', cwd: '/work/api', git: { branch: 'main', root: '/work/api' }, lastPromptAt: min(30) }),
-  session({ sessionId: 'n2', name: 'app work', lastPromptAt: min(5) }),
-  session({ sessionId: 'n3', cwd: '/work/app-wt', lastPromptAt: min(2),
-            git: { branch: 'feat', root: '/work/app-wt', worktree: 'app-wt', worktreeOf: 'app', mainRoot: '/work/app' } }),
-  session({ sessionId: 'n4', cwd: '/Users/me/Library/Application Support/Claude/scratch-workspaces/x1', git: null,
-            lastPromptAt: min(1) }),
-];
-show('the folders a card offers, newest first (a worktree counts as its repo; scratch is left out)',
-     startProjects(startable));
-show('where a card starts: the session marked as the one you\'re on, in Claude or Ghostty',
-     defaultStartFolder(startable.map((s) => (s.sessionId === 'n1' ? { ...s, focused: true } : s)), null));
-show('…else the one the list keeps in place for you', defaultStartFolder(startable, 'n1'));
-show('…else the newest', defaultStartFolder(startable, null));
-show('…nowhere with nothing listed', defaultStartFolder([], null));
-const startCard = { id: 'card1', folder: '/work/app', name: 'app', app: 'desktop', text: '', problem: null };
-show('the card while the app is asked about its folder', startState(startCard, {}));
-show('…a folder Claude has worked in, with no words', startState(startCard, { '/work/app': { trusted: true } }));
-show('…with words', startState({ ...startCard, text: 'fix the build' }, { '/work/app': { trusted: true } }));
-show('…a folder Claude hasn\'t worked in', startState({ ...startCard, text: 'fix it' }, { '/work/app': { trusted: false } }));
-show('…a folder that has gone', startState(startCard, { '/work/app': { gone: true } }));
-show('…no folder yet', startState({ ...startCard, folder: null, name: 'Choose a folder' }, {}));
-show('…why the last one didn\'t start, still asking about trust',
-     startState({ ...startCard, problem: 'Claude was busy saving its settings: try again' }, { '/work/app': { trusted: false } }));
-print('-- the card in Claude, with Ghostty to switch to, asking about trust');
-state.startOptions = { terminal: 'Ghostty' };
-state.folders = { '/work/app': { trusted: false } };
-print(startCardHTML({ ...startCard, text: 'Add <b>dark</b> mode' }, startable));
-print('-- in Ghostty, in a worktree');
-state.folders = { '/work/app-wt': { trusted: true } };
-print(startCardHTML({ ...startCard, folder: '/work/app-wt', name: 'app-wt', app: 'terminal' }, startable));
-print('-- with no terminal to switch to: only its icon');
-state.startOptions = { terminal: null };
-state.folders = { '/work/app': { trusted: true } };
-print(startCardHTML(startCard, startable));
-const startOf = (fields) => ({ id: 's1', key: 'u-1', folder: '/work/app', name: 'app', app: 'terminal',
-                               words: 'write the tests', at: NOW, drawn: true, ...fields });
-print('-- a start not listed yet, as a working row');
-print(rowHTML(pendingSessions({ s1: startOf({}) }, startable, 'Ghostty')[0], 'busy', NOW));
-print("-- one in Claude that waits on you, and one that didn't start");
-print(rowHTML(pendingSessions({ s1: startOf({ app: 'desktop', note: "Your words are in Claude's message box: press Send there" }) },
-                              startable, 'Ghostty')[0], 'busy', NOW));
-print(rowHTML(pendingSessions({ s1: startOf({ why: 'Nothing started in Ghostty: look there for what Claude Code says' }) },
-                              startable, 'Ghostty')[0], 'busy', NOW));
-show('one still handing over in the box isn\'t drawn yet',
-     pendingSessions({ s1: startOf({ drawn: false }) }, startable, 'Ghostty').length);
-show('one Claude has listed isn\'t drawn again', pendingSessions({ s1: startOf({ key: 'n2' }) }, startable, 'Ghostty').length);
-show('its row stays hidden while its card hands over', (state.starts = { s1: startOf({ key: 'n2', drawn: false }) },
-                                                         startLanding('n2')));
-show('…and while its copy rises to it', (state.starts = { s1: startOf({ key: 'n2', flying: true }) }, startLanding('n2')));
-show('…but not once it has landed', (state.starts = { s1: startOf({ key: 'n2' }) }, startLanding('n2')));
-forgetStarted(startable);
-show('a start Claude has listed is let go once its row has landed', Object.keys(state.starts));
-state.starts = { s1: startOf({ key: 'n2', flying: true }) };
-forgetStarted(startable);
-show('…not while its copy is still rising', Object.keys(state.starts));
-state.starts = {};
-state.folders = {};
-globalThis.crypto = { getRandomValues: (bytes) => bytes.fill(0xab) };
-show('a new session\'s id, where WebKit has no randomUUID: version 4, in lower case', newSessionId());
-delete globalThis.crypto;

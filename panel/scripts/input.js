@@ -29,24 +29,25 @@ const PRESSES = [
 
 list.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
+  keepInPlace(e.target.closest('.row[data-id]')?.dataset.id);  // whatever the press does, its row stays where it is
   for (const [selector, press] of [...core.presses, ...PRESSES]) {
     const target = e.target.closest(selector);
     if (target) return press(target, e);
   }
 });
 
-// A row, anywhere a module doesn't take the press: opens the session, which becomes the one you're on (held there if
-// it was under Your turn; the one you were on before is marked idle).
+// A row, anywhere a module doesn't take the press: opens the session, which becomes the one you're on.
 function pressRow(row) {
   const s = state.last.sessions.find((x) => x.sessionId === row.dataset.id);
   if (s) openSession(s);
 }
 
 // Brings a session forward in its app, and makes it the one you're on: a row's press, and the reader's Take me there.
+// Its row stays where it is (keepInPlace).
 function openSession(s) {
-  state.seen[s.sessionId] = Date.now();
-  store.set('seen', state.seen);
+  markRead(s.sessionId, Date.now());
   if (hostOf(s).marksOpenAtOnce) state.opening = { sessionId: s.sessionId, at: Date.now() };
+  keepInPlace(s.sessionId);
   goTo(s.sessionId);
   native({ type: 'open', sessionId: s.sessionId, hostSessionId: s.hostSessionId, pid: s.pid, entrypoint: s.entrypoint,
            cwd: s.cwd, name: s.name });

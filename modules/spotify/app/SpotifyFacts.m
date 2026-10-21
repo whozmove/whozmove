@@ -8,4 +8,5 @@ NSString *const kSpotifyTrackKey = @"Track ID", *const kSpotifyNameKey = @"Name"
          *const kSpotifyAlbumKey = @"Album", *const kSpotifyDurationKey = @"Duration",
          *const kSpotifyPositionKey = @"Playback Position", *const kSpotifyStateKey = @"Player State";
 NSString *const kSpotifyPlaying = @"Playing", *const kSpotifyStopped = @"Stopped";
+NSString *const kSpotifySongIdPrefix = @"spotify:track:", *const kSpotifyLocalIdPrefix = @"spotify:local:";
 NSString *const kSpotifyDownloadPage = @"https://www.spotify.com/download/";

@@ -10,9 +10,12 @@
 @interface Starts : NSObject
 // Starts open in the core's hosts: a terminal the panel types into, or the app that keeps conversations of its own.
 - (instancetype)initWithCore:(Core *)core;
-// The page's messages: whether Claude may work in a folder (checkFolder), the menu of folders a card can start in
-// (startMenu), and a start (start).
+// The page's messages: whether Claude may work in a folder (checkFolder), what a folder's repo has for the card's #
+// list (listBranches), whether a new worktree can be made (checkWorktreeName), the card's small menus (startMenu), and
+// a start (start), in a worktree when it says so, made first when it's new.
 - (void)checkFolder:(NSDictionary *)msg;
+- (void)listBranches:(NSDictionary *)msg;
+- (void)checkWorktreeName:(NSDictionary *)msg;
 - (void)menu:(NSDictionary *)msg;
 - (void)start:(NSDictionary *)msg;
 // Each tick, with the rows: the starts still waiting are matched to the sessions they became, or given up on.

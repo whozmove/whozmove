@@ -9,16 +9,18 @@ does that job.
 
 The file is grouped, and says beside each token what it's for:
 
-- **Words on the glass**, brightest first: `--bright`, `--text`, `--code`, `--muted`, `--label`, `--dim`, `--faint`.
+- **Words on the glass**, brightest first: `--bright`, `--text`, `--code`, `--reading-text` (what the reader shows to
+  read), `--muted`, `--label`, `--dim`, `--faint`.
 - **Whose move it is**: `--needs`, `--busy`, `--turn`, `--pr` and `--idle`, which the app's icon matches, and the same
   for words in a stage's colour and the soft fill behind them (`--busy-text`, `--busy-fill`, …).
 - **What a session wrote, and git's colours**: `--plan-text`, `--prototype-text`; `--added`, `--removed` and their
   fills.
-- **Lines, edges and fills**: `--rule`, `--edge`, `--surface`, `--track`, `--tag`, `--picked`; pointed at, `--hover`
-  and firmer ones for smaller things.
-- **Buttons, text boxes, code and the cards over the list**: `--button`, `--light` (a card's main button), `--field`,
-  `--code-fill`, `--card`, `--card-shadow`.
-- **Text sizes**, `--size-chip` to `--size-heading`, and **corners**, `--radius-bar` to `--radius-pill`.
+- **Lines, edges and fills**: `--rule`, `--edge`, `--surface`, `--track`, `--cover` (a song's cover until it loads),
+  `--scrim` (under a mark on a picture), `--tag`, `--picked`; pointed at, `--hover` and firmer ones for smaller things.
+- **Buttons, switches, text boxes, code and the cards over the list**: `--button`, `--light` (a card's main button),
+  `--tick` and `--switch-off` (a switch on and off), `--field`, `--code-fill`, `--card`, `--card-shadow`.
+- **Text sizes**, `--size-chip` to `--size-heading`, and `--size-lyrics` (a song's lines in the reader); **corners**,
+  `--radius-bar` to `--radius-pill`.
 - **The layout**, `--header`, `--side`, `--column`, and the gauge's spring, `--spring`.
 
 ## Using them

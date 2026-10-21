@@ -24,7 +24,10 @@
 - (void)update:(NSData *)rows;
 - (void)setRoom:(CGFloat)room;
 - (void)hoverAt:(NSPoint)point;
-- (void)hoverEnd;
+// The pointer is off the panel; `still` while it hasn't moved there yet (the panel's edge moved past it).
+- (void)hoverEnd:(BOOL)still;
+// The panel no longer has the keyboard: another app took it, or the panel gave it back.
+- (void)keyboardGone;
 - (void)setGroupBy:(NSString *)mode;
 - (void)toggleCollapsed;
 - (void)askSwitch:(NSDictionary *)question;

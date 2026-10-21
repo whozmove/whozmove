@@ -167,12 +167,11 @@ function sweep(seg, width) {
 
 // ---- What it plugs into ----
 
-// Its stages, worked out first: an idle row with an island shows where the work stands there, not in its tag. Gone,
-// it's forgotten when it was first shown, so one that's back waits again before it takes a press.
+// Its stages, worked out first. Gone, it's forgotten when it was first shown, so one that's back waits again before it
+// takes a press.
 core.rowLooks.push((row) => {
   row.stages = stagesOf(row.s, row.owner);
-  if (row.stages) row.workShown = true;
-  else delete state.shownAt['island:' + row.s.sessionId];
+  if (!row.stages) delete state.shownAt['island:' + row.s.sessionId];
 });
 core.slots.underWhere.push((row) => islandHTML(row.s, row.stages));
 core.presses.push(['.seg[data-stage]', pressStage]);

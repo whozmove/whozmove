@@ -1,4 +1,5 @@
-/* The now-playing strip (np-strip.js): Spotify's song above the usage strip, its line, controls and note.
+/* The now-playing strip (np-strip.js): Spotify's song above the usage strip (its name, or the line being sung), its
+   line, controls and note.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 #nowplaying { flex: none; position: relative; }
@@ -17,18 +18,32 @@ body.collapsed #nowplaying { display: none; }
 .np-strip.is-hover .np-line { height: 3px; }
 .np-strip.is-hover .np-fill { background: rgba(255, 255, 255, 0.8); }
 
-/* The cover: a plain square until it loads, then each new one fades in over the last. */
+/* The cover: a plain square until it loads, then each new one fades in over the last. Once lyrics are on, a microphone
+   shows on it while the strip is pointed at (pressing the strip opens them), and stays while they're open. */
 .np-art { flex: none; position: relative; width: 28px; height: 28px; border-radius: var(--radius-small);
-          overflow: hidden; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 .5px var(--edge); }
+          overflow: hidden; background: var(--cover); box-shadow: inset 0 0 0 .5px var(--edge); }
 .np-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;
           transition: opacity .5s ease, filter .3s ease; }
 .np-img.on { opacity: 1; }
-.np-text { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.np-mic { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: var(--scrim);
+          color: var(--bright); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+#nowplaying.lyrics-on .np-strip.is-hover .np-mic, #nowplaying.lyrics-open .np-mic { opacity: 1; }
+/* Its words: the song's name, or the line being sung, in the same two rows' room, so the strip never changes height.
+   A line that needs more is a size smaller (np-measure measures it unclamped, as tall as its words). */
+.np-text { position: relative; min-width: 0; flex: 1; height: 30px; display: flex; flex-direction: column;
+           justify-content: center; }
 .np-title, .np-artist { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-title { font-size: var(--size-body); font-weight: 500; line-height: 16px; transition: color .3s ease; }
 .np-artist { font-size: var(--size-small); line-height: 14px; color: var(--muted); }
-.np-text.is-hover .np-title { color: var(--bright); }
-.is-paused .np-title { color: var(--muted); }
+.np-lyric { font-size: var(--size-body); font-weight: 500; line-height: 15px; overflow-wrap: anywhere;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            transition: color .3s ease; }
+.np-lyric.tight { font-size: var(--size-small); line-height: 14px; }
+.np-lyric.np-measure { display: block; flex: none; }
+.np-strip.is-hover .np-title, .np-strip.is-hover .np-lyric { color: var(--bright); }
+/* Why the lyrics don't open, said in the line's place for a moment: quieter than a line, pointed at or not. */
+.np-strip .np-lyric.np-say { color: var(--muted); }
+.is-paused .np-title, .is-paused .np-lyric { color: var(--muted); }
 .is-paused .np-img { filter: saturate(.4); }
 
 /* The time and the controls share one place at the right, so the song's text never runs under the controls. Pointed
@@ -47,7 +62,8 @@ body.collapsed #nowplaying { display: none; }
 .np-btn.np-play { width: 28px; color: var(--text); }
 .np-btn.is-hover { background: var(--hover-strong); color: var(--text); }
 
-/* The note under it: where to hide the strip, the first time; and what to do when Whozmove isn't allowed. */
+/* The note under it: where to hide the strip, the first time; the question about lyrics after that, with a × beside
+   its answer; and what to do when Whozmove isn't allowed. */
 .np-note { display: flex; align-items: center; gap: 8px; padding: 0 10px 8px 51px; font-size: var(--size-small);
            color: var(--muted); }
 .np-note[hidden] { display: none; }
@@ -62,5 +78,5 @@ body.collapsed #nowplaying { display: none; }
 .np-note.refused .np-note-text { color: var(--needs-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  .np-fill { transition: none; }
+  .np-fill, .np-mic { transition: none; }
 }

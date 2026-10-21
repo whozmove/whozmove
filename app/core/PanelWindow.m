@@ -78,6 +78,8 @@ static const CGFloat kReaderRoom = 1254, kPageWidth = kWidth + 2 * kReaderRoom;
 @property (strong) NSTimer *pointerTimer;
 @property (assign) BOOL hovering;       // the pointer is over the panel
 @property (assign) NSPoint lastHover;   // the last position sent to the page
+@property (assign) NSPoint lastScreen;  // where the pointer was at the last look, on the screen
+@property (assign) BOOL leftStill;      // it came off the panel without moving, and hasn't moved since
 @property (assign) BOOL expanded;       // grown to the screen for the reader
 @property (assign) NSRect listFrame;    // where the panel was before it grew, to fold back to
 @property (assign) BOOL listOnRight;    // the reader opened to the list's left
@@ -195,6 +197,14 @@ static NSImage *RoundedMask(CGFloat radius) {
                                                 usingBlock:^(NSNotification *note) {
         [weakSelf updateRoom];
         if (!weakSelf.reshaping) [weakSelf tellGlass:weakSelf.panel.frame over:0];
+    }];
+    // Another app took the keyboard (you clicked into it), or the panel gave it up: the page's box lets it go too, so
+    // the page doesn't think it still has it.
+    [NSNotificationCenter.defaultCenter addObserverForName:NSWindowDidResignKeyNotification object:self.panel
+                                                     queue:NSOperationQueue.mainQueue
+                                                usingBlock:^(NSNotification *note) {
+        weakSelf.panel.wantsKeyboard = NO;
+        [weakSelf.page keyboardGone];
     }];
     [root addSubview:strip];
     [root addSubview:readerStrip];
@@ -516,6 +526,9 @@ static NSImage *RoundedMask(CGFloat radius) {
     NSView *view = self.panel.contentView;  // not flipped; the page's y runs down from the top
     NSPoint at = NSMakePoint(point.x + [self pageLeft] - NSMinX(self.panel.frame), NSHeight(view.bounds) - point.y);
     [menu popUpMenuPositioningItem:nil atLocation:at inView:view];
+    // The pointer isn't looked at while the menu is up: it's taken to be where the menu closed, so it hasn't left the
+    // panel until it moves on from there (pollPointer).
+    self.lastScreen = NSEvent.mouseLocation;
 }
 
 #pragma mark Hover
@@ -525,17 +538,26 @@ static NSImage *RoundedMask(CGFloat radius) {
 // only entered and exited). Polling sees every position either way.
 - (void)pollPointer {
     NSPoint screen = NSEvent.mouseLocation;
+    BOOL moved = !NSEqualPoints(screen, self.lastScreen);
+    self.lastScreen = screen;
     if (self.panel.isVisible)
         for (void (^observer)(NSPoint) in self.pointerObservers) observer(screen);
     NSRect frame = self.panel.frame;
     BOOL inside = self.panel.isVisible && NSPointInRect(screen, frame);
+    // Off the panel without moving, its edge moved past the pointer (a card folding away) or one of its menus closed
+    // where the pointer picked from it: the page is told it's still there, and again once it moves.
     if (!inside) {
         if (self.hovering) {
             self.hovering = NO;
-            [self.page hoverEnd];
+            self.leftStill = !moved;
+            [self.page hoverEnd:self.leftStill];
+        } else if (self.leftStill && moved) {
+            self.leftStill = NO;
+            [self.page hoverEnd:NO];
         }
         return;
     }
+    self.leftStill = NO;
     // The page's top is the panel's, and its left edge pageLeft.
     NSPoint page = NSMakePoint(round(screen.x - [self pageLeft]), round(NSMaxY(frame) - screen.y));
     if (self.hovering && NSEqualPoints(page, self.lastHover)) return;

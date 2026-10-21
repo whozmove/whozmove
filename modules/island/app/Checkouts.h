@@ -16,7 +16,8 @@
 - (NSDictionary *)detailsOf:(NSString *)root;
 // Has the checkout read again on the next refresh, as something has just changed it.
 - (void)readSoon:(NSString *)root;
-// Whether extra stages are run at all: not while the islands are switched off (Show Next Steps).
+// Whether extra stages are run and each branch's pull request is looked up: not while the islands, which show them,
+// are switched off (Show Next Steps).
 @property (atomic, assign) BOOL runsStages;
 // The core, whose agentMarks (the marks agents put on their commands) are taken off an extra stage's command.
 @property (weak) Core *core;

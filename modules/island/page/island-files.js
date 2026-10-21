@@ -84,7 +84,7 @@ function cancelShow() {
 // inside the fold, isn't the one pointed at.
 function partAt(sid, part) {
   return [...document.querySelectorAll(`.island[data-sid="${CSS.escape(sid)}"] [data-part="${part}"]`)]
-    .find((band) => !band.closest('.closed')) || null;
+    .find((band) => !band.closest('.prows.closed')) || null;
 }
 
 function showWanted() {

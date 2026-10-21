@@ -14,3 +14,58 @@ the first note, until seen: first
 not allowed: the note says what to do, even before the first is seen: refused
 allowed: null
 an hour-long song: 1:02:05
+the question about lyrics, once the first note has been seen: lyrics
+the first note before the question: first
+not allowed before the question: refused
+the question waits for the song after the one the first note was seen with: false
+and comes with the next: true
+answered no: not asked again: false
+
+== Lyrics (lyrics.js)
+reading LRC: times in ms, tags and lines without a time left out, word times taken out, a line sung twice given twice: [{"t":8000,"text":"First line"},{"t":12400,"text":"Second line"},{"t":20000,"text":""},{"t":62345,"text":"Sung twice"},{"t":90000,"text":"Sung twice"}]
+out of order: sorted by time: ["Sooner","Later"]
+at most 500 lines: 500
+the items: dots for the start and the break, the singing over at the last line with no words: {"state":"timed","track":"spotify:track:1","items":[{"kind":"dots","t":0,"until":8000},{"kind":"line","t":8000,"text":"First line"},{"kind":"line","t":12400,"text":"Second line"},{"kind":"line","t":16800,"text":"Third line"},{"kind":"dots","t":21200,"until":30000},{"kind":"line","t":30000,"text":"After the break"},{"kind":"line","t":34000,"text":"Last line"}],"over":38000}
+a short start: no dots before the first line: [{"kind":"line","t":2000,"text":"Early"}]
+a short pause: no dots: ["line","line"]
+nothing marking the end: over a while after the last line: 11000
+the start: the song’s name: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":true,"order":0}
+just before the first line is lit (301ms early): still the name: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":true,"order":0}
+300ms before it: the first line: {"key":"line:spotify:track:1:1","track":"spotify:track:1","lines":true,"order":1,"text":"First line"}
+in the break: the name again: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":true,"order":4}
+after the singing: the name: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":true,"order":7}
+the lyrics’ switch off: the name, with no lines in the strip: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":false,"order":0}
+plain lyrics: the name: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":false,"order":0}
+another song’s lyrics: the name: {"key":"song:spotify:track:2","track":"spotify:track:2","lines":false,"order":0}
+before a first line with no dots: the name, just before it: {"key":"song:spotify:track:1","track":"spotify:track:1","lines":true,"order":-1}
+on to the next line: rolls up: up
+back a line: rolls down: down
+a jump: the old go, then the new come: swap
+the same line: no change: none
+from the name to the first line: rolls up: up
+from the name to a first line with no dots: rolls up: up
+the last line to the end: rolls up: up
+another song: rolls up: up
+the switch turned off: rolls up: up
+nothing shown yet: at once: instant
+the next change, during a line: 2100
+the next change, in the break: 7700
+after the singing: no more changes: true
+a change due just after the song’s end, where its clock stops: it never comes: true
+nor at the end itself: true
+one due by the end still comes: 5002
+a state the page doesn’t know: off: {"state":"off"}
+lyrics with times and no lines: none: {"state":"none","track":"spotify:track:1"}
+lyrics that aren’t text: none: {"state":"none","track":"spotify:track:1"}
+plain lyrics in verses: [["First","Second"],["Third","Fourth"]]
+no lines to show, looking: Loading lyrics…
+no lines to show, none: Lyrics not available
+no lines to show, failed: Lyrics not available
+no lines to show, off: Lyrics are off.
+lyrics to read, with times or without: they open: [true,true]
+none to read yet, or at all: they don’t open: [false,false,false,false]
+pressed while they’re on their way: the strip says so: {"key":"say:spotify:track:1:Loading lyrics…","track":"spotify:track:1","lines":false,"order":0,"text":"Loading lyrics…","say":true}
+from the song’s name to what’s said: rolls up: up
+what’s said changing: rolls up: up
+what’s said going, back to the name: rolls down: down
+another song while it’s said: rolls up: up

@@ -164,6 +164,30 @@ NSString *BranchStart(NSString *root, NSString **base, NSString **baseRef) {
     return nil;
 }
 
+// The repo's base branch as this Mac has it: the local branch named as GitHub's copy names its own (origin/HEAD), else
+// main or master, else the branch its main checkout is on; nil with none. A new worktree starts from it and follows
+// it, so it starts with everything there, committed here or not yet on GitHub. Blocking.
+NSString *LocalBaseBranch(NSString *root) {
+    NSString *(^git)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
+        NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
+        [all addObjectsFromArray:arguments];
+        NSDictionary *run = RunTool(@"/usr/bin/git", all, nil);
+        if (!run || [run[@"status"] intValue] != 0) return nil;
+        NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding];
+        text = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        return text.length ? text : nil;
+    };
+    NSString *head = git(@[@"symbolic-ref", @"--quiet", @"--short", @"refs/remotes/origin/HEAD"]);
+    NSMutableArray *names = [NSMutableArray array];
+    if ([head hasPrefix:@"origin/"]) [names addObject:[head substringFromIndex:7]];
+    [names addObjectsFromArray:@[@"main", @"master"]];
+    for (NSString *name in names)
+        if (git(@[@"rev-parse", @"--verify", @"--quiet", [@"refs/heads/" stringByAppendingString:name]])) return name;
+    NSDictionary *info = GitInfo(root);
+    NSString *main = info[@"mainRoot"] ?: info[@"root"];
+    return main ? GitInfo(main)[@"branch"] : nil;
+}
+
 // A checkout's base branch, how many commits the branch has that the base doesn't, and how many new files there are:
 // {base, aheadOfBase, newFiles}, with the first 100 new files (newPaths), all of them (untracked, for the checkouts'
 // queue only) and, given the checkout's

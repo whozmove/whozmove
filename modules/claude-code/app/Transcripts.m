@@ -41,9 +41,10 @@ static NSString *TitleSince(NSString *path, unsigned long long from) {
     return NewestTitle(tail, tail.length);
 }
 
-// The newest reply of the main conversation in a chunk of transcript, as {tokens, model, at}. `tokens` is what
-// Claude Code counts as context in use: input, cache creation and cache read. A sub-agent's replies don't count,
-// as it has a context of its own.
+// The newest reply of the main conversation in a chunk of transcript, as {tokens, model, effort, at}. `tokens` is what
+// Claude Code counts as context in use: input, cache creation and cache read. `effort` is the one the reply was made
+// with, which Claude Code records on each reply's line (checked with 2.1.302), and the only record of a terminal
+// session's effort. A sub-agent's replies don't count, as it has a context of its own.
 static NSDictionary *LatestUsage(NSData *chunk, NSUInteger end, NSUInteger *at) {
     NSData *marker = [@"\"cache_read_input_tokens\"" dataUsingEncoding:NSUTF8StringEncoding];
     for (int tries = 0; end > 0 && tries < 50; tries++) {
@@ -62,6 +63,7 @@ static NSDictionary *LatestUsage(NSData *chunk, NSUInteger end, NSUInteger *at) 
                              + [usage[@"cache_read_input_tokens"] longLongValue];
             return @{@"tokens": @(tokens),
                      @"model": [message[@"model"] isKindOfClass:NSString.class] ? message[@"model"] : @"",
+                     @"effort": [entry[@"effort"] isKindOfClass:NSString.class] ? entry[@"effort"] : @"",
                      @"at": [entry[@"timestamp"] isKindOfClass:NSString.class] ? entry[@"timestamp"] : @""};
         }
         end = line.location;

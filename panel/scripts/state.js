@@ -6,11 +6,11 @@ const state = {
   // The newest update from the app: the rows, and the time it sent them.
   last: { sessions: [], now: Date.now() },
 
-  // The reader, while it's open (openReader): its mode, the session it's on and what it shows, with what its mode keeps
-  // there; null while the list is on its own.
+  // The reader, while it's open (openReader): its mode, the session it's on (none for a mode about none of them) and
+  // what it shows, with what its mode keeps there; null while the list is on its own.
   reading: null,
 
-  // How the list is grouped (status, activity or project): the app keeps the choice from its menu bar item and
+  // How the list is grouped (status or project): the app keeps the choice from its menu bar item and
   // sets it (setGroupBy) before the first update. Whether the Idle group is open, which project groups are
   // folded, and how many groups are sliding open or shut right now (slideGroup). Kept across launches: showIdle
   // and closedProjects.
@@ -20,13 +20,18 @@ const state = {
   sliding: 0,
 
   // The session you're on (goTo) and the one the app last marked as shown, in Claude Desktop or Ghostty
-  // (followClaude); where each row was last shown (needs, busy, turn or idle); when each session was last clicked here
-  // (kept across launches); a Claude Desktop conversation just clicked, { sessionId, at } (openedNow); and the session
-  // marked as shown at the last render (revealOpenConversation).
+  // (followClaude); the rows you've pressed, until you've moved on from the panel (keepInPlace); what each session was
+  // at the last render (needs, busy, turn, seen or idle: classify), and where its row was shown, { section, key, tie,
+  // latest } (placeRows); when you last read each session's reply (markRead), and the time before which every reply
+  // counts as read (isRead), both kept across launches; a Claude Desktop conversation just clicked, { sessionId, at }
+  // (openedNow); and the session marked as shown at the last render (revealOpenConversation).
   current: null,
   claudeShowed: null,
-  shownKind: {},
+  pressedRows: new Set(),
+  kinds: {},
+  placed: {},
   seen: store.get('seen', {}),
+  readBefore: store.get('readBefore', 0),
   opening: null,
   lastOpenId: null,
 
@@ -48,10 +53,11 @@ const state = {
   // Whether the list has been drawn before, and until when the next rebuild waits for an animation to finish.
   morphed: false, settleUntil: 0, settleTimer: null,
 
-  // The pointer, as the app reports it; the card it opened, where that ends, and its timer. How tall the panel
-  // can grow where it is (kMaxHeight in app/core/PanelWindow.m, or less where the screen ends; setRoom).
-  // The card's HTML as last drawn, and the room it took below the list, kept a moment after it goes (hideCard).
-  pointer: null, cardKey: null, cardBottom: 0, cardHTML: '', cardHeld: null,
+  // The pointer, as the app reports it, and whether it's off the panel without having moved there yet (hoverEnd); the
+  // card it opened, where that ends, and its timer. How tall the panel can grow where it is (kMaxHeight in
+  // app/core/PanelWindow.m, or less where the screen ends; setRoom). The card's HTML as last drawn, and the room it
+  // took below the list, kept a moment after it goes (hideCard).
+  pointer: null, pointerStill: false, cardKey: null, cardBottom: 0, cardHTML: '', cardHeld: null,
   panelMax: 640,
 
   // Whether the panel has the keyboard (wantKeyboard), and whether an input method is mid-word.

@@ -1,7 +1,8 @@
 // DesktopNewConversation: a new conversation in Claude Desktop with your words as its first message: Claude's own link
 // opens it with them in its message box (they're written in, through the Accessibility API, if they were too long for
-// the link), the folder is chosen in Claude's own folder list, and Send is pressed once Claude has it ready, and again
-// while the words are still there. They're never taken out of Claude's box.
+// the link), the folder is chosen in Claude itself (its environment, or on its older screen its folder list), and Send
+// is pressed once Claude has it ready, and again while the words are still there. They're never taken out of Claude's
+// box.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 
@@ -18,5 +19,5 @@
 @end
 
 // The link that opens a new conversation, with words for its message box when they fit (else none). It names no folder,
-// as Claude loses one that comes in a link (ClaudeDesktopFacts.h): that's chosen in Claude's own folder list.
+// as Claude loses one that comes in a link (ClaudeDesktopFacts.h): that's chosen in Claude itself.
 NSURL *NewConversationLink(NSString *words);

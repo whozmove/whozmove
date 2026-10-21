@@ -16,6 +16,7 @@
 #import "Files.h"
 #import "Menus.h"
 #import "Log.h"
+#import "Worktrees.h"
 
 // How long a start is waited for before the page is told it didn't come (Claude may have to open first); how long once
 // its words are left in Claude's box for you to press Send there; and the most words that go with one.
@@ -28,7 +29,6 @@ static const NSUInteger kWordsMax = 50000;
 @property (copy) NSString *startId, *sessionId, *folder, *app, *wordsFile;
 @property (copy) NSString *conversation;  // the Claude Desktop conversation Claude's log says it became
 @property (assign) NSTimeInterval at, until;  // when it was started, and when it's given up on
-@property (assign) BOOL stay;  // started with ⌘Return: the card for the next one is up, and keeps the keyboard
 @property (copy) NSSet<NSString *> *known;
 @end
 
@@ -55,6 +55,7 @@ static NSString *Folder(id value) {
 @property (strong) dispatch_queue_t queue;
 @property (strong) NSMutableDictionary<NSString *, Start *> *waiting;  // by start id
 @property (copy) NSArray<Row *> *rows;                                // as the last tick had them
+@property (strong) Worktrees *worktrees;
 @end
 
 @implementation Starts
@@ -64,6 +65,7 @@ static NSString *Folder(id value) {
     self.core = core;
     self.queue = dispatch_queue_create("whozmove.starts", DISPATCH_QUEUE_SERIAL);
     self.waiting = [NSMutableDictionary dictionary];
+    self.worktrees = [[Worktrees alloc] initWithCore:core];
     // Words left from starts the panel quit before seeing through go now: each start's are its own.
     dispatch_async(self.queue, ^{
         [NSFileManager.defaultManager removeItemAtPath:AppDir(@"starts") error:nil];
@@ -113,30 +115,104 @@ static NSString *Folder(id value) {
     });
 }
 
-// The folders a card can start in, as the page lists them (the projects of the sessions it shows, newest first), with
-// the card's own ticked, and Choose Folder… for any other.
+// What the card's folder's repo has, for its # list: its own folder, its worktrees, its branches with no folder, and
+// the branch a new worktree starts from (branchesListed).
+- (void)listBranches:(NSDictionary *)msg {
+    NSString *folder = Folder(msg[@"folder"]);
+    if (!folder) return;
+    Worktrees *worktrees = self.worktrees;
+    dispatch_async(self.queue, ^{
+        NSDictionary *found = [worktrees listIn:folder];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.core.page call:@"branchesListed" with:@[msg[@"folder"], found]];
+        });
+    });
+}
+
+// Whether a new worktree on the card can be made, {folder, name, base}, asked as its name or base changes: answered
+// with where it would go, or why it can't (worktreeNameChecked).
+- (void)checkWorktreeName:(NSDictionary *)msg {
+    NSString *folder = Folder(msg[@"folder"]), *name = AsText(msg[@"name"]), *base = AsText(msg[@"base"]);
+    if (!folder || !name) return;
+    Worktrees *worktrees = self.worktrees;
+    NSDictionary *target = base ? @{@"kind": @"new", @"name": name, @"base": base} : @{@"kind": @"new", @"name": name};
+    dispatch_async(self.queue, ^{
+        NSDictionary *found = [worktrees check:target in:folder];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.core.page call:@"worktreeNameChecked" with:@[msg[@"folder"], name, found]];
+        });
+    });
+}
+
+// The card's small menus, opened from what was pressed: `app`, the app it starts in (a worktree starts in the
+// terminal); `places`, where a repo's new worktrees go; `choose`, a folder chooser for any other folder.
 - (void)menu:(NSDictionary *)msg {
+    NSString *kind = AsText(msg[@"kind"]);
+    if ([kind isEqual:@"choose"]) return [self choose:nil];
     NSMenu *menu = [NSMenu new];
     menu.autoenablesItems = NO;
-    SayInMenu(menu, @"Start It In");
-    NSArray *projects = [msg[@"projects"] isKindOfClass:NSArray.class] ? msg[@"projects"] : @[];
-    for (NSDictionary *project in [projects subarrayWithRange:NSMakeRange(0, MIN(projects.count, 15))]) {
-        if (![project isKindOfClass:NSDictionary.class] || !Folder(project[@"folder"])) continue;
-        NSString *name = [project[@"name"] isKindOfClass:NSString.class] ? Clip(project[@"name"], 80)
-                                                                          : [project[@"folder"] lastPathComponent];
-        NSMenuItem *item = [menu addItemWithTitle:name action:@selector(pick:) keyEquivalent:@""];
-        item.target = self;
-        item.representedObject = project[@"folder"];
-        item.toolTip = project[@"folder"];
-        if ([project[@"folder"] isEqual:msg[@"current"]]) item.state = NSControlStateValueOn;
-    }
-    [menu addItem:NSMenuItem.separatorItem];
-    [menu addItemWithTitle:@"Choose Folder…" action:@selector(choose:) keyEquivalent:@""].target = self;
+    if ([kind isEqual:@"app"]) {
+        BOOL worktree = [msg[@"worktree"] isEqual:@YES];
+        NSString *terminal = self.terminal.name;
+        SayInMenu(menu, @"Start It In");
+        for (NSArray *app in terminal ? @[@[@"desktop", @"Claude Desktop"], @[@"terminal", terminal]] : @[@[@"desktop", @"Claude Desktop"]]) {
+            NSMenuItem *item = [menu addItemWithTitle:app[1] action:@selector(pickApp:) keyEquivalent:@""];
+            item.target = self;
+            item.representedObject = app[0];
+            item.enabled = !(worktree && [app[0] isEqual:@"desktop"]);
+            if ([app[0] isEqual:msg[@"app"]]) item.state = NSControlStateValueOn;
+        }
+        if (worktree && terminal) SayInMenu(menu, [NSString stringWithFormat:@"Worktrees start in %@", terminal]);
+    } else if ([kind isEqual:@"places"]) {
+        NSString *repo = Folder(msg[@"repo"]);
+        if (!repo) return;
+        [self addWorktreesMenuTo:menu for:repo];
+    } else return;
     [self.core.window popUpMenu:menu atPagePoint:NSMakePoint([msg[@"x"] doubleValue], [msg[@"y"] doubleValue])];
 }
 
-- (void)pick:(NSMenuItem *)item {
-    [self.core.page call:@"startProject" with:@[item.representedObject ?: @""]];
+- (void)pickApp:(NSMenuItem *)item {
+    [self.core.page call:@"startAppChosen" with:@[item.representedObject ?: @"desktop"]];
+}
+
+// Where a repo's new worktrees go: the folder beside it, or a folder you chose, with the one in use ticked.
+- (void)addWorktreesMenuTo:(NSMenu *)menu for:(NSString *)repo {
+    SayInMenu(menu, [NSString stringWithFormat:@"New Worktrees of %@ Go In", Clip(repo.lastPathComponent, 60)]);
+    NSString *chosen = [self.worktrees chosenFor:repo], *own = [Worktrees besideFolderFor:repo];
+    for (NSString *folder in chosen ? @[own, chosen] : @[own]) {
+        if (!folder) continue;
+        NSMenuItem *item = [menu addItemWithTitle:[Worktrees shown:folder] action:@selector(placeWorktrees:)
+                                    keyEquivalent:@""];
+        item.target = self;
+        item.representedObject = @{@"repo": repo, @"folder": folder == own ? @"" : folder};
+        if (folder == (chosen ?: own)) item.state = NSControlStateValueOn;
+    }
+    [menu addItem:NSMenuItem.separatorItem];
+    NSMenuItem *choose = [menu addItemWithTitle:@"Choose Folder…" action:@selector(chooseWorktrees:) keyEquivalent:@""];
+    choose.target = self;
+    choose.representedObject = repo;
+}
+
+- (void)placeWorktrees:(NSMenuItem *)item {
+    NSString *repo = item.representedObject[@"repo"], *folder = item.representedObject[@"folder"];
+    [self.worktrees choose:folder.length ? folder : nil for:repo];
+    [self.core.page call:@"worktreesMoved" with:@[repo]];
+}
+
+- (void)chooseWorktrees:(NSMenuItem *)item {
+    NSString *repo = item.representedObject;
+    NSOpenPanel *open = [NSOpenPanel openPanel];
+    open.canChooseDirectories = YES;
+    open.canChooseFiles = NO;
+    open.canCreateDirectories = YES;
+    open.prompt = @"Put Them Here";
+    open.message = [NSString stringWithFormat:@"Choose the folder new worktrees of %@ go in.", repo.lastPathComponent];
+    [NSRunningApplication.currentApplication activateWithOptions:0];
+    [open beginWithCompletionHandler:^(NSModalResponse response) {
+        if (response != NSModalResponseOK || !open.URL.path) return;
+        [self.worktrees choose:open.URL.path for:repo];
+        [self.core.page call:@"worktreesMoved" with:@[repo]];
+    }];
 }
 
 - (void)choose:(NSMenuItem *)item {
@@ -177,6 +253,13 @@ static NSString *Folder(id value) {
         ? Clip([msg[@"words"] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet], kWordsMax)
         : @"";
     BOOL trust = [msg[@"trust"] isEqual:@YES];
+    // Where in the repo it starts, unless in its own folder: a worktree that's there (open), a new worktree for a
+    // branch that's there (branch), or for a new branch (new), made first. All in the terminal, as Claude Desktop
+    // starts only in the folders it lists.
+    NSDictionary *target = AsRecord(msg[@"target"]);
+    NSString *kind = AsText(target[@"kind"]);
+    if (target && ![@[@"open", @"branch", @"new"] containsObject:kind ?: @""]) return refuse(@"Whozmove can't start one there");
+    if (target && !sessionId) return refuse(@"Worktrees start in the terminal");
     // A session is started, trusted and listed by its agent, and a conversation in Claude Desktop is that app's: with
     // either missing, nothing starts, rather than waiting for a row that can't come.
     if (!self.agent) return refuse(@"There's no agent here to start it with");
@@ -191,22 +274,35 @@ static NSString *Folder(id value) {
     start.app = app;
     start.at = NSDate.date.timeIntervalSince1970;
     start.until = start.at + kStartWait;
-    start.stay = [msg[@"stay"] isEqual:@YES];
     NSMutableSet *known = [NSMutableSet set];
     for (Row *row in self.rows)
         if (row.hostSessionId && [RealPath(row.cwd ?: @"") isEqual:start.folder]) [known addObject:row.hostSessionId];
     start.known = known;
     self.waiting[startId] = start;
-    PanelLog(@"start %@: %@ in %@%@", startId, app, folder, trust ? @", trusting it" : @"");
+    PanelLog(@"start %@: %@ in %@%@%@", startId, app, folder, trust ? @", trusting it" : @"",
+             kind ? [NSString stringWithFormat:@", in a worktree (%@ %@)", kind, AsText(target[@"name"]) ?: AsText(target[@"path"]) ?: @""] : @"");
     id<AgentStarts> agent = self.agent;
+    Worktrees *worktrees = self.worktrees;
     dispatch_async(self.queue, ^{
         NSString *why = trust ? [agent trustFolder:folder] : nil;
         BOOL trusted = !why && (trust || [agent folderTrusted:folder]);
+        NSDictionary *made = nil;
+        if (!why && [kind isEqual:@"open"]) {
+            NSString *path = [worktrees openPath:target[@"path"] in:folder];
+            made = path ? @{@"path": path} : @{@"why": @"That worktree isn't there any more"};
+        } else if (!why && kind) made = [worktrees make:target in:folder];
+        if (made[@"why"]) why = made[@"why"];
         NSString *file = !why && sessionId && words.length ? [self keepWords:words for:sessionId] : nil;
         if (!why && sessionId && words.length && !file) why = @"Couldn't keep your words for the terminal";
         dispatch_async(dispatch_get_main_queue(), ^{
             if (why) return [self giveUp:startId why:why];
             start.wordsFile = file;
+            // Making the worktree took its time (the repo's hooks run): the wait for the session starts now.
+            if (made[@"path"]) {
+                PanelLog(@"start %@: starts in %@", startId, made[@"path"]);
+                start.folder = made[@"path"];
+                start.until = NSDate.date.timeIntervalSince1970 + kStartWait;
+            }
             if (sessionId) return [self openTerminal:start];
             if (!watch) [self.waiting removeObjectForKey:startId];
             [self.desktop startConversationIn:folder words:words trusted:trusted done:^(NSString *note) {
@@ -220,8 +316,6 @@ static NSString *Folder(id value) {
                     start.until = NSDate.date.timeIntervalSince1970 + kSendWait;
                     [self.core.page call:@"startUpdate" with:@[startId ?: @"", @{@"note": note}]];
                 }
-                // Claude came forward to send it; with the next card up, the keyboard comes back to that.
-                if (!note && start.stay) [self.core.window takeKeyboard:YES];
             }];
         });
     });
@@ -245,8 +339,8 @@ static NSString *Folder(id value) {
     if (!terminal) return [self giveUp:start.startId why:@"There's no terminal to start it in: Whozmove starts them in Ghostty"];
     NSString *command = [self.agent startCommand:start.sessionId wordsFile:start.wordsFile];
     if (!command) return [self giveUp:start.startId why:@"There's no agent here to start it with"];
-    [terminal newTabIn:start.folder running:command named:nil forward:!start.stay];
-    if (!start.stay && self.onTabForward) self.onTabForward(terminal, start.sessionId);
+    [terminal newTabIn:start.folder running:command named:nil forward:YES];
+    if (self.onTabForward) self.onTabForward(terminal, start.sessionId);
 }
 
 - (void)giveUp:(NSString *)startId why:(NSString *)why {

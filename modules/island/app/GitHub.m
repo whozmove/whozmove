@@ -48,8 +48,7 @@ NSString *ChecksState(NSArray *rollup) {
     return checks;
 }
 
-// The PR for a branch, reduced to what the current action needs:
-// {number, url, state, isDraft, review, checks: failing | running | passing | none}.
+// The PR for a branch, reduced to {number, url, state, isDraft, review, checks: failing | running | passing | none}.
 // *found is NO when gh couldn't answer (offline, not signed in), so the caller keeps what it knew; a branch
 // without a PR comes back as NSNull. Blocking.
 id FetchBranchPR(NSString *gh, NSString *root, NSString *branch, BOOL *found) {

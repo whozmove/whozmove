@@ -1,5 +1,5 @@
 {
   "order": 100,
-  "scripts": ["page/now-playing.js", "page/np-strip.js", "page/spotify.js"],
-  "styles": ["page/now-playing.css"]
+  "scripts": ["page/now-playing.js", "page/lyrics.js", "page/np-strip.js", "page/lyrics-view.js", "page/spotify.js"],
+  "styles": ["page/now-playing.css", "page/lyrics.css"]
 }

@@ -22,8 +22,8 @@ hooks plugin.
   tab's title); and through `Writings.m` and `Edits.m`, what it wrote for you to read and what it edited, its
   sub-agents' edits and its shell commands' changes too, as Claude Code records them.
 - `app/AgentDetails.m`: each session's model, effort, mode and context, from the most specific source first (the
-  record of the app that keeps it as a conversation, then the hooks', the transcript, its launch flags, the
-  settings), and the Shift+Tab cycles it could have.
+  record of the app that keeps it as a conversation, then the hooks', the transcript, where each reply names its model
+  and effort, its launch flags, the settings), and the Shift+Tab cycles it could have.
 - `app/Results.m`: a slash command's result in a transcript, and what it says: the value now in effect, whether the
   pick was saved as the default for new sessions, and how a compaction went.
 - `app/Prompt.m`: typing a command into a session's prompt through its terminal, keeping your draft (Ctrl+S stashes
@@ -34,9 +34,9 @@ hooks plugin.
   both look.
 - `app/ClaudeUsage.m`: your plan's usage, asked of `claude` itself, run for a moment in a folder of its own, and the
   command that signs it in. How often it's asked, the strip and its Sign in are the usage module's.
-- `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things,
-  its command and what it's run with, and the model, effort and mode choices. When Claude Code changes, the fix goes
-  here. The README's "Tested with" names the version they were last checked with.
+- `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things, its
+  command and what it's run with, and the model, effort and mode choices. When Claude
+  Code changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
 - `app/ClaudeCodePrints.m`: its print modes, for the tests.
 - `page/agent.js`: what a session's model, mode and context mean (`core.agent`); `page/requests.js`: a request, its
   questions or a plan on a row, and your answers. `module.json` lists them for tools/page.sh.

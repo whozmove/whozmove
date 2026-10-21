@@ -16,7 +16,16 @@
 @property (copy) NSString *frontLast, *terminalShows;
 @property (assign) NSUInteger openings;
 @property (copy) NSDictionary<NSString *, NSString *> *sessionApps;
+// The session you're looking at (lookingAt:) and since when, and when you were last looking at each session you
+// stayed on (noteSeen:).
+@property (copy) NSString *looking;
+@property (assign) double lookingSince;
+@property (strong) NSMutableDictionary<NSString *, NSNumber *> *seenAt;
 @end
+
+// How long you stay on a session before it counts as seen: tabs passed on the way to another don't. And how long
+// without the keyboard or the mouse until you're taken to be away from the Mac.
+static const double kSeenAfterMs = 2000, kAwayAfterSeconds = 5 * 60;
 
 @implementation Focus
 
@@ -47,6 +56,17 @@ static BOOL AnswersWhichShows(id<Host> host) {
     return [host respondsToSelector:@selector(whichShows:done:)];
 }
 
+// Whether you're at the Mac: your session on the screen, unlocked (macOS's record of the session says so in a key it
+// doesn't document) and awake, and the keyboard or the mouse used in the last few minutes.
+static BOOL AtTheMac(void) {
+    NSDictionary *session = CFBridgingRelease(CGSessionCopyCurrentDictionary());
+    if (![session[(__bridge NSString *)kCGSessionOnConsoleKey] boolValue]
+        || [session[@"CGSSessionScreenIsLocked"] boolValue] || CGDisplayIsAsleep(CGMainDisplayID()))
+        return NO;
+    return CGEventSourceSecondsSinceLastEventType(kCGEventSourceStateHIDSystemState, kCGAnyInputEventType)
+        < kAwayAfterSeconds;
+}
+
 // The session you're on is marked in the list: in Claude Desktop, the conversation it shows (marked as the rows are
 // read), and in a terminal, the session in the tab it shows. Whichever of the two apps was in front last wins, except
 // that Claude Desktop's stays marked while the terminal's tab holds none of the sessions listed (a plain shell), and the
@@ -57,9 +77,42 @@ static BOOL AnswersWhichShows(id<Host> host) {
     if (self.core.printing) return;
     id<Host> terminal = [self.core hostFor:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier];
     if (AnswersWhichShows(terminal)) [self ask:terminal whichShows:rows];
-    if (!AnswersWhichShows([self.core hostFor:self.frontLast]) || !self.terminalShows
-        || ![[rows valueForKey:@"sessionId"] containsObject:self.terminalShows]) return;
-    for (Row *row in rows) row.focused = [row.sessionId isEqualToString:self.terminalShows];
+    if (AnswersWhichShows([self.core hostFor:self.frontLast]) && [self listed:self.terminalShows in:rows])
+        for (Row *row in rows) row.focused = [row.sessionId isEqualToString:self.terminalShows];
+    [self noteSeen:rows];
+}
+
+- (BOOL)listed:(NSString *)sessionId in:(NSArray<Row *> *)rows {
+    return sessionId && [[rows valueForKey:@"sessionId"] containsObject:sessionId];
+}
+
+// When you last looked at each session, for the page to count what it replied before then as read: you stayed on it
+// for a moment, in the app in front, while at the Mac. So a reply you watch come in counts, and so does one you
+// switch to, but not one marked as the one you're on while you're somewhere else: Claude's conversation while the
+// terminal in front shows a plain shell, or while you're in another app.
+- (void)noteSeen:(NSArray<Row *> *)rows {
+    NSString *on = [self lookingAt:rows];
+    double now = NSDate.date.timeIntervalSince1970 * 1000;
+    if (!(on == self.looking || [on isEqualToString:self.looking])) {
+        self.looking = on;
+        self.lookingSince = now;
+    } else if (on && now - self.lookingSince >= kSeenAfterMs) {
+        if (!self.seenAt) self.seenAt = [NSMutableDictionary dictionary];
+        self.seenAt[on] = @(now);
+    }
+    for (Row *row in rows) row.seenAt = self.seenAt[row.sessionId];
+}
+
+// The session you're looking at, if any: the one the app in front shows (the session in the terminal's tab, or the
+// conversation Claude Desktop shows), while you're at the Mac.
+- (NSString *)lookingAt:(NSArray<Row *> *)rows {
+    if (!AtTheMac()) return nil;
+    id<Host> front = [self.core hostFor:NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier];
+    if (!front || !SaysWhatItShows(front)) return nil;
+    if (AnswersWhichShows(front)) return [self listed:self.terminalShows in:rows] ? self.terminalShows : nil;
+    for (Row *row in rows)
+        if (row.focused && [self.core hostHolding:row] == front) return row.sessionId;
+    return nil;
 }
 
 // Asks the terminal in front which of the sessions running in it its tab holds, unless none runs in it. A session
