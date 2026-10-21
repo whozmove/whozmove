@@ -8,8 +8,12 @@ into it.
 
 - `app/TerminalApp.m`: its face for the core (contracts/Module.h), and the host it is (contracts/Host.h): a CommandHost.
   A command runs as a file of commands (`.command`) that Terminal opens in a new window, named for what it runs, kept in
-  Whozmove's own folder (`terminal`), which only you may read. It lists Terminal for the panel's back (`appEntries`).
+  Whozmove's own folder (`terminal`), which only you may read, each in a folder of its own, which it takes away as it
+  starts. Ones left from windows that never ran them go as the app opens (`launch`). It lists Terminal for the panel's
+  back (`appEntries`).
 
 ## Rules
 
 - No Apple Events are sent to Terminal, so no permission is asked for.
+- What it runs is named in its file only as one line: a session's name can hold line breaks, and a line break in the
+  file's comment would run the rest of the name as a command.

@@ -154,7 +154,8 @@ the app: as chosen, in its own folder: desktop
 …the terminal for anything in a worktree: terminal
 …Claude with no terminal to choose: desktop
 …the terminal while Claude Desktop’s sessions aren’t tracked: terminal
-…nowhere, with no terminal either: {"help":"There’s nowhere to start it: Claude Desktop’s sessions aren’t tracked, and there’s no terminal here.","warn":true,"go":""}
+…nowhere, with no terminal either: Track Them: {"help":"There’s no terminal to start it in here, and Claude Desktop’s sessions aren’t tracked.","warn":true,"go":"","way":"track","wayLabel":"Track Them"}
+…nowhere, without Claude Desktop on the Mac: Get Claude Desktop: {"help":"There’s no terminal to start it in here, and Claude Desktop isn’t on this Mac.","warn":true,"go":"","way":"getDesktop","wayLabel":"Get Claude Desktop"}
 a new worktree waits for git to say it can be made: {"help":"","warn":false,"go":""}
 …an answer for another base is let go: {"help":"","warn":false,"go":""}
 …a name that’s taken: {"help":"There's a branch named hello already: pick it with #hello, or rename this one","warn":true,"go":""}

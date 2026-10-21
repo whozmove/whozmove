@@ -1,5 +1,5 @@
 {
   "order": 5,
-  "scripts": ["page/install.js", "page/install-line.js"],
+  "scripts": ["page/install.js", "page/install-line.js", "page/reload-row.js"],
   "styles": ["page/install.css"]
 }

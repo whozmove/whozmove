@@ -272,8 +272,8 @@ with what each is doing, so you can see at a glance which one needs you.
 - **now playing**, at the bottom of the panel, while a song plays: the cover, the song and artist, how far in it is (a
   thin line along the top) and the time. Point at it for back, pause and next, and press the line to jump; press the
   strip to bring Spotify forward (once lyrics are on, to read them). A new song rolls in place; paused, it greys and
-  offers Play, and after 15 minutes it folds into the token; with the panel folded to its header, the token stands in
-  for the strip. **Spotify**, on the panel's back, has **Show the song** (off, the token and the strip go, and
+  offers Play, and after 15 minutes it folds into the token; with the panel folded away, neither the strip nor the token
+  shows. **Spotify**, on the panel's back, has **Show the song** (off, the token and the strip go, and
   Whozmove leaves Spotify alone), **Lyrics**, **Its icon at the panel's corner** and **Open Spotify**. macOS's Allow
   stays in System Settings → Privacy & Security → Automation
 - **lyrics**, once you say yes to the strip's question (or turn on **Lyrics** on Spotify's page): while a line is sung,
@@ -289,13 +289,13 @@ with what each is doing, so you can see at a glance which one needs you.
   Whozmove works with: Claude, Ghostty, iTerm2, Terminal, Spotify and Git (the terminals when they're on your Mac).
   Press one for its page: what Whozmove does with it, its switches (whether Claude Desktop's sessions are tracked, the
   terminal new conversations open in, Spotify's song, lyrics and icon, Git's next steps and Deploy), how what Whozmove
-  needs there stands, with its button (Whozmove's plugin on Claude's, with **Add Back**, **Turn On**, **Try Again** or
+  needs there stands, with its button (Whozmove's plugin on Claude's, with **Add**, **Turn On**, **Try Again** or
   **Get Claude Code**, and **Get Claude Desktop** on a Mac without it; Apple's command line developer tools on Git's
   page, with **Install**), what macOS lets Whozmove do with it (Accessibility or Automation, with **Open System
   Settings** when it isn't allowed) and **Open**. Claude's page is for Claude as a whole, Claude Code and Claude
   Desktop alike: with **Track Claude Desktop app sessions** off, Claude Desktop's conversations leave the list, and
   new conversations start only in a terminal. The back is the panel's size, scrolling when there's more; its rows,
-  where the four squares were, turn the panel back to the list, and its chevron folds it into the cat. An open reader
+  where the four squares were, turn the panel back to the list, and its chevron folds the panel away. An open reader
   folds back first, and ⌃⌥N turns the panel back to start a conversation
 - a pawn in the menu bar with a count of sessions waiting on you; its menu switches the grouping, has **New
   Conversation** (⌃⌥N), and turns ⌃⌥N off for other apps (**Use ⌃⌥N in Any App**)
@@ -304,7 +304,7 @@ with what each is doing, so you can see at a glance which one needs you.
   usage card and Spotify's token all follow it. While Reduce Transparency is on in System Settings, Glass is grey and
   can't be picked
 - for working on Whozmove itself, **Working on Whozmove ▸** in that menu, shown only while you hold ⌥ (Option) as
-  you open it: **Show Build in Header** puts, under "Whozmove", which worktree (or branch) the running build came
+  you open it: **Show Build in Header** puts, under "Whozmove", which checkout (or branch) the running build came
   from and when it was built, with its folder and commit when you point at it; **Preview the Wait** plays the usage
   card's wait and its reset in 20 seconds, without a limit to wait for
 
@@ -320,29 +320,48 @@ A label's colour says whose move it is:
 
 ## Install
 
-Needs macOS 12 or later, with Safari up to date (its engine draws the panel), Xcode Command Line Tools (`clang`, and
-the `python3` the hooks run on) and Claude Code.
+```bash
+brew install --cask whozmove/tap/whozmove
+```
+
+Whozmove isn't signed by Apple yet, so macOS stops it the first time you open it: go to System Settings → Privacy &
+Security and press **Open Anyway**, once. Then it sets itself up as it opens, adding its hooks to Claude Code and
+opening at every login (below). `brew upgrade` brings each new version, and Whozmove brings its hooks up to date as it
+opens. Installed with Homebrew, Whozmove says when a new version is out, on the line under its header ("Whozmove 0.2.1
+is out. Run brew upgrade --cask whozmove/tap/whozmove to update."), with **Copy Command**, which puts that command on
+the clipboard: it never runs `brew` or installs anything itself. Named with its tap, Homebrew looks at the tap again
+first, so a version just released is found. Its × keeps that version away, and a newer one shows again. Once Homebrew
+has put the new one in while Whozmove kept running, the line says so, with **Restart**. It reads the version from the
+tap's cask, Homebrew's copy on this Mac and GitHub's, the newer counting, as it opens and every 6 hours; a build from
+a checkout never looks. Installed it from source before? Run `./install.sh --uninstall` in that checkout first, as
+only one copy of Whozmove runs at a time.
+
+Needs a Mac with Apple silicon and macOS 13 or later (12 or later built from source), with Safari up to date (its engine
+draws the panel). To follow your sessions, Claude Code (which needs macOS 13 or later) or Claude Desktop, and Apple's
+command line developer tools (`xcode-select --install`), whose `python3` the hooks run on: Whozmove waits for them, and
+building from source needs them too, for `clang`.
 Optional: `gh`, signed in, for PR status; Claude Desktop, Ghostty and iTerm2, for jumping to and controlling their
 sessions (in iTerm2, any session once its Python API is on, else one alone in its window); the `claude` command,
 signed in to a Claude plan, for your plan's usage (Claude Desktop's own copy will do). Sessions in other terminals
 are listed too, but a click only brings their app forward (not the exact tab), they aren't marked as the one
 you're on, and their model, effort and mode can't be changed from the panel.
 
-Tested with Claude Code 2.1.304 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty
-1.3.1, iTerm2 3.7.6 and Spotify 1.3.5, with lyrics from LRCLIB's API, and macOS 26.2's installer for Apple's
-command line developer tools. Whozmove reads files and labels these apps don't document, Claude Desktop's conversation files and log above
-all, and asks Claude Code for your plan's usage a way it doesn't document either, so an update to one of them can
-break part of the panel until Whozmove catches up. The fix goes in the module of the app that changed
-(`modules/claude-code/app/ClaudeCodeFacts.h`, `modules/claude-desktop/app/ClaudeDesktopFacts.h`,
+Tested with Claude Code 2.1.304 (and 2.1.299, Claude Desktop's own copy), Claude Desktop 2.42304.0, Ghostty 1.3.1,
+iTerm2 3.7.6, Spotify 1.3.5 and Homebrew 7.0.10, with lyrics from LRCLIB's API, and macOS 26.2's installer for Apple's
+command line developer tools and its launchd. Whozmove reads files and labels these apps don't document, Claude
+Desktop's conversation files and log above all, and asks Claude Code for your plan's usage a way it doesn't document
+either, so an update to one of them can break part of the panel until Whozmove catches up. The fix goes in the module
+of the app that changed (`modules/claude-code/app/ClaudeCodeFacts.h`, `modules/claude-desktop/app/ClaudeDesktopFacts.h`,
 `modules/ghostty/app/GhosttyFacts.h`, `modules/iterm2/app/ITerm2Facts.h`, `modules/spotify/app/SpotifyFacts.h`, for
-LRCLIB `modules/spotify/app/LRCLIBFacts.h`, and for macOS's installer of Apple's developer tools
-`modules/install/app/ToolsFacts.h`).
+LRCLIB `modules/spotify/app/LRCLIBFacts.h`, for macOS's installer of Apple's developer tools
+`modules/install/app/ToolsFacts.h`, for macOS's launchd, which opens Whozmove at login,
+`modules/install/app/LaunchdFacts.h`, and for Homebrew's record of it and its tap's cask,
+`modules/install/app/HomebrewFacts.h`).
 
-```bash
-git clone https://github.com/whozmove/whozmove
-cd whozmove
-./install.sh   # builds the app, adds Whozmove's hooks to Claude Code, and starts the app now and at every login
-```
+Opened from an Applications folder, Whozmove opens at every login from then on, as a login item of its own (macOS
+says so with its "Background Items Added" notice). **Open at Login** in the pawn menu, just above Quit, turns that off
+and on. Turned off in System Settings' Login Items, it shows unticked there, and pressing it opens Login Items, where
+only you can turn it back on. The login item restarts Whozmove only after a crash, never after you quit it.
 
 The hooks are how the panel learns your last prompt, Claude's last reply, requests for your OK and the tool
 each agent is using. The app carries them, and each time it opens from an Applications folder it adds them to
@@ -350,14 +369,19 @@ Claude Code as a plugin, `whozmove`, or brings them up to date there, with Claud
 commands, so there's nothing to edit in `~/.claude/settings.json`. It finds `claude` as your terminal does, or uses
 Claude Desktop's own copy. Once Claude Code is there, it waits for Apple's command line developer tools, which the
 hooks run on, and if you take the hooks out of Claude Code, it leaves them out. Sessions pick up hooks when they
-start, so they apply to sessions started (or restarted) after this.
+start, so ones already open show only part of what they do until they reload them: the line offers **Reload Them**,
+and each such row has **Reload**, which types Claude Code's `/reload-plugins` into it while it's idle (with the same
+checks as the panel's commands, a half-typed message in a terminal kept), one session at a time; one at work is
+reloaded from its row once it's done. Its conversation carries on as it was, cache and all. One Whozmove can't type
+into, or whose reload Claude Code holds back, says what to type in it, and the line takes you there.
 
 When setting up needs something from you, a line under the header says what, with the button that does it:
 **Install** for the developer tools (macOS installs them in its own window; the line stays until they're in, and
 carries on by itself once they are), **Get Claude Code** when it isn't on this Mac, **Add Back** or **Turn On** when
 Whozmove's plugin was taken out of Claude Code or turned off there, and **Try Again** when connecting failed; and
-once it's connected, it says so with a tick for a few seconds, then folds away. Whozmove's plugin turned off or taken out of Claude Code while Whozmove runs shows there
-within a few minutes. The line's × puts it away until things change, and Git's and Claude's pages on the
+once it's connected, it says so with a tick for a few seconds, then folds away (or, with sessions open from before,
+offers Reload Them). Whozmove's plugin turned off or taken out of Claude Code while Whozmove runs shows there within
+a few minutes. The line's × puts it away until things change, and Git's and Claude's pages on the
 panel's back keep the same buttons.
 
 macOS asks for two permissions the first time they're needed: **Accessibility** for Whozmove (to change settings,
@@ -368,13 +392,34 @@ can be granted later in System Settings → Privacy & Security. Switching on iTe
 Accessibility too, to tick its box in iTerm2's Settings, and asks for nothing more: Whozmove gets each connection's
 one-time cookie from iTerm2 through that same Automation, and iTerm2 lists the connection in its Script Console.
 
+### From source
+
+```bash
+git clone https://github.com/whozmove/whozmove
+cd whozmove
+./install.sh   # builds the app and opens it: it sets itself up as it opens, its hooks and Open at Login included
+```
+
 After changing anything in `app/`, `modules/`, `panel/`, `icon/` or the hooks, run `./build.sh` again in your
 terminal. It puts the app in place and restarts it, and the app brings its hooks up to date as it starts (a hook
 change reaches sessions started after that). Run inside Claude Code, by an agent or by you with `!`, the hooks are
 left as they are, since every session you start would run them; and once you've set up Deploy for Whozmove in the
 panel, it only compiles while the panel runs with Deploy's button showing, and Deploy on the session's row puts it in
-place when you press it. Running `./install.sh` again updates the hooks too. `./install.sh --uninstall` removes the
-app, its login item and the plugin, and asks before deleting Whozmove's folder.
+place when you press it. Running `./install.sh` again updates the hooks too.
+
+### Uninstalling
+
+```bash
+brew uninstall --cask --zap whozmove
+claude plugin uninstall whozmove@whozmove
+claude plugin marketplace remove whozmove
+```
+
+The first line takes the app, its login item and Whozmove's folder (a plain `brew uninstall --cask whozmove` leaves the
+login item and the folder); the other two take its hooks out of Claude Code, or use `/plugin` in a Claude Code session.
+The hooks record nothing once the app is gone, but Claude Code lists them until they're taken out. Installed from
+source, `./install.sh --uninstall` removes the app, its login item and the plugin, and asks before deleting Whozmove's
+folder.
 
 ## How it works
 
@@ -407,13 +452,13 @@ app, its login item and the plugin, and asks before deleting Whozmove's folder.
 |---|---|
 | `app/` | the native app's core, one file per job (`core/`: the floating `NSPanel`, the menu bar item, the bridge to the page, the rows, the session you're on, and words typed into a session or sent to Claude Desktop), what modules fill in (`contracts/`) and the helpers that know no app (`shared/`) |
 | `modules/` | one folder per module, each with its native code, its page files, its tests and a README: `claude-code/` (Claude Code's sessions, transcripts, details, requests, prompt and usage, and its hooks plugin, put into Claude Code and kept up to date there); the apps sessions run in, `claude-desktop/` (Claude Desktop's conversations, its message box and new conversations), `ghostty/` (sessions' tabs in Ghostty, and typing into them), `iterm2/` (sessions' tabs in iTerm2, and new ones) and `terminal-app/` (macOS's Terminal, for Sign in); and the features, `git/` (each row's checkout, its next steps and Create PR, and its PRs), `deploy/`, `changes/` (a checkout's numbers and the changes view), `reader/`, `usage/` (the usage card), `starts/` (new conversations and ⌃⌥N), `commands/` (the model, effort and mode menus and the Compact card), `spotify/` (the now-playing strip, its lyrics and Spotify's token) and `install/` (the app setting itself up as it opens: where it runs from, Apple's developer tools, and its hooks in Claude Code) |
-| `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), `page.sh`, which puts the page together with each module's page files, and `bundle.sh`, which makes the app bundle, with the hooks inside it, and signs it (build.sh) |
+| `tools/` | `compile.sh`, the one compile line (build.sh, the tests, CI), `page.sh`, which puts the page together with each module's page files, and `bundle.sh`, which makes the app bundle, with the hooks inside it, and signs it (build.sh and release.sh), and `release.sh`, which makes a release's zip for Apple silicon and checks it (`--trial` to try one first) |
 | `panel/` | the UI's core, rendered in a transparent `WKWebView`: `panel.html` (the markup), `styles/` (`tokens.css`: its colours, text sizes and corners, each named for its job), and `scripts/`, one job each (rows and their places for each feature's parts, animation, hover, presses and typing, the reader; `whose-move.js`: what each session is, where its row goes, and which session speaks for each checkout; `modules.js`: what the modules plug into the page with); each feature's scripts, and its own styles, are in its module |
 | `modules/claude-code/plugin/hooks/whozmove-claude.py` | Claude Code hook that records per-session context |
 | `modules/claude-code/plugin/hooks/whozmove-claude-permission.py` | Claude Code PermissionRequest hook: asks in the panel as well as in Claude; and its PreModelSwitch hook: asks "Switch model?" in the panel for a switch the panel made |
 | `modules/claude-code/plugin/` (`hooks/hooks.json`, `.claude-plugin/`) | the Claude Code plugin that runs both hooks; the app adds it as it opens, from a copy in Whozmove's folder |
 | `icon/make-icon.m` | draws `icon/AppIcon.icns` (re-run only to change the icon) |
-| `build.sh`, `install.sh`, `app/login-item.plist` | build, and install (the plugin and the login item); they read the app's name and id from `app/Info.plist` |
+| `build.sh`, `install.sh` | build, and install (build, then open the app, which sets itself up; `--uninstall` takes it all out); they read the app's name and id from `app/Info.plist` |
 | `app/swap-in.sh`, `modules/claude-code/plugin.sh` | what puts a build of Whozmove in place and restarts the app, which brings the hooks it carries up to date (every build carries a copy), and the plugin's copy with a version named after its hooks |
 | `tests/` | `all.sh` runs every test: `rows.sh` checks the rows the app builds for a sample home folder, when keys may go into each session, its mode menus' Shift+Tab counts, the keys a command is typed with, what its menus say about why nothing can go in, how a command's result is read, what the usage card gets from Claude Code's recorded answers, what a new conversation's start runs and how folder trust is read and recorded, and that this README names the macOS permissions the app asks for and no file names one it doesn't, `panel.sh` the page's labels, colours and row HTML, `build.sh` when a build only compiles and when it goes straight in, against a throwaway home folder, `checks.sh` that the modules stay apart; each compares with its recorded `.expected.txt`, and each module's own tests run too (Claude Code's run both hooks against a throwaway home folder, and put its plugin into a stand-in Claude Code; the install module's check how the app sets itself up as it opens; the usage module's check what the usage card shows and the vine's reset frame by frame) |
 | `CONTRIBUTING.md` | how it's built and how to work on it |
@@ -435,14 +480,17 @@ Debug log: `~/Library/Application Support/Whozmove/panel.log`.
   and the GitHub avatars on PR cards, and Claude Code's own `claude` command asking Anthropic for your plan's usage
   (as you, through its own sign-in: Whozmove never reads your login, and keeps only the numbers, in memory), and
   the cover of the song Spotify is playing, from Spotify's image server, at the address Spotify gives; and, once
-  you've said yes to lyrics, LRCLIB (lrclib.net), told each song's name, artist, album and length to find its lyrics.
+  you've said yes to lyrics, LRCLIB (lrclib.net), told each song's name, artist, album and length to find its lyrics;
+  and, installed with Homebrew, GitHub asked for the tap's cask file (raw.githubusercontent.com) as it opens and
+  every 6 hours, to see whether a new version is out, with no sign-in and nothing of yours in the request.
   Everything else stays on this Mac.
 - What it keeps is in `~/Library/Application Support/Whozmove/`, which only you can read: each session's last
   message and Claude's last reply (their first 280 characters), what it's doing at the moment (a command, a file's
   name, a search) and how far each turn took the work, requests while they wait for your OK, the deploy command
   you've confirmed for each project, with each deploy's log, the words of a conversation you start in a terminal until
   it has started, the lyrics found for the last 1,000 songs you played, until you turn lyrics off, where the app runs
-  from and when its hooks first went into Claude Code, and a small log,
+  from and when its hooks first went into Claude Code, a new version you've hidden from the line under the header,
+  and a small log,
   which can hold folder paths, repository and conversation names, and text typed into sessions. A new tab in iTerm2 runs from a file of commands in your own temporary folder, which
   only you can read and which removes itself as it runs.
 - The hooks go into Claude Code through its own `claude plugin` commands, which record them in its settings
@@ -458,9 +506,10 @@ Debug log: `~/Library/Application Support/Whozmove/panel.log`.
   typed before it (else Claude Code would bring back an older draft), and once Claude Code has put your text back,
   that Backspace takes the "x" out, while Claude has already started on the request. Never while Claude asks
   something or a request waits.
-- `build.sh` signs the app ad hoc, with its bundle id as its identity, so that a rebuild keeps the
-  Accessibility permission. The catch: any other ad-hoc-signed app that claims the id `com.whozmove.app` would
-  get that permission too. Signing with a certificate of your own closes that.
+- `build.sh` signs the app ad hoc, with its bundle id as its identity, so that a rebuild keeps the Accessibility
+  permission. Releases are signed the same way, and built on GitHub from their version's tagged commit
+  (`tools/release.sh`, run by `.github/workflows/release.yml`). The catch: any other ad-hoc-signed app that claims the
+  id `com.whozmove.app` would get that permission too. Signing with a certificate of your own closes that.
 - To report a security problem, follow [SECURITY.md](SECURITY.md) rather than opening a public issue.
 
 Whozmove is an independent project. It isn't made by, affiliated with or endorsed by Anthropic.

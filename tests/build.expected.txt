@@ -4,7 +4,7 @@ Built T/Applications/Whozmove.app
 Whozmove is running from T/stand-in/Whozmove, so nothing was restarted: quit it, then open T/Applications/Whozmove.app to run this build
 installed: agent=True branch=main changes=False root=T/repo commit: 40 digits
 the app in ~/Applications: replaced
-it carries the hooks: 0.1.0+<hash>
+it carries the hooks: 0.2.0+<hash>
 its signature checks out
 an unchanged copy checks out
 with a hook changed, it no longer checks out

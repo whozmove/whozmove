@@ -31,8 +31,9 @@ Every module fills in `Module.h`. The agent fills in `Agent.h` too, and a host `
 ## The parts
 
 - **The core**, in `app/core` and `panel/`. Natively: `Modules` (the registry), `Core` (what a module is given: the
-  page, the window, the menu bar, the rows, the agents and the hosts), `Rows` (the rows read and sent), `Focus` (the
-  session you're on, when you last looked at each, and opening one from its row), `Send` (words into a session, and why
+  page, the window, the menu bar, the rows, the agents, the hosts and the terminal new sessions start in), `Rows` (the
+  rows read and sent), `Focus` (the session you're on, when you last looked at each, and opening one from its row, an
+  ended terminal session's in a new tab), `Send` (words into a session, and why
   they can't go in now), `Work` (who's at work in a checkout), `Page`, `PanelWindow`, `MenuBar`, `Builds`, `Printing`
   (what the tests' print runs share), `EdgeIcon` (an icon tucked half under the glass at the panel's edge, as Spotify's
   token is), `SideCat` (Whozmove beside the panel while the header has gone), `CatShape` (the cat's shapes, drawn

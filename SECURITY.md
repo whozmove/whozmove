@@ -27,7 +27,8 @@ Please keep the problem private until the fix is out, or for 90 days after your 
 
 ## Which versions get fixes
 
-Only the latest release. A fix comes in the next release, so update to it.
+Only the latest release. A fix comes in the next release, so update to it: `brew upgrade`, or from source, `git pull`
+and `./build.sh`.
 
 ## What counts
 

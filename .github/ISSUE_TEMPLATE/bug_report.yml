@@ -71,7 +71,14 @@ body:
     id: whozmove
     attributes:
       label: Whozmove version or commit
-      placeholder: "0.1.0"
+      placeholder: "0.2.0"
+  - type: dropdown
+    id: installed
+    attributes:
+      label: How Whozmove was installed
+      options:
+        - Homebrew
+        - From source
   - type: textarea
     id: log
     attributes:

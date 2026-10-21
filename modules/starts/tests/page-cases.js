@@ -120,7 +120,10 @@ show('…the terminal for anything in a worktree', startApp(startCard2({ target:
 show('…Claude with no terminal to choose', (state.startOptions = { terminal: null }, startApp(startCard2({ app: 'terminal' }))));
 show('…the terminal while Claude Desktop’s sessions aren’t tracked',
      (state.startOptions = { terminal: 'Ghostty', desktop: false }, startApp(startCard2({}))));
-show('…nowhere, with no terminal either', (state.startOptions = { terminal: null, desktop: false }, cardState(startCard2({}))));
+show('…nowhere, with no terminal either: Track Them', (state.startOptions = { terminal: null, desktop: false,
+  installed: true }, cardState(startCard2({}))));
+show('…nowhere, without Claude Desktop on the Mac: Get Claude Desktop', (state.startOptions = { terminal: null,
+  desktop: false, installed: false }, cardState(startCard2({}))));
 state.startOptions = { terminal: 'Ghostty' };
 show('a new worktree waits for git to say it can be made', cardState(startCard2({ target: { ...fresh } })));
 show('…an answer for another base is let go', cardState(startCard2({ target: { ...fresh, check: { ...freeHello, base: 'main' } } })));

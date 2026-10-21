@@ -19,7 +19,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   },
   {
     "asked" : [
@@ -40,7 +41,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -60,7 +62,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -80,7 +83,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -100,7 +104,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -120,7 +125,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   }
 ]
 == A build an agent made: where it runs from is noted, its hooks are left as they are
@@ -143,7 +149,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   }
 ]
 == Waiting for the agent, then for Apple's developer tools, then carrying on at the next look
@@ -171,7 +178,8 @@
     "tools asked" : [
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   },
   {
     "asked" : [
@@ -196,7 +204,8 @@
     "tools asked" : [
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   },
   {
     "asked" : [
@@ -225,7 +234,8 @@
       "as last asked",
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   },
   {
     "asked" : [
@@ -252,7 +262,8 @@
     "tools asked" : [
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   }
 ]
 == Hooks taken out of the agent, or turned off in it, and two presses on the line one after the other
@@ -276,7 +287,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -297,7 +309,8 @@
     ],
     "tools asked" : [
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -330,7 +343,8 @@
       "as last asked",
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   }
 ]
 == Opened again while it's still so: since when it has been so is kept, so a × on the line still holds
@@ -360,7 +374,8 @@
     "tools asked" : [
       "as last asked",
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   }
 ]
 == Install: macOS's installer opens, and while it's open, and once after, macOS is asked again at each look;
@@ -399,7 +414,8 @@
       "asked now",
       "asked now",
       "asked now"
-    ]
+    ],
+    "went in" : "recorded"
   },
   {
     "asked" : [
@@ -433,7 +449,8 @@
       "asked now",
       "asked now",
       "as last asked"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -459,7 +476,8 @@
       "as last asked",
       "asked now",
       "as last asked"
-    ]
+    ],
+    "went in" : "recorded"
   }
 ]
 == Install without the agent, and from outside an Applications folder: for Git's page, it opens the installer all
@@ -489,7 +507,8 @@
       "asked now",
       "asked to install them",
       "asked now"
-    ]
+    ],
+    "went in" : "not recorded"
   },
   {
     "asked" : [
@@ -515,6 +534,437 @@
       "asked now",
       "asked to install them",
       "asked now"
+    ],
+    "went in" : "not recorded"
+  }
+]
+== Open at Login: on from the very first open, then as you set it; the login item put right for this app
+   wherever it runs from, never loaded into launchd from here, and its job unloaded only when taken out by
+   another copy than the one launchd runs
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-first",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "login" : {
+      "chosen" : true,
+      "file" : "this app's",
+      "launchctl asked" : [
+
+      ],
+      "opens" : "~\/Applications\/Whozmove.app\/Contents\/MacOS\/Whozmove",
+      "restarts after" : "Crashed",
+      "written now" : 1
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-kept",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "login" : {
+      "chosen" : true,
+      "file" : "this app's",
+      "launchctl asked" : [
+
+      ],
+      "opens" : "~\/Applications\/Whozmove.app\/Contents\/MacOS\/Whozmove",
+      "restarts after" : "Crashed",
+      "written now" : 0
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-moved",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "login" : {
+      "chosen" : true,
+      "file" : "this app's",
+      "launchctl asked" : [
+
+      ],
+      "opens" : "\/Applications\/Whozmove.app\/Contents\/MacOS\/Whozmove",
+      "restarts after" : "Crashed",
+      "written now" : 1
+    },
+    "noted" : "\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-chosen-off",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "login" : {
+      "chosen" : false,
+      "file" : "none",
+      "launchctl asked" : [
+        "print gui\/<you>\/<label>"
+      ],
+      "opens" : null,
+      "restarts after" : null,
+      "written now" : 0
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-turned-off",
+    "connected" : "recorded",
+    "found" : [
+      "ready",
+      "ready"
+    ],
+    "login" : {
+      "chosen" : false,
+      "file" : "none",
+      "launchctl asked" : [
+        "print gui\/<you>\/<label>",
+        "bootout gui\/<you>\/<label>"
+      ],
+      "opens" : null,
+      "restarts after" : null,
+      "written now" : 0
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-turned-off-in-its-copy",
+    "connected" : "recorded",
+    "found" : [
+      "ready",
+      "ready"
+    ],
+    "login" : {
+      "chosen" : false,
+      "file" : "none",
+      "launchctl asked" : [
+        "print gui\/<you>\/<label>"
+      ],
+      "opens" : null,
+      "restarts after" : null,
+      "written now" : 0
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "login-turned-on-again",
+    "connected" : "recorded",
+    "found" : [
+      "ready",
+      "ready"
+    ],
+    "login" : {
+      "chosen" : true,
+      "file" : "this app's",
+      "launchctl asked" : [
+
+      ],
+      "opens" : "~\/Applications\/Whozmove.app\/Contents\/MacOS\/Whozmove",
+      "restarts after" : "Crashed",
+      "written now" : 1
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new",
+      "kept"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+
+    ],
+    "case" : "login-outside",
+    "connected" : "not recorded",
+    "found" : [
+      "notInApplications",
+      "notInApplications"
+    ],
+    "login" : {
+      "chosen" : true,
+      "file" : "none",
+      "launchctl asked" : [
+
+      ],
+      "opens" : null,
+      "restarts after" : null,
+      "written now" : 0
+    },
+    "noted" : null,
+    "since" : [
+      "none",
+      "none"
+    ],
+    "tools" : [
+      "in",
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  }
+]
+== A newer Whozmove: for a copy Homebrew installed, from its tap's cask, Homebrew's copy on this Mac and
+   GitHub's, the newer counting, against this copy's version; never for one Homebrew didn't install
+[
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "newer",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/tap\/whozmove",
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.1"
+    },
+    "said" : "0.2.1 is out in whozmove\/tap (this is 0.2.0)"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "same",
+    "found" : null,
+    "said" : "0.2.0 is the newest in whozmove\/tap"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "older",
+    "found" : null,
+    "said" : "0.2.0 is the newest in whozmove\/tap"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "newer-by-a-part",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/tap\/whozmove",
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.10"
+    },
+    "said" : "0.2.10 is out in whozmove\/tap (this is 0.2.9)"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "github-ahead",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/tap\/whozmove",
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.2"
+    },
+    "said" : "0.2.2 is out in whozmove\/tap (this is 0.2.0)"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "github-behind",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/tap\/whozmove",
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.3"
+    },
+    "said" : "0.2.3 is out in whozmove\/tap (this is 0.2.0)"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "no-network",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/tap\/whozmove",
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.1"
+    },
+    "said" : "0.2.1 is out in whozmove\/tap (this is 0.2.0)"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "tap-not-published",
+    "found" : null,
+    "said" : "no version found in whozmove\/tap's cask, on this Mac or on GitHub"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-tap\/HEAD\/Casks\/whozmove.rb",
+    "case" : "garbled-cask",
+    "found" : null,
+    "said" : "no version found in whozmove\/tap's cask, on this Mac or on GitHub"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/someone\/homebrew-casks\/HEAD\/Casks\/whozmove.rb",
+    "case" : "another-tap",
+    "found" : {
+      "command" : "brew upgrade --cask someone\/casks\/whozmove",
+      "tap" : "someone\/casks",
+      "version" : "0.3.0"
+    },
+    "said" : "0.3.0 is out in someone\/casks (this is 0.2.0)"
+  },
+  {
+    "asked GitHub" : null,
+    "case" : "not-homebrew",
+    "found" : null,
+    "said" : "not installed by Homebrew, so no new version is looked for"
+  },
+  {
+    "asked GitHub" : null,
+    "case" : "strange-tap",
+    "found" : null,
+    "said" : "not installed by Homebrew, so no new version is looked for"
+  },
+  {
+    "asked GitHub" : null,
+    "case" : "installed-not-restarted",
+    "found" : {
+      "installed" : true,
+      "tap" : "whozmove\/tap",
+      "version" : "0.2.1"
+    },
+    "said" : "0.2.1 is installed, and this is 0.2.0: restart it to use it"
+  },
+  {
+    "asked GitHub" : "https:\/\/raw.githubusercontent.com\/whozmove\/homebrew-test\/HEAD\/Casks\/whozmove.rb",
+    "case" : "test-tap",
+    "found" : {
+      "command" : "brew upgrade --cask whozmove\/test\/whozmove",
+      "tap" : "whozmove\/test",
+      "version" : "0.2.1"
+    },
+    "said" : "0.2.1 is out in whozmove\/test (this is 0.2.0)"
+  }
+]
+== …and look by look: a build from a checkout never looks, a version put away stays away across launches until a
+   newer one, and a look GitHub doesn't answer keeps what it said last
+[
+  {
+    "asked GitHub" : 0,
+    "case" : "checkout-never-looks",
+    "looks" : [
+      "none"
+    ]
+  },
+  {
+    "asked GitHub" : 2,
+    "case" : "put-away-stays-away",
+    "looks" : [
+      "0.2.1",
+      "put away, then none",
+      "none"
+    ]
+  },
+  {
+    "asked GitHub" : 2,
+    "case" : "newer-after-put-away",
+    "looks" : [
+      "0.2.1",
+      "put away, then none",
+      "0.2.2"
+    ]
+  },
+  {
+    "asked GitHub" : 2,
+    "case" : "offline-keeps-what-github-said",
+    "looks" : [
+      "0.2.1",
+      "0.2.1"
     ]
   }
 ]
@@ -592,7 +1042,7 @@
       "card" : {
         "action" : "addBack",
         "busy" : false,
-        "button" : "Add Back",
+        "button" : "Add",
         "note" : "Add it back to see what each session is doing, and answer its requests here.",
         "ok" : false,
         "said" : "Not added"
@@ -654,12 +1104,12 @@
       "card" : {
         "action" : "addBack",
         "busy" : true,
-        "button" : "Add Back",
+        "button" : "Add",
         "note" : "Add it back to see what each session is doing, and answer its requests here.",
         "ok" : false,
         "said" : "Not added"
       },
-      "state" : "removed, Add Back pressed"
+      "state" : "removed, Add pressed"
     }
   ],
   "git" : [

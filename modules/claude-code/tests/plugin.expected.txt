@@ -6,14 +6,14 @@
      claude plugin list --json
      claude plugin marketplace add ~/Library/Application Support/Whozmove/plugin
      claude plugin install whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 2 there already, this version: nothing to do
 {
   "state" : "ready"
 }
    asked:
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 3 an older version there: the marketplace, then the plugin, are updated
 {
   "state" : "updated"
@@ -22,14 +22,14 @@
      claude plugin list --json
      claude plugin marketplace update whozmove
      claude plugin update whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 4 taken out since it went in: left out
 {
   "state" : "removed"
 }
    asked:
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 5 Add Back, after the plugin and its marketplace were taken out, or only the plugin (adding it again is fine)
 {
   "state" : "added"
@@ -38,14 +38,14 @@
      claude plugin list --json
      claude plugin marketplace add ~/Library/Application Support/Whozmove/plugin
      claude plugin install whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 6 turned off in Claude Code: left off
 {
   "state" : "turnedOff"
 }
    asked:
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 7 Turn On, and a new version with it
 {
   "state" : "added"
@@ -55,7 +55,7 @@
      claude plugin enable whozmove@whozmove
      claude plugin marketplace update whozmove
      claude plugin update whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 8 Claude Code lists it, but it can't load: what it says
 {
   "detail" : "Marketplace whozmove failed to load: cache-miss",
@@ -63,7 +63,7 @@
 }
    asked:
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 9 installing fails: its last line
 {
   "detail" : "Error: Failed to install plugin \"whozmove@whozmove\": marketplace not reachable",
@@ -73,21 +73,21 @@
      claude plugin list --json
      claude plugin marketplace add ~/Library/Application Support/Whozmove/plugin
      claude plugin install whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 10 a copy from a marketplace of your own: left as it is, with no second one
 {
   "state" : "ready"
 }
    asked:
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 11 no claude anywhere
 {
   "state" : "noCommand"
 }
    asked:
      nothing
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 12 only Claude Desktop's own copy
 {
   "state" : "added"
@@ -96,7 +96,7 @@
      claude plugin list --json
      claude plugin marketplace add ~/Library/Application Support/Whozmove/plugin
      claude plugin install whozmove@whozmove
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
 == 13 Try Again while it can't load: the hooks copied in again whatever their version, the marketplace and the plugin brought up to date, and the list asked again: it loads now
 {
   "state" : "added"
@@ -106,7 +106,7 @@
      claude plugin marketplace update whozmove
      claude plugin update whozmove@whozmove
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>
    its hooks.json: there again
 == 14 Try Again, and it still can't load: what it says now
 {
@@ -118,4 +118,4 @@
      claude plugin marketplace update whozmove
      claude plugin update whozmove@whozmove
      claude plugin list --json
-   the copy in Whozmove's folder: 0.1.0+<hash>
+   the copy in Whozmove's folder: 0.2.0+<hash>

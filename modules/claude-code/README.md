@@ -61,10 +61,14 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   the plugin), brought up to date (a marketplace update, then a plugin update), turned on again at your press, or left
   as they are, each with Claude Code's own command. Try Again puts it all in again from the start: the hooks copied
   whatever their version, then the marketplace and the plugin brought up to date and the list asked again, so Claude
-  Code reads them afresh and says how they stand now.
+  Code reads them afresh and says how they stand now. A session that started before they went in runs without them
+  (`runsWithoutHooks:since:`: its process started before then, and the hooks' record of it is older than that) until
+  `/reload-plugins` is typed into it, which loads them without restarting it; its result says whether it took
+  (`ReloadedResult`, in Results.m).
 - `app/ClaudeCodeFacts.h`: what the module relies on about Claude Code that it could change: where it keeps things, its
   command and what it's run with, the marks its tab titles show while it works, how its registry marks a session run
-  from a terminal, the `claude plugin` commands that keep Whozmove's plugin, where Claude Code is installed from, and
+  from a terminal, the `claude plugin` commands that keep Whozmove's plugin and the one that reloads it into a running
+  session, where Claude Code is installed from, and
   the model, effort and mode choices. When Claude Code changes, the fix goes here. The README's "Tested with" names the
   version they were last checked with.
 - `app/ClaudeCodePrints.m`: its print modes, for the tests.
@@ -74,8 +78,8 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
 - `plugin/`: Whozmove's hooks, as the Claude Code plugin `whozmove`: `hooks/whozmove-claude.py` (what each session is
   doing, recorded in Whozmove's folder) and `hooks/whozmove-claude-permission.py` (a request left for the panel, and its
   answer passed back; and Claude Code's "Switch model?" for a switch the panel made, asked in the panel when Claude Code
-  would ask it), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy install.sh puts in place and
-  every build carries (tools/bundle.sh), with a version named after the hooks' contents. The session hook records
+  would ask it), with `hooks/hooks.json` and `.claude-plugin/`. `plugin.sh` makes the copy every build carries
+  (tools/bundle.sh), which the app puts into Claude Code as it opens, with a version named after the hooks' contents. The session hook records
   nothing while the app noted in Whozmove's folder (`app`) isn't there. CONTRIBUTING describes the hooks and their
   rules.
 
@@ -113,7 +117,7 @@ dropped (`--print-kept`).
   Code wrote it. Its state file holds your account: only a folder's trust is read from it, and written only for a
   folder you trusted on the card, under the lock Claude Code takes.
 - The plugin's contents decide its version: a changed hook gets a new one, and reaches only sessions started after it
-  goes in.
+  goes in, or reloaded after it from the panel.
 - The hook's PreModelSwitch part decides only a switch the panel noted right before typing `/model`, for that session
   and that model, and each note is read once and lasts 20 seconds. It allows the switch only while the conversation's
   cache isn't warm, or once you've said Switch model on the row; Cancel denies it; and with no answer in a minute it

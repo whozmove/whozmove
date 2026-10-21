@@ -47,6 +47,12 @@
 // A compaction from the panel certainly couldn't go in now, as far as can be told without asking its terminal: it runs
 // in no terminal the panel can type into, or it's open twice. The page doesn't suggest compacting it then.
 @property (assign) BOOL noCompact;
+// A running session that started before Whozmove's hooks went into its agent, and runs without them until it reloads
+// them: {state}, `needed`, `waiting` (its turn), `reloading`, or `byHand` with `why`, `command` and `held`, left for
+// you to type in it: the panel can't type into it, or Claude Code held the reload back (`held`).
+@property (copy) NSDictionary *reload;
+// When its agent's hooks last wrote their record of it, in seconds since 1970, read with the record. Not sent.
+@property (strong) NSNumber *hookRecordedAt;
 // For a terminal session that has ended: the app id of the terminal it last ran in, as its agent kept it (not sent),
 // and the name of the terminal a press on its row opens it again in.
 @property (copy) NSString *ranIn, *opensIn;

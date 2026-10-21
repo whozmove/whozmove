@@ -95,12 +95,16 @@ function startApp(card) {
 const appLabel = (app) => (app === 'terminal' ? state.startOptions.terminal || 'the terminal' : 'Claude');
 
 // What the card says, and whether it can start (`go`, '' while it can't): that there's nowhere to start it, with no
-// terminal and Claude Desktop's sessions not tracked; about its folder (startState); else about a new worktree, which
-// starts once git has said it can be made there (worktreeNameChecked).
+// terminal, and Claude Desktop's sessions not tracked (with Track Them) or Claude Desktop not on this Mac (with Get
+// Claude Desktop), each `way` a press the app takes (startWay); about its folder (startState); else about a new
+// worktree, which starts once git has said it can be made there (worktreeNameChecked).
 function cardState(card) {
   if (!state.startOptions.terminal && !desktopTracked())
-    return { help: 'There’s nowhere to start it: Claude Desktop’s sessions aren’t tracked, and there’s no terminal here.',
-             warn: true, go: '' };
+    return state.startOptions.installed
+      ? { help: 'There’s no terminal to start it in here, and Claude Desktop’s sessions aren’t tracked.', warn: true,
+          go: '', way: 'track', wayLabel: 'Track Them' }
+      : { help: 'There’s no terminal to start it in here, and Claude Desktop isn’t on this Mac.', warn: true, go: '',
+          way: 'getDesktop', wayLabel: 'Get Claude Desktop' };
   const said = startState(card, state.folders), t = card.target;
   if (said.help || t?.kind !== 'new') return said;
   if (!t.name) return { help: 'Name the new worktree: #name.', warn: true, go: '' };
@@ -302,7 +306,7 @@ function holdCommand(held) {
 // place the row's details line takes, what `@` and `#` offer as you write them, the line saying where it runs, and
 // Start, naming the app, with the app's menu beside it.
 function startCardHTML(card, sessions) {
-  const { help, warn, go } = cardState(card), busy = help ? '' : busyHint(card, sessions);
+  const { help, warn, go, way, wayLabel } = cardState(card), busy = help ? '' : busyHint(card, sessions);
   const app = startApp(card), empty = !card.text.trim();
   const button = `<span class="c-split"><button class="c-go${empty ? ' empty' : ''}"${go ? '' : ' disabled'} title="⌘Return starts it">`
     + `${app === 'terminal' ? TERMINAL_ICON : DESKTOP_ICON}<span class="go-label"><span class="go-verb">${esc(goVerb(go))}</span>`
@@ -316,7 +320,9 @@ function startCardHTML(card, sessions) {
           spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">${esc(card.text)}</textarea></div>
         ${chipsHTML(card)}${listHTML(card)}${underHTML(card)}
         ${busy ? `<div class="c-busy" data-k="busy"><span>${esc(busy)}</span><button class="c-usewt">Use a new worktree</button></div>` : ''}
-        ${help ? `<div class="c-help${warn ? ' warn' : ''}" data-k="help">${esc(help)}</div>` : ''}
+        ${help && way ? `<div class="c-busy" data-k="help"><span>${esc(help)}</span>`
+          + `<button class="c-usewt" data-way="${esc(way)}">${esc(wayLabel)}</button></div>`
+          : help ? `<div class="c-help${warn ? ' warn' : ''}" data-k="help">${esc(help)}</div>` : ''}
         <div class="st-foot">${button}</div>
       </div>
     </div>`;
@@ -944,6 +950,8 @@ dockBox.addEventListener('mousedown', (e) => {
   if (option) return pickChoice(+option.dataset.i);
   if (t.closest('.c-proj')) return openList('@');
   if (t.closest('.c-in, .c-base')) return openList('#');
+  const way = t.closest('.c-usewt[data-way]');
+  if (way) return native({ type: 'startWay', kind: way.dataset.way });
   if (t.closest('.c-usewt')) return useNewWorktree();
   if (t.closest('.c-place') && card) return placesMenu(t.closest('.c-place'));
   focusStart();

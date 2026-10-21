@@ -1,4 +1,4 @@
-// Text: shell words, colour codes, hashes, line keys and one line of words.
+// Text: shell words, colour codes, hashes, line keys, one line of words and plain ids.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Text.h"
 #import "Files.h"
@@ -29,4 +29,10 @@ NSString *OneLine(NSString *words, NSUInteger most) {
     return Clip([[[words componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]
                   componentsJoinedByString:@" "]
                  stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet], most);
+}
+
+BOOL IsPlainId(NSString *text, NSUInteger most) {
+    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:
+                                 @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-"].invertedSet;
+    return text.length && text.length <= most && [text rangeOfCharacterFromSet:other].location == NSNotFound;
 }

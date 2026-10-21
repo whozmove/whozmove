@@ -2045,8 +2045,8 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
   }
 }
 == A command's result as read from a transcript (null: none yet), and what it says: the value now in effect
-   (null: nothing changed), whether the pick was saved as the default, and the Compact card's note (null: it
-   compacted)
+   (null: nothing changed), whether the pick was saved as the default, the Compact card's note (null: it
+   compacted), and whether a reload of the plugins took
 {
   "compact-done.jsonl" : {
     "applies" : null,
@@ -2103,6 +2103,20 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "applies" : "plan",
     "command" : "\/plan",
     "result" : "Enabled plan mode",
+    "savedDefault" : false
+  },
+  "reload-done.jsonl" : {
+    "applies" : null,
+    "command" : "\/reload-plugins",
+    "reloaded" : true,
+    "result" : "Reloaded: 2 plugins · 4 skills · 1 agent · 5 hooks · 0 plugin MCP servers · 0 plugin LSP servers",
+    "savedDefault" : false
+  },
+  "reload-held.jsonl" : {
+    "applies" : null,
+    "command" : "\/reload-plugins",
+    "reloaded" : false,
+    "result" : "This reload changes MCP tools (notes) — your next message will re-read the whole conversation instead of using the cache. Run \/reload-plugins --force to apply.",
     "savedDefault" : false
   }
 }

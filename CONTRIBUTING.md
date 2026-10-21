@@ -54,7 +54,17 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   hooks it carries up to date as it starts (the install module). An agent's build (one with Claude Code's
   `CLAUDECODE` mark, which a `!` command in Claude Code has too) never puts its hooks in place, and once Deploy is set
   up for Whozmove in the panel (its command is `./build.sh --now`), it stops after compiling while the panel runs with
-  Deploy's button showing, and leaves putting it in place to Deploy, as for any project.
+  Deploy's button showing, and leaves putting it in place to Deploy, as for any project. With Whozmove not running,
+  `swap-in.sh` restarts nothing, and says to open it to run the build.
+- **`tools/release.sh`** and **`.github/workflows/release.yml`**: a release is made on GitHub from a pushed version tag
+  (`v0.2.0`). `release.sh` builds the app for Apple silicon with `make_bundle`, every warning an error, and signs it
+  with `sign_bundle`, refusing unless `app/Info.plist`, the plugin's version and a CHANGELOG section all say that
+  version and the checkout has nothing uncommitted. It checks the build (its signature and requirement, Apple silicon
+  only, the oldest macOS, the hooks it carries, no home folder in it), zips it into `dist/`, and checks the copy
+  unpacked from the zip the same way. The workflow runs every test on that copy, then makes a draft release, which is
+  published by hand; Homebrew's cask (`whozmove/tap`) names the version and the zip's sha256, which the run prints.
+  `--trial` makes a zip to try at any version, without the refusals; run by hand, the workflow makes one and keeps it
+  with the run.
 - **`app/`**: Objective-C, ARC, no Xcode project: `tools/compile.sh` compiles every `.m` in it and in `modules/` (see
   Modules below). It holds the core (`core/`), what modules fill in (`contracts/`) and the helpers that know no app
   (`shared/`); everything else is a module. One file per job:
@@ -117,9 +127,13 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     itself up as it opens (`Install`: from an Applications folder only, where it runs from noted for the hooks, the
     agent looked for, Apple's developer tools waited for, which only the agent's sessions need, with Install opening
     macOS's installer for them (`ToolsFacts`), then the hooks put into the agent or brought up to date there,
-    `AgentInstall`; its own record in `AppDir/install.json`; and the line under the header that says what it needs
-    from you, with the cards it adds to Git's page and the one the agent's settings go on, Claude's, on the panel's
-    back).
+    `AgentInstall`; Open at Login, on from the first open, kept as you set it in the pawn menu, `LoginItem`; its own
+    record in `AppDir/install.json`; `Reloads`: the sessions running since before the hooks
+    went in, which run without them until they reload them, reloaded from the line or each one's row, one at a time,
+    each once it's idle, with the agent's own command, through `Send`; `Updates`: a newer Whozmove out, for a copy
+    Homebrew installed, read from its tap's cask (`HomebrewFacts`), said on the line with the command that updates it,
+    and never installed from here; and the line under the header that says what it needs from you, with the cards it
+    adds to Git's page and the one the agent's settings go on, Claude's, on the panel's back).
   - The data has a shape: `Row` (app/contracts) is one listed session, field by field as **`docs/reference/rows.md`**
     describes it (the contract between the hooks, the app and the page; `tests/rows.sh` keeps the two in step).
     `Command` (the commands module's) is one slash command sent from the panel, with its stage (asking, going in,
@@ -134,7 +148,8 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   (`ClaudeCodeFacts.h`: where Claude Code keeps things, its command, the model and mode choices; `ClaudeDesktopFacts.h`,
   `GhosttyFacts.h`, `ITerm2Facts.h`, `SpotifyFacts.h`, and beside it `LRCLIBFacts.h`, for the lyrics' web service),
   what it knows of the editors Open With offers is in the changes module's `Editors.m`, and how macOS puts Apple's
-  developer tools in is the install module's (`ToolsFacts.h`). What a `Browser` relies on to
+  developer tools in, and how its launchd opens Whozmove at login, are the install module's (`ToolsFacts.h`,
+  `LaunchdFacts.h`), as is what it reads of Homebrew to tell a new version is out (`HomebrewFacts.h`). What a `Browser` relies on to
   introduce itself as Safari is the core's, beside it, in `BrowserFacts.h`. The versions they were last
   checked with are in the README. When one of them changes, the fix goes there.
 - **`panel/`**: HTML, CSS and plain `<script>` files: no modules, no build step, no libraries.
@@ -164,8 +179,9 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     past it, folded down: see Animation; how it folds is plain functions, checked by `tests/panel.sh`), and `panel`
     (`render`, and the functions the app calls on the core). Then each module's, from its `page/`, one per job, each
     plugging into the core as it loads: the install module's `install` (what the line under the header says while
-    Whozmove sets itself up, and how its × holds: plain functions) and `install-line` (drawing it in its place under
-    the header, `#install`, growing in, changing its words and folding away, its button and its ×); Claude Code's
+    Whozmove sets itself up, or when a new version is out, and how its × holds: plain functions) and `install-line` (drawing it in its place under
+    the header, `#install`, growing in, changing its words and folding away, its button and its ×) and `reload-row` (a
+    session running since before the hooks went in, on its row: Shown in part with Reload, and its note); Claude Code's
     `agent` (what a Claude Code session's model, mode and context mean) and `requests` (its requests, questions and plans on a row); the commands module's `commands` (the model,
     effort and mode labels, the context ring, the Compact card, and the card while a pick goes into a terminal session)
     and `switch-model` ("Switch model?", asked on its row for Claude Desktop and terminal sessions alike); the next
@@ -228,12 +244,15 @@ trust, target}`: `sessionId` is the one the page chose for a terminal start, `tr
 where in the folder's repo when not its own folder, `{kind: open, path}`, `{kind: branch, name}` or `{kind: new, name,
 base}`), `checkFolder` (whether Claude may work there), `listBranches` (what a folder's repo has, for the card's #),
 `checkWorktreeName` (whether a new worktree can be made, `{folder, name, base}`), `startMenu` (the card's small menus,
-`{kind}`: `app`, `places` with `repo`, or `choose`), `spotify` (the now-playing strip's presses, `{action}`:
+`{kind}`: `app`, `places` with `repo`, or `choose`), `startWay` (the card's way past having nowhere to start it,
+`{kind}`: `track`, Claude Desktop's sessions tracked again, or `getDesktop`, its download page), `spotify` (the now-playing strip's presses, `{action}`:
 `playpause`, `next`, `previous`, `seek` with its `fraction`, `open` or `settings`; `folded` once it has folded away;
 `collapsed` `{on}`; and `lyrics` `{on}`, your answer about lyrics), `install` (the setup line's button, `{action}`:
 `tools`, which has macOS show its own installer for Apple's developer tools, `addBack`, `turnOn`, `retry`, or
-`getAgent`, the agent's install page in your browser; the app holds the commands and the address, and does nothing
-for one that no longer fits) (each routed by its type to the core or the module that answers it: `Modules`).
+`getAgent`, the agent's install page in your browser; `copyUpgrade`, the command that updates Whozmove put on the clipboard, `putAwayUpdate` with `version`, its ×,
+`reloadAll`, the line's Reload Them, and `reload` with
+`sessionId`, a row's Reload, for the sessions running since before the hooks went in; the app holds the commands and
+the address, and does nothing for one that no longer fits) (each routed by its type to the core or the module that answers it: `Modules`).
 `answerAsk` for a plan carries `message` (your notes) or `stop`. Native → page:
 `update(rows, now)`, `setRoom`, `hoverAt`/`hoverEnd` (with `still` while the pointer is off the panel without having
 moved there: the panel's edge went past it, or one of its menus closed there; `hoverEnd` comes again once it moves; and
@@ -259,12 +278,15 @@ stays on, and the reader's width) and `readerClosed` (in `reader.js`); and each 
 once it's listed, `{note}` while it waits on you, `{why}` if it didn't start), `startProject` (a folder picked from the
 card's chooser), `branchesListed` (`{here, worktrees, branches, base, folder, folderPath}` or `{none, where}`),
 `worktreeNameChecked` (`{path, where, name, base}` or `{why}`), `worktreesMoved` (a repo's worktrees go somewhere else
-now), `startAppChosen` (from Start's menu) and `setStartOptions` (`{terminal, desktop, choice}`, the terminal a start
-can open in, or null, whether Claude Desktop's sessions are tracked, without which nothing starts there, and whether
-Start's menu has another app to pick) (`starts.js`),
-`setInstall` (how Whozmove's setting itself up stands, `{state, detail, since, busy}`: the
-install module's states, since when it has been so, which a × on the line holds for, and whether a press is under
-way) (`install-line.js`), `setNowPlaying` (the song Spotify is playing, or null) and `setLyrics` (what's known of its lyrics:
+now), `startAppChosen` (from Start's menu) and `setStartOptions` (`{terminal, desktop, installed, choice}`, the
+terminal a start can open in, or null, whether Claude Desktop's sessions are tracked, without which nothing starts
+there, whether it's on this Mac, and whether Start's menu has another app to pick) (`starts.js`),
+`setInstall` (how Whozmove's setting itself up stands, `{state, detail, since, busy, reload}`: the
+install module's states, since when it has been so, which a × on the line holds for, whether a press is under
+way, and how the sessions running since before the hooks went in stand: `{open, idle, byHand, first, waiting, going,
+done, total, since}` (`first`, the first left for you to reload, `{sessionId, name, command, held}`), or `{allSet,
+since}` once a press has reloaded the last of them, and `update`, `{version, command}`, a newer Whozmove out
+through Homebrew) (`install-line.js`), `setNowPlaying` (the song Spotify is playing, or null) and `setLyrics` (what's known of its lyrics:
 `{state}`, and for a song's `track`, with `lrc` or `plain` once found, or `none` or `failed` when there are none to be
 had) (`spotify.js`),
 `showWriting(sid, id, {text} or {missing})` and `prototypeState(sid, id, {loading, problem, asked, keyboard})`
@@ -303,7 +325,8 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
   start in, and a `Browser` for web pages of its own), `Rows` (the rows read once a second, each module adding its part
   in the phase it belongs to, and sent), `Focus` (the session you're on, when you last looked at each, and opening a
   session from its row, an ended terminal session's in a new tab), `Send` (words into a session through its host and its
-  agent, and why they can't go in now, worded as the menus, cards and steps say it), `Work` (who's at work in a
+  agent, and why they can't go in now, worded as the menus, cards and steps say it; and one of the agent's own commands
+  typed in the same way, its result watched for), `Work` (who's at work in a
   checkout, which the next steps and Deploy wait for), `Page`, `PanelWindow`, `MenuBar`, `Builds` and `Printing`
   (what the print runs share: the rows read, and read once what's worked out alongside them has come back).
   **`app/contracts/`** holds what modules fill in (`Module.h`, `Host.h`, `Agent.h`) and what they pass (`Row`,
@@ -342,7 +365,8 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
   a session edited, and its PRs), `AgentCommands` (its menus' choices, the commands that make them, and whether one
   took), `AgentPrompt` (a command typed into a session's prompt while keeping your draft, and when that's safe),
   `AgentUsage` (your plan's usage), `AgentStarts` (a new session's command, an ended one's, and folder trust) and
-  `AgentInstall` (Whozmove's hooks put into it, and kept up to date). The core finds the agent that runs a row
+  `AgentInstall` (Whozmove's hooks put into it, and kept up to date, and the sessions that started before they went
+  in, which reload them with its own command). The core finds the agent that runs a row
   (`agentOf:`), so nothing else reaches into one: there's one, Claude Code, for now.
 - On the page, a module's scripts only register as they load, in the lists panel/scripts/modules.js keeps, and the
   core runs them; a module never calls another's functions or reads its state. Its own state goes on the page's state
@@ -377,7 +401,9 @@ Spotify's strip keep their styles in their modules; the row's and the cards' are
                       # brings its hooks up to date as it starts); an agent's only compiles, once Deploy is set up
                       # for Whozmove (see below)
 ./build.sh --now      # the same, as Deploy runs it (from an agent, it still only compiles)
-./install.sh          # adds the hooks as a Claude Code plugin, sets up the login item (LaunchAgent)
+./install.sh          # ./build.sh, then opens the app, which sets itself up as it opens (its hooks, Open at Login);
+                      # --uninstall takes the app, its login item and its hooks out
+tools/release.sh X.Y.Z # builds, checks and zips a release into dist/, publishing nothing; --trial, a zip to try
 tests/all.sh          # every test below, the app built once for all of them (~80s)
 tests/rows.sh         # the rows the app builds for a sample home, its mode menus' Shift+Tab counts, the menus' why
                       # nots, how a command's result is read and the macOS permissions the README names, compared
@@ -429,6 +455,9 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   effort and mode menus, its Compact card and its next steps would say about why nothing can go into it now, and
   `Whozmove --print-results <command> <transcript>…` what the panel takes each command's result in a transcript to
   say.
+- `Whozmove --print-kept` prints what would be kept of each terminal session running in `$HOME`, so its row stays once
+  it ends, and which of the sessions kept there would be dropped: their process went on to another conversation, or
+  they've gone. It writes nothing; `tests/rows.sh` checks it.
 - `Whozmove --print-changes <sessionId> <scope>` prints what the changes view would be sent for that session's
   checkout in `$HOME`, one of its tabs: `unstaged`, `staged` or `outgoing`; `tests/rows.sh` checks each on a checkout
   with a file staged and changed again, files git doesn't track, and a commit not on its upstream.
@@ -443,9 +472,13 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   as the app does as it opens, with `claude` looked for on `$INSTALL_PATH` first, and prints what it reached; the
   Claude Code module's tests run it with a stand-in `claude`. `Whozmove --print-install <case>…` prints what the app
   does as it opens in each of the install module's sample cases, with stand-ins for where it runs from, the agent,
-  Apple's developer tools and macOS's installer for them; that module's tests check it. Both change Whozmove's folder
-  in `$HOME`, so they refuse to run in your own home folder: give them a throwaway one, as their tests do.
+  Apple's developer tools, macOS's installer for them and launchctl, and the login item it writes; that module's tests
+  check it. Both change Whozmove's folder in `$HOME` (and the second the login item there), so they refuse to run in
+  your own home folder: give them a throwaway one, as their tests do.
   `Whozmove --print-install-cards` prints every card the install module puts on the panel's back, for each state.
+  `Whozmove --print-updates <case>…` prints what the install module finds of a newer version in each sample case: a
+  Homebrew receipt and its tap's cask, Homebrew's copy and GitHub's (from the case, never asked), and look by look
+  through `Updates` itself; it writes in Whozmove's folder in `$HOME`, so it refuses your own home folder too.
 - To see the usage card's wait and reset without a limit to wait for: hold ⌥ as you open the pawn menu, Working on
   Whozmove ▸ Preview the Wait.
 - `Whozmove --print-browsing <folder>` prints where each kind of address goes from sample setups of a `Browser` (the
@@ -567,6 +600,11 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
   read, never on the command line, and the file goes once the session has started.
 - **Builds keep their Accessibility grant** because every bundle is signed with the bundle id as its designated
   requirement (`sign_bundle` in tools/bundle.sh). Don't change the signing line without knowing that.
+- **The app never loads its own login item into launchd.** It writes the file (`LoginItem`, from an Applications
+  folder only), which the next login loads; loading it now would start a second copy, which bows out. Taken out, its
+  job is unloaded only by a copy launchd doesn't run for it, as unloading it would stop that copy. The login item
+  restarts the app only after a crash (`KeepAlive` `Crashed`), so one left behind with the app gone fails once at
+  login, rather than every few seconds.
 - **A build restarts only the app it replaced.** `swap-in.sh --restart` restarts the login item only if it runs
   `$HOME/Applications/Whozmove.app` (stopping first a copy that isn't the login item's own, by its checked pid), and a
   copy started some other way only by its checked pid, with a clean environment. So a build for a throwaway home

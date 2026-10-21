@@ -1,8 +1,9 @@
 // Install: Whozmove setting itself up each time it opens, as an install from Homebrew only copies the app. From an
 // Applications folder only, it notes where it runs from (the hooks record only while that app is there), looks for the
 // agent, waits for Apple's developer tools, which only the agent's sessions need, and puts its hooks into the agent or
-// brings them up to date there (AgentInstall), unless an agent built it. One thing at a time, on a queue of its own,
-// your presses on the line included.
+// brings them up to date there (AgentInstall), unless an agent built it; and it keeps Whozmove opening at login, as
+// you set it (LoginItem). One thing at a time, on a queue of its own, your presses on the line and in the menu
+// included.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -20,6 +21,12 @@ typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *h
 @property (copy) BOOL (^installer)(void);
 @property (copy) void (^askTools)(void);
 @property (copy) ConnectHooks connect;
+// Open at Login: the login item's label (the app's bundle id) and this app's program, to open at login; and asking
+// launchctl, its arguments in, what it printed out (nil when it failed), a stand-in in the print mode.
+@property (copy) NSString *label, *program;
+@property (copy) NSString *(^launchctl)(NSArray<NSString *> *arguments);
+// Your press on Open at Login in the pawn menu, on the check's queue: on writes the login item, off takes it out.
+- (void)openAtLogin:(BOOL)on;
 // Goes through it all, after any check still under way, with your press on the line or the panel's back as `answer`:
 // tools (Install: macOS's installer opened), addBack, turnOn or retry; else nil.
 - (void)check:(NSString *)answer;
@@ -28,10 +35,12 @@ typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *h
 - (void)tick;
 // Whether a check is queued or under way: its print mode waits until none is, and a press waits meanwhile.
 @property (readonly) BOOL working;
-// What the last check found, on the main thread: {state, detail, since, tools}. state is notInApplications, noTools,
-// installing (macOS's installer for the developer tools is open), agentBuild, or the agent's (AgentInstall); since
-// when it has been so, in ms since 1970, kept across launches (a × on the line holds until it changes); and tools how
-// the developer tools stand: in, missing or installing. `onFound` hears of each.
+// What the last check found, on the main thread: {state, detail, since, tools, hooksAt, login}. state is notInApplications,
+// noTools, installing (macOS's installer for the developer tools is open), agentBuild, or the agent's (AgentInstall);
+// since when it has been so, in ms since 1970, kept across launches (a × on the line holds until it changes); tools how
+// the developer tools stand: in, missing or installing; and hooksAt when the hooks last went into the agent from here,
+// in ms (missing while they never have, as when they were found already in); login whether Whozmove opens at login
+// (missing outside an Applications folder, where it isn't set up). `onFound` hears of each.
 @property (readonly) NSDictionary *found;
 @property (copy) void (^onFound)(NSDictionary *found);
 @end

@@ -148,4 +148,13 @@
 // The page on the panel's back its settings go on (an AppEntry's id: Claude Code's are on Claude's), where the install
 // module adds how its hooks stand; nil for none.
 @property (readonly) NSString *appId;
+// A session that was running before the hooks went in runs without them until it takes them: whether a running
+// session started before `since` (when they last went in, in seconds since 1970) and nothing it did has been recorded
+// since it started. Then the command that has it take them without restarting, typed as the panel's commands are,
+// whether its result says it did, and the command that takes them anyway when the agent holds that back (as it would
+// re-read the whole conversation), which is left for you to type.
+- (BOOL)runsWithoutHooks:(Row *)row since:(NSTimeInterval)since;
+@property (readonly) NSString *reloadCommand;
+@property (readonly) NSString *forcedReloadCommand;
+- (BOOL)reloaded:(NSString *)result;
 @end

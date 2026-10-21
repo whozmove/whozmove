@@ -229,7 +229,14 @@ static NSString *ResumeCommand(NSString *sessionId) {
 }
 
 - (NSArray<Row *> *)readSessions {
-    return RunningSessions();
+    NSMutableArray<id<Host>> *untracked = [NSMutableArray array];
+    for (id<ConversationHost> host in [self.core hostsThat:@protocol(ConversationHost)])
+        if (!host.tracked) [untracked addObject:host];
+    __weak Core *core = self.core;
+    return RunningSessions(untracked.count ? ^BOOL(Row *copy) {
+        id<Host> host = [core hostOf:copy];
+        return host && [untracked containsObject:host];
+    } : nil);
 }
 
 - (NSArray<Row *> *)readEndedSessions:(NSArray<Row *> *)listed {
@@ -425,6 +432,28 @@ static NSString *ResumeCommand(NSString *sessionId) {
 // own (Claude Desktop) lists on every Mac, with the rest of Claude's; nil without one.
 - (NSString *)appId {
     return [[self.core hostsThat:@protocol(ConversationHost)].firstObject appId];
+}
+
+// Claude Code loads its plugins as a session's process starts, so one that started before the hooks went in has none of
+// them, until it reloads its plugins. One whose hooks have recorded anything since it started has them: hooks taken out
+// and put back while it runs keep running in it, from the copy it loaded.
+- (BOOL)runsWithoutHooks:(Row *)row since:(NSTimeInterval)since {
+    if (row.pid <= 0 || since <= 0) return NO;
+    long long started = ProcessStartedAt(row.pid);  // microseconds since 1970
+    if (started <= 0 || started / 1e6 >= since) return NO;
+    return row.hookRecordedAt.doubleValue < started / 1e6;
+}
+
+- (NSString *)reloadCommand {
+    return kReloadPluginsCommand;
+}
+
+- (NSString *)forcedReloadCommand {
+    return kForcedReloadCommand;
+}
+
+- (BOOL)reloaded:(NSString *)result {
+    return ReloadedResult(result);
 }
 
 @end

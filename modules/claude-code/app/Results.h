@@ -10,3 +10,6 @@ NSString *CommandResult(NSString *path, unsigned long long from, NSString *comma
 NSString *ResultApplies(NSString *field, NSString *value, NSString *result);
 BOOL ResultSavedDefault(NSString *result);
 NSString *CompactNote(NSString *result);
+// Whether /reload-plugins' result says the plugins were reloaded, hooks and all ("Reloaded: …"), rather than held back
+// (a reload that would change Claude's tools waits for --force, which the panel never types) or refused.
+BOOL ReloadedResult(NSString *result);

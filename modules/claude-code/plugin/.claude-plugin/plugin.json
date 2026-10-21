@@ -1,7 +1,7 @@
 {
   "name": "whozmove",
   "displayName": "Whozmove",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The hooks behind the Whozmove panel: what each session is doing, and requests answered in the panel.",
   "author": { "name": "Satyaraj", "email": "hello@whozmove.com" },
   "repository": "https://github.com/whozmove/whozmove",

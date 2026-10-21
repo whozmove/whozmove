@@ -23,4 +23,4 @@ for folder in app app/core app/contracts app/shared; do [ -d "$folder" ] && incl
 # would take this Mac's own version, and the app wouldn't open on anything older.
 oldest=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" app/Info.plist)
 clang -O2 -Wall -fobjc-arc -framework Cocoa -framework WebKit -framework JavaScriptCore -framework QuartzCore \
-  -framework Carbon -mmacosx-version-min="$oldest" "${includes[@]}" "$@" "${sources[@]}" -o "$out"
+  -framework Carbon -framework ServiceManagement -mmacosx-version-min="$oldest" "${includes[@]}" "$@" "${sources[@]}" -o "$out"

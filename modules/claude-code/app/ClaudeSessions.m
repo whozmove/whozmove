@@ -59,15 +59,19 @@ static double TimeIn(NSDictionary *session, NSString *key) {
 @property (strong) NSDictionary *record;
 @property (copy) NSString *key;
 @property BOOL stopped;
+@property BOOL untracked;  // in an app whose sessions you don't track (Claude Desktop, its switch off)
 @end
 
 @implementation Copy
 @end
 
-// Whether one copy speaks for the conversation rather than another: one that runs over one paused in its terminal, then
-// the one that needs you most, then the one the row followed already, so it doesn't move to a copy only because it
-// started; and when the row is new, the one whose state changed last, then the one started last.
+// Whether one copy speaks for the conversation rather than another: one in an app whose sessions you track over one in
+// an app you don't, so turning that off never takes a terminal's copy out of the list with it; one that runs over one
+// paused in its terminal, then the one that needs you most, then the one the row followed already, so it doesn't move
+// to a copy only because it started; and when the row is new, the one whose state changed last, then the one started
+// last.
 static BOOL Outranks(Copy *one, Copy *other, NSString *followed) {
+    if (one.untracked != other.untracked) return other.untracked;
     if (one.stopped != other.stopped) return other.stopped;
     if (Urgency(one.record) != Urgency(other.record)) return Urgency(one.record) > Urgency(other.record);
     BOOL oneFollowed = [one.key isEqual:followed], otherFollowed = [other.key isEqual:followed];
@@ -78,8 +82,9 @@ static BOOL Outranks(Copy *one, Copy *other, NSString *followed) {
 }
 
 // Running sessions from Claude Code's registry: one file per process. A conversation open in more than one process has
-// a file for each; it's one session, so it's one row, the copy that outranks the others, which it names.
-NSArray<Row *> *RunningSessions(void) {
+// a file for each; it's one session, so it's one row, the copy that outranks the others, which it names, untracked ones
+// among them, as typing into one copy still has to know of the others.
+NSArray<Row *> *RunningSessions(BOOL (^untracked)(Row *copy)) {
     // The copy each row followed last time, by its process (its number and when it started). Only the rows' queue
     // reads the sessions, so it's never asked from two places at once.
     static NSDictionary<NSString *, NSString *> *followed;
@@ -91,6 +96,7 @@ NSArray<Row *> *RunningSessions(void) {
         copy.record = s;
         copy.key = ProcessKey(PidOf(s), AsText(s[@"procStart"]));
         copy.stopped = ProcessStopped(PidOf(s));
+        copy.untracked = untracked && untracked([[Row alloc] initWithFields:s]);
         NSString *sessionId = AsText(s[@"sessionId"]);
         NSMutableArray<Copy *> *copies = sessionId ? bySession[sessionId] : nil;
         if (copies) {
@@ -167,11 +173,17 @@ NSString *CloseOtherCopies(NSString *sessionId, pid_t keep, BOOL requestWaiting,
     return *closed ? nil : @"The other copy couldn't be closed";
 }
 
-// Adds what the hook recorded (last prompt / reply / notice).
+static NSString *HookRecordPath(NSString *sessionId) {
+    return [AppDir(@"sessions") stringByAppendingPathComponent:[sessionId stringByAppendingPathExtension:@"json"]];
+}
+
+// Adds what the hook recorded (last prompt / reply / notice), and when it last wrote it.
 void AddHookRecord(Row *row) {
-    NSDictionary *record = row.sessionId
-        ? ReadJSON([AppDir(@"sessions")
-                    stringByAppendingPathComponent:[row.sessionId stringByAppendingPathExtension:@"json"]])
-        : nil;
-    if ([record isKindOfClass:NSDictionary.class]) [row takeHookRecord:record];
+    if (!row.sessionId.length) return;
+    NSString *path = HookRecordPath(row.sessionId);
+    NSDictionary *record = ReadJSON(path);
+    if (![record isKindOfClass:NSDictionary.class]) return;
+    [row takeHookRecord:record];
+    NSDate *written = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil].fileModificationDate;
+    if (written) row.hookRecordedAt = @(written.timeIntervalSince1970);
 }

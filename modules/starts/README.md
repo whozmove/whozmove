@@ -40,15 +40,17 @@ Folder trust is the Claude Code module's: tests/rows.sh checks how it's read and
 
 - The page sends `start` (`{startId, folder, app, words, sessionId, trust, target}`, `target` being `{kind: open,
   path}`, `{kind: branch, name}` or `{kind: new, name, base}`), `checkFolder` (`{folder}`), `listBranches`
-  (`{folder}`), `checkWorktreeName` (`{folder, name, base}`) and `startMenu` (`{kind: app, app, worktree}`, `{kind:
-  places, repo}` or `{kind: choose}`).
+  (`{folder}`), `checkWorktreeName` (`{folder, name, base}`), `startMenu` (`{kind: app, app, worktree}`, `{kind:
+  places, repo}` or `{kind: choose}`) and `startWay` (`{kind: track}` or `{kind: getDesktop}`, the card's way past
+  having nowhere to start it).
 - The app calls `openStart(folder, app)`, `folderChecked(folder, {trusted} or {gone})`, `branchesListed(folder, {here,
   worktrees, branches, base, folder, folderPath} or {none, where})`, `worktreeNameChecked(folder, name, {path, where,
   name, base} or {why})`, `worktreesMoved(repo)`, `startAppChosen(app)`, `startUpdate(startId, {sessionId}, {note} or
-  {why})`, `startProject(folder)` and `setStartOptions({terminal, desktop, choice})`: the terminal a start opens in,
-  or null; whether Claude Desktop's sessions are tracked, told again as that changes (while they aren't, the card
-  offers only the terminal, and with no terminal either, says there's nowhere to start it); and whether Start's menu
-  has another app to pick, which its ⌄ shows only then.
+  {why})`, `startProject(folder)` and `setStartOptions({terminal, desktop, installed, choice})`: the terminal a start
+  opens in, or null; whether Claude Desktop's sessions are tracked, told again as that changes (while they aren't, the
+  card offers only the terminal, and with no terminal either, says so, with Track Them, or, without Claude Desktop on
+  the Mac, Get Claude Desktop); whether it's on this Mac; and whether Start's menu has another app to pick, which its ⌄
+  shows only then.
 
 ## Rules
 

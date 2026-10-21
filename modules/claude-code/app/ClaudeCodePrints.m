@@ -103,7 +103,7 @@ static int PrintTyping(void) {
 // `Whozmove --print-results <command> <transcript>…`: for each pair, by the transcript's name, what's read from it as
 // the command's result, all of it being new (CommandResult), and what the panel takes that result to say: the value
 // now in effect for the field the command changes (null: it changed nothing), whether the pick was saved as the default
-// for new sessions, and for /compact, what its card says (null: it compacted). As JSON, then quit. tests/rows.sh
+// for new sessions, for /compact, what its card says (null: it compacted), and for /reload-plugins, whether it reloaded. As JSON, then quit. tests/rows.sh
 // checks them against results written the way Claude Code writes them.
 static int PrintResults(NSArray<NSString *> *arguments) {
     NSMutableDictionary *out = [NSMutableDictionary dictionary];
@@ -117,6 +117,7 @@ static int PrintResults(NSArray<NSString *> *arguments) {
                                        @"applies": ResultApplies(field, value, result) ?: NSNull.null,
                                        @"savedDefault": @(ResultSavedDefault(result))} mutableCopy];
         if ([field isEqual:@"compact"]) read[@"compactNote"] = CompactNote(result) ?: NSNull.null;
+        if ([command isEqual:kReloadPluginsCommand]) read[@"reloaded"] = @(ReloadedResult(result));
         out[file.lastPathComponent] = read;
     }
     return PrintJSON(out);

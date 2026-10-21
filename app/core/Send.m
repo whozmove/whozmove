@@ -49,13 +49,17 @@ Reason *WhyNotSendTo(id<AgentPrompt> agent, Row *row) {
     return row.pid > 0 ? [agent whyNotTypeInto:row.sessionId pid:row.pid] : nil;
 }
 
-NSString *WhyNoAsk(id<Reach> reach) {
+NSString *WhyNoWords(id<Reach> reach, NSString *here, NSString *there) {
     if (!reach.started) return @"Send this conversation's first message first";
     if (reach.desktop) {
         if (reach.changing) return kStillChanging;
         return !reach.mayControl ? @"Whozmove needs the Accessibility permission for this" : reach.whyNotType.onButton;
     }
-    return WhyNoTab(reach, @"asked from here", @"ask there") ?: reach.whyNotType.onButton;
+    return WhyNoTab(reach, here, there) ?: reach.whyNotType.onButton;
+}
+
+NSString *WhyNoAsk(id<Reach> reach) {
+    return WhyNoWords(reach, @"asked from here", @"ask there");
 }
 
 @implementation SessionReach {
@@ -163,7 +167,7 @@ NSString *WhyNoAsk(id<Reach> reach) {
 }
 
 - (BOOL)changing {
-    return _row.goingIn.count > 0 || _row.switchAsk.count > 0;
+    return _row.goingIn.count > 0 || _row.switchAsk.count > 0 || [_send typingInto:_row.sessionId];
 }
 
 // A Claude Desktop conversation by WhyNotSendTo, a terminal session by its agent; with no agent to say, never.
@@ -181,6 +185,9 @@ NSString *WhyNoAsk(id<Reach> reach) {
 
 @interface Send ()
 @property (weak) Core *core;
+// The sessions words or a command of the agent's are going into now (ask:, run:), from the first key until the filler
+// is out, so nothing else from the panel types into them meanwhile.
+@property (strong) NSMutableSet<NSString *> *typing;
 @end
 
 @implementation Send
@@ -188,7 +195,12 @@ NSString *WhyNoAsk(id<Reach> reach) {
 - (instancetype)initWithCore:(Core *)core {
     if (!(self = [super init])) return nil;
     self.core = core;
+    self.typing = [NSMutableSet set];
     return self;
+}
+
+- (BOOL)typingInto:(NSString *)sessionId {
+    return sessionId && [self.typing containsObject:sessionId];
 }
 
 - (SessionReach *)reachOf:(Row *)row {
@@ -250,10 +262,12 @@ NSString *WhyNoAsk(id<Reach> reach) {
     NSString *tab = reach.tab;
     pid_t pid = row.pid;
     id<AgentPrompt> agent = [self agentOf:row];
+    [self.typing addObject:sid];
     [agent type:text into:terminal tab:tab
          whyNot:^{ return WhyTerminalRefuses(terminal, tab) ?: [agent whyNotTypeInto:sid pid:pid]; }
            done:^(Reason *why, NSUInteger typed, NSUInteger steps) {
         if (why) {
+            [self.typing removeObject:sid];
             PanelLog(@"%@ -> stopped asking \"%@\" after %lu of %lu steps: %@", sid, text, (unsigned long)typed,
                      (unsigned long)steps, why);
             NSBeep();
@@ -266,8 +280,82 @@ NSString *WhyNoAsk(id<Reach> reach) {
             Reason *edit = [agent whyNotEditDraft:sid pid:pid];
             if (edit) PanelLog(@"%@ -> filler left in the prompt: %@", sid, edit);
             else [agent deleteFillerIn:terminal tab:tab];
+            [self.typing removeObject:sid];
         });
     }];
+}
+
+// The agent's command goes in as ask: puts words in, and its result is watched for, as a pick's is (the agent's
+// AgentCommands): every quarter second, for 20 seconds, as one of the agent's own commands answers at once. In a
+// terminal, the draft is back with its filler once the result is, so the filler comes out then.
+- (void)run:(NSString *)command row:(Row *)row here:(NSString *)here there:(NSString *)there
+       done:(void (^)(NSString *result, NSString *why))done {
+    NSString *sid = row.sessionId;
+    id agent = [self.core agentOf:row];
+    id<AgentCommands> results = [agent conformsToProtocol:@protocol(AgentCommands)] ? agent : nil;
+    id<AgentPrompt> prompt = [self agentOf:row];
+    SessionReach *reach = [self reachOf:row];
+    NSString *why = !results || !prompt ? [NSString stringWithFormat:@"This session can't be %@", here]
+                  : WhyNoWords(reach, here, there);
+    id mark = why ? nil : [results markResultsOf:sid];
+    if (!why && !mark) why = @"Send this conversation's first message first";
+    if (why) {
+        PanelLog(@"%@ -> %@ not run: %@", sid, command, why);
+        done(nil, why);
+        return;
+    }
+    PanelLog(@"%@ -> running %@", sid, command);
+    id<ConversationHost> desktop = reach.conversations;
+    id<TypingHost> terminal = desktop ? nil : reach.typing;
+    NSString *tab = reach.tab;
+    pid_t pid = row.pid;
+    [self.typing addObject:sid];
+    void (^finished)(NSString *, NSString *) = ^(NSString *result, NSString *why) {
+        [self.typing removeObject:sid];
+        done(result, why);
+    };
+    void (^answered)(NSString *) = ^(NSString *result) {
+        PanelLog(@"%@ -> %@: %@", sid, command, result ?: @"no result came");
+        NSString *why = result ? nil : @"No answer came from the session";
+        if (!terminal || !result) return finished(result, why);
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            Reason *edit = [prompt whyNotEditDraft:sid pid:pid];
+            if (edit) PanelLog(@"%@ -> filler left in the prompt: %@", sid, edit);
+            else [prompt deleteFillerIn:terminal tab:tab];
+            finished(result, why);
+        });
+    };
+    if (desktop) {
+        [desktop show:row];
+        [desktop send:command toConversation:row.hostSessionId ?: @"" done:^(NSString *why) {
+            if (why) finished(nil, why);
+            else [self awaitResultOf:command since:mark from:results tries:0 then:answered];
+        }];
+        return;
+    }
+    [prompt type:command into:terminal tab:tab
+          whyNot:^{ return WhyTerminalRefuses(terminal, tab) ?: [prompt whyNotTypeInto:sid pid:pid]; }
+            done:^(Reason *why, NSUInteger typed, NSUInteger steps) {
+        if (!why) {
+            [self awaitResultOf:command since:mark from:results tries:0 then:answered];
+            return;
+        }
+        PanelLog(@"%@ -> stopped typing %@ after %lu of %lu steps: %@", sid, command, (unsigned long)typed,
+                 (unsigned long)steps, why);
+        finished(nil, why.onButton);
+    }];
+}
+
+- (void)awaitResultOf:(NSString *)command since:(id)mark from:(id<AgentCommands>)agent tries:(int)tries
+                 then:(void (^)(NSString *result))then {
+    NSString *result = [agent resultOf:command since:mark];
+    if (result || tries >= 80) {
+        then(result);
+        return;
+    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self awaitResultOf:command since:mark from:agent tries:tries + 1 then:then];
+    });
 }
 
 // The terminal says how its way went, on the row: where it waits for you now (quietly), or what's left for you to do.

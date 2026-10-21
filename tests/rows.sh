@@ -155,6 +155,14 @@ cat > "$T/results/compact-refused.jsonl" <<'JSONL'
 {"type":"user","message":{"role":"user","content":"<command-name>/compact</command-name>"}}
 {"type":"system","subtype":"local_command","content":"<local-command-stdout>\u001b[31mError: Not enough messages to compact.\u001b[39m</local-command-stdout>"}
 JSONL
+cat > "$T/results/reload-done.jsonl" <<'JSONL'
+{"type":"user","message":{"role":"user","content":"<command-name>/reload-plugins</command-name>\n            <command-message>reload-plugins</command-message>\n            <command-args></command-args>"}}
+{"type":"system","subtype":"local_command","content":"<local-command-stdout>Reloaded: 2 plugins · 4 skills · 1 agent · 5 hooks · 0 plugin MCP servers · 0 plugin LSP servers</local-command-stdout>"}
+JSONL
+cat > "$T/results/reload-held.jsonl" <<'JSONL'
+{"type":"user","message":{"role":"user","content":"<command-name>/reload-plugins</command-name>"}}
+{"type":"system","subtype":"local_command","content":"<local-command-stdout>This reload changes MCP tools (notes) — your next message will re-read the whole conversation instead of using the cache. Run /reload-plugins --force to apply.</local-command-stdout>"}
+JSONL
 cat > "$T/results/compact-no-result.jsonl" <<'JSONL'
 {"type":"user","message":{"role":"user","content":"<command-name>/compact</command-name>"}}
 JSONL
@@ -675,14 +683,15 @@ echo "== Why nothing can go into a session now, as its model, effort and mode me
 echo "   steps say it (null: something can), with a terminal the panel types into unless said otherwise"
 HOME="$T" "$APP" --print-why-not
 echo "== A command's result as read from a transcript (null: none yet), and what it says: the value now in effect"
-echo "   (null: nothing changed), whether the pick was saved as the default, and the Compact card's note (null: it"
-echo "   compacted)"
+echo "   (null: nothing changed), whether the pick was saved as the default, the Compact card's note (null: it"
+echo "   compacted), and whether a reload of the plugins took"
 HOME="$T" "$APP" --print-results "/model claude-opus-5-5" "$T/results/model-set.jsonl" \
   "/model claude-opus-5-5" "$T/results/model-kept.jsonl" \
   "/model claude-haiku-5-5" "$T/results/model-no-result-yet.jsonl" \
   "/effort max" "$T/results/effort-capped.jsonl" "/effort high" "$T/results/effort-set.jsonl" \
   "/plan" "$T/results/plan.jsonl" "/compact keep the tests" "$T/results/compact-done.jsonl" \
-  "/compact" "$T/results/compact-refused.jsonl" "/compact" "$T/results/compact-no-result.jsonl"
+  "/compact" "$T/results/compact-refused.jsonl" "/compact" "$T/results/compact-no-result.jsonl" \
+  "/reload-plugins" "$T/results/reload-done.jsonl" "/reload-plugins" "$T/results/reload-held.jsonl"
 echo "== Each session: why its next steps and its Deploy wait now (null: they don't), for its own agent or another"
 echo "   at work in the same checkout"
 HOME="$T" "$APP" --print-waits

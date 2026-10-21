@@ -4,6 +4,7 @@
 #import "Row.h"
 #import "Files.h"
 #import "Processes.h"
+#import "Text.h"
 #import "Log.h"
 #import "ClaudeCodeFacts.h"
 
@@ -11,13 +12,9 @@ const NSTimeInterval kKeptFor = 3 * 24 * 3600;
 // How often the terminal a running session is in is looked for again while it isn't known.
 static const NSTimeInterval kLookAgainAfter = 10;
 
-// A session id as a file's name: letters, digits and dashes, as Claude Code's are, so it names a file in the folder and
-// nothing else.
+// A session id as a file's name: plain, as Claude Code's are, so it names a file in the folder and nothing else.
 static BOOL SafeId(NSString *sessionId) {
-    if (!sessionId.length || sessionId.length > 64) return NO;
-    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:
-                             @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"].invertedSet;
-    return [sessionId rangeOfCharacterFromSet:other].location == NSNotFound;
+    return IsPlainId(sessionId, 64);
 }
 
 // When a row's conversation last moved, as the page's lastActive counts it: your message, Claude's reply or the newest
@@ -137,13 +134,25 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
     return [self.folder stringByAppendingPathComponent:[sessionId stringByAppendingPathExtension:@"json"]];
 }
 
-// What goes is decided here, on the main thread, and forgotten at once; its file is then taken away on the queue, in
-// turn with the writes, so a record written again later is never taken away after it. Only once the sessions running
-// now are known, so one idle for days that still runs isn't taken for gone.
+// What has gone is found on the queue, as it looks for each transcript; on the main thread, each is forgotten then,
+// unless it has changed or runs again since, and its file taken away on the queue, in turn with the writes, so a record
+// written again later is never taken away after it. Only once the sessions running now are known, so one idle for days
+// that still runs isn't taken for gone.
 - (void)prune {
     if (!self.kept || !self.running) return;
-    for (NSString *sessionId in Stale(self.kept, self.running, NSDate.date.timeIntervalSince1970))
-        [self drop:sessionId why:@"gone"];
+    NSDictionary<NSString *, NSDictionary *> *kept = [self.kept copy];
+    NSSet<NSString *> *running = self.running;
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(self.queue, ^{
+        NSArray<NSString *> *gone = Stale(kept, running, NSDate.date.timeIntervalSince1970);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            KeptSessions *sessions = weakSelf;
+            for (NSString *sessionId in gone)
+                if ([sessions.kept[sessionId] isEqualToDictionary:kept[sessionId]]
+                    && ![sessions.running containsObject:sessionId])
+                    [sessions drop:sessionId why:@"gone"];
+        });
+    });
 }
 
 - (void)drop:(NSString *)sessionId why:(NSString *)why {

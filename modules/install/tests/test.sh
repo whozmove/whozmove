@@ -36,6 +36,19 @@ HOME="$T" "$APP" --print-install install-pressed installer-closed tools-in-first
 echo "== Install without the agent, and from outside an Applications folder: for Git's page, it opens the installer all"
 echo "   the same"
 HOME="$T" "$APP" --print-install install-without-agent install-outside
+echo "== Open at Login: on from the very first open, then as you set it; the login item put right for this app"
+echo "   wherever it runs from, never loaded into launchd from here, and its job unloaded only when taken out by"
+echo "   another copy than the one launchd runs"
+HOME="$T" "$APP" --print-install login-first login-kept login-moved login-chosen-off login-turned-off \
+  login-turned-off-in-its-copy login-turned-on-again login-outside
+echo "== A newer Whozmove: for a copy Homebrew installed, from its tap's cask, Homebrew's copy on this Mac and"
+echo "   GitHub's, the newer counting, against this copy's version; never for one Homebrew didn't install"
+HOME="$T" "$APP" --print-updates newer same older newer-by-a-part github-ahead github-behind no-network \
+  tap-not-published garbled-cask another-tap not-homebrew strange-tap installed-not-restarted test-tap
+echo "== …and look by look: a build from a checkout never looks, a version put away stays away across launches until a"
+echo "   newer one, and a look GitHub doesn't answer keeps what it said last"
+HOME="$T" "$APP" --print-updates checkout-never-looks put-away-stays-away newer-after-put-away \
+  offline-keeps-what-github-said
 echo "== What the panel's back says: on Git's page, of the developer tools; on the agent's, of its hooks"
 HOME="$T" "$APP" --print-install-cards
 )

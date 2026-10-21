@@ -4,15 +4,13 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Switches.h"
 #import "Files.h"
+#import "Text.h"
 #import "Log.h"
 #import "Processes.h"
 
-// A session's file of that kind, or nil for an id that isn't one (letters, digits and dashes, as the hook takes them).
+// A session's file of that kind, or nil for an id that isn't one (plain, as the hook takes them).
 static NSString *SwitchFile(NSString *sessionId, NSString *kind) {
-    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:
-                                 @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-"].invertedSet;
-    if (!sessionId.length || sessionId.length > 128 || [sessionId rangeOfCharacterFromSet:other].location != NSNotFound)
-        return nil;
+    if (!IsPlainId(sessionId, 128)) return nil;
     return [AppDir(@"switches") stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@.json", sessionId,
                                                                                           kind]];
 }

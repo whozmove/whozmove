@@ -19,6 +19,7 @@ typedef NS_ENUM(NSInteger, MenuSection) {
     MenuSectionTop,       // above Show / Hide Panel
     MenuSectionFeatures,  // after the grouping, as Open With ▸ is
     MenuSectionWhozmove,  // in Working on Whozmove ▸, which shows only while ⌥ is held as the menu opens
+    MenuSectionApp,       // at the end, just above Quit Whozmove: Whozmove itself, as Open at Login
 };
 
 // One of a module's items in the pawn menu, and where it goes: its section, and its order there (lower first).

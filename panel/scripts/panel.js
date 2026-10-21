@@ -153,7 +153,7 @@ function hangingBelow() {
 
 // What the page keeps for a session or a request goes once it has been gone from the list for a minute: a session
 // that ended, a request answered or dismissed, and where its row was last shown. A moment's absence (a file caught
-// mid-write) keeps it. What you've read stays for as long as it can still matter: the hour a reply you've read waits.
+// mid-write) keeps it. What you've read stays for as long as it can still matter: the day a reply you've read waits.
 // The modules name what they keep (core.forgotten).
 const FORGET_MS = 60 * 1000;
 function forgetGone(sessions) {

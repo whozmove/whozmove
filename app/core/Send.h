@@ -34,8 +34,9 @@
 // What a button for the terminal's way past that reason says, when it has one the panel can take (TypingHost's
 // wayPastIn:), or nil.
 @property (readonly, copy) NSString *wayPast;
-// A change from the panel is still going into it (the row's goingIn, or its switchAsk): nothing more goes in until
-// it's done, as a key meant for the next command could answer what Claude asks about that one.
+// A change from the panel is still going into it (the row's goingIn, its switchAsk, or words or a command of the
+// agent's Send is typing): nothing more goes in until it's done, as a key meant for the next command could answer what
+// Claude asks about that one.
 @property (readonly) BOOL changing;
 // Why keys can't go into it now, or nil.
 @property (readonly) Reason *whyNotType;
@@ -61,11 +62,19 @@
 - (id<TypingHost>)terminalOf:(Row *)row;
 - (id<ConversationHost>)conversationHostOf:(Row *)row;
 @property (readonly) NSString *terminalNames;
+// Whether words or one of the agent's commands are going into a session from here now (ask:, run:), until the filler is
+// out: a change from the panel still going in, for the reach's `changing`.
+- (BOOL)typingInto:(NSString *)sessionId;
 // Whether a session ran in a terminal and has ended (the core's hasEnded:, which a press on its row goes by too).
 - (BOOL)hasEnded:(Row *)row;
 // The session's agent asked in words, as you'd type them, while it's idle: one of a row's next steps. The row says
 // it's asking, or why they can't go in (stepNote).
 - (void)ask:(NSString *)words row:(Row *)row;
+// One of the agent's own commands, typed in as ask: puts words in, only while the session is idle; `done` gets the
+// result the agent wrote for it (AgentCommands' resultOf:since:), or why it didn't go in or no result came, as a row's
+// note says it. `here` and `there` end the sentences on why it can't go in now, as WhyNoWords takes them.
+- (void)run:(NSString *)command row:(Row *)row here:(NSString *)here there:(NSString *)there
+       done:(void (^)(NSString *result, NSString *why))done;
 // A press on the button past a terminal's reason (WayPast), on a menu, a card or a step's note, `{sessionId}`: the
 // terminal takes it, if it's still that reason, and the row says how it went, or what's left to do.
 - (void)takeWayPast:(NSDictionary *)msg;
@@ -83,7 +92,9 @@ Reason *WhyTerminalRefuses(id<TypingHost> terminal, NSString *tab);
 NSString *WayPast(id<Reach> reach, NSString *why);
 // Why nothing more goes into a session while a change from the panel is still going in, as the panel says it.
 extern NSString *const kStillChanging;
-// Why its agent can't be asked in words now, as the row's note says it, or nil.
+// Why no words can go into it now, as the row's note says it, or nil: `here` and `there` end the sentences, as
+// WhyNoTab's do. And why its agent can't be asked in words now, in those words.
+NSString *WhyNoWords(id<Reach> reach, NSString *here, NSString *there);
 NSString *WhyNoAsk(id<Reach> reach);
 // Why a command can't go into a Claude Desktop conversation now, or nil: one that runs takes it only while it sits
 // idle, by what its agent says, and one that doesn't run can take one at any time (it's opened first).

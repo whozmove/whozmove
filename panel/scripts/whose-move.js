@@ -27,8 +27,8 @@ function classify(s, now, view) {
 
 // Whether you've read Claude's last reply: you've been on its session since, as the page keeps it (`seen`, which
 // opening it here counts for) or as the app and Claude say (onItAt). A reply from before `readBefore` counts as read
-// too: that's set once, an hour before the page first kept the replies you hadn't read in Your turn, since until then
-// a reply went to Idle after an hour, read or not, and which you'd read wasn't always kept.
+// too: that's set once, a day (IDLE_AFTER_MS) before the page first kept which replies you'd read, since until then
+// which you'd read wasn't always kept.
 function isRead(s, view) {
   const read = Math.max(view.seen[s.sessionId] || 0, onItAt(s), view.readBefore || 0);
   return (s.lastReplyAt || 0) <= read;

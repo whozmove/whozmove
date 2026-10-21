@@ -88,7 +88,15 @@ extern NSString *const kClaudeCodeInstallPage;
 // with 2.1.302: one lists the plugins (PluginListArguments); the marketplace is added from a folder (adding it again
 // when it's there already is fine: "already on disk") and the plugin installed from it; a new version in the folder
 // is taken with a marketplace update, then a plugin update; and a plugin turned off is turned on again. A plugin added
-// or changed reaches only the sessions that start after it: Claude Code loads its plugins as a session starts.
+// or changed reaches only the sessions that start after it: Claude Code loads its plugins as a session starts, and
+// again when kReloadPluginsCommand is typed into it, which a running session takes, in a terminal or Claude Desktop,
+// without restarting and without losing its cache (hooks don't change what Claude is sent). Its result starts with
+// kReloadedResult ("Reloaded: 2 plugins · … · 5 hooks"); checked with 2.1.304. A reload that would change Claude's
+// tools is held back ("Run /reload-plugins --force to apply."), as its next message would re-read the whole
+// conversation; kForcedReloadCommand takes it anyway.
+extern NSString *const kReloadPluginsCommand;
+extern NSString *const kForcedReloadCommand;
+extern NSString *const kReloadedResult;
 extern NSString *const kWhozmovePlugin;
 extern NSString *const kWhozmoveMarketplace;
 NSArray<NSString *> *PluginListArguments(void);

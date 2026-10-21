@@ -4,6 +4,8 @@
 #import "Files.h"
 #import "Log.h"
 #import "Printing.h"
+#import "LoginItem.h"
+#import "LaunchdFacts.h"
 
 // How often it looks again while it waits for the agent or for Apple's developer tools, which macOS is asked about at
 // most every 5 minutes (DeveloperToolsGit), unless its installer for them is open.
@@ -111,7 +113,64 @@ static void KeepRecord(NSDictionary *record) {
     NSString *why = NoteApp(self.app);
     if (why) LogProblem([@"install: " stringByAppendingString:why]);
     NSMutableDictionary *record = [Record() mutableCopy];
-    return [self stamp:[self setUp:answer tools:tools record:record] tools:tools record:record];
+    BOOL login = [self loginFrom:record];
+    NSMutableDictionary *found = [[self stamp:[self setUp:answer tools:tools record:record] tools:tools
+                                         record:record] mutableCopy];
+    found[@"login"] = @(login);
+    return found;
+}
+
+#pragma mark Open at Login
+
+// On from the very first open, which has no choice recorded yet; after that, as you set it in the pawn menu. Each
+// open puts the login item right, for this app wherever it now runs from; it's never loaded into launchd from here, as
+// the next login loads it, and loading it now would start a second copy that bows out.
+- (BOOL)loginFrom:(NSMutableDictionary *)record {
+    if (!AsNumber(record[@"openAtLogin"])) {
+        record[@"openAtLogin"] = @YES;
+        KeepRecord(record);
+        [self say:@"install: Open at Login turned on, as Whozmove opens for the first time"];
+    }
+    BOOL on = [record[@"openAtLogin"] boolValue];
+    [self putLoginItem:on];
+    return on;
+}
+
+// On: the login item is written, when what it holds differs. Off: it's taken out, and its job unloaded, unless this
+// very copy is the one launchd runs for it, which would stop it.
+- (void)putLoginItem:(BOOL)on {
+    if (!self.label.length || !self.program.length) return;
+    if (on) {
+        BOOL wrote = NO;
+        NSString *why = KeepLoginItem(self.label, self.program, &wrote);
+        if (why) LogProblem([@"install: " stringByAppendingString:why]);
+        else if (wrote) PanelLog(@"install: login item written, to open %@ at login", self.program);
+        return;
+    }
+    if (!RemoveLoginItem(self.label)) return;
+    PanelLog(@"install: login item taken out");
+    NSString *job = LaunchdJob(self.label);
+    NSString *printed = self.launchctl ? self.launchctl(@[@"print", job]) : nil;
+    if (printed && LoginJobPid(printed) != getpid()) self.launchctl(@[@"bootout", job]);
+}
+
+- (void)openAtLogin:(BOOL)on {
+    self.queued++;
+    dispatch_async(self.queue, ^{
+        NSMutableDictionary *record = [Record() mutableCopy];
+        record[@"openAtLogin"] = @(on);
+        KeepRecord(record);
+        BOOL here = InApplications(self.app);
+        if (here) [self putLoginItem:on];
+        PanelLog(@"install: Open at Login turned %@", on ? @"on" : @"off");
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.queued--;
+            NSMutableDictionary *found = [self.found mutableCopy] ?: [NSMutableDictionary dictionary];
+            if (here) found[@"login"] = @(on);
+            self.found = found;
+            if (self.onFound) self.onFound(found);
+        });
+    });
 }
 
 // Apple's developer tools: in, missing, or installing while macOS's installer for them is open. While it's open, and at
@@ -156,8 +215,15 @@ static void KeepRecord(NSDictionary *record) {
     NSDictionary *found = (self.connect ? self.connect(press, before, self.hooks) : nil)
         ?: @{@"state": @"failed", @"detail": @"There's no agent to put the hooks into"};
     NSString *state = AsText(found[@"state"]) ?: @"failed";
+    NSNumber *now = @((long long)(NSDate.date.timeIntervalSince1970 * 1000));
     if (!before && [@[@"ready", @"added", @"updated", @"turnedOff"] containsObject:state]) {
-        record[@"connectedAt"] = @((long long)(NSDate.date.timeIntervalSince1970 * 1000));
+        record[@"connectedAt"] = now;
+        KeepRecord(record);
+    }
+    // When they last went in (the first time, put back, or turned on again): sessions running since before then run
+    // without them until they reload them.
+    if ([state isEqualToString:@"added"]) {
+        record[@"addedAt"] = now;
         KeepRecord(record);
     }
     NSString *detail = AsText(found[@"detail"]);
@@ -182,6 +248,10 @@ static void KeepRecord(NSDictionary *record) {
     stamped[@"state"] = state;
     stamped[@"since"] = since;
     stamped[@"tools"] = tools;
+    // Only once they've really gone in from here: hooks found already in (put in before, by an earlier install, say)
+    // went in before any session now open, as far as can be told.
+    NSNumber *hooksAt = AsNumber(record[@"addedAt"]);
+    if (hooksAt) stamped[@"hooksAt"] = hooksAt;
     return stamped;
 }
 
@@ -239,7 +309,7 @@ NSDictionary *PluginCard(NSDictionary *found, BOOL busy) {
                     @"Turn On", @"turnOn", busy);
     if ([state isEqualToString:@"removed"])
         return Card(@"Not added", @"Add it back to see what each session is doing, and answer its requests here.", NO,
-                    @"Add Back", @"addBack", busy);
+                    @"Add", @"addBack", busy);
     if ([state isEqualToString:@"noCommand"])
         return Card(@"Not found", @"Claude Code isn't on this Mac.", NO, @"Get Claude Code", @"getAgent", busy);
     if ([state isEqualToString:@"notInApplications"])
@@ -293,6 +363,19 @@ static NSDictionary<NSString *, NSDictionary *> *InstallCases(void) {
                                     @"installer": @[@NO, @NO, @YES], @"presses": @[@"tools"]},
         @"install-outside": @{@"app": @"~/Downloads/Whozmove.app", @"tools": @[@NO],
                               @"installer": @[@NO, @NO, @YES], @"presses": @[@"tools"]},
+        // Open at Login: the very first open turns it on; after that it's as you set it.
+        @"login-first": @{@"app": @"~/Applications/Whozmove.app", @"login": @{}},
+        @"login-kept": @{@"app": @"~/Applications/Whozmove.app", @"login": @{@"chosen": @YES, @"file": @"same"}},
+        @"login-moved": @{@"app": @"/Applications/Whozmove.app", @"login": @{@"chosen": @YES, @"file": @"elsewhere"}},
+        @"login-chosen-off": @{@"app": @"~/Applications/Whozmove.app",
+                               @"login": @{@"chosen": @NO, @"file": @"same", @"launchd": @"none"}},
+        @"login-turned-off": @{@"app": @"~/Applications/Whozmove.app",
+                               @"login": @{@"launchd": @"another"}, @"presses": @[@"loginOff"]},
+        @"login-turned-off-in-its-copy": @{@"app": @"~/Applications/Whozmove.app",
+                                           @"login": @{@"launchd": @"this"}, @"presses": @[@"loginOff"]},
+        @"login-turned-on-again": @{@"app": @"~/Applications/Whozmove.app",
+                                    @"login": @{@"chosen": @NO, @"launchd": @"none"}, @"presses": @[@"loginOn"]},
+        @"login-outside": @{@"app": @"~/Downloads/Whozmove.app", @"login": @{}, @"presses": @[@"loginOn"]},
     };
 }
 
@@ -336,6 +419,12 @@ int PrintInstall(NSArray<NSString *> *cases) {
         [NSFileManager.defaultManager removeItemAtPath:AppDir(@"app") error:nil];
         [NSFileManager.defaultManager removeItemAtPath:AppDir(@"install.json") error:nil];
         if ([setup[@"before"] boolValue]) KeepRecord(@{@"connectedAt": @1});
+        // The login item's case: the choice recorded before (none: the very first open), the file already there (as
+        // this app's, or another place's), and the copy launchd runs for its job, which launchctl's stand-in says.
+        NSDictionary *login = setup[@"login"];
+        NSString *label = @"com.whozmove.app";
+        [NSFileManager.defaultManager removeItemAtPath:LoginItemPath(label) error:nil];
+        NSMutableArray *launchctlAsked = [NSMutableArray array];
         NSObject *lock = [NSObject new];
         NSMutableArray *here = [setup[@"here"] ?: @[@YES] mutableCopy];
         NSMutableArray *tools = [setup[@"tools"] ?: @[@YES] mutableCopy];
@@ -350,6 +439,17 @@ int PrintInstall(NSArray<NSString *> *cases) {
         __block NSString *lastState = nil;
         NSString *app = setup[@"app"];
         if ([app hasPrefix:@"~/"]) app = [Home() stringByAppendingPathComponent:[app substringFromIndex:2]];
+        NSString *program = [app stringByAppendingPathComponent:@"Contents/MacOS/Whozmove"];
+        if (login[@"chosen"]) KeepRecord(@{@"openAtLogin": login[@"chosen"]});
+        BOOL wroteBefore = NO;
+        if ([login[@"file"] isEqual:@"same"]) KeepLoginItem(label, program, &wroteBefore);
+        if ([login[@"file"] isEqual:@"elsewhere"])
+            KeepLoginItem(label, @"/Volumes/Whozmove/Whozmove.app/Contents/MacOS/Whozmove", &wroteBefore);
+        NSString *launchd = login[@"launchd"] ?: @"none";
+        // Which file was there before, by its number on the disk: a file written again (whole, then moved in) has
+        // another.
+        id fileBefore = [NSFileManager.defaultManager attributesOfItemAtPath:LoginItemPath(label)
+                                                                       error:nil][NSFileSystemFileNumber];
         Install *(^opening)(void) = ^Install * {
             Install *install = [[Install alloc] initWithApp:app builtByAgent:[setup[@"agentBuild"] boolValue]
                                                       hooks:@"<the hooks this app carries>"];
@@ -371,6 +471,21 @@ int PrintInstall(NSArray<NSString *> *cases) {
                 @synchronized (lock) { [asked addObject:[@"end: " stringByAppendingString:call]]; }
                 return @{@"state": state};
             };
+            if (login) {
+                install.label = label;
+                install.program = program;
+                install.launchctl = ^NSString *(NSArray<NSString *> *arguments) {
+                    NSString *job = LaunchdJob(label);
+                    NSString *said = [[arguments componentsJoinedByString:@" "]
+                                      stringByReplacingOccurrencesOfString:job withString:@"gui/<you>/<label>"];
+                    @synchronized (lock) { [launchctlAsked addObject:said]; }
+                    if (![arguments.firstObject isEqual:@"print"]) return @"";
+                    if ([launchd isEqual:@"none"]) return nil;
+                    pid_t pid = [launchd isEqual:@"this"] ? getpid() : getpid() + 1;
+                    return [NSString stringWithFormat:@"%@ = {\n\tstate = running\n\t%@%d\n}\n", job,
+                                                      kLaunchctlPidLine, pid];
+                };
+            }
             install.onFound = ^(NSDictionary *found) {
                 [looks addObject:found[@"state"]];
                 [toolsFound addObject:found[@"tools"] ?: NSNull.null];
@@ -384,7 +499,10 @@ int PrintInstall(NSArray<NSString *> *cases) {
         };
         Install *install = opening();
         [install check:nil];
-        for (NSString *press in setup[@"presses"] ?: @[]) [install check:press];
+        for (NSString *press in setup[@"presses"] ?: @[]) {
+            if ([press hasPrefix:@"login"]) [install openAtLogin:[press isEqualToString:@"loginOn"]];
+            else [install check:press];
+        }
         Settle(install);
         for (NSInteger more = [setup[@"looks"] integerValue] - 1; more > 0; more--) {
             [install check:nil];
@@ -399,9 +517,26 @@ int PrintInstall(NSArray<NSString *> *cases) {
         noted = [[noted stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
                  stringByReplacingOccurrencesOfString:Home() withString:@"~"];
         NSDictionary *record = Record();
-        [printed addObject:@{@"case": name, @"found": looks, @"since": since, @"tools": toolsFound,
-                             @"tools asked": toolsAsked, @"asked": asked, @"noted": noted ?: NSNull.null,
-                             @"connected": record[@"connectedAt"] ? @"recorded" : @"not recorded"}];
+        NSMutableDictionary *result = [@{@"case": name, @"found": looks, @"since": since, @"tools": toolsFound,
+                                         @"tools asked": toolsAsked, @"asked": asked, @"noted": noted ?: NSNull.null,
+                                         @"connected": record[@"connectedAt"] ? @"recorded" : @"not recorded",
+                                         @"went in": record[@"addedAt"] ? @"recorded" : @"not recorded"} mutableCopy];
+        if (login) {
+            NSDictionary *file = [NSDictionary dictionaryWithContentsOfFile:LoginItemPath(label)];
+            NSString *opens = [AsText(AsList(file[@"ProgramArguments"]).firstObject)
+                               stringByReplacingOccurrencesOfString:Home() withString:@"~"];
+            id fileAfter = [NSFileManager.defaultManager attributesOfItemAtPath:LoginItemPath(label)
+                                                                          error:nil][NSFileSystemFileNumber];
+            result[@"login"] = @{@"chosen": record[@"openAtLogin"] ?: NSNull.null,
+                                 @"written now": @(fileAfter && ![fileAfter isEqual:fileBefore]),
+                                 @"file": !file ? @"none" : [file isEqual:LoginItemContents(label, program)]
+                                     ? @"this app's" : @"something else",
+                                 @"opens": opens ?: NSNull.null,
+                                 @"restarts after": file ? [AsRecord(file[@"KeepAlive"]).allKeys
+                                                            componentsJoinedByString:@", "] : NSNull.null,
+                                 @"launchctl asked": launchctlAsked};
+        }
+        [printed addObject:result];
     }
     return PrintJSON(printed);
 }
@@ -421,6 +556,6 @@ int PrintInstallCards(void) {
     NSDictionary *failed = @{@"state": @"failed", @"detail": @"Marketplace whozmove failed to load: cache-miss"};
     [agent addObject:@{@"state": @"failed, with what it said", @"card": PluginCard(failed, NO)}];
     [agent addObject:@{@"state": @"failed, saying nothing", @"card": PluginCard(@{@"state": @"failed"}, NO)}];
-    [agent addObject:@{@"state": @"removed, Add Back pressed", @"card": PluginCard(@{@"state": @"removed"}, YES)}];
+    [agent addObject:@{@"state": @"removed, Add pressed", @"card": PluginCard(@{@"state": @"removed"}, YES)}];
     return PrintJSON(@{@"git": git, @"agent": agent});
 }

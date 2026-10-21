@@ -1,5 +1,5 @@
 // Text: small helpers for text the panel is given: a word for your shell, a terminal's colour codes taken out, a hash
-// of bytes, a line's key, and words made one line.
+// of bytes, a line's key, words made one line, and whether an id is plain.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -17,3 +17,6 @@ NSNumber *LineKey(NSString *line);
 // Words as one line, to go into a session as a message typed once: each line break a space, the ends trimmed, and cut
 // at `most` characters.
 NSString *OneLine(NSString *words, NSUInteger most);
+// Whether an id from outside (a session's, one the page made up, a key another app hands out) is only letters, digits
+// and dashes, and at most `most` of them: so it can name a file in a folder and nothing else, or go in a header.
+BOOL IsPlainId(NSString *text, NSUInteger most);

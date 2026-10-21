@@ -1,4 +1,5 @@
-# Whozmove's app bundle: what goes in it, and its signature. Sourced by build.sh, from the checkout's root.
+# Whozmove's app bundle: what goes in it, and its signature. Sourced by build.sh and tools/release.sh, from the
+# checkout's root.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Every bundle is made here, so each one carries the same parts, its hooks among them: they go in with the app, and

@@ -4,8 +4,8 @@
 .row { position: relative; display: flex; gap: 9px; padding: 9px 8px; border-radius: var(--radius-box); }
 .row + .row { margin-top: 3px; }  /* so a highlighted row never butts against the next */
 .row.is-hover { background: var(--hover); }
-/* The session you're on (the conversation Claude Desktop shows, or the session in the Ghostty tab you're looking at):
-   a warm tint. */
+/* The session you're on (the conversation Claude Desktop shows, the session in the terminal tab you're looking at, or
+   the row you just pressed): a warm tint. */
 .row.focused { background: var(--focused); }
 .row.focused.is-hover { background: var(--focused-hover); }
 .dot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-circle); margin-top: 4px;
@@ -18,7 +18,8 @@
 .turn .dot { background: var(--turn); }
 /* A reply you've read: your colour's ring, empty. */
 .seen .dot { background: transparent; border: 1.5px solid var(--turn); }
-/* A Claude Desktop conversation with no running process (e.g. after Claude quits): hollow dot. */
+/* A session with no running process (a Claude Desktop conversation after Claude quits, or a terminal session that has
+   ended): hollow dot. */
 .idle.closed .dot { background: transparent; border: 1.5px solid var(--idle); }
 .main { min-width: 0; flex: 1; }
 .line1 { display: flex; align-items: baseline; gap: 6px; }

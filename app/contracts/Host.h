@@ -85,6 +85,11 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 // they aren't, the core doesn't ask it for its rows and lists none of the sessions it holds, and nothing starts in it.
 // Read on the sessions' queue and the main thread.
 @property (readonly) BOOL tracked;
+// Whether its app is on this Mac; turning its sessions' tracking on, as its page's switch does (New Conversation's
+// card offers it when there's nowhere else to start); and where to get it, for a Mac without it.
+@property (readonly) BOOL installed;
+- (void)track;
+@property (readonly) NSURL *downloadPage;
 // Makes sure it shows a conversation, in front: opened if it shows another one, else brought forward.
 - (void)show:(Row *)row;
 // Whether Whozmove may control it; when it may not, macOS is asked to offer the Accessibility permission.

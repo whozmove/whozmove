@@ -116,8 +116,8 @@ static NSImage *MenuBarMark(void) {
 }
 
 // The menu, from the top: the top section (with a line under it), the panel's own items and its look, the grouping,
-// the features, Working on Whozmove (shown only while ⌥ is held: menuNeedsUpdate:) and Quit. Each section's items, its
-// own and the modules', in their order there.
+// the features, Working on Whozmove (shown only while ⌥ is held: menuNeedsUpdate:), Whozmove's own (Open at Login) and
+// Quit. Each section's items, its own and the modules', in their order there.
 - (void)layOut {
     NSMenu *menu = self.statusItem.menu;
     [menu removeAllItems];
@@ -153,6 +153,7 @@ static NSImage *MenuBarMark(void) {
     wozItem.submenu = woz;
     self.wozItems = @[line, wozItem];
     [menu addItem:NSMenuItem.separatorItem];
+    for (NSMenuItem *item in section(MenuSectionApp)) put(item, menu);
     [menu addItemWithTitle:@"Quit Whozmove" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
 }
 

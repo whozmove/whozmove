@@ -5,6 +5,7 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ITerm2API.h"
 #import "ITerm2Facts.h"
+#import "Text.h"
 #import "Log.h"
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -273,11 +274,9 @@ static NSInteger Upgrade(int fd, NSString *cookie, NSString *key) {
     return words.count >= 2 && [words[0] hasPrefix:@"HTTP/"] ? words[1].integerValue : 0;
 }
 
-// Whether a cookie or a key is what iTerm2 hands out (letters, digits and dashes), and so safe in a header.
+// Whether a cookie or a key is what iTerm2 hands out (plain, of any length), and so safe in a header.
 static BOOL Plain(NSString *word) {
-    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:
-                                 @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-"].invertedSet;
-    return word.length && [word rangeOfCharacterFromSet:other].location == NSNotFound;
+    return IsPlainId(word, NSUIntegerMax);
 }
 
 @implementation ITerm2API {

@@ -15,7 +15,7 @@ core.strips.push('nowplaying');
 // would put the song back a little and could light the line before the one being sung.
 core.updates.push(() => nowPlayingTick(Date.now()));
 
-// Folded, the panel has no room for the now-playing strip, so Spotify's token stands in for it: the app is told.
+// Folded, the panel shows nothing of Spotify's, neither the now-playing strip nor the token: the app is told.
 function tellSpotifyCollapsed() {
   native({ type: 'spotify', action: 'collapsed', on: document.body.classList.contains('collapsed') });
 }

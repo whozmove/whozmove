@@ -3,6 +3,7 @@
 #import "Results.h"
 #import "Files.h"
 #import "Text.h"
+#import "ClaudeCodeFacts.h"
 
 // A slash command's result in a transcript, among what was written after `from`: the output
 // (<local-command-stdout>) after the command's own record (<command-name>/model</command-name>), written as a
@@ -57,6 +58,10 @@ NSString *ResultApplies(NSString *field, NSString *value, NSString *result) {
 // sessions", or "(saved as your default …)").
 BOOL ResultSavedDefault(NSString *result) {
     return [result containsString:@"saved as your default"];
+}
+
+BOOL ReloadedResult(NSString *result) {
+    return [WithoutColours(result) hasPrefix:kReloadedResult];
 }
 
 NSString *CompactNote(NSString *result) {

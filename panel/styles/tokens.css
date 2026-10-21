@@ -2,13 +2,13 @@
    rather than writing a value out: tests/checks.sh fails on a value written out that tests/styles-by-hand.txt doesn't
    list, and that list only ever gets shorter.
    Each colour has a dark value, here, and a light one, in the block after this one: the page takes whichever its window
-   has (the Look menu, app/core/PanelWindow.m), and tests/checks.sh fails on a colour without both.
+   has, as the Look menu sets it (app/core/MenuBar.m), and tests/checks.sh fails on a colour without both.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 :root {
   color-scheme: light dark;
 
-  /* The panel's own colour, under everything: grey, as the prototypes have it, or black from the Look menu (data-look,
+  /* The panel's own colour, under everything: grey, as it starts, or black from the Look menu (data-look,
      at the end of this file), and about the same under glass. The window's tint (Tint in app/core/PanelWindow.m) has
      the same colours, and Whozmove beside the panel (PanelColour in app/core/SideCat.m) each look's: keep them
      matching. What has to match the panel exactly takes it from here: the cat's eyes and nose, and a changed file's

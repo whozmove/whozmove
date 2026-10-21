@@ -1,17 +1,17 @@
 
 == What the line says
-added: {"text":"Connected to Claude Code: sessions you start from now on show here in full.","button":null,"action":null,"close":true,"done":true,"busy":false}
-notInApplications: {"text":"Move Whozmove into your Applications folder, then open it again, to finish setting it up.","button":null,"action":null,"close":false,"done":false,"busy":false}
-noTools: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false}
-installing: {"text":"Waiting for Apple's developer tools to finish installing.","button":null,"action":null,"close":false,"done":false,"busy":false}
-noCommand: {"text":"Install Claude Code, or open Claude Desktop's Code tab once, to see your sessions here.","button":"Get Claude Code","action":"getAgent","close":true,"done":false,"busy":false}
-removed: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false}
-turnedOff: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false}
-failed: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
-failed, with what Claude Code said: {"text":"Couldn't connect to Claude Code (Marketplace whozmove failed to load: cache-miss), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
-failed, with a sentence of its own: {"text":"Couldn't connect to Claude Code (Claude Code took too long to answer), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
-failed, with nothing said: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false}
-a press under way: its button waits: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":true}
+added: {"text":"Connected to Claude Code: sessions you start from now on show here in full.","button":null,"action":null,"close":true,"done":true,"busy":false,"key":"added","since":1000,"also":{}}
+notInApplications: {"text":"Move Whozmove into your Applications folder, then open it again, to finish setting it up.","button":null,"action":null,"close":false,"done":false,"busy":false,"key":"notInApplications","since":1000,"also":{}}
+noTools: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false,"key":"noTools","since":1000,"also":{}}
+installing: {"text":"Waiting for Apple's developer tools to finish installing.","button":null,"action":null,"close":false,"done":false,"busy":false,"key":"installing","since":1000,"also":{}}
+noCommand: {"text":"Install Claude Code, or open Claude Desktop's Code tab once, to see your sessions here.","button":"Get Claude Code","action":"getAgent","close":true,"done":false,"busy":false,"key":"noCommand","since":1000,"also":{}}
+removed: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false,"key":"removed","since":1000,"also":{}}
+turnedOff: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false,"key":"turnedOff","since":1000,"also":{}}
+failed: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false,"key":"failed","since":1000,"also":{}}
+failed, with what Claude Code said: {"text":"Couldn't connect to Claude Code (Marketplace whozmove failed to load: cache-miss), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false,"key":"failed","since":1000,"also":{}}
+failed, with a sentence of its own: {"text":"Couldn't connect to Claude Code (Claude Code took too long to answer), so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false,"key":"failed","since":1000,"also":{}}
+failed, with nothing said: {"text":"Couldn't connect to Claude Code, so sessions show only part of what they do.","button":"Try Again","action":"retry","close":true,"done":false,"busy":false,"key":"failed","since":1000,"also":{}}
+a press under way: its button waits: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":true,"key":"removed","since":1000,"also":{}}
 
 == No line
 ready: null
@@ -23,7 +23,45 @@ nothing found yet: null
 == Put away
 a × keeps the state, as the time it began: {"turnedOff":1000}
 …so the line stays away while it stays so: null
-…and comes back once it has changed and come back: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false}
-…other states still show: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false}
-a line with no × can't be put away: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false}
-nothing to keep without a state: {"turnedOff":1000}
+…and comes back once it has changed and come back: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false,"key":"turnedOff","since":2000,"also":{}}
+…other states still show: {"text":"Add Whozmove's plugin back to see what each session is doing, and answer its requests here.","button":"Add Back","action":"addBack","close":true,"done":false,"busy":false,"key":"removed","since":1000,"also":{}}
+a line with no × can't be put away: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false,"key":"noTools","since":1000,"also":{}}
+nothing to keep without a line: {"turnedOff":1000}
+
+== Sessions open from before the hooks went in
+just connected, three open: {"button":"Reload Them","action":"reloadAll","done":false,"text":"Connected to Claude Code. New sessions show here in full, and the 3 already open will once they're reloaded.","close":true,"key":"reload","busy":false,"since":500,"also":{"added":1000}}
+just connected, one open: {"button":"Reload It","action":"reloadAll","done":false,"text":"Connected to Claude Code. New sessions show here in full, and the one already open will once it's reloaded.","close":true,"key":"reload","busy":false,"since":500,"also":{"added":1000}}
+just connected, all three at work: {"button":null,"action":null,"done":false,"text":"Connected to Claude Code. New sessions show here in full, and the 3 already open will once they're reloaded, from each one's row once they're done working.","close":true,"key":"reload","busy":false,"since":500,"also":{"added":1000}}
+later, two still to reload: {"button":"Reload Them","action":"reloadAll","done":false,"text":"2 open sessions show here only in part until they're reloaded, which keeps their conversation as it is.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+later, one still to reload: {"button":"Reload It","action":"reloadAll","done":false,"text":"1 open session shows here only in part until it's reloaded, which keeps its conversation as it is.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+later, one still to reload, at work: {"button":null,"action":null,"done":false,"text":"1 open session shows here only in part, and can be reloaded from its row once it's done working.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+later, three still to reload, one idle: {"button":"Reload Them","action":"reloadAll","done":false,"text":"3 open sessions show here only in part until they're reloaded, which keeps their conversation as it is.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+reloading them: 1 of 3 done: {"button":null,"action":null,"done":false,"text":"Reloading your open sessions: 1 of 3 done.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+reloading the one pressed, others still to reload: {"button":null,"action":null,"done":false,"text":"Reloading “Release notes”.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+all reloaded: {"button":null,"action":null,"done":true,"text":"All set: every open session shows here in full.","close":true,"key":"reloaded","busy":false,"since":900,"also":{}}
+one left for you, as Whozmove can't type into it: {"button":"Take me there","action":"open","done":false,"text":"“Pricing cards” shows here only in part, and Whozmove can't type into it: type /reload-plugins in it to reload it.","session":"s2","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+three left for you: {"button":"Take me there","action":"open","done":false,"text":"“Pricing cards” and 2 more sessions show here only in part, and Whozmove can't type into them: type /reload-plugins in each to reload them.","session":"s2","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+two left for you: {"button":"Take me there","action":"open","done":false,"text":"“Pricing cards” and 1 more session show here only in part, and Whozmove can't type into them: type /reload-plugins in each to reload them.","session":"s2","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+one Claude Code held back: {"button":"Take me there","action":"open","done":false,"text":"“Pricing cards” shows here only in part: Claude Code held the reload back, as the next message would read the whole conversation again. Type /reload-plugins --force in it to reload it anyway.","session":"s2","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+one left for you, two more the panel can reload: {"button":"Reload Them","action":"reloadAll","done":false,"text":"2 open sessions show here only in part until they're reloaded, which keeps their conversation as it is.","close":true,"key":"reload","busy":false,"since":500,"also":{}}
+none open: the usual line: {"text":"Connected to Claude Code: sessions you start from now on show here in full.","button":null,"action":null,"close":true,"done":true,"busy":false,"key":"added","since":1000,"also":{}}
+a × on it keeps the reload, and the Connected line it stood for: {"added":1000,"reload":500}
+…so neither shows: null
+…nor while they reload: null
+all set, put away by itself: the Connected line stays away: null
+a session needing it shows Reload on its row: <div class="nopr reload" data-reload="s1" title="Whozmove&#39;s plugin went into Claude Code after this session started. Reload it to see what it&#39;s doing here, and answer its requests: its conversation stays as it is."><span class="pt">Shown in part</span><span class="create-pr">Reload</span></div>
+one Whozmove can't type into says what to type in it, with Try Again: <div class="nopr reload" data-reload="s2" title="Another tab in this folder looks the same: reload it there. Type /reload-plugins in its tab to see it in full."><span class="pt">Shown in part: type /reload-plugins in it</span><span class="create-pr">Try Again</span></div>
+one Claude Code held back says what takes it anyway: <div class="nopr reload" title="This reload changes MCP tools (notes). Run /reload-plugins --force to apply. Typing /reload-plugins --force there reloads it anyway, and its next message reads the whole conversation again."><span class="pt">Shown in part: type /reload-plugins --force in it</span></div>
+…and once on its way, its note: [{"text":"Waiting its turn to reload Whozmove's plugin","quiet":true},{"text":"Reloading Whozmove's plugin…","quiet":true},null]
+
+== A newer Whozmove out
+all set up: it says so, with the command to copy: {"text":"Whozmove 0.2.1 is out. Run brew upgrade --cask whozmove/tap/whozmove to update.","button":"Copy Command","action":"copyUpgrade","close":true,"closeTitle":"Hide until a newer version","done":false,"busy":false,"key":"update","since":"0.2.1","also":{},"version":"0.2.1"}
+setting up needs you first: its line wins: {"text":"Install Apple's developer tools to see what each session is doing, and answer its requests here.","button":"Install","action":"tools","close":false,"done":false,"busy":false,"key":"noTools","since":1000,"also":{}}
+…and the plugin turned off too: {"text":"Turn Whozmove's plugin back on to see what each session is doing, and answer its requests here.","button":"Turn On","action":"turnOn","close":true,"done":false,"busy":false,"key":"turnedOff","since":1000,"also":{}}
+…but once that's put away, the new version shows: {"text":"Whozmove 0.2.1 is out. Run brew upgrade --cask whozmove/tap/whozmove to update.","button":"Copy Command","action":"copyUpgrade","close":true,"closeTitle":"Hide until a newer version","done":false,"busy":false,"key":"update","since":"0.2.1","also":{},"version":"0.2.1"}
+just connected: the Connected line first: {"text":"Connected to Claude Code: sessions you start from now on show here in full.","button":null,"action":null,"close":true,"done":true,"busy":false,"key":"added","since":1000,"also":{}}
+a × keeps that version away: {"update":"0.2.1"}
+…so it stays away: null
+…and a newer one shows again: {"text":"Whozmove 0.2.2 is out. Run brew upgrade --cask whozmove/tap/whozmove to update.","button":"Copy Command","action":"copyUpgrade","close":true,"closeTitle":"Hide until a newer version","done":false,"busy":false,"key":"update","since":"0.2.2","also":{},"version":"0.2.2"}
+nothing newer: no line: null
+Homebrew put it in, this copy still runs: Restart: {"text":"Whozmove 0.2.1 is installed: restart it to use it.","button":"Restart","action":"restart","close":true,"closeTitle":"Hide until a newer version","done":false,"busy":false,"key":"update","since":"0.2.1","also":{},"version":"0.2.1"}

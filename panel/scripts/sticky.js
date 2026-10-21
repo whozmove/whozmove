@@ -460,35 +460,39 @@ function stickyHandOff() {
       st.ramp = requestAnimationFrame(step);
       return;
     }
-    landing?.classList.remove('sticky-landing');
-    holder.style.transform = '';
-    tint.classList.remove('is-hover');
     stickyGone();
     stickyPlace();
   };
   step(start);  // in the frame the list is drawn in, so the new row never shows its own tint before this one lands
 }
 
-// The copy is gone: both its layers, and the mask.
+// The copy is gone: both its layers, and the mask, and what a hand-off leaves on them as it goes, which another change
+// of session may cut short (stickyLetGo), so the next copy isn't drawn where that one had slid to.
 function stickyGone() {
-  const st = state.sticky, list = document.getElementById('list');
+  const st = state.sticky, list = document.getElementById('list'), holder = stickyEl.querySelector('.sticky-copy');
   Object.assign(st, { edge: null, leaving: false, copy: null, chat: null, shape: '', lines: [], drawn: '', fade: 1,
                       at: null, speed: 0, attached: 0, covered: null, back: 1 });
   stickyEl.classList.remove('on');
   stickyUnder.classList.remove('on');
-  stickyEl.querySelector('.sticky-copy').replaceChildren();
+  holder.replaceChildren();
+  holder.style.transform = '';
+  stickyUnder.querySelector('.sticky-tint').classList.remove('is-hover');
+  list.querySelectorAll('.sticky-landing').forEach((row) => row.classList.remove('sticky-landing'));
   list.style.webkitMaskImage = list.style.maskImage = '';
   headerLine(1);
   if (state.pointer) syncHover();
 }
 
 // Where the copy is under the pointer, while it holds on. It takes no pointer events itself, so a scroll over it
-// scrolls the list; what's under it there is hidden, so the pointer (hover.js) and presses on it go to its tint.
+// scrolls the list; what's under it there is hidden, so the pointer (hover.js) and presses on it go to its tint. Only
+// the list is hidden there: what's over the copy (a card that takes the pointer, or, folded, what's beside the folded
+// panel, where the list has gone) keeps the pointer and its presses.
 function stickyAt(x, y) {
   if (!state.sticky.edge || state.sticky.leaving) return null;
   const tint = stickyUnder.querySelector('.sticky-tint'), r = tint.getBoundingClientRect();
   const c = stickyEl.getBoundingClientRect();
-  return x >= r.left && x < r.right && y >= Math.max(r.top, c.top) && y < Math.min(r.bottom, c.bottom) ? tint : null;
+  if (x < r.left || x >= r.right || y < Math.max(r.top, c.top) || y >= Math.min(r.bottom, c.bottom)) return null;
+  return document.elementFromPoint(x, y)?.closest('#list') ? tint : null;
 }
 
 // A press on the copy scrolls the list back to the row, in one eased move, until it shows whole, and the row opens out

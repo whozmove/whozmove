@@ -68,10 +68,19 @@ static const NSTimeInterval kLookEvery = 10;
     if (NSDate.timeIntervalSinceReferenceDate - self.lookedAt >= kLookEvery) [self lookAgain];
 }
 
+- (void)track {
+    SetSwitch(kTrackDesktop, YES);
+    [self lookAgain];
+}
+
+- (NSURL *)downloadPage {
+    return [NSURL URLWithString:kClaudeDesktopDownloadPage];
+}
+
 // Its sessions are tracked while it's on this Mac and its switch is on; the log says when that changes.
 - (void)lookAgain {
     self.lookedAt = NSDate.timeIntervalSinceReferenceDate;
-    self.installed = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:kClaudeDesktopAppId] != nil;
+    self.installed = [self.core hasApp:self];
     BOOL tracked = self.installed && SwitchedOn(kTrackDesktop);
     if (tracked == self.tracked) return;
     self.tracked = tracked;

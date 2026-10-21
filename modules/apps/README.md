@@ -1,8 +1,8 @@
 # Apps
 
 The panel's back. The header's four squares turn the panel over, and behind the list are the apps Whozmove works
-with, four across: Claude, Claude Code, Ghostty, iTerm2, Terminal, Spotify and Git, those on this Mac (Claude Code and
-Git always). Pressing one shows its page: what Whozmove does with it, its switches, its cards (how something Whozmove
+with, four across: Claude, Ghostty, iTerm2, Terminal, Spotify and Git, those on this Mac (Claude, Spotify and Git
+always). Pressing one shows its page: what Whozmove does with it, its switches, its cards (how something Whozmove
 needs there stands, with a button for it), what macOS lets Whozmove do with it (Accessibility or Automation, and
 System Settings when it isn't allowed), and Open. The header has the list's buttons in the same places: rows, which turn the
 panel back to the list, and the chevron, which turns it back and folds it into the cat.

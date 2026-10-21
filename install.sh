@@ -1,14 +1,14 @@
 #!/bin/bash
-# Installs Whozmove: its hooks, as a Claude Code plugin, and ~/Applications/Whozmove.app, started at every login
-# (and now).
+# Installs Whozmove from this checkout: builds ~/Applications/Whozmove.app and opens it. As it opens, the app sets
+# itself up, as one installed from Homebrew does: it opens at every login from then on, and adds its hooks to Claude
+# Code, as a plugin.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Take it all out again with: ./install.sh --uninstall
 set -euo pipefail
 cd "$(dirname "$0")"
-. modules/claude-code/plugin.sh
 
-# The app's name, bundle id (the login item's label) and executable, from app/Info.plist as build.sh reads them.
+# The app's name, bundle id (its login item's label) and executable, from app/Info.plist as build.sh reads them.
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" app/Info.plist; }
 name=$(plist CFBundleName); label=$(plist CFBundleIdentifier); exe=$(plist CFBundleExecutable)
 # The folders below are deleted on --uninstall, so an empty name must never get that far.
@@ -22,14 +22,21 @@ folder="$HOME/Library/Application Support/$name"
 plugin="$folder/plugin"
 id="whozmove@whozmove"
 
-# Stops the running app: its login item, and a copy started some other way, by the pid the app keeps in its folder.
-# That pid is checked to still be the app's, and nothing is ever stopped by name, which could catch something else.
-stop_app() {
-  launchctl bootout "$domain/$label" 2>/dev/null || true
+# The running app's pid, from the one it keeps in its folder, checked to still be the app's (nothing is ever found by
+# name, which could catch something else), or nothing while it isn't running.
+running_pid() {
   local pid command
   pid=$(cat "$folder/panel.pid" 2>/dev/null || true)
   command=$([ -n "$pid" ] && ps -p "$pid" -o comm= 2>/dev/null || true)
-  if [ -n "$command" ] && [ "$(basename "$command")" = "$exe" ]; then kill "$pid" 2>/dev/null || true; fi
+  if [ -n "$command" ] && [ "$(basename "$command")" = "$exe" ]; then echo "$pid"; fi
+}
+
+# Stops the running app: its login item, and a copy started some other way, by its checked pid.
+stop_app() {
+  launchctl bootout "$domain/$label" 2>/dev/null || true
+  local pid
+  pid=$(running_pid)
+  if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; fi
 }
 
 if [ "${1:-}" = "--uninstall" ]; then
@@ -43,7 +50,9 @@ if [ "${1:-}" = "--uninstall" ]; then
     echo "  /plugin uninstall $id"
     echo "  /plugin marketplace remove whozmove"
   fi
-  rm -rf "$plugin" "$app"
+  # Its record of setting itself up goes too, so an install after this one adds the hooks again rather than taking
+  # them as ones you took out of Claude Code.
+  rm -rf "$plugin" "$app" "$folder/install.json" "$folder/reloads.json"
   echo "Removed $name: the app, its login item and its hooks."
   # The rest of Whozmove's folder holds each session's last message and Claude's last reply: it goes only if you say.
   if [ -d "$folder" ]; then
@@ -58,31 +67,8 @@ if [ "${1:-}" = "--uninstall" ]; then
   exit 0
 fi
 
-[ -d "$app" ] || ./build.sh
-
-# A copy, so that a hook being edited here reaches your sessions only when this (or ./build.sh) runs again. Its
-# version names the hooks' contents (modules/claude-code/plugin.sh).
-mkdir -p "$plugin"
-chmod 700 "$folder"
-copy_plugin "$plugin"
-if command -v claude >/dev/null 2>&1; then
-  claude plugin marketplace add "$plugin" >/dev/null
-  claude plugin install "$id" >/dev/null
-  # Already installed, Claude Code keeps the copy it made until it's told of a new version. If it can't be told (no
-  # network, say), the hooks it has keep working, so that's said and the install goes on to the login item.
-  if claude plugin marketplace update whozmove >/dev/null && claude plugin update "$id" >/dev/null; then
-    echo "Added Whozmove's hooks to Claude Code: sessions started from now on use them."
-  else
-    echo "Added Whozmove's hooks, but Claude Code couldn't take this version of them yet: run ./install.sh again later."
-  fi
-else
-  echo "Claude Code's claude command isn't on PATH, so add the hooks in a Claude Code session:"
-  echo "  /plugin marketplace add \"$plugin\""
-  echo "  /plugin install $id"
-fi
-
-stop_app
-mkdir -p "$(dirname "$agent")"
-sed -e "s|__LABEL__|$label|" -e "s|__APP__|$app|" -e "s|__EXE__|$exe|" app/login-item.plist > "$agent"
-launchctl bootstrap "$domain" "$agent"
-echo "$name will start at login (and is running now)."
+# build.sh restarts a copy that was running, so only one that wasn't is opened: a second would only bow out.
+was_running=$(running_pid)
+./build.sh
+[ -n "$was_running" ] || open "$app"
+echo "$name is open: it sets itself up as it opens, and the line under its header says if it needs you."

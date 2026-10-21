@@ -18,8 +18,12 @@ there you say whether Claude Desktop's sessions are tracked at all.
   Whozmove does with Claude Code. While Claude Desktop is on this Mac, its page has **Track Claude Desktop app
   sessions** (`trackClaudeDesktop`, on until you turn it off) and, while that's on, the Accessibility permission its
   message box needs; while it isn't, a card offers **Get Claude Desktop**, its download page. It looks for Claude
-  Desktop as the app starts and every 10 seconds after (`tracked`, the host's: its sessions are tracked while it's on
-  this Mac and the switch is on). A print run never looks, so it lists as if Claude Desktop were here and tracked.
+  Desktop as the app starts and every 10 seconds after, through the core's `hasApp:` (`tracked`, the host's: its
+  sessions are tracked while it's on this Mac, `installed`, and the switch is on). `track` turns the switch on, for New
+  Conversation's Track Them, and `downloadPage` is where Get Claude Desktop goes. A print run never looks, so it lists
+  as if Claude Desktop were here and tracked. A conversation also open in a terminal is listed by its terminal copy
+  while Claude Desktop's sessions aren't tracked (the Claude Code module's `RunningSessions` never lets an untracked
+  copy speak for it).
 - `app/DesktopConversations.m`: its conversation files, each parsed only when it changes. `app/DesktopLog.m`: its log,
   which says at once when it shows another conversation, and which conversations it starts.
 - `app/DesktopMessageBox.m`: a conversation's message box: a command written there through the Accessibility API
@@ -34,7 +38,8 @@ there you say whether Claude Desktop's sessions are tracked at all.
   are labelled. When
   Claude Desktop changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
 - `page/claude-desktop.js`: how a row of one of its conversations is named (its icon, "Claude Desktop", "in Claude",
-  "Open in Claude now"), and its scratch conversations' group. `module.json` lists it for tools/page.sh. "Switch
+  "Open in Claude now", and, while it isn't running, "Not running: click to open it in Claude"), and its scratch
+  conversations' group. `module.json` lists it for tools/page.sh. "Switch
   model?" is asked in the panel by the commands module's card.
 
 tests/rows.sh checks its rows in a sample home (`--print-rows`), and the starts module's tests the links it starts

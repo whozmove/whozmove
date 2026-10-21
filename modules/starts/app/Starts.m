@@ -14,6 +14,8 @@
 #import "Core.h"
 #import "Row.h"
 #import "Files.h"
+#import "Links.h"
+#import "Text.h"
 #import "Menus.h"
 #import "Log.h"
 #import "Worktrees.h"
@@ -38,12 +40,9 @@ static const NSUInteger kWordsMax = 50000;
 @implementation Start
 @end
 
-// An id the page made up for a start: letters, digits and dashes, and short.
+// An id the page made up for a start: plain, and short.
 static NSString *StartId(id value) {
-    if (![value isKindOfClass:NSString.class] || ![value length] || [value length] > 64) return nil;
-    NSCharacterSet *other = [NSCharacterSet characterSetWithCharactersInString:
-                             @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"].invertedSet;
-    return [value rangeOfCharacterFromSet:other].location == NSNotFound ? value : nil;
+    return IsPlainId(AsText(value), 64) ? value : nil;
 }
 
 // A folder the page names: an absolute path to a folder that's there.
@@ -99,7 +98,21 @@ static NSString *Folder(id value) {
 - (NSDictionary *)options {
     BOOL desktop = self.desktop.tracked;
     return @{@"terminal": self.terminal.name ?: NSNull.null, @"desktop": @(desktop),
-             @"choice": @((desktop ? 1 : 0) + self.terminals.count > 1)};
+             @"installed": @(self.desktop.installed), @"choice": @((desktop ? 1 : 0) + self.terminals.count > 1)};
+}
+
+// The card's way past having nowhere to start: Track Them turns Claude Desktop's sessions' tracking on, as its switch
+// on the panel's back does; Get Claude Desktop opens its download page in your browser. Each only while it fits.
+- (void)way:(NSDictionary *)msg {
+    id<ConversationHost> desktop = self.desktop;
+    NSString *kind = AsText(msg[@"kind"]);
+    if ([kind isEqualToString:@"track"] && desktop.installed && !desktop.tracked) {
+        PanelLog(@"start: Claude Desktop's sessions tracked again, from the card");
+        [desktop track];
+        [self.core.page call:@"setStartOptions" with:@[self.options]];
+    } else if ([kind isEqualToString:@"getDesktop"] && !desktop.installed && desktop.downloadPage) {
+        OpenLink(desktop.downloadPage.absoluteString);
+    }
 }
 
 #pragma mark The card

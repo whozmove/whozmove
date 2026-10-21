@@ -126,6 +126,7 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
         @"checkWorktreeName": ^(NSDictionary *msg) { [weakSelf.starts checkWorktreeName:msg]; },
         @"listBranches": ^(NSDictionary *msg) { [weakSelf.starts listBranches:msg]; },
         @"startMenu": ^(NSDictionary *msg) { [weakSelf.starts menu:msg]; },
+        @"startWay": ^(NSDictionary *msg) { [weakSelf.starts way:msg]; },
     };
 }
 

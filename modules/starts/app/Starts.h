@@ -21,8 +21,11 @@
 // Each tick, with the rows: the starts still waiting are matched to the sessions they became, or given up on.
 - (void)watch:(NSArray<Row *> *)rows;
 // What the page needs to offer starts: the terminal one can open in (null when there's none), whether Claude
-// Desktop's sessions are tracked, without which nothing starts in it, and whether Start's menu has another app to pick.
+// Desktop's sessions are tracked, without which nothing starts in it, whether it's on this Mac at all, and whether
+// Start's menu has another app to pick.
 - (NSDictionary *)options;
+// The card's way past having nowhere to start (`startWay`, {kind}): `track` or `getDesktop`.
+- (void)way:(NSDictionary *)msg;
 // A terminal start that brings its tab forward, with the session that tab will hold: its tab is the one you're on
 // from then, as when a session is opened from the panel.
 @property (copy) void (^onTabForward)(id<Host> terminal, NSString *sessionId);

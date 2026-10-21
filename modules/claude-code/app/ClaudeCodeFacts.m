@@ -59,6 +59,9 @@ NSArray<NSString *> *ClaudeOtherAuthVariables(void) {
 NSString *const kClaudeCodeInstallPage = @"https://code.claude.com/docs/en/setup";
 
 NSString *const kWhozmovePlugin = @"whozmove@whozmove";
+NSString *const kReloadPluginsCommand = @"/reload-plugins";
+NSString *const kForcedReloadCommand = @"/reload-plugins --force";
+NSString *const kReloadedResult = @"Reloaded:";
 NSString *const kWhozmoveMarketplace = @"whozmove";
 
 NSArray<NSString *> *PluginListArguments(void) {

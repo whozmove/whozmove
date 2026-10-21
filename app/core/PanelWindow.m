@@ -45,8 +45,8 @@ static const NSTimeInterval kPointerEvery = 0.04, kPointerEveryWatched = 1.0 / 6
 static NSString *const kFoldedKey = @"panelFolded";
 // The panel's shadow is its own, in a window held under the panel (shadeGlass), with this much room round the glass.
 static const CGFloat kShadeRoom = 80;
-// Turning over (turnOver:then:) takes kTurn. It's seen from kTurnDepth away, the prototype's perspective, and its edge
-// is kEdge thick, kEdgeInset in from the glass's top and bottom, where its corners round off.
+// Turning over (turnOver:then:) takes kTurn. It's seen from kTurnDepth away, and its edge is kEdge thick, kEdgeInset in
+// from the glass's top and bottom, where its corners round off.
 static const NSTimeInterval kTurn = 0.7;
 static const CGFloat kTurnDepth = 1100, kEdge = 6, kEdgeInset = 12;
 // Turned over, the back's header leaves its left end to its page, for the ‹ back to its apps; the drag strip covers the
@@ -336,7 +336,7 @@ static NSRect Between(NSRect a, NSRect b, CGFloat along) {
                       NSHeight(a) + (NSHeight(b) - NSHeight(a)) * along);
 }
 
-// Turning over: gentle at both ends and quickest where the panel is edge-on, as the prototype's.
+// Turning over: gentle at both ends and quickest where the panel is edge-on.
 static CGFloat TurnEased(CGFloat x) {
     x = MAX(0, MIN(1, x));
     return x < 0.5 ? 4 * x * x * x : 1 - pow(-2 * x + 2, 3) / 2;
@@ -1460,9 +1460,8 @@ CGFloat ParkedShows(NSRect frame, NSRect visible) {
 // The panel's shadow, its own rather than the window's: macOS draws a light line round a window's edge with the
 // window's shadow on the dark panel. It's under the glass wherever the glass is (opening the reader, folding into the
 // cat and back, breathing), with its corners, in the window held under the panel, so whatever else is held under it
-// (Spotify's token) has the panel's shadow fall on it, as before. Nothing is under the glass itself, which may be
-// see-through. The open panel's is as wide as the prototypes'; round the folded cat it's smaller, and on the light
-// panel softer.
+// (Spotify's token) has the panel's shadow fall on it. Nothing is under the glass itself, which may be see-through.
+// The open panel's is the widest; round the folded cat it's smaller, and on the light panel softer.
 - (void)shadeGlass {
     if (!self.shade) return;
     NSRect window = self.panel.frame, room = NSInsetRect(window, -kShadeRoom, -kShadeRoom);

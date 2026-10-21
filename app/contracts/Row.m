@@ -92,6 +92,7 @@
     json[@"switchAsk"] = self.switchAsk;
     json[@"seenAt"] = self.seenAt;
     json[@"opensIn"] = self.opensIn;
+    json[@"reload"] = self.reload;
     if (self.focused) json[@"focused"] = @YES;
     if (self.noCompact) json[@"noCompact"] = @YES;
     return json;
