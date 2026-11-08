@@ -979,6 +979,9 @@ record_cases() {
   echo "   kept with the run's records: $([ -s "$kept/real-stand-in.expected.txt" ] && echo yes || echo no)"
   echo "   the same as the module's own record: $(cmp -s "$records/real-stand-in.expected.txt" \
     "$REPO/$HERE/real-stand-in.expected.txt" && echo yes || echo no)"
+  # Where it isn't (another Mac's runner, say), the lines that differ, so the log says why without the run's files.
+  diff "$REPO/$HERE/real-stand-in.expected.txt" "$records/real-stand-in.expected.txt" 2>/dev/null | head -40 \
+    | sed 's/^/     /'
   echo "== a record that's a link, pointing nowhere yet"
   mkdir -p "$T/linked"
   ln -s "$T/elsewhere/written-through.txt" "$T/linked/real-stand-in.expected.txt"

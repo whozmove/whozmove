@@ -162,8 +162,15 @@ json.dump({
     "standInPanel": ["$T/$EXE", "$D/hook.sock", "python3", "$REPO/$HERE/stand-in-panel.py", "$T/mirror"],
 }, open(sys.argv[1], "w"), indent=2)
 PY
-python3 "$REPO/$HERE/pty-driver.py" "$T/settings.json" > "$T/out/steps.txt" 2>&1
-driven=$?
+# The driver runs detached, its parent launchd, so the session it starts has no app above it on any Mac. Run from a
+# terminal app, the panel would take that app for the session's and could type into it (Compact), and the record would
+# say which terminal the run was started from rather than what the run did. Its pid is kept with the others, so it's
+# stopped however this ends.
+waiter=$(sh -c 'python3 "$1" "$2" > "$3" 2>&1 & echo $! >> "$5"; wait $!; echo $? > "$4"' sh \
+  "$REPO/$HERE/pty-driver.py" "$T/settings.json" "$T/out/steps.txt" "$T/driven" "$T/pids" >/dev/null 2>&1 & echo $!)
+echo "$waiter" >> "$T/pids"
+while kill -0 "$waiter" 2>/dev/null; do sleep 0.5; done
+driven=$(cat "$T/driven" 2>/dev/null || echo 1)
 
 # What the app reads of it, with what changes on every run (the run's folder, ids, times) taken out.
 timeless() {

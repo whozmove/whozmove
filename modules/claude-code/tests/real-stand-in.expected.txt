@@ -155,6 +155,7 @@
     "lastPromptAt": "<time>",
     "lastReply": "Done: the step ran.",
     "lastReplyAt": "<time>",
+    "noCompact": true,
     "onItAt": "<time>",
     "outcome": "Documented",
     "outcomeAt": "<time>",
