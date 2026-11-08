@@ -37,7 +37,8 @@ $G -C "$T/shop" commit -q -m parts
 $G -C "$T/shop" worktree add -q -b try "$T/shop-try"
 ln -s "$T/shop" "$T/shop-link"
 
-# Each change is made here, then named to the app, which waits for macOS to tell it; the next waits until it has.
+# Each change is made here, then named to the app once macOS has had time to tell it (a slow or busy Mac, as a CI
+# runner can be, tells it seconds later), and the next waits until the app has counted it.
 reads() {
   for r in "$T/shop" "$T/shop-try" "$T/shop/parts"; do
     for c in status "log -1" show "diff HEAD"; do git --no-optional-locks -C "$r" $c >/dev/null; done
@@ -45,7 +46,7 @@ reads() {
 }
 changes() {
   sleep 2  # the app starting to watch
-  step() { "${@:2}" >/dev/null; echo "$1"; sleep 2; }
+  step() { "${@:2}" >/dev/null; sleep 2; echo "$1"; sleep 2; }
   step "nothing" true
   step "git reads in each, as Whozmove reads (status, log, show, diff)" reads
   step "a file edited in the worktree" sh -c "echo x >> '$T/shop-try/a.txt'"
@@ -55,11 +56,15 @@ changes() {
   step "staged in the worktree" $G -C "$T/shop-try" add a.txt
   step "a commit in the worktree" $G -C "$T/shop-try" commit -q -m w
   step "a commit in the submodule" $G -C "$T/shop/parts" commit -q -am p
-  step "a commit in shop, on main, the base with no copy on a remote" $G -C "$T/shop" commit -q --allow-empty -m m1
+  # Each commit in shop commits something it stages, so git writes its index whatever its version: one with nothing
+  # new may leave the index as it was, or write it.
+  step "a commit in shop, on main, the base with no copy on a remote" sh -c "$G -C '$T/shop' add a.txt \
+    && $G -C '$T/shop' commit -q -m m1"
   step "a remote added (config)" $G -C "$T/shop" remote add origin "$T/parts-src"
   step "a remote branch moves (a packed ref)" sh -c "$G -C '$T/shop' update-ref refs/remotes/origin/main HEAD \
     && $G -C '$T/shop' pack-refs --all"
-  step "a commit in shop, on main, now with a copy on a remote" $G -C "$T/shop" commit -q --allow-empty -m m2
+  step "a commit in shop, on main, now with a copy on a remote" sh -c "$G -C '$T/shop' add new.txt \
+    && $G -C '$T/shop' commit -q -m m2"
   step "another branch made in shop" $G -C "$T/shop" branch other
   echo branches
   printf '%s\t%s\n' "$T/shop" main "$T/shop" try "$T/shop" nosuch "$T/shop-try" main
