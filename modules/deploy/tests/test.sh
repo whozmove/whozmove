@@ -189,8 +189,13 @@ echo "   a server's that picks its own port), or a program it didn't start"
 # session that started it), stopped as it ends.
 python3 -m http.server --bind 127.0.0.1 $((BASE + 7)) >/dev/null 2>&1 &
 HELD=$!; echo $HELD >> "$T/pids"
+# A deploy's command runs in the account's login shell. A bash one, as GitHub's runner has, says "logout" as it ends and
+# "[1] <pid>" when the command starts a job in the background; zsh, this Mac's, says neither. They're the shell's words,
+# not the command's, so they're taken out of the last lines and every Mac says the same.
 HOME="$T" "$APP" --print-builds-up 20 "$T/shop" "$T/shop-try" "$BASE" $$ \
   | sed -e "s/$((BASE + 1))/<base+1>/g" -e "s/$((BASE + 5))/<base+5>/g" -e "s/$((BASE + 6))/<base+6>/g" \
-        -e "s/$((BASE + 7))/<base+7>/g"
+        -e "s/$((BASE + 7))/<base+7>/g" \
+  | sed -E -e 's| / logout"|"|' -e 's|(its last lines ")\[[0-9]+\] [0-9]+ / |\1|' \
+          -e 's| / \[[0-9]+\] [0-9]+ / | / |' -e 's| / \[[0-9]+\] [0-9]+"|"|'
 } 2>&1 | sed -e "s|$T|T|g" -e "s|${T#/private}|T|g" -e "s|$S|S|g")
 compare "Let It Deploy" "$HERE/asks.expected.txt" "$out" "${1:-}"
