@@ -1,0 +1,5 @@
+{
+  "order": 5,
+  "scripts": ["page/decide.js", "page/notices.js", "page/notice-line.js"],
+  "styles": ["page/notices.css"]
+}

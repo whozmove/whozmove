@@ -1,0 +1,19 @@
+# The Betterleaks that Keys looks with (tools/betterleaks.sh). `build` is the version every build carries, and
+# `release` the one a release carries (tools/release.sh): the same finished version, so what you try is what ships, and
+# release.sh refuses otherwise. `next` is the version being readied, which Keys' tests run too; once it's finished,
+# `build` and `release` move to it together, and it's tried before a release carries it. Then the SHA-256 of each
+# version's download for each kind of Mac, as its release's checksums.txt gives it. Keys works with either version: it
+# asks the one it carries which it is (KeyFacts).
+#
+# Moving a pin: take the sums from that release's checksums.txt only once its signature holds, with cosign, from the
+# release's own checksums.txt and checksums.txt.sigstore.json:
+#   cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
+#     --certificate-identity https://github.com/betterleaks/betterleaks/.github/workflows/release.yml@refs/tags/v<version> \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+build 1.9.0
+release 1.9.0
+next 2.0.0-rc.4
+1.9.0 arm64 83dd7eaab13d44a1e8e347a17064cdef153a1478db473276d41b38d55613d3f2
+1.9.0 x86_64 68dfd83458d9e7f90663daa7a81c7f944083b170dae82e4f5f8d0581ed519ef1
+2.0.0-rc.4 arm64 788270fe66bc98eb16707bcd0b7490eec849541b2f3d293365aec4443f9509aa
+2.0.0-rc.4 x86_64 774e07715633fc471c4dc1d1b5454bbc7b1b6931543bac47b193643e60c81b83

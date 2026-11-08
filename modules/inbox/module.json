@@ -1,0 +1,5 @@
+{
+  "order": 45,
+  "scripts": ["page/inbox-words.js", "page/inbox-view.js", "page/inbox.js"],
+  "styles": ["page/inbox.css"]
+}

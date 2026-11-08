@@ -1,0 +1,105 @@
+
+== Put together (mxTake)
+whole, oldest first: ["y1","p1","k1","p2","f1","dr1","d1","k2","e1","k4","k5","h2","h1","m-3c4d5e","s1","long"]
+new and changed laid over, by id: ["m-3c4d5e:kept","s1:arrived","long:arrived","n1:arrived"]
+a kept message sent again by its note’s id takes its inbox id’s place: ["bell-1"]
+whole replaces everything: ["y1"]
+
+== Who each is (mxNames)
+s-wren-2: {"name":"Wren","which":"ended","label":"Wren (ended)"}
+s-moss: {"name":"Moss","which":null,"label":"Moss"}
+s-wren: {"name":"Wren","which":"shop","label":"Wren (shop)"}
+s-juniper: {"name":"Juniper","which":null,"label":"Juniper"}
+s-fern: {"name":"Fern","which":null,"label":"Fern"}
+a receiver no session listens at: Pip
+one with no name: An unnamed session
+
+== What answers what (mxAnswers)
+k1 answers: p1
+p2 answers: k1
+k4 answers: p2
+a reply to one that never arrived answers nothing: []
+two in a row answer one each, newest first: [["r1","q2"],["r2","q1"]]
+
+== Where each stands (mxWhere), and whether it waits or was lost
+y1 (plain, arrived): {"waiting":false,"lost":false,"answered":false}
+p1 (plain, arrived): {"words":"Answered by Juniper · 02:03","tone":"answered","go":"k1","copy":false,"waiting":false,"lost":false,"answered":true}
+k1 (kept report, arrived): {"words":"Answered by Wren · 02:15","tone":"answered","go":"p2","copy":false,"waiting":false,"lost":false,"answered":true}
+p2 (plain, arrived): {"words":"Answered by Juniper · 03:13","tone":"answered","go":"k4","copy":false,"waiting":false,"lost":false,"answered":true}
+f1 (plain, failed): {"words":"Didn’t go: no session listens at that address now","tone":"gone","go":null,"copy":true,"waiting":false,"lost":true,"answered":false}
+dr1 (plain, dropped): {"words":"Dropped: Fern never got it","tone":"gone","go":null,"copy":true,"waiting":false,"lost":true,"answered":false}
+d1 (plain, denied): {"words":"Turned down in Fern’s tab","tone":"gone","go":null,"copy":true,"waiting":false,"lost":true,"answered":false}
+k2 (kept question, held): {"words":"Kept in Wren’s inbox · Wren’s tab held the note telling it","tone":"","go":null,"copy":false,"waiting":true,"lost":false,"answered":false}
+e1 (plain, expired): {"words":"Expired unread: Moss never saw it","tone":"gone","go":null,"copy":true,"waiting":false,"lost":true,"answered":false}
+k4 (kept note, arrived): {"words":"Read by Wren · 03:18","tone":"read","go":null,"copy":false,"waiting":false,"lost":false,"answered":false}
+k5 (kept urgent, expired): {"words":"Answered by Wren · 03:17: Moved to tomorrow","tone":"answered","go":null,"copy":false,"waiting":false,"lost":false,"answered":true}
+h2 (plain, held): {"words":"Held: Moss can’t ask you to let it in","tone":"","go":null,"copy":true,"waiting":true,"lost":true,"answered":false}
+h1 (plain, held): {"words":"Held in Juniper’s tab: your OK is on Juniper’s row","tone":"","go":null,"copy":false,"waiting":true,"lost":true,"answered":false}
+m-3c4d5e (kept urgent, kept): {"words":"In Wren’s inbox · not read yet · 6m","tone":"","go":null,"copy":false,"waiting":true,"lost":false,"answered":false}
+s1 (plain, sent): {"words":"Sent · not seen in Moss’s conversation yet","tone":"","go":null,"copy":false,"waiting":false,"lost":false,"answered":false}
+long (plain, arrived): {"waiting":false,"lost":false,"answered":false}
+
+== What each view shows (mxShown, mxCounts)
+all: {"shown":["y1","p1","k1","p2","f1","dr1","d1","k2","e1","k4","k5","h2","h1","m-3c4d5e","s1","long"],"counts":{"all":16,"waiting":4,"lost":6},"narrowedTo":""}
+waiting: {"shown":["k2","h2","h1","m-3c4d5e"],"counts":{"all":16,"waiting":4,"lost":6},"narrowedTo":""}
+lost: {"shown":["f1","dr1","d1","e1","h2","h1"],"counts":{"all":16,"waiting":4,"lost":6},"narrowedTo":""}
+Moss’s messages: {"shown":["y1","dr1","k2","e1","k5","h2","h1","s1","long"],"counts":{"all":9,"waiting":3,"lost":4},"narrowedTo":"Moss"}
+Moss’s, waiting: {"shown":["k2","h2","h1"],"counts":{"all":9,"waiting":3,"lost":4},"narrowedTo":"Moss"}
+Moss and Fern: {"shown":["dr1","e1","h2"],"counts":{"all":3,"waiting":1,"lost":3},"narrowedTo":"Moss and Fern"}
+the Wren that ended: {"shown":["y1"],"counts":{"all":1,"waiting":0,"lost":0},"narrowedTo":"Wren (ended)"}
+
+== What it says with nothing to show (mxEmptyWords)
+nothing in two days: Messages your Claude Code sessions send each other show here
+nothing in two days, the agent not named: Messages your sessions send each other show here
+the first read still going: Reading the last two days…
+no agent records its messages: Nothing to show yet: for now, Messages shows only what’s written to a lead’s inbox
+nothing waits: Nothing waits: every message has been read or answered
+everything got there: Every message got where it was going
+nothing waits for one agent: Nothing from or to Wren waits
+nothing lost between a pair: Every message between Wren and Juniper got where it was going
+something to show: 
+
+== This week (mxWeekWords)
+held and lost: This week: 3 held, 1 lost
+every kind: This week: 1 held, 2 expired, 1 turned down, 1 dropped, 1 didn’t go, 4 lost
+none: 
+not sent yet: 
+
+== The inbox strip (mxStrip), in the order the app gives
+everyone: [{"name":"Wren","items":["m-3c4d5e","k2"]}]
+Fern’s messages: [["m-3c4d5e"]]
+Juniper’s messages (nothing unread): []
+
+== Times and words
+a clock time: 03:33
+today: Today
+yesterday: Yesterday
+three days ago: Sunday
+first words: One thing left: the…
+short enough: Fine.
+long: [true,true,false,false]
+to read: 2 to read
+
+== Drawn
+the head: <span class="r-title">Messages</span><span class="r-sub" title="16 in two days · This week: 3 held, 1 lost">16 in two days · This week: 3 held, 1 lost</span><button class="icon-button r-close" title="Close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+the head before anything is sent: <span class="r-title">Messages</span><span class="r-sub" title=""></span><button class="icon-button r-close" title="Close"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+the filters: <div class="mx-filters"><button class="tag chip mx-filter" data-mx-filter="all" aria-pressed="true">All</button><button class="tag chip mx-filter" data-mx-filter="waiting" aria-pressed="false">Waiting <span class="mx-n">4</span></button><button class="tag chip mx-filter" data-mx-filter="lost" aria-pressed="false">Not Delivered <span class="mx-n">6</span></button></div>
+the filters, one agent: <div class="mx-filters"><button class="tag chip mx-filter" data-mx-filter="all" aria-pressed="false">All</button><button class="tag chip mx-filter" data-mx-filter="waiting" aria-pressed="true">Waiting <span class="mx-n">3</span></button><button class="tag chip mx-filter" data-mx-filter="lost" aria-pressed="false">Not Delivered <span class="mx-n">4</span></button><button class="tag chip outline mx-back" data-mx-back="1" aria-label="Show every session’s messages">Moss’s messages <span class="mx-x">×</span></button></div>
+the filters, a pair: <div class="mx-filters"><button class="tag chip mx-filter" data-mx-filter="all" aria-pressed="true">All</button><button class="tag chip mx-filter" data-mx-filter="waiting" aria-pressed="false">Waiting <span class="mx-n">1</span></button><button class="tag chip mx-filter" data-mx-filter="lost" aria-pressed="false">Not Delivered <span class="mx-n">3</span></button><button class="tag chip outline mx-back" data-mx-back="1" aria-label="Show every session’s messages">Moss and Fern <span class="mx-x">×</span></button></div>
+the strip: <div class="mx-inbox"><div class="mx-inbox-head"><b>Wren’s inbox</b> · 2 to read, most pressing first</div><ol><li><button class="mx-inbox-item" data-mx-go="m-3c4d5e"><span class="tag mx-tag urgent">Urgent</span><span class="mx-what">Fern: Stop: the migration drops the coupons table on staging. Should I go on?</span><span class="mx-at">03:27</span></button></li><li><button class="mx-inbox-item" data-mx-go="k2"><span class="tag mx-tag question">Question</span><span class="mx-what">Moss: The guide says Node 18, but package.json needs 20. Change the guide, or add a note?</span><span class="mx-at">03:03</span></button></li></ol></div>
+message k1: <div class="mx" data-mx-id="k1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-wren">Wren <span class="mx-which">(shop)</span></button><span class="tag mx-tag report">Report</span><span class="mx-about">Coupons</span><span class="mx-at">02:03</span></div><button class="mx-re" data-mx-go="p1">↳ answers Wren: Take the coupon field: add it to the checkout p…</button><div class="md mx-text"><p>Done: the coupon field is in, and <strong>14 tests</strong> pass.</p><p>One thing left: the total is a cent off.</p></div><div class="mx-state answered"><button class="mx-go" data-mx-go="p2">Answered by Wren · 02:15</button></div></div>
+message p2: <div class="mx" data-mx-id="p2"><div class="mx-headline"><button class="mx-who" data-mx-who="s-wren">Wren <span class="mx-which">(shop)</span></button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">02:15</span></div><button class="mx-re" data-mx-go="k1">↳ answers Juniper: Done: the coupon field is in, and 14 tests pass…</button><div class="md mx-text"><p>Thanks. Take the cent next.</p></div><div class="mx-state answered"><button class="mx-go" data-mx-go="k4">Answered by Juniper · 03:13</button></div></div>
+message e1: <div class="mx" data-mx-id="e1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-fern">Fern</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-at">03:08</span></div><div class="md mx-text"><p>Which staging address do the docs use?</p></div><div class="mx-state gone"><span>Expired unread: Moss never saw it</span><button class="button small mx-copy" data-mx-copy="e1">Copy</button></div></div>
+message h1: <div class="mx" data-mx-id="h1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">03:23</span></div><div class="md mx-text"><p>Is the guide’s example yours?</p></div><div class="mx-state"><span>Held in Juniper’s tab: your OK is on Juniper’s row</span></div></div>
+message h2: <div class="mx" data-mx-id="h2"><div class="mx-headline"><button class="mx-who" data-mx-who="s-fern">Fern</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-at">03:21</span></div><div class="md mx-text"><p>Does price.ts round before or after tax?</p></div><div class="mx-state"><span>Held: Moss can’t ask you to let it in</span><button class="button small mx-copy" data-mx-copy="h2">Copy</button></div></div>
+message y1: <div class="mx" data-mx-id="y1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-wren-2">Wren <span class="mx-which">(ended)</span></button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-at">01:33</span></div><div class="md mx-text"><p>Yesterday’s note about the install guide.</p></div></div>
+message long: <div class="mx" data-mx-id="long"><div class="mx-headline"><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">03:32</span></div><div class="md mx-text clipped"><p>A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one.</p><p>With a second part.</p></div><button class="mx-more" data-mx-more="long">Show All</button><div class="mx-cut">Cut at 8,000 characters</div></div>
+long, shown whole: <div class="mx" data-mx-id="long"><div class="mx-headline"><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">03:32</span></div><div class="md mx-text"><p>A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one. A long one.</p><p>With a second part.</p></div><div class="mx-cut">Cut at 8,000 characters</div></div>
+lit and new: <div class="mx lit mx-new" data-mx-id="s1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-at">03:31</span></div><div class="md mx-text"><p>One more thing about the guide.</p></div><div class="mx-state"><span>Sent · not seen in Moss’s conversation yet</span></div></div>
+a message to no session: <div class="mx" data-mx-id="f1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-fern">Fern</button><span class="mx-to">to</span><span class="mx-who">Pip</span><span class="mx-at">02:51</span></div><div class="md mx-text"><p>Are you there?</p></div><div class="mx-state gone"><span>Didn’t go: no session listens at that address now</span><button class="button small mx-copy" data-mx-copy="f1">Copy</button></div></div>
+the channel with no agent recording, but an inbox’s: <div class="mx-channel"><div class="mx-note">For now, only messages written to a lead’s inbox show here</div><div class="mx-day">Today</div><div class="mx" data-mx-id="ok"><div class="mx-headline"><button class="mx-who" data-mx-who="s-wren">Wren</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">03:28</span></div><div class="md mx-text"><p>Fine.</p></div></div></div>
+the channel with no agent recording, and nothing: <div class="mx-channel"><div class="mx-empty">Nothing to show yet: for now, Messages shows only what’s written to a lead’s inbox</div></div>
+the channel with an agent: <div class="mx-channel"><div class="mx-day">Today</div><div class="mx" data-mx-id="ok"><div class="mx-headline"><button class="mx-who" data-mx-who="s-wren">Wren</button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-juniper">Juniper</button><span class="mx-at">03:28</span></div><div class="md mx-text"><p>Fine.</p></div></div></div>
+the channel, the days: <div class="mx-channel"><div class="mx-day">Yesterday</div><div class="mx" data-mx-id="y1"><div class="mx-headline"><button class="mx-who" data-mx-who="s-wren-2">Wren <span class="mx-which">(ended)</span></button><span class="mx-to">to</span><button class="mx-who" data-mx-who="s-moss">Moss</button><span class="mx-at">01:33</span></div><div class="md mx-text"><p>Yesterday’s note about the install guide.</p></div></div></div>
+the channel, nothing for one agent: <div class="mx-channel"><div class="mx-empty">Every message from or to Wren got where it was going <button class="mx-go" data-mx-back="1">Show every session’s messages</button></div></div>
+the channel, nothing at all: <div class="mx-channel"><div class="mx-empty">Messages your Claude Code sessions send each other show here</div></div>

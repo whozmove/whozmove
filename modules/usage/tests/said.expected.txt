@@ -1,0 +1,22 @@
+== one start: each answer in turn, the log saying only what changed
+plan usage: the card shows your plan's numbers
+plan usage: the card is hidden: Claude Code says it's signed in, but can't give a plan's numbers
+plan usage: the card is hidden: Claude Code can't give a plan's numbers, and whether it's signed in can't be read
+plan usage: the card is hidden: Claude Code can't give a plan's numbers: your shell sets an API key or another provider
+plan usage: the card is hidden: Claude Code can't give a plan's numbers, and didn't say why
+plan usage: couldn't get an answer from Claude Code, so the card keeps what it last showed
+plan usage: the card is hidden: Claude Code can't give a plan's numbers, and didn't say why
+plan usage: the card is hidden: can't find Claude Code on this Mac
+plan usage: the card is hidden: Claude Code can't be asked until this Mac is set up for it
+plan usage: the card is hidden: can't ask for a plan's numbers here, and no reason was given
+plan usage: the card is hidden: Claude Code can't give a plan's numbers, and didn't say why
+plan usage: the card shows your plan's numbers
+plan usage: the card asks you to sign in: Claude Code isn't signed in
+plan usage: the card is hidden: Claude Code's answer couldn't be read
+plan usage: the card shows your plan's numbers
+== a fresh start with the same first answers: said once again
+plan usage: the card shows your plan's numbers
+plan usage: the card is hidden: Claude Code says it's signed in, but can't give a plan's numbers
+== no agent to ask: nothing named
+plan usage: the card is hidden: can't ask for a plan's numbers here, and no reason was given
+Every line under 120 characters: yes

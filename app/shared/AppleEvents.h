@@ -22,4 +22,6 @@ NSAppleEventDescriptor *SendAppleEvent(pid_t pid, AEEventClass eventClass, AEEve
                                        NSTimeInterval timeout, OSStatus *status);
 // Whether macOS lets Whozmove send `pid` Apple events: noErr, -1743 (not allowed) or, when `ask` is NO and you
 // haven't been asked yet, errAEEventWouldRequireUserConsent. Asking waits for your answer.
+// Each of these sends nothing, as if not allowed (nil, -1743), while Whozmove may not act on other apps
+// (MayActOnOtherApps: this run's home isn't surely yours).
 OSStatus AutomationPermission(pid_t pid, BOOL ask);

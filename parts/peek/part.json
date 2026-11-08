@@ -1,0 +1,6 @@
+{
+  "scripts": ["page/peek.js"],
+  "styles": ["page/peek.css"],
+  "talksTo": ["core", "bridge", "keyboard", "cat", "list", "morph", "chats", "landing", "header"],
+  "provides": ["peekPointer", "peekStays", "peekHeaderBack"]
+}

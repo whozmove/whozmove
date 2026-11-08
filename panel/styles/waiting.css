@@ -1,0 +1,40 @@
+/* Requests waiting on you out of view, for as long as they wait there (scripts/waiting.js): a strip at each of the
+   list's edges with one wholly out of sight past it, naming its session and what it asks, its chevron pointing the way
+   to it. Things held at an edge keep the list's order: a strip is right at the edge, or just inside the copy of the row
+   you're on held there when that row comes first. It's the kit's boxed notice (controls.css) with a waiting row's dot
+   (rows.css), edged as a request's card is, on a band of the panel's own colour, so the rows it's over don't show
+   through it. It's over the list and under the header. Its band slides in from under its edge as the last of the row
+   goes out of sight, slowing as it lands, and back under the edge, speeding up, as soon as any of the row is back:
+   the strip's own box clips it there, so it never passes over the rows inside it. Only the strip itself takes the
+   pointer, so the rest of the list's edge scrolls and presses as it did.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.waiting-strip { position: absolute; z-index: 1; box-sizing: border-box; overflow: hidden; pointer-events: none;
+                 visibility: hidden; transition: visibility 0s linear .18s; }
+.waiting-strip.in { visibility: visible; transition: none; }
+.w-band { padding: 4px 6px; background: var(--panel); transform: translateY(100%);
+          transition: transform .18s cubic-bezier(.4, 0, 1, 1); }
+.waiting-strip[data-edge="top"] .w-band { transform: translateY(-100%); }
+.waiting-strip.in .w-band { transform: none; transition: transform .24s cubic-bezier(.2, .8, .2, 1); }
+.waiting-strip.in .w-strip { pointer-events: auto; }
+.w-strip { gap: 7px; border: 1px solid var(--needs-edge); transition: border-color .15s ease;
+           background: linear-gradient(var(--surface), var(--surface)), var(--panel); }
+.waiting-strip.is-hover .w-strip { border-color: var(--needs-edge-keys); }
+.w-strip .dot { margin-top: 0; }
+.w-strip .notice-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.w-strip b { font-weight: 600; color: var(--text); }
+.w-what { color: var(--needs-text); }
+.w-after { flex: none; white-space: nowrap; color: var(--faint); font-size: var(--size-meta); }
+.w-after:empty { display: none; }
+.w-strip svg { flex: none; color: var(--dim); }
+.waiting-strip[data-edge="top"] .w-strip svg { transform: rotate(180deg); }
+/* It goes with the list as the panel folds into the cat. */
+body.collapsed .waiting-strip { opacity: 0; visibility: hidden; }
+
+/* Reduced motion: the band fades in and out where it stands. */
+@media (prefers-reduced-motion: reduce) {
+  .w-band, .waiting-strip[data-edge="top"] .w-band { transform: none; opacity: 0; transition: opacity .18s ease; }
+  .waiting-strip.in .w-band { opacity: 1; transition: opacity .24s ease; }
+  .w-strip { transition: none; }
+  .w-strip .dot::after { animation: none; opacity: 0; }
+}

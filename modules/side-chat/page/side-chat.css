@@ -1,0 +1,73 @@
+/* A side chat (side-chat-view.js), beside the list in the reader's place: the session's live step under its head, the
+   conversation, the box at its foot; and Side Chat on a row. One Task's talk's look, in side chat's own classes: your
+   words on the soft fill a card on a row has, a reply in the reader's colour under the session's name.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* In the reader's frame: nothing down its side, the live line in its source line's place, the box at its foot. */
+.k-side-chat .r-shelf { display: none; }
+.k-side-chat .r-src { padding: 8px 18px 8px; border-bottom: 1px solid var(--rule); }
+.k-side-chat .r-answer { padding: 0; }
+
+/* Under the head: what the session is doing now, its dot working while it does. */
+.sc-live { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: var(--size-small); color: var(--muted); }
+.sc-dot { flex: none; width: 6px; height: 6px; border-radius: var(--radius-circle); background: var(--idle); }
+.sc-live.works .sc-dot { background: var(--working-dot); }
+.sc-live.works .sc-now { color: var(--work-text); }
+.sc-now { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* The conversation, newest at the foot. */
+.sc-lines { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px 12px; }
+.sc-empty { margin: 0; padding: 14px 18px; font-size: var(--size-small); color: var(--muted); line-height: 1.45; }
+/* The line its row shows while the session works (workLineHTML), at the conversation's foot, under the session's
+   name: as wide as the name needs from the row's label column up, a long one cut short first so the step keeps its
+   room. */
+.sc-work { padding: 0 18px 14px; }
+.sc-work:empty { display: none; }
+.sc-work .who { width: auto; min-width: 42px; max-width: 80px; box-sizing: border-box; padding-right: 8px;
+                overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sc-you { align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.sc-you p { margin: 0; padding: 6px 10px; border-radius: var(--radius-box); background: var(--ask-fill);
+            box-shadow: inset 0 0 0 1px var(--ask-edge); font-size: var(--size-card); line-height: 1.45;
+            color: var(--text); overflow-wrap: anywhere; }
+.sc-you.held p { background: none; box-shadow: inset 0 0 0 1px var(--edge); color: var(--muted); }
+/* How far your words got, and its presses beside it, wrapping as one line of words. */
+.sc-said { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: 2px 10px;
+           text-align: right; font-size: var(--size-meta); color: var(--muted); }
+.sc-said.wait { color: var(--turn-text); }
+.sc-said.read { color: var(--done-text); }
+.sc-said.no { color: var(--needs-text); }
+.sc-act { border: 0; background: none; padding: 0; font: inherit; color: var(--link); }
+.sc-act.is-hover { text-decoration: underline; }
+.sc-reply { display: flex; flex-direction: column; gap: 3px; max-width: 94%; }
+.sc-reply > b { font-size: var(--size-meta); font-weight: 600; color: var(--label); }
+.sc-reply-text { font-size: var(--size-card); line-height: 1.5; color: var(--reading-text); overflow-wrap: anywhere;
+                 -webkit-user-select: text; cursor: text; }
+.sc-reply-text > * { margin: 0; }
+.sc-reply-text > * + * { margin-top: 6px; }
+/* A side question and its answer: filled as your words are, never outlined (that's how words held for the session
+   look), and quieter than the conversation, so they never read as something the session knows. */
+.sc-aside p, .sc-aside .sc-reply-text, .sc-reply.sc-aside > b { color: var(--muted); }
+.sc-mark { font-size: var(--size-meta); font-weight: 600; color: var(--muted); }
+/* A command in a reply, on a line of its own, scrolling sideways rather than wrapping, with Copy beside it. */
+.sc-code { display: flex; align-items: flex-start; gap: 6px; }
+.sc-code .perm-detail { flex: 1; min-width: 0; margin: 0; padding: 5px 8px; border-radius: var(--radius-box);
+                        background: var(--code-fill); white-space: pre; overflow-x: auto; }
+.sc-code .button { flex: none; }
+
+/* The box at the foot, over the line that says exactly what goes in, or why nothing can. The buttons' words are too
+   long to share a row with the field in the chat's width, so the field takes the whole first line and the two buttons
+   sit under it, at the right. */
+.sc-box { display: flex; flex-direction: column; gap: 4px; padding: 10px 16px 12px 18px; }
+.sc-box-row { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; }
+.sc-box-row .field, .sc-box-row .button { box-sizing: border-box; height: 29px; }
+.sc-box-row .button { flex: none; padding-block: 0; }
+.sc-box-row .q-type { margin-top: 0; }
+.sc-field { flex: 1 0 100%; min-width: 0; }
+.sc-goes { font-size: var(--size-meta); color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
+.sc-goes:empty { display: none; }
+.sc-why { color: var(--text); }
+
+/* Side Chat, the bar at a row's far edge: a button with no words filling the strip the row draws there, which the row
+   part's bar is the look of (it swells pointed at, stays lit while its chat is open, and is in your move's colour
+   while a reply waits). */
+.sc-edge { width: 100%; height: 100%; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }

@@ -20,36 +20,27 @@ body.collapsed #dock { display: none; }
 .row.compose, .row.compose.is-hover { background: var(--surface); }
 .row.compose > .dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--compose-dot); }
 .row.compose .name { color: var(--muted); }
-/* Where it starts, on chips under the box, where the row's details line will be: the project, then where in it. A worktree is the core's chip (.wt), at the
-   card's size, and a new one's branch to start from is on an outlined chip before it. Pressing a chip opens what @ or
-   # offers. */
+/* Where it starts, on chips under the box, where the row's details line will be: the project, then where in it, each
+   the kit's chip. A worktree is the row part's chip (.wt), at a chip's size, and a new one's branch to start from is on
+   an
+   outlined chip (the kit's) before it. Pressing a chip opens what @ or # offers. */
 .st-chips { display: flex; flex-wrap: wrap; gap: 4px 5px; margin-top: 6px; }
-.st-chip { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 7px; box-sizing: border-box;
-          border-radius: var(--radius-small); white-space: nowrap; }
-.st-chip:not(.wt) { background: var(--tag); color: var(--muted); }
+.st-chip.wt { gap: 4px; height: 20px; padding: 0 7px; box-sizing: border-box; border-radius: var(--radius-small);
+              white-space: nowrap; }
 .st-chip svg { flex: none; }
-.st-chip:not(.wt).is-hover { background: var(--hover-strong); color: var(--text); }
-.c-proj { color: var(--text); }
-.c-proj { font-weight: 600; }
+.st-chip.c-proj { font-weight: 600; }
 .c-proj i { font-style: normal; font-weight: 400; color: var(--faint); }
-.st-chip.c-base { background: none; box-shadow: inset 0 0 0 1px var(--edge); }
 .c-from { color: var(--faint); margin-right: 1px; }
-/* Its words' box, as wide as the card's column. The "You" of the row it becomes opens in front of the words as it
-   starts (starts.js). */
+/* Its words' box (the kit's small box), as wide as the card's column. The "You" of the row it becomes opens in front of
+   the words as it starts (starts.js). */
 .row.compose > .main > .you { margin-top: 6px; }
 .row.compose > .main > .you > .who { max-width: 0; overflow: hidden; opacity: 0; }
-.c-box { display: block; flex: 1; min-width: 0; height: 44px; margin: 0; padding: 6px 8px; box-sizing: border-box;
-         resize: none; overflow: hidden; font: inherit; font-size: var(--size-small); line-height: 15px;
-         color: var(--text); background: var(--field); border: 1px solid var(--field-edge);
-         border-radius: var(--radius-control); outline: none; -webkit-user-select: text; user-select: text;
-         cursor: text; }
-.c-box:focus { border-color: var(--compose-focus); }
-.c-box::placeholder { color: var(--faint); }
-/* What @ or # offers, under the box, the one picked lit, with a word under it when there's more to say. */
-.c-list { margin-top: 6px; padding: 3px; border-radius: var(--radius-control); background: var(--field); }
+.c-box { display: block; flex: 1; min-width: 0; height: 44px; margin: 0; box-sizing: border-box; resize: none;
+         overflow: hidden; -webkit-user-select: text; user-select: text; cursor: text; }
+/* What @ or # offers, under the box (the kit's short list), the one Return takes lit, with a word under it when there's
+   more to say. */
+.c-list { margin-top: 6px; }
 .c-lhead { padding: 3px 7px 4px; color: var(--faint); font-size: var(--size-meta); }
-.c-opt { display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 7px; border-radius: var(--radius-small); }
-.c-opt.on, .c-opt.is-hover { background: var(--hover-strong); }
 .c-opt .o-l { display: inline-flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; white-space: nowrap;
               color: var(--text); }
 .c-opt .o-s { flex: none; margin-left: auto; color: var(--faint); font-size: var(--size-meta); }
@@ -65,19 +56,12 @@ body.collapsed #dock { display: none; }
 .c-place { padding: 0 3px; margin: 0 -3px; border-radius: var(--radius-tag); color: var(--muted); }
 .c-place.is-hover { background: var(--hover-strong); color: var(--text); }
 .c-place .caret { display: inline-flex; margin-left: 3px; opacity: .6; vertical-align: -1px; }
-.c-busy { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: var(--size-small); line-height: 16px;
-          color: var(--needs-text); }
-.c-usewt { flex: none; margin-left: auto; padding: 1px 7px; border: 0; border-radius: var(--radius-small); font: inherit;
-           font-size: var(--size-small); color: var(--text); background: var(--button); }
-.c-usewt.is-hover { background: var(--button-hover); }
+/* What's in the way, with the way past it (the kit's notice, with a quiet button). */
+.c-busy { margin-top: 7px; }
 .c-help { margin-top: 7px; font-size: var(--size-small); line-height: 15px; color: var(--faint); }
 .c-help.warn { color: var(--needs-text); }
-/* Start, naming the app it starts in, and beside it the app's menu. */
+/* Start, naming the app it starts in, and beside it the app's menu: the kit's small main button, cut in two. */
 .st-foot { display: flex; justify-content: flex-end; margin-top: 9px; }
-.c-split { display: inline-flex; }
-.c-go { flex: none; display: inline-flex; align-items: center; padding: 2px 9px; border: 0;
-        border-radius: var(--radius-control); font: inherit; font-size: var(--size-small); line-height: 17px;
-        font-weight: 600; color: var(--on-main-button); background: var(--main-button); }
 .c-go svg { flex: none; }
 /* The app's name once there are words, and "Start in" before it while ⌘ is held: each opens to the left, as Start's
    right edge stays put, eased to its own width (easeButton in starts.js). */
@@ -86,13 +70,7 @@ body.collapsed #dock { display: none; }
 .c-go.empty .go-label { max-width: 0; margin-left: 0; opacity: 0; }
 .c-go .go-verb { max-width: 0; opacity: 0; }
 body.cmd .c-go:enabled .go-verb { max-width: none; opacity: 1; }
-.c-split .c-go:not(:only-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.st-app { display: inline-flex; align-items: center; padding: 0 6px; border: 0;
-         border-radius: var(--radius-control); border-top-left-radius: 0; border-bottom-left-radius: 0;
-         box-shadow: inset 1px 0 0 var(--field);
-         color: var(--on-main-button); background: var(--main-button); }
-.c-go.is-hover, .st-app.is-hover, body.cmd .c-go:enabled { background: var(--main-button-hover); }
-.c-go:disabled { opacity: .4; }
+body.cmd .c-go:enabled { background: var(--main-button-hover); }
 
 /* The cat in the name hops once as a conversation starts from the panel. It's drawn in its own units, about 17 to a
    point (panel.html), so the hop's heights are in those: 4pt and 1pt. */

@@ -1,0 +1,41 @@
+/* A diagram where a ```mermaid block was: its kind and how to show it on one line, then the drawing, at full size,
+   shrinking at most to three quarters before it scrolls sideways, or the block as written. Its drawing takes the
+   panel's colours, so it follows Settings' Appearance.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.dg { margin: 0 0 12px; border: 1px solid var(--rule); border-radius: var(--radius-box); }
+.dg-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px;
+          padding: 4px 6px 0 12px; }
+.dg-kind { color: var(--label); }
+.dg-tabs { flex: none; }
+.dg-why, .md .dg-why { margin: 0; padding: 6px 12px 0; font-size: var(--size-small); line-height: 1.45;
+                        color: var(--muted); }
+.dg-draw { overflow-x: auto; padding: 8px 12px 12px; }
+.dg-draw > svg { display: block; height: auto; margin: 0 auto; }
+.md .dg > .dg-src { margin: 8px; }
+/* Its text shows until it's drawn; drawn, the drawing shows; As written, the text. A flow whose lines would run
+   through its steps shows its text and why, without Diagram and As written. */
+.dg:not([data-dg-state="drawn"]) > .dg-draw, .dg[data-dg-state="drawn"] > .dg-src { display: none; }
+.dg:not([data-dg-state="unclear"]) > .dg-unclear, .dg[data-dg-state="unclear"] .dg-tabs { display: none; }
+
+.dg-svg .dg-node { fill: var(--code-fill); stroke: var(--box-edge); stroke-width: 1; }
+.dg-svg .dg-words { fill: var(--reading-text); font-size: var(--size-body); text-anchor: middle; }
+.dg-svg .dg-line { fill: none; stroke: var(--dim); stroke-width: 1.2; }
+.dg-svg .dg-line.dotted { stroke-dasharray: 3 3; }
+.dg-svg .dg-line.thick { stroke-width: 2.2; }
+/* An end: an arrow's head and a circle filled, a cross drawn, all in the lines' colour. */
+.dg-svg .dg-arrow { fill: var(--dim); }
+.dg-svg .dg-cross { fill: none; stroke: var(--dim); stroke-width: 1.4; }
+.dg-svg .dg-under { fill: var(--panel); }
+/* What the place a drawing is in lays over the panel, so its edges' words sit on the same ground: a card's
+   (--dg-over), and a press's while it's pointed at (--dg-over-press). */
+.dg-svg .dg-under.over { fill: var(--dg-over, transparent); }
+.dg-svg .dg-under.over-press { fill: var(--dg-over-press, transparent); }
+.dg-svg .dg-edge-words { fill: var(--muted); font-size: var(--size-small); text-anchor: middle; }
+
+/* Small, on a card: its words until it's drawn, and where it can't be drawn here. */
+.dg-small { display: block; }
+.dg-small .dg-draw { padding: 0; overflow: hidden; }
+.dg-small .dg-draw > svg { margin: 0; }
+.dg-small[data-dg-state="drawn"] .dg-small-words, .dg-small:not([data-dg-state="drawn"]) .dg-draw { display: none; }
+.dg-small-words { font-size: var(--size-card); line-height: 1.45; color: var(--reading-text); }

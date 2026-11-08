@@ -1,4 +1,4 @@
-// Spotify's part of the page: what it plugs into the page core (panel/scripts/modules.js) as it loads, and the
+// Spotify's part of the page: what it plugs into the page core (parts/bridge/page/modules.js) as it loads, and the
 // functions the app calls with the song and its lyrics. The now-playing strip (np-strip.js) and what it shows
 // (now-playing.js), and the lyrics (lyrics-view.js, from what lyrics.js works out), do the rest.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later

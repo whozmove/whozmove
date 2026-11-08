@@ -1,35 +1,58 @@
 {
   "hooks": {
     "UserPromptSubmit": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PreToolUse": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PostToolUse": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PostToolUseFailure": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "Notification": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
+    }] }],
+    "PostToolBatch": [{ "hooks": [{
+      "type": "command", "command": "/bin/sh",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-words.sh"],
+      "timeout": 10
     }] }],
     "Stop": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
+    }, {
+      "type": "command", "command": "/bin/sh",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-words.sh"],
+      "timeout": 10
+    }] }],
+    "SubagentStop": [{ "hooks": [{
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PreCompact": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PostCompact": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"], "async": true
+      "type": "command", "command": "python3", "async": true,
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude.py"]
     }] }],
     "PermissionRequest": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
+      "type": "command", "command": "python3",
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
       "timeout": 3600
     }] }],
     "PreModelSwitch": [{ "hooks": [{
-      "type": "command", "command": "python3", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
+      "type": "command", "command": "python3",
+      "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/hooks/whozmove-claude-permission.py"],
       "timeout": 90
     }] }]
   }

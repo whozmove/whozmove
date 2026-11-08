@@ -9,6 +9,7 @@
 #   modules/starts/tests/test.sh            run and compare
 #   modules/starts/tests/test.sh --update   run and save the output as the new expected (after a change you meant)
 cd "$(dirname "$0")/../../.." || exit 1
+. tests/sandboxed.sh "$@"
 HERE=modules/starts/tests
 # Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
 T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-starts.XXXXXX") || exit 1

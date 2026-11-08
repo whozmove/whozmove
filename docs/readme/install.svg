@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="214" height="40" viewBox="0 0 214 40" role="img" aria-label="Install it on your Mac">
+  <rect x="0.5" y="0.5" width="213" height="39" rx="19.5" fill="#24292f" stroke="#6e7781" stroke-opacity="0.55"/>
+  <path d="M25 12.5v11.5M20.2 19.2 25 24l4.8-4.8M19 28h12" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="119" y="25.2" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#ffffff">Install on your Mac</text>
+</svg>

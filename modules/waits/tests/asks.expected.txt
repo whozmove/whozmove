@@ -1,0 +1,38 @@
+== Begun, waiting, the panel away 3 seconds (longer than a wait may be out of reach), then woken
+   asked: {"ask": "wait", "now": false, "comments": false}
+   asked: {"ask": "wait", "now": false, "comments": false}
+   asked: {"ask": "wait", "now": false, "comments": false}
+   asked: {"ask": "wait", "now": false, "comments": false}
+woke: {"came":[{"kind":"approved","pr":12,"source":"pull request"}]}
+exit=0
+== The same panel away, for a task's answer: that wait stops
+   asked: {"ask": "task-answer", "id": "t1"}
+Couldn't reach Whozmove's panel for 1 seconds, so stopped waiting: ask again once it's back
+exit=1
+== Held for a seat, then let go
+   asked: {"ask": "wait", "now": false, "comments": false}
+   asked: {"ask": "wait", "now": false, "comments": false}
+woke: {"came":[]}
+exit=0
+== Nothing to wait for: said at once
+   asked: {"ask": "wait", "now": false, "comments": true}
+nothing to wait for: nothing of this session's waits on someone else now
+exit=0
+== --now: answered at once, whatever it says
+   asked: {"ask": "wait", "now": true, "comments": false}
+nothing yet: Waits on #12
+exit=0
+== Refused
+   asked: {"ask": "wait", "now": false, "comments": false}
+refused: only a session that's running can wait
+exit=1
+== Whozmove not running when it begins: said at once
+Whozmove isn't running, so there's no panel to ask
+exit=1
+== Words it turns away, before it asks
+Only --now and --comments may follow wait
+exit=2
+Only --now and --comments may follow wait
+exit=2
+Only --now and --comments may follow wait
+exit=2

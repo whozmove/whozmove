@@ -44,6 +44,14 @@ if [ "$trial" = no ]; then
   notes=$(VERSION=$version awk '$1 == "##" { on = ($2 == ENVIRON["VERSION"]); next } on' CHANGELOG.md)
   grep -q '[^[:space:]]' <<<"$notes" ||
     refuse "CHANGELOG.md has no ## $version section with notes in it: name the Unreleased section ## $version."
+  # Keys looks with the Betterleaks tools/betterleaks.txt names for releases: a finished version, never a release
+  # candidate, and the one every build carries, so what was tried is what ships.
+  scanner=$(tools/betterleaks.sh --version --release)
+  [[ $scanner =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    refuse "tools/betterleaks.txt's release line names Betterleaks $scanner, not a finished version: name one."
+  built=$(tools/betterleaks.sh --version)
+  [ "$built" = "$scanner" ] ||
+    refuse "tools/betterleaks.txt's build line names Betterleaks $built, not the release's $scanner: make them one."
   changes=$(git status --porcelain)
   if [ -n "$changes" ]; then
     echo "$changes"
@@ -62,7 +70,7 @@ app="$work/$name.app"
 # The program for Apple silicon only, every warning an error, for the oldest macOS Info.plist names
 # (tools/compile.sh). Unlike build.sh's, a release carries no build.json: it would name the folder it was built in, and
 # a release is named by its version.
-make_bundle "$app" -arch arm64 -Werror
+betterleaks_for=release make_bundle "$app" -arch arm64 -Werror
 if [ "$trial" = yes ]; then
   plutil -replace CFBundleShortVersionString -string "$version" "$app/Contents/Info.plist"
   plutil -replace CFBundleVersion -string "$version" "$app/Contents/Info.plist"
@@ -90,6 +98,14 @@ check() {
     cmp -s <(plutil -convert xml1 -o - "$hooks/.claude-plugin/plugin.json") \
       <(plutil -convert xml1 -o - "$app/Contents/Resources/plugin/.claude-plugin/plugin.json") ||
     { echo "$app: the hooks inside differ from this checkout's"; return 1; }
+  # Betterleaks, signed, for Apple silicon, and the version tools/betterleaks.txt names for releases.
+  helper=$app/Contents/Helpers/betterleaks
+  codesign --verify --strict "$helper" 2>/dev/null || { echo "$app: Betterleaks inside isn't signed"; return 1; }
+  said=$(lipo -archs "$helper")
+  [ "$said" = arm64 ] || { echo "$app: Betterleaks inside is for $said, not Apple silicon alone"; return 1; }
+  said=$("$helper" version 2>/dev/null)
+  [ "$said" = "$(tools/betterleaks.sh --version --release)" ] ||
+    { echo "$app: Betterleaks inside is $said, not the one tools/betterleaks.txt names for releases"; return 1; }
   # Nothing in it names the folder it was built in, or whose Mac it was.
   ! grep -rqF "$HOME" "$app" || { echo "$app: it names $HOME"; return 1; }
 }

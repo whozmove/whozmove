@@ -1,0 +1,152 @@
+
+== A flow is drawn here only when every part of it is read
+lines, words on an edge, a decision, a dotted and a thick line: drawn here: LR, 6 nodes, 5 edges
+several joined by &: drawn here: TD, 3 nodes, 2 edges
+on one line, with semicolons: drawn here: LR, 3 nodes, 2 edges
+a ";" inside a box, a quote or an edge's words is words: ["drawn here: TD, 3 nodes, 2 edges","As written; the app asks"]
+no direction: top down: drawn here: TD, 2 nodes, 1 edges
+a click (nothing drawn for it): drawn here: LR, 2 nodes, 1 edges
+an edge that skips steps, a loop back, a loop to itself, and ends of every kind: ["drawn here: LR, 6 nodes, 7 edges","drawn here: LR, 3 nodes, 3 edges","drawn here: LR, 6 nodes, 5 edges"]
+a class on a node: not drawn here: unread
+a style line: not drawn here: unread
+ends of two kinds: not drawn here: unread
+a start mark with no end: not drawn here: unread
+an edge with its own name: not drawn here: unread
+an unseen link: not drawn here: unread
+a double head: not drawn here: unread
+words left over: not drawn here: unread
+a shape not closed: not drawn here: unread
+a header with more after it: not drawn here: unread
+groups: not drawn here: grouped
+two loops to one step (a second has nowhere of its own): not drawn here: unread
+another kind: not drawn here: kind
+
+== Arrows' ends, as Mermaid reads them
+A --> B: ["A -/arrow B"]
+A --- B: ["A -/- B"]
+A --x B: ["A -/cross B"]
+A --o B: ["A -/circle B"]
+A <--> B: ["A arrow/arrow B"]
+A x--x B: ["A cross/cross B"]
+A o--o B: ["A circle/circle B"]
+A ==x B: ["A -/cross B thick"]
+A -.-o B: ["A -/circle B dotted"]
+A <==> B: ["A arrow/arrow B thick"]
+A <-.-> B: ["A arrow/arrow B dotted"]
+A<-->B: ["A arrow/arrow B"]
+A <-- both ways --> B: ["A arrow/arrow B \"both ways\""]
+A x-- crossed --x B: ["A cross/cross B \"crossed\""]
+A -- words --o B: ["A -/circle B \"words\""]
+A --x B --> C: ["A -/cross B","B -/arrow C"]
+dev---ops: ["dev -/circle ps"]
+A x --> B: not read
+A < --> B: not read
+A -- words ==> B: not read
+
+== Words, as they read
+angle brackets stay words, <br> breaks a line: Read <id>.json
+then <b>parse</b>
+quotes and stars come off: Save it
+
+== What a diagram says in words
+a flow, its steps along its main path: A flow of 6 steps: Recipe page → Recipe and photos kept on this device → Online? → … → Cook from it.
+a short flow, every step: A flow of 3 steps: Old link → Still there? → Go to it.
+a branch that ends at once isn't taken for the flow: A flow of 6 steps: Block → Mermaid? → Read it → Draw it → Show it.
+a flow not read in full: A flow diagram.
+a flow with groups, which isn't drawn here: still its steps: A flow of 2 steps: Recipe page → Cook from it.
+a sequence, who and how many messages: A sequence between Recipe page and Offline helper: 3 messages.
+another kind, with its title: A pie chart: Where saved recipes come from.
+another kind, without: A state diagram.
+Markdown that's only a diagram: A flow of 6 steps: Recipe page → Recipe and photos kept on this device → Online? → … → Cook from it.
+Markdown with words beside it: null
+a block in another language: null
+
+== A flow laid out
+left to right, with room: 1027×82: A 0,8 · B 222,0 · C 426,8 · D 556,0 · E 740,8 · F 925,8
+left to right, in a narrow room: bands, filled evenly: 511×136: A 0,8 · B 222,0 · C 426,8 · D 0,90 · E 184,98 · F 369,98
+top down: 152×170: A 39,0 · B 18,70 · C 0,140 · D 89,140
+right to left: the same, turned round: 160×30: A 100,0 · B 0,0
+bottom to top: 60×100: A 0,70 · B 0,0
+a loop back keeps its nodes in place: 260×48: A 0,0 · B 100,0 · C 200,0
+
+== Edges past the steps between, round them, and their words, kept clear of the steps
+top down, past one step: through a stand-in's lane beside it, its words on that run, as wide as they are: ["B across 0–126, down 70–100","M97.26,30 C97.26,50 167.26,50 167.26,70 V100 C167.26,120 97.26,120 97.26,140","words across 140–195, down 76–94",true]
+a jump's words on its own run beside the steps it passes, never where it leaves or on another line: ["words across 205–285, down 146–164","C across 23–191, down 140–170","M154,30 C154,50 208,50 208,70 V100 C208,120 245,120 245,140 V170 C245,190 304,190 304,210 V240 C304,260 154,260 154,280",true]
+past three steps: ["M83.34,30 C83.34,50 120.34,50 120.34,70 V100 C120.34,120 120.34,120 120.34,140 V170 C120.34,190 120.34,190 120.34,210 V240 C120.34,260 83.34,260 83.34,280",true]
+left to right, past steps into the next band: the steps on its way carry on beside it, so on one line: [true,false,"drawn on one line"]
+two steps carrying on into the next band would drop through each other: laid out on one line: [true,false,"drawn on one line"]
+a loop back up two bands: up its own lane outside the bands' left side: [3,"M239,148 V141.68 Q239,135.68 233,135.68 H21 Q15,135.68 15,129.68 V48.32 Q15,42.32 21,42.32 H63 Q69,42.32 69,36.32 V30",true]
+top down, a loop back past a wider step: round the right of every rank it passes: ["B across 0–164, down 70–116","M112,171 H191.36 Q197.36,171 197.36,165 V21 Q197.36,15 191.36,15 H112",true]
+a loop back from a step with one beside it: down from its foot and along the gap, past it: ["D across 77–137, down 140–170","M31.5,170 V174 Q31.5,178 35.5,178 H153 Q159,178 159,172 V21 Q159,15 153,15 H98.5",true]
+words on a loop back, beside words on the edge it comes back past: its run out far enough for them: ["words across 26–68, down 41–59","M94,85 H149.98000000000002 Q155.98000000000002,85 155.98000000000002,79 V21 Q155.98000000000002,15 149.98000000000002,15 H77","words across 116–196, down 41–59"]
+loops back nest, the shortest innermost, each with room for its words: ["M258.5,30 V51 Q258.5,57 252.5,57 H152.5 Q146.5,57 146.5,51 V30","M374,30 V77 Q374,83 368,83 H40.5 Q34.5,83 34.5,77 V30","words across 182–223, down 48–66","words across 174–235, down 74–92"]
+two loops back between one pair of steps: moved apart at both ends: ["M60,80","M60,90"]
+a loop back into a step with a loop to itself: in from above, clear of the loop: M160.4,85 H190.8 Q196.8,85 196.8,79 V-2 Q196.8,-8 190.8,-8 H57.5 Q53.5,-8 53.5,-4 V0
+a drop into the band below that's nearly straight: its end on its own line: ["M82,30 V74","tip 82,74"]
+a step dropping into the next band that a loop back comes into: on one line, so they don't share the drop: [true,false,"drawn on one line"]
+three lines of words: the gap as deep as they need: ["B across 0–63, down 96–126","words across 11–52, down 38–88",true]
+words on edges fanning out: on together, where their lines have parted: ["words across 45–144, down 44–62","words across 147–240, down 49–67",true]
+too wide to sit side by side: their gap grows, and each has its own place on its line: ["words across 22–172, down 65–99","words across 155–311, down 106–124",true]
+words that fit nowhere: their gap grows until they do: [false,[0],100,160,"drawn"]
+two edges from one step to another: each moved across, so they aren't drawn as one: ["M60,10","M60,20"]
+a loop to itself, top down: out at its right, its words beyond it: ["B across 0–60, down 70–100","M60,79 C82,70 82,100 60,91","words across 82–137, down 76–94",true]
+and left to right, under it: ["B across 100–160, down 0–30","M124,30 C115,52 145,52 136,30",true]
+right to left and bottom to top: both ends turned round with the rest: ["foot 100,15 pointing 1,0, tip 60,15 pointing -1,0","foot 30,70 pointing 0,1, tip 30,30 pointing 0,-1"]
+a line through a step that isn't one of its ends: not clear: false
+words on another edge's line: not clear: false
+words on words: not clear: false
+
+== A flow drawn
+its parts: ["<svg class=\"dg-svg\" viewBox=\"-4 -4 274 38\" data-width=\"274\" data-height=\"38\" role=\"img\" aria-label=\"Three steps\">","class=\"dg-line\"","class=\"dg-arrow\"","class=\"dg-line dotted\"","class=\"dg-under\"","class=\"dg-under over\"","class=\"dg-under over-press\"","class=\"dg-edge-words\"","class=\"dg-node\"","class=\"dg-words\""]
+every word escaped: ["aria-label=\"&lt;script&gt;\"","<tspan x=\"231\">&lt;img src=x&gt;</tspan>","<tspan x=\"91.5\">&lt;script&gt;alert(1)&lt;/script&gt;</tspan>","<tspan x=\"326\">Tom &amp; Jerry</tspan>"]
+each box's words sit on its middle: one line, and two: ["<rect class=\"dg-node\" x=\"0\" y=\"0\" width=\"60\" height=\"30\" rx=\"5\"/>","<text class=\"dg-words\" x=\"30\" y=\"19.2\">","<rect class=\"dg-node\" x=\"0\" y=\"70\" width=\"60\" height=\"46\" rx=\"5\"/>","<text class=\"dg-words\" x=\"30\" y=\"89.2\">"]
+nothing in it runs: true
+each end at its tip: an arrow, a circle, a cross, at one end and both, an open line none: ["A --> B: polygon","A --o B: circle","A --x B: path","A <--> B: polygon polygon","A o--o B: circle circle","A x--x B: path path","A --- B: none"]
+a cross's strokes: <path class="dg-cross" d="M27,68 L33,62 M33,68 L27,62"/>
+
+== The figure, wherever Markdown is drawn
+a flow: its kind, Diagram and As written, then its text until it's drawn: <p>Before.</p><figure class="dg" data-dg="d5lagf567" data-dg-state="todo"><div class="dg-top"><span class="caps dg-kind">Flow</span><div class="tabs dg-tabs" role="group" aria-label="How to show the diagram"><button type="button" data-dg-show="drawn" aria-pressed="true">Diagram</button><button type="button" data-dg-show="written" aria-pressed="false">As written</button></div></div><p class="dg-why dg-unclear">Drawn here, its lines would cross its steps or its words would overlap, so it shows as written.</p><div class="dg-draw"></div><pre class="dg-src"><code>flowchart LR
+  A[Recipe page] --&gt;|Save for Offline| B[Recipe and photos kept on this device] --&gt; C{Online?}
+  C --&gt;|yes| D[Check for a newer version] --&gt;|same| E[Open the saved copy] --&gt; F([Cook from it])
+  D --&gt;|changed| B</code></pre></figure><p>After.</p>
+another kind: as written, saying why: <figure class="dg" data-dg-state="written"><div class="dg-top"><span class="caps dg-kind">Sequence</span></div><p class="dg-why">Only flow diagrams are drawn here, so this shows as written.</p><pre class="dg-src"><code>sequenceDiagram
+  participant P as Recipe page
+  participant W as Offline helper
+  P-&gt;&gt;W: Save &quot;Lemon tart&quot;
+  W--&gt;&gt;P: Saved for offline
+  Note over P,W: Later, with no connection
+  P-&gt;&gt;W: Open &quot;Lemon tart&quot;</code></pre></figure>
+turned to As written, it stays that way as it's drawn again: ["data-dg-state=\"written\"","aria-pressed=\"false\"","aria-pressed=\"true\""]
+a flow not drawn here: as written, saying why: ["data-dg-state=\"written\"","<p class=\"dg-why\">Flows with groups aren&#39;t drawn here, so this shows as written."]
+the line saying why for each: ["Part of this flow can&#39;t be drawn here, so it shows as written.","Flows with groups aren&#39;t drawn here, so this shows as written.","Only flow diagrams are drawn here, so this shows as written."]
+on the list (a request's card): code, as before: <p>Before.</p><pre><code>flowchart LR
+  A[Recipe page] --&gt;|Save for Offline| B[Recipe and photos kept on this device] --&gt; C{Online?}
+  C --&gt;|yes| D[Check for a newer version] --&gt;|same| E[Open the saved copy] --&gt; F([Cook from it])
+  D --&gt;|changed| B</code></pre><p>After.</p>
+a block in another language: code, as before: <pre><code>const x = 1;</code></pre>
+a block named for something every object has: code: <pre><code>x</code></pre>
+its text escaped: false
+
+== Small, on a card
+a flow drawn here: its words until it's drawn: <span class="dg-small" data-dg-state="todo"><span class="dg-draw"></span><span class="dg-small-words">A flow of 6 steps: Recipe page → Recipe and photos kept on this device → Online? → … → Cook from it.</span><span class="dg-src" hidden>flowchart LR
+  A[Recipe page] --&gt;|Save for Offline| B[Recipe and photos kept on this device] --&gt; C{Online?}
+  C --&gt;|yes| D[Check for a newer version] --&gt;|same| E[Open the saved copy] --&gt; F([Cook from it])
+  D --&gt;|changed| B</span></span>
+one not drawn here: its words: data-dg-state="words"
+the first flow in Markdown, read as the panel reads its code blocks: ["graph TD\n  A --> B",null,null,"graph LR\n  A --> B"]
+what a diagram's text says: A flow of 6 steps: Recipe page → Recipe and photos kept on this device → Online? → … → Cook from it.
+the first flow with something to show: one read in part is passed over: ["flowchart LR",null]
+
+== What it plugs into
+the core's: ["function",["smallHTML","words","says","firstFlow","draw"],true,"function"]
+
+== A card's small drawing measured again as its room changes
+the reader still being placed: too narrow to read, so its steps in words: ["shrunk",188]
+its room at its width: measured again, and drawn: ["drawn",445,"251px"]
+shrunk to 63%: drawn with only steps' words, its steps in words when an edge has words of its own: ["drawn","shrunk"]
+one not drawn here stays words, whatever its room: words
+
+== A flow whose lines or words wouldn't keep clear at its width
+the figure: as written, saying why, without Diagram and As written (unclear); a card: its steps in words (shrunk): ["unclear","shrunk"]
+measured again only once its room changes by 8px or more: unclear
+and drawn once it keeps clear: ["drawn","drawn"]

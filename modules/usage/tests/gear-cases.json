@@ -1,0 +1,1476 @@
+[
+ {
+  "name": "who's counted: busy, compacting, a copy busy, agents in the background; not asking, waiting, idle, a dev server",
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy"
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "ask": {
+     "kind": "permission"
+    }
+   },
+   {
+    "sessionId": "c",
+    "status": "idle",
+    "compacting": 1
+   },
+   {
+    "sessionId": "d",
+    "status": "waiting"
+   },
+   {
+    "sessionId": "e",
+    "status": "idle",
+    "alsoOpen": [
+     {
+      "busy": true
+     }
+    ]
+   },
+   {
+    "sessionId": "f",
+    "status": "idle",
+    "background": [
+     {
+      "holds": true,
+      "what": "Review the changes"
+     }
+    ]
+   },
+   {
+    "sessionId": "g",
+    "status": "idle",
+    "background": [
+     {
+      "holds": false,
+      "what": "npm run dev"
+     }
+    ]
+   },
+   {
+    "sessionId": "h",
+    "status": "idle"
+   }
+  ]
+ },
+ {
+  "name": "four working at gear 2: the two whose turns began last are over it",
+  "gear": 2,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy",
+    "lastPromptAt": 100
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "lastPromptAt": 300
+   },
+   {
+    "sessionId": "c",
+    "status": "busy",
+    "lastPromptAt": 200
+   },
+   {
+    "sessionId": "d",
+    "status": "busy",
+    "lastPromptAt": 50
+   }
+  ]
+ },
+ {
+  "name": "two working at gear 5: none over, room for 3 more",
+  "gear": 5,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy"
+   },
+   {
+    "sessionId": "b",
+    "status": "busy"
+   }
+  ]
+ },
+ {
+  "name": "two working, no gear set: none over",
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy"
+   },
+   {
+    "sessionId": "b",
+    "status": "busy"
+   }
+  ]
+ },
+ {
+  "name": "a gear of -3 kept as it is, two working: both over, no further",
+  "gear": -3,
+  "raw": true,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy",
+    "lastPromptAt": 100
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "lastPromptAt": 200
+   }
+  ]
+ },
+ {
+  "name": "a gear of -3 in the preferences: no gear set",
+  "gear": -3,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy",
+    "lastPromptAt": 100
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "lastPromptAt": 200
+   }
+  ]
+ },
+ {
+  "name": "a gear of 31 in the preferences: no gear set",
+  "gear": 31,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy",
+    "lastPromptAt": 100
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "lastPromptAt": 200
+   }
+  ]
+ },
+ {
+  "name": "a gear of 2.5 in the preferences: no gear set",
+  "gear": 2.5,
+  "rows": [
+   {
+    "sessionId": "a",
+    "status": "busy",
+    "lastPromptAt": 100
+   },
+   {
+    "sessionId": "b",
+    "status": "busy",
+    "lastPromptAt": 200
+   }
+  ]
+ },
+ {
+  "name": "reads a second apart",
+  "reads": [
+   [
+    1000,
+    2
+   ],
+   [
+    1001,
+    2
+   ],
+   [
+    1002,
+    3
+   ],
+   [
+    1003,
+    0
+   ],
+   [
+    1004,
+    0
+   ]
+  ]
+ },
+ {
+  "name": "reads closer than a second",
+  "reads": [
+   [
+    1000,
+    1
+   ],
+   [
+    1000.25,
+    1
+   ],
+   [
+    1000.5,
+    1
+   ]
+  ]
+ },
+ {
+  "name": "a gap over 10 seconds adds nothing",
+  "reads": [
+   [
+    1000,
+    2
+   ],
+   [
+    1030,
+    2
+   ],
+   [
+    1031,
+    2
+   ]
+  ]
+ },
+ {
+  "name": "measurable, no gear set: recommended 8, the week ending near 94% at it",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "gear 6: room",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600,
+  "gear": 6
+ },
+ {
+  "name": "gear 12: the week runs out 64 hours on",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600,
+  "gear": 12
+ },
+ {
+  "name": "a reset that jitters within its minute is the same window",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000.004
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "not measurable: the week has gone up 3 points",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   }
+  ],
+  "now": 120
+ },
+ {
+  "name": "not measurable: sessions have worked 1 hour",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 0.5,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 0.5,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 1.2,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 1.2,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "a stretch dropped around a restart alone: still too little rise, not unwatched",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 0.5,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2.5,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 4.5,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 8.5,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "not measurable: most of the rise came in the 20 hours Whozmove wasn't watching",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 1200,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 1300
+    },
+    "sessionHours": 15,
+    "watchedHours": 0.5,
+    "workHours": 0.5
+   },
+   {
+    "at": 1320,
+    "week": {
+     "used": 34,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 25,
+     "resetsAt": 1300
+    },
+    "sessionHours": 20,
+    "watchedHours": 2.5,
+    "workHours": 2.5
+   },
+   {
+    "at": 1440,
+    "week": {
+     "used": 35,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 30,
+     "resetsAt": 1300
+    },
+    "sessionHours": 25,
+    "watchedHours": 4.5,
+    "workHours": 4.5
+   }
+  ],
+  "now": 1440
+ },
+ {
+  "name": "the week just reset: nothing of the last window carried over",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   },
+   {
+    "at": 660,
+    "week": {
+     "used": 1,
+     "resetsAt": 16080
+    },
+    "session": {
+     "used": 15,
+     "resetsAt": 700
+    },
+    "sessionHours": 31,
+    "watchedHours": 11,
+    "workHours": 5
+   }
+  ],
+  "now": 660
+ },
+ {
+  "name": "stretches over 2 days old don't count",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   },
+   {
+    "at": 3480,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 0,
+     "resetsAt": 3700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 3480
+ },
+ {
+  "name": "the session window lowers the gear",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 0,
+     "resetsAt": 300
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 60,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 40,
+     "resetsAt": 300
+    },
+    "sessionHours": 30,
+    "watchedHours": 1,
+    "workHours": 1
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 80,
+     "resetsAt": 300
+    },
+    "sessionHours": 60,
+    "watchedHours": 2,
+    "workHours": 2
+   }
+  ],
+  "now": 120
+ },
+ {
+  "name": "gear 8, the session runs out first",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 0,
+     "resetsAt": 300
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 60,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 40,
+     "resetsAt": 300
+    },
+    "sessionHours": 30,
+    "watchedHours": 1,
+    "workHours": 1
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 80,
+     "resetsAt": 300
+    },
+    "sessionHours": 60,
+    "watchedHours": 2,
+    "workHours": 2
+   }
+  ],
+  "now": 120,
+  "gear": 8
+ },
+ {
+  "name": "even gear 1 runs the week out",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 70,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 10,
+     "resetsAt": 300
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 60,
+    "week": {
+     "used": 76,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 30,
+     "resetsAt": 300
+    },
+    "sessionHours": 6,
+    "watchedHours": 1,
+    "workHours": 1
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 82,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 50,
+     "resetsAt": 300
+    },
+    "sessionHours": 12,
+    "watchedHours": 2,
+    "workHours": 2
+   }
+  ],
+  "now": 120
+ },
+ {
+  "name": "the plan carries more than 30",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 1500,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 1500,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 3000,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": 700
+    },
+    "sessionHours": 3000,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "the session at its limit",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 100,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600
+ },
+ {
+  "name": "the session at its limit with extra usage on: no limit",
+  "samples": [
+   {
+    "at": 0,
+    "week": {
+     "used": 30,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 5,
+     "resetsAt": 400
+    },
+    "sessionHours": 0,
+    "watchedHours": 0,
+    "workHours": 0
+   },
+   {
+    "at": 120,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 2,
+    "workHours": 2
+   },
+   {
+    "at": 240,
+    "week": {
+     "used": 33,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 20,
+     "resetsAt": 400
+    },
+    "sessionHours": 15,
+    "watchedHours": 4,
+    "workHours": 2
+   },
+   {
+    "at": 360,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 35,
+     "resetsAt": 400
+    },
+    "sessionHours": 30,
+    "watchedHours": 6,
+    "workHours": 4
+   },
+   {
+    "at": 600,
+    "week": {
+     "used": 36,
+     "resetsAt": 6000
+    },
+    "session": {
+     "used": 100,
+     "resetsAt": 700
+    },
+    "sessionHours": 30,
+    "watchedHours": 10,
+    "workHours": 4
+   }
+  ],
+  "now": 600,
+  "extraUsage": true
+ },
+ {
+  "name": "a press on seat 12: gear 12",
+  "to": 12
+ },
+ {
+  "name": "a press on seat 1, the lowest",
+  "to": 1
+ },
+ {
+  "name": "a press on seat 30, the highest",
+  "to": 30
+ },
+ {
+  "name": "a press past the seats sets none",
+  "to": 31
+ },
+ {
+  "name": "a press below the seats sets none",
+  "to": -1
+ },
+ {
+  "name": "a press between two seats sets none",
+  "to": 12.5
+ },
+ {
+  "name": "a press as words sets none",
+  "to": "12"
+ },
+ {
+  "name": "samples kept 3 days",
+  "keep": [
+   {
+    "at": 0
+   },
+   {
+    "at": 3000
+   },
+   {
+    "at": 4400
+   },
+   {
+    "at": 4500
+   }
+  ],
+  "now": 4500
+ },
+ {
+  "name": "usage-gear.json edited by hand: only records kept, anything not a number is 0",
+  "read": [
+   {
+    "at": "noon",
+    "week": {
+     "used": "38%",
+     "resetsAt": 360000000
+    },
+    "session": 7,
+    "sessionHours": [
+     1
+    ],
+    "watchedHours": 2,
+    "workHours": null
+   },
+   "a line of text",
+   42,
+   null,
+   {
+    "at": 600,
+    "week": {
+     "used": 40,
+     "resetsAt": 360000000
+    },
+    "session": {
+     "used": 12,
+     "resetsAt": "later"
+    },
+    "sessionHours": 3,
+    "watchedHours": 4,
+    "workHours": 1
+   }
+  ]
+ },
+ {
+  "name": "gear.json: no session's id, readable only by you",
+  "file": {
+   "gear": 8,
+   "atWork": 6,
+   "recommended": 8,
+   "checkedAt": 1000,
+   "counted": [
+    "a"
+   ],
+   "over": []
+  },
+  "changedAt": 900
+ },
+ {
+  "name": "gear.json while Usage Gear is on but the gear isn't known yet: gear null, which lets nothing in",
+  "file": {}
+ },
+ {
+  "name": "a lead's reading of gear.json: the off record, no limit",
+  "limit": {"off": true, "updatedAt": 0}
+ },
+ {
+  "name": "a lead's reading of gear.json: a gear, that many",
+  "limit": {"gear": 8, "atWork": 6, "recommended": 8, "checkedAt": 1000, "changedAt": 900, "updatedAt": 0}
+ },
+ {
+  "name": "a lead's reading of gear.json: no gear yet, none",
+  "limit": {"gear": null, "atWork": 0, "recommended": null, "checkedAt": null, "changedAt": null, "updatedAt": 0}
+ },
+ {
+  "name": "a lead's reading of gear.json: no file, or one that can't be read, none, never no limit",
+  "limit": null
+ },
+ {
+  "name": "a lead's reading of gear.json: a gear that isn't a whole number from 1 to 30, or off said some other way, none",
+  "limit": {"gear": 8.5, "off": "yes"}
+ },
+ {
+  "name": "…off said as the number 1, none",
+  "limit": {"off": 1}
+ },
+ {
+  "name": "…a gear said as true, none, never gear 1",
+  "limit": {"gear": true}
+ },
+ {
+  "name": "the gear turned off: nothing it measured is left, and gear.json says it's off, with no gear in it",
+  "off": true
+ }
+]

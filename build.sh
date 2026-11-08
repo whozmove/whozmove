@@ -1,6 +1,6 @@
 #!/bin/bash
-# Builds ~/Applications/Whozmove.app from app/, modules/, panel/ and icon/, and puts it in place: the app brings the
-# hooks it carries up to date as it starts. Run again after editing any of them, or a hook.
+# Builds ~/Applications/Whozmove.app from app/, parts/, modules/, panel/ and icon/, and puts it in place: the app
+# brings the hooks it carries up to date as it starts. Run again after editing any of them, or a hook.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Once you've set Deploy up for Whozmove in the panel (its command is ./build.sh --now), an agent's build only
@@ -25,6 +25,17 @@ done
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" app/Info.plist; }
 name=$(plist CFBundleName); bundle_id=$(plist CFBundleIdentifier); exe=$(plist CFBundleExecutable)
 app="$HOME/Applications/$name.app"
+# A Mac older than the macOS the app needs (LSMinimumSystemVersion) can't open what this would build, which would take
+# the place of the copy that works, so nothing is built there. v0.2.0 is the last release for a Mac before macOS 15:
+# when the minimum goes up again, so does the release named here.
+as_number() { printf '%d%03d%03d' $(echo "$1" | tr . ' '); }
+oldest=$(plist LSMinimumSystemVersion); this_mac=$(sw_vers -productVersion)
+if [ "$(as_number "$this_mac")" -lt "$(as_number "$oldest")" ]; then
+  echo "Whozmove needs macOS $oldest or later, and this Mac has $this_mac, so nothing was built or put in place."
+  echo "The last version for this Mac is 0.2.0: git checkout v0.2.0, then ./build.sh, or download it from"
+  echo "https://github.com/whozmove/whozmove/releases/tag/v0.2.0"
+  exit 1
+fi
 # Whozmove's own folder (AppDir in app/shared/Files.m): the panel's pid, and the deploy commands you've saved (deploy.json),
 # which say whether an agent's build leaves putting it in place to Deploy.
 folder="$HOME/Library/Application Support/$name"
@@ -35,7 +46,7 @@ new="$work/$name.app"
 # The program, the page, the icon, swap-in.sh and the hooks (tools/bundle.sh).
 make_bundle "$new"
 
-# Where the build came from, for the panel's header (app/core/Builds.m), which names the running build by it. Also
+# Where the build came from, for the panel's header (parts/builds), which names the running build by it. Also
 # whether an agent built it (Claude Code marks the commands an agent runs with CLAUDECODE), whose hooks the app leaves
 # as they are (modules/install), as app/swap-in.sh then says.
 python3 - "$new/Contents/Resources/build.json" <<'PY'

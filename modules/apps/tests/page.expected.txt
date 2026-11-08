@@ -8,6 +8,7 @@ automation, unknown: {"name":"Automation","use":"Finds each session’s tab, and
 automation, something else: {"name":"Automation","use":"Finds each session’s tab, and types into it","state":"unknown","said":"","note":"","settings":false}
 accessibility, allowed: {"name":"Accessibility","use":"Presses its buttons","state":"allowed","said":"Allowed","note":"","settings":false}
 accessibility, denied: {"name":"Accessibility","use":"","state":"denied","said":"Not allowed","note":"Turn on Whozmove there.","settings":true}
+full disk access, denied: {"name":"Full Disk Access","use":"Lets the map look inside","state":"denied","said":"Not allowed","note":"Turn on Whozmove there. Not in the list? Press + under it and choose Whozmove.","settings":true}
 nothing to allow: null
 a permission the page doesn’t know: null
 
@@ -32,6 +33,75 @@ a switch that isn’t there: null
 an app that isn’t there: null
 the apps it was given are left as they were: ["ghostty: startHere on","iterm2: startHere off","spotify: song on, lyrics off","git: nextSteps off, deploy on"]
 
+== A tool’s card
+low: {"figure":"18 GB free","of":"of 460 GB","bar":0.96,"tone":"low","lines":["Full in about 6 days at this pace"],"actions":[],"need":""}
+nearly out: {"figure":"18 GB free","of":"of 460 GB","bar":0.96,"tone":"severe","lines":["Full in about 6 days at this pace"],"actions":[],"need":""}
+plenty: {"figure":"18 GB free","of":"of 460 GB","bar":0.4,"tone":"","lines":[],"actions":[],"need":""}
+a bar past either end: [1,0]
+no bar: null
+a tone the page doesn’t know: 
+lines that aren’t words: ["A line"]
+no figure: null
+nothing: null
+what it can’t do without its permission: Desktop isn’t in the map yet.
+nothing it needs: 
+a need that isn’t words: 
+its buttons: [{"id":"map","title":"Open the Map","main":true}]
+
+== An app’s groups
+on: each group, its rows and whether they can be pressed: [{"title":"","foot":"Settings ▸ Sample Tool opens this page.","rows":[{"kind":"switch","key":"on","title":"Sample Tool","help":"The one thing.","on":true,"isNew":false,"off":false}]},{"title":"Who may send","foot":"A session that may not is told so.","rows":[{"kind":"choice","key":"who","title":"Who may send","choices":[{"id":"any","name":"Any session","help":"Every agent can.","isNew":false,"enabled":true},{"id":"lead","name":"Only a team’s chief","help":"The others are told why.","isNew":true,"enabled":true},{"id":"allowed","name":"Only those you’ve allowed","help":"","isNew":false,"enabled":false}],"value":"any","fixed":null,"off":false}]},{"title":"Quiet hours","foot":"","rows":[{"kind":"switch","key":"quiet","title":"Quiet hours","help":"","on":false,"isNew":true,"off":false},{"kind":"time","key":"quietHours","title":"Hours","help":"Only what’s urgent.","from":"22:00","to":"08:00","off":true}]},{"title":"What comes first","foot":"","rows":[{"kind":"choice","key":"next","title":"What comes first","choices":[{"id":"picks","name":"Then a chief’s picks","help":"","isNew":false,"enabled":true},{"id":"oldest","name":"Then the oldest","help":"","isNew":false,"enabled":true}],"value":"picks","fixed":{"name":"Urgent ones, always","help":"First, whatever else you choose."},"off":false}]},{"title":"","foot":"A change applies to what comes next.","rows":[]}]
+off: its own groups dimmed, the other module’s not: ["(none): on","Who may send: who off","Quiet hours: quiet, quietHours off","What comes first: next off","(none): "]
+rows the page doesn’t know, or with no key, left out: [{"title":"Odd","foot":"","rows":[{"kind":"choice","key":"c","title":"","choices":[{"id":"a","name":"A","help":"","isNew":false,"enabled":true}],"value":null,"fixed":null,"off":false}]}]
+no groups: [[],[],[]]
+a switch in a group turned on: true
+turning the tool off: false
+a switch in a dimmed group: nothing: null
+the other app’s switches are left as they were: ["git: deploy on"]
+Only a team’s chief picked: lead
+one that can’t be picked now: null
+the one already picked: null
+one that isn’t among its choices: null
+a choice in a dimmed group: null
+a choice that isn’t there: null
+the apps it was given are left as they were: any
+
 == A tile’s letter
 a name: G
 no name: ?
+
+== Settings
+the cards: a page’s choices on one row, the cards by their order: [{"group":5,"rows":[{"key":"later","title":"A setting on an earlier card","glyph":"none","on":false}],"foot":[]},{"group":10,"rows":[{"page":"Appearance","title":"Appearance","glyph":"look","value":"Grey · Match the Mac"},{"page":"Session List","title":"Session List","glyph":"list","value":"Newest First"},{"page":"Open Files With","title":"Open Files With","glyph":"file","value":"Not chosen yet"}],"foot":[]},{"group":20,"rows":[{"key":"shortcut","title":"New Conversation with ⌃⌥N","glyph":"keys","on":true},{"app":"sample-tool","title":"Sample Tool","value":"On"}],"foot":["⌃⌥N opens the new conversation card from any app."]}]
+no settings: []
+a choice with nothing to pick from: None found
+a choice not made yet: Not chosen yet
+Appearance’s page: ["look","appearance"]
+Session List’s page, its own: ["groupBy"]
+a switch has no page: []
+Black picked: black
+Glass, which can’t be picked now: undefined
+the one already picked: undefined
+a choice that isn’t one of its choices: undefined
+the switch turned off: false
+the switch turned on again, though it’s on: undefined
+a switch given a choice: undefined
+a setting that isn’t there: undefined
+the settings it was given are left as they were: ["grey","system","status",null,true,false,null,null]
+
+== A list (Sessions)
+found on its app: Sessions
+not on that app: null
+what can be ticked: ["a","b","c","d (no)","gone (no)"]
+ticked, one of them working now: {"ticked":["a"],"leftOut":[{"id":"d","title":"Talk d","why":"Working: stop it first","way":{"key":"go","title":"Take me there"}}]}
+Tick All Ended, none ticked: {"title":"Tick All Ended (2)","ids":["a","c"],"all":false}
+Tick All Ended, all of them ticked: {"title":"Untick Ended","ids":["a","c"],"all":true}
+no item has the mark: null
+the question, one ended: {"title":"Move Talk a to the Trash?","words":"It goes to the Trash. Your typed prompts stay in Claude Code’s history."}
+the question, one open with a reply unread: {"title":"Move Talk b to the Trash?","words":"It goes to the Trash. It’s still open, so it’s ended first. It has a reply you haven’t read. Your typed prompts stay in Claude Code’s history."}
+the question, three: {"title":"Move 3 conversations to the Trash?","words":"Each goes to the Trash on its own. 1 still open is ended first. 2 have replies you haven’t read. Your typed prompts stay in Claude Code’s history."}
+the question, nothing ticked: null
+what was done, just now: true
+what was done, long ago: false
+what was done, long ago, but held by the pointer: true
+nothing done: false
+what was done, just now, then something ticked: false
+what was done after something was ticked: true

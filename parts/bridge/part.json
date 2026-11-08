@@ -1,0 +1,5 @@
+{
+  "scripts": ["page/modules.js", "page/app-calls.js"],
+  "talksTo": ["core", "hover", "keyboard", "peek", "list"],
+  "provides": ["Page.h", "Modules.h", "core", "moduleState", "toggleCollapsed"]
+}

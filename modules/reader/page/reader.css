@@ -1,6 +1,6 @@
 /* What a session wrote, in the reader (writings.js): each writing's icon and how it stands, where it is, the space a
    prototype is shown over, and the answer under a plan Claude is waiting on. The reader's frame, its list and Markdown
-   are the core's (panel/styles/reader.css).
+   are the pane part's (parts/pane/page/reader.css).
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 .r-icon { grid-row: span 2; margin-top: 2px; color: var(--plan-text); }
@@ -23,13 +23,9 @@
 .r-q { display: flex; align-items: center; gap: 8px; font-size: var(--size-body); color: var(--muted); }
 .r-q .dot { margin-top: 0; background: var(--needs); }
 .r-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-.r-buttons button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
-                    color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
-.r-buttons button.is-hover { background: var(--button-hover); }
-.r-buttons button.perm-allow { background: var(--main-button); border-color: transparent;
-                               color: var(--on-main-button); font-weight: 600; }
-.r-buttons button.perm-allow.is-hover { background: var(--main-button-hover); }
-.r-buttons button:disabled { opacity: 0.4; }
+/* The answer's buttons are the kit's, Stop in the colour of something to put right. */
 .r-buttons .r-stop { color: var(--needs-text); }
 .r-notes { min-height: 64px; resize: vertical; line-height: 1.45; }
+.r-unsent { white-space: pre-wrap; }
+.r-picked { margin: 0; font-size: var(--size-body); line-height: 1.45; color: var(--reading-text); -webkit-user-select: text; }
 .r-done { font-size: var(--size-body); color: var(--muted); }

@@ -23,3 +23,75 @@ a name that is markup is shown as text: <span class="r-path">/work/&lt;b&gt;x&lt
 == While a writing is read (writings.js)
 a plan: from the transcript: Reading the plan from the session's transcript…
 notes: from their file: Reading NOTES.md…
+
+== A plan, at a glance where the plans module reads one (writings.js)
+waiting: on its card, its picks by the request, options pressable [kind, id, pressable, not]: ["card","q1",2,0]
+waiting, its notes open: the picks held: ["card","q1",0,2]
+waiting, sent back from here: Claude's picks only: ["card","q1",0,2]
+waiting in an older session the panel can't answer: Claude's picks only: ["card","q1",0,2]
+an older version: by its own id, Claude's picks only: ["card","w0",0,2]
+no glance and no sections: the plain plan: <article class="md"><p>Just move the cou
+not a plan: its Markdown: <article class="md"><h1>Shopping list</h
+missing: <div class="r-missing">This file isn&#39;t there any more.</div>
+without the plans module: the plain plan: <article class="md"><h1>Shopping list</h
+
+== The bar under a waiting plan, with your picks (writings.js)
+Claude's picks kept: as ever: true
+one changed: <div class="r-ask"><div class="r-q"><span class="dot"></span>You changed one pick. Claude gets your picks and writes a new version.</div>
+      <div class="r-buttons"><button class="button main r-picks">Send Back with My Picks</button>
+        <button class="button r-claude-picks">Use Claude's Picks</button></div></div>
+two changed: You changed 2 picks.
+Send Back with My Picks: the box, under your picks in words: <div class="r-ask"><label class="r-q" for="r-notes">Your picks go back in these words, and Claude writes a new version. Add anything else:</label><p class="r-picked">Decision 1 (&quot;Where it lives&quot;): option 2, &quot;This browser&quot;, in place of your recommended option 1, &quot;On your account&quot;. Decision 2 (&quot;Units&quot;): option 2, &quot;Grams&quot;, in place of your recommended option 1, &quot;Side by side&quot;.</p>
+      <textarea id="r-notes" class="field q-type r-notes" placeholder="Your notes for Claude"></textarea>
+      <div class="r-buttons"><button class="button main r-send">Send to Claude</button>
+        <button class="button r-cancel">Cancel</button></div></div>
+…what goes back: your picks' words, then your own: Decision 1 ("Where it lives"): option 2, "This browser", in place of your recommended option 1, "On your account". Decision 2 ("Units"): option 2, "Grams", in place of your recommended option 1, "Side by side".
+
+Also rename the button.
+answered elsewhere as Send to Claude was pressed: it says so, with your notes to copy and Take me there: <div class="r-ask"><div class="r-q">Claude isn't waiting on the version your notes were for any more: it was
+        answered elsewhere, so they weren't sent. Here they are, to copy into what you send next:</div>
+      <p class="r-picked r-unsent">Split step 2.</p>
+      <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button>
+        <button class="button r-unsent-done">Done with These</button></div></div>
+Use Claude's Picks, the box open: only your own words go back: Split step 2.
+Use Claude's Picks: as ever again: true
+nothing written and no picks: nothing to send: 
+
+== What you typed on the row goes with your picks (core.planNotes, core.planRowNotes)
+the row's Send back…: the plan, its box open: ["box open"]
+a session the panel can't answer: no box, only the plan: []
+the bar's Send Back with My Picks: the box takes what you typed on the row, which leaves it: ["Keep it short.",null]
+…under what you wrote there before: Split step 2.
+
+Keep it short.
+…and it goes back with your picks: Decision 1 ("Where it lives"): option 2, "This browser", in place of your recommended option 1, "On your account".
+
+Split step 2.
+
+Keep it short.
+…opened again, nothing new on the row: the box as you left it: Split step 2.
+
+Keep it short.
+the reader closed unsent: your words wait on the row again, lines and all, and leave the reader: [{"text":"Split step 2.\n\nKeep it short."},""]
+…after what the row had typed in it since: {"text":"Rename the button.\n\nSplit step 2.\n\nKeep it short."}
+…the row's box, a line, shows the lines as spaces: Rename the button. Split step 2. Keep it short.
+notes for a plan answered elsewhere: never onto the plan that asks next, and gone from the reader: [null,""]
+…nor onto a session the panel can't answer: null
+
+== Notes written for a version Claude no longer waits on: never sent to another, never dropped
+(a) a new version since: they're for the one before: true
+…Send to Claude sends nothing to the new version, and the box closes: ["{}",false,""]
+…the bar says so, with your picks' words and your notes, to copy: <div class="r-ask"><div class="r-q">Claude isn't waiting on the version your notes were for any more: it was
+        answered elsewhere, so they weren't sent. Here they are, to copy into what you send next:</div>
+      <p class="r-picked r-unsent">Decision 1 (&quot;Where it lives&quot;): option 2, &quot;This browser&quot;, in place of your recommended option 1, &quot;On your account&quot;.
+
+Keep it short.</p>
+      <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button>
+        <button class="button r-unsent-done">Done with These</button></div></div>
+…and above the box, if you open it for the new version: 1
+…with the new version's own Send back… and Stop beside Take me there and Done with These: ["class=\"button main r-go\">Take me there","class=\"button r-revise\">Send back…","class=\"button r-stop\">Stop","class=\"button r-unsent-done\">Done with These"]
+…but not on a version Claude isn't waiting on: ["class=\"button main r-go\">Take me there","class=\"button r-unsent-done\">Done with These"]
+…its Send back… opens the box for the new version, your notes for the one before still above it, kept: [true,"q2",1,true]
+(b) answered elsewhere, the box open: the bar says so, the notes to copy: ["<div class=\"r-q\">Claude isn't waiting on the version your notes were for any more: it was\n        answered elsewhere, so they weren't sent. Here they are, to copy into what you send next:</div>","r-unsent\">Decision 1 (&quot;Where it lives&quot;): option 2, &quot;This browser&quot;, in place of your recommended option 1, &quot;On your account&quot;.\n\nSplit step 2."]
+…closed after Cancel instead: kept to copy, not dropped, and not on the new version's row: ["Decision 1 (\"Where it lives\"): option 2, \"This browser\", in place of your recommended option 1, \"On your account\".\n\nSplit step 2.",null]
+…until Done with These: null

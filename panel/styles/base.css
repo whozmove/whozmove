@@ -7,7 +7,7 @@ html, body { background: transparent; color: var(--text);
              font: var(--size-body)/1.35 -apple-system, BlinkMacSystemFont, sans-serif; -webkit-user-select: none;
              cursor: default; overflow: hidden; }
 /* Darken the glass so text stays legible over light wallpapers and windows. */
-/* The tint over the glass is the window's own (app/core/PanelWindow.m), so space the panel grows into is tinted
+/* The tint over the glass is the window's own (parts/glass), so space the panel grows into is tinted
    before the page has painted it. */
 html { min-height: 100vh; }
 /* As tall as the page at least: it hides what's past its own edge, and the chats beside the folded cat (chats.css) can
@@ -15,83 +15,54 @@ html { min-height: 100vh; }
 body { min-height: 100vh; }
 
 header { flex: none; height: var(--header); display: flex; align-items: center; gap: 8px; padding: 0 10px 0 14px; }
-/* The name, drawn from its letters with the cat for its first o (panel.html), as Outfit Medium at 17px sets it; and
-   under it, while Show Build in Header is on, the build running now. */
-header .titles { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-header .name { position: relative; display: block; width: 84.4px; height: 12.44px; fill: currentColor;
-               color: var(--cream); }
-header .name svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
-/* The cat's eyes and nose, drawn in the dark the folded cat's are (a cut-out of them barely showed at this size). */
-header .name .name-feature { fill: var(--cat-feature); }
-header .build { display: block; max-width: 150px; margin-top: 1px; font-size: var(--size-tag); line-height: 13px;
-                color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                font-variant-numeric: tabular-nums; }
-header .build[hidden] { display: none; }
-header .chev { width: 24px; height: 24px; border-radius: var(--radius-button); display: grid; place-items: center;
-               color: var(--muted); }
-/* The ＋ for a new conversation, which opens its card under the header (starts.js); it turns into a × while that's
-   open. And the four squares that turn the panel over to the apps on its back (input.js). */
-header .add-new, header .apps { flex: none; width: 24px; height: 24px; border-radius: var(--radius-button);
-                                display: grid; place-items: center; color: var(--muted); }
+/* The header's buttons (the kit's icon buttons), on the panel and on its back: the four squares that turn the panel
+   over (input.js), and the chevron that folds it. The ＋ for a new conversation is the panel header's own
+   (parts/header). */
 header .apps svg { fill: currentColor; }
-header .add-new.is-hover, header .add-new.open, header .apps.is-hover { background: var(--hover); color: var(--text); }
-header .add-new svg { transition: transform .4s var(--spring); }
-header .add-new.open svg { transform: rotate(45deg); }
-header .chev.is-hover { background: var(--hover); color: var(--text); }
 header .chev svg { transition: transform .15s ease; }
-/* The header lies over the list's top, in room the list keeps for it, its line under it going with it, and is pushed
-   away by the row you're on as the list scrolls (header.js), the list clipped where its edge is, so rows go under it. A
-   card under the header (a new conversation's) takes that room instead, and the line goes back to the list's top. The
-   panel's back has a header of its own (modules/apps), which stays where it is. Over the list, under the cat as it
-   grows from the name's o or shrinks onto it (#cat, cat.css). */
+/* Every header is laid out from where it is (the panel's back's stays there). */
 header { position: relative; }
-#root > header { position: absolute; top: 0; left: 0; right: 0; z-index: 2; }
-#root > header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-                        background: var(--rule); opacity: var(--line, 1); }
 #dock:not(:empty) { margin-top: var(--header); }
-#root:has(#dock:not(:empty)) > header::after { display: none; }
-/* The line under the header while Whozmove sets itself up (the install module's) takes that room the same way, with
-   the header's line under it instead, and a card under the header comes under the line. */
-#install:not([hidden]) { margin-top: var(--header); border-bottom: 1px solid var(--rule); }
-#install:not([hidden]) ~ #dock:not(:empty) { margin-top: 0; padding-top: 6px; }
-#root:has(#install:not([hidden])) > header::after { display: none; }
+/* The line under the header while Whozmove sets itself up (the install module's), and the one where notifications
+   says what needs you (the notifications module's), take that room the same way, with the header's line under them
+   instead, the second under the first while both show; and a card under the header comes under them. */
+:is(#install, #notices):not([hidden]) { margin-top: var(--header); border-bottom: 1px solid var(--rule); }
+#install:not([hidden]) ~ #notices:not([hidden]) { margin-top: 0; }
+/* Their line shows only under the lowest of the heads, while the list is scrolled under it (headerLines, header.js). */
+:is(#install, #notices):not([hidden]):not(.line-under) { border-bottom-color: transparent; }
+:is(#install, #notices):not([hidden]) ~ #dock:not(:empty) { margin-top: 0; padding-top: 6px; }
 /* Folded, the panel is the cat at its list's top-right corner (cat.css): the header and the list fade as the app closes
    the glass in on it, and come back as it opens, the row you're on held at the list's edge (#sticky, #sticky-under)
    with the list. The strips under the list go at once (their modules' styles). */
-header, #list, #install, #dock, #sticky, #sticky-under { transition: opacity .2s ease .1s; }
-body.collapsed header, body.collapsed #list, body.collapsed #install, body.collapsed #dock, body.collapsed #sticky,
+header, #list, #install, #notices, #dock, #sticky, #sticky-under { transition: opacity .2s ease .1s; }
+body.collapsed header, body.collapsed #list, body.collapsed #install, body.collapsed #notices, body.collapsed #dock, body.collapsed #sticky,
 body.collapsed #sticky-under { opacity: 0; visibility: hidden;
   transition: opacity .15s ease, visibility 0s linear .15s; }
 
 /* Project group header, styled like Claude's sidebar: the name in muted regular weight with a chevron
    after it, turned sideways while the group is collapsed. */
-.project { display: flex; align-items: center; gap: 5px; padding: 12px 4px 4px 8px; color: var(--label);
+.project { display: flex; align-items: center; gap: 5px; padding: var(--group-top) 4px 4px 8px; color: var(--label);
            font-size: var(--size-title); font-weight: 400; }
 .project .pname { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .project .pchev { flex: none; display: grid; place-items: center; color: var(--dim); }
 .project .pchev svg { transition: transform .15s ease; }
 .project.collapsed .pchev svg { transform: rotate(-90deg); }
 .project.is-hover .pname, .project.is-hover .pchev { color: var(--text); }
+/* How many of a folded group's rows wait on you, when it hides them all (hidesAll): your move's words, a request's
+   when one of them is one. */
+.project .pneeds { flex: none; color: var(--turn-words); font-size: var(--size-small); white-space: nowrap; }
+.project .pneeds.asks { color: var(--needs-text); }
+/* How many rows a module's group has (core.groupings), at its header's end. */
+.project .pcount { margin-left: auto; flex: none; padding-right: 4px; color: var(--faint); font-size: var(--size-small);
+                   font-variant-numeric: tabular-nums; }
 /* A group's rows. Collapsed groups keep their rows here at zero height, so opening and closing can
    slide (see slideGroup); the open conversation is pinned below a collapsed group instead. */
 .prows { overflow: hidden; transition: height .2s ease, opacity .2s ease; }
 .prows.closed { height: 0; opacity: 0; }
-.project .add { margin-left: auto; flex: none; width: 22px; height: 22px; border-radius: var(--radius-button);
-                display: grid; place-items: center; color: var(--muted); }
-.project .add.is-hover { background: var(--hover); color: var(--text); }
-
-/* The header and the list are at most 640pt tall together: the list keeps the header's room at its top, under it, and
-   scrolls; with a card or the setup line under the header, they have that room, and the list takes what the header
-   leaves. The setup line, a new conversation's card and the strips under the list come on top of that, and the panel grows to fit them, down to where
-   the screen ends (setRoom), where the list gives way. A new conversation moves from its card down to its row over the
-   list, on a layer of its own (#flight), and never crosses the strips. */
-#root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); margin-top: var(--above);
-        width: var(--column); }
-#list { position: relative; flex: 1 1 auto; min-height: 0; max-height: 640px; overflow-y: auto;
-        padding: calc(var(--header) + 1px) 6px 6px; }
-#dock:not(:empty) ~ #list { padding-top: 0; border-top: 1px solid var(--rule);
-                            max-height: calc(640px - var(--header)); }
-#install:not([hidden]) ~ #list { padding-top: 0; max-height: calc(640px - var(--header)); }
-#list::-webkit-scrollbar { width: 0; }
+/* A module's group with no header (core.groupings) keeps a header's room above it. It never folds. */
+.prows.bare { padding-top: var(--group-top); }
+/* A project's ＋ (the kit's icon button, the starts module's), at its header's end, a point over the header's room
+   above and below so the header stays as tall as one without it. */
+.project .add { margin: -1px 0 -1px auto; }
 
 .empty { padding: 14px 10px; color: var(--faint); text-align: center; }

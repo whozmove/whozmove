@@ -1,0 +1,15 @@
+{
+  "subagents" : {
+    "agent-a1.jsonl" : {
+      "lineByLine" : 20150,
+      "rewritten" : 20150,
+      "whole" : 20150
+    }
+  },
+  "today" : 113150,
+  "transcript" : {
+    "lineByLine" : 93000,
+    "rewritten" : 93000,
+    "whole" : 93000
+  }
+}

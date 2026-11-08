@@ -3,6 +3,7 @@
 #import "Processes.h"
 #include <libproc.h>
 #include <sys/param.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/wait.h>
@@ -66,6 +67,126 @@ NSString *ProcessPath(pid_t pid) {
                       : nil;
 }
 
+// The folder a process works in, as the system keeps it (never what the process says of itself), or nil when it can't
+// be read: another user's process, or one that has ended.
+NSString *ProcessFolder(pid_t pid) {
+    struct proc_vnodepathinfo info;
+    if (pid <= 0 || proc_pidinfo(pid, PROC_PIDVNODEPATHINFO, 0, &info, sizeof info) != sizeof info) return nil;
+    NSString *folder = @(info.pvi_cdir.vip_path);
+    return folder.length ? folder : nil;
+}
+
+// Every process of this user's, each {pid, parent, name}: `name` is the short one the system keeps for it (its
+// program's file name, cut to 16 letters). One read of the system's list, so it's quick enough to ask each second.
+NSArray<NSDictionary *> *YourProcesses(void) {
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_UID, (int)getuid()};
+    size_t size = 0;
+    if (sysctl(mib, 4, NULL, &size, NULL, 0) != 0 || !size) return @[];
+    // Room for processes that start between the two reads.
+    size += 32 * sizeof(struct kinfo_proc);
+    NSMutableData *buffer = [NSMutableData dataWithLength:size];
+    if (sysctl(mib, 4, buffer.mutableBytes, &size, NULL, 0) != 0) return @[];
+    const struct kinfo_proc *procs = buffer.bytes;
+    NSMutableArray<NSDictionary *> *found = [NSMutableArray array];
+    for (size_t i = 0; i < size / sizeof(struct kinfo_proc); i++) {
+        NSString *name = [[NSString alloc] initWithBytes:procs[i].kp_proc.p_comm
+                                                  length:strnlen(procs[i].kp_proc.p_comm, MAXCOMLEN)
+                                                encoding:NSUTF8StringEncoding] ?: @"";
+        [found addObject:@{@"pid": @(procs[i].kp_proc.p_pid), @"parent": @(procs[i].kp_eproc.e_ppid), @"name": name}];
+    }
+    return found;
+}
+
+// The TCP sockets a process listens on, added to `into` as {port, pid, every}: `every` when it listens on every
+// address (0.0.0.0, or :: for both kinds), so other devices on the network can reach it. Told apart by the socket's
+// kind and state as the kernel keeps them, never by asking the network. Only this user's processes can be read.
+static void AddListening(pid_t pid, NSMutableArray<NSDictionary *> *into) {
+    int size = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+    if (size <= 0) return;
+    NSMutableData *buffer = [NSMutableData dataWithLength:(NSUInteger)size + 16 * sizeof(struct proc_fdinfo)];
+    size = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, buffer.mutableBytes, (int)buffer.length);
+    if (size <= 0) return;
+    const struct proc_fdinfo *fds = buffer.bytes;
+    for (int i = 0; i < size / (int)sizeof(struct proc_fdinfo); i++) {
+        if (fds[i].proc_fdtype != PROX_FDTYPE_SOCKET) continue;
+        struct socket_fdinfo info;
+        if (proc_pidfdinfo(pid, fds[i].proc_fd, PROC_PIDFDSOCKETINFO, &info, sizeof info) != sizeof info) continue;
+        if (info.psi.soi_kind != SOCKINFO_TCP || info.psi.soi_proto.pri_tcp.tcpsi_state != TSI_S_LISTEN) continue;
+        const struct in_sockinfo *in = &info.psi.soi_proto.pri_tcp.tcpsi_ini;
+        int port = ntohs((uint16_t)in->insi_lport);
+        BOOL every = NO;
+        if (in->insi_vflag & INI_IPV6) every = IN6_IS_ADDR_UNSPECIFIED(&in->insi_laddr.ina_6);
+        else if (in->insi_vflag & INI_IPV4) every = in->insi_laddr.ina_46.i46a_addr4.s_addr == 0;
+        if (port > 0) [into addObject:@{@"port": @(port), @"pid": @(pid), @"every": @(every)}];
+    }
+}
+
+// A process group's members, each {pid, start}: its pid and when it started, which tells it apart from a later process
+// given the same pid. Blocking, but quick.
+NSArray<NSDictionary *> *GroupMembers(pid_t group) {
+    NSMutableArray<NSDictionary *> *members = [NSMutableArray array];
+    pid_t pids[1024];
+    int count = group > 0 ? proc_listpgrppids(group, pids, sizeof pids) : 0;
+    for (int i = 0; i < count && i < 1024; i++) {
+        long long start = ProcessStartedAt(pids[i]);
+        if (start) [members addObject:@{@"pid": @(pids[i]), @"start": @(start)}];
+    }
+    return members;
+}
+
+// The ports these processes ({pid, start}) listen on, [{port, pid, every}], each port once (on every address if any
+// socket is), lowest first. A process is read only while it's still the one it was, before and after, so a later
+// process given its pid is never taken for it. Blocking, but quick.
+NSArray<NSDictionary *> *ListeningOf(NSArray<NSDictionary *> *members) {
+    NSMutableArray<NSDictionary *> *found = [NSMutableArray array];
+    for (NSDictionary *member in members) {
+        pid_t pid = [member[@"pid"] intValue];
+        long long start = [member[@"start"] longLongValue];
+        if (ProcessStartedAt(pid) != start) continue;
+        NSMutableArray<NSDictionary *> *its = [NSMutableArray array];
+        AddListening(pid, its);
+        if (ProcessStartedAt(pid) == start) [found addObjectsFromArray:its];
+    }
+    NSMutableDictionary<NSNumber *, NSDictionary *> *byPort = [NSMutableDictionary dictionary];
+    for (NSDictionary *each in found) {
+        NSDictionary *had = byPort[each[@"port"]];
+        if (!had || (![had[@"every"] boolValue] && [each[@"every"] boolValue])) byPort[each[@"port"]] = each;
+    }
+    NSMutableArray *listening = [NSMutableArray array];
+    for (NSNumber *port in [byPort.allKeys sortedArrayUsingSelector:@selector(compare:)])
+        [listening addObject:byPort[port]];
+    return listening;
+}
+
+// Which of this user's processes listens on a TCP port, on any address, IPv4 or IPv6: {pid, start, name, every}, or
+// nil when none that can be read does (another user's can't be). Its name is only ever the one macOS keeps for it
+// (proc_name), else the last part of its program's path, cut to 32 letters: never its arguments or its environment.
+// Read only while it's still the process it was, before and after. Blocking: it looks at every process, so it's for a
+// press, not every second.
+NSDictionary *PortHolder(int port) {
+    if (port < 1 || port > 65535) return nil;
+    int size = proc_listallpids(NULL, 0);
+    if (size <= 0) return nil;
+    NSMutableData *buffer = [NSMutableData dataWithLength:(NSUInteger)(size + 64) * sizeof(pid_t)];
+    int count = proc_listallpids(buffer.mutableBytes, (int)buffer.length);
+    const pid_t *pids = buffer.bytes;
+    for (int i = 0; i < count; i++) {
+        pid_t pid = pids[i];
+        long long start = ProcessStartedAt(pid);
+        if (pid <= 0 || !start) continue;
+        NSMutableArray<NSDictionary *> *its = [NSMutableArray array];
+        AddListening(pid, its);
+        for (NSDictionary *each in its) {
+            if ([each[@"port"] intValue] != port || ProcessStartedAt(pid) != start) continue;
+            char name[2 * MAXCOMLEN + 1] = {0};
+            NSString *named = proc_name(pid, name, sizeof name) > 0 ? @(name) : ProcessPath(pid).lastPathComponent;
+            named = named.length > 32 ? [named substringToIndex:32] : named ?: @"";
+            return @{@"pid": @(pid), @"start": @(start), @"name": named, @"every": each[@"every"] ?: @NO};
+        }
+    }
+    return nil;
+}
+
 // The terminal device a process has, as a number (NODEV for none). With `foregroundOnly`, only while the process is in
 // its terminal's foreground, so a `claude` suspended with Ctrl+Z while its shell has the terminal has none.
 dev_t ProcessTerminal(pid_t pid, BOOL foregroundOnly) {
@@ -92,13 +213,45 @@ dev_t TerminalAt(NSString *path) {
     return info.st_rdev;
 }
 
-// The app a terminal session runs in: the first ordinary app up its process tree.
-NSRunningApplication *OwningApp(pid_t pid) {
+// The first ordinary app up a process's tree.
+static NSRunningApplication *AppAbove(pid_t pid) {
     for (; pid > 1; pid = ProcessParent(pid)) {
         NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
         if (app && app.activationPolicy == NSApplicationActivationPolicyRegular) return app;
     }
     return nil;
+}
+
+// The app a terminal session runs in: the first ordinary app up its process tree. Asked about every session every
+// second, from the rows' queue and the main thread, so it's kept for each process (by its pid and when it started),
+// until that app quits: a process's parents don't change while it runs, unless they end. That none was found is kept
+// for half a minute only, in case its app was still starting.
+NSRunningApplication *OwningApp(pid_t pid) {
+    static NSMutableDictionary<NSString *, id> *kept;
+    static NSMutableDictionary<NSString *, NSDate *> *noneAt;
+    static NSLock *lock;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        kept = [NSMutableDictionary dictionary];
+        noneAt = [NSMutableDictionary dictionary];
+        lock = [NSLock new];
+    });
+    long long started = ProcessStartedAt(pid);
+    if (!started) return nil;
+    NSString *key = ProcessKey(pid, @(started).stringValue);
+    [lock lock];
+    NSRunningApplication *was = kept[key];
+    NSDate *none = noneAt[key];
+    [lock unlock];
+    if (was && !was.terminated) return was;
+    if (none && -none.timeIntervalSinceNow < 30) return nil;
+    NSRunningApplication *app = AppAbove(pid);
+    [lock lock];
+    if (kept.count + noneAt.count > 500) [kept removeAllObjects], [noneAt removeAllObjects];
+    kept[key] = app;
+    noneAt[key] = app ? nil : NSDate.date;
+    [lock unlock];
+    return app;
 }
 
 // The command-line flags a process was started with (`claude --model … --effort …`), via KERN_PROCARGS2.
@@ -173,16 +326,20 @@ NSDictionary *RunTool(NSString *path, NSArray<NSString *> *arguments, NSString *
 // program has them: the queue threads that call this block most of them, and a tool would otherwise keep that, so it
 // couldn't be stopped, and a tool that stops a helper of its own, or times itself out, would wait for nothing. Only
 // the descriptors `files` sets up go with it, never one this app has open at that moment (another tool's pipe, which
-// would stay open for as long as this one runs). `environment` replaces this app's when given. Returns posix_spawn's
-// answer, 0 when it started.
+// would stay open for as long as this one runs). `environment` replaces this app's when given. With `background`, it's
+// in macOS's background band before it runs a single instruction, every thread of it: on the efficiency cores, its
+// reads throttled, behind whatever you're doing (as `taskpolicy -b` puts a command). It starts suspended, is put in the
+// band, then let go, so a busy Mac holding this app's queue up for a moment never lets it run outside the band. A tool
+// doesn't take the priority of the queue it was started from. Returns posix_spawn's answer, 0 when it started.
 static int Spawn(pid_t *pid, NSString *path, NSArray<NSString *> *arguments,
-                 NSDictionary<NSString *, NSString *> *environment, posix_spawn_file_actions_t *files) {
+                 NSDictionary<NSString *, NSString *> *environment, posix_spawn_file_actions_t *files,
+                 BOOL background) {
     posix_spawnattr_t attr;
     posix_spawnattr_init(&attr);
     // A session leader's process group is its own pid, so killpg still reaches everything it started.
     // (POSIX_SPAWN_SETPGROUP alongside SETSID makes posix_spawn fail.)
     posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSID | POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF
-                                    | POSIX_SPAWN_CLOEXEC_DEFAULT);
+                                    | POSIX_SPAWN_CLOEXEC_DEFAULT | (background ? POSIX_SPAWN_START_SUSPENDED : 0));
     sigset_t noSignals, allSignals;
     sigemptyset(&noSignals);
     sigfillset(&allSignals);
@@ -201,6 +358,14 @@ static int Spawn(pid_t *pid, NSString *path, NSArray<NSString *> *arguments,
         for (NSUInteger i = 0; i < pairs.count; i++) env[i] = (char *)pairs[i].UTF8String;
     }
     int started = posix_spawn(pid, path.fileSystemRepresentation, files, &attr, argv, env);
+    // Refused, it would run at full speed with nothing to show why; one already done needs no band. Either way it's let
+    // go: started suspended, it would otherwise never run.
+    if (started == 0 && background) {
+        if (setpriority(PRIO_DARWIN_PROCESS, *pid, PRIO_DARWIN_BG) != 0 && errno != ESRCH)
+            LogProblem([NSString stringWithFormat:@"%@ runs at full speed: macOS didn't put it in the background (%s)",
+                        path.lastPathComponent, strerror(errno)]);
+        kill(*pid, SIGCONT);
+    }
     free(argv);
     if (environment) free(env);
     posix_spawnattr_destroy(&attr);
@@ -220,7 +385,7 @@ pid_t SpawnDetached(NSString *path, NSArray<NSString *> *arguments, NSDictionary
     posix_spawn_file_actions_addopen(&files, 1, output, O_WRONLY | O_CREAT | O_TRUNC, 0600);
     posix_spawn_file_actions_adddup2(&files, 1, 2);
     pid_t pid = 0;
-    int status = Spawn(&pid, path, arguments, environment, &files);
+    int status = Spawn(&pid, path, arguments, environment, &files, NO);
     posix_spawn_file_actions_destroy(&files);
     if (status != 0) return 0;
     // Reaped when it ends, should this app still be running then, so it doesn't linger as a zombie. Told by the
@@ -286,7 +451,7 @@ NSDictionary *RunBriefly(NSString *path, NSArray<NSString *> *arguments, NSDicti
     if (errors) posix_spawn_file_actions_adddup2(&files, output[1], 2);
     else posix_spawn_file_actions_addopen(&files, 2, "/dev/null", O_WRONLY, 0);
     pid_t pid = 0;
-    int started = Spawn(&pid, path, arguments, environment, &files);
+    int started = Spawn(&pid, path, arguments, environment, &files, NO);
     posix_spawn_file_actions_destroy(&files);
     close(output[1]);
     if (started != 0) {
@@ -335,10 +500,11 @@ NSDictionary *RunBriefly(NSString *path, NSArray<NSString *> *arguments, NSDicti
 // `line` until that says it's the answer (YES), for `seconds` at most. Then its input closes, which is how it's told
 // to finish, and it gets 3 seconds to end on its own (tidying up after itself, as Claude Code removes its session
 // file), then SIGTERM, then a second later SIGKILL, each to everything it started. It runs in a session of its own
-// (Spawn), in `folder`. Blocking; call off the main thread.
+// (Spawn), in `folder`; `told`, when given, gets its pid as it starts, before anything is sent to it, so the
+// caller can know it for its own while it runs. Blocking; call off the main thread.
 NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
-                              BOOL (^line)(NSData *line), NSTimeInterval seconds) {
+                              BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid)) {
     int input[2], output[2];
     if (pipe(input) != 0) return nil;
     if (pipe(output) != 0) {
@@ -365,7 +531,7 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
     if (folder) posix_spawn_file_actions_addchdir_np(&files, folder.fileSystemRepresentation);
 #pragma clang diagnostic pop
     pid_t pid = 0;
-    int started = Spawn(&pid, path, arguments, environment, &files);
+    int started = Spawn(&pid, path, arguments, environment, &files, NO);
     posix_spawn_file_actions_destroy(&files);
     close(input[0]);
     close(output[1]);
@@ -374,6 +540,7 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
         close(output[0]);
         return nil;
     }
+    if (told) told(pid);
     const uint8_t *bytes = send.bytes;
     for (NSUInteger sent = 0; sent < send.length;) {
         ssize_t wrote = write(input[1], bytes + sent, send.length - sent);
@@ -431,6 +598,99 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
     }
     if (status == -1) status = StopGroup(pid);
     return @{@"status": @(ExitCode(status)), @"answered": @(answered), @"timedOut": @(timedOut)};
+}
+
+// Runs a command-line tool that reads all of its input and reports as it goes: {status, timedOut}, or nil if it
+// couldn't start. Its input is written and its output read at the same time, so a long input and a long report can't
+// each fill their pipe and wait on the other. `more` gives the next piece of its input until there's none left (nil),
+// when its input closes; each line of its output goes to `line`, the last one too if it has no line break. After
+// `seconds` it's stopped, with everything it started. It runs in a session of its own (Spawn), with its output's
+// errors dropped, and in macOS's background band with `background`. Blocking; call off the main thread.
+NSDictionary *RunFeeding(NSString *path, NSArray<NSString *> *arguments, NSDictionary<NSString *, NSString *> *environment,
+                         NSData *(^more)(void), void (^line)(NSData *line), NSTimeInterval seconds, BOOL background) {
+    int input[2], output[2];
+    if (pipe(input) != 0) return nil;
+    if (pipe(output) != 0) {
+        close(input[0]);
+        close(input[1]);
+        return nil;
+    }
+    // As for RunConversation: nothing else this app starts holds these open, and writing to a tool that has ended
+    // fails rather than ending this app. Its input is written only as fast as it takes it.
+    for (int fd = 0; fd < 2; fd++) {
+        fcntl(input[fd], F_SETFD, FD_CLOEXEC);
+        fcntl(output[fd], F_SETFD, FD_CLOEXEC);
+    }
+    fcntl(input[1], F_SETNOSIGPIPE, 1);
+    fcntl(input[1], F_SETFL, O_NONBLOCK);
+    posix_spawn_file_actions_t files;
+    posix_spawn_file_actions_init(&files);
+    posix_spawn_file_actions_adddup2(&files, input[0], 0);
+    posix_spawn_file_actions_adddup2(&files, output[1], 1);
+    posix_spawn_file_actions_addopen(&files, 2, "/dev/null", O_WRONLY, 0);
+    pid_t pid = 0;
+    int started = Spawn(&pid, path, arguments, environment, &files, background);
+    posix_spawn_file_actions_destroy(&files);
+    close(input[0]);
+    close(output[1]);
+    if (started != 0) {
+        close(input[1]);
+        close(output[0]);
+        return nil;
+    }
+    NSData *piece = more();
+    NSUInteger at = 0;
+    BOOL feeding = piece != nil, timedOut = NO;
+    if (!feeding) close(input[1]);
+    NSMutableData *pending = [NSMutableData data];
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:seconds];
+    char buffer[16384];
+    for (;;) {
+        // Each round lets go of what it made (the pieces fed, the lines read), however long the run is.
+        @autoreleasepool {
+            // The limit holds even while it never stops writing, when poll never has to wait.
+            if (deadline.timeIntervalSinceNow <= 0) {
+                timedOut = YES;
+                break;
+            }
+            struct pollfd ready[2] = {{output[0], POLLIN, 0}, {feeding ? input[1] : -1, POLLOUT, 0}};
+            int waited = poll(ready, 2, (int)MAX(0, deadline.timeIntervalSinceNow * 1000));
+            if (waited < 0 && errno == EINTR) continue;
+            if (waited == 0) timedOut = YES;
+            if (waited <= 0) break;
+            if (feeding && ready[1].revents) {
+                ssize_t wrote = piece.length > at
+                    ? write(input[1], (const char *)piece.bytes + at, piece.length - at) : 0;
+                if (wrote < 0 && (errno == EAGAIN || errno == EINTR)) wrote = 0;
+                if (wrote < 0) feeding = NO;  // it has stopped reading: what it says is still read below
+                else at += (NSUInteger)wrote;
+                while (feeding && at >= piece.length) {
+                    piece = more();
+                    at = 0;
+                    if (!piece) feeding = NO;
+                }
+                if (!feeding) close(input[1]);
+            }
+            if (!ready[0].revents) continue;
+            ssize_t got = read(output[0], buffer, sizeof buffer);
+            if (got < 0 && errno == EINTR) continue;
+            if (got <= 0) break;
+            [pending appendBytes:buffer length:(NSUInteger)got];
+            for (;;) {
+                const void *newline = memchr(pending.bytes, '\n', pending.length);
+                if (!newline) break;
+                NSUInteger length = (NSUInteger)((const char *)newline - (const char *)pending.bytes);
+                if (length) line([pending subdataWithRange:NSMakeRange(0, length)]);
+                [pending replaceBytesInRange:NSMakeRange(0, length + 1) withBytes:NULL length:0];
+            }
+        }
+    }
+    if (feeding) close(input[1]);
+    if (pending.length && !timedOut) line(pending);
+    close(output[0]);
+    int status = timedOut ? -1 : WaitUntil(pid, [NSDate dateWithTimeIntervalSinceNow:3]);
+    if (status == -1) status = StopGroup(pid);
+    return @{@"status": @(ExitCode(status)), @"timedOut": @(timedOut)};
 }
 
 // Your shell, as your terminal starts it, when it's one that takes the scripts Whozmove gives it (zsh or bash); else

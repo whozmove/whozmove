@@ -1,0 +1,86 @@
+/* The cards: a request or question on a row, the Compact card, Deploy's set-up card, "Switch model?", and the row's
+   own details (parts/details): where a session runs, and a session open twice.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* The Compact card (compactHTML): its choices are actions, not picks, so they have no radio marks. */
+.perm.compact .opt-label::before { display: none; }
+.perm.compact .opt-desc { margin-left: 0; }
+.c-left { flex: none; margin-left: auto; font-size: var(--size-small); color: var(--muted);
+          font-variant-numeric: tabular-nums; }
+/* A card's note (the kit's notice): why a compaction didn't go in, a command that looks like a production deploy. */
+.c-note { margin-top: 6px; }
+
+/* Deploy's set-up card (setupHTML). Its command, once confirmed, shows as it will run (.perm-detail); a warning if it
+   looks as if it could reach production, as the Compact card's note. */
+.perm.deploy-setup .q-help { margin-top: 3px; }
+.perm.deploy-setup .c-note { margin-top: 5px; }
+
+/* The help under "open twice"'s title in its details (twiceCardHTML). */
+.tw-help { margin-top: 7px; line-height: 1.4; }
+/* Where a session runs, in its details (placeCardHTML): under its project and a worktree's or a branch's, its folder. */
+.pl-path { margin-top: 6px; font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--faint);
+           overflow-wrap: anywhere; }
+
+/* Every card on a row that needs you, raised a step from the panel with no edge of its own (white on the light panel,
+   with a faint ring): a request, a question or a plan on its agent's row (see askHTML), the Compact card, Deploy's
+   set-up, "Switch model?" and a pick going in. The row's dot and its line already say it needs you. A request that
+   could do harm (outside the sandbox) is filled in the colour of something that needs you. Long words (a path, a URL)
+   break wherever they must rather than run out of the card. */
+.perm { margin-top: 7px; padding: 9px 10px 10px; border-radius: var(--radius-box); background: var(--ask-fill);
+        border: 1px solid transparent; box-shadow: 0 0 0 0.5px var(--ask-edge); overflow-wrap: anywhere; }
+.perm.risk { background: var(--ask-risk-fill); box-shadow: none; }
+/* A request or a question pressed, which has the keyboard until it's answered (keyboard.js's heldCard): the one edge a
+   card shows, the kit's focus edge, as a box typed in shows, never a colour that says danger. */
+.perm.has-keys { border-color: var(--field-focus); }
+.perm button { overflow-wrap: anywhere; }
+.perm-why { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
+/* A pick going into a session (commands.js): its working dot beside the words. */
+.perm.going .going-line { display: flex; align-items: flex-start; gap: 8px; }
+/* What a card would run or change, on the card itself with no box of its own, every character of it there to read:
+   wrapped, with a scroll of its own past a few lines. Where its card offers Show all (.cut), each line is one line,
+   never wrapped, fading out where the card cuts it (a sideways swipe over the list moves the panel, so it doesn't
+   scroll sideways), and cut short to its first lines (.capped, `--lines` of them), fading at its foot too, until Show
+   all shows it whole again. */
+.perm-detail { margin-top: 5px; max-height: 140px; overflow-y: auto; padding: 0;
+               font: var(--size-small)/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code);
+               white-space: pre-wrap; word-break: break-word; -webkit-user-select: text; cursor: text; }
+.perm-detail.cut { overflow: hidden; white-space: pre; word-break: normal;
+                   -webkit-mask-image: linear-gradient(90deg, black 86%, transparent); }
+.perm-detail.cut.capped { max-height: calc(var(--lines) * 1.45em);
+                          -webkit-mask-image: linear-gradient(90deg, black 86%, transparent),
+                                              linear-gradient(black 60%, transparent);
+                          -webkit-mask-composite: source-in; }
+.perm-detail .ln-del { color: var(--removed); }
+.perm-detail .ln-add { color: var(--added); }
+/* A card's help under what it's about (a big change's "Allow once allows all"). */
+.perm .card-help { margin-top: 5px; }
+.perm-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 8px; }
+/* A request's buttons, and its Allow, are the shared button and its main one (controls.css). */
+.perm button:disabled { opacity: 0.4; }
+
+/* Claude's questions, on the row (see quizHTML), and the heads of the Compact and Deploy set-up cards. */
+.q-top { display: flex; align-items: flex-start; gap: 8px; }
+/* A card's title takes the room its count or topic (a tag) and its × leave. */
+.q-top .card-title { flex: 1; }
+.q-top .icon-button { margin: -2px -4px 0 0; }
+.q-title { margin-bottom: 6px; font-size: var(--size-small); color: var(--muted); }
+.q-help { margin-top: 2px; font-size: var(--size-small); color: var(--muted); }
+.q-opts { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.opt { display: block; width: 100%; text-align: left; font: inherit; padding: 5px 8px;
+       border-radius: var(--radius-control); color: var(--text); border: 1px solid var(--edge);
+       background: var(--choice); }
+.opt.is-hover { background: var(--choice-pointed); }
+.opt.on { border-color: var(--picked-edge); background: var(--picked); }
+.opt-label { font-size: var(--size-body); font-weight: 500; }
+/* The pick's mark, as macOS draws them: the shared box to tick (controls.css), round for one choice, laid out here
+   beside its words. */
+.opt-label::before { content: ''; display: inline-block; margin-right: 7px; vertical-align: -2px; }
+.opt-desc { display: block; margin: 1px 0 0 20px; font-size: var(--size-small); color: var(--muted); }
+/* A card's box to type in (controls.css's .field), as wide as the card, under what it answers. */
+.q-type { width: 100%; margin-top: 5px; -webkit-user-select: text; cursor: text; }
+.q-unit { font-size: var(--size-card); color: var(--muted); }
+
+/* "Switch model?", asked on its row (switch-model.js): Don't ask again, where it's offered, as a box to tick. */
+.perm.switch-ask .never { display: inline-flex; align-items: center; gap: 7px; margin-top: 8px;
+                          font-size: var(--size-card); }
+

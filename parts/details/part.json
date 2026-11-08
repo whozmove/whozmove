@@ -1,0 +1,6 @@
+{
+  "scripts": ["page/details.js"],
+  "styles": ["page/details.css"],
+  "talksTo": ["core", "bridge", "hover", "list", "row", "held", "morph"],
+  "provides": ["detailsFor", "detailsHTML", "detailsHeldRow", "detailsOpen", "detailsOpenKey", "detailsDraw", "detailsTitleHTML"]
+}

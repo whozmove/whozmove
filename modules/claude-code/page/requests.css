@@ -1,0 +1,158 @@
+/* A Claude Code session's requests, questions and what shows once they're answered (requests.js, questions.js,
+   answered.js): their own pieces, on the cards' shared frame (cards.css) and the kit's buttons, tags and boxes
+   (controls.css).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* A request's title wraps to as many lines as it takes, as it may say what the request does (Claude's reason for a
+   command): never cut short. What goes at its end (the ring) stays by its first line. */
+.perm[data-ask] .card-title { min-width: 0; overflow-wrap: anywhere; }
+.ask-head { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
+.ask-head .card-title, .ask-head .ask-lead { flex: 1; }
+.ask-mark { flex: none; color: var(--muted); }
+
+/* What's risky about a command, as tags before it. */
+.ask-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+/* A file's head: its name (wrapping where it must) and how many lines change; under it, the folder it's in, faint, all
+   of it, and what a notebook edit does to which cell. */
+.ask-file { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.ask-file .ask-mark { align-self: center; }
+.ask-name { flex: 0 1 auto; min-width: 0; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.ask-dir { font-size: var(--size-small); color: var(--faint); overflow-wrap: anywhere; }
+.ask-dir.ask-under { margin-top: 1px; }
+.ask-cell { margin-top: 2px; font-size: var(--size-small); color: var(--text); }
+.ask-file .diff { flex: none; font-size: var(--size-small); font-weight: 600; }
+.ask-file .card-title { flex: 1; }
+.ask-gap { color: var(--faint); }
+.perm .ask-more { margin-top: 3px; }
+
+/* A big change: ‹ › through its edits. */
+.ask-step { flex: none; display: inline-flex; align-items: center; gap: 2px; }
+.ask-of { font-size: var(--size-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* A page: what Claude wants to learn from it, then its address; a line that's the whole request (a file read, the words
+   searched); and a row of a question's own (a number's − and +, its unit and range). A path, an address and the words
+   searched are what's allowed, so each shows whole, wrapping where it must. */
+.ask-lead { min-width: 0; font-weight: 600; color: var(--text); }
+.ask-obj { min-width: 0; flex: 1; font: var(--size-small)/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+           color: var(--code); overflow-wrap: anywhere; }
+.ask-obj.ask-url { display: block; margin-top: 3px; color: var(--faint); }
+/* A path too long to share its line with its title takes a line of its own, whole. */
+.ask-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.ask-one-line .ask-obj { flex: 1 1 140px; }
+.ask-line .card-title { flex: none; }
+.ask-head + .ask-line { margin-top: 3px; }
+.ask-query { min-width: 0; flex: 1; font-size: var(--size-card); font-weight: 600; color: var(--text);
+             overflow-wrap: anywhere; }
+.ask-foot { display: flex; align-items: center; gap: 8px; margin-top: 7px; }
+.ask-foot-words { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); }
+
+/* A tool's fields: the short ones in two columns, each long one under its name. */
+.ask-fields { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0 0;
+              font-size: var(--size-small); }
+.ask-fields dt { color: var(--muted); }
+.ask-fields dd { min-width: 0; margin: 0; color: var(--text); overflow-wrap: anywhere;
+                 font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.ask-field { margin-top: 6px; font-size: var(--size-small); color: var(--muted); }
+/* A field of words to read (a description): prose, in the card's own letters, wrapped, its markdown drawn without the
+   reader's room between paragraphs; a long one cut short to its first lines (.capped, `--lines` of them), fading at its
+   foot, until Show all shows it whole, with a scroll of its own past a few lines, as code has. A short one sits in the
+   field list in the same letters. */
+.ask-prose { max-height: 140px; overflow-y: auto; margin-top: 2px; font-size: var(--size-small); line-height: 1.45;
+             color: var(--text); overflow-wrap: anywhere; -webkit-user-select: text; }
+.ask-prose.capped { max-height: calc(var(--lines) * 1.45em); overflow: hidden;
+                    -webkit-mask-image: linear-gradient(black 60%, transparent); }
+/* Cut short, its blocks sit with no room between them, so the cut ends on a whole line, as code's does. */
+.ask-prose.capped > * + * { margin-top: 0; }
+.ask-fields dd.prose { font-family: inherit; }
+.ask-prose > * { margin: 0; }
+.ask-prose > * + * { margin-top: 4px; }
+.ask-prose :is(ul, ol) { padding-left: 16px; }
+.ask-app { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-weight: 600; }
+.ask-mcp .ask-head { margin-top: 4px; }
+
+/* What a request cut short says, and over a big change's answers, that Allow once allows every change. */
+.ask-cut { margin-top: 5px; }
+.perm .ask-all { margin-top: 6px; }
+
+/* When a request goes by itself: its ring and the minutes left, at its title's end. */
+.ask-goes { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: var(--size-small);
+            color: var(--turn-text); font-variant-numeric: tabular-nums; }
+
+/* A plan's steps, and the box for your notes to send it back with. */
+.ask-steps { margin: 5px 0 0 18px; padding: 0; font-size: var(--size-small); color: var(--muted); line-height: 1.5; }
+.ask-steps li::marker { color: var(--faint); font-variant-numeric: tabular-nums; }
+/* A step's words and a plan's first lines are its markdown, drawn as the reader draws it, without the reader's room
+   between paragraphs; so are a question's and its options' words. */
+.ask-steps p { margin: 0; }
+.ask-lead-lines > * { margin: 0; }
+.ask-lead-lines > :is(ul, ol) { padding-left: 18px; }
+:is(.ask-steps, .ask-lead-lines, .quiz, .ask-prose, .ask-fields .prose) strong { color: var(--text); }
+:is(.ask-steps, .ask-lead-lines, .quiz, .ask-prose, .ask-fields .prose) code { font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace;
+                                        color: var(--code); }
+.perm.plan-ask .perm-read { margin-top: 3px; }
+.ask-lead-lines { margin-top: 4px; font-size: var(--size-small); color: var(--muted); }
+.ask-say { display: flex; gap: 6px; margin-top: 6px; }
+.ask-say .q-type { flex: 1; min-width: 0; margin-top: 0; }
+.ask-say-waits { margin-top: 6px; font-size: var(--size-small); color: var(--muted); }
+
+/* What a question is about (its header, "Pick any"), a small label above it. */
+.ask-label { margin-bottom: 2px; font-size: var(--size-small); font-weight: 600; color: var(--muted); }
+
+/* A single pick: its options numbered, each its name with what it means under it, as every option is; then the box to
+   type an answer in, once asked for. */
+.ask-nums { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.perm .opt.ask-num { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 1px 8px;
+                     padding: 4px 6px; border-color: transparent; background: none; }
+.perm .opt.ask-num.is-hover { background: var(--choice-pointed); }
+.ask-num .tag.mark { align-self: center; }
+.ask-num-label { grid-column: 2; font-size: var(--size-body); font-weight: 500; overflow-wrap: anywhere; }
+.ask-num-desc { grid-column: 2; font-size: var(--size-small); color: var(--muted); }
+.ask-type-opt .ask-num-label { color: var(--muted); font-weight: 400; }
+/* "Type an answer" become its box: the box in the row's words' place, with no edge or room of its own, so the row keeps
+   its height as it turns and turns back; the row takes the kit's focus edge while it's typed in. Words typed and kept
+   show in the row, faint, cut where the row ends. */
+.perm .opt.ask-type-opt.is-typing { border-color: var(--field-focus); }
+.ask-type-opt .ask-row-box { grid-column: 2; width: 100%; min-width: 0; height: calc(var(--size-body) * 1.35);
+                             margin: 0; padding: 0; border: 0; background: none; font: inherit;
+                             font-size: var(--size-body); line-height: inherit; color: var(--text); outline: none; }
+/* Where it takes several, the box sits in the row's words, after its box to tick, on the words' own line. The other
+   rows there are buttons, which take the kit's button padding, size and fill (`.perm button` over `.opt`), so the
+   row, a box's holder rather than a button, takes the same, and its tick and words stay where theirs are. */
+.q-opts .ask-type-opt .ask-row-box { width: calc(100% - 20px); margin: 0; vertical-align: baseline; }
+.q-opts .opt.ask-type-opt.is-typing { padding: 4px 12px; font-size: var(--size-body); }
+.q-opts .opt.ask-type-opt.is-typing:not(.on) { background: var(--button); }
+/* Kept words that go with the ticks read as the other ticked labels do; faint only where they wait, not sent. */
+.q-opts .ask-type-opt .ask-kept { display: inline; color: inherit; font-weight: inherit; }
+.ask-type-opt .ask-kept { color: var(--muted); font-weight: 400; display: block; white-space: nowrap; overflow: hidden;
+                          text-overflow: ellipsis; }
+
+/* Several questions, one at a time: what the one in view is about on the left of its top line, ‹ › and where you are on
+   the right; its options numbered as a single pick's, a picked one in the kit's picked look, or its box. */
+.q-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.q-head .ask-label { margin-bottom: 0; }
+.perm .opt.ask-num.on { border-color: var(--picked-edge); background: var(--picked); }
+.ask-page > .q-type, .ask-page > .ask-foot { margin-top: 6px; }
+.ask-page .ask-sq-number { width: 72px; margin-top: 0; }
+
+/* A number: − and + on either side of it, and its range, in the colour of something to put right while what's typed is
+   outside it. */
+.ask-range.warn { color: var(--needs-text); }
+.ask-stepper { display: inline-flex; align-items: center; gap: 4px; }
+.ask-stepper .q-type { width: 52px; margin-top: 0; text-align: center; font-variant-numeric: tabular-nums; }
+.perm .ask-stepper button { padding: 3px 9px; }
+
+/* Once answered: one line where the card was, what you said in the colour of what's done, and what about, faint. */
+.perm.ask-receipt { display: flex; align-items: center; gap: 6px; padding: 6px 10px; }
+.ask-receipt-words { flex: none; font-size: var(--size-card); color: var(--done-text); }
+.ask-receipt.denied .ask-receipt-words { color: var(--muted); }
+.ask-receipt .done-tick { color: var(--done-text); }
+.ask-receipt.denied .done-tick { color: var(--muted); }
+.ask-receipt .ask-obj { color: var(--faint); }
+
+/* What a session you allow answered for you: who, how long ago, and what it did. */
+.ask-for-mark { vertical-align: -1px; color: var(--faint); }
+.ask-for .perm-why { color: var(--text); }
+.ask-for .perm-why.warn { color: var(--needs-text); }
+.ask-for .perm-why.turn { color: var(--turn-text); }
+.ask-receipt .ask-receipt-go { margin-left: auto; }

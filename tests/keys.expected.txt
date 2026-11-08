@@ -1,0 +1,21 @@
+The edit each key does in a web view that has the keyboard:
+  ⌘V: paste:
+  ⌘C: copy:
+  ⌘X: cut:
+  ⌘A: selectAll:
+  ⌘Z: undo:
+  ⇧⌘Z: redo:
+  ⌘V with Caps Lock on: paste:
+  ⌘V with fn still held (a dictation app's key): paste:
+  ⌘V on a Russian layout (м without ⌘): paste:
+  ⌘V on Dvorak – QWERTY ⌘ (. without ⌘): paste:
+  ⌘. on Dvorak (V's key on QWERTY): none
+  ⌘V let go: none
+  ⌘V, in a view without the keyboard: none
+  ⌘A, in a view without the keyboard: none
+  ⇧⌘V: none
+  ⌥⌘V: none
+  ⌃V: none
+  v: none
+  ⌘W: none
+  ⌘Return: none

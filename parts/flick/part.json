@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core", "bridge", "turn", "keyboard", "glass"],
+  "provides": []
+}

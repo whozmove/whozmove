@@ -1,0 +1,5 @@
+{
+  "scripts": ["page/beside.js"],
+  "talksTo": ["core", "bridge", "edge", "flick", "glass", "fold", "cat"],
+  "provides": ["SideCat.h"]
+}

@@ -1,0 +1,5 @@
+{
+  "order": 24,
+  "scripts": ["page/flow.js", "page/diagrams.js"],
+  "styles": ["page/diagrams.css"]
+}

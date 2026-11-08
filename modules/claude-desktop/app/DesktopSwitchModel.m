@@ -40,14 +40,14 @@ BOOL AnswerClaudeSwitchBox(BOOL switchModel, BOOL dontAskAgain) {
             id never = SwitchControl(@"AXCheckBox", ^BOOL(NSString *l) {
                 return [l hasSuffix:kClaudeDesktopDontAskSuffix];
             });
-            if (never) AXUIElementPerformAction((__bridge AXUIElementRef)never, kAXPressAction);
+            if (never) PressElement((__bridge AXUIElementRef)never, kAXPressAction);
         }
-        AXUIElementPerformAction((__bridge AXUIElementRef)go, kAXPressAction);
+        PressElement((__bridge AXUIElementRef)go, kAXPressAction);
     } else {
         id cancel = SwitchControl(@"AXButton", ^BOOL(NSString *l) {
             return [l isEqualToString:kClaudeDesktopCancelLabel];
         });
-        if (cancel) AXUIElementPerformAction((__bridge AXUIElementRef)cancel, kAXPressAction);
+        if (cancel) PressElement((__bridge AXUIElementRef)cancel, kAXPressAction);
     }
     return YES;
 }

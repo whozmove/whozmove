@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "GitHub.h"
 #import "Processes.h"
+#import "Files.h"
 
 // Set by `--print-rows`: rows printed for a test never depend on the network, so it acts as if gh isn't there.
 BOOL NeverAskGitHub;
@@ -76,4 +77,63 @@ id FetchBranchPR(NSString *gh, NSString *root, NSString *branch, BOOL *found) {
     *found = YES;
     return @{@"number": pr[@"number"] ?: @0, @"url": pr[@"url"] ?: @"", @"state": pr[@"state"] ?: @"",
              @"isDraft": pr[@"isDraft"] ?: @NO, @"review": pr[@"reviewDecision"] ?: @"", @"checks": checks};
+}
+
+// What a waiting session's pull request has had: its state, with when it was merged or closed, and its comments and
+// reviews, each with who wrote it and whether GitHub says they can change the repo. Asked only while a session waits on
+// it (PRWakes), as comments can be many.
+NSString *const kPRActivityFields = @"number,url,state,mergedAt,closedAt,comments,reviews";
+
+NSDictionary *FetchPRActivity(NSString *gh, NSString *url) {
+    NSDictionary *run = RunTool(gh, @[@"pr", @"view", url, @"--json", kPRActivityFields], nil);
+    if (!run || [run[@"status"] intValue] != 0) return nil;
+    NSDictionary *activity = [NSJSONSerialization JSONObjectWithData:run[@"out"] options:0 error:nil];
+    return [activity isKindOfClass:NSDictionary.class] ? activity : nil;
+}
+
+// Whether a comment or review's author may wake a session: someone GitHub marks as able to change the repo (its owner,
+// a member of its organisation or a collaborator), so a stranger's comment never starts an unattended turn. A bot is
+// left out where gh's answer shows one: a login ending in "[bot]", or an author whose type is Bot (`__typename`, or
+// `is_bot`, where its JSON has them). A bot account added to the repo as a collaborator, with neither mark, still
+// passes, as GitHub then marks it as able to change the repo.
+static BOOL MayWake(NSDictionary *item) {
+    NSDictionary *author = [item[@"author"] isKindOfClass:NSDictionary.class] ? item[@"author"] : nil;
+    NSString *login = [author[@"login"] isKindOfClass:NSString.class] ? author[@"login"] : nil;
+    NSString *association = [item[@"authorAssociation"] isKindOfClass:NSString.class] ? item[@"authorAssociation"] : nil;
+    BOOL bot = [author[@"is_bot"] isKindOfClass:NSNumber.class] && [author[@"is_bot"] boolValue];
+    bot = bot || [author[@"__typename"] isEqual:@"Bot"] || [login hasSuffix:@"[bot]"];
+    if (!login.length || bot) return NO;
+    return [@[@"OWNER", @"MEMBER", @"COLLABORATOR"] containsObject:association ?: @""];
+}
+
+static NSString *LoginOf(NSDictionary *item) {
+    NSDictionary *author = [item[@"author"] isKindOfClass:NSDictionary.class] ? item[@"author"] : nil;
+    return [author[@"login"] isKindOfClass:NSString.class] ? author[@"login"] : nil;
+}
+
+static double WhenOf(id iso) {
+    return [iso isKindOfClass:NSString.class] && [iso length] ? TimestampMs(iso) : 0;
+}
+
+NSArray<NSDictionary *> *PRActivityEvents(NSDictionary *activity) {
+    NSMutableArray<NSDictionary *> *events = [NSMutableArray array];
+    void (^add)(NSString *, NSString *, double) = ^(NSString *kind, NSString *by, double at) {
+        if (at <= 0) return;
+        NSMutableDictionary *event = [NSMutableDictionary dictionaryWithDictionary:@{@"kind": kind, @"at": @(at)}];
+        if (by) event[@"by"] = by;
+        [events addObject:event];
+    };
+    for (NSDictionary *comment in [activity[@"comments"] isKindOfClass:NSArray.class] ? activity[@"comments"] : @[])
+        if ([comment isKindOfClass:NSDictionary.class] && MayWake(comment))
+            add(@"commented", LoginOf(comment), WhenOf(comment[@"createdAt"]));
+    NSDictionary *reviewKinds = @{@"APPROVED": @"approved", @"CHANGES_REQUESTED": @"changes", @"COMMENTED": @"commented"};
+    for (NSDictionary *review in [activity[@"reviews"] isKindOfClass:NSArray.class] ? activity[@"reviews"] : @[]) {
+        if (![review isKindOfClass:NSDictionary.class] || !MayWake(review)) continue;
+        NSString *kind = [review[@"state"] isKindOfClass:NSString.class] ? reviewKinds[review[@"state"]] : nil;
+        if (kind) add(kind, LoginOf(review), WhenOf(review[@"submittedAt"]));
+    }
+    if ([activity[@"state"] isEqual:@"MERGED"]) add(@"merged", nil, WhenOf(activity[@"mergedAt"]));
+    if ([activity[@"state"] isEqual:@"CLOSED"]) add(@"closed", nil, WhenOf(activity[@"closedAt"]));
+    [events sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"at" ascending:YES]]];
+    return events;
 }

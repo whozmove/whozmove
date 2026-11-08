@@ -5,9 +5,9 @@
 
 // The Compact card, per session: open, its note ({text, way}: why it didn't compact, and the words of a button past
 // that, or null), and the focus typed in it. The session whose context ring is pointed at. The sessions whose ring has
-// opened by itself to say now is a good time to compact (compactNow), once it has. The sessions whose ring was last
-// drawn turning, as they compact, and those whose compaction has just ended ({at, angle}: when, and where its arc was
-// then), whose ring settles at its new size; and those whose size is still the one from before ({at, tokens}).
+// opened by itself to say now is a good time to compact (the row's compactTime), once it has. The sessions whose ring
+// was last drawn turning, as they compact, and those whose compaction has just ended ({at, angle}: when, and where its
+// arc was then), whose ring settles at its new size; and those whose size is still the one from before ({at, tokens}).
 moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: null, compactNowShown: {},
               ringTurning: {}, ringSettling: {}, sizeBefore: {} });
 
@@ -15,7 +15,7 @@ moduleState({ compactOpen: {}, compactNotes: {}, compactFocus: {}, hoverCtx: nul
 
 // How the row's agent is set up: its model, effort and mode, each a label that opens the app's menu below it, and its
 // context ring.
-function agentSetupHTML(s) {
+function agentSetupHTML(s, row = null) {
   const a = s.agent || {}, mode = core.agent.modeName(a.mode);
   const inClaude = hostOf(s).inName;
   const pick = (field, label, cls = '') =>
@@ -23,53 +23,32 @@ function agentSetupHTML(s) {
   const agent = [core.agent.modelName(a.model) && pick('model', esc(core.agent.modelName(a.model))),
                  a.effort && pick('effort', esc(a.effort)),
                  mode && pick('mode', esc(mode), a.mode === 'bypassPermissions' ? ' bypass' : '')]
-    .filter(Boolean).join(' · ');
-  return (agent ? `<span class="agent">${agent}</span>` : '') + contextRing(s);
-}
-
-// Whether now is a good time to compact, and why, or null: only while the session sits idle, and then once its
-// context is nearly full or long, or, once it's big, when its work has just been saved (a turn that committed or went
-// further, or its edits in its checkout with nothing left to commit there), or when neither it nor you have been on it
-// for an hour, after which the next message has Claude read all of it again. Compacting then is cheap and loses
-// nothing half done, where auto-compact comes in the middle of a task. Never where the app says a compaction couldn't
-// go in (`noCompact`: it runs in no terminal the panel can type into, or it's open twice), as the card would only
-// say why.
-const COMPACT_SAVED = new Set(['Committed', 'Pushed', 'PR raised', 'Merged', 'On staging', 'Deployed']);
-function compactNow(s, now) {
-  const a = s.agent || {}, tokens = a.tokens;
-  if (!tokens || s.status !== 'idle' || s.ask || s.compacting || s.noCompact) return null;
-  const window = core.agent.contextWindow(a.model, tokens), pct = Math.round(tokens / window * 100);
-  if (pct >= 85) return "it's nearly full, and would soon compact by itself";
-  if (tokens >= Math.min(400000, window * 0.75)) return "it's getting long";
-  if (tokens < Math.min(200000, window / 2)) return null;
-  const edited = editedAt(s, (s.git || s.workGit)?.root);
-  if (COMPACT_SAVED.has(s.outcome) || (edited && s.checkout?.changes === 0)) return 'your work is saved';
-  const moved = Math.max(s.lastReplyAt || 0, s.messageAt || 0, onItAt(s));
-  if (moved && !s.focused && now - moved >= 3600000)
-    return "you've been away from it for an hour, so Claude would read all of it again with your next message";
-  return null;
+    .filter(Boolean).join('<span class="sep">·</span>');
+  // While the row asks something of you, the ring steps aside, so the ask has one action.
+  return (agent ? `<span class="agent">${agent}</span>` : '') + (row?.asking ? '' : contextRing(s));
 }
 
 // A ring filling up with the context in use. Neutral below 60%, amber from 60% (filling up), red-orange from 85%
 // (near auto-compact: start fresh or compact). Pointed at, it widens into a Compact button that is the same gauge
 // (its fill is the context in use) and says how full it is first, where the ring was; a click opens the Compact card
-// (compactHTML). It's drawn open while pointed at or while its card is up, so the rebuild every second doesn't replay
-// the widening. When it's a good time to compact (compactNow), it opens by itself and stays open, saying "Compact
-// now", and why in its tip: drawn closed the first time (`now-soon`), it widens in the next frame, as it does
-// pointed at; once it no longer is, it's drawn open once more (`now-going`) and folds in the next frame, as it does
-// pointed away. While the conversation compacts, by itself or asked for, the ring is a short arc going round
-// (`compacting`), the turn's phase taken from the clock so the rebuild every second carries it on; it doesn't widen
+// (compactHTML). It's drawn open while pointed at or while its card is up, so a rebuild of the list doesn't replay the
+// widening. When it's a good time to compact (the row's compactTime: the app's CompactTime, the one rule Compact at
+// Breaks goes by too), it opens by itself and stays open, saying "Compact now", and why in its tip: drawn closed the
+// first time (`now-soon`), it widens in the next frame, as it does pointed at; once it no longer is, it's drawn open
+// once more (`now-going`) and folds in the next frame, as it does pointed away. Its tip also says why a compaction
+// a module would send can't go in (the row's compactNote), and its card opens saying so. While the conversation compacts, by itself or asked for, the ring is a short arc going round
+// (`compacting`), the turn's phase taken from the clock so a rebuild of the list carries it on; it doesn't widen
 // then, as Claude's line says what it's doing and for how long. When the compaction ends, the arc fades where it was
 // as the ring fills from empty to the new size (`settling`), once.
 const RING_TURN_MS = 1200, RING_SETTLE_MS = 700;
 function contextRing(s) {
-  const a = s.agent || {}, tokens = a.tokens, model = a.model;
+  const a = s.agent || {}, tokens = a.tokens;
   if (!tokens) return '';
   const compacting = !!s.compacting, settle = ringSettle(s.sessionId, compacting, tokens);
-  const window = core.agent.contextWindow(model, tokens), pct = Math.min(100, Math.round(tokens / window * 100));
+  const window = core.agent.contextWindow(a), pct = Math.min(100, Math.round(tokens / window * 100));
   const color = pct >= 85 ? GAUGE.limit : pct >= 60 ? GAUGE.warning : GAUGE.normal;
   const r = 5, length = 2 * Math.PI * r, left = Math.max(0, core.agent.compactLimit(a) - tokens);
-  const sid = s.sessionId, why = sizeBefore(sid, tokens) ? null : compactNow(s, state.last.now);
+  const sid = s.sessionId, why = sizeBefore(sid, tokens) ? null : s.compactTime?.why || null;
   const was = !!state.compactNowShown[sid], going = !why && was && !calm.matches;
   if (!why && !going) delete state.compactNowShown[sid];
   else if (why && calm.matches) state.compactNowShown[sid] = true;
@@ -79,7 +58,8 @@ function contextRing(s) {
   const title = compacting ? `Compacting the conversation · it was ${pct}% full`
     : (why ? `A good time to compact: ${why} · ` : '')
       + `${pct}% · ${kTokens(tokens)} of ${kTokens(window)} tokens in context`
-      + ` · ${kTokens(left)} left before auto-compact`;
+      + ` · ${kTokens(left)} left before auto-compact`
+      + (s.compactNote?.text ? ` · ${s.compactNote.text}` : '');
   const arc = (part, more = '') => `<circle class="ctx-arc"${more} cx="6" cy="6" r="${r}" fill="none"`
     + ` style="stroke:${color}" stroke-width="1.6" stroke-linecap="round"`
     + ` stroke-dasharray="${(length * part).toFixed(2)} ${length.toFixed(2)}"/>`;
@@ -130,6 +110,14 @@ function pressPick(pick) {
   native({ type: 'pick', field: pick.dataset.pick, sessionId: s.sessionId, x: r.left - 4, y: r.bottom + 4 });
 }
 
+// A switch at the foot of the mode menu that couldn't be changed: its note's button opens that menu again, under the
+// row's mode, where the switch is pressed again (only the menu turns one on).
+core.noteWays.modeMenu = (s) => {
+  const pick = [...list.querySelectorAll('.row[data-id] .pick[data-pick="mode"]')]
+    .find((el) => el.closest('.row').dataset.id === s.sessionId);
+  if (pick) pressPick(pick);
+};
+
 // ---- The Compact card ----
 
 // Claude Code has one compaction, `/compact`, whose optional words steer its summary: the three choices say how much
@@ -147,10 +135,15 @@ const COMPACT_LEVELS = [
 ];
 function toggleCompact(sid) {
   // A request waiting for an OK on the same row comes first.
-  if (!state.compactOpen[sid] && state.last.sessions.find((x) => x.sessionId === sid)?.ask) return;
+  const s = state.last.sessions.find((x) => x.sessionId === sid);
+  if (!state.compactOpen[sid] && s?.ask) return;
   if (state.compactOpen[sid]) delete state.compactOpen[sid];
   else { state.compactOpen[sid] = true; state.shownAt['compact:' + sid] = Date.now(); }
   delete state.compactNotes[sid];
+  // A compaction a module would send but can't (the row's compactNote) opens it saying why, with the way past it when
+  // its terminal has one.
+  const said = s?.compactNote;
+  if (state.compactOpen[sid] && said?.text) state.compactNotes[sid] = { text: said.text, way: said.way || null };
   render();
 }
 function sendCompact(sid, focus) {
@@ -167,13 +160,13 @@ function compactHTML(s) {
     `<button class="opt" data-level="${i}"><span class="opt-label">${label}</span>`
     + `<span class="opt-desc">${desc}</span></button>`).join('');
   return `<div class="perm compact" data-compact="${esc(s.sessionId)}">`
-    + '<div class="q-top"><span class="q-head">Compact the conversation</span>'
+    + '<div class="q-top"><span class="card-title">Compact the conversation</span>'
     + `<span class="c-left" title="before auto-compact">${kTokens(left)} left</span>`
-    + '<button class="q-close" title="Close">×</button></div>'
+    + '<button class="icon-button small q-close" title="Close">×</button></div>'
     + `<div class="q-opts">${options}</div>`
-    + '<input class="q-type c-focus" placeholder="Or your own focus, then Return"'
+    + '<input class="field q-type c-focus" placeholder="Or your own focus, then Return"'
     + ` value="${esc(state.compactFocus[s.sessionId] || '')}">`
-    + (note ? `<div class="c-note">${esc(note.text)}</div>` : '')
+    + (note ? `<div class="c-note notice inline warn">${esc(note.text)}</div>` : '')
     + (note?.way ? `<div class="perm-actions"><button class="c-way">${esc(note.way)}</button></div>` : '') + '</div>';
 }
 
@@ -195,11 +188,11 @@ function pressCompactCard(card, e) {
 }
 
 // A pick on its way into a terminal session (goingIn), from the moment it's typed until its result: going in, with a
-// dot fading on and off as a working row's does, started partway in so the list's rebuild each second doesn't restart
-// it; or, once no result has come, Claude Code asking about it in the terminal, which only the terminal can answer (its
-// "Change effort level?", say), and the way there. Right after Switch model is pressed on the row's "Switch model?",
-// it shows the switch going in at once, while the app passes the answer on. Each of its states is its own (data-stage),
-// so changing from one to another cross-fades, and a button that has only just come counts as only just shown.
+// dot fading on and off as a working row's does, started partway in so a rebuild of the list doesn't restart it; or,
+// once no result has come, Claude Code asking about it in the terminal, which only the terminal can answer (its "Change
+// effort level?", say), and the way there. Right after Switch is pressed on the row's "Switch model?", it shows
+// the switch going in at once, while the app passes the answer on. Each of its states is its own (data-stage), so
+// changing from one to another cross-fades, and a button that has only just come counts as only just shown.
 function goingOf(s) {
   if (s.goingIn) return s.goingIn;
   const answered = switchAnswered(s.sessionId);
@@ -215,11 +208,11 @@ function goingHTML(s) {
     const what = field === 'model' ? `Switching to ${name}…` : `Changing the ${esc(field)} to ${name}…`;
     return `<div class="perm going" data-going="${sid}" data-stage="going">`
       + `<div class="going-line"><span class="dot" style="${phase(1400)}"></span>`
-      + `<span class="perm-title">${what}</span></div></div>`;
+      + `<span class="card-title">${what}</span></div></div>`;
   }
   const what = field === 'model' ? `switches to ${name}` : `changes the ${esc(field)} to ${name}`;
   return `<div class="perm going in-terminal" data-going="${sid}" data-stage="terminal">`
-    + `<div class="perm-title">Claude is asking in the terminal before it ${what}</div>`
+    + `<div class="card-title">Claude is asking in the terminal before it ${what}</div>`
     + '<div class="perm-actions"><button class="perm-go">Take me there</button></div></div>';
 }
 
@@ -243,8 +236,11 @@ window.compactNote = (sid, text, way) => {
 // ---- What it plugs into ----
 
 // At the start of the bottom line. The model, effort and mode cross-fade as they change, not the ring.
-core.slots.setup.push((row) => agentSetupHTML(row.s));
+core.slots.setup.push((row) => agentSetupHTML(row.s, row));
 core.swaps.push(':scope > .main > .where .agent');
+// A row shown briefly has no bottom line, so its ring goes at its note's end, where that has Deploy, just before it:
+// put first, as this script comes after Deploy's.
+core.slots.placeEnd.unshift((row) => (row.brief ? contextRing(row.s) : ''));
 // The Compact card comes after a request waiting on the row, and closes for Deploy's set-up card.
 // A pick going in comes after a request waiting on the row, and before the Compact card. Away, what it showed is
 // forgotten, so a button that comes back waits again before it takes a press.

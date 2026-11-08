@@ -8,7 +8,8 @@
 @interface Spotify : NSObject
 - (instancetype)initWithPage:(Page *)page;
 // Show the song, on Spotify's page on the panel's back, turns it on and off. While it's off the page gets nothing and
-// Spotify is never asked anything, so macOS never asks whether Whozmove may control it.
+// this asks Spotify nothing, so macOS never asks whether Whozmove may control it here (the music made quieter while you
+// talk asks it only around a talk: SpotifyVolume).
 @property (nonatomic) BOOL shown;
 // A freshly loaded page gets what's known.
 - (void)resend;
@@ -23,13 +24,16 @@
 @property (nonatomic) BOOL collapsed;
 // Spotify's download page, in your browser: Whozmove installs nothing itself, and notices once Spotify is installed.
 - (void)getSpotify;
-// Spotify comes forward, opening if it isn't running (the now-playing strip's press).
+// Spotify comes forward, opening if it isn't running: your press on Open Spotify, on the card that says lowering the
+// music needs Whozmove to control it, whether the song shows or not.
 - (void)open;
 // What the token shows, as TokenFor gives it, each time that changes; and looked at again now (the strip has folded).
 @property (copy) void (^onToken)(NSDictionary *token);
 - (void)refreshToken;
 // The song each time it changes, as the page gets it, or nil once nothing plays or Spotify is removed: for its lyrics.
 @property (copy) void (^onSong)(NSDictionary *song);
+// Whether the music is lowered while you talk to an agent (SpotifyVolume): the strip shows a sign beside the time.
+@property (nonatomic) BOOL quieter;
 // While the song's lyrics follow it: where Spotify is in it is asked every few seconds, so a jump made in Spotify
 // itself (or the song starting over) shows in the lyrics within a few seconds, rather than at the next full read.
 @property (nonatomic) BOOL following;

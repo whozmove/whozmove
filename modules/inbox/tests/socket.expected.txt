@@ -1,0 +1,29 @@
+== Over the socket: Pip writes, then the lead lists, reads and answers
+exit=0
+-- What the panel printed
+With no agent to say where the lead listens, Pip writes: kept m-1
+  no address to ring yet: Whozmove can't tell where sessions listen on this Mac, so send the line below to Lead by name, the way your agent sends messages between sessions
+  line: Inbox m-1 · note from Pip: Hi.
+The record's file: mode 600
+-- From inside Pip's process
+kept m-2
+no address to ring yet: Whozmove can't tell where sessions listen on this Mac, so send the line below to Lead by name, the way your agent sends messages between sessions
+line: Inbox m-2 · report from Pip: Done: the coupon field is in, with 14 tests.
+exit=0
+-- From inside Lead's process
+{"about":"J7","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-2","priority":"report"}
+{"at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"note"}
+exit=0
+{"about":"J7","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-2","priority":"report","text":"Done: the coupon field is in, with 14 tests."}
+exit=0
+answered m-2
+exit=0
+{"at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"note","text":"Hi."}
+exit=0
+-- What panel.log kept of it
+inbox: s-pip kept m-1 (note) for its lead
+inbox: s-pip kept m-2 (report) for its lead
+inbox: s-lead listed its inbox (2 waiting)
+inbox: s-lead read m-2 (report)
+inbox: s-lead answered m-2
+inbox: s-lead read m-1 (note)

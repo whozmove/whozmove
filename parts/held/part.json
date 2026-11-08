@@ -1,0 +1,7 @@
+{
+  "scripts": ["page/sticky.js"],
+  "talksTo": ["core", "bridge", "handoff", "header", "list", "morph", "hover"],
+  "provides": ["stickyPlace", "stickyAt", "heldRowOf", "showInList", "showInListBy", "focusedRow", "showLeast", "stickyCopyOf",
+               "stickyMeasure", "stickyFold", "stickyFoldLine", "stickyShade", "stickyRamp", "stickyPx", "stickyEl",
+               "stickyUnder"]
+}

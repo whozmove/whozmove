@@ -1,0 +1,92 @@
+== Lead leads the shop's team; the agent says what became of the lines
+Pip writes to its lead, a question: kept m-1
+  ring: uds:/tmp/stand-in/lead.sock
+  line: Inbox m-1 · question from Pip: Which colour for the coupon button? 🟢 or 🔵
+The chief writes to the lead, a note: kept m-2
+  ring: uds:/tmp/stand-in/lead.sock
+  line: Inbox m-2 · note from Chief: Back at 9.
+Your own session writes, urgent: kept m-3
+  ring: uds:/tmp/stand-in/lead.sock
+  line: Inbox m-3 · urgent from You: Stop the migration.
+Lone, in a project with no team: refused: this project keeps no team, so it has no lead's inbox: send it to your lead by name, the way your agent sends messages between sessions
+The lead writes to itself: refused: this session is its team's lead: the inbox is its own
+Pip, with no priority: refused: say how pressing it is: --priority urgent|question|report|note
+Pip, to someone else: refused: a message goes to your team's lead: --to lead
+Pip, with a key in it: refused: it has something shaped like a key in it: take it out, and say where it's kept
+Pip, 8,001 characters: refused: a message may be 8,000 characters at most: put the rest in a file and give its path
+Pip, words that aren't base64: refused: Whozmove couldn't read the message: give it on stdin, as text
+Pip asks for the lead's inbox: refused: this session isn't its team's lead: the team file names Lead
+The lead's inbox: {"about":"stop","at":(when),"from":{"name":"You","session":"s-you"},"id":"m-3","priority":"urgent"}
+  {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question"}
+  {"at":(when),"from":{"name":"Chief","session":"s-chief"},"id":"m-2","priority":"note"}
+The agent says Pip's line is held: the inbox: {"about":"stop","at":(when),"from":{"name":"You","session":"s-you"},"id":"m-3","priority":"urgent"}
+  {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question","told":{"at":(when),"messageId":"msg-pip","state":"held"}}
+  {"at":(when),"from":{"name":"Chief","session":"s-chief"},"id":"m-2","priority":"note"}
+…it keeps Pip's line: yes
+…and the chief's naming Pip's message: no
+…then expired: the week's counts: {"denied":0,"dropped":0,"expired":1,"failed":0,"held":1,"lost":2}
+The lead reads the next: {"about":"stop","at":(when),"from":{"name":"You","session":"s-you"},"id":"m-3","priority":"urgent","text":"Stop the migration."}
+…and the next: {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question","text":"Which colour for the coupon button?\n\n🟢 or 🔵","told":{"at":(when),"messageId":"msg-pip","state":"expired"}}
+Pip asks for the next: refused: this session isn't its team's lead: the team file names Lead
+Pip marks the lead's urgent one answered: refused: only its team's lead marks a message answered
+The lead marks it answered, with a note: answered m-3
+…by an id that's a path: refused: name the message by the id inbox-next gave, as m-7f3a2c
+…by an id nobody kept: refused: no message m-4 is in this inbox: name one by the id inbox-next gave
+The lead's inbox now: {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question","readAt":(when),"readBy":"s-lead","told":{"at":(when),"messageId":"msg-pip","state":"expired"}}
+  {"at":(when),"from":{"name":"Chief","session":"s-chief"},"id":"m-2","priority":"note"}
+The record's file: mode 600
+== Lead2 leads it now, a fresh lead, not running as the agent says
+Pip writes to its lead, which isn't running: kept m-5
+  Lead2 isn't running: it reads this when it starts, so there's nothing to ring
+The lead before asks for the inbox: refused: this session isn't its team's lead: the team file names Lead2
+The fresh lead's inbox: {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question","readAt":(when),"readBy":"s-lead","told":{"at":(when),"messageId":"msg-pip","state":"expired"}}
+  {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-5","priority":"report"}
+  {"at":(when),"from":{"name":"Chief","session":"s-chief"},"id":"m-2","priority":"note"}
+…it reads the next, read before and not answered: {"about":"J12","at":(when),"from":{"name":"Pip","session":"s-pip"},"id":"m-1","priority":"question","text":"Which colour for the coupon button?\n\n🟢 or 🔵","told":{"at":(when),"messageId":"msg-pip","state":"expired"}}
+The record's file: mode 600
+== No agent says where sessions listen
+With no agent to say where the lead listens, Pip writes: kept m-6
+  no address to ring yet: Whozmove can't tell where sessions listen on this Mac, so send the line below to Lead by name, the way your agent sends messages between sessions
+  line: Inbox m-6 · note from Pip: Hi.
+The record's file: mode 600
+== ask-panel.sh with words it can't send
+A message goes to your team's lead: --to lead
+exit=2
+A message goes to your team's lead: --to lead
+exit=2
+Say how pressing it is: --priority urgent, question, report or note
+exit=2
+Give --about its value too
+exit=2
+Say what it's about in 40 characters at most, as a job's id
+exit=2
+Only --to lead, --priority and --about may follow message
+exit=2
+Give the message on stdin
+exit=2
+A message may be 12 KB at most: put the rest in a file and give its path
+exit=2
+Nothing may follow inbox: it's this session's own inbox
+exit=2
+Nothing may follow inbox-next: it's this session's own inbox
+exit=2
+Name the message by the id inbox-next gave, as m-7f3a2c
+exit=2
+Name the message by the id inbox-next gave, as m-7f3a2c
+exit=2
+A note may be 400 characters at most: say what was done more briefly
+exit=2
+== What panel.log kept
+inbox: s-pip kept m-1 (question) for its lead
+inbox: s-chief kept m-2 (note) for its lead
+inbox: s-you kept m-3 (urgent) for its lead
+inbox: s-lead listed its inbox (3 waiting)
+inbox: s-lead listed its inbox (3 waiting)
+inbox: s-lead read m-3 (urgent)
+inbox: s-lead read m-1 (question)
+inbox: s-lead answered m-3
+inbox: s-lead listed its inbox (2 waiting)
+inbox: s-pip kept m-5 (report) for its lead
+inbox: s-lead-2 listed its inbox (3 waiting)
+inbox: s-lead-2 read m-1 (question)
+inbox: s-pip kept m-6 (note) for its lead

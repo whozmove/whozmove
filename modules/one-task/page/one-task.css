@@ -1,0 +1,190 @@
+/* One Task in the reader (one-task.js): the task in front in one shape, with the kit's pieces; its head and its
+   foot. Nothing down its side, and nothing over what it shows.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.k-one-task .r-shelf, .k-one-task .r-src { display: none; }
+.k-one-task .r-answer { display: flex; flex-direction: column; gap: 6px; padding: 10px 18px 12px; }
+.ot-foot-line { display: flex; align-items: center; gap: 10px; min-width: 0; }
+/* Where the task is for, in the head's line (taskWhereHTML), as the list's rows say where a session runs. */
+.k-one-task .r-sub .ot-in { margin: 0 1px; vertical-align: -1px; }
+.k-one-task .r-sub .ot-branch { color: var(--branch-text); }
+.k-one-task .r-sub .ot-branch svg { vertical-align: -1px; margin-right: 3px; }
+
+.ot-body { display: flex; flex-direction: column; gap: 12px; padding: 14px 18px; }
+/* The strip under the head: what's urgent (the kit's .notice.urgent) or ‹ Back, held at the top as the task scrolls
+   under it, on the panel's own colour. */
+.ot-strip { position: sticky; top: 0; z-index: 2; flex: none; display: flex; padding: 8px 12px 8px 14px;
+            background: var(--sticky-head); }
+.ot-strip .notice { flex: 1; min-width: 0; }
+/* The line under it, in the head's place, only while the task scrolls under it (readerLines, the reader's). */
+.ot-strip.line-under { box-shadow: 0 1px 0 var(--rule); }
+.ot-back { border: 0; background: none; padding: 0; font: inherit; font-size: var(--size-small); color: var(--link);
+           text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ot-back.is-hover { text-decoration: underline; }
+/* Say why (One Task's page): why the one in front is first, over it; what's after it, under it, each with why. */
+.ot-why-here { margin: 0; font-size: var(--size-small); color: var(--muted); }
+.ot-why-here b { font-weight: 600; color: var(--text); }
+.ot-after ol { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px;
+               font-size: var(--size-small); color: var(--text); }
+.ot-after i { font-style: normal; color: var(--muted); }
+/* What you'd typed about a task that was taken back while you were away, to copy, until you move on. Hidden
+   otherwise: the panel has no rule of its own for [hidden], so these rows, laid out as flex, say so. */
+.ot-kept-row { display: flex; align-items: center; gap: 8px; }
+.ot-kept-row[hidden], .ot-talkbox[hidden] { display: none; }
+.ot-kept { flex: 1; min-width: 0; padding: 4px 8px; border-radius: var(--radius-box); background: var(--surface);
+           font-size: var(--size-small); color: var(--text); -webkit-user-select: text; user-select: text;
+           overflow-wrap: anywhere; white-space: pre-line; }
+.ot-steps { display: flex; flex-direction: column; gap: 12px; }
+.ot-none { gap: 4px; padding-block: 24px; }
+
+/* The title, kept across its steps, after its kind's tag: whole, on as many lines as it takes. */
+.ot-title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ot-title .tag { flex: none; }
+.ot-title .card-title { min-width: 0; font-size: var(--size-heading); line-height: 1.25; text-wrap: balance;
+                        overflow-wrap: anywhere; }
+/* One line on why, under the step, never a paragraph. */
+.ot-why { margin: 0; font-size: var(--size-card); line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+/* The step it's at, over a bar for each of its steps. */
+/* The box its words are rewritten in: the old words' copy is placed from it (rewriteText). */
+.ot-step { position: relative; display: flex; align-items: center; gap: 10px; }
+.ot-word { font-size: var(--size-small); font-weight: 600; color: var(--turn-text); }
+.ot-track { margin-left: auto; display: inline-flex; flex: none; }
+/* A next step's dashes ease to their new fill, as its words are rewritten (rewriteText). */
+.ot-track i { transition: background .3s ease; }
+
+/* Each part of the shape: its label in capitals over a few short lines. */
+.ot-part { display: flex; flex-direction: column; gap: 6px; }
+/* What changed, and what to look for: a line each. Under choices, what to do until one is picked. */
+.ot-line { margin: 0; font-size: var(--size-card); line-height: 1.45; color: var(--text); overflow-wrap: anywhere; }
+.ot-hint { margin: 0; font-size: var(--size-small); color: var(--muted); }
+/* A plan cut to its points: numbered, a line each, what it leaves out greyed and not counted. */
+.ot-points { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px;
+             counter-reset: point; }
+.ot-points li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; font-size: var(--size-card);
+                line-height: 1.4; color: var(--text); overflow-wrap: anywhere; }
+.ot-points li:not(.out) { counter-increment: point; }
+.ot-points li::before { content: counter(point); color: var(--muted); font-variant-numeric: tabular-nums;
+                        text-align: right; }
+.ot-points li.out { color: var(--muted); }
+.ot-points li.out::before { content: "–"; }
+/* A plan in phases: each a name over its lines, joined by a thin line down their side. */
+.ot-phases { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.ot-phase { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 0 8px; position: relative;
+            padding-bottom: 10px; }
+.ot-phase:last-child { padding-bottom: 0; }
+.ot-phase::before { content: ""; position: absolute; left: 8px; top: 18px; bottom: 2px; width: 1px;
+                    background: var(--rule); }
+.ot-phase:last-child::before { display: none; }
+.ot-num { width: 17px; height: 17px; border-radius: var(--radius-circle); display: grid; place-items: center;
+          font-size: var(--size-tag); font-weight: 600; background: var(--surface); color: var(--muted); }
+.ot-pn { min-width: 0; font-size: var(--size-card); font-weight: 600; color: var(--text); line-height: 17px;
+         overflow-wrap: anywhere; }
+.ot-pl { grid-column: 2; display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+.ot-pl span { font-size: var(--size-small); line-height: 1.4; color: var(--muted); overflow-wrap: anywhere; }
+/* What to do: steps to tick. */
+.ot-todo { display: flex; flex-direction: column; gap: 1px; }
+.ot-check { display: flex; align-items: center; gap: 9px; padding: 5px 8px; margin: 0 -8px; border: 0;
+            border-radius: var(--radius-small); background: none; font: inherit; font-size: var(--size-card);
+            color: var(--text); text-align: left; }
+.ot-check.is-hover { background: var(--hover); }
+.ot-check[aria-checked="true"] > span:last-child { color: var(--muted); }
+/* A command only you can run: shown whole, as a card shows what it would run (.perm-detail), only ever copied. */
+.ot-command { display: flex; flex-direction: column; gap: 0; }
+/* Choices: the kit's short list, a pick's letter, Recommended at the end. */
+.ot-choices .option { align-items: flex-start; gap: 8px; padding: 6px 8px; }
+.ot-choices .option .tag, .ot-choices .option .tickbox { margin-top: 1px; }
+.ot-choices .option .tag.new { margin-left: auto; }
+.ot-ch { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ot-ch em { font-style: normal; font-size: var(--size-small); color: var(--muted); }
+.ot-letter { flex: none; min-width: 10px; font-weight: 600; }
+/* What's attached, each on a line, with what a press does at its end. */
+.ot-atts { display: flex; flex-direction: column; gap: 4px; }
+.ot-att { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border: 0; border-radius: var(--radius-box);
+          background: var(--surface); font: inherit; font-size: var(--size-small); color: var(--text); min-width: 0;
+          text-align: left; }
+button.ot-att.is-hover { background: var(--hover); }
+.ot-att > span:not(.diff):not(.ot-att-do) { min-width: 0; overflow: hidden; white-space: nowrap;
+                                            text-overflow: ellipsis; }
+.ot-att-mark { flex: none; width: 14px; text-align: center; font-weight: 400; color: var(--muted); }
+.ot-att-do { margin-left: auto; flex: none; color: var(--muted); }
+.ot-att-from { font-style: normal; color: var(--muted); }
+/* The answer: Answer and the kind's other buttons. On a task taller than the view, it
+   stays at the view's foot while it would be out of sight below, and only then (`stuck`, one-task.js) takes a fill of
+   its own, with a rule over it, that what scrolls goes under: a task that fits has nothing behind its buttons. */
+.ot-act { position: sticky; bottom: 0; z-index: 1; display: flex; flex-direction: column; gap: 8px;
+          margin: -8px -18px; padding: 8px 18px; }
+.ot-act.stuck { background: var(--sticky-foot); box-shadow: 0 -1px 0 var(--rule); }
+.ot-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* Answer while it waits: dimmed as the kit's disabled button is, yet a press on it still lands, bringing the choices
+   into view (a disabled button gets no press at all), with what it waits for beside it. */
+.ot-buttons .button.off { opacity: .4; }
+.ot-waits, .ot-there-why { font-size: var(--size-small); color: var(--muted); }
+.ot-waits:empty { display: none; }
+/* Comment's box, on its own line under it in the choices, once Comment is picked. */
+.ot-choices .ot-note { width: 100%; margin: 2px 0 4px; }
+
+/* The foot: where your answer went, and how many more wait after this one; and what VoiceOver says, out of sight. */
+/* Where your answer went wraps, whole, rather than being cut. */
+.ot-sent { flex: 1; min-width: 0; opacity: 0; overflow-wrap: anywhere; transition: opacity .2s ease; }
+.ot-sent.shown { opacity: 1; }
+.ot-more { flex: none; margin-left: auto; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
+.ot-say { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The talk under the task: whom it's with, what you said and each reply, and the box at the foot. Your words sit on the
+   soft fill a card on a row has; a reply in the reader's colour, its name over it. */
+.ot-talk { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.ot-talk-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ot-where { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
+.ot-to { flex: none; display: inline-flex; gap: 1px; padding: 1px; border-radius: var(--radius-tag); background: var(--tag); }
+.ot-to button { border: 0; background: none; font: inherit; font-size: var(--size-small); color: var(--muted);
+                padding: 1px 7px; border-radius: var(--radius-tag); }
+.ot-to button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
+.ot-to button.is-hover { color: var(--text); }
+.ot-talk-empty { margin: 0; font-size: var(--size-small); color: var(--muted); line-height: 1.45; }
+.ot-talk-lines { display: flex; flex-direction: column; gap: 10px; }
+.ot-you { align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.ot-you p { margin: 0; padding: 6px 10px; border-radius: var(--radius-box); background: var(--ask-fill);
+            box-shadow: inset 0 0 0 1px var(--ask-edge); font-size: var(--size-card); line-height: 1.45;
+            color: var(--text); overflow-wrap: anywhere; }
+.ot-you.held p { background: none; box-shadow: inset 0 0 0 1px var(--edge); color: var(--muted); }
+.ot-said { font-size: var(--size-meta); color: var(--muted); }
+.ot-said.held { color: var(--turn-text); }
+.ot-talk-act { border: 0; background: none; padding: 0; font: inherit; color: var(--link); }
+.ot-talk-act.is-hover { text-decoration: underline; }
+/* Two presses side by side, apart enough to read as two. */
+.ot-talk-act + .ot-talk-act { margin-left: 8px; }
+.ot-reply { display: flex; flex-direction: column; gap: 3px; max-width: 94%; }
+.ot-reply > b { font-size: var(--size-meta); font-weight: 600; color: var(--label); }
+.ot-reply-text, .ot-glance { font-size: var(--size-card); line-height: 1.5; color: var(--reading-text);
+  overflow-wrap: anywhere; }
+/* A reply's paragraphs, lists and code, and a plan's short view drawn as it was written, with a little room between
+   them. */
+.ot-reply-text > *, .ot-glance > * { margin: 0; }
+.ot-reply-text > * + *, .ot-glance > * + * { margin-top: 6px; }
+/* A plan's short view as written: its lists set in as the reader's are (parts/pane/page/reader.css), so the choices
+   sit under You decide and no marker hangs out of the column. */
+.ot-glance ul, .ot-glance ol { padding-left: 22px; }
+.ot-glance li > ul, .ot-glance li > ol { margin: 4px 0 0; }
+/* A code block in a reply, on a line of its own: the kit's command, one line until pressed, and Copy beside it. */
+.ot-code { display: flex; align-items: flex-start; gap: 6px; }
+.ot-code-line { flex: 1; min-width: 0; padding: 5px 8px; border: 0; border-radius: var(--radius-box);
+                background: var(--code-fill); font: inherit; text-align: left; }
+.ot-code-line.is-hover { background: var(--hover); }
+.ot-code-line .perm-detail { margin: 0; cursor: pointer; }
+/* Shown whole, it wraps only between words (taskCodeWords keeps each on one line), so a command reads as typed. */
+.ot-code.open .perm-detail { word-break: normal; overflow-wrap: break-word; }
+.ot-word-whole { white-space: nowrap; }
+.ot-code .button { flex: none; }
+.ot-live { margin: 0; font-size: var(--size-card); color: var(--work-text); }
+/* The box at the foot, over the line that shows what goes in. */
+.ot-talkbox { display: flex; flex-direction: column; gap: 4px; }
+/* The field and Send as tall as each other: the small field's height (its line, padding and edge). */
+.ot-talk-row { display: flex; align-items: center; gap: 6px; }
+.ot-talk-row .field, .ot-talk-row .button { box-sizing: border-box; height: 29px; }
+.ot-talk-row .button { padding-block: 0; }
+.ot-talk-row .q-type { margin-top: 0; }
+.ot-talk-row .field { flex: 1; min-width: 0; }
+/* Exactly what goes in, whole: it wraps onto as many lines as it takes, never cut. */
+.ot-talk-goes { font-size: var(--size-meta); color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
+.ot-talk-goes.why { color: var(--text); }

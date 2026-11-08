@@ -16,3 +16,10 @@ NSString *UsageFolder(void);
 NSDictionary *UsageFromReply(NSData *line);
 // From `claude auth status`: @"signedIn", @"signedOut", or nil when it can't be read.
 NSString *AuthStateFrom(NSData *output);
+// Why an answer has no plan's numbers, from what `claude auth status` said (AuthStateFrom's) and whether your
+// terminal's shell sets an API key or another provider for it: nil when it's signed out with no such key (the card
+// offers Sign in), else @"signedIn", @"shell" (signed out, but the shell's key is what Claude Code uses there) or
+// @"unknown" (its sign-in couldn't be read). Only what was read, never a guess at why.
+NSString *UsageNoPlanReason(NSString *auth, BOOL shellUsesOther);
+// The command that signs in the `claude` at this path, as typed in a terminal.
+NSString *ClaudeSignInCommand(NSString *claude);

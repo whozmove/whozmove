@@ -1,0 +1,24 @@
+
+== What brings a session out
+what brings a chat out: a request, a wait without one, a reply you haven't read; nothing for one you have read, one at work, one idle, nor a start not listed yet: ["ask:q1","wait:1999999880000","reply:1999999940000",null,null,null,null]
+how much each needs you: ["urgent","urgent","soon"]
+
+== In its tab
+in a session's tab: the one you're on, seen there 1 second ago, or opened from here 2 seconds ago; not 4 seconds after the app last saw you there, nor another session: [true,true,false,false]
+
+== What a module says is new in a session
+a row with nothing of its own: what the module says, its level as given: {"news":"side:40","level":"soon"}
+…a request of its own comes first: {"news":"ask:q7","level":"urgent"}
+…and so does a reply of its own: {"news":"reply:1999999940000","level":"soon"}
+…the first module that says something; one with no words or no such level is passed over: {"news":"side:40","level":"soon"}
+…nothing anywhere: null
+a module's word that's a row's own kind, has a space, has no word before it, is too long or has no such level is passed over: [null,null,null,null,null]
+a module's line, kept to one line, and its time; one too long, or a time that isn't one, left out: [{"news":"side:40","level":"soon","line":"In your side chat: Yes.","at":40},{"news":"side:40","level":"soon","at":40},{"news":"side:40","level":"soon","line":"Yes."}]
+
+== What it says for the panel's edge
+the levels of those with something new, and what the list counts as waiting on you: [["urgent","urgent","soon"],3]
+…a side chat's reply on a row with nothing of its own: soon: [{"since":"side:40","level":"soon"}]
+
+== Its notices
+one for each session, in the order placed: [{"key":"a","session":"a","level":"urgent","text":"","since":"ask:q1","seenNow":true,"evenWhenSeen":true,"outFor":45,"closes":false},{"key":"b","session":"b","level":"soon","text":"","since":"reply:1999999940000","seenNow":false,"evenWhenSeen":false,"outFor":45,"closes":false,"openedAt":1999999999000},{"key":"c","session":"c","level":"soon","text":"In your side chat: Yes.","since":"side:40","at":40,"seenNow":false,"evenWhenSeen":false,"outFor":45,"closes":false},{"key":"d","session":"d","level":"know","text":"","since":"","seenNow":false,"evenWhenSeen":false,"outFor":45,"closes":false}]
+…opened from the panel a moment ago, before the app has seen you there: you're in its tab: [{"key":"b","seenNow":true}]

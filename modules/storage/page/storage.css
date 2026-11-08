@@ -1,0 +1,221 @@
+/* Storage on the panel's page: the line under the header when the disk is running low (in the dock, with a new
+   conversation's card), in the amber of your move, and the red of something wrong once it's nearly out; and the map
+   beside the list, with Clean up. Its colours, sizes and corners are tokens.css's.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* It holds its line's margins, so its height is the same whether what's outside it shows or not (as it eases in, out
+   or to new words), and nothing below moves when the easing starts or ends. */
+#diskline { flex: none; display: flow-root; }
+.disk-line { display: flex; align-items: center; gap: 10px; margin: 2px 10px 8px; padding: 8px 8px 8px 12px;
+             border-radius: var(--radius-box); background: var(--surface); transition: background-color .15s ease; }
+.disk-line.is-hover { background: var(--hover-firm); }
+.disk-mark { flex: none; width: 15px; height: 15px; color: var(--turn-text); }
+.disk-line.severe .disk-mark { color: var(--needs-text); }
+.disk-line.ready .disk-mark { color: var(--done-text); }
+.disk-line.keys .disk-mark, .map-head-mark.keys { color: var(--needs-text); }
+.disk-mark svg, .disk-go svg { display: block; width: 100%; height: 100%; }
+.disk-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+/* Its words wrap rather than being cut, however many places the keys line names: the dock grows with them. */
+.disk-words b { font-weight: 500; color: var(--text); overflow-wrap: break-word; }
+.disk-words i { font-style: normal; font-size: var(--size-small); color: var(--muted); overflow-wrap: break-word; }
+.disk-line.severe .disk-words i { color: var(--needs-text); }
+.disk-go { flex: none; width: 10px; height: 10px; color: var(--faint);
+           transition: color .15s ease, transform .2s ease; }
+.disk-line.is-hover .disk-go { color: var(--text); transform: translateX(1px); }
+.disk-x { margin-left: -2px; }
+
+/* ---- The map beside the list ---- */
+
+.k-storage .r-shelf, .k-storage .r-src { display: none; }
+.map-head-mark { flex: none; width: 15px; height: 15px; color: var(--turn-text); }
+.map-head-mark svg { display: block; width: 100%; height: 100%; }
+.map { padding: 10px 24px 16px; }
+.map-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 26px;
+           margin-bottom: 10px; }
+/* Its tabs, Clean up, the Map and Keys, are the shared tabs (controls.css), Clean up's with how much can come back
+   and Keys' with how many keys count: red while one has left this Mac, else your move's colour. */
+.map-tab-count { margin-left: 3px; color: var(--done-text); font-variant-numeric: tabular-nums; }
+.map-tab-count.keys { color: var(--needs-text); }
+.map-tab-count.keys.soon { color: var(--turn-text); }
+.map-crumbs { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 2px; min-height: 22px;
+              margin: -2px 0 8px; }
+/* The folders on the way here (the kit's quiet buttons), and the one it's in, which isn't one to press. */
+.map-crumb.here { padding: 2px 6px; font-size: var(--size-small); color: var(--text); font-weight: 600; }
+.map-going { padding: 2px 6px; font-size: var(--size-small); font-weight: 600; }
+.map-sep { width: 8px; height: 8px; color: var(--faint); }
+.map-sep svg { display: block; width: 100%; height: 100%; }
+.map-status { flex: none; display: flex; align-items: center; gap: 8px; }
+.map-measured { font-size: var(--size-small); color: var(--faint); font-variant-numeric: tabular-nums; }
+/* How far a measure has got, against what's in use (the kit's bar). */
+.map-progress { width: 72px; height: 4px; }
+/* What the map waits for (Apple's developer tools) and the way to install them: the kit's notice, boxed. */
+.map-need { margin: 0 0 10px; }
+.map-empty { max-width: 440px; margin: 40px auto; font-size: var(--size-body); color: var(--muted);
+             text-align: center; }
+
+/* The rings, and what's in the folder beside them, which takes all the height the panel has: the map fills the reader
+   (.fills, once there's a folder to show), and the list stretches beside the rings, its items scrolling in the room
+   left under its head. The rings, as tall as the list at least, say how tall the map has to be (contentHeight in
+   map-view.js). */
+.map.fills { min-height: 100%; display: flex; flex-direction: column; }
+.map-main { display: flex; gap: 20px; }
+.map.fills .map-main { flex: 1 0 auto; }
+.map-rings { flex: none; align-self: flex-start; position: relative; width: 332px; height: 332px; }
+.map-rings svg { display: block; }
+/* The old rings and the middle's words, laid over the new while a step in or out comes in (mapGrow), never in the
+   pointer's way. */
+.map-rings svg.map-was { position: absolute; left: 0; top: 0; }
+.map-rings .map-was { pointer-events: none; }
+.map-seg { stroke: var(--panel); stroke-width: 0.6; transition: fill-opacity .15s ease, stroke .15s ease; }
+.map-seg.h0 { fill: var(--map-1); }
+.map-seg.h1 { fill: var(--map-2); }
+.map-seg.h2 { fill: var(--map-3); }
+.map-seg.h3 { fill: var(--map-4); }
+.map-seg.h4 { fill: var(--map-5); }
+.map-seg.h5 { fill: var(--map-6); }
+.map-seg.grey { fill: var(--map-grey); }
+.map-seg.d1 { fill-opacity: .92; }
+.map-seg.d2 { fill-opacity: .66; }
+.map-seg.d3 { fill-opacity: .42; }
+.map-seg.rest { fill-opacity: .28; }
+.map-seg.on { fill-opacity: 1; stroke: var(--bright); stroke-width: 1.4; }
+.map-seg.picked { fill: var(--map-picked); stroke: var(--map-picked-edge); stroke-dasharray: 3 2; stroke-width: 1; }
+.map-middle { fill: var(--map-middle); transition: fill .15s ease; }
+.map-middle.up.is-hover { fill: var(--map-middle-pointed); }
+.map-middle-words { position: absolute; left: 50%; top: 50%; width: 96px; transform: translate(-50%, -50%);
+                    display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center;
+                    pointer-events: none; }
+.map-middle-words b { max-width: 100%; font-size: var(--size-body); font-weight: 600; color: var(--text);
+                      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-middle-words > span { font-size: var(--size-heading); font-weight: 600; color: var(--text);
+                           font-variant-numeric: tabular-nums; }
+.map-middle-words i { font-style: normal; font-size: var(--size-tag); line-height: 1.3; color: var(--faint); }
+
+.map-list { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.map-list-head { display: flex; justify-content: space-between; padding: 2px 8px 6px; }
+.map-room { flex: 1; position: relative; }
+.map-items { position: absolute; inset: 0; overflow-y: auto; }
+.map-items::-webkit-scrollbar { width: 0; }
+.map-item { display: flex; align-items: center; gap: 9px; padding: 6px 6px 6px 8px;
+            border-radius: var(--radius-small); }
+.map-item.is-hover, .map-item.on { background: var(--hover); }
+.map-swatch { flex: none; width: 9px; height: 9px; border-radius: var(--radius-bar); }
+.map-swatch.h0 { background: var(--map-1); }
+.map-swatch.h1 { background: var(--map-2); }
+.map-swatch.h2 { background: var(--map-3); }
+.map-swatch.h3 { background: var(--map-4); }
+.map-swatch.h4 { background: var(--map-5); }
+.map-swatch.h5 { background: var(--map-6); }
+.map-swatch.grey { background: var(--map-grey); }
+.map-swatch.rest { opacity: .45; }
+.map-item-words { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.map-item-words b { font-size: var(--size-body); font-weight: 500; color: var(--text); white-space: nowrap;
+                    overflow: hidden; text-overflow: ellipsis; }
+.map-item.rest .map-item-words b { font-weight: 400; color: var(--muted); }
+.map-item-words small { font-size: var(--size-tag); color: var(--muted); white-space: nowrap; overflow: hidden;
+                        text-overflow: ellipsis; }
+/* A row unread for want of Full Disk Access: its words wrap, to be read whole, with Allow Access under them. */
+.map-item.allow .map-item-words small { white-space: normal; }
+.map-allow { align-self: flex-start; margin-top: 4px; }
+.map-item-size { flex: none; width: 58px; display: flex; flex-direction: column; align-items: flex-end; gap: 3px;
+                 font-size: var(--size-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+.map-share { width: 100%; height: 3px; }
+.map-go { flex: none; width: 9px; height: 9px; color: var(--faint); }
+.map-go svg { display: block; width: 100%; height: 100%; }
+/* ＋ beside a part (the kit's icon button), blue once the part is collected, pointed at or not. */
+.map-add svg { width: 10px; height: 10px; }
+/* A part that can't go keeps the kit's ＋ unseen, so the sizes stay in line. */
+.map-add.none { visibility: hidden; }
+.map-add.in, .map-add.in.is-hover { background: var(--tick); color: var(--on-colour); }
+
+/* What's collected, under the map (the kit's tray), each a chip with its ×. */
+.map-chips { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.map-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 220px; padding: 3px 4px 3px 9px;
+            border: 1px dashed var(--map-picked-edge); border-radius: var(--radius-pill);
+            font-size: var(--size-small); }
+.map-chip b { font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-chip i { font-style: normal; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-chip span { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.map-chip-x svg { width: 8px; height: 8px; }
+
+/* ---- Clean up (clean-view.js) ---- */
+
+.clean-lede { display: flex; align-items: baseline; gap: 10px; margin: 2px 8px 6px; }
+.clean-lede b { flex: none; font-size: var(--size-heading); font-weight: 600; color: var(--text);
+                font-variant-numeric: tabular-nums; }
+.clean-lede span { font-size: var(--size-small); color: var(--muted); }
+.clean-group { margin-top: 12px; }
+.clean-group-head { display: flex; align-items: baseline; gap: 10px; padding: 0 8px 4px; }
+.clean-group-words { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+.clean-group-words b { flex: none; }
+.clean-group-words i { min-width: 0; font-style: normal; font-size: var(--size-small); color: var(--faint);
+                       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clean-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 8px; border-radius: var(--radius-small); }
+.clean-row.is-hover { background: var(--hover); }
+.clean-row .tickbox { margin-top: 2px; }
+.clean-row.locked .tickbox { opacity: .4; }
+.clean-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.clean-words b { font-size: var(--size-body); font-weight: 500; color: var(--text); }
+.clean-words i { font-style: normal; font-size: var(--size-small); color: var(--muted); }
+.clean-row.locked .clean-words b { color: var(--muted); }
+.clean-command { align-self: flex-start; margin-top: 4px; padding: 2px 6px; border-radius: var(--radius-tag);
+                 background: var(--inline-code-fill); color: var(--inline-code); white-space: pre-line;
+                 font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace; }
+.clean-open { align-self: flex-start; margin-top: 6px; font-size: var(--size-small); }
+.clean-size { flex: none; font-size: var(--size-small); color: var(--muted); font-variant-numeric: tabular-nums; }
+.clean-row[aria-checked="true"] .clean-size { color: var(--text); }
+/* While it cleans, each row's step where its size was; one that stayed says why and what to do, in your move's colour,
+   and one in the Trash, or done, in the colour of what's done. */
+.clean-row.stayed .clean-words i, .clean-row.stayed .clean-size { color: var(--turn-text); }
+.clean-row.trashed .clean-size, .clean-row.done .clean-size { color: var(--done-text); }
+/* While it cleans, the rows it isn't cleaning rest as a locked row does; a row that went keeps its box's room, empty. */
+.clean-row .tickbox.went { visibility: hidden; }
+.clean-row.resting .tickbox { opacity: .4; }
+.clean-row.resting .clean-words b { color: var(--muted); }
+/* That Storage just turned on, with Turn Off (the kit's notice); and, while the map is still measured, the line saying
+   projects' built files join the list there. */
+.clean-on { margin: 0 0 10px; }
+.clean-later { margin: 14px 8px 0; font-size: var(--size-small); color: var(--faint); }
+
+/* ---- Keys (keys-view.js): each key with its dot (the row's), its words, Show Where's places, and its fix at its end;
+   the groups' caps labels; the samples' and the put away's lines at the foot ---- */
+
+.keys-group { margin-top: 14px; }
+.keys-group-head { display: flex; align-items: baseline; gap: 10px; padding: 0 8px 4px; }
+.keys-group-head i { min-width: 0; font-style: normal; font-size: var(--size-small); color: var(--faint); }
+.keys-group-head .button { margin-left: auto; }
+.keys-put { cursor: default; }
+.keys-key { display: flex; align-items: flex-start; gap: 10px; padding: 9px 8px; border-radius: var(--radius-small); }
+.keys-key .dot { margin-top: 5px; }
+.keys-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.keys-name { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+.keys-name b { font-size: var(--size-body); font-weight: 600; color: var(--text); }
+.keys-masked { font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.keys-named { min-width: 0; font-size: var(--size-small); color: var(--faint); white-space: nowrap; overflow: hidden;
+              text-overflow: ellipsis; }
+.keys-where { font-size: var(--size-card); color: var(--muted); }
+.keys-real { font-size: var(--size-small); color: var(--faint); }
+.keys-real b { font-weight: 500; color: var(--text); }
+.keys-real.test b, .keys-real.file b, .keys-real.ended b { color: var(--muted); }
+.keys-real.sample b { color: var(--faint); }
+.keys-show { align-self: flex-start; margin-top: 5px; }
+.keys-places { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; padding-left: 10px;
+               border-left: 1px solid var(--rule); }
+.keys-place { display: flex; align-items: center; gap: 10px; min-height: 26px; font-size: var(--size-small);
+              color: var(--muted); }
+.keys-place i { flex: 1; min-width: 0; font-style: normal; }
+.keys-place code { font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
+.keys-place small { flex: none; font-size: var(--size-small); color: var(--faint); }
+.keys-place .tray-ask { flex: none; }
+.keys-place .button { flex: none; white-space: nowrap; }
+.keys-fix { flex: none; display: flex; align-items: center; padding-top: 1px; }
+.keys-foot { margin-top: 16px; }
+.keys-reads { margin: 14px 8px 0; font-size: var(--size-small); color: var(--faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  .disk-line, .disk-go, .map-seg, .map-middle { transition: none; }
+}
+
+/* ＋'s item on its way to what's collected at the foot, and what the foot said before (mapLand): copies laid over the
+   page, never in the pointer's way. */
+.map-flying { position: fixed; z-index: 50; margin: 0; pointer-events: none; }

@@ -185,6 +185,8 @@ NSArray<NSDictionary *> *EditNews(NSData *chunk, NSUInteger end, NSSet<NSString 
 
 void AddEditNews(NSMutableDictionary *state, NSArray<NSDictionary *> *news) {
     if (!news.count) return;
+    // What the edits came to may change with any news, a request's result or a failure, so their version moves on.
+    state[@"editsVersion"] = @([state[@"editsVersion"] unsignedIntegerValue] + 1);
     NSMutableDictionary *files = state[@"edits"] ?: [NSMutableDictionary dictionary];
     NSMutableSet *ids = state[@"editIds"] ?: [NSMutableSet set], *failed = state[@"failedIds"] ?: [NSMutableSet set];
     // What each edit put into its file's lines, so an edit found to have failed can be taken back out.
@@ -422,6 +424,8 @@ NSDictionary *ShellNews(NSData *chunk, NSUInteger end, NSString *mode, NSString 
 void AddShellNews(NSMutableDictionary *state, NSDictionary *news) {
     NSMutableDictionary *modes = state[@"shellModes"] ?: [NSMutableDictionary dictionary];
     state[@"shellModes"] = modes;
+    NSUInteger modesBefore = modes.count;
+    id baseBefore = state[@"shellBase"];
     [news[@"modes"] enumerateKeysAndObjectsUsingBlock:^(NSString *mode, NSNumber *count, BOOL *stop) {
         modes[mode] = @([modes[mode] integerValue] + count.integerValue);
     }];
@@ -429,6 +433,7 @@ void AddShellNews(NSMutableDictionary *state, NSDictionary *news) {
     state[@"shellFailed"] = @([state[@"shellFailed"] integerValue] + [news[@"failed"] integerValue]);
     NSMutableSet *doubts = state[@"shellDoubts"] ?: [NSMutableSet set];
     state[@"shellDoubts"] = doubts;
+    NSUInteger doubtsBefore = doubts.count;
     [doubts addObjectsFromArray:news[@"doubts"]];
     NSMutableOrderedSet *git = state[@"gitCalls"] ?: [NSMutableOrderedSet orderedSet];
     state[@"gitCalls"] = git;
@@ -436,6 +441,116 @@ void AddShellNews(NSMutableDictionary *state, NSDictionary *news) {
     if (git.count > kGitCalls) [git removeObjectsInRange:NSMakeRange(0, git.count - kGitCalls)];
     if (news[@"mode"]) state[@"shellMode"] = news[@"mode"];
     if (news[@"base"]) state[@"shellBase"] = news[@"base"];
+    // What the edits come to changes as surely as with an edit when a file is newly in doubt, a command was recorded in
+    // part or failed, one ran in a mode not seen before (which can put every change in doubt: SessionKnown), or the
+    // folder its files are read against moved; so their version moves on (editsOf:'s `version`).
+    if (doubts.count != doubtsBefore || [news[@"partial"] integerValue] || [news[@"failed"] integerValue]
+        || modes.count != modesBefore || (state[@"shellBase"] && ![state[@"shellBase"] isEqual:baseBefore]))
+        state[@"editsVersion"] = @([state[@"editsVersion"] unsignedIntegerValue] + 1);
+}
+
+// Line keys as kept: each key's 8 bytes, as many times as it's counted, in Base64, as JSON's numbers can't hold every
+// 64-bit key exactly. A counted set's keys go in order, so the same lines always keep the same; a list's keep its own.
+static NSString *PackedKeys(id<NSFastEnumeration> keys, NSCountedSet *counted) {
+    NSMutableData *packed = [NSMutableData data];
+    NSArray *each = counted ? [counted.allObjects sortedArrayUsingSelector:@selector(compare:)] : nil;
+    for (NSNumber *key in each ?: keys) {
+        uint64_t bytes = CFSwapInt64HostToLittle(key.unsignedLongLongValue);
+        for (NSUInteger n = counted ? [counted countForObject:key] : 1; n > 0; n--)
+            [packed appendBytes:&bytes length:sizeof bytes];
+    }
+    return [packed base64EncodedStringWithOptions:0];
+}
+
+// The keys PackedKeys kept, or nil for anything that isn't what it writes.
+static NSArray<NSNumber *> *UnpackedKeys(id packed) {
+    NSData *bytes = AsText(packed) ? [[NSData alloc] initWithBase64EncodedString:packed options:0] : nil;
+    if (!bytes || bytes.length % sizeof(uint64_t)) return nil;
+    NSMutableArray<NSNumber *> *keys = [NSMutableArray arrayWithCapacity:bytes.length / sizeof(uint64_t)];
+    const uint64_t *each = bytes.bytes;
+    for (NSUInteger i = 0; i < bytes.length / sizeof(uint64_t); i++)
+        [keys addObject:@(CFSwapInt64LittleToHost(each[i]))];
+    return keys;
+}
+
+// A list of texts, or nil when anything in it isn't one.
+static NSArray<NSString *> *Texts(id list) {
+    NSArray *texts = AsList(list);
+    for (id text in texts)
+        if (!AsText(text)) return nil;
+    return texts;
+}
+
+NSDictionary *KeptEdits(NSDictionary *state) {
+    NSMutableDictionary *files = [NSMutableDictionary dictionary], *byEdit = [NSMutableDictionary dictionary];
+    [state[@"edits"] enumerateKeysAndObjectsUsingBlock:^(NSString *path, NSDictionary *file, BOOL *stop) {
+        NSMutableDictionary *kept = [file mutableCopy];
+        for (NSString *way in @[@"added", @"removed"]) kept[way] = PackedKeys(nil, file[way]);
+        files[path] = kept;
+    }];
+    [state[@"editLines"] enumerateKeysAndObjectsUsingBlock:^(NSString *editId, NSDictionary *lines, BOOL *stop) {
+        byEdit[editId] = @{@"path": lines[@"path"], @"added": PackedKeys(lines[@"added"], nil),
+                           @"removed": PackedKeys(lines[@"removed"], nil)};
+    }];
+    NSMutableDictionary *kept = [@{@"edits": files, @"editLines": byEdit,
+        @"editIds": [[state[@"editIds"] allObjects] sortedArrayUsingSelector:@selector(compare:)] ?: @[],
+        @"failedIds": [[state[@"failedIds"] allObjects] sortedArrayUsingSelector:@selector(compare:)] ?: @[],
+        @"editsVersion": state[@"editsVersion"] ?: @0, @"shellModes": state[@"shellModes"] ?: @{},
+        @"shellPartial": state[@"shellPartial"] ?: @0, @"shellFailed": state[@"shellFailed"] ?: @0,
+        @"shellDoubts": [[state[@"shellDoubts"] allObjects] sortedArrayUsingSelector:@selector(compare:)] ?: @[],
+        @"gitCalls": [state[@"gitCalls"] array] ?: @[]} mutableCopy];
+    if (state[@"shellMode"]) kept[@"shellMode"] = state[@"shellMode"];
+    if (state[@"shellBase"]) kept[@"shellBase"] = state[@"shellBase"];
+    return kept;
+}
+
+// Each part as AddEditNews and AddShellNews make it, within their limits, and nothing else.
+BOOL TakeBackEdits(NSDictionary *kept, NSMutableDictionary *state) {
+    NSDictionary *files = AsRecord(kept[@"edits"]), *byEdit = AsRecord(kept[@"editLines"]);
+    NSDictionary *modes = AsRecord(kept[@"shellModes"]);
+    NSArray *ids = Texts(kept[@"editIds"]), *failed = Texts(kept[@"failedIds"]), *doubts = Texts(kept[@"shellDoubts"]);
+    NSArray *git = Texts(kept[@"gitCalls"]);
+    if (!files || files.count > kFiles || !byEdit || !modes || !ids || !failed || !doubts || !git
+        || git.count > kGitCalls || !AsNumber(kept[@"editsVersion"]) || !AsNumber(kept[@"shellPartial"])
+        || !AsNumber(kept[@"shellFailed"]) || (kept[@"shellMode"] && !AsText(kept[@"shellMode"]))
+        || (kept[@"shellBase"] && !AsText(kept[@"shellBase"])))
+        return NO;
+    NSMutableDictionary *edits = [NSMutableDictionary dictionary], *lines = [NSMutableDictionary dictionary];
+    for (NSString *path in files) {
+        NSDictionary *file = AsRecord(files[path]);
+        NSArray *added = UnpackedKeys(file[@"added"]), *removed = UnpackedKeys(file[@"removed"]);
+        if (![AsText(file[@"path"]) isEqualToString:path] || !AsNumber(file[@"edits"]) || !AsNumber(file[@"created"])
+            || (file[@"at"] && !AsNumber(file[@"at"])) || !added || !removed)
+            return NO;
+        NSMutableDictionary *back = [@{@"path": path, @"edits": file[@"edits"], @"created": file[@"created"],
+                                       @"added": [NSCountedSet setWithArray:added],
+                                       @"removed": [NSCountedSet setWithArray:removed]} mutableCopy];
+        if (file[@"at"]) back[@"at"] = file[@"at"];
+        if ([back[@"added"] count] > kLines || [back[@"removed"] count] > kLines) return NO;
+        edits[path] = back;
+    }
+    for (NSString *editId in byEdit) {
+        NSDictionary *mine = AsRecord(byEdit[editId]);
+        NSArray *added = UnpackedKeys(mine[@"added"]), *removed = UnpackedKeys(mine[@"removed"]);
+        if (!AsText(mine[@"path"]) || !added || !removed) return NO;
+        lines[editId] = [@{@"path": mine[@"path"], @"added": [added mutableCopy],
+                           @"removed": [removed mutableCopy]} mutableCopy];
+    }
+    for (NSString *mode in modes)
+        if (!AsNumber(modes[mode])) return NO;
+    state[@"edits"] = edits;
+    state[@"editLines"] = lines;
+    state[@"editIds"] = [NSMutableSet setWithArray:ids];
+    state[@"failedIds"] = [NSMutableSet setWithArray:failed];
+    state[@"editsVersion"] = kept[@"editsVersion"];
+    state[@"shellModes"] = [modes mutableCopy];
+    state[@"shellPartial"] = kept[@"shellPartial"];
+    state[@"shellFailed"] = kept[@"shellFailed"];
+    state[@"shellDoubts"] = [NSMutableSet setWithArray:doubts];
+    state[@"gitCalls"] = [NSMutableOrderedSet orderedSetWithArray:git];
+    if (kept[@"shellMode"]) state[@"shellMode"] = kept[@"shellMode"];
+    if (kept[@"shellBase"]) state[@"shellBase"] = kept[@"shellBase"];
+    return YES;
 }
 
 // Whether what a session changed is all known: every shell command it ran was in a mode Claude Code records them in
@@ -450,7 +565,8 @@ BOOL SessionKnown(NSDictionary *transcript, id setting) {
 
 // The setting that turns Claude Code's records of shell commands on or off for a session in `project` (the folder it
 // runs in), as Claude Code goes by it: the machine's, else the project's own (its local file, then the shared one),
-// else yours, else nil.
+// else yours, else nil. Looked up for every session every few seconds, so each file is parsed again only once it has
+// changed.
 id ShellDiffSetting(NSString *project) {
     NSMutableArray<NSString *> *files = [NSMutableArray arrayWithObject:MachineFile(kClaudeCodeManagedSettings)];
     if (project.length) {
@@ -460,7 +576,7 @@ id ShellDiffSetting(NSString *project) {
     }
     [files addObject:ClaudeDir(kClaudeCodeSettings)];
     for (NSString *file in files) {
-        NSDictionary *settings = ReadJSON(file);
+        NSDictionary *settings = ReadJSONKept(file);
         id setting = [settings isKindOfClass:NSDictionary.class] ? settings[kClaudeCodeShellDiffSetting] : nil;
         if ([setting isKindOfClass:NSNumber.class]) return setting;
     }

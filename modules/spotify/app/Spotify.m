@@ -11,11 +11,12 @@
 // while one waits just doesn't answer. Whozmove starts Spotify only when you press the token's Play.
 //
 // The page gets the song as {track, title, artist, album, durationMs, positionMs, at, playing, pausedSince, artUrl,
-// allowed}: positionMs was right at `at` (ms since 1970: when Spotify said it, or was asked it) and moves on from there
-// while it plays, which the lyrics follow line by line; pausedSince is when a paused song was paused (0 for one found
-// paused, as when Whozmove starts); artUrl is the cover once known; allowed is NO once macOS has refused Whozmove
-// control of Spotify, YES once it has allowed it. Nothing (null) while Spotify plays nothing, isn't running, or Spotify
-// is turned off in Whozmove (Show the song, on its page on the panel's back).
+// allowed, quieter}: positionMs was right at `at` (ms since 1970: when Spotify said it, or was asked it) and moves on
+// from there while it plays, which the lyrics follow line by line; pausedSince is when a paused song was paused (0 for
+// one found paused, as when Whozmove starts); artUrl is the cover once known; allowed is NO once macOS has refused
+// Whozmove control of Spotify, YES once it has allowed it; quieter is there, YES, while the music is lowered as you
+// talk to an agent. Nothing (null) while Spotify plays nothing, isn't running, or Spotify is turned off in Whozmove
+// (Show the song, on its page on the panel's back).
 #import "Spotify.h"
 #import "Page.h"
 #import "Files.h"
@@ -26,7 +27,8 @@
 
 static double NowMs(void) { return NSDate.date.timeIntervalSince1970 * 1000; }
 
-// errAEEventNotPermitted: macOS's answer when you haven't allowed Whozmove to control the app.
+// errAEEventNotPermitted: macOS's answer when you haven't allowed Whozmove to control the app (and Whozmove's own, from
+// a run whose home isn't yours, which sends nothing).
 static const OSStatus kNotPermitted = -1743;
 // So a Spotify that has stopped answering holds nothing up for long. macOS's question about allowing Whozmove isn't
 // timed: Spotify is asked nothing until it's answered.
@@ -421,7 +423,7 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status, double *positionAt) {
 // As its Dock icon would: a Spotify with no window open shows one.
 - (void)open {
     NSURL *app = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:kSpotifyAppId];
-    if (!self.shown || !app) return;
+    if (!app) return;
     [NSWorkspace.sharedWorkspace openApplicationAtURL:app configuration:[NSWorkspaceOpenConfiguration configuration]
                                     completionHandler:^(NSRunningApplication *opened, NSError *error) {
         if (!opened) PanelLog(@"Spotify didn't open: %@", error.localizedDescription);
@@ -519,8 +521,15 @@ static NSArray *ReadSong(pid_t pid, OSStatus *status, double *positionAt) {
     if (!playing) [self control:@"playpause" fraction:0];
 }
 
+- (void)setQuieter:(BOOL)quieter {
+    if (quieter == _quieter) return;
+    _quieter = quieter;
+    [self send];
+}
+
 - (void)send {
-    NSDictionary *song = self.shown ? self.song : nil;
+    NSMutableDictionary *song = self.shown ? [self.song mutableCopy] : nil;
+    if (song && self.quieter) song[@"quieter"] = @YES;
     NSData *json = song ? [NSJSONSerialization dataWithJSONObject:song options:NSJSONWritingSortedKeys error:nil] : nil;
     NSString *text = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : @"null";
     if (!self.page.ready || [text isEqual:self.sent]) return;

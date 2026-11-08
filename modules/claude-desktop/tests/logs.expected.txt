@@ -1,0 +1,8 @@
+A /compact whose focus holds it, as the log says it: /compact (80 characters)
+A model pick, as the log says it: /model (22 characters)
+A message holding it, as the log says it: words (71 characters)
+A message that starts with it, as the log says it: words (58 characters)
+A message on two lines, as the log says it: words (62 characters)
+A message that starts with it after a slash, as the log says it: words (59 characters)
+A message that starts with a path holding it, as the log says it: words (73 characters)
+What Claude's window shows round the message box, the conversation's words holding it, as the log says it: textarea "Prompt", statictext with a name of 58 characters, button with a name of 47 characters, button "Submit", button "No folder"

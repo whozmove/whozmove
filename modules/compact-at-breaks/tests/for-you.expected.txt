@@ -1,0 +1,91 @@
+== Whether Compact at Breaks would compact a session at a break now, or why not, and whether nobody's on it
+{
+  "a Claude Desktop conversation" : {
+    "compacts" : "it's a Claude Desktop conversation, which would come forward",
+    "nobody on it" : true
+  },
+  "a dev server left running in the background" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "another compaction going in" : {
+    "compacts" : "a compaction is going into a session already",
+    "nobody on it" : true
+  },
+  "another session wrote to it 4 minutes ago" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "at a break, nobody on it" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "at no break" : {
+    "compacts" : "it's at no break",
+    "nobody on it" : true
+  },
+  "away an hour: the ring's suggestion only" : {
+    "compacts" : "nobody has been on it for an hour, so its cache has gone cold",
+    "nobody on it" : true
+  },
+  "compacted before its last message" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "compacted since its last message" : {
+    "compacts" : "it was compacted, or tried, since its last message",
+    "nobody on it" : true
+  },
+  "its turn ended a minute ago" : {
+    "compacts" : "its turn ended less than 2 minutes ago",
+    "nobody on it" : true
+  },
+  "its turn ended over an hour ago" : {
+    "compacts" : "its turn ended over an hour ago, so its cache has gone cold",
+    "nobody on it" : true
+  },
+  "nearly full" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "seen 6 minutes ago" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "seen in the last 5 minutes" : {
+    "compacts" : "you may be on it",
+    "nobody on it" : false
+  },
+  "something in the background that can change files" : {
+    "compacts" : "it runs something in the background that can change files",
+    "nobody on it" : true
+  },
+  "started before Whozmove's hooks" : {
+    "compacts" : "it started before Whozmove's hooks, so its next message couldn't be told",
+    "nobody on it" : true
+  },
+  "the panel in use" : {
+    "compacts" : "you may be on it",
+    "nobody on it" : false
+  },
+  "Whozmove started 3 minutes ago" : {
+    "compacts" : "Whozmove started less than 5 minutes ago, so it can't yet tell whether you're on it",
+    "nobody on it" : true
+  },
+  "you at the Mac, in its terminal or on it" : {
+    "compacts" : "you may be on it",
+    "nobody on it" : false
+  },
+  "you away from the Mac, its terminal in front" : {
+    "compacts" : "yes",
+    "nobody on it" : true
+  },
+  "you looked at it in Claude 4 minutes ago" : {
+    "compacts" : "you may be on it",
+    "nobody on it" : false
+  },
+  "you wrote to it 4 minutes ago" : {
+    "compacts" : "you may be on it",
+    "nobody on it" : false
+  }
+}

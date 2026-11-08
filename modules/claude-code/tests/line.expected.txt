@@ -1,0 +1,14 @@
+== L1 from inside s-real, naming s-real: taken, and answered
+   the hook printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}]
+== L2 from inside s-real, naming s-other: refused, and the hook steps aside
+   the hook printed: []
+== L3 from inside s-real, a second line asking with the id of one still waiting: refused
+   the first is answered: {"answer":{"behavior":"deny"}}
+   the second is told: {"refused":"its request's id is another's"}
+== what the panel's end says of each
+ask asked by s-real
+answered <id>
+refused: its process runs in s-real, not s-other
+ask asked by s-real
+answered <id>
+refused: its request's id is another's

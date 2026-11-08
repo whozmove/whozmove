@@ -3,9 +3,168 @@
     "agent": {
       "compactWindow": 800000,
       "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-alone",
+    "entrypoint": "cli",
+    "messageAt": "now-410m",
+    "name": "the k-alone one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-alone",
+    "status": "closed",
+    "statusUpdatedAt": "now-410m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-behind",
+    "entrypoint": "cli",
+    "messageAt": "now-430m",
+    "name": "the k-behind one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-behind",
+    "status": "closed",
+    "statusUpdatedAt": "now-430m",
+    "team": {
+      "counts": {
+        "waiting": {
+          "critical": 0,
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 0
+      },
+      "group": "Reviewers",
+      "groupAt": 0,
+      "leads": [
+        "k-lo"
+      ],
+      "name": "Kit",
+      "role": "lead",
+      "tag": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-desk",
+    "entrypoint": "cli",
+    "messageAt": "now-440m",
+    "name": "the k-desk one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-desk",
+    "status": "closed",
+    "statusUpdatedAt": "now-440m",
+    "team": {
+      "chief": true,
+      "name": "Desk",
+      "role": "front",
+      "shown": "The desk"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-desk",
+    "entrypoint": "cli",
+    "messageAt": "now-445m",
+    "name": "the k-desk-own one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-desk-own",
+    "status": "closed",
+    "statusUpdatedAt": "now-445m",
+    "team": {
+      "inFolderOf": "Desk"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-ask",
+    "entrypoint": "cli",
+    "lastPrompt": "Write the opening lines",
+    "lastPromptAt": "now-452m",
+    "lastReply": "Three opening lines are on the page",
+    "lastReplyAt": "now-450m",
+    "messageAt": "now-450m",
+    "name": "the k-fern one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "promptFrom": "k-next-ask",
+    "promptFromAddress": "/tmp/cc-socks/pid.sock",
+    "prs": [],
+    "sessionId": "k-fern",
+    "status": "closed",
+    "statusUpdatedAt": "now-450m",
+    "team": {
+      "name": "Fern",
+      "part": "words",
+      "role": "member",
+      "status": {
+        "job": "j8",
+        "stage": "queued",
+        "stageAt": "now-300m",
+        "title": "Page titles",
+        "words": "after the covers",
+        "you": false
+      }
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
       "mode": "acceptEdits",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/ended",
     "entrypoint": "cli",
@@ -16,6 +175,7 @@
     "messageAt": "now-120m",
     "name": "the k-ghostty one",
     "noCompact": true,
+    "onItAt": "now-121m",
     "opensIn": "Ghostty",
     "permissionMode": "acceptEdits",
     "pid": 0,
@@ -31,7 +191,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/ended",
     "entrypoint": "cli",
@@ -51,7 +213,314 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-odd",
+    "entrypoint": "cli",
+    "messageAt": "now-470m",
+    "name": "the k-ivy one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-ivy",
+    "status": "closed",
+    "statusUpdatedAt": "now-470m",
+    "team": {
+      "name": "Ivy",
+      "part": "layout",
+      "role": "member",
+      "status": {
+        "job": "j16",
+        "stage": "work",
+        "stageAt": "now-20m",
+        "title": "Gutters",
+        "words": "wider gutters",
+        "you": false
+      }
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-behind",
+    "entrypoint": "cli",
+    "messageAt": "now-420m",
+    "name": "the k-lo one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-lo",
+    "status": "closed",
+    "statusUpdatedAt": "now-420m",
+    "team": {
+      "groupAt": 1,
+      "name": "Lo",
+      "part": "build",
+      "role": "member"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-ask",
+    "entrypoint": "cli",
+    "messageAt": "now-500m",
+    "name": "the k-next-ask one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-next-ask",
+    "status": "closed",
+    "statusUpdatedAt": "now-500m",
+    "team": {
+      "chief": true,
+      "counts": {
+        "waiting": {
+          "critical": 0,
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 0
+      },
+      "leads": [
+        "k-fern"
+      ],
+      "name": "k-next-ask",
+      "next": {
+        "ask": "Read the three opening lines on the page and say which one reads best",
+        "priority": "p1",
+        "short": "Read the three opening lines on the page and say which one reads best"
+      },
+      "role": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-low",
+    "entrypoint": "cli",
+    "messageAt": "now-500m",
+    "name": "the k-next-low one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-next-low",
+    "status": "closed",
+    "statusUpdatedAt": "now-500m",
+    "team": {
+      "chief": true,
+      "counts": {
+        "waiting": {
+          "critical": 0,
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 0
+      },
+      "leads": [
+        "k-reed",
+        "k-sage"
+      ],
+      "name": "k-next-low",
+      "next": {
+        "priority": "p2",
+        "short": "Pick a cover"
+      },
+      "role": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-odd",
+    "entrypoint": "cli",
+    "messageAt": "now-500m",
+    "name": "the k-next-odd one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-next-odd",
+    "status": "closed",
+    "statusUpdatedAt": "now-500m",
+    "team": {
+      "chief": true,
+      "counts": {
+        "waiting": {
+          "critical": 0,
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 2
+      },
+      "leads": [
+        "k-ivy"
+      ],
+      "name": "k-next-odd",
+      "role": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-same",
+    "entrypoint": "cli",
+    "messageAt": "now-500m",
+    "name": "the k-next-same one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-next-same",
+    "status": "closed",
+    "statusUpdatedAt": "now-500m",
+    "team": {
+      "chief": true,
+      "counts": {
+        "waiting": {
+          "critical": 0,
+          "p0": 0,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 0
+      },
+      "name": "k-next-same",
+      "next": {
+        "priority": "p1",
+        "short": "Read the proofs"
+      },
+      "role": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/k-next-low",
+    "entrypoint": "cli",
+    "lastPrompt": "Draw three covers",
+    "lastPromptAt": "now-462m",
+    "lastReply": "Three covers are drawn",
+    "lastReplyAt": "now-460m",
+    "messageAt": "now-460m",
+    "name": "the k-sage one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "promptFrom": "covers desk",
+    "promptFromAddress": "/tmp/cc-socks/pid.sock",
+    "prs": [],
+    "sessionId": "k-sage",
+    "status": "closed",
+    "statusUpdatedAt": "now-460m",
+    "team": {
+      "job": {
+        "at": "ready",
+        "holds": 0,
+        "id": "j17",
+        "priority": "p1",
+        "stageAt": "now-180m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "ready",
+            "waits": true,
+            "word": "Ready to try",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          }
+        ],
+        "title": "Endpapers",
+        "waits": true,
+        "you": false
+      },
+      "name": "Sage",
+      "part": "covers",
+      "role": "member",
+      "status": {
+        "job": "j17",
+        "stage": "waiting",
+        "stageAt": "now-180m",
+        "title": "Endpapers",
+        "word": "Ready to try",
+        "you": false
+      }
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/ended",
     "entrypoint": "cli",
@@ -71,7 +540,31 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/studio-unseated",
+    "entrypoint": "cli",
+    "messageAt": "now-405m",
+    "name": "the k-unseated one",
+    "noCompact": true,
+    "opensIn": "Terminal",
+    "pid": 0,
+    "prs": [],
+    "sessionId": "k-unseated",
+    "status": "closed",
+    "statusUpdatedAt": "now-405m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/ended",
     "entrypoint": "cli",
@@ -91,7 +584,9 @@
       "effort": "medium",
       "mode": "auto",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -130,6 +625,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -162,7 +658,9 @@
       "effort": "medium",
       "mode": "bypassPermissions",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -201,6 +699,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -233,7 +732,9 @@
       "effort": "medium",
       "mode": "dontAsk",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -272,6 +773,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -304,7 +806,9 @@
       "effort": "medium",
       "mode": "auto",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/no-auto",
     "entrypoint": "cli",
@@ -323,7 +827,9 @@
       "effort": "medium",
       "mode": "plan",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/no-auto",
     "entrypoint": "cli",
@@ -342,7 +848,9 @@
       "effort": "medium",
       "mode": "plan",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -381,6 +889,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -413,7 +922,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "alsoOpen": [
       {
@@ -432,7 +943,11 @@
     "prs": [],
     "sessionId": "s-ask",
     "status": "waiting",
-    "statusUpdatedAt": "now-20m"
+    "statusUpdatedAt": "now-20m",
+    "team": {
+      "history": true,
+      "inFolderOf": "Atlas"
+    }
   },
   {
     "agent": {
@@ -440,7 +955,65 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "background": [
+      {
+        "holds": true,
+        "startedAt": "now-40m",
+        "stop": "/tasks",
+        "what": "Write the docs"
+      },
+      {
+        "holds": true,
+        "startedAt": "now-5m",
+        "step": "Reading Storage.m",
+        "stop": "/tasks",
+        "what": "Review the native side"
+      },
+      {
+        "holds": true,
+        "startedAt": "now-5m",
+        "stop": "/tasks",
+        "what": "A kind of job not known yet"
+      },
+      {
+        "holds": false,
+        "startedAt": "now-5m",
+        "stop": "/tasks",
+        "what": "Watch the server log"
+      }
+    ],
+    "backgroundWait": "until the 3 agents in the background are done (type /tasks in the session to stop one sooner)",
+    "cwd": "T/idle",
+    "entrypoint": "cli",
+    "lastPrompt": "review the app",
+    "lastPromptAt": "now-6m",
+    "lastReply": "Two reviews are under way.",
+    "lastReplyAt": "now-4m",
+    "messageAt": "now-6m",
+    "name": "review the app",
+    "noCompact": true,
+    "onItAt": "now-6m",
+    "pid": "pid",
+    "procStart": "start-s-bg",
+    "prs": [],
+    "sessionId": "s-bg",
+    "stageAt": "now-4m",
+    "status": "idle",
+    "statusUpdatedAt": "now-4m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "alsoOpen": [
       {
@@ -468,7 +1041,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 15,
@@ -497,6 +1072,7 @@
       "ahead": 1,
       "aheadOfBase": 2,
       "base": "main",
+      "baseRef": "origin/main",
       "behind": 0,
       "changes": 4,
       "checkedAt": "now-0m",
@@ -514,15 +1090,23 @@
       "branch": "topic",
       "root": "T/clone"
     },
+    "lastPrompt": "Check the notes.",
     "messageAt": "now-21m",
     "name": "review notes",
     "noCompact": true,
     "pid": "pid",
     "procStart": "start-clone",
+    "promptFrom": "Another session",
+    "promptFromAddress": "/tmp/sock",
     "prs": [],
     "sessionId": "s-clone",
     "status": "idle",
-    "statusUpdatedAt": "now-20m"
+    "statusUpdatedAt": "now-20m",
+    "team": {
+      "duplicate": true,
+      "earlier": false,
+      "inFolderOf": "Moss"
+    }
   },
   {
     "activityAt": "now-120m",
@@ -531,7 +1115,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-haiku-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -570,6 +1156,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -602,7 +1189,9 @@
       "effort": "low",
       "mode": "plan",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 0,
@@ -641,6 +1230,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -672,15 +1262,20 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/idle",
     "entrypoint": "cli",
+    "lastPrompt": "Tidy the notes",
     "messageAt": "now-40m",
     "name": "rest a while",
     "noCompact": true,
     "pid": "pid",
     "procStart": "start-halt",
+    "promptFrom": "Lead",
+    "promptFromAddress": "/tmp/sock",
     "prs": [],
     "sessionId": "s-halt",
     "status": "idle",
@@ -692,7 +1287,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "alsoOpen": [
       {
@@ -703,13 +1300,115 @@
     ],
     "cwd": "T/idle",
     "entrypoint": "cli",
+    "lastPrompt": "Pick three covers",
+    "lastPromptAt": "now-0m",
+    "lastReply": "Three covers are ready",
+    "lastReplyAt": "now-0m",
     "messageAt": "now-60m",
     "name": "sort the photos",
     "noCompact": true,
     "pid": "pid",
     "procStart": "start-s-idle-0",
+    "promptFrom": "pack the bags",
+    "promptFromAddress": "/tmp/cc-socks/pid.sock",
+    "promptFromSession": "s-near",
     "prs": [],
     "sessionId": "s-idle",
+    "status": "idle",
+    "statusUpdatedAt": "now-3m",
+    "team": {
+      "job": {
+        "ask": "Pick one of three covers",
+        "at": "look",
+        "holds": 0,
+        "id": "j4",
+        "priority": "critical",
+        "stageAt": "now-50m",
+        "steps": [
+          {
+            "id": "sketch",
+            "word": "Sketch",
+            "you": false
+          },
+          {
+            "id": "look",
+            "word": "Look",
+            "you": true
+          }
+        ],
+        "title": "Album covers",
+        "you": true
+      },
+      "name": "sort the photos",
+      "role": "followed",
+      "status": {
+        "job": "j4",
+        "stage": "work",
+        "stageAt": "now-50m",
+        "title": "Album covers",
+        "word": "Look",
+        "you": true
+      }
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/pim",
+    "entrypoint": "cli",
+    "name": "look at Pim's",
+    "noCompact": true,
+    "pid": "pid",
+    "procStart": "start-s-ivy",
+    "prs": [],
+    "sessionId": "s-ivy",
+    "status": "idle",
+    "statusUpdatedAt": "now-6m",
+    "team": {
+      "history": true,
+      "inFolderOf": "Pim"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "background": [
+      {
+        "holds": true,
+        "startedAt": "now-4m",
+        "stop": "/tasks",
+        "what": "Write the search box tests and check every edge case there is"
+      }
+    ],
+    "backgroundWait": "until “Write the search box tests and check…” is done in the background (type /tasks in the session to stop it sooner)",
+    "cwd": "T/long",
+    "entrypoint": "cli",
+    "lastPrompt": "write the tests",
+    "lastPromptAt": "now-5m",
+    "lastReply": "On it.",
+    "lastReplyAt": "now-3m",
+    "messageAt": "now-5m",
+    "name": "write the tests",
+    "noCompact": true,
+    "onItAt": "now-5m",
+    "pid": "pid",
+    "procStart": "start-s-long",
+    "prs": [],
+    "sessionId": "s-long",
     "status": "idle",
     "statusUpdatedAt": "now-3m"
   },
@@ -719,18 +1418,135 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "cwd": "T/ask",
     "entrypoint": "cli",
+    "lastPrompt": "Look again at the list",
+    "lastPromptAt": "now-0m",
+    "lastReply": "The list is up to date",
+    "lastReplyAt": "now-0m",
     "name": "pack the bags",
     "noCompact": true,
     "pid": "pid",
     "procStart": "start-near",
+    "promptFrom": "pack the bags",
+    "promptFromAddress": "/tmp/cc-socks/pid.sock",
+    "promptFromSession": "s-near",
     "prs": [],
     "sessionId": "s-near",
     "status": "idle",
-    "statusUpdatedAt": "now-25m"
+    "statusUpdatedAt": "now-25m",
+    "team": {
+      "chief": true,
+      "counts": {
+        "waiting": {
+          "critical": 1,
+          "p0": 1,
+          "p1": 0,
+          "p2": 0
+        },
+        "working": 3
+      },
+      "leads": [
+        "s-ivy",
+        "s-pim",
+        "s-topic",
+        "s-twice",
+        "s-wt"
+      ],
+      "name": "Atlas",
+      "next": {
+        "ask": "Try the search box, then say yes to merging it",
+        "for": "s-wt",
+        "job": "j1",
+        "priority": "p0",
+        "short": "Try the search box",
+        "title": "Search box"
+      },
+      "role": "lead"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/idle",
+    "entrypoint": "cli",
+    "messageAt": "now-35m",
+    "name": "carry on",
+    "noCompact": true,
+    "pid": "pid",
+    "procStart": "start-s-odd",
+    "prs": [],
+    "sessionId": "s-odd",
+    "status": "resuming",
+    "statusUpdatedAt": "now-35m"
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "cwd": "T/pim",
+    "entrypoint": "cli",
+    "name": "start afresh",
+    "noCompact": true,
+    "pid": "pid",
+    "procStart": "start-s-pim",
+    "prs": [],
+    "sessionId": "s-pim",
+    "status": "idle",
+    "statusUpdatedAt": "now-7m",
+    "team": {
+      "name": "Pim",
+      "part": "sounds",
+      "role": "member"
+    }
+  },
+  {
+    "agent": {
+      "compactWindow": 800000,
+      "effort": "medium",
+      "mode": "default",
+      "model": "claude-sonnet-5-5",
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
+    },
+    "background": [
+      {
+        "command": "make watch",
+        "holds": false,
+        "startedAt": "now-35m",
+        "stop": "/tasks",
+        "what": "Watch the build"
+      }
+    ],
+    "cwd": "T/idle",
+    "entrypoint": "cli",
+    "messageAt": "now-35m",
+    "name": "watch the build",
+    "noCompact": true,
+    "pid": "pid",
+    "procStart": "start-s-shell",
+    "prs": [],
+    "sessionId": "s-shell",
+    "status": "idle",
+    "statusUpdatedAt": "now-35m"
   },
   {
     "activityAt": "now-9m",
@@ -739,7 +1555,9 @@
       "effort": "xhigh",
       "mode": "acceptEdits",
       "model": "claude-opus-5-5",
-      "tokens": 424200
+      "today": 0,
+      "tokens": 424200,
+      "window": 1000000
     },
     "alsoOpen": [
       {
@@ -751,6 +1569,7 @@
     "ask": {
       "at": "now-2m",
       "cwd": "T/repo",
+      "expiresAt": "now+3m",
       "id": "aaaa1111",
       "input": {
         "command": "npm test",
@@ -804,6 +1623,7 @@
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 1,
       "checkedAt": "now-0m",
@@ -828,6 +1648,7 @@
     "messageAt": "now-9m",
     "name": "fix tests",
     "noCompact": true,
+    "onItAt": "now-10m",
     "outcome": "Tested",
     "outcomeAt": "now-9m",
     "permissionMode": "acceptEdits",
@@ -846,6 +1667,8 @@
     "stageAt": "now-9m",
     "status": "idle",
     "statusUpdatedAt": "now-9m",
+    "workEditedAt": "now-9m",
+    "workRoot": "T/repo",
     "workSteps": [
       "Tested"
     ],
@@ -888,7 +1711,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "changes": {
       "added": 6,
@@ -973,6 +1798,7 @@
       "ahead": 1,
       "aheadOfBase": 2,
       "base": "main",
+      "baseRef": "origin/main",
       "behind": 0,
       "changes": 4,
       "checkedAt": "now-0m",
@@ -991,16 +1817,63 @@
       "branch": "topic",
       "root": "T/clone"
     },
+    "lastPrompt": "…",
     "messageAt": "now-13m",
     "noCompact": true,
     "outcome": "Committed",
     "outcomeAt": "now-15m",
     "pid": "pid",
     "procStart": "start-topic",
+    "promptFrom": "Another session",
     "prs": [],
     "sessionId": "s-topic",
     "status": "busy",
-    "statusUpdatedAt": "now-15m"
+    "statusUpdatedAt": "now-15m",
+    "team": {
+      "group": "Reviewers",
+      "groupAt": 0,
+      "job": {
+        "at": "build",
+        "holds": 0,
+        "id": "j3",
+        "priority": "p2",
+        "stageAt": "now-10m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Font picker",
+        "you": false
+      },
+      "name": "Moss",
+      "part": "tests",
+      "role": "member",
+      "status": {
+        "doing": "Reviewing",
+        "stage": "work",
+        "words": "Wren's search box"
+      }
+    }
   },
   {
     "agent": {
@@ -1008,7 +1881,9 @@
       "effort": "medium",
       "mode": "default",
       "model": "claude-sonnet-5-5",
-      "tokens": 0
+      "today": 0,
+      "tokens": 0,
+      "window": 200000
     },
     "alsoOpen": [
       {
@@ -1027,7 +1902,19 @@
     "prs": [],
     "sessionId": "s-twice",
     "status": "busy",
-    "statusUpdatedAt": "now-4m"
+    "statusUpdatedAt": "now-4m",
+    "team": {
+      "name": "Bea",
+      "part": "icons",
+      "role": "member",
+      "status": {
+        "job": "j6",
+        "stage": "work",
+        "stageAt": 0,
+        "title": "Steps the file doesn't give",
+        "you": false
+      }
+    }
   },
   {
     "activity": "Run the tests",
@@ -1037,7 +1924,9 @@
       "effort": "high",
       "mode": "plan",
       "model": "claude-opus-5-5",
-      "tokens": 52000
+      "today": 0,
+      "tokens": 52000,
+      "window": 1000000
     },
     "ask": {
       "at": "now-1m",
@@ -1052,10 +1941,20 @@
       "tool": "Write",
       "truncated": true
     },
+    "background": [
+      {
+        "command": "vitest --watch",
+        "holds": false,
+        "startedAt": "now-3m",
+        "stop": "/tasks",
+        "what": "Run the tests in watch mode"
+      }
+    ],
     "checkout": {
       "ahead": 0,
       "aheadOfBase": 0,
       "base": "main",
+      "baseRef": "main",
       "behind": 0,
       "changes": 0,
       "checkedAt": "now-0m",
@@ -1080,6 +1979,7 @@
     "lastPromptAt": "now-2m",
     "messageAt": "now-3m",
     "noCompact": true,
+    "onItAt": "now-2m",
     "pid": "pid",
     "procStart": "start-2",
     "prs": [],
@@ -1087,6 +1987,76 @@
     "stageAt": "now-1m",
     "status": "busy",
     "statusUpdatedAt": "now-2m",
+    "team": {
+      "alsoAsks": {
+        "at": "test",
+        "job": "j1",
+        "kind": "try",
+        "priority": "p0",
+        "short": "Try the search box",
+        "title": "Search box"
+      },
+      "group": "Writers",
+      "groupAt": 1,
+      "job": {
+        "at": "build",
+        "holds": 0,
+        "id": "j2",
+        "priority": "p1",
+        "stageAt": "now-5m",
+        "steps": [
+          {
+            "id": "plan",
+            "kind": "approve",
+            "word": "Plan",
+            "you": true
+          },
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Faster sync",
+        "you": false
+      },
+      "name": "Wren",
+      "part": "docs",
+      "role": "member",
+      "shown": "Wren of docs",
+      "status": {
+        "job": "j2",
+        "stage": "work",
+        "stageAt": "now-5m",
+        "title": "Faster sync",
+        "word": "Build",
+        "you": false
+      },
+      "tag": "Design lead"
+    },
+    "workEditedAt": 0,
     "workRoot": "T/repo"
   }
 ]
@@ -1106,6 +2076,16 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "sessionId": "s-ask",
       "terminal": "sample",
       "transcript": "T/.claude/projects/p/s-ask.jsonl"
+    },
+    "s-bg": {
+      "activeAt": "now-4m",
+      "cwd": "T/idle",
+      "name": "review the app",
+      "pid": "pid",
+      "procStart": "start-s-bg",
+      "sessionId": "s-bg",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-bg.jsonl"
     },
     "s-both": {
       "activeAt": "now-60m",
@@ -1138,7 +2118,7 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "transcript": "T/.claude/projects/p/s-halt.jsonl"
     },
     "s-idle": {
-      "activeAt": "now-60m",
+      "activeAt": "now-0m",
       "cwd": "T/idle",
       "name": "sort the photos",
       "pid": "pid",
@@ -1146,6 +2126,36 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
       "sessionId": "s-idle",
       "terminal": "sample",
       "transcript": "T/.claude/projects/p/s-idle.jsonl"
+    },
+    "s-long": {
+      "activeAt": "now-3m",
+      "cwd": "T/long",
+      "name": "write the tests",
+      "pid": "pid",
+      "procStart": "start-s-long",
+      "sessionId": "s-long",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-long.jsonl"
+    },
+    "s-odd": {
+      "activeAt": "now-35m",
+      "cwd": "T/idle",
+      "name": "carry on",
+      "pid": "pid",
+      "procStart": "start-s-odd",
+      "sessionId": "s-odd",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-odd.jsonl"
+    },
+    "s-shell": {
+      "activeAt": "now-35m",
+      "cwd": "T/idle",
+      "name": "watch the build",
+      "pid": "pid",
+      "procStart": "start-s-shell",
+      "sessionId": "s-shell",
+      "terminal": "sample",
+      "transcript": "T/.claude/projects/p/s-shell.jsonl"
     },
     "s-term": {
       "activeAt": "now-9m",
@@ -1195,12 +2205,152 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
     "s-closed"
   ]
 }
-files kept in the sample home after the runs: broken.json k-cleared.json k-folder-gone.json k-ghostty.json k-iterm.json k-misnamed.json k-no-transcript.json k-old.json k-terminal.json k-vscode.json s-closed.json s-term.json 
+files kept in the sample home after the runs: broken.json k-alone.json k-behind.json k-cleared.json k-desk-own.json k-desk.json k-fern.json k-folder-gone.json k-ghostty.json k-iterm.json k-ivy.json k-lo.json k-misnamed.json k-next-ask.json k-next-low.json k-next-odd.json k-next-same.json k-no-transcript.json k-old.json k-sage.json k-terminal.json k-unseated.json k-vscode.json s-closed.json s-term.json 
 == Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send
 == macOS permissions the app asks for that README.md doesn't name, and repo files naming one it doesn't ask for
 == Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu
    would type (null: not offered)
 {
+  "k-alone" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-behind" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-desk" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-desk-own" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-fern" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
   "k-ghostty" : {
     "mode" : "acceptEdits",
     "possibleCycles" : [
@@ -1257,7 +2407,231 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "log" : "session not found"
     }
   },
+  "k-ivy" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-lo" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-next-ask" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-next-low" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-next-odd" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-next-same" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-sage" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
   "k-terminal" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session not found",
+    "whyNotType" : {
+      "card" : "This session isn't running",
+      "log" : "session not found"
+    }
+  },
+  "k-unseated" : {
     "mode" : "default",
     "possibleCycles" : [
       [
@@ -1477,6 +2851,31 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "log" : "session is open more than once"
     }
   },
+  "s-bg" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
   "s-both" : {
     "mode" : "default",
     "possibleCycles" : [
@@ -1583,7 +2982,135 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "log" : "session is open more than once"
     }
   },
+  "s-ivy" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "s-long" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
   "s-near" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "s-odd" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : "session is resuming",
+    "whyNotType" : {
+      "card" : "Claude is busy: try again when it's idle",
+      "log" : "session is resuming"
+    }
+  },
+  "s-pim" : {
+    "mode" : "default",
+    "possibleCycles" : [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses" : {
+      "acceptEdits" : 1,
+      "auto" : null,
+      "bypassPermissions" : null,
+      "default" : null,
+      "plan" : 2
+    },
+    "whyNotEditDraft" : null,
+    "whyNotType" : null
+  },
+  "s-shell" : {
     "mode" : "default",
     "possibleCycles" : [
       [
@@ -1753,7 +3280,56 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
 == Why nothing can go into a session now, as its model, effort and mode menus, its Compact card and its next
    steps say it (null: something can), with a terminal the panel types into unless said otherwise
 {
+  "a press on a switch kept for a folder turns it" : {
+    "May Answer Questions" : {
+      "kept, its dash" : "off",
+      "not kept" : "on"
+    },
+    "May Approve Plans" : {
+      "kept, its dash" : "off",
+      "not kept" : "on"
+    },
+    "May Send Back Plans" : {
+      "kept, its dash" : "off",
+      "not kept" : "on"
+    }
+  },
   "as found" : {
+    "k-alone" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-behind" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-desk" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-desk-own" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-fern" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
     "k-ghostty" : {
       "ask" : "It isn't running: press its row to open it again",
       "compact" : "It isn't running: press its row to open it again",
@@ -1768,7 +3344,63 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick mode" : "It isn't running: press its row to open it again",
       "pick model" : "It isn't running: press its row to open it again"
     },
+    "k-ivy" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-lo" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-next-ask" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-next-low" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-next-odd" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-next-same" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-sage" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
     "k-terminal" : {
+      "ask" : "It isn't running: press its row to open it again",
+      "compact" : "It isn't running: press its row to open it again",
+      "pick effort" : "It isn't running: press its row to open it again",
+      "pick mode" : "It isn't running: press its row to open it again",
+      "pick model" : "It isn't running: press its row to open it again"
+    },
+    "k-unseated" : {
       "ask" : "It isn't running: press its row to open it again",
       "compact" : "It isn't running: press its row to open it again",
       "pick effort" : "It isn't running: press its row to open it again",
@@ -1831,6 +3463,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick mode" : "It's open more than once: close all but one first",
       "pick model" : "It's open more than once: close all but one first"
     },
+    "s-bg" : {
+      "ask" : null,
+      "compact" : null,
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
     "s-both" : {
       "ask" : null,
       "compact" : null,
@@ -1873,9 +3512,44 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick mode" : "It's open more than once: close all but one first",
       "pick model" : "It's open more than once: close all but one first"
     },
+    "s-ivy" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-long" : {
+      "ask" : null,
+      "compact" : null,
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
     "s-near" : {
       "ask" : "Send this conversation's first message first",
       "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-odd" : {
+      "ask" : "Claude is busy: try again when it's idle",
+      "compact" : "Claude is busy: try again when it's idle",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-pim" : {
+      "ask" : "Send this conversation's first message first",
+      "compact" : "Send this conversation's first message first",
+      "pick effort" : null,
+      "pick mode" : null,
+      "pick model" : null
+    },
+    "s-shell" : {
+      "ask" : null,
+      "compact" : null,
       "pick effort" : null,
       "pick mode" : null,
       "pick model" : null
@@ -1908,6 +3582,114 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
       "pick mode" : "Claude is working in this session: change it when it's done",
       "pick model" : "Claude is working in this session: change it when it's done"
     }
+  },
+  "Don't Wait on Me" : {
+    "k-alone" : "Can be turned on while the session runs",
+    "k-behind" : "Can be turned on while the session runs",
+    "k-desk" : "Can be turned on while the session runs",
+    "k-desk-own" : "Can be turned on while the session runs",
+    "k-fern" : "Can be turned on while the session runs",
+    "k-ghostty" : "Can be turned on while the session runs",
+    "k-iterm" : "Can be turned on while the session runs",
+    "k-ivy" : "Can be turned on while the session runs",
+    "k-lo" : "Can be turned on while the session runs",
+    "k-next-ask" : "Can be turned on while the session runs",
+    "k-next-low" : "Can be turned on while the session runs",
+    "k-next-odd" : "Can be turned on while the session runs",
+    "k-next-same" : "Can be turned on while the session runs",
+    "k-sage" : "Can be turned on while the session runs",
+    "k-terminal" : "Can be turned on while the session runs",
+    "k-unseated" : "Can be turned on while the session runs",
+    "k-vscode" : "Can be turned on while the session runs",
+    "m-auto" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "m-bypass" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "m-dontask" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "m-noauto-in-auto" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "m-noauto-plan" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "m-plan" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-ask" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-bg" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-both" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-clone" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-halt" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-idle" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-ivy" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-long" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-near" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-odd" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-pim" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-shell" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-term" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-topic" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-twice" : "Questions and requests no one answers in 5 minutes go, and Claude carries on",
+    "s-wt" : "Questions and requests no one answers in 5 minutes go, and Claude carries on"
+  },
+  "Let It Deploy" : {
+    "k-alone" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-behind" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-desk" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-desk-own" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-fern" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-ghostty" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-iterm" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-ivy" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-lo" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-next-ask" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-next-low" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-next-odd" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-next-same" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-sage" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-terminal" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-unseated" : "Can be turned on while the session runs · Set Up Deploy…",
+    "k-vscode" : "Can be turned on while the session runs · Set Up Deploy…",
+    "m-auto" : "Set up Deploy for this project first · Set Up Deploy…",
+    "m-bypass" : "Set up Deploy for this project first · Set Up Deploy…",
+    "m-dontask" : "Set up Deploy for this project first · Set Up Deploy…",
+    "m-noauto-in-auto" : "Set up Deploy for this project first · Set Up Deploy…",
+    "m-noauto-plan" : "Set up Deploy for this project first · Set Up Deploy…",
+    "m-plan" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-ask" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-bg" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-both" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-clone" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-closed" : "Can be turned on while the session runs · Set Up Deploy…",
+    "s-desk" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-halt" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-idle" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-ivy" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-long" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-near" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-odd" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-pim" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-shell" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-term" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-topic" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-twice" : "Set up Deploy for this project first · Set Up Deploy…",
+    "s-wt" : "Set up Deploy for this project first · Set Up Deploy…"
+  },
+  "May Answer Questions" : {
+    "k-behind" : "The session isn't running",
+    "k-next-ask" : "The session isn't running",
+    "k-next-low" : "The session isn't running",
+    "k-next-odd" : "The session isn't running",
+    "k-next-same" : "The session isn't running",
+    "s-near" : "Its process doesn't work in ask, whatever its record says"
+  },
+  "May Approve Plans" : {
+    "k-behind" : "The session isn't running",
+    "k-next-ask" : "The session isn't running",
+    "k-next-low" : "The session isn't running",
+    "k-next-odd" : "The session isn't running",
+    "k-next-same" : "The session isn't running",
+    "s-near" : "Its process doesn't work in ask, whatever its record says"
+  },
+  "May Send Back Plans" : {
+    "k-behind" : "The session isn't running",
+    "k-next-ask" : "The session isn't running",
+    "k-next-low" : "The session isn't running",
+    "k-next-odd" : "The session isn't running",
+    "k-next-same" : "The session isn't running",
+    "s-near" : "Its process doesn't work in ask, whatever its record says"
   },
   "s-clone, a change from the panel still going in" : {
     "ask" : "A change from the panel is still going in: finish that first",
@@ -2042,8 +3824,111 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "pick effort" : "Its window has other tabs, which the terminal could type into: change it there",
     "pick mode" : "Its window has other tabs, which the terminal could type into: change it there",
     "pick model" : "Its window has other tabs, which the terminal could type into: change it there"
+  },
+  "Turn Back On" : {
+    "a member of the team" : null,
+    "the team's lead, open once" : {
+      "greyed" : 1,
+      "line" : "Its process doesn't work in shop, whatever its record says, then this brings them back",
+      "title" : "Turn Back On May Send Back Plans, May Answer Questions and May Approve Plans for shop"
+    },
+    "the team's lead, open twice" : {
+      "greyed" : 1,
+      "line" : "Its process doesn't work in shop, whatever its record says, then this brings them back",
+      "title" : "Turn Back On May Send Back Plans, May Answer Questions and May Approve Plans for shop"
+    }
+  },
+  "words that would run a command" : {
+    "\/ later on" : false,
+    "\/exit" : true,
+    "&" : true,
+    "# later on" : false,
+    "a memory" : true,
+    "a next step's words" : false,
+    "a shell line" : true,
+    "a zero-width space, then \/exit" : true,
+    "spaces, then \/clear" : true
   }
 }
+== Whether now is a natural break to compact a session, and why (null: not now): the context ring's Compact now
+   and Compact at Breaks both go by it
+{
+  "compact now: a 200k window, big from 100k, its work committed" : "your work is saved",
+  "compact now: big, after an hour away" : "you've been away from it for an hour, so Claude would read all of it again with your next message",
+  "compact now: big, its edits in its own checkout all committed" : "your work is saved",
+  "compact now: big, its work committed" : "your work is saved",
+  "compact now: big, its work merged" : "your work is saved",
+  "compact now: compacted from the panel before its last message" : "your work is saved",
+  "compact now: nearly full" : "it's nearly full, and would soon compact by itself",
+  "compact now: no window given, taken as 200k" : "it's nearly full, and would soon compact by itself",
+  "compact now: started before Whozmove's hooks, compacted from the panel, its transcript moved since" : "it's nearly full, and would soon compact by itself",
+  "not now: \"Switch model?\" asked" : null,
+  "not now: a compaction couldn't go in" : null,
+  "not now: a pick going in" : null,
+  "not now: asking" : null,
+  "not now: at work" : null,
+  "not now: big, its checkout clean, but when it edited there not known" : null,
+  "not now: big, its edits left in another checkout" : null,
+  "not now: big, its edits not committed yet" : null,
+  "not now: big, quiet for an hour, and it's the one you're on" : null,
+  "not now: big, quiet for an hour, but you were on it since" : null,
+  "not now: committed, but small" : null,
+  "not now: compacted from the panel since its last message" : null,
+  "not now: compacting" : null,
+  "not now: ended" : null,
+  "not now: long, but at no break" : null,
+  "not now: nothing known of its size" : null,
+  "not now: small, after an hour away" : null,
+  "not now: started before Whozmove's hooks, compacted from the panel, its transcript not moved since" : null,
+  "not now: waiting for you" : null
+}
+== Which sessions' requests are held as you answer them: in their tab just now with you at the Mac, whether
+   they go by themselves (Don't Wait on Me) or wait on you
+{
+  "at the Mac (idle 5s)" : [
+    "in-its-tab",
+    "waits-on-you"
+  ],
+  "away (idle 60s)" : [
+
+  ]
+}
+== Whether a terminal's window is on top, so a press on the row of the session its tab shows leaves it be
+   (otherwise its tab is shown, which brings its window up)
+alone: yes
+under another app's window: no
+with another app's window above it, beside it: no
+over another app's window: yes
+under Whozmove's own windows: yes
+under the menu bar and another app's window that floats over every app: yes
+under a window that can't be seen: yes
+with its own window that floats over every app on top, over another app's window: yes
+with only its window that floats over every app on the screen: yes
+with no window on the screen: no
+in a list macOS couldn't give: no
+== A file read every second is read again only once it has changed (its size, or only its date), and never kept
+   while it can't be read or once it's gone
+written: 1
+read again, unchanged: the same, not read again
+rewritten, a new size: 22
+rewritten, the same size, a new date: 33
+caught half-written: nothing
+written whole: 44
+gone: nothing
+text: ref: refs/heads/main
+text rewritten: ref: refs/heads/topic
+its date: 1700000006
+a missing file's date: 0
+== From a home that isn't your own, Whozmove presses, types and sends nothing in other apps, whichever way it
+   would, and panel.log says so once
+RunAppleScript: nothing
+SendAppleEvent: nothing, status -1743
+AskQuietly: nothing
+AutomationPermission: -1743
+PressElement: -25211
+SetElementAttribute: -25211
+PostEventTo: nothing
+panel.log says "Whozmove pressed, typed, opened and sent nothing in other apps: this run's home isn't your own": 1 time
 == A command's result as read from a transcript (null: none yet), and what it says: the value now in effect
    (null: nothing changed), whether the pick was saved as the default, the Compact card's note (null: it
    compacted), and whether a reload of the plugins took
@@ -2123,9 +4008,22 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
 == Each session: why its next steps and its Deploy wait now (null: they don't), for its own agent or another
    at work in the same checkout
 {
+  "k-alone" : null,
+  "k-behind" : null,
+  "k-desk" : null,
+  "k-desk-own" : null,
+  "k-fern" : null,
   "k-ghostty" : null,
   "k-iterm" : null,
+  "k-ivy" : null,
+  "k-lo" : null,
+  "k-next-ask" : null,
+  "k-next-low" : null,
+  "k-next-odd" : null,
+  "k-next-same" : null,
+  "k-sage" : null,
   "k-terminal" : null,
+  "k-unseated" : null,
   "k-vscode" : null,
   "m-auto" : null,
   "m-bypass" : null,
@@ -2134,13 +4032,19 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
   "m-noauto-plan" : null,
   "m-plan" : null,
   "s-ask" : "These wait until the agent is done",
+  "s-bg" : "These wait until the 3 agents in the background are done (type \/tasks in the session to stop one sooner)",
   "s-both" : null,
   "s-clone" : "These wait until the agent in “clone” is done",
   "s-closed" : null,
   "s-desk" : null,
-  "s-halt" : null,
-  "s-idle" : null,
+  "s-halt" : "These wait until the agent in “review the app” is done",
+  "s-idle" : "These wait until the agent in “review the app” is done",
+  "s-ivy" : null,
+  "s-long" : "These wait until “Write the search box tests and check…” is done in the background (type \/tasks in the session to stop it sooner)",
   "s-near" : "These wait until the agent in “plan the trip” is done",
+  "s-odd" : "These wait until the agent in “review the app” is done",
+  "s-pim" : null,
+  "s-shell" : "These wait until the agent in “review the app” is done",
   "s-term" : "These wait until the agent is done",
   "s-topic" : "These wait until the agent is done",
   "s-twice" : "These wait until the agent is done",
@@ -2413,10 +4317,16 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
   "upstream" : "origin\/topic",
   "v" : "v"
 }
-== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the
-   page is told it
+== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), the folder's last run as the page
+   is told it, and the build in place a run that went through makes (outside git, and from before commits were
+   noted: without one)
 {
   "compose": {
+    "inPlace": {
+      "at": "now-3m",
+      "folder": "compose"
+    },
+    "port": 3000,
     "run": {
       "finishedAt": "now-3m",
       "ok": true,
@@ -2426,9 +4336,13 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "docker compose up -d --build"
   },
   "go": {
+    "port": 3000,
     "run": {
       "finishedAt": "now-4m",
       "lastLine": "it stopped before it finished",
+      "lastLines": [
+        "go: downloading"
+      ],
       "ok": false,
       "running": false,
       "startedAt": "now-10m"
@@ -2436,9 +4350,14 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "go install ./..."
   },
   "make": {
+    "port": 3000,
     "run": {
       "finishedAt": "now-3m",
       "lastLine": "make: *** [install] Error 1",
+      "lastLines": [
+        "cc main.c",
+        "make: *** [install] Error 1"
+      ],
       "ok": false,
       "running": false,
       "startedAt": "now-10m"
@@ -2446,18 +4365,25 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "make install"
   },
   "make-prod": {
+    "port": 3000,
     "suggested": null
   },
   "nothing": {
+    "port": 3000,
     "suggested": null
   },
   "pkg-bin": {
+    "port": 3000,
     "suggested": "npm install -g ."
   },
   "pkg-fly": {
+    "port": 3000,
     "run": {
       "finishedAt": "now-1m",
       "lastLine": "it stopped before it finished",
+      "lastLines": [
+        "Deploying"
+      ],
       "ok": false,
       "running": false,
       "startedAt": "now-10m"
@@ -2465,12 +4391,15 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "npm run install:local"
   },
   "pkg-local": {
+    "port": 3000,
     "suggested": "pnpm run deploy:local"
   },
   "pkg-prod": {
+    "port": 3000,
     "suggested": null
   },
   "pm2": {
+    "port": 3000,
     "run": {
       "finishedAt": "now-2m",
       "ok": false,
@@ -2481,6 +4410,7 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "pm2 startOrReload ecosystem.config.js"
   },
   "python": {
+    "port": 3000,
     "run": {
       "running": true,
       "startedAt": "now-10m"
@@ -2488,6 +4418,7 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "pipx install --force ."
   },
   "rust": {
+    "port": 3000,
     "run": {
       "running": true,
       "startedAt": "now-10m"
@@ -2495,63 +4426,823 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
     "suggested": "cargo install --path ."
   },
   "whozmove": {
+    "port": 3000,
     "suggested": "./build.sh --now"
   }
 }
-== What the set-up card is told a command really runs, and whether that looks as if it could reach production
+== What the set-up card is told a command really runs (all of it, with the files checked before every run, what
+   isn't checked and what Whozmove can't follow), and whether that looks as if it could reach production
 {
   "./build.sh --now": {
     "command": "./build.sh --now",
+    "fingerprint": "e3b0c44298fc1c14",
+    "others": [
+      "build.sh"
+    ],
     "production": false
+  },
+  "./scripts/up.sh": {
+    "command": "./scripts/up.sh",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "scripts/up.sh"
+    ],
+    "fingerprint": "71863a7a94f7eee1",
+    "others": [
+      "cc",
+      "cp"
+    ],
+    "production": false,
+    "runs": "scripts/up.sh (the file, 2 lines)\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
   },
   "NODE_ENV=dev npm run ship && make install": {
     "command": "NODE_ENV=dev npm run ship && make install",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "package.json"
+    ],
+    "fingerprint": "97de6fc5e05336ca",
+    "others": [
+      "vercel",
+      "cc",
+      "cp"
+    ],
     "production": true,
-    "runs": "vercel --prod\ncc -o tool main.c\ncp tool ~/bin/"
+    "runnerFiles": true,
+    "runs": "ship: vercel --prod\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  },
+  "bun serve": {
+    "command": "bun serve",
+    "files": [
+      "package.json",
+      "server.js"
+    ],
+    "fingerprint": "08a9b76caed6cd1d",
+    "others": [
+      "tsc",
+      "what server.js loads"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "serve: bun run start\nprestart: npm run build\nbuild: tsc\nstart: node server.js\nnode server.js (the file, 1 line)"
   },
   "docker compose up -d --build": {
     "command": "docker compose up -d --build",
+    "fingerprint": "e3b0c44298fc1c14",
+    "others": [
+      "docker"
+    ],
     "production": false
   },
   "kubectl apply -f k8s/": {
     "command": "kubectl apply -f k8s/",
+    "fingerprint": "e3b0c44298fc1c14",
+    "others": [
+      "kubectl"
+    ],
     "production": true
   },
   "make": {
     "command": "make",
+    "files": [
+      "Makefile",
+      "config.mk"
+    ],
+    "fingerprint": "0e743a740b22b4b6",
+    "others": [
+      "cc"
+    ],
     "production": false,
-    "runs": "cc -o tool main.c"
+    "runs": "cc -o tool main.c",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  },
+  "make -C sub install": {
+    "command": "make -C sub install",
+    "fingerprint": "0f94ecaf874f031a",
+    "production": false,
+    "unsure": [
+      "it runs make -C sub, and Whozmove can't follow it there"
+    ]
   },
   "make deploy-local": {
     "command": "make deploy-local",
+    "files": [
+      "Makefile",
+      "config.mk"
+    ],
+    "fingerprint": "2d65c6c923deadce",
+    "others": [
+      "cc",
+      "git",
+      "tool"
+    ],
     "production": true,
-    "runs": "cc -o tool main.c\ngit push origin main\n./tool --install"
+    "runs": "cc -o tool main.c\ngit push origin main\n./tool --install",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
   },
   "make install": {
     "command": "make install",
+    "files": [
+      "Makefile",
+      "config.mk"
+    ],
+    "fingerprint": "dd2d241ae8a1a2a2",
+    "others": [
+      "cc",
+      "cp"
+    ],
     "production": false,
-    "runs": "cc -o tool main.c\ncp tool ~/bin/"
+    "runs": "cc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  },
+  "node server.js": {
+    "command": "node server.js",
+    "files": [
+      "server.js"
+    ],
+    "fingerprint": "3c4c482d49222867",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node server.js (the file, 1 line)"
+  },
+  "npm --prefix web run build": {
+    "command": "npm --prefix web run build",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "183c6447d0e65fb2",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "npm --prefix runs scripts in another folder or package"
+    ]
   },
   "npm run deploy:local": {
     "command": "npm run deploy:local",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "9fb0d78a413ca215",
+    "others": [
+      "tsc",
+      "fly"
+    ],
     "production": true,
-    "runs": "npm run build\nfly deploy --local-only"
+    "runnerFiles": true,
+    "runs": "predeploy:local: npm run build\nbuild: tsc\ndeploy:local: fly deploy --local-only"
   },
   "npm run nothing-here": {
     "command": "npm run nothing-here",
-    "production": false
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "3d252c6e2843d923",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "there's no nothing-here script in package.json"
+    ]
+  },
+  "npm start": {
+    "command": "npm start",
+    "files": [
+      "package.json",
+      "server.js"
+    ],
+    "fingerprint": "56082cc38b30ef80",
+    "others": [
+      "tsc",
+      "what server.js loads"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "prestart: npm run build\nbuild: tsc\nstart: node server.js\nnode server.js (the file, 1 line)"
   },
   "pnpm deploy:local": {
     "command": "pnpm deploy:local",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "9fb0d78a413ca215",
+    "others": [
+      "tsc",
+      "fly"
+    ],
     "production": true,
-    "runs": "fly deploy --local-only"
+    "runnerFiles": true,
+    "runs": "predeploy:local: npm run build\nbuild: tsc\ndeploy:local: fly deploy --local-only"
+  },
+  "sh scripts/up.sh": {
+    "command": "sh scripts/up.sh",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "scripts/up.sh"
+    ],
+    "fingerprint": "8dccb97dffef03ec",
+    "others": [
+      "cc",
+      "cp"
+    ],
+    "production": false,
+    "runs": "sh scripts/up.sh (the file, 2 lines)\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
   },
   "yarn run install:local": {
     "command": "yarn run install:local",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "eaaeca8ad845e58e",
+    "others": [
+      "node"
+    ],
     "production": false,
-    "runs": "node scripts/install.js"
+    "runnerFiles": true,
+    "runs": "install:local: node scripts/install.js"
+  },
+  "yarn workspace web run build": {
+    "command": "yarn workspace web run build",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "8afbe868f6d0b814",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "yarn workspace runs scripts in another folder or package"
+    ]
   }
 }
+{
+  "make": {
+    "command": "make",
+    "files": [
+      "GNUmakefile"
+    ],
+    "fingerprint": "771df7f68598a229",
+    "production": false,
+    "runs": "@echo the GNU one"
+  }
+}
+{
+  "npm run build": {
+    "command": "npm run build",
+    "fingerprint": "b923423719f8b1af",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "package.json isn't a plain file, so Whozmove can't check it"
+    ]
+  }
+}
+{
+  "make -f linked/Makefile": {
+    "command": "make -f linked/Makefile",
+    "fingerprint": "0ffa67d6a78bbaf0",
+    "production": false,
+    "unsure": [
+      "linked/Makefile is outside this checkout, so Whozmove can't check it"
+    ]
+  },
+  "make install": {
+    "command": "make install",
+    "files": [
+      "Makefile"
+    ],
+    "fingerprint": "a1210fb92a7a2c3b",
+    "others": [
+      "cp"
+    ],
+    "production": false,
+    "runs": "cp tool $(PREFIX)/",
+    "unsure": [
+      "../shared/common.mk is outside this checkout, so Whozmove can't check it"
+    ]
+  },
+  "npm run build": {
+    "command": "npm run build",
+    "fingerprint": "ecf9146a772416aa",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "package.json is outside this checkout, so Whozmove can't check it"
+    ]
+  }
+}
+{
+  ". scripts/up.sh": {
+    "command": ". scripts/up.sh",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "scripts/up.sh"
+    ],
+    "fingerprint": "b27e6e73ec9dbf7f",
+    "others": [
+      "cc",
+      "cp"
+    ],
+    "production": false,
+    "runs": "source scripts/up.sh (the file, 2 lines)\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  },
+  "./bin/server": {
+    "command": "./bin/server",
+    "files": [
+      "bin/server",
+      "server.js"
+    ],
+    "fingerprint": "eb8823ad91c6f51e",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "bin/server (the file, 3 lines)\nnode server.js (the file, 1 line)"
+  },
+  "node -r ./hook.js server.js": {
+    "command": "node -r ./hook.js server.js",
+    "files": [
+      "hook.js",
+      "server.js"
+    ],
+    "fingerprint": "4ea064c73643dfd3",
+    "others": [
+      "what hook.js loads",
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node hook.js (the file, 1 line)\nnode server.js (the file, 1 line)"
+  },
+  "node -r dotenv/config server.js": {
+    "command": "node -r dotenv/config server.js",
+    "files": [
+      "server.js"
+    ],
+    "fingerprint": "3c4c482d49222867",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node server.js (the file, 1 line)"
+  },
+  "npm --loglevel silent run build": {
+    "command": "npm --loglevel silent run build",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "f642498bdad53fa5",
+    "others": [
+      "tsc"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "build: tsc"
+  },
+  "npm --loglevel silent start": {
+    "command": "npm --loglevel silent start",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "31c4a61cbcbbc253",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "Whozmove doesn't know what npm silent runs"
+    ]
+  },
+  "sh -c 'npm run build && make install'": {
+    "command": "sh -c 'npm run build && make install'",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "package.json"
+    ],
+    "fingerprint": "70f6c3100205de59",
+    "others": [
+      "tsc",
+      "cc",
+      "cp"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "build: tsc\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  },
+  "source scripts/up.sh": {
+    "command": "source scripts/up.sh",
+    "files": [
+      "Makefile",
+      "config.mk",
+      "scripts/up.sh"
+    ],
+    "fingerprint": "b27e6e73ec9dbf7f",
+    "others": [
+      "cc",
+      "cp"
+    ],
+    "production": false,
+    "runs": "source scripts/up.sh (the file, 2 lines)\ncc -o tool main.c\ncp tool $(PREFIX)/",
+    "unsure": [
+      "its Makefile includes a file it names with a variable or a pattern"
+    ]
+  }
+}
+{
+  "make": {
+    "command": "make",
+    "files": [
+      "gnumakefile"
+    ],
+    "fingerprint": "e8d477e425fddc0b",
+    "production": false,
+    "runs": "@echo the lower-case one"
+  }
+}
+{
+  "(cd web && npm ci) && npm run dev": {
+    "command": "(cd web && npm ci) && npm run dev",
+    "fingerprint": "ee9707157bf95d5d",
+    "production": false,
+    "unsure": [
+      "it runs cd inside ( ), and Whozmove can't tell where the rest of it runs"
+    ]
+  },
+  "./scripts/web.sh": {
+    "command": "./scripts/web.sh",
+    "files": [
+      "scripts/web.sh",
+      "web/package.json"
+    ],
+    "fingerprint": "c16f087dd4690a5b",
+    "others": [
+      "next"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "scripts/web.sh (the file, 3 lines)\ndev in web: next dev"
+  },
+  "cd $APP_DIR && npm run dev": {
+    "command": "cd $APP_DIR && npm run dev",
+    "fingerprint": "817c586934e249cb",
+    "production": false,
+    "unsure": [
+      "it runs cd $APP_DIR, and Whozmove can't follow it there"
+    ]
+  },
+  "cd - && npm run dev": {
+    "command": "cd - && npm run dev",
+    "fingerprint": "646f70b3637ce587",
+    "production": false,
+    "unsure": [
+      "it runs cd -, and Whozmove can't follow it there"
+    ]
+  },
+  "cd .. && npm run dev": {
+    "command": "cd .. && npm run dev",
+    "fingerprint": "9f420de1a6b8a855",
+    "production": false,
+    "unsure": [
+      "it runs cd .., and Whozmove can't follow it there"
+    ]
+  },
+  "cd docs && npm run dev": {
+    "command": "cd docs && npm run dev",
+    "files": [
+      "package.json"
+    ],
+    "fingerprint": "2c93595a51e6fe51",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite"
+  },
+  "cd web && npm run build": {
+    "command": "cd web && npm run build",
+    "files": [
+      "web/package.json"
+    ],
+    "fingerprint": "d5a6d0c7bf04430e",
+    "production": false,
+    "runnerFiles": true,
+    "unsure": [
+      "there's no build script in web/package.json"
+    ]
+  },
+  "cd web && npm run dev": {
+    "command": "cd web && npm run dev",
+    "files": [
+      "web/package.json"
+    ],
+    "fingerprint": "8b2b8e7ce6e564d4",
+    "others": [
+      "next"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev in web: next dev"
+  },
+  "make web": {
+    "command": "make web",
+    "files": [
+      "Makefile",
+      "web/package.json"
+    ],
+    "fingerprint": "fdf2fe4645d72a64",
+    "others": [
+      "next"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "cd web && npm run dev\ndev in web: next dev"
+  },
+  "pushd web; npm run dev; popd; npm run dev": {
+    "command": "pushd web; npm run dev; popd; npm run dev",
+    "files": [
+      "package.json",
+      "web/package.json"
+    ],
+    "fingerprint": "3cb52b10311480c9",
+    "others": [
+      "next",
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev in web: next dev\ndev: vite"
+  },
+  "source scripts/env.sh && npm run dev": {
+    "command": "source scripts/env.sh && npm run dev",
+    "files": [
+      "package.json",
+      "scripts/env.sh"
+    ],
+    "fingerprint": "10f474664ab8ac94",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "source scripts/env.sh (the file, 2 lines)\ndev: vite",
+    "unsure": [
+      "a script it sources runs cd, and Whozmove can't tell where the rest runs"
+    ]
+  }
+}
+{
+  "npm run dev": {
+    "command": "npm run dev",
+    "fingerprint": "1d2fc4c1b6a58b2d",
+    "production": false,
+    "unsure": [
+      "the package.json npm would read is outside this checkout"
+    ]
+  }
+}
+{
+  "yarn dev": {
+    "command": "yarn dev",
+    "files": [
+      ".yarn/releases/yarn-4.cjs",
+      ".yarnrc.yml",
+      "package.json"
+    ],
+    "fingerprint": "451dcbbcf14e1cd1",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite"
+  }
+}
+{
+  "yarn dev": {
+    "command": "yarn dev",
+    "files": [
+      ".yarnrc.yml",
+      "package.json"
+    ],
+    "fingerprint": "ceb28e79052bc72e",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite",
+    "unsure": [
+      "../shared/yarn.cjs is outside this checkout, so Whozmove can't check it"
+    ]
+  }
+}
+{
+  "yarn dev": {
+    "command": "yarn dev",
+    "files": [
+      ".yarnrc.yml",
+      "package.json"
+    ],
+    "fingerprint": "1a0470f91f20a63b",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite",
+    "unsure": [
+      ".yarnrc.yml names .yarn/releases/yarn-9.cjs, which isn't in this checkout"
+    ]
+  }
+}
+{
+  "npm ci": {
+    "command": "npm ci",
+    "files": [
+      ".npmrc",
+      "package-lock.json",
+      "package.json"
+    ],
+    "fingerprint": "283e23c02e9dd81d",
+    "packagesRun": true,
+    "production": false,
+    "runnerFiles": true
+  },
+  "npm run dev": {
+    "command": "npm run dev",
+    "files": [
+      ".npmrc",
+      "package.json"
+    ],
+    "fingerprint": "1c3b37c1f02af80f",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite"
+  }
+}
+{
+  "cd web && yarn dev": {
+    "command": "cd web && yarn dev",
+    "files": [
+      ".pnp.cjs",
+      ".pnp.loader.mjs",
+      ".yarn/plugins/tool.cjs",
+      ".yarnrc.yml",
+      "web/.yarnrc.yml",
+      "web/package.json"
+    ],
+    "fingerprint": "bdfaeac82afa8836",
+    "others": [
+      "next"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev in web: next dev",
+    "unsure": [
+      ".yarnrc.yml names .yarn/plugins/gone.cjs, which isn't in this checkout"
+    ]
+  },
+  "yarn dev": {
+    "command": "yarn dev",
+    "files": [
+      ".pnp.cjs",
+      ".pnp.loader.mjs",
+      ".yarn/plugins/tool.cjs",
+      ".yarnrc.yml",
+      "package.json"
+    ],
+    "fingerprint": "ff0ac2f221f936c2",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite",
+    "unsure": [
+      ".yarnrc.yml names .yarn/plugins/gone.cjs, which isn't in this checkout"
+    ]
+  }
+}
+{
+  "bun dev": {
+    "command": "bun dev",
+    "files": [
+      "bunfig.toml",
+      "package.json",
+      "server.ts",
+      "setup.ts"
+    ],
+    "fingerprint": "5ff6a9a954d086bb",
+    "others": [
+      "what server.ts loads"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: bun run server.ts\nbun server.ts (the file, 1 line)",
+    "unsure": [
+      "bunfig.toml names ./gone.ts, which isn't in this checkout"
+    ]
+  }
+}
+{
+  "pnpm dev": {
+    "command": "pnpm dev",
+    "files": [
+      "package.json",
+      "pnpm-workspace.yaml"
+    ],
+    "fingerprint": "8054f73a1a3973b3",
+    "others": [
+      "vite"
+    ],
+    "production": false,
+    "runnerFiles": true,
+    "runs": "dev: vite"
+  }
+}
+{
+  "case $1 in up) echo up;; esac; (cd web && npm ci) && npm run dev": {
+    "command": "case $1 in up) echo up;; esac; (cd web && npm ci) && npm run dev",
+    "fingerprint": "ee9707157bf95d5d",
+    "production": false,
+    "unsure": [
+      "it runs cd inside ( ), and Whozmove can't tell where the rest of it runs"
+    ]
+  }
+}
+{
+  "node server.js &> server.log": {
+    "command": "node server.js &> server.log",
+    "files": [
+      "server.js"
+    ],
+    "fingerprint": "3c4c482d49222867",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node server.js (the file, 1 line)"
+  },
+  "node server.js > server.log 2>&1": {
+    "command": "node server.js > server.log 2>&1",
+    "files": [
+      "server.js"
+    ],
+    "fingerprint": "3c4c482d49222867",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node server.js (the file, 1 line)"
+  },
+  "node server.js >>server.log 2>&1 < /dev/null": {
+    "command": "node server.js >>server.log 2>&1 < /dev/null",
+    "files": [
+      "server.js"
+    ],
+    "fingerprint": "3c4c482d49222867",
+    "others": [
+      "what server.js loads"
+    ],
+    "production": false,
+    "runs": "node server.js (the file, 1 line)"
+  }
+}
+== What's kept changes with a file it depends on: a program that isn't UTF-8, in a byte that doesn't decode; the
+   yarn .yarnrc.yml names; an .npmrc's node options; for an install, only the lockfile; yarn's Plug'n'Play loader;
+   and a file bun preloads
+changed
+changed
+changed
+changed
+changed
+changed
 == What the usage strip gets from Claude Code's recorded answers (null: none there) and from `claude auth
    status`, and where `claude` is looked for, best first
 {
@@ -2563,6 +5254,8 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
   "files" : {
     "answer.jsonl" : {
       "auth" : null,
+      "noPlan" : "unknown",
+      "noPlanShellKey" : "unknown",
       "usage" : {
         "available" : true,
         "extraUsage" : false,
@@ -2598,22 +5291,36 @@ files kept in the sample home after the runs: broken.json k-cleared.json k-folde
         }
       }
     },
+    "auth-changed.json" : {
+      "auth" : null,
+      "noPlan" : "unknown",
+      "noPlanShellKey" : "unknown",
+      "usage" : null
+    },
     "auth-in.json" : {
       "auth" : "signedIn",
+      "noPlan" : "signedIn",
+      "noPlanShellKey" : "signedIn",
       "usage" : null
     },
     "auth-out.json" : {
       "auth" : "signedOut",
+      "noPlan" : null,
+      "noPlanShellKey" : "shell",
       "usage" : null
     },
     "error.jsonl" : {
       "auth" : null,
+      "noPlan" : "unknown",
+      "noPlanShellKey" : "unknown",
       "usage" : {
         "error" : "Unknown request"
       }
     },
     "signed-out.jsonl" : {
       "auth" : null,
+      "noPlan" : "unknown",
+      "noPlanShellKey" : "unknown",
       "usage" : {
         "available" : false,
         "extraUsage" : false,
@@ -2656,3 +5363,686 @@ the lock is still theirs: yes
   "trusting": null
 }
 the old lock is gone: yes
+== Why a recording counts as talking to an agent (null: it doesn't), by what was in front as it began
+{
+  "a-call-going-on" : null,
+  "a-call-started-on-a-session" : "front",
+  "a-command-the-session-runs" : null,
+  "claude-dictation" : "app",
+  "dictation-elsewhere" : null,
+  "dictation-into-a-plain-shell" : null,
+  "dictation-into-a-session-tab" : "front",
+  "dictation-into-claude" : "front",
+  "dictation-into-the-panel" : "panel",
+  "voice-mode" : "voice",
+  "voice-mode-already-going" : "voice",
+  "voice-mode-through-sox" : "voice"
+}
+== Each lead's next for you, and its queue of picks by id, in its order (the second lead's of 105 picks as how many
+   it keeps and its first and last). Left out of the first queue: an id that isn't plain, and one named twice
+k-behind {"next": null, "queue": null}
+k-next-ask {"next": {"ask": "Read the three opening lines on the page and say which one reads best", "priority": "p1", "short": "Read the three opening lines on the page and say which one reads best"}, "queue": null}
+k-next-low {"next": {"priority": "p2", "short": "Pick a cover"}, "queue": {"first": {"id": "p1", "priority": "p1"}, "kept": 100, "last": {"id": "p100", "priority": "p1"}}}
+k-next-odd {"next": null, "queue": null}
+k-next-same {"next": {"priority": "p1", "short": "Read the proofs"}, "queue": null}
+s-near {"next": {"ask": "Try the search box, then say yes to merging it", "for": "s-wt", "job": "j1", "priority": "p0", "short": "Try the search box", "title": "Search box"}, "queue": [{"id": "j1-try", "job": "j1", "priority": "p0", "title": "Search box"}, {"id": "covers", "job": "j4", "priority": "critical", "title": "Album covers"}, {"id": "no-job", "priority": "p1"}, {"id": "spine", "priority": "p1"}]}
+== Each team as a whole, as the team board gets it (with that file): its lead, its goals (an id with a space, one
+   named twice and one without a name left out, and How we work marked as a heading for how the team works), its
+   queue, and every job but the dropped one, each with its goal when the team has it, whose it is and that session,
+   what it holds up, and its steps with the kinds of those that wait on you (one on a step that doesn't, and a word
+   One Task doesn't know, left out); a done one with when it was done; and the job each member's row speaks for
+   marked now
+[
+  {
+    "chief": {
+      "name": "k-next-ask",
+      "session": "k-next-ask"
+    },
+    "goals": [],
+    "jobs": [
+      {
+        "id": "j7",
+        "member": "Fern",
+        "part": "words",
+        "place": 5,
+        "priority": "p2",
+        "session": "k-fern",
+        "stage": "queued",
+        "stageAt": "now-600m",
+        "title": "Opening lines"
+      },
+      {
+        "id": "j8",
+        "member": "Fern",
+        "now": true,
+        "part": "words",
+        "place": 1,
+        "priority": "p1",
+        "session": "k-fern",
+        "stage": "queued",
+        "stageAt": "now-300m",
+        "title": "Page titles"
+      },
+      {
+        "id": "j13",
+        "member": "Fern",
+        "part": "words",
+        "place": 2,
+        "priority": "p1",
+        "session": "k-fern",
+        "stage": "queued",
+        "stageAt": "now-250m",
+        "title": "Chapter heads"
+      },
+      {
+        "id": "j14",
+        "member": "Fern",
+        "part": "words",
+        "place": 3,
+        "priority": "p1",
+        "session": "k-fern",
+        "stage": "queued",
+        "stageAt": 0,
+        "title": "Index"
+      }
+    ],
+    "lead": {
+      "name": "k-next-ask",
+      "session": "k-next-ask"
+    },
+    "project": "T/k-next-ask",
+    "queue": []
+  },
+  {
+    "chief": {
+      "name": "k-next-low",
+      "session": "k-next-low"
+    },
+    "goals": [],
+    "jobs": [
+      {
+        "id": "j9",
+        "member": "Sage",
+        "part": "covers",
+        "priority": "p1",
+        "session": "k-sage",
+        "stage": "parked",
+        "stageAt": "now-200m",
+        "title": "Back covers"
+      },
+      {
+        "id": "j10",
+        "member": "Sage",
+        "part": "covers",
+        "priority": "p1",
+        "session": "k-sage",
+        "stage": "done",
+        "stageAt": "now-100m",
+        "title": "Front covers"
+      },
+      {
+        "id": "j12",
+        "member": "Sage",
+        "part": "covers",
+        "priority": "p1",
+        "session": "k-sage",
+        "stage": "parked",
+        "stageAt": "now-150m",
+        "title": "Spine"
+      },
+      {
+        "at": "ready",
+        "id": "j17",
+        "member": "Sage",
+        "now": true,
+        "part": "covers",
+        "priority": "p1",
+        "session": "k-sage",
+        "stage": "ready",
+        "stageAt": "now-180m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "ready",
+            "waits": true,
+            "word": "Ready to try",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          }
+        ],
+        "title": "Endpapers",
+        "underWay": "waiting",
+        "waits": true,
+        "you": false
+      },
+      {
+        "id": "j18",
+        "member": "Reed",
+        "part": "spines",
+        "priority": "p1",
+        "session": "k-reed",
+        "stage": "parked",
+        "stageAt": "now-90m",
+        "title": "Ribbons"
+      },
+      {
+        "id": "j19",
+        "member": "Reed",
+        "now": true,
+        "part": "spines",
+        "priority": "p1",
+        "session": "k-reed",
+        "stage": "parked",
+        "stageAt": "now-70m",
+        "title": "Head bands"
+      }
+    ],
+    "lead": {
+      "name": "k-next-low",
+      "session": "k-next-low"
+    },
+    "project": "T/k-next-low",
+    "queue": "100 picks"
+  },
+  {
+    "chief": {
+      "name": "k-next-odd",
+      "session": "k-next-odd"
+    },
+    "goals": [],
+    "jobs": [
+      {
+        "at": "build",
+        "id": "j15",
+        "member": "Ivy",
+        "part": "layout",
+        "priority": "p1",
+        "session": "k-ivy",
+        "stage": "build",
+        "stageAt": "now-40m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Margins",
+        "underWay": "work",
+        "you": false
+      },
+      {
+        "id": "j16",
+        "member": "Ivy",
+        "now": true,
+        "part": "layout",
+        "priority": "p1",
+        "session": "k-ivy",
+        "stage": "build",
+        "stageAt": "now-20m",
+        "title": "Gutters",
+        "underWay": "work"
+      }
+    ],
+    "lead": {
+      "name": "k-next-odd",
+      "session": "k-next-odd"
+    },
+    "project": "T/k-next-odd",
+    "queue": []
+  },
+  {
+    "chief": {
+      "name": "k-next-same",
+      "session": "k-next-same"
+    },
+    "goals": [],
+    "jobs": [],
+    "lead": {
+      "name": "k-next-same",
+      "session": "k-next-same"
+    },
+    "project": "T/k-next-same",
+    "queue": []
+  },
+  {
+    "chief": {
+      "name": "Atlas",
+      "session": "s-near"
+    },
+    "goals": [
+      {
+        "due": "Fri",
+        "id": "launch",
+        "name": "Spring launch"
+      },
+      {
+        "id": "speed",
+        "name": "Faster pages"
+      },
+      {
+        "id": "how-we-work",
+        "name": "How we work",
+        "work": true
+      }
+    ],
+    "jobs": [
+      {
+        "ask": "Try it on a page with a hundred results",
+        "at": "test",
+        "goal": "launch",
+        "holdsUp": [
+          "j2"
+        ],
+        "id": "j1",
+        "kind": "try",
+        "member": "Wren",
+        "part": "docs",
+        "priority": "p0",
+        "session": "s-wt",
+        "short": "Try the search box",
+        "stage": "test",
+        "stageAt": "now-30m",
+        "steps": [
+          {
+            "id": "plan",
+            "kind": "approve",
+            "word": "Plan",
+            "you": true
+          },
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Search box",
+        "underWay": "you",
+        "you": true
+      },
+      {
+        "at": "build",
+        "id": "j2",
+        "member": "Wren",
+        "now": true,
+        "part": "docs",
+        "priority": "p1",
+        "session": "s-wt",
+        "stage": "build",
+        "stageAt": "now-5m",
+        "steps": [
+          {
+            "id": "plan",
+            "kind": "approve",
+            "word": "Plan",
+            "you": true
+          },
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Faster sync",
+        "underWay": "work",
+        "you": false
+      },
+      {
+        "at": "build",
+        "goal": "speed",
+        "id": "j3",
+        "member": "Moss",
+        "now": true,
+        "part": "tests",
+        "priority": "p2",
+        "session": "s-topic",
+        "stage": "build",
+        "stageAt": "now-10m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          },
+          {
+            "id": "merge-yes",
+            "kind": "approve",
+            "word": "Your yes",
+            "you": true
+          },
+          {
+            "id": "merge",
+            "word": "Merge",
+            "you": false
+          }
+        ],
+        "title": "Font picker",
+        "underWay": "work",
+        "you": false
+      },
+      {
+        "ask": "Pick one of three covers",
+        "at": "look",
+        "id": "j4",
+        "member": "sort the photos",
+        "now": true,
+        "priority": "critical",
+        "session": "s-idle",
+        "stage": "look",
+        "stageAt": "now-50m",
+        "steps": [
+          {
+            "id": "sketch",
+            "word": "Sketch",
+            "you": false
+          },
+          {
+            "id": "look",
+            "word": "Look",
+            "you": true
+          }
+        ],
+        "title": "Album covers",
+        "underWay": "you",
+        "you": true
+      },
+      {
+        "id": "j5",
+        "member": "Moss",
+        "part": "tests",
+        "place": 4,
+        "priority": "p1",
+        "session": "s-topic",
+        "stage": "queued",
+        "stageAt": 0,
+        "title": "Later"
+      },
+      {
+        "id": "j6",
+        "member": "Bea",
+        "now": true,
+        "part": "icons",
+        "priority": "p1",
+        "session": "s-desk",
+        "stage": "build",
+        "stageAt": 0,
+        "title": "Steps the file doesn't give",
+        "underWay": "work"
+      },
+      {
+        "doneAt": "now-2880m",
+        "goal": "launch",
+        "id": "j7",
+        "member": "Wren",
+        "part": "docs",
+        "priority": "p1",
+        "session": "s-wt",
+        "stage": "done",
+        "stageAt": 0,
+        "title": "Old banner"
+      },
+      {
+        "at": "ready",
+        "effort": "low",
+        "goal": "speed",
+        "id": "j9",
+        "member": "Wren",
+        "part": "docs",
+        "priority": "p1",
+        "session": "s-wt",
+        "size": "small",
+        "stage": "ready",
+        "stageAt": "now-15m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "ready",
+            "waits": true,
+            "word": "Ready to try",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          }
+        ],
+        "title": "Dark theme",
+        "underWay": "waiting",
+        "waits": true,
+        "you": false
+      },
+      {
+        "at": "ready",
+        "id": "j10",
+        "member": "Moss",
+        "part": "tests",
+        "priority": "p1",
+        "session": "s-topic",
+        "stage": "ready",
+        "stageAt": "now-4m",
+        "steps": [
+          {
+            "id": "build",
+            "word": "Build",
+            "you": false
+          },
+          {
+            "id": "review",
+            "word": "Review",
+            "you": false
+          },
+          {
+            "id": "ready",
+            "waits": true,
+            "word": "Ready to try",
+            "you": false
+          },
+          {
+            "id": "test",
+            "kind": "try",
+            "word": "Your try",
+            "you": true
+          }
+        ],
+        "title": "Tooltips",
+        "underWay": "waiting",
+        "waits": true,
+        "you": false
+      }
+    ],
+    "lead": {
+      "name": "Atlas",
+      "session": "s-near"
+    },
+    "project": "T/repo",
+    "queue": [
+      {
+        "id": "j1-try",
+        "job": "j1",
+        "priority": "p0",
+        "title": "Search box"
+      },
+      {
+        "id": "covers",
+        "job": "j4",
+        "priority": "critical",
+        "title": "Album covers"
+      },
+      {
+        "id": "no-job",
+        "priority": "p1"
+      },
+      {
+        "id": "spine",
+        "priority": "p1"
+      }
+    ]
+  },
+  {
+    "goals": [],
+    "jobs": [],
+    "project": "T/studio-alone",
+    "queue": []
+  },
+  {
+    "chief": {
+      "name": "The desk",
+      "session": "k-desk"
+    },
+    "goals": [],
+    "jobs": [],
+    "lead": {
+      "name": "Kit",
+      "session": "k-behind"
+    },
+    "project": "T/studio-desk",
+    "queue": []
+  },
+  {
+    "goals": [],
+    "jobs": [],
+    "project": "T/studio-unseated",
+    "queue": []
+  }
+]
+== Team Board's card on the panel's back, for the same team, and whether its figures are the board's own counts
+{
+  "actions" : [
+    {
+      "id" : "open",
+      "main" : true,
+      "title" : "Open Team Board"
+    }
+  ],
+  "figure" : "3",
+  "lines" : [
+    "2 need you"
+  ],
+  "of" : "moving"
+}
+its figures are the board's counts: true
+== A team file reads the same whatever its version: 5, 1 or none
+version 5: the same
+version none: the same
+== With Show Teams off, the file isn't read: no teams, no row has a team, and Group by Team isn't offered
+{
+  "groupByTeamOffered" : false,
+  "rowsWithATeam" : [
+
+  ],
+  "teams" : [
+
+  ]
+}
+== A member is its workspace: whoever runs in a member's own folder holds its seat. Pim's conversation, cleared, is
+   Pim; s-twice, in Bea's folder while Bea's recorded session runs elsewhere, is Bea; s-clone, beside Moss's own
+   session, is a duplicate of Moss; Ivy's own session in Pim's folder stays Ivy's; and the lead's sessions it leads,
+   and what's next for you, name the sessions holding the seats (its next made Pim's job here). With nothing running
+   in Tam's folder and the file's id for Tam naming no session listed, Tam's conversation that moved last, ended,
+   is Tam, the older one only in Tam's folder; the lead leads it, a pick by Tam's name reaches it, and Take Me There
+   carries it on
+s-pim idle {"name": "Pim", "role": "member"}
+s-ivy idle {"inFolderOf": "Pim"}
+s-twice busy {"name": "Bea", "role": "member"}
+s-desk idle {}
+s-clone idle {"duplicate": true, "earlier": false, "inFolderOf": "Moss"}
+s-topic busy {"name": "Moss", "role": "member"}
+k-tam-later closed {"name": "Tam", "role": "member"}
+k-tam-earlier closed {"inFolderOf": "Tam"}
+the lead leads ['k-tam-later', 's-ivy', 's-pim', 's-topic', 's-twice', 's-wt'] and what is next is for s-pim
+a pick for Tam by name reaches ['k-tam-later']
+Take Me There on Tam's job: {"session":"k-tam-later","again":true,"name":"Tam","why":"Tam has stopped"}
+== Without the team file: no row has a place in a team, nor a mark
+rows with a place: []

@@ -1,5 +1,6 @@
 // LRCLIBFacts: what Whozmove relies on about LRCLIB (lrclib.net), the free library of lyrics the now-playing strip's
-// lyrics come from, that LRCLIB could change. When it does, the fix goes here. The README's "Tested with" names it.
+// lyrics come from, that LRCLIB could change. When it does, the fix goes here.
+// docs/using/install.md ("What it's tested with") names it.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 

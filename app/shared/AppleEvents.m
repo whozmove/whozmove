@@ -1,6 +1,7 @@
 // AppleEvents: naming an app's properties, sending it Apple events, and whether macOS lets Whozmove.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "AppleEvents.h"
+#import "OtherApps.h"
 #import <CoreServices/CoreServices.h>
 
 NSAppleEventDescriptor *AppleEventProperty(FourCharCode code, NSAppleEventDescriptor *of) {
@@ -25,6 +26,7 @@ NSAppleEventDescriptor *AppleEventEvery(FourCharCode cls, NSAppleEventDescriptor
 }
 
 NSAppleEventDescriptor *AskQuietly(pid_t pid, NSAppleEventDescriptor *specifier, NSTimeInterval timeout) {
+    if (!MayActOnOtherApps()) return nil;
     NSAppleEventDescriptor *event =
         [NSAppleEventDescriptor appleEventWithEventClass:kAECoreSuite eventID:kAEGetData
                                         targetDescriptor:[NSAppleEventDescriptor descriptorWithProcessIdentifier:pid]
@@ -52,6 +54,10 @@ NSArray<NSString *> *AskEvery(pid_t pid, FourCharCode cls, FourCharCode property
 NSAppleEventDescriptor *SendAppleEvent(pid_t pid, AEEventClass eventClass, AEEventID eventId,
                                        NSAppleEventDescriptor *object, NSAppleEventDescriptor *data,
                                        NSTimeInterval timeout, OSStatus *status) {
+    if (!MayActOnOtherApps()) {
+        *status = errAEEventNotPermitted;
+        return nil;
+    }
     NSAppleEventDescriptor *event = [NSAppleEventDescriptor
         appleEventWithEventClass:eventClass eventID:eventId
                 targetDescriptor:[NSAppleEventDescriptor descriptorWithProcessIdentifier:pid]
@@ -71,6 +77,7 @@ NSAppleEventDescriptor *SendAppleEvent(pid_t pid, AEEventClass eventClass, AEEve
 }
 
 OSStatus AutomationPermission(pid_t pid, BOOL ask) {
+    if (!MayActOnOtherApps()) return errAEEventNotPermitted;
     NSAppleEventDescriptor *target = [NSAppleEventDescriptor descriptorWithProcessIdentifier:pid];
     return AEDeterminePermissionToAutomateTarget(target.aeDesc, typeWildCard, typeWildCard, ask);
 }

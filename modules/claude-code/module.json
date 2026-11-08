@@ -1,5 +1,6 @@
 {
   "order": 70,
-  "scripts": ["page/agent.js", "page/requests.js"],
-  "styles": []
+  "scripts": ["page/request-words.js", "page/agent.js", "page/requests.js", "page/questions.js", "page/answered.js",
+              "page/ended.js", "page/messages.js"],
+  "styles": ["page/requests.css"]
 }

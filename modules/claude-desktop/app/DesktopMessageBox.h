@@ -21,3 +21,8 @@
 // The composer's own Submit beside a message box, one that can be pressed now (none, or more than one, when it can't be
 // told).
 NSArray *DesktopSendButtons(id box);
+// What's written in the message box, as panel.log says it: a slash command by its first word (only one shaped like
+// a command, "/" then up to 31 small letters and dashes), other words, a path or a slash-led token among them, only as
+// "words", each with its length, never the words themselves, which for /compact hold the focus you wrote and for a
+// message what you typed: "/compact (57 characters)", "words (12 characters)".
+NSString *DesktopWordsLogged(NSString *text);

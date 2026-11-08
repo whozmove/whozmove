@@ -12,7 +12,8 @@
 // song's name, or a line) roll in place as the cover cross-fades; and the time leaves its lane before the controls come
 // into it.
 
-// The strip's controls: back, pause or play, and next; and the lyrics mark on the cover once lyrics are on.
+// The strip's controls: back, pause or play, and next; the lyrics mark on the cover once lyrics are on; and the sign
+// beside the time while the music is lowered as you talk to an agent (a speaker with one wave).
 const SONG_ICONS = {
   previous: '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="1.5" y="2" width="1.6" height="8" rx=".6" '
     + 'fill="currentColor"/><path fill="currentColor" d="M10.5 2.6v6.8a.6.6 0 0 1-.92.5L4.4 6.5a.6.6 0 0 1 '
@@ -29,6 +30,9 @@ const SONG_ICONS = {
     + '2-2ZM4.1 3.4a1 1 0 0 0-1 1 1 1 0 0 0 1 1h.05c-.08.4-.35.75-.8.95l.25.45c1.1-.4 1.55-1.2 1.55-2.2V4.4a1 1 0 0 '
     + '0-1.05-1Zm3.1 0a1 1 0 0 0-1 1 1 1 0 0 0 1 1h.05c-.08.4-.35.75-.8.95l.25.45c1.1-.4 1.55-1.2 1.55-2.2V4.4a1 1 0 '
     + '0 0-1.05-1Z"/></svg>',
+  quieter: '<svg width="12" height="12" viewBox="0 0 12 12"><path fill="currentColor" d="M1.6 4.4h1.7L5.9 2.2a.45.45 '
+    + '0 0 1 .74.35v6.9a.45.45 0 0 1-.74.35L3.3 7.6H1.6a.6.6 0 0 1-.6-.6V5a.6.6 0 0 1 .6-.6Z"/><path d="M8.4 4.3a2.4 '
+    + '2.4 0 0 1 0 3.4" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>',
 };
 
 const npEl = document.getElementById('nowplaying');
@@ -55,20 +59,23 @@ function npParts() {
         class="np-lyrics-mark">${SONG_ICONS.lyrics}</span></span>
       <span class="np-text"></span>
       <span class="np-side">
-        <span class="np-clock"></span>
+        <span class="np-time"><span class="np-quieter" role="img"
+          aria-label="Quieter while you talk" aria-hidden="true">${SONG_ICONS.quieter}</span><span
+          class="np-clock"></span></span>
         <span class="np-controls">
-          <button class="np-btn" data-do="previous" title="Back">${SONG_ICONS.previous}</button>
-          <button class="np-btn np-play" data-do="playpause" title="Pause">${SONG_ICONS.pause}</button>
-          <button class="np-btn" data-do="next" title="Next">${SONG_ICONS.next}</button>
+          <button class="icon-button np-btn" data-do="previous" title="Back">${SONG_ICONS.previous}</button>
+          <button class="icon-button np-btn np-play" data-do="playpause" title="Pause">${SONG_ICONS.pause}</button>
+          <button class="icon-button np-btn" data-do="next" title="Next">${SONG_ICONS.next}</button>
         </span>
       </span>
     </div>
-    <div class="np-note" hidden><span class="np-note-text"></span><button class="np-note-btn"></button><button
-      class="np-note-btn np-x np-close" hidden>×</button></div>`;
+    <div class="notice np-note" hidden><span class="notice-text np-note-text"></span><button
+      class="button small np-note-btn"></button><button class="icon-button small np-note-btn np-close" hidden>×</button>
+    </div>`;
   const q = (sel) => npEl.querySelector(sel);
   np.parts = { strip: q('.np-strip'), fill: q('.np-fill'), art: q('.np-art'),
                imgs: [...npEl.querySelectorAll('.np-img')],
-               text: q('.np-text'), clock: q('.np-clock'), play: q('.np-play'),
+               text: q('.np-text'), clock: q('.np-clock'), quieter: q('.np-quieter'), play: q('.np-play'),
                note: q('.np-note'), noteText: q('.np-note-text'), noteButton: q('.np-note-btn:not(.np-close)'),
                noteClose: q('.np-close') };
   // A cover fades in once it has loaded, on top of the one before, which goes only once it's covered; one that
@@ -120,6 +127,9 @@ function npDraw(view, fresh, now) {
   p.fill.style.width = width;
   setText(p.clock, view.clock);
   npEl.classList.toggle('is-paused', view.state === 'paused');
+  npEl.classList.toggle('is-quieter', !!view.quieter);
+  // The sign is only faded out while the music isn't lowered, so VoiceOver is told it's there only while it shows.
+  p.quieter.setAttribute('aria-hidden', String(!view.quieter));
   const icon = view.state === 'playing' ? 'pause' : 'play';
   if (p.play.dataset.icon !== icon) {
     p.play.dataset.icon = icon;
@@ -275,13 +285,14 @@ function npNote(kind) {
   const p = np.parts, before = npEl.offsetHeight;
   np.note = kind;
   p.note.hidden = !kind;
-  p.note.classList.toggle('refused', kind === 'refused');
+  p.note.classList.toggle('warn', kind === 'refused');
   if (kind) {
     const note = SONG_NOTES[kind];
     p.noteText.textContent = note.text;
     p.noteButton.textContent = note.button;
     p.noteButton.dataset.does = note.does;
-    p.noteButton.classList.toggle('np-x', note.does === 'dismiss');
+    // A note that only goes away has a × for its button.
+    p.noteButton.className = `${note.does === 'dismiss' ? 'icon-button' : 'button'} small np-note-btn`;
     p.noteClose.hidden = !note.close;
     p.noteClose.dataset.does = note.close || '';
     p.noteClose.title = note.closeTitle || '';

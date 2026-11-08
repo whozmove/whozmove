@@ -1,7 +1,7 @@
 // SpotifyToken: Spotify's round token, tucked half under the panel at its bottom corner.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 //
-// The core's EdgeIcon holds it under the glass, moves it with the panel and across to the other side, brings it out
+// EdgeIcon (parts/edge) holds it under the glass, moves it with the panel and across to the other side, brings it out
 // once the panel has opened, and puts its label beside it. What's Spotify's own: its disc, with Spotify's icon or the
 // paused song's cover, the ring round it for how far into the song it is, and the badge at its corner; the "magnet",
 // which leans it out toward the pointer as it comes near and slides it along the edge to meet it; and its press, which

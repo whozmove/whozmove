@@ -1,0 +1,45 @@
+/* The gear's seats (gear.js), on the usage card only: "Gear" and its number, then a seat for each gear across the card
+   (--seats of them), those up to your gear in a faint box, each lit for a session working in it; past the box, dots to
+   press, and a session working beyond your gear lit there; a notch under the recommended seat; and, while a seat is
+   pointed at, a ring round the box a press there would make. The old number and the new one in the same place as they
+   swap. The box, the ring and the notch are only drawing: presses and the pointer go through them to the seats.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.u-seats { display: flex; align-items: center; gap: 6px; height: 20px; }
+.u-seats-read { flex: none; display: inline-flex; align-items: center; gap: 4px; width: 50px; }
+.u-seats-label { font-size: var(--size-small); color: var(--muted); }
+.u-num { display: inline-grid; place-items: center start; min-width: 2ch; height: 20px; font-size: var(--size-body);
+         font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.u-num > span { grid-area: 1 / 1; }
+.u-seats-row { position: relative; flex: 1; min-width: 0; display: grid; height: 20px;
+               grid-template-columns: repeat(var(--seats), 1fr); }
+/* Your gear: the box round its seats, easing to a new end after your press. */
+.u-box { position: absolute; top: 1px; bottom: 1px; left: 0; width: calc(var(--end, 0) / var(--seats) * 100%);
+         border-radius: var(--radius-small); background: var(--usage-track); pointer-events: none;
+         transition: width .34s cubic-bezier(.2, .8, .2, 1); }
+.u-ring { position: absolute; top: 1px; bottom: 1px; left: 0; width: calc(var(--to, 0) / var(--seats) * 100%);
+          border-radius: var(--radius-small); box-shadow: inset 0 0 0 1px var(--dim); opacity: 0; pointer-events: none;
+          transition: opacity .15s ease, width .18s cubic-bezier(.2, .8, .2, 1); }
+.u-seats.is-pointing .u-ring { opacity: 1; }
+/* A seat: a dot to press, dim rather than faint, as something you press stands out at 3:1 at least; in the box it
+   stands up, dim with room, lit with a session working in it. A session working beyond your gear is lit past the box;
+   with no gear set, the sessions working are lit in the line's grey. */
+.u-seat { appearance: none; position: relative; display: grid; place-items: center; height: 20px; margin: 0; padding: 0;
+          border: 0; background: none; font: inherit; color: inherit; cursor: default; }
+.u-seat i { display: block; width: 3px; height: 3px; border-radius: var(--radius-bar); background: var(--dim);
+            transition: height .26s cubic-bezier(.2, .8, .2, 1), background-color .2s ease; }
+.u-seat.in i { height: 10px; }
+.u-seat.lit i { height: 10px; background: var(--text); }
+.u-seats.no-gear .u-seat.lit i { background: var(--muted); }
+.u-seat.is-hover i { background: var(--text); }
+/* The recommended gear: a notch under its seat, as the folded card's notch marks even use. */
+.u-rec { position: absolute; bottom: -1px; display: none; width: 2px; height: 3px; margin-left: -1px;
+         left: calc((var(--rec, 1) - .5) / var(--seats) * 100%); border-radius: var(--radius-bar);
+         background: var(--usage-even); pointer-events: none; }
+.u-seats-row.has-rec .u-rec { display: block; }
+/* What the app says other than after your press is there at once. */
+.u-seats.is-still .u-box, .u-seats.is-still .u-seat i { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .u-box, .u-ring, .u-seat i { transition: none; }
+}

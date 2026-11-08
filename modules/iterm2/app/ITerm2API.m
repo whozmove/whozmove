@@ -5,6 +5,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ITerm2API.h"
 #import "ITerm2Facts.h"
+#import "Files.h"
+#import "OtherApps.h"
 #import "Text.h"
 #import "Log.h"
 #include <sys/socket.h>
@@ -234,8 +236,8 @@ static NSData *ReadFrame(int fd, uint8_t *opcode) {
 // A connection to iTerm2's socket, or -1 while nothing listens there (the API is off, or iTerm2 isn't running). Its
 // reads and writes wait kWait at most, and a write to it once it has closed fails rather than ending the app.
 static int ConnectSocket(void) {
-    NSString *support = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES)
-                            .firstObject;
+    if (!MayActOnOtherApps()) return -1;
+    NSString *support = [Home() stringByAppendingPathComponent:@"Library/Application Support"];
     const char *path = [support stringByAppendingPathComponent:kITerm2APISocket].fileSystemRepresentation;
     struct sockaddr_un address = {.sun_family = AF_UNIX};
     if (!path || strlen(path) >= sizeof(address.sun_path)) return -1;

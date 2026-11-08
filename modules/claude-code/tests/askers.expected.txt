@@ -1,0 +1,57 @@
+Real: its session s-real
+  task-answer: gone: no task offline from this session waits (it was never sent, or went with the session's process or conversation): send it again with ask-panel.sh task if it's still needed
+  inbox: refused: this project keeps no team, so there's no inbox here
+  message: refused: a message goes to your team's lead: --to lead
+  ticket: refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+Inner: its session s-inner
+  task-answer: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
+  inbox: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
+  message: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
+  ticket: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
+Other: its session s-other
+  task-answer: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  inbox: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  message: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  ticket: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+Twin: its session s-other
+  task-answer: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  inbox: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  message: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+  ticket: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+Elsewhere: its session s-gone
+  task-answer: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
+  inbox: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
+  message: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
+  ticket: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
+Forger: its session s-real, but it can't ask: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+  task-answer: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+  inbox: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+  message: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+  ticket: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+Usurper, its record saying it's Real once Real's says it's another: refused: this conversation is open in another process too (pid): close the other copy, then ask again
+Tucked, inside Holder's session, with a record of its own: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+Npm, Node with its arguments overwritten, with a record of its own: refused: it runs an older Claude Code from npm, run by Node, which no signature can check: update Claude Code (npm's is its own signed build from 2.1.113 on), then ask again
+
+== The rule for what a process runs, alone (ClaudeProgramFrom)
+Node running npm's cli.js: an older one from npm
+Node whose title is over its arguments, with its record: an older one from npm
+…without one: neither
+Node, signed or not, is never the signed build: neither
+npm's claude.exe, signed by Anthropic: Claude Code's own build
+…not signed by Anthropic, its record or not: neither
+The stand-in, by its path: Claude Code's own build
+Short names that may be Claude Code's: claude yes; claude.exe yes; node yes; 2.1.316 yes; sleep no; claude-helper no;
+Forger's program: valid yes, identifier com.apple.sleep, team none, Developer ID no: it names no team
+Real's program: valid yes, identifier claude, team none, Developer ID no: it names no team
+
+== The rule for who speaks for a session, alone (WhyNotSpeakFrom), the asker being 7
+Another copy of Claude Code open for it: this conversation is open in another process too (pid): close the other copy, then ask again
+The one seen as its own still runs, and asks: it may
+…another asks while it runs: this conversation is open in another process too (pid): close the other copy, then ask again
+That one ended: one where it started: it may
+…one in a worktree inside where it last was: it may
+…one elsewhere: this process works in /work/elsewhere, not where Shop was seen working (/work/shop): ask from that session's own Claude Code
+…one in a folder whose name only starts the same: this process works in /work/shop-2, not where Shop was seen working (/work/shop): ask from that session's own Claude Code
+…one whose folder can't be read: this process works in a folder that can't be read, not where Shop was seen working (/work/shop): ask from that session's own Claude Code
+Not seen since Whozmove started: one where it was kept working: it may
+…with nowhere known: this process works in /work/shop, and Whozmove doesn't know where Shop works: ask from that session's own Claude Code

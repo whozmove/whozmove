@@ -1,0 +1,99 @@
+== The cases, and what the panel answers each
+Atlas's mode menu, with another process registered as its session (not Claude Code's): It can send back a team member's plan in this project with a note, never approve one
+Turned on then: on
+…and off again, so no file can be what turns it on below: off
+Atlas's mode menu, once that's gone: It can send back a team member's plan in this project with a note, never approve one
+Wren's mode menu (a member): not in its mode menu
+Atlas asks what's waiting, May Send Back Plans off, with a file written to say it's on: refused: May Send Back Plans isn't on for this session's folder; and May Answer Questions isn't on for this session's folder; and May Approve Plans isn't on for this session's folder
+Mine asks (May Send Back Plans isn't in its menu): refused: May Send Back Plans is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it; and May Answer Questions is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it; and May Approve Plans is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it
+Turned on: on
+Atlas's mode menu then: ✓ Stays on for shop while Whozmove runs
+…with nothing written in a file: none
+Atlas asks what's waiting, while the user answers Bea's: {"onlyTheUser":[],"waiting":[{"file":"~\/plans\/p.md","held":true,"id":"<s-bea's>","kind":"plan","may":["send-back"],"name":"Bea","sessionId":"s-bea","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"file":"~\/plans\/p.md","id":"<s-ivy's>","kind":"plan","may":["send-back"],"name":"Ivy","sessionId":"s-ivy","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"file":"~\/plans\/p.md","id":"<s-rex's>","kind":"plan","may":["send-back"],"name":"Rex","sessionId":"s-rex","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"file":"~\/plans\/p.md","id":"<s-sol's>","kind":"plan","may":["send-back"],"name":"Sol","sessionId":"s-sol","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"file":"~\/plans\/p.md","id":"<s-wren's>","kind":"plan","may":["send-back"],"name":"Wren","sessionId":"s-wren","text":"# Search box, version 2\nText","title":"Search box, version 2"}]}
+It sends back Bea's plan then: refused: the user is answering it: leave it to them
+It sends back Far's plan (a member in another project): refused: Far is in another project, other
+It sends back the plan of a second session in Wren's workspace (a duplicate): refused: only the team's sessions can be answered for the user, as the team file names them, and fix tooltips isn't one: the user answers it
+It sends back Sol's plan (holding Sol's seat, a session the file doesn't name): sent back: Sol's plan “Search box, version 2”, with your note
+It sends back Moss's question: refused: it isn't a plan: May Send Back Plans sends back only plans
+It sends back Wren's plan with no note: refused: say what should change, in a note: a plan is sent back with one
+…with a note too long: refused: a note may be 4000 characters at most
+It sends back a plan no one asked: refused: there's no request with that id waiting
+It names a plan by something that isn't an id: refused: name a request by the id ask-panel.sh waiting lists
+It sends back Far's plan once Far's hook has gone: refused: it has gone: answered in its session's tab, or Claude stopped asking
+The other process registered as Atlas's session asks: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+A process no session runs asks: refused: this doesn't run in one of the sessions Whozmove lists
+Atlas answers Moss's question, May Answer Questions off: refused: May Answer Questions isn't on for this session's folder
+May Answer Questions turned on: on
+It answers Wren's plan: refused: it isn't a question: May Answer Questions answers only questions
+It answers Moss's question with nothing: refused: give the answers on stdin, as JSON: {question: {option: label}}
+…with an option it doesn't have: refused: “Which index?” has no option “Both”
+…with two options, where one is picked: refused: “Which index?” takes one option
+…with a question it didn't ask: refused: “Which font?” isn't one of its questions
+…with words that aren't JSON: refused: give the answers on stdin, as JSON: {question: {option: label}}
+…with only its first question answered: refused: answer every question: “Which pages?” has none
+…with a number past its most: refused: “How many results?” takes a number from 1 to 50
+…with words for its number: refused: “How many results?” takes a number from 1 to 50
+…with a number too big to be one: refused: “How many results?” takes a number from 1 to 50
+…with a pick its several-picks question doesn't have: refused: “Which pages?” has no option “Wiki”
+It answers Mine's question (one of the user's own): refused: only the team's sessions can be answered for the user, as the team file names them, and Mine isn't one: the user answers it
+It answers Pip's question, while the user answers it: refused: the user is answering it: leave it to them
+It sends back Moss's question: refused: it isn't a plan: May Send Back Plans sends back only plans
+Atlas approves Ivy's plan, with only May Send Back Plans and May Answer Questions on: refused: May Approve Plans isn't on for this session's folder
+May Approve Plans turned on: on
+waiting lists Bea's plan: send-back, approve
+waiting lists Ivy's plan: send-back, approve
+waiting lists Rex's plan: send-back; approve: its session is bypassing permissions: only the user can approve its plans, in its tab
+waiting lists Wren's plan: send-back, approve
+It approves Ivy's plan with another plan's digest: refused: that digest isn't this plan's: read the plan's text in ask-panel.sh waiting, and use its digest
+…with no digest: refused: name the plan's digest too, as ask-panel.sh waiting lists it with its text
+It approves Rex's plan (its session can switch to bypassing permissions): refused: its session is bypassing permissions: only the user can approve its plans, in its tab
+It approves Moss's question: refused: it isn't a plan: May Approve Plans approves only plans
+It approves Bea's plan, while the user answers it: refused: the user is answering it: leave it to them
+It approves Ivy's plan, its file written again since Claude asked: refused: its plan file has changed since Claude asked: only the user can approve it now, in its tab
+It approves Ivy's plan, once the hooks in place are newer than Ivy's session: refused: its session started before Whozmove's update: only the user can approve it, in its tab
+The page answers Rex's plan with allow and approvePlan: a second later, Rex's hook: is still on its line
+Atlas sends back Wren's plan again: refused: it has been answered already
+Wren's row then: sentBack by Atlas: Split step 2 first, and keep the results in one list. (“Search box, version 2”)
+Moss's row then: answered by Atlas: Which index? “Titles, then text” · Which pages? “Docs, Blog” · How many results? “20”
+Ivy's row, before Ivy's plan's result (an earlier plan approved before it): pending
+…once it says approved: approved by Atlas: “Search box, version 2”, approved, plan p2
+Atlas's May Approve Plans then: Stays on for shop while Whozmove runs · 1 approved
+May Approve Plans turned off: off
+It approves a plan then: refused: May Approve Plans isn't on for this session's folder
+Atlas's mode menu then: ✓ Stays on for shop while Whozmove runs · 2 sent back
+…and its May Answer Questions: Stays on for shop while Whozmove runs · 1 answered
+May Send Back Plans turned off: off
+Atlas asks what's waiting, with only May Answer Questions on: {"onlyTheUser":[],"waiting":[{"held":true,"id":"<s-pip's>","kind":"question","name":"Pip","questions":[{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":false,"options":["Titles","Text"],"question":"Which index?"}],"sessionId":"s-pip"}]}
+It sends back a plan then: refused: May Send Back Plans isn't on for this session's folder
+May Answer Questions turned off: off
+Atlas asks what's waiting then: refused: May Send Back Plans isn't on for this session's folder; and May Answer Questions isn't on for this session's folder; and May Approve Plans isn't on for this session's folder
+Whozmove restarts with May Answer Questions and May Approve Plans ticked on Atlas: waiting: 2
+…its notice: Whozmove restarted, so May Answer Questions and May Approve Plans went off for Atlas in shop: one press at the foot of its mode menu brings them back. (soon yes, closes yes, button none)
+== From inside Atlas's session: waiting, send-back for Wren's plan, then with no note, with one too long, then
+   answer for Moss's question, and with no answers, then approve for Ivy's plan, and with no digest
+{"onlyTheUser":[],"waiting":[{"digest":"33143a491c238220","file":"T/ah/plans/p.md","held":true,"id":"<s-bea's>","kind":"plan","may":["send-back","approve"],"name":"Bea","sessionId":"s-bea","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"digest":"33143a491c238220","file":"T/ah/plans/p.md","id":"<s-ivy's>","kind":"plan","may":["send-back","approve"],"name":"Ivy","sessionId":"s-ivy","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"id":"<s-moss's>","kind":"question","name":"Moss","questions":[{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":false,"options":["Titles","Text"],"question":"Which index?"},{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":true,"options":["Docs","Blog","Shop"],"question":"Which pages?"},{"answers":"{written: text}","kind":"number","max":50,"min":1,"question":"How many results?"}],"sessionId":"s-moss"},{"held":true,"id":"<s-pip's>","kind":"question","name":"Pip","questions":[{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":false,"options":["Titles","Text"],"question":"Which index?"}],"sessionId":"s-pip"},{"digest":"33143a491c238220","file":"T/ah/plans/p.md","id":"<s-wren's>","kind":"plan","may":["send-back","approve"],"name":"Wren","sessionId":"s-wren","text":"# Search box, version 2\nText","title":"Search box, version 2"}]}
+exit=0
+sent back: Wren's plan “Search box, version 2”, with your note
+exit=0
+Give the note on stdin: what should change in the plan
+exit=2
+A note may be 4000 characters at most: say what should change more briefly
+exit=2
+answered: Moss's questions
+exit=0
+Give the answers on stdin, as JSON: {"the question": {"option": "its label"}}
+exit=2
+approved: Ivy's plan “Search box, version 2”; once Claude Code has taken it, its row says so, and ask-panel.sh waiting lists one it didn't
+exit=0
+Name the plan's digest too, as ask-panel.sh waiting lists it
+exit=2
+== From outside any session: waiting
+refused: this doesn't run in one of the sessions Whozmove lists
+exit=1
+== What Wren's real hook passed on to Claude
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user wants changes to the plan: (Sent back by \u201cAtlas\u201d, a session the user lets send plans back for them.) Split step 2 first,\nand keep the results in one list."}}}
+== What Moss's real hook passed on to Claude
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {"questions": [{"question": "Which index?", "options": [{"label": "Titles"}, {"label": "Text"}]}, {"question": "Which pages?", "multiSelect": true, "options": [{"label": "Docs"}, {"label": "Blog"}, {"label": "Shop"}]}, {"question": "How many results?", "kind": "number", "min": 1, "max": 50}], "answers": {"Which index?": "Titles, then text (chosen for the user by \u201cAtlas\u201d; not the user's OK for anything that needs their permission)", "Which pages?": "Docs, Blog (chosen for the user by \u201cAtlas\u201d; not the user's OK for anything that needs their permission)", "How many results?": "20 (chosen for the user by \u201cAtlas\u201d; not the user's OK for anything that needs their permission)"}}}}}
+== What Ivy's real hook passed on to Claude
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {}}}}
+== What Rex's real hook passed on to Claude, given allow and approvePlan from the page: nothing, still waiting

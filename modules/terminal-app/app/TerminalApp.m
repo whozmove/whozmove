@@ -6,6 +6,7 @@
 #import "Host.h"
 #import "Files.h"
 #import "Text.h"
+#import "Links.h"
 
 // Its app id, which macOS gives it on every Mac.
 static NSString *const kTerminalAppId = @"com.apple.Terminal";
@@ -70,15 +71,14 @@ static NSString *const kTerminalAppId = @"com.apple.Terminal";
         return finish(@"Couldn't write what Terminal would run");
     [NSFileManager.defaultManager setAttributes:@{NSFilePosixPermissions: @0700} ofItemAtPath:file error:nil];
     NSURL *url = [NSURL fileURLWithPath:file];
-    if (forward) return finish([NSWorkspace.sharedWorkspace openURL:url] ? nil : @"Terminal didn't open it");
+    if (forward) return finish(OpenInOtherApp(url) ? nil : @"Terminal didn't open it");
     NSWorkspaceOpenConfiguration *behind = [NSWorkspaceOpenConfiguration configuration];
     behind.activates = NO;
     NSURL *app = [NSWorkspace.sharedWorkspace URLForApplicationWithBundleIdentifier:kTerminalAppId];
     if (!app) return finish(@"Terminal isn't on this Mac");
-    [NSWorkspace.sharedWorkspace openURLs:@[url] withApplicationAtURL:app configuration:behind
-                        completionHandler:^(NSRunningApplication *opened, NSError *error) {
+    OpenInOtherAppWith(@[url], app, behind, ^(NSRunningApplication *opened, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{ finish(opened ? nil : @"Terminal didn't open it"); });
-    }];
+    });
 }
 
 // Terminal on the panel's back: what Whozmove does with it. It needs nothing of macOS: it's never sent Apple Events.

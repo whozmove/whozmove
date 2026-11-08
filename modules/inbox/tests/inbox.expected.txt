@@ -1,0 +1,31 @@
+No words: give the message on stdin
+8,001 characters: a message may be 8,000 characters at most: put the rest in a file and give its path
+8,000 characters: (nothing)
+A key in the words: it has something shaped like a key in it: take it out, and say where it's kept
+A key in what it's about: it has something shaped like a key in it: take it out, and say where it's kept
+Five kept, in the order the lead reads them: urgent stop (Moss), question node (Moss), question J12 (Pip), report J12 (Pip), note tidy (Pip)
+Another project's inbox: none
+Next for the lead: urgent stop
+…once it's read, next: question node
+For a fresh lead, the one the lead before read and nobody answered: urgent stop
+Answered, with a note: answered m-1
+…answered by: s-lead-2
+…read by, the lead before: s-lead
+…its note: Told Moss to keep the table
+Answered again: answered m-1 already
+Answered, an id it hasn't: no message m-2 is in this inbox: name one by the id inbox-next gave
+Now waiting: question node (Moss), question J12 (Pip), report J12 (Pip), note tidy (Pip)
+Its line: Inbox m-… · question from Pip: Take the cent next, or leave it?
+…the id at its start: its own
+A line that only names an id later: (nothing)
+Its line held, as Moss said: (nothing)
+…as Pip, who kept it, said: held
+…then expired: expired
+This week's counts, for the shop: {"denied":1,"dropped":0,"expired":1,"failed":0,"held":1,"lost":1}
+…for every project: {"denied":1,"dropped":0,"expired":1,"failed":0,"held":1,"lost":2}
+…next week: {"denied":0,"dropped":0,"expired":0,"failed":0,"held":0,"lost":0}
+What inbox lists of one: about, at, from, id, priority, told
+Pip with 50 waiting sends another: 50 of this session's messages wait unanswered already: wait for the lead to answer some
+…and Moss: kept
+Kept once the old go: waiting 13 days
+A damaged record: {"messages":[],"version":1,"weeks":[]}

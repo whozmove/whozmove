@@ -1,0 +1,16 @@
+# An outside app's bundle id, or a path into Claude Code's folder or another app's folder in Application Support,
+# still written out in the app's code outside its module's Facts header, where the rest of that app's facts are.
+# tests/checks.sh fails on one this doesn't list; once the file no longer writes it out, tests/checks.sh --update takes
+# its line off: nothing is ever added that way, and moving one into its Facts header is its part's work.
+modules/changes/app/Editors.m  id  com.apple.dt.Xcode
+modules/changes/app/Editors.m  id  com.barebones.bbedit
+modules/changes/app/Editors.m  id  com.microsoft.VSCode
+modules/changes/app/Editors.m  id  com.sublimetext.4
+modules/changes/app/Editors.m  id  com.todesktop.230313mzl4w4u92
+modules/changes/app/Editors.m  id  dev.zed.Zed
+modules/claude-code/app/AgentDetails.m  path  .claude/settings.json
+modules/claude-code/app/AgentDetails.m  path  .claude/settings.local.json
+modules/claude-code/app/ClaudeCodePrints.m  path  .claude/sessions/%d.json
+modules/claude-code/app/Writings.m  path  .claude
+modules/storage/app/KeyScan.m  id  com.apple.TextEdit
+modules/terminal-app/app/TerminalApp.m  id  com.apple.Terminal

@@ -1,0 +1,28 @@
+the disk's line put away, the same a minute later: away
+…the disk a tenth fuller (a new since): shows
+…23 hours later, as it was: away
+…25 hours later, as it was (a day has passed): shows
+a new version put away, the same a week later: away
+…a newer version out: shows
+…another sender's notice with the same key and since: shows
+nothing put away: shows
+one with no since, put away, then listed again: away
+a page sender's notice put away: {"one-task/waits":"task:a#1"}
+…said another way: {"one-task/waits":"task:a#2"}
+…forgotten: {}
+one put away for a day: {"storage/keys":{"at":1790000000000,"awayFor":86400,"since":"k1"}}
+…for a time that isn't a number of seconds: only until it changes: {"storage/keys":"k1"}
+what's been seen beside the folded panel, kept for a restart (an id that isn't a notice's, and a since too long, left out): {"needs-you/s-1":"ask:7","needs-you/s-2":"reply:1790000000000"}
+…and when each was first seen: {"needs-you/s-1":1790000000000,"needs-you/s-2":1790000000000}
+…an hour later, one the same (kept from when it was first seen), one new: {"needs-you/s-1":1790000000000,"needs-you/s-2":1790003600000}
+…what the page has back as it loads: {"needs-you/s-1":"ask:7","needs-you/s-2":"reply:1790000009000"}
+…what a build that reads only besideSeen, each a since as text, finds: needs-you/s-1, needs-you/s-2
+…with no times kept: one the same taken as seen long ago, one new seen now: {"x/s-1":0,"x/s-2":1790000000000}
+…one that keeps only ids that aren't a notice's: as none, so nothing there now is taken for new: (none)
+…one that keeps nothing yet: nothing seen: {}
+…nothing kept yet (a first launch): (none)
+…past 200, those seen latest kept: 200 kept; the one seen now kept, the first seen left out, the last seen before kept
+quiet hours off, at 23:00: said
+on, 22:00 to 08:00: at 21:59, 22:00, 03:00, 07:59 and 08:00: said, quiet, quiet, quiet, said
+on, 13:00 to 14:30, not crossing midnight: at 12:59, 13:00, 14:29 and 14:30: said, quiet, quiet, said
+on, from and to the same: never quiet: said

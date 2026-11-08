@@ -1,0 +1,290 @@
+== What's said of the disk: whether the line shows, what it says, and what Storage's card says
+{
+  "low-full-in-days.json" : {
+    "free" : 18400000000,
+    "fullInDays" : "5.8",
+    "head" : "18 GB left · full in about 6 days",
+    "lines" : [
+      "Full in about 6 days at this pace"
+    ],
+    "show" : true,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "low-pace-not-known.json" : {
+    "free" : 18400000000,
+    "fullInDays" : null,
+    "head" : "18 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : true,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "low-put-away-3-hours-ago.json" : {
+    "free" : 18400000000,
+    "fullInDays" : "4.8",
+    "head" : "18 GB left · full in about 5 days",
+    "lines" : [
+      "Full in about 5 days at this pace"
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "low-put-away-a-day-ago.json" : {
+    "free" : 18400000000,
+    "fullInDays" : "4.8",
+    "head" : "18 GB left · full in about 5 days",
+    "lines" : [
+      "Full in about 5 days at this pace"
+    ],
+    "show" : true,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "low-put-away-then-a-tenth-fuller.json" : {
+    "free" : 16000000000,
+    "fullInDays" : "3.2",
+    "head" : "16 GB left · full in about 3 days",
+    "lines" : [
+      "Full in about 3 days at this pace"
+    ],
+    "show" : true,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.965"
+  },
+  "nearly-out-put-away.json" : {
+    "free" : 4800000000,
+    "fullInDays" : "0.5",
+    "head" : "4.8 GB left · full within a day",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : false,
+    "sub" : "Builds and sessions may fail",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.990"
+  },
+  "nearly-out-under-a-gb.json" : {
+    "free" : 600000000,
+    "fullInDays" : "0.1",
+    "head" : "600 MB left · full within a day",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Builds and sessions may fail",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.999"
+  },
+  "nearly-out.json" : {
+    "free" : 3200000000,
+    "fullInDays" : "0.7",
+    "head" : "3.2 GB left · full within a day",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Builds and sessions may fail",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.993"
+  },
+  "no-total.json" : null,
+  "on-low-33-from-a-fresh-map.json" : {
+    "free" : 18400000000,
+    "fullInDays" : null,
+    "head" : "18 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : true,
+    "sub" : "33 GB can be cleaned up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "on-low-33-from-an-old-map.json" : {
+    "free" : 18400000000,
+    "fullInDays" : null,
+    "head" : "18 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : true,
+    "sub" : "33 GB can be cleaned up · measured 6 hours ago",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "on-low-nothing-to-clean.json" : {
+    "free" : 18400000000,
+    "fullInDays" : null,
+    "head" : "18 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : true,
+    "sub" : "See what's using it",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "on-low-with-33-to-clean.json" : {
+    "free" : 18400000000,
+    "fullInDays" : null,
+    "head" : "18 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : true,
+    "sub" : "33 GB can be cleaned up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.960"
+  },
+  "on-nearly-out-33-in-the-trash.json" : {
+    "free" : 3200000000,
+    "fullInDays" : null,
+    "head" : "3.2 GB left on your Mac",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Empty the Trash to get 33 GB back",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.993"
+  },
+  "on-nearly-out-nothing-to-clean.json" : {
+    "free" : 3200000000,
+    "fullInDays" : null,
+    "head" : "3.2 GB left on your Mac",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Builds and sessions may fail",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.993"
+  },
+  "on-nearly-out-with-33-to-clean.json" : {
+    "free" : 3200000000,
+    "fullInDays" : null,
+    "head" : "3.2 GB left on your Mac",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Clean up 33 GB now",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.993"
+  },
+  "plenty-full-in-weeks.json" : {
+    "free" : 120000000000,
+    "fullInDays" : "21.4",
+    "head" : "120 GB left · full in about 21 days",
+    "lines" : [
+      "Full in about 21 days at this pace"
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : null,
+    "total" : 460000000000,
+    "used" : "0.739"
+  },
+  "plenty-no-samples-yet.json" : {
+    "free" : 120000000000,
+    "fullInDays" : null,
+    "head" : "120 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : null,
+    "total" : 460000000000,
+    "used" : "0.739"
+  },
+  "plenty-not-filling.json" : {
+    "free" : 120000000000,
+    "fullInDays" : null,
+    "head" : "120 GB left on your Mac",
+    "lines" : [
+      "Filling slowly: months from full"
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : null,
+    "total" : 460000000000,
+    "used" : "0.739"
+  },
+  "plenty-samples-under-a-day.json" : {
+    "free" : 120000000000,
+    "fullInDays" : null,
+    "head" : "120 GB left on your Mac",
+    "lines" : [
+
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : null,
+    "total" : 460000000000,
+    "used" : "0.739"
+  },
+  "put-away-then-nearly-out.json" : {
+    "free" : 3200000000,
+    "fullInDays" : "0.3",
+    "head" : "3.2 GB left · full within a day",
+    "lines" : [
+      "Builds and sessions may fail: there's little room left for what they write"
+    ],
+    "show" : true,
+    "sub" : "Builds and sessions may fail",
+    "tone" : "severe",
+    "total" : 460000000000,
+    "used" : "0.993"
+  },
+  "under-50-filling-over-months.json" : {
+    "free" : 40000000000,
+    "fullInDays" : null,
+    "head" : "40 GB left on your Mac",
+    "lines" : [
+      "Filling slowly: months from full"
+    ],
+    "show" : false,
+    "sub" : "See what you can clean up",
+    "tone" : null,
+    "total" : 460000000000,
+    "used" : "0.913"
+  },
+  "under-50-full-within-a-week.json" : {
+    "free" : 40000000000,
+    "fullInDays" : "2.0",
+    "head" : "40 GB left · full in about 2 days",
+    "lines" : [
+      "Full in about 2 days at this pace"
+    ],
+    "show" : true,
+    "sub" : "See what you can clean up",
+    "tone" : "low",
+    "total" : 460000000000,
+    "used" : "0.913"
+  }
+}

@@ -5,6 +5,7 @@
 #import "Files.h"
 #import "Processes.h"
 #import "ClaudeCodeFacts.h"
+#import "Transcripts.h"
 
 @interface AgentDetails ()
 @property (strong) NSMutableDictionary<NSString *, NSArray *> *processArgs;  // ProcessKey -> launch arguments
@@ -20,7 +21,8 @@
     return self;
 }
 
-// Fills in each session's model, effort, permission mode and context use, from the most specific source first.
+// Fills in each session's model, effort, permission mode, context use and what it used today, from the most specific
+// source first.
 // - mode: the app that keeps the conversation (Claude Desktop's live record of it, the row's hostDetails), then the
 //   hook (the live mode in a terminal, which changes with Shift+Tab), then the transcript (the mode of the last
 //   prompt, or the one the session started in, which is all there is for a session started before the hook was set
@@ -65,9 +67,11 @@
         ? settings[@"modelSettings"][canonical ?: @""] : nil;
     id compactWindow = [perModel isKindOfClass:NSDictionary.class] ? perModel[@"autoCompactWindow"] : nil;
     if (![compactWindow isKindOfClass:NSNumber.class]) compactWindow = settings[@"autoCompactWindow"];
+    NSNumber *tokens = [usage[@"tokens"] isKindOfClass:NSNumber.class] ? usage[@"tokens"] : @0;
     row.agent = @{@"mode": mode, @"model": model ?: @"", @"effort": effort ?: @"",
-                      @"tokens": usage[@"tokens"] ?: @0,
-                      @"compactWindow": [compactWindow isKindOfClass:NSNumber.class] ? compactWindow : @0};
+                      @"tokens": tokens, @"window": @(ClaudeContextWindow(model, tokens.integerValue)),
+                      @"compactWindow": [compactWindow isKindOfClass:NSNumber.class] ? compactWindow : @0,
+                      @"today": @(SpentToday(transcript[@"spent"], StartOfToday()))};
 }
 
 // The flags a session's process was started with, looked up once per process. A lookup that fails is
@@ -98,10 +102,10 @@
     if (self.settingsCache && now - self.settingsCheckedAt < 0.5) return self.settingsCache[@"settings"];
     self.settingsCheckedAt = now;
     NSString *path = ClaudeDir(kClaudeCodeSettings);
-    NSDate *mtime = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil].fileModificationDate;
+    NSNumber *mtime = @(FileModifiedAt(path));
     if (!self.settingsCache || ![self.settingsCache[@"mtime"] isEqual:mtime]) {
         NSDictionary *settings = ReadJSON(path);
-        self.settingsCache = @{@"mtime": mtime ?: NSDate.distantPast,
+        self.settingsCache = @{@"mtime": mtime,
                                @"settings": [settings isKindOfClass:NSDictionary.class] ? settings : @{}};
     }
     return self.settingsCache[@"settings"];
@@ -139,6 +143,49 @@
     if ([row.agent[@"mode"] isEqual:@"auto"]) return @[withAuto];  // in it now, whatever a setting says
     if ([self autoModeDisabledFor:row managedSettings:managedSettings]) return @[cycle];
     return @[withAuto, cycle];
+}
+
+- (NSString *)whyBypassPossible:(Row *)row process:(pid_t)pid {
+    NSArray<NSString *> *args = pid > 0 ? ProcessArguments(pid) : nil;
+    if (!args.count) return @"its session's flags can't be read, so bypassing permissions can't be ruled out";
+    if ([row.agent[@"mode"] isEqual:@"bypassPermissions"]) return @"its session is bypassing permissions";
+    if ([args containsObject:@"--dangerously-skip-permissions"]
+        || [args containsObject:@"--allow-dangerously-skip-permissions"]
+        || [FlagValue(args, @"--permission-mode") isEqual:@"bypassPermissions"])
+        return @"its session was started so it can bypass permissions";
+    // Each settings file it may read: a file that's there but can't be read can't rule it out.
+    NSMutableArray<NSDictionary *> *settings = [NSMutableArray array];
+    NSString *(^take)(NSString *) = ^NSString *(NSString *path) {
+        if (![NSFileManager.defaultManager fileExistsAtPath:path]) return nil;
+        NSDictionary *read = AsRecord(ReadJSON(path));
+        if (!read) return [NSString stringWithFormat:@"its settings in %@ can't be read, so bypassing permissions can't "
+                                                     @"be ruled out", path.lastPathComponent];
+        [settings addObject:read];
+        return nil;
+    };
+    NSString *why = take(ClaudeDir(kClaudeCodeSettings)) ?: take(MachineFile(kClaudeCodeManagedSettings));
+    if (!why && row.cwd.isAbsolutePath)
+        for (NSString *name in @[@".claude/settings.json", @".claude/settings.local.json"])
+            if ((why = take([row.cwd stringByAppendingPathComponent:name]))) break;
+    if (why) return why;
+    NSString *given = FlagValue(args, @"--settings");
+    if (given.length) {
+        NSString *trimmed = [given stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        NSDictionary *inline_ = [trimmed hasPrefix:@"{"]
+            ? AsRecord([NSJSONSerialization JSONObjectWithData:[trimmed dataUsingEncoding:NSUTF8StringEncoding]
+                                                       options:0 error:nil]) : nil;
+        NSString *path = given.isAbsolutePath ? given : [row.cwd stringByAppendingPathComponent:given];
+        NSDictionary *fromFile = inline_ ? nil : AsRecord(ReadJSON(path));
+        if (!inline_ && !fromFile)
+            return @"the settings its session was started with can't be read, so bypassing permissions can't be ruled out";
+        [settings addObject:inline_ ?: fromFile];
+    }
+    for (NSDictionary *each in settings) {
+        NSDictionary *permissions = AsRecord(each[@"permissions"]);
+        if ([permissions[@"defaultMode"] isEqual:@"bypassPermissions"])
+            return @"its settings can start it bypassing permissions";
+    }
+    return nil;
 }
 
 // Whether a settings file turns auto mode off for this session: the user's, its project's, or the machine's

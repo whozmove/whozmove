@@ -1,0 +1,24 @@
+
+== The row, once it has compacted it (compacted.js)
+as the Mac writes times here: {"words":"Compacted at 1:12","tip":"Compacted for you at 1:12: your work is saved"}
+in a 12-hour clock: Compacted at 1:12 AM
+its size after, once read: Compacted for you at 1:12: your work is saved · 412k → 38k
+its size after, when it stayed the same: Compacted for you at 1:12: your work is saved · 412k → 412k
+stopped part-way: nothing on the bottom line: null
+didn't go through: {"words":"Couldn't compact","tip":"Couldn't compact for you at 1:12: Claude is working: compact it when it's done"}
+stopped part-way: the row's note: Compacting stopped part-way: check its prompt
+…with Take me there, the kit's quiet small button: true
+…whose tip says why: Part of /compact may be left in its prompt, and what you had typed there is kept aside
+compacted: no note: null
+where the session runs makes way while it shows: true
+…and not when there's nothing to say: false
+nothing done: null
+on the bottom line, after the ring, with why in its tip: true
+a reason that is markup is shown as text: true
+
+== A long branch beside "Compacted at" (the row part's place-gives-way, fitWhere)
+the label after the ring, and the branch at the line's end: true
+the row is marked for the branch to make way: true
+goes whole, icon and all: a branch cut short: true
+…a worktree's name cut short in its chip: true
+…a branch that fits: false

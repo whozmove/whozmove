@@ -1,13 +1,15 @@
 #!/bin/bash
 # The Spotify module's tests: what the now-playing strip and Spotify's token get from what Spotify tells the Mac and
-# answers (Whozmove --print-spotify, compared with spotify.expected.txt), and the page's part (page-cases.js, run with
-# macOS's jsc in UTC, compared with page.expected.txt).
+# answers, its lyrics' asks and answers, and the rules of the music made quieter while you talk (Whozmove
+# --print-spotify, compared with spotify.expected.txt), and the page's part (page-cases.js, run with macOS's jsc in UTC,
+# compared with page.expected.txt).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
 #   modules/spotify/tests/test.sh            run and compare
 #   modules/spotify/tests/test.sh --update   run and save the output as the new expected (after a change you meant)
 cd "$(dirname "$0")/../../.." || exit 1
+. tests/sandboxed.sh "$@"
 HERE=modules/spotify/tests
 # Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
 T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-spotify.XXXXXX") || exit 1
@@ -172,13 +174,49 @@ echo '{"song": {"playing": true, "positionMs": 60000, "atSecondsAgo": 10}, "read
   > "$T/spotify/position-jumped.json"
 echo '{"song": {"playing": false, "positionMs": 60000, "atSecondsAgo": 10}, "readMs": 100000}' \
   > "$T/spotify/position-paused.json"
+# The music quieter while you talk: where it goes down to, for each share; turning it down a point at a time, back up,
+# and down again from part way up, moment by moment; what's set for Spotify to read back each volume (it reads one lower
+# but for multiples of 20); whether a volume read is one Whozmove left (Spotify answers a moment late); the volume a
+# talk brings back; and whether a record a quit left puts it back.
+for case in "half-of-100 100 0.5" "a-quarter-of-100 100 0.25" "two-thirds-of-73 73 0.67" "half-of-2 2 0.5" \
+            "half-of-1 1 0.5" "half-of-0 0 0.5"; do
+  read -r name from share <<< "$case"
+  echo "{\"from\": $from, \"share\": $share}" > "$T/spotify/quieter-target-$name.json"
+done
+echo '{"from": 70, "to": 35, "at": [0, 30, 60, 90, 120, 600, 1020, 1050, 2000]}' \
+  > "$T/spotify/quieter-turn-down-to-half.json"
+echo '{"from": 25, "to": 100, "at": [0, 30, 60, 1000, 2220, 2250, 3000]}' \
+  > "$T/spotify/quieter-turn-up-from-a-quarter.json"
+echo '{"from": 72, "to": 50, "at": [0, 30, 300, 630, 660]}' > "$T/spotify/quieter-turn-down-again-on-the-way-up.json"
+echo '[0, 1, 19, 20, 49, 50, 59, 60, 99, 100]' > "$T/spotify/quieter-set-each-volume.json"
+# The volume a talk brings back once you've stopped: what it read; the volume the last bring-back brought back, when it
+# landed just there (Spotify's rounding left 99 at 98); or a record's, when it says the music was left lowered.
+echo '{"read": 80}' > "$T/spotify/quieter-from-as-read.json"
+echo '{"read": 98, "landed": [98, 99]}' > "$T/spotify/quieter-from-where-the-last-landed.json"
+echo '{"read": 70, "landed": [98, 99]}' > "$T/spotify/quieter-from-changed-since-the-last-landed.json"
+echo '{"read": 50, "kept": {"from": 100, "to": 50, "hoursAgo": 1}}' \
+  > "$T/spotify/quieter-from-a-record-left-lowered.json"
+echo '{"read": 50, "kept": {"from": 100, "to": 50, "hoursAgo": 25}}' \
+  > "$T/spotify/quieter-from-a-record-a-day-old.json"
+echo '{"read": 50, "sent": [[100, 6000], [50, 5000]]}' > "$T/spotify/quieter-ours-the-last-set.json"
+echo '{"read": 100, "sent": [[100, 120], [92, 100], [87, 80]]}' > "$T/spotify/quieter-ours-answering-late.json"
+echo '{"read": 75, "sent": [[100, 5000], [75, 4800], [50, 4000]]}' > "$T/spotify/quieter-ours-an-old-value.json"
+echo '{"read": 70, "sent": [[100, 4500], [50, 4000]]}' > "$T/spotify/quieter-ours-changed-by-hand.json"
+for case in "still-lowered 50 2" "on-its-way-down 80 2" "back-already 100 2" "turned-down-since 30 2" \
+            "a-day-old 50 25"; do
+  read -r name volume hours <<< "$case"
+  echo "{\"kept\": {\"from\": 100, \"to\": 50, \"hoursAgo\": $hours}, \"read\": $volume}" \
+    > "$T/spotify/quieter-kept-$name.json"
+done
 
 status=0
 out=$(
 echo "== What the now-playing strip gets from what Spotify tells the Mac and answers (null: nothing playing), and"
 echo "   whether an Apple event's error is macOS refusing Whozmove control of Spotify; what its token shows, and its side;"
 echo "   where LRCLIB is asked about a song, what its answers say, the waits after trouble and what's kept on this Mac;"
-echo "   and whether a position is a jump"
+echo "   whether a position is a jump; and the music quieter while you talk: where it goes, its turning, what's set,"
+echo "   whether a volume read is Whozmove's, the volume a talk brings back, and whether a record a quit left puts it"
+echo "   back"
 HOME="$T" "$APP" --print-spotify "$T"/spotify/* | in_minutes
 )
 compare Spotify "$HERE/spotify.expected.txt" "$out" "${1:-}" || status=1

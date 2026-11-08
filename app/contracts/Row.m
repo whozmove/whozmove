@@ -65,6 +65,9 @@
     json[@"lastFocusedAt"] = self.lastFocusedAt;
     json[@"lastPrompt"] = self.lastPrompt;
     json[@"lastPromptAt"] = self.lastPromptAt;
+    json[@"promptFrom"] = self.promptFrom;
+    json[@"promptFromAddress"] = self.promptFromAddress;
+    json[@"promptFromSession"] = self.promptFromSession;
     json[@"lastReply"] = self.lastReply;
     json[@"lastReplyAt"] = self.lastReplyAt;
     json[@"notice"] = self.notice;
@@ -75,6 +78,7 @@
     json[@"builtAt"] = self.builtAt;
     json[@"workSteps"] = self.workSteps;
     json[@"audit"] = self.audit;
+    json[@"background"] = self.background;
     json[@"workRoot"] = self.workRoot;
     json[@"editedAt"] = self.editedAt;
     json[@"permissionMode"] = self.permissionMode;
@@ -86,6 +90,7 @@
     json[@"prs"] = self.prs;
     json[@"writings"] = self.writings;
     json[@"changes"] = self.changes;
+    json[@"backgroundWait"] = self.backgroundWait;
     json[@"messageAt"] = self.messageAt;
     json[@"compacting"] = self.compacting;
     json[@"goingIn"] = self.goingIn;
@@ -93,9 +98,23 @@
     json[@"seenAt"] = self.seenAt;
     json[@"opensIn"] = self.opensIn;
     json[@"reload"] = self.reload;
+    json[@"team"] = self.team;
+    json[@"ticket"] = self.ticket;
+    json[@"wait"] = self.wait;
+    json[@"answeredFor"] = self.answeredFor;
+    json[@"compactTime"] = self.compactTime;
+    json[@"compactedFor"] = self.compactedFor;
+    json[@"compactNote"] = self.compactNote;
+    if (self.onItAt > 0) json[@"onItAt"] = @(self.onItAt);
+    if (self.workRoot.length) json[@"workEditedAt"] = @(self.workEditedAt);
     if (self.focused) json[@"focused"] = @YES;
     if (self.noCompact) json[@"noCompact"] = @YES;
     return json;
+}
+
+- (double)onItAt {
+    double prompt = self.promptFrom.length ? 0 : self.lastPromptAt.doubleValue;
+    return MAX(MAX(self.seenAt.doubleValue, self.lastFocusedAt.doubleValue), prompt);
 }
 
 @end

@@ -13,10 +13,14 @@
 # exactly the fields a row has, that the README names the macOS permissions the app asks for while no file in the
 # repo names one it doesn't, the command Deploy suggests for sample projects and how their last runs read
 # (`--print-deploys`), what the set-up card is told sample commands really run (`--print-deploy-checks`), what the
-# usage strip gets from Claude Code's recorded answers and where `claude` is looked for (`--print-usage`), and how
-# folder trust is read and recorded (`--print-trust`).
+# usage strip gets from Claude Code's recorded answers and where `claude` is looked for (`--print-usage`), how
+# folder trust is read and recorded (`--print-trust`), why a recording counts as talking to an agent
+# (`--print-talking`), when a press leaves a terminal's window as it is (`--print-on-top`), that a file read every
+# second is read again only once it has changed (`--print-file-reads`), and that a run whose home isn't yours presses,
+# types and sends nothing in other apps (`--print-other-apps`).
 # Needs clang, git and python3. Takes a few seconds, most of it compiling the app.
 cd "$(dirname "$0")/.." || exit 1
+. tests/sandboxed.sh "$@"
 REPO=$PWD
 # git here, the sample repo's and the app's own, ignores your personal git settings (signing, hooks, …).
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
@@ -30,7 +34,7 @@ detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/
 # wakes the paused processes a parent leaves behind (their process group orphaned), so one paused sooner could be
 # running again by the time the app looks.
 pause() {
-  for _ in $(seq 1 200); do [ "$(ps -o ppid= -p "$1" | tr -d ' ')" = 1 ] && break; sleep 0.01; done
+  for _ in $(seq 1 200); do [ "$(parent_of "$1")" = 1 ] && break; sleep 0.01; done
   kill -STOP "$1"
 }
 . "$REPO/tests/lib.sh"
@@ -92,8 +96,9 @@ GONE_PID=999999
 PAUSED_PID=$(detached sleep 600); pause "$PAUSED_PID"
 # And s-halt, paused in its terminal with no other copy: nothing goes into it, as its keys would go to the shell.
 HALT_PID=$(detached sleep 600); pause "$HALT_PID"
-# Conversations open more than once (s-twice, s-ask, s-idle, s-both, two copies each), and s-near beside s-ask.
-TWICE_PIDS=$(for _ in 1 2 3 4 5 6 7 8 9; do detached sleep 600; done | paste -sd , -)
+# Conversations open more than once (s-twice, s-ask, s-idle, s-both, two copies each), s-near beside s-ask, and
+# s-shell and s-odd, with statuses of their own, and s-bg and s-long, whose agents work in the background.
+TWICE_PIDS=$(for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do detached sleep 600; done | paste -sd , -)
 
 # The usage check's own session (modules/claude-code/app/ClaudeUsage.m): registered while it runs, in the folder kept
 # for it. Never a row.
@@ -104,7 +109,9 @@ printf '{"pid": %d, "sessionId": "s-usage-check", "cwd": "%s", "status": "idle",
   > "$T/.claude/sessions/$USAGE_PID.json"
 # What Claude Code answers the usage check with, among lines that aren't the answer (one for another request): reset
 # times with and without fractions of a second, an error, and signed out; and `claude auth status`, signed in and
-# out. And `claude` on a PATH and in two of Claude Desktop's copies, where 2.1.10 is the newer.
+# out, and in a shape Whozmove doesn't know (made up), which reads as neither, so an answer with no plan's numbers is
+# "unknown" beside it, as beside the recorded answers that aren't auth status at all. And `claude` on a PATH and in two
+# of Claude Desktop's copies, where 2.1.10 is the newer.
 mkdir -p "$T/usage-replies" "$T/bin"
 cat > "$T/usage-replies/answer.jsonl" <<'JSONL'
 {"type":"system","subtype":"init","session_id":"x"}
@@ -118,6 +125,7 @@ echo '{"type":"control_response","response":{"subtype":"success","request_id":"w
   > "$T/usage-replies/signed-out.jsonl"
 echo '{"loggedIn": true, "authMethod": "claude.ai", "apiProvider": "firstParty"}' > "$T/usage-replies/auth-in.json"
 echo '{"loggedIn": false, "authMethod": "none", "apiProvider": "firstParty"}' > "$T/usage-replies/auth-out.json"
+echo '{"account": {"state": "active"}, "provider": "firstParty"}' > "$T/usage-replies/auth-changed.json"
 
 # A slash command's result, written the way Claude Code writes it into a transcript: the command's own record, then its
 # output, as a message or as a note; an output of an earlier command before the record, which isn't this one's; a
@@ -269,13 +277,83 @@ put(f".claude/sessions/{halt_pid}.json", {"pid": halt_pid, "sessionId": "s-halt"
                                           "status": "idle", "statusUpdatedAt": ms(40), "entrypoint": "cli",
                                           "kind": "interactive", "name": "rest a while", "procStart": "start-halt"})
 # Its compaction began 20 minutes ago and never said it ended: it's taken as over.
-put(f"Library/Application Support/Whozmove/sessions/s-halt.json", {"compactingAt": ms(20)})
+# Its last prompt was a message from another session, cut short by the hook in its closing tag: the message, and who
+# sent it.
+put(f"Library/Application Support/Whozmove/sessions/s-halt.json", {"compactingAt": ms(20), "lastPrompt":
+    '<cross-session-message from="uds:/tmp/sock" from-name="Lead" from-mode="prompting"> Tidy the notes </cross-sess…'})
 put(".claude/projects/p/s-halt.jsonl", [
     {"type": "user", "message": {"role": "user", "content": "rest a while"}, "timestamp": iso(40), "isSidechain": False}])
 near = next(spare)
 put(f".claude/sessions/{near}.json", {"pid": near, "sessionId": "s-near", "cwd": os.path.join(T, "ask"),
                                       "status": "idle", "statusUpdatedAt": ms(25), "entrypoint": "cli",
                                       "kind": "interactive", "name": "pack the bags", "procStart": "start-near"})
+# At its prompt while a shell command Claude ran in the background still runs (Claude Code's "shell"): idle, so keys
+# can go in. And one with a status Claude Code doesn't write today: Claude is taken to be busy, not gone.
+for sid, status, name in [("s-shell", "shell", "watch the build"), ("s-odd", "resuming", "carry on")]:
+    pid = next(spare)
+    put(f".claude/sessions/{pid}.json", {"pid": pid, "sessionId": sid, "cwd": os.path.join(T, "idle"),
+                                         "status": status, "statusUpdatedAt": ms(35), "entrypoint": "cli",
+                                         "kind": "interactive", "name": name, "procStart": f"start-{sid}"})
+    put(f".claude/projects/p/{sid}.jsonl", [
+        {"type": "user", "message": {"role": "user", "content": name}, "timestamp": iso(35), "isSidechain": False}])
+# At its prompt, its turn over half an hour after its process started, while what it started goes on in the background,
+# beside s-shell and s-odd: an agent of its own on a step (shown, and holding the next steps and Deploy there), the
+# shell command its hook noted (over: Claude Code no longer says one runs), an agent noted before this process started
+# (the earlier process's), one carried on since (Claude Code listed it again at a stop), one whose own record says it
+# has finished, Claude Code's own housekeeping (never shown), a monitor (shown, holding nothing), a kind not known yet
+# (held for, until it's known), and an id that isn't plain (not one of the hook's). s-shell's command goes on: shown,
+# holding nothing.
+bg_pid = next(spare)
+put(f".claude/sessions/{bg_pid}.json", {"pid": bg_pid, "sessionId": "s-bg", "cwd": os.path.join(T, "idle"),
+                                        "status": "idle", "statusUpdatedAt": ms(4), "entrypoint": "cli",
+                                        "kind": "interactive", "name": "review the app", "procStart": "start-s-bg",
+                                        "startedAt": ms(30)})
+put(".claude/projects/p/s-bg.jsonl", [
+    {"type": "user", "message": {"role": "user", "content": "review the app"}, "timestamp": iso(6), "isSidechain": False}])
+put(".claude/projects/p/s-bg/subagents/agent-a-done.meta.json", {"agentType": "general-purpose", "finished": True})
+put(".claude/projects/p/s-bg/subagents/agent-a-native.meta.json", {"agentType": "general-purpose"})
+put(f"{app}/sessions/s-bg.json", {
+    "lastPrompt": "review the app", "lastPromptAt": ms(6), "lastReply": "Two reviews are under way.",
+    "lastReplyAt": ms(4), "stageAt": ms(4), "transcriptPath": os.path.join(T, ".claude/projects/p/s-bg.jsonl"),
+    "backgroundAt": ms(4), "background": {
+        "a-native": {"type": "subagent", "what": "Review the native side", "startedAt": ms(5), "listedAt": ms(4),
+                     "step": "Reading Storage.m", "stepAt": ms(1)},
+        "b-dev": {"type": "shell", "what": "Start the dev server", "command": "npm run dev", "startedAt": ms(5),
+                  "listedAt": ms(4)},
+        "a-old": {"type": "subagent", "what": "Review the old build", "startedAt": ms(40), "listedAt": ms(35)},
+        "t-docs": {"type": "teammate", "what": "Write the docs", "startedAt": ms(40), "listedAt": ms(4)},
+        "a-done": {"type": "subagent", "what": "Find the tests", "startedAt": ms(5), "listedAt": ms(4)},
+        "d-1": {"type": "dream", "what": "Tidying memories", "startedAt": ms(5), "listedAt": ms(4)},
+        "m-log": {"type": "monitor", "what": "Watch the server log", "startedAt": ms(5), "listedAt": ms(4)},
+        "x-new": {"type": "something new", "what": "A kind of job not known yet", "startedAt": ms(5),
+                  "listedAt": ms(4)},
+        "../x": {"type": "subagent", "what": "An id that isn't plain", "startedAt": ms(5), "listedAt": ms(4)}}})
+# Pim, a member of the team below, cleared its conversation (/clear): its process goes on in Pim's folder under a new
+# id, s-pim, and the id the team file records, s-pim-was, is listed nowhere. And Ivy, another member, whose own session
+# runs in Pim's folder, not its own: it stays Ivy's, never Pim's or a duplicate of Pim, said to be in Pim's folder.
+pim, ivy = os.path.join(T, "pim"), os.path.join(T, "ivy")
+for folder in (pim, ivy):
+    os.makedirs(folder, exist_ok=True)
+for sid, name, changed, started in [("s-pim", "start afresh", 7, 45), ("s-ivy", "look at Pim's", 6, 40)]:
+    pid = next(spare)
+    put(f".claude/sessions/{pid}.json", {"pid": pid, "sessionId": sid, "cwd": pim, "status": "idle",
+                                         "statusUpdatedAt": ms(changed), "entrypoint": "cli", "kind": "interactive",
+                                         "name": name, "procStart": f"start-{sid}", "startedAt": ms(started)})
+# One agent in the background, with a name too long for a wait to say whole: cut at a word's end.
+long_pid = next(spare)
+put(f".claude/sessions/{long_pid}.json", {"pid": long_pid, "sessionId": "s-long", "cwd": os.path.join(T, "long"),
+                                          "status": "idle", "statusUpdatedAt": ms(3), "entrypoint": "cli",
+                                          "kind": "interactive", "name": "write the tests", "procStart": "start-s-long",
+                                          "startedAt": ms(20)})
+os.makedirs(os.path.join(T, "long"), exist_ok=True)
+put(".claude/projects/p/s-long.jsonl", [
+    {"type": "user", "message": {"role": "user", "content": "write the tests"}, "timestamp": iso(5), "isSidechain": False}])
+put(f"{app}/sessions/s-long.json", {"lastPrompt": "write the tests", "lastPromptAt": ms(5), "lastReply": "On it.",
+                                    "lastReplyAt": ms(3), "backgroundAt": ms(3), "background": {
+    "a-tests": {"type": "subagent", "what": "Write the search box tests and check every edge case there is",
+                "startedAt": ms(4), "listedAt": ms(3)}}})
+put(f"{app}/sessions/s-shell.json", {"backgroundAt": ms(35), "background": {
+    "b-watch": {"type": "shell", "what": "Watch the build", "command": "make watch", "startedAt": ms(35)}}})
 put(f".claude/sessions/{gone_pid}.json", {"pid": gone_pid, "sessionId": "s-gone", "cwd": repo, "status": "idle",
                                    "statusUpdatedAt": ms(60), "entrypoint": "cli", "kind": "interactive"})
 # A session on a branch of its own in a clone of the repo (so GitHub's copy is the repo), which committed work there
@@ -285,13 +363,89 @@ put(f".claude/sessions/{topic_pid}.json", {"pid": topic_pid, "sessionId": "s-top
                                     "kind": "interactive", "procStart": "start-topic"})
 # It's compacting, by itself, mid-turn.
 put(f"Library/Application Support/Whozmove/sessions/s-topic.json", {"outcome": "Committed", "outcomeAt": ms(15),
-                                                                    "compactingAt": ms(1)})
-# And another session in that clone, idle: its next steps and Deploy wait for the agent at work there.
+                                                                    "compactingAt": ms(1),
+    # A message from another session cut short inside its opening tag: who sent it isn't known, nor what it says.
+    "lastPrompt": '<cross-session-message from="uds:/tmp/a-folder-with-a-very-long-name…'})
+# And another session in that clone, idle: its next steps and Deploy wait for the agent at work there. Its last prompt
+# was a message from a session with no name, whole.
+put(f"Library/Application Support/Whozmove/sessions/s-clone.json", {"lastPrompt":
+    '<cross-session-message from="uds:/tmp/sock"> Check the notes. </cross-session-message> Sent by another session.'})
 put(f".claude/sessions/{clone_pid}.json", {"pid": clone_pid, "sessionId": "s-clone", "cwd": os.path.join(T, "clone"),
                                     "status": "idle", "statusUpdatedAt": ms(20), "entrypoint": "cli",
                                     "kind": "interactive", "name": "review notes", "procStart": "start-clone"})
 put(".claude/sessions/broken.json", "not json")
 put(".claude/sessions/notes.txt", "not a session")
+
+# The team the session leading it keeps (docs/reference/team.md): it runs as s-near, in its own folder; Wren, a member
+# at work in the worktree on one job while another waits on you to try it (its row's track is the one it's at work on,
+# and its line the try's ask, with Deploy for it: `alsoAsks`); Moss, a member in the clone, building, with s-clone,
+# another session, open there too; one of your own sessions it follows, waiting on you to pick; and Bea, a member whose recorded
+# session now runs somewhere else (s-desk, in the repo), which so doesn't count as it. Wren's try says P0, and holds up
+# its other one; the one you pick between is Critical, in any
+# case, and asks by its decision; Moss's says a word the ladder doesn't have, which reads as P2. The lead names what's
+# next for you, Wren's job, so it takes that job's priority and title. Moss's job gives its time in seconds, as some tools write it; but the
+# file says Moss is busy reviewing another's, which its row says in place of where its job stands. Wren and Moss are
+# each in a group the file names (Wren's with room round its name), in the order its `groups` gives, which also names
+# one nobody is in. The file also lists the lead among the sessions it follows, which leaves it its own place. Two
+# jobs wait their turn after review, at a step nobody works on ("Ready to try"): Wren's, sized small and little work,
+# which its row doesn't speak for, as it has one at work; and Moss's, with a size and an effort the panel
+# doesn't know, left out, which moved after Moss's build but isn't the job marked now, as one at work comes first.
+# Neither counts as at work for the lead. Your try says it waits too, but a step on you is what you're waited on for,
+# never one that waits its turn.
+def steps(*ids):
+    words = {"plan": "Plan", "build": "Build", "review": "Review", "test": "Your try", "merge-yes": "Your yes",
+             "merge": "Merge", "sketch": "Sketch", "look": "Look", "ready": "Ready to try"}
+    kinds = {"plan": "approve", "test": "try", "merge-yes": "approve", "look": "choose", "build": "try"}
+    return [{"id": i, "word": words[i], "you": i in ("plan", "test", "merge-yes", "look"), "kind": kinds.get(i),
+             **({"waits": True} if i in ("ready", "test") else {})}
+            for i in ids]
+app_change = steps("plan", "build", "review", "test", "merge-yes", "merge")
+put(f"{app}/team/team.json", {"version": 1, "projects": {repo: {
+    "lead": {"session": "s-near", "worktree": os.path.join(T, "ask"), "name": "Atlas", "since": ms(90),
+              "next": {"short": "Try the search box", "ask": "Try the search box, then say yes to merging it",
+                       "job": "j1"}},
+    "members": {
+        "Wren": {"session": "s-wt", "worktree": wt, "part": "docs", "group": " Writers ",
+                 "tag": " Design lead ", "shown": " Wren of docs "},
+        "Moss": {"session": "s-topic", "worktree": os.path.join(T, "clone"), "part": "tests",
+                 "group": "Reviewers", "doing": " Reviewing ", "status": "Wren's search box",
+                 "tag": "Too many words here"},
+        "Bea": {"session": "s-desk", "worktree": twice, "part": "icons"},
+        "Pim": {"session": "s-pim-was", "worktree": pim, "part": "sounds"},
+        "Ivy": {"session": "s-ivy", "worktree": ivy, "part": "colours"}},
+    "groups": ["Reviewers", "Writers", "Nobody's"],
+    "goals": [{"id": "launch", "name": "Spring launch", "due": "Fri"}, {"id": "speed", "name": " Faster pages "},
+              {"id": "a goal", "name": "An id with a space"}, {"id": "launch", "name": "Named twice"}, {"id": "nameless"},
+              {"id": "how-we-work", "name": "How we work", "work": True}],
+    "followed": {"sort the photos": {"session": "s-idle", "worktree": os.path.join(T, "idle")},
+                 "the desk": {"session": "s-near"}},
+    "jobs": {
+        "j1": {"title": "Search box", "stage": "test", "member": "Wren", "goal": "launch",
+               "steps": app_change, "at": "test", "stageAt": ms(30),
+               "short": "Try the search box", "ask": "Try it on a page with a hundred results",
+               "priority": "p0"},
+        "j2": {"title": "Faster sync", "stage": "build", "member": "Wren",
+               "steps": app_change, "at": "build", "stageAt": ms(5), "dependsOn": ["j1"]},
+        "j3": {"title": "Font picker", "stage": "build", "member": "Moss", "goal": "speed",
+               "steps": steps("build", "test", "merge-yes", "merge"), "at": "build", "stageAt": ms(10) // 1000,
+               "priority": "someday"},
+        "j4": {"title": "Album covers", "stage": "look", "followed": "sort the photos",
+               "goal": "no such goal",
+               "steps": steps("sketch", "look"), "at": "look", "stageAt": ms(50),
+               "decision": "Pick one of three covers", "priority": "Critical"},
+        "j5": {"title": "Later", "stage": "queued", "member": "Moss",
+               "steps": app_change},
+        "j6": {"title": "Steps the file doesn't give", "stage": "build",
+               "member": "Bea", "at": "build"},
+        "j7": {"title": "Old banner", "stage": "done", "member": "Wren", "goal": "launch",
+               "doneAt": ms(2 * 24 * 60), "dependsOn": ["j1"]},
+        "j8": {"title": "A dropped idea", "stage": "dropped", "member": "Bea"},
+        "j9": {"title": "Dark theme", "stage": "ready", "member": "Wren", "goal": "speed",
+               "steps": steps("build", "review", "ready", "test"), "at": "ready", "stageAt": ms(15),
+               "size": "small", "effort": "low"},
+        "j10": {"title": "Tooltips", "stage": "ready", "member": "Moss",
+                "steps": steps("build", "review", "ready", "test"), "at": "ready", "stageAt": ms(4),
+                "size": "huge", "effort": 3}}}}})
 
 # Terminal sessions in each permission mode, for the mode menu's Shift+Tab counts: in auto (so auto is in
 # its cycle), in plan with nothing known about auto, in a project whose settings turn auto off (in plan, and
@@ -424,25 +578,41 @@ put(".claude/projects/p/s-clone/subagents/agent-a1.jsonl", [
     edit("a1", clone + "/helper.py", 20, content="def helper():\n    return schedule(None)\n"),
 ])
 
-# What the hook recorded.
+# What the hook recorded. s-term's is an older hook's, which notes where it edited but not when: the end of its turn
+# that tested stands in (workEditedAt).
 put(f"{app}/sessions/s-term.json", {"lastPrompt": "please fix the tests", "lastPromptAt": ms(10),
                                     "lastReply": "All done: the tests pass.", "lastReplyAt": ms(9), "notice": None,
                                     "permissionMode": "acceptEdits", "stageAt": ms(9),
                                     "activity": None, "activityAt": ms(9), "outcome": "Tested", "outcomeAt": ms(9),
-                                    "turnReached": [], "workSteps": ["Tested"],
+                                    "workRoot": repo, "turnReached": [], "workSteps": ["Tested"],
                                     "audit": {"found": 3, "left": 1, "settled": True, "at": ms(9)}})
+# At work, with a watcher it left running in the background: the registry says only busy, so the hook's list stands.
 put(f"{app}/sessions/s-wt.json", {"lastPrompt": "run the suite", "lastPromptAt": ms(2), "stageAt": ms(1),
-                                  "activity": "Run the tests", "activityAt": ms(1), "workRoot": repo})
+                                  "activity": "Run the tests", "activityAt": ms(1), "workRoot": repo,
+                                  "backgroundAt": ms(3), "background": {
+                                      "b-vitest": {"type": "shell", "what": "Run the tests in watch mode",
+                                                   "command": "vitest --watch", "startedAt": ms(3)}}})
 # Claude Desktop's own record of a conversation (below) goes on its row before the hook's, and where both say when it
 # last did something, the later time stands: the hook's for s-desk, Claude's for s-closed.
 put(f"{app}/sessions/s-desk.json", {"activityAt": ms(5)})
-put(f"{app}/sessions/s-closed.json", {"activityAt": ms(300)})
+# A conversation with no process has nothing running in the background, whatever its hook last listed.
+put(f"{app}/sessions/s-closed.json", {"activityAt": ms(300), "backgroundAt": ms(300), "background": {
+    "a-left": {"type": "subagent", "what": "Left over", "startedAt": ms(300)}}})
 
-# Requests waiting for an OK: the oldest per session shows; one too long to show in full (over ShownLength in
-# app/Asks.m) is cut short; one whose hook has gone is cleared away.
+# Whozmove's hooks as put in place a day ago, with Don't Wait on Me's part, which the sessions here, started since, run:
+# their mode menu offers it (--print-why-not).
+hook = os.path.join(T, app, "plugin/hooks/whozmove-claude-permission.py")
+os.makedirs(os.path.dirname(hook), exist_ok=True)
+with open(hook, "w") as f:
+    f.write("ASKS = 'asks'\nDONT_WAIT = 'dont-wait'\n")
+os.utime(hook, (now - 86400, now - 86400))
+
+# Requests waiting for an OK: the oldest per session shows, as its hook left it (this one goes by itself in 3 minutes
+# if no one answers: Don't Wait on Me); one too long to show in full (over ShownLength in app/Asks.m) is cut short;
+# one whose hook has gone is cleared away.
 put(f"{app}/asks/aaaa1111.json", {"id": "aaaa1111", "sessionId": "s-term", "tool": "Bash",
                                   "input": {"command": "npm test", "description": "Run the tests"},
-                                  "cwd": repo, "at": ms(2), "pid": term_pid})
+                                  "cwd": repo, "at": ms(2), "pid": term_pid, "expiresAt": ms(-3)})
 put(f"{app}/asks/dddd4444.json", {"id": "dddd4444", "sessionId": "s-term", "tool": "Bash",
                                   "input": {"command": "npm run lint"}, "cwd": repo, "at": ms(1), "pid": term_pid})
 put(f"{app}/asks/bbbb2222.json", {"id": "bbbb2222", "sessionId": "s-wt", "tool": "Write",
@@ -490,6 +660,109 @@ put(f"{app}/sessions/k-ghostty.json", {"lastPrompt": "carry on with k-ghostty", 
 keep("k-iterm", "com.googlecode.iterm2", 200)
 keep("k-terminal", "com.apple.Terminal", 300)
 keep("k-vscode", "com.microsoft.VSCode", 400)
+
+# Four more teams, each led from a conversation ended in its own folder, for what the lead says is next for you: only in
+# full (the row says the whole of it), low with a job the file doesn't have (no title), not words at all (nothing next),
+# and only a few words.
+with open(os.path.join(T, app, "team/team.json")) as f:
+    team = json.load(f)
+for sid, nxt in [("k-next-ask", {"ask": "Read the three opening lines on the page and say which one reads best"}),
+                 ("k-next-low", {"short": "Pick a cover", "priority": "p2", "job": "j99"}),
+                 ("k-next-odd", "Pick a cover"),
+                 ("k-next-same", {"short": "Read the proofs"})]:
+    folder = os.path.join(T, sid)
+    os.makedirs(folder, exist_ok=True)
+    keep(sid, "com.apple.Terminal", 500, cwd=folder)
+    team["projects"][folder] = {"lead": {"session": sid, "worktree": folder, "name": sid, "next": nxt}}
+# The first two have a member, ended in its folder too, whose last prompt was a message another session sent, its
+# process gone: who sent it, by its name and its address.
+team["projects"][os.path.join(T, "k-next-ask")]["members"] = {
+    "Fern": {"session": "k-fern", "worktree": os.path.join(T, "k-next-ask"), "part": "words",
+             "group": "team"}}
+team["projects"][os.path.join(T, "k-next-low")]["members"] = {
+    "Sage": {"session": "k-sage", "worktree": os.path.join(T, "k-next-low"), "part": "covers"},
+    "Reed": {"session": "k-reed", "worktree": os.path.join(T, "k-next-low"), "part": "spines"}}
+# Each has jobs not under way, and its row says where the one it speaks for stands. Fern's are queued: the one shown
+# is the more pressing of its P1 ones queued first, with words of its own, over a P2 one queued earlier (its times
+# in seconds), a P1 one queued later, and one with no time, which goes last. Sage's are parked, with no words (its
+# stage alone), and one done says nothing; but one waits its turn after review, under way, so its row speaks for that
+# one, by its step's word, idle. Reed, whose session isn't running, has only two parked jobs: the one marked now is the
+# one that moved last.
+team["projects"][os.path.join(T, "k-next-ask")]["jobs"] = {
+    "j7": {"title": "Opening lines", "stage": "queued", "member": "Fern",
+           "priority": "p2", "queuedAt": ms(600) // 1000, "stageAt": ms(600) // 1000},
+    "j8": {"title": "Page titles", "stage": "queued", "member": "Fern",
+           "status": "after the covers", "priority": "p1", "queuedAt": ms(300), "stageAt": ms(300)},
+    "j13": {"title": "Chapter heads", "stage": "queued", "member": "Fern",
+            "priority": "p1", "queuedAt": ms(250), "stageAt": ms(250)},
+    "j14": {"title": "Index", "stage": "queued", "member": "Fern", "priority": "P1"}}
+team["projects"][os.path.join(T, "k-next-low")]["jobs"] = {
+    "j9": {"title": "Back covers", "stage": "parked", "member": "Sage",
+           "stageAt": ms(200)},
+    "j12": {"title": "Spine", "stage": "parked", "member": "Sage", "stageAt": ms(150)},
+    "j10": {"title": "Front covers", "stage": "done", "member": "Sage",
+            "status": "shipped", "stageAt": ms(100)},
+    "j17": {"title": "Endpapers", "stage": "ready", "member": "Sage",
+            "steps": steps("build", "review", "ready", "test"), "at": "ready", "stageAt": ms(180)},
+    "j18": {"title": "Ribbons", "stage": "parked", "member": "Reed", "stageAt": ms(90)},
+    "j19": {"title": "Head bands", "stage": "parked", "member": "Reed", "stageAt": ms(70)}}
+# The third has a member with two jobs under way, the one that moved last without steps: its row speaks for that one
+# alone, with no track, so its line and its track are never two jobs'. The first's member names Team as its group, and
+# the third's a name with a character that can't be seen: neither is a group of its own. The third also lists itself
+# among its members, which leaves it its own place, and not among the sessions it leads.
+team["projects"][os.path.join(T, "k-next-odd")]["members"] = {
+    "Ivy": {"session": "k-ivy", "worktree": os.path.join(T, "k-next-odd"), "part": "layout",
+            "group": "Lay\u200bout"},
+    "Ash": {"session": "k-next-odd", "worktree": os.path.join(T, "k-next-odd"), "part": "lead"}}
+team["projects"][os.path.join(T, "k-next-odd")]["jobs"] = {
+    "j15": {"title": "Margins", "stage": "build", "member": "Ivy",
+            "steps": steps("build", "test", "merge-yes", "merge"), "at": "build", "stageAt": ms(40)},
+    "j16": {"title": "Gutters", "stage": "build", "member": "Ivy",
+            "status": "wider gutters", "stageAt": ms(20)}}
+keep("k-ivy", "com.apple.Terminal", 470, cwd=os.path.join(T, "k-next-odd"))
+keep("k-sage", "com.apple.Terminal", 460, cwd=os.path.join(T, "k-next-low"))
+put(f"{app}/sessions/k-sage.json", {"lastPrompt": '<cross-session-message from="uds:/tmp/cc-socks/1.sock" '
+                                    'from-name="covers desk" from-mode="prompting"> Draw three covers '
+                                    '</cross-session-message>', "lastPromptAt": ms(462),
+                                    "lastReply": "Three covers are drawn", "lastReplyAt": ms(460)})
+keep("k-fern", "com.apple.Terminal", 450, cwd=os.path.join(T, "k-next-ask"))
+put(f"{app}/sessions/k-fern.json", {"lastPrompt": '<cross-session-message from="uds:/tmp/cc-socks/1.sock" '
+                                    'from-name="k-next-ask" from-mode="prompting"> Write the opening lines '
+                                    '</cross-session-message>', "lastPromptAt": ms(452),
+                                    "lastReply": "Three opening lines are on the page", "lastReplyAt": ms(450)})
+# A team whose file names the session you talk to (`front`) apart from the one running it, each in its own folder: the
+# front is the chief, with the name it shows, and the one running it keeps the team's counts and the sessions it leads.
+# The file also lists the front among its members, which leaves it the front's place, never a member's. The fourth team
+# names its lead's own session as its front, which is the lead, still the chief; another names a front and no lead,
+# which fronts no team; and one names a front and a lead with no session, which fronts no team either. Their folders sort after the others', so the first team with a lead stays the one above.
+# The front runs in the project's own folder, so another conversation ended there (k-desk-own) is said to be in its
+# folder but isn't the team's history (no `history`), as yours are there too; the lead's folder apart from it is.
+# The one running the team behind its front takes the group and the tag the file gives it, as a member does, and
+# the file's `groups` names Team (in its own case) among them, so Lo, in no group, is placed there; the one that is
+# the chief keeps no group or tag, whatever the file says.
+desk, behind, alone, unseated = (os.path.join(T, name) for name in ("studio-desk", "studio-behind", "studio-alone",
+                                                                      "studio-unseated"))
+for folder in (desk, behind, alone, unseated):
+    os.makedirs(folder, exist_ok=True)
+team["projects"][desk] = {
+    "front": {"session": "k-desk", "worktree": desk, "name": "Desk", "shown": " The desk "},
+    "lead": {"session": "k-behind", "worktree": behind, "name": "Kit", "group": " Reviewers ",
+             "tag": " lead "},
+    "members": {"Rue": {"session": "k-desk", "worktree": desk, "part": "talk"},
+                "Lo": {"session": "k-lo", "worktree": behind, "part": "build"}},
+    "groups": ["Reviewers", "team", "Writers"]}
+team["projects"][os.path.join(T, "k-next-same")]["front"] = {"session": "k-next-same", "name": "Same"}
+team["projects"][os.path.join(T, "k-next-same")]["lead"].update(group="Reviewers", tag="lead")
+team["projects"][alone] = {"front": {"session": "k-alone", "worktree": alone, "name": "Alone"}}
+team["projects"][unseated] = {"front": {"session": "k-unseated", "worktree": unseated, "name": "Unseated"},
+                              "lead": {"name": "Nobody yet"}}
+keep("k-desk", "com.apple.Terminal", 440, cwd=desk)
+keep("k-desk-own", "com.apple.Terminal", 445, cwd=desk)
+keep("k-behind", "com.apple.Terminal", 430, cwd=behind)
+keep("k-lo", "com.apple.Terminal", 420, cwd=behind)
+keep("k-alone", "com.apple.Terminal", 410, cwd=alone)
+keep("k-unseated", "com.apple.Terminal", 405, cwd=unseated)
+put(f"{app}/team/team.json", team)
 keep("k-old", "com.mitchellh.ghostty", 4 * 24 * 60)
 keep("k-no-transcript", "com.mitchellh.ghostty", 60, transcript=False)
 keep("k-folder-gone", "com.mitchellh.ghostty", 60, cwd=os.path.join(T, "never-made"))
@@ -539,6 +812,22 @@ def started(pid):
     sec, usec = struct.unpack_from("<qi", info.raw, 0)
     return sec * 1000000 + usec
 
+# s-near, the lead, registered as started when its process did and with its messaging address, so a message it sent is
+# known by its process: one of your own sessions it follows had its last prompt from it, and its reply went to it, not
+# to you. Its own last prompt came from itself, which never makes it one that replies to itself. Both came just now: a
+# message from before its sender's process started isn't taken for that process's.
+with open(os.path.join(T, f".claude/sessions/{near}.json")) as f:
+    put(f".claude/sessions/{near}.json", {**json.load(f), "startedAt": started(near) // 1000,
+                                          "messagingSocketPath": f"/tmp/cc-socks/{near}.sock"})
+put(f"{app}/sessions/s-near.json", {"lastPrompt": f'<cross-session-message from="uds:/tmp/cc-socks/{near}.sock" '
+                                    'from-name="pack the bags" from-mode="prompting"> Look again at the list '
+                                    '</cross-session-message>', "lastPromptAt": ms(0),
+                                    "lastReply": "The list is up to date", "lastReplyAt": ms(0)})
+put(f"{app}/sessions/s-idle.json", {"lastPrompt": f'<cross-session-message from="uds:/tmp/cc-socks/{near}.sock" '
+                                    'from-name="pack the bags" from-mode="prompting"> Pick three covers '
+                                    '</cross-session-message>', "lastPromptAt": ms(0),
+                                    "lastReply": "Three covers are ready", "lastReplyAt": ms(0)})
+
 def run_dir(folder):
     h = 14695981039346656037
     for byte in os.fsencode(folder):
@@ -565,15 +854,88 @@ last_run("rust", run_pid, {"log": "Compiling\n"}, 1)
 last_run("python", run_pid, {"status": "0\n", "log": "done\n"}, 1)
 last_run("pkg-fly", run_pid, {"log": "Deploying\n"}, 1, noted_start=False)
 
-# A project for what the set-up card is told a command really runs: package scripts, and Makefile targets with what
-# they depend on.
+# A project for what the set-up card is told a command really runs: package scripts (with their pre- ones, npm's
+# start, and a script that runs another runner's), and Makefile targets with what they depend on, and a file the
+# Makefile includes and one it names by a variable; a shell script that runs make, and a file given to node. Then a
+# project with a GNUmakefile beside its Makefile (make reads the first), and one whose package.json is a pipe, which is
+# never read (it would hold Deploy's queue).
 put("check-project/package.json", {"scripts": {"deploy:local": "fly deploy --local-only",
                                                "predeploy:local": "npm run build", "build": "tsc",
-                                               "install:local": "node scripts/install.js", "ship": "vercel --prod"}})
-put("check-project/Makefile", ".PHONY: install deploy-local publish\n\n"
+                                               "install:local": "node scripts/install.js", "ship": "vercel --prod",
+                                               "prestart": "npm run build", "start": "node server.js",
+                                               "serve": "bun run start"}})
+put("check-project/Makefile", ".PHONY: install deploy-local publish\n-include config.mk\ninclude $(EXTRA)\n\n"
                               "build: main.c ## Build it\n\tcc -o tool main.c\n\n"
-                              "install: build\n\tcp tool ~/bin/\n\ndeploy-local: build publish\n\t./tool --install\n\n"
+                              "install: build\n\tcp tool $(PREFIX)/\n\ndeploy-local: build publish\n\t./tool --install\n\n"
                               "publish:\n\tgit push origin main\n\nVERSION := 1.0\n")
+put("check-project/config.mk", "PREFIX := ~/bin\n")
+put("check-project/server.js", "require('http').createServer().listen(process.env.PORT)\n")
+put("check-project/scripts/up.sh", "#!/bin/sh\nmake install\n")
+put("gnu-project/GNUmakefile", "all:\n\t@echo the GNU one\n")
+put("gnu-project/Makefile", "all:\n\t@echo not this one\n")
+os.makedirs(os.path.join(T, "fifo-project"), exist_ok=True)
+os.mkfifo(os.path.join(T, "fifo-project/package.json"))
+# Files a command depends on that the check can't read: a package.json and a Makefile linked from outside the
+# checkout, and a Makefile including one outside it, all said as such, never passed over. A program that isn't UTF-8
+# (bin/server), checked by its bytes. Words the reading must not pass over: a runner's options before `run`, a word it
+# doesn't know, a file node loads first, `sh -c`'s text, and a script sourced. And a project with only a lower-case
+# gnumakefile, which make reads first on a disk that doesn't tell case apart. Then output sent to a log the server
+# writes, which isn't what it runs.
+put("shared/package.json", {"scripts": {"build": "tsc"}})
+put("shared/common.mk", "PREFIX := ~/bin\n")
+put("outside-project/linked/README.md", "Notes\n")
+os.symlink(os.path.join(T, "shared/package.json"), os.path.join(T, "outside-project/package.json"))
+os.symlink(os.path.join(T, "shared/common.mk"), os.path.join(T, "outside-project/linked/Makefile"))
+put("outside-project/Makefile", "include ../shared/common.mk\ninstall:\n\tcp tool $(PREFIX)/\n")
+os.makedirs(os.path.join(T, "check-project/bin"), exist_ok=True)
+with open(os.path.join(T, "check-project/bin/server"), "wb") as f:
+    f.write(b"#!/bin/sh\n# caf\xe9\nexec node server.js\n")
+put("check-project/hook.js", "process.env.READY = '1'\n")
+# A project whose web folder has its own package.json, which is what runs after `cd web`, from a command, a Makefile
+# recipe or a script; and ways of cd the check can't follow (a variable, back out of the checkout, `-`).
+put("cd-project/package.json", {"scripts": {"dev": "vite"}})
+put("cd-project/web/package.json", {"scripts": {"dev": "next dev"}})
+put("cd-project/Makefile", "web:\n\tcd web && npm run dev\n")
+put("cd-project/scripts/web.sh", "#!/bin/sh\ncd web\nnpm run dev\n")
+put("check-project/server.log", "listening\n")
+# A cd inside ( ), undone at the ), and one in a sourced script, which moves the line that sourced it: neither is
+# followed, and the card says so. A folder with no package.json of its own (docs), where npm reads the one above it; a
+# script that isn't in the package.json found; and a project whose only package.json is above the checkout.
+put("cd-project/docs/README.md", "Notes\n")
+put("cd-project/scripts/env.sh", "#!/bin/sh\ncd web\n")
+put("above/package.json", {"scripts": {"dev": "vite"}})
+put("above/inner-project/README.md", "Notes\n")
+# What package runners read besides package.json: a yarn named by .yarnrc.yml, one named outside the checkout and one
+# that isn't there; an .npmrc that sets node's options; and the lockfile an install reads.
+put("yarn-project/package.json", {"scripts": {"dev": "vite"}})
+put("yarn-project/.yarnrc.yml", "yarnPath: .yarn/releases/yarn-4.cjs\n")
+put("yarn-project/.yarn/releases/yarn-4.cjs", "// yarn 4\n")
+put("yarn-away/package.json", {"scripts": {"dev": "vite"}})
+put("yarn-away/.yarnrc.yml", "yarnPath: ../shared/yarn.cjs\n")
+put("shared/yarn.cjs", "// yarn\n")
+put("yarn-gone/package.json", {"scripts": {"dev": "vite"}})
+put("yarn-gone/.yarnrc.yml", "yarnPath: .yarn/releases/yarn-9.cjs\n")
+put("npmrc-project/package.json", {"scripts": {"dev": "vite"}})
+put("npmrc-project/.npmrc", "node-options=--require ./hook.js\n")
+put("npmrc-project/package-lock.json", {"lockfileVersion": 3})
+# yarn's Plug'n'Play loaders, a plugin .yarnrc.yml names and one that isn't there, and the .yarnrc.yml of each folder
+# up from the package (a web package in yarn-pnp, with one at the top); bun's settings and the files it preloads, one
+# missing; and pnpm's workspace at the top.
+put("yarn-pnp/package.json", {"scripts": {"dev": "vite"}})
+put("yarn-pnp/.yarnrc.yml", "plugins:\n  - path: .yarn/plugins/tool.cjs\n  - path: .yarn/plugins/gone.cjs\n")
+put("yarn-pnp/.yarn/plugins/tool.cjs", "// a plugin\n")
+put("yarn-pnp/.pnp.cjs", "// the loader\n")
+put("yarn-pnp/.pnp.loader.mjs", "// the loader for ES modules\n")
+put("yarn-pnp/web/package.json", {"scripts": {"dev": "next dev"}})
+put("yarn-pnp/web/.yarnrc.yml", "enableTelemetry: false\n")
+put("bun-project/package.json", {"scripts": {"dev": "bun run server.ts"}})
+put("bun-project/bunfig.toml", 'preload = ["./setup.ts", "./gone.ts"]\n')
+put("bun-project/setup.ts", "console.log('ready')\n")
+put("bun-project/server.ts", "Bun.serve({ port: Number(process.env.PORT), fetch: () => new Response('ok') })\n")
+put("pnpm-project/package.json", {"scripts": {"dev": "vite"}})
+put("pnpm-project/pnpm-workspace.yaml", "packages:\n  - 'apps/*'\n")
+put("case-project/gnumakefile", "all:\n\t@echo the lower-case one\n")
+put("case-project/Makefile", "all:\n\t@echo not this one\n")
 
 # Claude Code's state file, which says which folders you've trusted Claude in (among much else, here a sample of it),
 # laid out as Claude Code writes it: two-space indents, no new line at the end, readable only by you.
@@ -589,7 +951,7 @@ os.chmod(os.path.join(T, ".claude.json"), 0o600)
 PY
 
 # The rows, ordered by session, with what changes from run to run made stable: times become "now-<minutes>m",
-# process ids "pid", the sample home "T", and very long text a note of its length.
+# process ids "pid" (and in a messaging address), the sample home "T", and very long text a note of its length.
 rows() {
 HOME="$T" "$APP" --print-rows | python3 -c '
 import json, re, sys, time
@@ -602,6 +964,10 @@ def stable(value, key=""):
         return [stable(v) for v in value]
     if key == "pid" and isinstance(value, int) and value > 0:
         return "pid"
+    if key == "stageAt" and isinstance(value, (int, float)) and 0 < value < 1e11:  # the page takes ms, never seconds
+        return "in seconds"
+    if key == "promptFromAddress" and isinstance(value, str):  # the address names a sample process
+        return re.sub(r"/\d+\.sock$", "/pid.sock", value)
     if key == "v" and isinstance(value, int):  # how many times the changes were counted, which depends on timing
         return "v"
     if key == "headAt" and isinstance(value, int):  # when a sample was committed, however long the tests took since
@@ -609,7 +975,8 @@ def stable(value, key=""):
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         for scale in (1000, 1):  # ms or s since 1970
             if 1.5e9 < value / scale < 2.5e9:
-                return "now-%dm" % round((now - value / scale) / 60)
+                ago = round((now - value / scale) / 60)
+                return "now-%dm" % ago if ago >= 0 else "now+%dm" % -ago  # one to come: a request going by itself
     if isinstance(value, str) and re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z", value):
         return "now-%dm" % round((now - datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()) / 60)
     if isinstance(value, str) and len(value) > 200:
@@ -631,7 +998,7 @@ python3 - "$REPO" <<'PY'
 import os, re, sys
 repo = sys.argv[1]
 # Whichever file implements Row now: there must be just the one.
-rows = sorted(os.path.join(d, name) for top in ("app", "modules") for d, _, files in os.walk(f"{repo}/{top}")
+rows = sorted(os.path.join(d, name) for top in ("app", "parts", "modules") for d, _, files in os.walk(f"{repo}/{top}")
               for name in files if name.endswith(".m")
               and re.search(r"^@implementation Row\b", open(os.path.join(d, name), encoding="utf-8").read(), re.M))
 if len(rows) != 1:
@@ -651,11 +1018,12 @@ repo = sys.argv[1]
 def read(path):
     return open(f"{repo}/{path}", encoding="utf-8").read()
 code = "".join(open(os.path.join(d, name), encoding="utf-8").read()
-               for top in ("app", "modules") for d, _, files in sorted(os.walk(f"{repo}/{top}"))
+               for top in ("app", "parts", "modules") for d, _, files in sorted(os.walk(f"{repo}/{top}"))
                for name in sorted(files) if name.endswith(".m"))
 # Each permission by the name macOS gives it, and the call that shows the app asks for it. The README must tell
 # people about each one the app asks for; once it stops asking for one, every mention of it has to go too.
-asks = {"Accessibility": "AXIsProcessTrusted" in code, "Automation": "NSAppleScript" in code}
+asks = {"Accessibility": "AXIsProcessTrusted" in code, "Automation": "NSAppleScript" in code,
+        "Full Disk Access": "Privacy_AllFiles" in code}
 tracked = subprocess.run(["git", "-C", repo, "ls-files", "-z"], capture_output=True, text=True).stdout.split("\0")
 for permission, asked in asks.items():
     if asked:
@@ -682,6 +1050,21 @@ HOME="$T" "$APP" --print-typing
 echo "== Why nothing can go into a session now, as its model, effort and mode menus, its Compact card and its next"
 echo "   steps say it (null: something can), with a terminal the panel types into unless said otherwise"
 HOME="$T" "$APP" --print-why-not
+echo "== Whether now is a natural break to compact a session, and why (null: not now): the context ring's Compact now"
+echo "   and Compact at Breaks both go by it"
+HOME="$T" "$APP" --print-compact-time
+echo "== Which sessions' requests are held as you answer them: in their tab just now with you at the Mac, whether"
+echo "   they go by themselves (Don't Wait on Me) or wait on you"
+HOME="$T" "$APP" --print-held
+echo "== Whether a terminal's window is on top, so a press on the row of the session its tab shows leaves it be"
+echo "   (otherwise its tab is shown, which brings its window up)"
+HOME="$T" "$APP" --print-on-top
+echo "== A file read every second is read again only once it has changed (its size, or only its date), and never kept"
+echo "   while it can't be read or once it's gone"
+HOME="$T" "$APP" --print-file-reads
+echo "== From a home that isn't your own, Whozmove presses, types and sends nothing in other apps, whichever way it"
+echo "   would, and panel.log says so once"
+HOME="$T/other-apps" "$APP" --print-other-apps
 echo "== A command's result as read from a transcript (null: none yet), and what it says: the value now in effect"
 echo "   (null: nothing changed), whether the pick was saved as the default, the Compact card's note (null: it"
 echo "   compacted), and whether a reload of the plugins took"
@@ -702,14 +1085,62 @@ HOME="$T" "$APP" --print-changes s-clone staged | sed -E 's/"v" : [0-9]+/"v" : "
 echo "== Outgoing, from s-topic's side: the clone's commits not on its upstream yet, one by one, each with what it changed"
 HOME="$T" "$APP" --print-changes s-topic outgoing \
   | sed -E 's/"v" : [0-9]+/"v" : "v"/; s/"(hash|short)" : "[0-9a-f]+"/"\1" : "id"/; s/"at" : [0-9.e+]+/"at" : "at"/'
-echo "== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), and the folder's last run as the"
-echo "   page is told it"
+echo "== Deploy in sample projects: the command Whozmove suggests (null: no Deploy), the folder's last run as the page"
+echo "   is told it, and the build in place a run that went through makes (outside git, and from before commits were"
+echo "   noted: without one)"
 # Their times count from when the runs were written, however long the tests above took.
 HOME="$T" "$APP" --print-deploys "$T"/projects/* | in_minutes "$(cat "$T/written-at")"
-echo "== What the set-up card is told a command really runs, and whether that looks as if it could reach production"
+echo "== What the set-up card is told a command really runs (all of it, with the files checked before every run, what"
+echo "   isn't checked and what Whozmove can't follow), and whether that looks as if it could reach production"
 HOME="$T" "$APP" --print-deploy-checks "$T/check-project" "make install" "make deploy-local" "make" \
   "npm run deploy:local" "pnpm deploy:local" "yarn run install:local" "NODE_ENV=dev npm run ship && make install" \
-  "docker compose up -d --build" "kubectl apply -f k8s/" "./build.sh --now" "npm run nothing-here" | in_minutes
+  "docker compose up -d --build" "kubectl apply -f k8s/" "./build.sh --now" "npm run nothing-here" "npm start" \
+  "bun serve" "yarn workspace web run build" "npm --prefix web run build" "make -C sub install" "./scripts/up.sh" \
+  "node server.js" "sh scripts/up.sh" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/gnu-project" "make" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/fifo-project" "npm run build" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/outside-project" "npm run build" "make install" "make -f linked/Makefile" \
+  | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/check-project" "./bin/server" "npm --loglevel silent run build" \
+  "npm --loglevel silent start" "node -r ./hook.js server.js" "node -r dotenv/config server.js" \
+  "sh -c 'npm run build && make install'" "source scripts/up.sh" ". scripts/up.sh" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/case-project" "make" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/cd-project" "cd web && npm run dev" "pushd web; npm run dev; popd; npm run dev" \
+  "make web" "./scripts/web.sh" 'cd $APP_DIR && npm run dev' "cd .. && npm run dev" "cd - && npm run dev" \
+  "(cd web && npm ci) && npm run dev" "source scripts/env.sh && npm run dev" "cd docs && npm run dev" \
+  "cd web && npm run build" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/above/inner-project" "npm run dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/yarn-project" "yarn dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/yarn-away" "yarn dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/yarn-gone" "yarn dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/npmrc-project" "npm run dev" "npm ci" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/yarn-pnp" "yarn dev" "cd web && yarn dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/bun-project" "bun dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/pnpm-project" "pnpm dev" | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/cd-project" 'case $1 in up) echo up;; esac; (cd web && npm ci) && npm run dev' \
+  | in_minutes
+HOME="$T" "$APP" --print-deploy-checks "$T/check-project" "node server.js > server.log 2>&1" \
+  "node server.js &> server.log" "node server.js >>server.log 2>&1 < /dev/null" | in_minutes
+# Whether what's kept for a command in a folder changes when a file it depends on does: before, the file given new
+# text (printf's), after.
+kept_changes() {
+  local before after
+  before=$(HOME="$T" "$APP" --print-deploy-checks "$1" "$2")
+  # shellcheck disable=SC2059
+  printf "$4" > "$3"
+  after=$(HOME="$T" "$APP" --print-deploy-checks "$1" "$2")
+  python3 -c 'import json, sys; c = sys.argv[1]; a, b = (json.loads(x)[c]["fingerprint"] for x in sys.argv[2:])
+print("changed" if a != b else "the same")' "$2" "$before" "$after"
+}
+echo "== What's kept changes with a file it depends on: a program that isn't UTF-8, in a byte that doesn't decode; the"
+echo "   yarn .yarnrc.yml names; an .npmrc's node options; for an install, only the lockfile; yarn's Plug'n'Play loader;"
+echo "   and a file bun preloads"
+kept_changes "$T/check-project" "./bin/server" "$T/check-project/bin/server" '#!/bin/sh\n# caf\xe8\nexec node server.js\n'
+kept_changes "$T/yarn-project" "yarn dev" "$T/yarn-project/.yarn/releases/yarn-4.cjs" '// yarn 4.1\n'
+kept_changes "$T/npmrc-project" "npm run dev" "$T/npmrc-project/.npmrc" 'node-options=--require ./other.js\n'
+kept_changes "$T/npmrc-project" "npm ci" "$T/npmrc-project/package-lock.json" '{"lockfileVersion": 3, "packages": {}}\n'
+kept_changes "$T/yarn-pnp" "yarn dev" "$T/yarn-pnp/.pnp.cjs" '// another loader\n'
+kept_changes "$T/bun-project" "bun dev" "$T/bun-project/setup.ts" "console.log('changed')\n"
 echo "== What the usage strip gets from Claude Code's recorded answers (null: none there) and from \`claude auth"
 echo "   status\`, and where \`claude\` is looked for, best first"
 HOME="$T" USAGE_PATH="$T/bin" "$APP" --print-usage "$T"/usage-replies/*
@@ -742,6 +1173,191 @@ echo "the lock is still theirs: $([ -d "$T/.claude.json.lock" ] && echo yes || e
 touch -t 202601010000 "$T/.claude.json.lock"
 HOME="$T" "$APP" --print-trust --trust "$T/fresh" "$T/fresh" | in_minutes
 echo "the old lock is gone: $([ -d "$T/.claude.json.lock" ] && echo no || echo yes)"
+echo "== Why a recording counts as talking to an agent (null: it doesn't), by what was in front as it began"
+mkdir -p "$T/talking"
+SESSION='"rows": [{"sessionId": "s-voice", "pid": 4242}]'
+GHOSTTY='"front": "com.mitchellh.ghostty"'
+CLAUDE='{"pid": 4242, "parent": 4200, "path": "/opt/homebrew/bin/claude", "app": "com.mitchellh.ghostty"}'
+DICTATION='{"pid": 5000, "parent": 1, "path": "/Applications/Example Dictation.app/Contents/MacOS/Example Dictation",
+            "app": "com.example.dictation"}'
+CALL='{"pid": 6000, "parent": 1, "path": "/Applications/Example Call.app/Contents/MacOS/Example Call",
+       "app": "com.example.call"}'
+DESKTOP='{"pid": 7000, "parent": 1, "path": "/Applications/Claude.app/Contents/MacOS/Claude",
+          "app": "com.anthropic.claudefordesktop"}'
+echo "{\"recording\": $CLAUDE, \"then\": {\"front\": \"com.apple.finder\"}, $SESSION}" > "$T/talking/voice-mode.json"
+echo "{\"recording\": $CLAUDE, \"then\": {$GHOSTTY, \"going\": true}, $SESSION}" \
+  > "$T/talking/voice-mode-already-going.json"
+echo "{\"recording\": {\"pid\": 4300, \"parent\": 4242, \"path\": \"/opt/homebrew/bin/rec\"}, \"then\": {},
+       $SESSION}" > "$T/talking/voice-mode-through-sox.json"
+echo "{\"recording\": {\"pid\": 4301, \"parent\": 4242, \"path\": \"/opt/homebrew/bin/ffmpeg\"}, \"then\": {},
+       $SESSION}" > "$T/talking/a-command-the-session-runs.json"
+echo "{\"recording\": $DESKTOP, \"then\": {\"front\": \"com.apple.Safari\"}, $SESSION}" \
+  > "$T/talking/claude-dictation.json"
+echo "{\"recording\": $DICTATION, \"then\": {$GHOSTTY, \"tab\": \"s-voice\"}, $SESSION}" \
+  > "$T/talking/dictation-into-a-session-tab.json"
+echo "{\"recording\": $DICTATION, \"then\": {$GHOSTTY, \"tab\": \"\"}, $SESSION}" \
+  > "$T/talking/dictation-into-a-plain-shell.json"
+echo "{\"recording\": $DICTATION, \"then\": {\"front\": \"com.anthropic.claudefordesktop\"}, $SESSION}" \
+  > "$T/talking/dictation-into-claude.json"
+echo "{\"recording\": $DICTATION, \"then\": {\"front\": \"com.apple.finder\", \"keyboard\": true}, $SESSION}" \
+  > "$T/talking/dictation-into-the-panel.json"
+echo "{\"recording\": $DICTATION, \"then\": {\"front\": \"com.apple.Notes\"}, $SESSION}" \
+  > "$T/talking/dictation-elsewhere.json"
+echo "{\"recording\": $CALL, \"then\": {$GHOSTTY, \"tab\": \"s-voice\", \"going\": true}, $SESSION}" \
+  > "$T/talking/a-call-going-on.json"
+echo "{\"recording\": $CALL, \"then\": {$GHOSTTY, \"tab\": \"s-voice\"}, $SESSION}" \
+  > "$T/talking/a-call-started-on-a-session.json"
+HOME="$T" "$APP" --print-talking "$T"/talking/*.json
+echo "== Each lead's next for you, and its queue of picks by id, in its order (the second lead's of 105 picks as how many"
+echo "   it keeps and its first and last). Left out of the first queue: an id that isn't plain, and one named twice"
+team="$T/Library/Application Support/Whozmove/team/team.json"
+cp "$team" "$T/team-before-queue.json"
+python3 - "$team" <<'Q'
+import json, sys
+with open(sys.argv[1]) as f:
+    team = json.load(f)
+projects = list(team["projects"].values())
+lead = next(p for p in projects if p["lead"]["name"] == "Atlas")["lead"]
+lead["queue"] = [{"id": "j1-try", "job": "j1", "short": "Try the search box"}, {"id": "covers", "job": "j4"},
+                 {"id": "a cover"}, {"id": "j1-try", "job": "j2"}, {"id": "no-job"}, {"id": "spine", "job": "j99"}]
+low = next(p for p in projects if p["lead"]["name"] == "k-next-low")["lead"]
+low["queue"] = [{"id": "p%d" % n, "job": "j99"} for n in range(1, 106)]
+with open(sys.argv[1], "w") as f:
+    json.dump(team, f)
+Q
+HOME="$T" "$APP" --print-rows | python3 -c '
+import json, sys
+for row in sorted(json.load(sys.stdin), key=lambda row: str(row.get("sessionId"))):
+    team = row.get("team") or {}
+    if team.get("role") != "lead":
+        continue
+    queue = team.get("queue")
+    if queue and len(queue) > 10:
+        queue = {"kept": len(queue), "first": queue[0], "last": queue[-1]}
+    print(row["sessionId"], json.dumps({"next": team.get("next"), "queue": queue}, sort_keys=True))
+'
+echo "== Each team as a whole, as the team board gets it (with that file): its lead, its goals (an id with a space, one"
+echo "   named twice and one without a name left out, and How we work marked as a heading for how the team works), its"
+echo "   queue, and every job but the dropped one, each with its goal when the team has it, whose it is and that session,"
+echo "   what it holds up, and its steps with the kinds of those that wait on you (one on a step that doesn't, and a word"
+echo "   One Task doesn't know, left out); a done one with when it was done; and the job each member's row speaks for"
+echo "   marked now"
+# Times are counted from when the sample was written, as the deploys' are, so a slow run never crosses a minute.
+HOME="$T" "$APP" --print-teams | python3 -c '
+import json, sys
+now = float(sys.argv[1])
+def stable(value):
+    if isinstance(value, dict):
+        return {k: stable(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [stable(v) for v in value]
+    if isinstance(value, (int, float)) and not isinstance(value, bool) and 1.5e12 < value < 2.5e12:
+        return "now-%dm" % round((now - value / 1000) / 60)
+    return value
+teams = json.load(sys.stdin)
+for team in teams:
+    if len(team["queue"]) > 10:
+        team["queue"] = "%d picks" % len(team["queue"])
+print(json.dumps(stable(teams), indent=2, sort_keys=True, ensure_ascii=False))
+' "$(cat "$T/written-at")"
+echo "== Team Board's card on the panel's back, for the same team, and whether its figures are the board's own counts"
+HOME="$T" "$APP" --print-teams > "$T/teams.json"
+HOME="$T" "$APP" --print-board-card "$T/repo" | tee "$T/card.json"
+cat > "$T/card-check.js" <<CHECK
+load('tests/page-harness.js');
+const card = JSON.parse(read('$T/card.json'));
+const c = boardCounts(boardTeam({ teams: JSON.parse(read('$T/teams.json')) }, '$T/repo').jobs, NOW);
+print('its figures are the board\'s counts: ' + (card.figure === (c.moving ? String(c.moving) : 'Nothing')
+  && card.lines[0] === (c.you ? \`\${c.you} \${c.you === 1 ? 'needs' : 'need'} you\` : 'Nothing needs you')));
+CHECK
+page_cases "$T/card-check.js"
+echo "== A team file reads the same whatever its version: 5, 1 or none"
+HOME="$T" "$APP" --print-teams > "$T/teams-as-written.json"
+for version in 5 none; do
+  python3 - "$team" "$version" <<'Q'
+import json, sys
+with open(sys.argv[1]) as f:
+    team = json.load(f)
+if sys.argv[2] == "none":
+    team.pop("version", None)
+else:
+    team["version"] = int(sys.argv[2])
+with open(sys.argv[1], "w") as f:
+    json.dump(team, f)
+Q
+  HOME="$T" "$APP" --print-teams > "$T/teams-version.json"
+  cmp -s "$T/teams-as-written.json" "$T/teams-version.json" && echo "version $version: the same" || echo "version $version: differs"
+done
+echo "== With Show Teams off, the file isn't read: no teams, no row has a team, and Group by Team isn't offered"
+HOME="$T" "$APP" --print-teams --switch-off
+mv "$T/team-before-queue.json" "$team"
+echo "== A member is its workspace: whoever runs in a member's own folder holds its seat. Pim's conversation, cleared, is"
+echo "   Pim; s-twice, in Bea's folder while Bea's recorded session runs elsewhere, is Bea; s-clone, beside Moss's own"
+echo "   session, is a duplicate of Moss; Ivy's own session in Pim's folder stays Ivy's; and the lead's sessions it leads,"
+echo "   and what's next for you, name the sessions holding the seats (its next made Pim's job here). With nothing running"
+echo "   in Tam's folder and the file's id for Tam naming no session listed, Tam's conversation that moved last, ended,"
+echo "   is Tam, the older one only in Tam's folder; the lead leads it, a pick by Tam's name reaches it, and Take Me There"
+echo "   carries it on"
+python3 - "$team" "$T" <<'Q'
+import json, os, sys, time
+T = sys.argv[2]
+with open(sys.argv[1]) as f:
+    team = json.load(f)
+atlas = next(p for p in team["projects"].values() if p["lead"]["name"] == "Atlas")
+atlas["jobs"]["j11"] = {"title": "Chimes", "stage": "build", "member": "Pim"}
+atlas["lead"]["next"]["job"] = "j11"
+tam = os.path.join(T, "tam")
+os.makedirs(tam, exist_ok=True)
+atlas["members"]["Tam"] = {"session": "k-tam-was", "worktree": tam, "part": "storage"}
+atlas["jobs"]["j12"] = {"title": "Old files", "stage": "build", "member": "Tam"}
+with open(sys.argv[1], "w") as f:
+    json.dump(team, f)
+# Tam's two conversations, ended (Whozmove kept them as their tabs closed): the later one, and one before it, whose id
+# comes first, so only when each last moved can tell them apart.
+kept = os.path.join(T, "Library/Application Support/Whozmove/conversations")
+with open(os.path.join(T, "written-at")) as f:
+    at = float(f.read())
+for sid, minutes_ago in (("k-tam-later", 3), ("k-tam-earlier", 50)):
+    transcript = os.path.join(T, ".claude/projects/p", sid + ".jsonl")
+    with open(transcript, "w") as f:
+        f.write(json.dumps({"type": "user", "message": {"role": "user", "content": "tidy the old files"},
+                            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S.000Z", time.gmtime(at - minutes_ago * 60)),
+                            "isSidechain": False}) + "\n")
+    with open(os.path.join(kept, sid + ".json"), "w") as f:
+        json.dump({"sessionId": sid, "cwd": tam, "terminal": "com.apple.Terminal", "pid": 4242,
+                   "procStart": "start-" + sid, "transcript": transcript,
+                   "activeAt": int((at - minutes_ago * 60) * 1000), "name": "the %s one" % sid}, f)
+Q
+HOME="$T" "$APP" --print-rows | tee "$T/seat-rows.json" | python3 -c '
+import json, sys
+rows = {row["sessionId"]: row for row in json.load(sys.stdin)}
+for sid in ("s-pim", "s-ivy", "s-twice", "s-desk", "s-clone", "s-topic", "k-tam-later", "k-tam-earlier"):
+    team = rows[sid].get("team") or {}
+    print(sid, rows[sid].get("status"),
+          json.dumps({k: team[k] for k in ("role", "name", "inFolderOf", "duplicate", "earlier", "seat") if k in team},
+                     sort_keys=True))
+lead = rows["s-near"]["team"]
+print("the lead leads", lead["leads"], "and what is next is for", lead["next"].get("for"))
+# One Task takes a pick by a member'"'"'s name for one of the sessions the lead leads whose own row places it on the team
+# (role, and no inFolderOf), named so: Tam'"'"'s is the ended conversation on its row.
+print("a pick for Tam by name reaches", [sid for sid in lead["leads"] if rows.get(sid, {}).get("team", {}).get("role")
+      and not rows[sid]["team"].get("inFolderOf") and rows[sid]["team"].get("name") == "Tam"])
+'
+HOME="$T" "$APP" --print-teams > "$T/seat-teams.json"
+cat > "$T/seat-check.js" <<CHECK
+load('tests/page-harness.js');
+const team = boardTeam({ teams: JSON.parse(read('$T/seat-teams.json')) }, '$T/repo');
+const sessions = JSON.parse(read('$T/seat-rows.json'));
+print('Take Me There on Tam\'s job: ' + JSON.stringify(boardTakeMe(team.jobs.find((j) => j.id === 'j12'), team,
+                                                                     sessions)));
+CHECK
+page_cases "$T/seat-check.js"
+echo "== Without the team file: no row has a place in a team, nor a mark"
+rm "$team"
+HOME="$T" "$APP" --print-rows | python3 -c '
+import json, sys
+print("rows with a place:", [row["sessionId"] for row in json.load(sys.stdin) if "team" in row])
+'
 }
 
 # The sample home is under /private/var; macOS also gives paths there as /var, so both spellings become T.

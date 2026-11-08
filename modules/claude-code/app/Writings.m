@@ -58,6 +58,18 @@ static NSString *TitleOfFile(NSString *path, NSString *content) {
     return path.lastPathComponent;
 }
 
+// A published page's address as it's kept: https only, without a name and password before its host, its query or its
+// fragment, where a signed link's token can be and which opening the page doesn't need; nil for any other.
+static NSString *PageAddress(id url) {
+    NSURLComponents *parts = [url isKindOfClass:NSString.class] && [url hasPrefix:@"https://"]
+        ? [NSURLComponents componentsWithString:url] : nil;
+    parts.user = nil;
+    parts.password = nil;
+    parts.query = nil;
+    parts.fragment = nil;
+    return parts.host.length ? parts.string : nil;
+}
+
 // A tool result's text: a plain string, or the text parts of a list.
 static NSString *ResultText(id content) {
     if ([content isKindOfClass:NSString.class]) return content;
@@ -151,9 +163,8 @@ NSDictionary *WritingNews(NSData *chunk, NSUInteger end, unsigned long long base
             NSMutableDictionary *result = [@{@"ok": @(![item[@"is_error"] boolValue]),
                                              @"text": Clip(ResultText(item[@"content"]), 200)} mutableCopy];
             id published = entry[@"toolUseResult"];
-            if ([published isKindOfClass:NSDictionary.class] && [published[@"url"] isKindOfClass:NSString.class]
-                && [published[@"url"] hasPrefix:@"https://"])
-                result[@"url"] = published[@"url"];
+            NSString *address = [published isKindOfClass:NSDictionary.class] ? PageAddress(published[@"url"]) : nil;
+            if (address) result[@"url"] = address;
             results[callId] = result;
             [ids removeObject:callId];
         }
@@ -228,6 +239,63 @@ void AddWritingNews(NSMutableDictionary *state, NSDictionary *news) {
             [writings removeObjectForKey:old[@"id"]];
     }
     if (waiting.count > kListed * 2) [waiting removeAllObjects];
+}
+
+NSDictionary *KeptWritings(NSDictionary *state) {
+    return @{@"writings": state[@"writings"] ?: @{}, @"waiting": state[@"waiting"] ?: @{}};
+}
+
+// A kept value's fields, each of the kind it should be (a text, a number, or a text starting https://), required or
+// left out; nil when one isn't, or when it has any other field.
+static NSMutableDictionary *Fields(id value, NSDictionary<NSString *, NSString *> *kinds,
+                                   NSDictionary<NSString *, NSString *> *maybe) {
+    NSDictionary *record = AsRecord(value);
+    if (!record) return nil;
+    NSMutableDictionary *fields = [NSMutableDictionary dictionary];
+    for (NSString *key in record) {
+        NSString *kind = kinds[key] ?: maybe[key];
+        id field = record[key];
+        BOOL fits = [kind isEqualToString:@"number"] ? AsNumber(field) != nil
+                  : [kind isEqualToString:@"https"] ? [AsText(field) hasPrefix:@"https://"]
+                  : [kind isEqualToString:@"text"] && AsText(field);
+        if (!fits) return nil;
+        fields[key] = field;
+    }
+    for (NSString *key in kinds)
+        if (!fields[key]) return nil;
+    return fields;
+}
+
+// Each writing as AddWritingNews makes it, and each call it waits on as WritingNews finds it, within their limits.
+BOOL TakeBackWritings(NSDictionary *kept, NSMutableDictionary *state) {
+    NSDictionary *writings = AsRecord(kept[@"writings"]), *waiting = AsRecord(kept[@"waiting"]);
+    if (!writings || !waiting || writings.count > kListed * 2 || waiting.count > kListed * 2) return NO;
+    NSMutableDictionary *plans = [@{@"id": @"text", @"kind": @"text", @"title": @"text", @"at": @"number",
+                                    @"order": @"number"} mutableCopy], *files = [plans mutableCopy];
+    [plans addEntriesFromDictionary:@{@"offset": @"number", @"callId": @"text", @"status": @"text"}];
+    files[@"path"] = @"text";
+    NSMutableDictionary *back = [NSMutableDictionary dictionary], *calls = [NSMutableDictionary dictionary];
+    for (NSString *key in writings) {
+        BOOL plan = [AsRecord(writings[key])[@"kind"] isEqual:@"plan"];
+        NSMutableDictionary *writing = plan ? Fields(writings[key], plans, @{@"path": @"text"})
+                                            : Fields(writings[key], files, @{@"url": @"https"});
+        if (![writing[@"id"] isEqual:key]) return NO;
+        if (plan && ![@[@"waiting", @"approved", @"declined"] containsObject:writing[@"status"]]) return NO;
+        if (!plan && ![KindOfFile(writing[@"path"]) isEqual:writing[@"kind"]]) return NO;
+        if (writing[@"url"] && ![PageAddress(writing[@"url"]) isEqual:writing[@"url"]]) return NO;
+        back[key] = writing;
+    }
+    for (NSString *callId in waiting) {
+        NSDictionary *call = Fields(waiting[callId], @{@"id": @"text", @"tool": @"text", @"at": @"number",
+                                                       @"offset": @"number", @"order": @"number", @"title": @"text"},
+                                    @{@"path": @"text"});
+        if (![call[@"id"] isEqual:callId] || ![@[@"ExitPlanMode", @"Write", @"Artifact"] containsObject:call[@"tool"]])
+            return NO;
+        calls[callId] = [call copy];
+    }
+    state[@"writings"] = back;
+    state[@"waiting"] = calls;
+    return YES;
 }
 
 NSArray<NSDictionary *> *RowWritings(NSDictionary *state) {

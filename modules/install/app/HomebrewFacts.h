@@ -1,5 +1,6 @@
 // HomebrewFacts: what Whozmove relies on about Homebrew, to tell a new version is out, which a new Homebrew could
-// change. When it does, the fix goes here. The version these were last checked with is in the README ("Tested with").
+// change. When it does, the fix goes here. The version these were last checked with is in
+// docs/using/install.md ("What it's tested with").
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -18,3 +19,5 @@ NSString *CaskVersion(NSString *rubyFile);
 // so named, Homebrew fetches the tap again first if it's more than 5 minutes old, where a cask's bare name waits a day,
 // and would say a version just released is already installed (Homebrew 7.0.10's utils/auto-update.sh).
 NSString *BrewUpgradeCommand(NSString *tap, NSString *cask);
+// The command that installs it again, the same version, over a copy that's missing a part, named the same way.
+NSString *BrewReinstallCommand(NSString *tap, NSString *cask);

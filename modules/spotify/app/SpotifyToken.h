@@ -1,5 +1,5 @@
 // SpotifyToken: Spotify's round token, tucked half under the panel at its bottom corner, on the side facing the
-// screen's middle (the core's EdgeIcon). It plays, resumes, or gets Spotify, as Spotify.m's TokenFor says, and gives
+// screen's middle (EdgeIcon, parts/edge). It plays, resumes, or gets Spotify, as Spotify.m's TokenFor says, and gives
 // way to the now-playing strip while a song plays.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "EdgeIcon.h"

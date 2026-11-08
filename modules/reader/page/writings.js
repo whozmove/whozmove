@@ -3,8 +3,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // Pressing a row's tag opens the reader beside the list (reader.js), with everything the session wrote down its side,
-// newest first. Approving a plan happens in the session, as Claude Code takes a plan's approval only from its own
-// prompt.
+// newest first. Approving a plan happens in the session, unless you've let a session approve plans for you (May
+// Approve Plans).
 
 const WRITING_WORDS = { plan: ['Plan', 'Plans'], prototype: ['Prototype', 'Prototypes'], notes: ['Notes', 'Notes'] };
 // What a session wrote, on its tag and in the reader's list: a plan (a page with lines), a prototype (a window) and
@@ -60,7 +60,7 @@ function writingsTag(s) {
   const on = r?.mode === 'writings' && r.sessionId === s.sessionId && !r.closing ? ' on' : '';
   const title = waiting ? 'A plan waiting for you: read it'
     : `Read what this session wrote: ${all.length} ${all.length === 1 ? 'thing' : 'things'}`;
-  return `<span class="wtag ${waiting ? 'k-plan' : 'quiet'}${on}" data-writings="${esc(s.sessionId)}"`
+  return `<span class="tag wtag${waiting ? ' plan' : ''}${on}" data-writings="${esc(s.sessionId)}"`
     + ` data-wid="${esc(lead.id)}" title="${title}">${WRITING_ICONS[lead.kind]}${all.length}</span>`;
 }
 
@@ -89,6 +89,7 @@ window.showWriting = (sid, wid, read) => {
 // read only when it changes, so the page's scroll, a prototype's own state and the notes being typed are kept.
 function drawWritings() {
   const r = state.reading, s = readerSession();
+  if (planNotesStale(r, s)) planNotesUnsent(r);
   const all = writingsOf(s);
   if (!all.some((w) => w.id === r.id) && all.length) r.id = (waitingPlan(s) || all[0]).id;
   const w = all.find((x) => x.id === r.id);
@@ -96,7 +97,7 @@ function drawWritings() {
   // each time, and the panel is measured again only then.
   const head = `<span class="r-title">${esc(s.name || base(s.cwd))}</span>
     <span class="r-sub">${all.length} written in this session</span>
-    <button class="r-close" title="Close">${CLOSE_ICON}</button>`;
+    <button class="icon-button r-close" title="Close">${CLOSE_ICON}</button>`;
   let changed = putHTML(reader.querySelector('.r-head'), head);
   changed = putHTML(reader.querySelector('.r-shelf'), shelfHTML(s, all, r.id)) || changed;
   const answer = reader.querySelector('.r-answer');
@@ -114,7 +115,7 @@ function shelfHTML(s, all, current) {
   return ['plan', 'prototype', 'notes'].map((kind) => {
     const items = all.filter((w) => w.kind === kind);
     if (!items.length) return '';
-    return `<div class="r-group">${WRITING_WORDS[kind][1]}</div>` + items.map((w) => {
+    return `<div class="caps r-group">${WRITING_WORDS[kind][1]}</div>` + items.map((w) => {
       const [label, tone] = writingStatus(w, s);
       return `<button class="r-item k-${kind}${w.id === current ? ' on' : ''}" data-wid="${esc(w.id)}">
           <span class="r-icon">${WRITING_ICONS[kind]}</span><span class="r-name">${esc(w.title || base(w.path))}</span>
@@ -149,8 +150,11 @@ function drawView() {
     read = r.reads[w.id];
     if (read.text === undefined && !read.missing) read = null;  // asked, not back yet
   }
-  const key = `${w.id}@${w.at}@${read?.text?.length ?? read?.missing ?? 'wait'}`;
+  // A plan is drawn again as whether it can take your picks changes, where you were in it kept.
+  const same = `${w.id}@${w.at}@${read?.text?.length ?? read?.missing ?? 'wait'}`;
+  const how = planHow(w, s, r), key = `${same}@${how.waiting}@${how.held}`;
   if (r.shown === key) return;
+  const kept = r.shown?.startsWith(`${same}@`) ? body.scrollTop : 0;
   r.shown = key;
   putHTML(src, `<span class="r-path">${esc(w.path || '')}</span>${publishedHTML(w)}`);
   if (!read) {
@@ -159,19 +163,40 @@ function drawView() {
     fitReader();
     return;
   }
-  const html = read.missing ? `<div class="r-missing">${esc(read.missing)}</div>`
-    : `<article class="md">${markdownHTML(read.text)}</article>`;
+  const html = writingBodyHTML(w, s, read, r);
   // Still the one to show: another writing may have been picked while the words it waited with went.
   const show = () => {
     if (r.shown !== key) return;
     body.innerHTML = html;
-    body.scrollTop = 0;
+    // What's drawn at the width it has (a diagram) is drawn before where you were is put back, so it lands there.
+    for (const drawn of core.readerDrawn) drawn(body);
+    body.scrollTop = kept;
     r.ready = true;
     fitReader();
   };
   // In place of the words it waited with, it comes in once they've gone.
   if (body.querySelector(':scope > .r-wait')) readerRefill(body, show);
   else show();
+}
+
+// How a plan stands for the picks on its card: whose they are (the request's id while Claude waits on it, else the
+// plan's own), whether they can be made (Claude waits on it, the panel can answer it, and it hasn't been sent back or
+// stopped from here), and whether they're held while the notes they go back in are open. A plain function.
+function planHow(w, s, r) {
+  const asked = w.kind === 'plan' && waitingPlan(s)?.id === w.id && !!s.ask;
+  const waiting = asked && !s.ask.legacy && !r.sent?.[w.id];
+  return { id: asked ? s.ask.id : w.id, waiting, held: waiting && !!r.revising };
+}
+
+// What a writing shows once it's read: why it can't be; a plan on its card at a glance, where the plans module gives
+// one; else its Markdown. It decides nothing else, but the plans module keeps what it drew, which the bar's picks are
+// read from (core.plans.picks): a plan not drawn yet has none.
+function writingBodyHTML(w, s, read, r) {
+  if (read.missing) return `<div class="r-missing">${esc(read.missing)}</div>`;
+  const how = planHow(w, s, r);
+  const glance = w.kind === 'plan' ? core.plans?.readerHTML(read.text, { sessionId: s.sessionId, id: how.id,
+    who: s.name || base(s.cwd), waiting: how.waiting, held: how.held }) : null;
+  return glance ?? `<article class="md">${markdownHTML(read.text)}</article>`;
 }
 
 // Where a writing is being read from, while it is: a plan as Claude asked about it, from the session's transcript, or
@@ -297,41 +322,144 @@ window.prototypeState = (sid, wid, st) => {
 };
 
 // Under a plan Claude is waiting on: approving happens in the session; sending it back with notes, or stopping it,
-// happens here, through the request the permission hook left (answerAsk).
+// happens here, down the permission hook's line to the panel (answerAsk). A plan from a session started before
+// Whozmove's update is answered in the session only, as its row says.
 function answerHTML(w, s) {
   const r = state.reading, sent = r.sent[w.id];
   if (sent) return `<div class="r-done">${sent === 'stop' ? 'Stopped. Claude won\'t carry out this plan.'
     : 'Sent back to Claude with your notes. It stays in plan mode and writes a new version, which shows up here.'}</div>`;
+  // While the version shown is the one Claude waits on, its own Send back… and Stop stay too: Send back… opens its
+  // box with these notes above it, to copy from, so moving on never needs Done with These first.
+  const unsent = w.kind === 'plan' && state.planUnsent[r.sessionId];
+  if (unsent && !r.revising) {
+    const answerable = waitingPlan(s)?.id === w.id && !s.ask?.legacy;
+    return `<div class="r-ask"><div class="r-q">Claude isn't waiting on the version your notes were for any more: it was
+        answered elsewhere, so they weren't sent. Here they are, to copy into what you send next:</div>
+      <p class="r-picked r-unsent">${esc(unsent)}</p>
+      <div class="r-buttons"><button class="button main r-go">Take me there</button>${answerable
+        ? '<button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button>' : ''}
+        <button class="button r-unsent-done">Done with These</button></div></div>`;
+  }
   if (waitingPlan(s)?.id !== w.id) return '';
+  if (s.ask?.legacy) {
+    return `<div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan.
+        Answer it in the session: it started before Whozmove's update, so the panel can't answer it.</div>
+      <div class="r-buttons"><button class="button main r-go">Take me there</button></div></div>`;
+  }
+  // Picks of yours on its card that differ from Claude's (the plans module's) go back as notes: in the box, above
+  // your own words, to read first.
+  const picks = core.plans?.picks(s.ask.id);
   if (r.revising) {
-    return `<div class="r-ask"><label class="r-q" for="r-notes">What should change? Claude stays in plan mode and
-        writes a new version.</label>
-      <textarea id="r-notes" class="q-type r-notes" placeholder="Your notes for Claude">${esc(r.notes)}</textarea>
-      <div class="r-buttons"><button class="r-send perm-allow"${r.notes.trim() ? '' : ' disabled'}>Send to Claude</button>
-        <button class="r-cancel">Cancel</button></div></div>`;
+    const picked = picks?.changed ? picks.note : '', ready = planNotesMessage(r, s) ? '' : ' disabled';
+    const ask = picked ? 'Your picks go back in these words, and Claude writes a new version. Add anything else:'
+      : `What should change? Claude stays in plan mode and
+        writes a new version.`;
+    return `<div class="r-ask">${unsent ? `<div class="r-q">Your notes for the version before, to copy:</div>
+        <p class="r-picked r-unsent">${esc(unsent)}</p>` : ''}<label class="r-q" for="r-notes">${ask}</label>${picked
+        ? `<p class="r-picked">${esc(picked)}</p>` : ''}
+      <textarea id="r-notes" class="field q-type r-notes" placeholder="Your notes for Claude">${esc(r.notes)}</textarea>
+      <div class="r-buttons"><button class="button main r-send"${ready}>Send to Claude</button>
+        <button class="button r-cancel">Cancel</button></div></div>`;
+  }
+  if (picks?.changed) {
+    return `<div class="r-ask"><div class="r-q"><span class="dot"></span>You changed ${picks.changed === 1 ? 'one pick'
+        : `${picks.changed} picks`}. Claude gets your picks and writes a new version.</div>
+      <div class="r-buttons"><button class="button main r-picks">Send Back with My Picks</button>
+        <button class="button r-claude-picks">Use Claude's Picks</button></div></div>`;
   }
   return `<div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan.
       Approving happens in the session.</div>
-    <div class="r-buttons"><button class="r-go perm-allow">Take me there</button><button class="r-revise">Revise…</button>
-      <button class="r-stop">Stop</button></div></div>`;
+    <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-revise">Send back…</button>
+      <button class="button r-stop">Stop</button></div></div>`;
 }
 
 // ---- Presses ----
 
+// What goes back to Claude from the box: your picks' words, then your own. A plain function.
+function planNotesMessage(r, s) {
+  const picks = s?.ask ? core.plans?.picks(s.ask.id) : null;
+  return [picks?.changed ? picks.note : '', r.notes.trim()].filter(Boolean).join('\n\n');
+}
+
+// A plan sent back with your notes, or stopped. Answered elsewhere while the box was open, or a new version asked
+// since your notes were written, the bar says so, with your notes to copy, and Take me there goes to its session.
 function sendPlanAnswer(how) {
   const r = state.reading, s = readerSession(), w = waitingPlan(s);
-  if (!w || w.id !== r.id || !s.ask) return;
-  const message = r.notes.trim();
+  if (!w || w.id !== r.id || !s.ask || s.ask.legacy || planNotesStale(r, s)) {
+    if (!r.revising || !s) return;
+    planNotesUnsent(r);
+    const shown = writingsOf(s).find((x) => x.id === r.id);
+    putHTML(reader.querySelector('.r-answer'), shown ? answerHTML(shown, s) : '');
+    return drawReader();
+  }
+  const message = planNotesMessage(r, s);
   if (how === 'revise' && !message) return;
   keepInPlace(s.sessionId);  // sent with Return too, not only a press: its row stays where it is
-  answered(s.ask.id, 'deny');
+  answered(s.ask.id, how === 'stop' ? 'stopped' : 'sentBack');
   r.sent[w.id] = how;
   r.revising = false;
   r.notes = '';
   wantKeyboard(false);
   native({ type: 'answerAsk', id: s.ask.id, allow: false, ...(how === 'stop' ? { stop: true } : { message }) });
+  core.plans?.clearPicks(s.ask.id);  // they went with the notes, or with the plan stopped
   putHTML(reader.querySelector('.r-answer'), answerHTML(w, s));
   drawReader();
+}
+
+// What you typed in the plan's box on its row (the Claude Code module's), put in this box under what's there, from
+// either way in (the row's Send back…, the bar's Send Back with My Picks), so it goes with your picks.
+function planRowWords(r, s) {
+  const typed = s?.ask ? core.planRowNotes?.take(s.ask.id) : '';
+  if (typed?.trim()) r.notes = [r.notes.trim(), typed.trim()].filter(Boolean).join('\n\n');
+}
+
+// Your notes, given back to the row of the plan they were written for as the reader closes, or turns to another
+// session or view, where they wait (the reader keeps nothing once it's gone), so nothing you typed is lost; and only
+// to that plan, still waiting, never to whatever asks next: notes for a version no longer waited on are kept to copy
+// (planNotesUnsent). They leave the reader either way.
+function planNotesBack(r) {
+  const s = r.session, words = r.notes?.trim(), forId = r.notesFor;
+  if (words && forId && s?.ask?.id === forId && !s.ask.legacy) {
+    core.planRowNotes?.keep(forId, words);
+    r.notes = '';
+    r.notesFor = null;
+  } else if (words) planNotesUnsent(r);
+}
+
+// Whether your notes were written for a version of the plan Claude no longer waits on: answered elsewhere, or a new
+// version asked since, which they'd otherwise go to without the picks they were written with. A plain function.
+const planNotesStale = (r, s) => !!r.notesFor && r.notesFor !== (s?.ask?.legacy ? null : s?.ask?.id);
+
+// Notes that can't go now, kept by session with the picks' words they'd have gone with, and shown in the bar to copy
+// until you're done with them (Done with These): never sent to another version, and never dropped.
+function planNotesUnsent(r) {
+  const picks = r.notesFor ? core.plans?.picks(r.notesFor) : null;
+  const words = [picks?.changed ? picks.note : '', r.notes.trim()].filter(Boolean).join('\n\n');
+  if (words) state.planUnsent[r.sessionId] = [state.planUnsent[r.sessionId], words].filter(Boolean).join('\n\n');
+  const answer = reader.querySelector('.r-answer');
+  if (r.revising && answer?.contains(document.activeElement)) document.activeElement.blur();
+  if (r.revising) wantKeyboard(false);
+  r.revising = false;
+  r.notes = '';
+  r.notesFor = null;
+}
+
+// The box for your notes, with the keyboard, its cursor at the end of what you wrote there before. While it's open
+// the plan's card holds your picks, so the words above the box say every pick that goes.
+function openPlanNotes() {
+  const r = state.reading, s = readerSession();
+  if (planNotesStale(r, s)) planNotesUnsent(r);
+  r.revising = true;
+  r.notesFor = s?.ask?.id ?? null;  // whose notes these are, for giving them back (planNotesBack)
+  planRowWords(r, s);
+  const answer = reader.querySelector('.r-answer');
+  putHTML(answer, answerHTML(waitingPlan(s), s));
+  drawView();
+  fitReader();
+  wantKeyboard(true);
+  const box = answer.querySelector('textarea');
+  box?.focus({ preventScroll: true });
+  box?.setSelectionRange(box.value.length, box.value.length);
 }
 
 core.readerPresses.push(
@@ -345,14 +473,18 @@ core.readerPresses.push(
   ['.r-outside', () => native({ type: 'prototype', action: 'outside', sessionId: state.reading.sessionId,
                                 id: state.reading.id })],
   ['.r-go', () => { const s = readerSession(); closeReader(); if (s) openSession(s); }],
-  ['.r-revise', () => {
-    state.reading.revising = true;
-    const answer = reader.querySelector('.r-answer'), s = readerSession();
-    putHTML(answer, answerHTML(waitingPlan(s), s));
-    fitReader();
-    wantKeyboard(true);
-    answer.querySelector('textarea')?.focus();
+  ['.r-unsent-done', () => {
+    delete state.planUnsent[state.reading.sessionId];
+    putHTML(reader.querySelector('.r-answer'), '');
+    drawReader();
   }],
+  ['.r-revise', () => openPlanNotes()],
+  ['.r-picks', () => openPlanNotes()],
+  ['.r-claude-picks', () => {
+    core.plans?.clearPicks(readerSession()?.ask?.id);
+    drawReader();
+  }],
+  // Your picks and your words are kept: the picks are only held while the box is open.
   ['.r-cancel', () => {
     state.reading.revising = false;
     wantKeyboard(false);
@@ -367,7 +499,7 @@ reader.addEventListener('input', (e) => {
   if (!e.target.classList.contains('r-notes') || !state.reading) return;
   state.reading.notes = e.target.value;
   const send = reader.querySelector('.r-send');
-  if (send) send.disabled = !e.target.value.trim();
+  if (send) send.disabled = !planNotesMessage(state.reading, readerSession());
 });
 // ⌘Return sends the notes; Return alone starts a new line, as notes can run to several.
 reader.addEventListener('keydown', (e) => {
@@ -378,6 +510,11 @@ reader.addEventListener('keydown', (e) => {
 });
 
 // ---- What it plugs into ----
+
+// Your notes for a version of a plan Claude no longer waits on, by session, to copy (planNotesUnsent), forgotten with
+// the session.
+moduleState({ planUnsent: {} });
+core.forgotten.keys.push('planUnsent');
 
 // The reader's mode. What it keeps on the reader (state.reading): the writings' texts as the app read them, by id; the
 // plans answered from here; whether notes are being written for one, and the notes; what's drawn now (drawView); the
@@ -393,6 +530,7 @@ core.readerModes.writings = {
     r.revising = false;
   },
   reset(r) {
+    planNotesBack(r);
     r.shown = null;
     leavePrototype();
   },
@@ -400,8 +538,32 @@ core.readerModes.writings = {
     r.laidOutWidth = width;
     placePrototype();
   },
-  closed: leavePrototype,
+  closed(r) {
+    planNotesBack(r);
+    leavePrototype();
+  },
 };
+
+// The plan Claude waits on in session `sid`, opened beside the list with the box for your notes open, what you typed
+// on its row in it, under your picks: the row's Send back… while picks of yours differ from Claude's, as only this box
+// sends them (planNotesMessage). Where the reader can't open on it, it opens as Read the plan does.
+core.planNotes = (sid) => {
+  openReader(sid, null, 'writings');
+  const r = state.reading, s = r?.sessionId === sid && r.mode === 'writings' && readerSession();
+  const w = s && waitingPlan(s);
+  if (!w || w.id !== r.id || !s.ask || s.ask.legacy) return;
+  openPlanNotes();
+};
+
+// While the reader is open on a plan Claude waits on, it's being answered here: the app is told, every 10s at most, so
+// no session you allow answers it for you meanwhile (and the app holds it only while you're at the Mac).
+let planHeldAt = 0;
+core.updates.push(() => {
+  const r = state.reading, s = r && readerSession(), w = s && waitingPlan(s);
+  if (!w || w.id !== r.id || !s.ask || s.ask.legacy || Date.now() - planHeldAt < 10000) return;
+  planHeldAt = Date.now();
+  native({ type: 'holdAsk', id: s.ask.id });
+});
 
 // The row's tag, after its name; pressed, the reader opens on that session's writings, or closes.
 core.slots.name.push((row) => writingsTag(row.s));

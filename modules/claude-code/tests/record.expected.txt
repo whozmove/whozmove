@@ -1,0 +1,13 @@
+== with nothing to compare with yet
+   exit=0
+   Nothing to compare with yet: this run records it, in RECORDS/real-stand-in.expected.txt
+   passed with Claude Code stand-in, recorded
+   kept with the run's records: yes
+   the same as the module's own record: yes
+== a record that's a link, pointing nowhere yet
+   exit=3
+   couldn't check: LINKED/real-stand-in.expected.txt is a link, not a record, so nothing is written through it
+   written through it: no
+== --has-record
+   with one: exit=0
+   without: exit=1

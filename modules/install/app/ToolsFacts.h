@@ -1,6 +1,6 @@
 // ToolsFacts: what Whozmove relies on about how macOS puts Apple's command line developer tools in, which a new macOS
-// could change. When it does, the fix goes here. The version these were last checked with is in the README ("Tested
-// with").
+// could change. When it does, the fix goes here. The version these were last checked with is in
+// docs/using/install.md ("What it's tested with").
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 

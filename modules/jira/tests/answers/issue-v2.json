@@ -1,0 +1,8 @@
+{"data": {"appliedContentFormat": "html", "id": "10142", "key": "PAY-142", "self": "https://ignored.example/rest/api/3/issue/10142",
+  "fields": {"summary": "Login button does nothing on Safari", "issuetype": {"name": "Bug", "avatarUrls": {"16x16": "https://ignored.example/a.png"}},
+    "status": {"name": "In Progress", "statusCategory": {"key": "indeterminate", "id": 4}},
+    "priority": {"name": "High"}, "assignee": {"displayName": "Sam Rivera"}, "resolution": null,
+    "project": {"key": "PAY", "name": "Payments"},
+    "parent": {"key": "PAY-120", "fields": {"summary": "Checkout works in every browser", "issuetype": {"name": "Epic"}}},
+    "customFields": {"customfield_10020": {"name": "Sprint", "value": [{"name": "Sprint 14", "state": "active"}]}}}},
+ "context": {"endpoint": "v2:streamable-http", "toolsExposure": "primary"}}

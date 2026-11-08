@@ -1,0 +1,5 @@
+{
+  "scripts": ["page/handoff.js"],
+  "talksTo": ["core", "held", "header", "row", "hover", "morph"],
+  "provides": ["stickyHandOff", "stickyLetGo"]
+}

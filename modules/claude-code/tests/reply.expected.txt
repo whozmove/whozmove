@@ -1,0 +1,7 @@
+Where should the coupon box go? since 0: ["Under the total,\n\nwhere it's seen before paying."]; read from its second line: ["Under the total,\n\nwhere it's seen before paying."]
+And on phones? since 0: ["The same, full width."]; read from its second line: ["The same, full width."]
+And on phones? since 250000: ["The same, full width."]; read from its second line: ["The same, full width."]
+And on phones? since 350000: none yet; read from its second line: none yet
+Show the whole list since 0: 16384 characters, ending "xx…"; read from its second line: 16384 characters, ending "xx…"
+Run the tests since 0: none yet; read from its second line: none yet
+Never sent since 0: none yet; read from its second line: none yet

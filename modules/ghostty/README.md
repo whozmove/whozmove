@@ -19,8 +19,8 @@ session's tab, and new conversations and the usage strip's Sign in open in a new
   queue of its own, as it's asked every second while Ghostty is in front. It lists Ghostty for the panel's back, with
   the Automation permission its tabs need (`appEntries`).
 - `app/GhosttyFacts.h`: what the module relies on about Ghostty that Ghostty could change: its app id, and the codes
-  in its scripting dictionary it's asked with. When Ghostty changes, the fix goes here. The README's "Tested with"
-  names the version they were last checked with.
+  in its scripting dictionary it's asked with. When Ghostty changes, the fix goes here.
+  docs/using/install.md ("What it's tested with") names the version they were last checked with.
 
 It has no page part, nor tests of its own: tests/rows.sh checks the keys a command is typed with (`--print-typing`),
 through a stand-in terminal.
@@ -31,3 +31,14 @@ through a stand-in terminal.
   in the Claude Code module), and only into a tab that's certainly its own: a stray Return would approve a permission
   prompt, and Shift+Tab would allow all edits.
 - Ghostty is never started by a question: its Apple events go to its running process, and never ask you anything.
+
+## Facts
+
+Checked with Ghostty 1.3.1 (its scripting is in its source's `macos/Sources/Features/AppleScript/`, and its dictionary
+is `Ghostty.sdef` in the app):
+- Every question about its windows, tabs or terminals takes 15 to 20 ms to answer, though little of that is Ghostty's
+  own work. A list asked for at once (`id of terminals of tabs of windows`) is one question, where asking each tab in
+  turn is one a tab.
+- `focus` answers at once and switches to the tab a moment later, so anything sent right after can undo it. `select
+  tab` and `activate window` act before they answer, so a session's tab is brought forward with those first.
+- Its windows, tabs and terminals come back as references by ids that stay the same as they move.

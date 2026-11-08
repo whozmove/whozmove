@@ -21,6 +21,8 @@ typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *h
 @property (copy) BOOL (^installer)(void);
 @property (copy) void (^askTools)(void);
 @property (copy) ConnectHooks connect;
+// AgentInstall's hooksStamp: once the agent has said how its hooks stand, they're looked at again when it changes.
+@property (copy) NSString *(^stamp)(void);
 // Open at Login: the login item's label (the app's bundle id) and this app's program, to open at login; and asking
 // launchctl, its arguments in, what it printed out (nil when it failed), a stand-in in the print mode.
 @property (copy) NSString *label, *program;
@@ -30,8 +32,9 @@ typedef NSDictionary *(^ConnectHooks)(NSString *answer, BOOL before, NSString *h
 // Goes through it all, after any check still under way, with your press on the line or the panel's back as `answer`:
 // tools (Install: macOS's installer opened), addBack, turnOn or retry; else nil.
 - (void)check:(NSString *)answer;
-// Each tick: while it waits for the agent or for the developer tools, it looks again every 10 seconds; once the agent
-// has said how its hooks stand, every 5 minutes, as you may turn them off there meanwhile.
+// Each tick: while it waits for the agent or for the developer tools, it looks again every 10 seconds. Once the agent
+// has said how its hooks stand, as you may turn them off there meanwhile: when its stamp changes, and every hour for
+// what only its command says (a hook it couldn't load); every 5 minutes when it has no stamp.
 - (void)tick;
 // Whether a check is queued or under way: its print mode waits until none is, and a press waits meanwhile.
 @property (readonly) BOOL working;

@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core", "turn", "flick", "glass"],
+  "provides": ["EdgeIcon.h"]
+}

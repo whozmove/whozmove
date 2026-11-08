@@ -5,8 +5,8 @@ and keeps a little of what they say. A flaw in any of that matters, so please re
 
 ## Reporting a problem
 
-Email hello@whozmove.com, or use **Report a vulnerability** on this repository's Security tab if it's there. Please
-don't open a public issue, pull request or discussion about it.
+Email hello@whozmove.com, or use **Report a vulnerability** on this repository's Security tab. Please don't open a
+public issue, pull request or discussion about it.
 
 Include what you can of:
 
@@ -48,4 +48,4 @@ Out of scope:
   Whozmove.
 
 What Whozmove can do, what it keeps and the trade-offs it makes are in the README, under
-[Privacy and security](README.md#privacy-and-security).
+[Privacy](README.md#privacy) ("All of it, in detail").

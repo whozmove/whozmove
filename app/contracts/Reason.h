@@ -13,6 +13,7 @@ typedef NS_ENUM(NSInteger, ReasonKind) {
     ReasonOpenTwice,       // its conversation runs in another terminal too
     ReasonPaused,          // it's paused in its terminal (Ctrl+Z)
     ReasonTerminal,        // its terminal won't take keys in its tab now, for a reason of its own
+    ReasonYouCame,         // you came to it, so what was going in by itself stops for you
 };
 
 // A reason prints (with %@) the way the log says it; `onCard` is how the Compact card says it.

@@ -24,6 +24,10 @@ there you say whether Claude Desktop's sessions are tracked at all.
   as if Claude Desktop were here and tracked. A conversation also open in a terminal is listed by its terminal copy
   while Claude Desktop's sessions aren't tracked (the Claude Code module's `RunningSessions` never lets an untracked
   copy speak for it).
+- `keptConversations` (contracts/Host.h): which conversations Claude keeps, archived and old ones included, by Claude
+  Code's id for each, read from its conversation files with a reader of its own, for Sessions on the panel's back
+  (whatever Track Claude Desktop app sessions says), where each of them is greyed, "Delete it in Claude Desktop", with
+  Open in Claude Desktop. `fullName` is "Claude Desktop", where "Claude" alone could be taken for something else.
 - `app/DesktopConversations.m`: its conversation files, each parsed only when it changes. `app/DesktopLog.m`: its log,
   which says at once when it shows another conversation, and which conversations it starts.
 - `app/DesktopMessageBox.m`: a conversation's message box: a command written there through the Accessibility API
@@ -36,14 +40,16 @@ there you say whether Claude Desktop's sessions are tracked at all.
 - `app/ClaudeDesktopFacts.h`: what the module relies on about Claude Desktop that it could change: its app id, where to
   get it, its files and its log's lines, its links, its environments (its presets file), and how its window's controls
   are labelled. When
-  Claude Desktop changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
+  Claude Desktop changes, the fix goes here. docs/using/install.md ("What it's tested with") names the
+  version they were last checked with.
 - `page/claude-desktop.js`: how a row of one of its conversations is named (its icon, "Claude Desktop", "in Claude",
-  "Open in Claude now", and, while it isn't running, "Not running: click to open it in Claude"), and its scratch
+  "Open in Claude now", and, while it isn't running, "Stopped: click to carry it on in Claude"), and its scratch
   conversations' group. `module.json` lists it for tools/page.sh. "Switch
   model?" is asked in the panel by the commands module's card.
 
 tests/rows.sh checks its rows in a sample home (`--print-rows`), and the starts module's tests the links it starts
-conversations with (`--print-starts`).
+conversations with (`--print-starts`). Its own tests (`tests/test.sh`) check how panel.log says what's written in a
+conversation's message box and what Claude's window shows round it, never their words (`--print-desktop-logs`).
 
 ## Between the page and the app
 
@@ -55,8 +61,10 @@ conversations with (`--print-starts`).
 ## Rules
 
 - While Claude Desktop's sessions aren't tracked (its switch is off, or it isn't on this Mac), the core lists none of
-  them and doesn't ask for its rows, so its files and its log aren't read, and New Conversation offers only the
-  terminal.
+  them and doesn't ask for its rows, so its log isn't read, nor its files but for Sessions on the panel's back: while
+  the panel is turned over, they're read for which conversations Claude keeps, never what they say, so Whozmove never
+  offers to delete one of Claude's; and Open in Claude Desktop there only opens Claude's link. New Conversation offers
+  only the terminal.
 - Text goes into Claude only while the conversation is idle and its message box is empty, through the Accessibility
   API, never as keystrokes. The one exception is a Return when Claude shows no Submit button, and only while Claude is
   in front (`submit:` in DesktopMessageBox.m).
@@ -66,3 +74,11 @@ conversations with (`--print-starts`).
   words are never taken out of Claude's box.
 - Claude's presets file, which says which environment is which folder, is only read, never written: an environment
   is chosen as you would choose it, among the recent ones its page lists.
+
+## Facts
+
+- A new conversation's link can name a folder, but Claude Desktop then asks to trust it every time and starts the
+  conversation with "No folder", in a scratch folder of its own (seen on 2.31226.1 and since). So the link carries
+  only your words, and the folder is chosen in Claude itself.
+- Since 2.42304.0, a new conversation starts in an environment: a saved folder with its model and effort, named beside
+  Send ("Environment: <name>"). Which folder each name is, is in Claude Desktop's presets file.

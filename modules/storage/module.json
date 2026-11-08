@@ -1,0 +1,15 @@
+{
+  "order": 90,
+  "scripts": [
+    "page/disk-line.js",
+    "page/map.js",
+    "page/clean.js",
+    "page/keys.js",
+    "page/map-view.js",
+    "page/clean-view.js",
+    "page/keys-view.js"
+  ],
+  "styles": [
+    "page/storage.css"
+  ]
+}

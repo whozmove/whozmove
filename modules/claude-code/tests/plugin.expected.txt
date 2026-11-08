@@ -119,3 +119,22 @@
      claude plugin update whozmove@whozmove
      claude plugin list --json
    the copy in Whozmove's folder: 0.2.0+<hash>
+== K1 no module with a skill: the version the plugin's own files alone name (its hooks and its script)
+   the same version
+== K6 the script a session asks the panel with, carried at scripts/, runnable, as the app's own
+   scripts/ask-panel.sh 755: the same as app/ask-panel.sh
+   …a change to it:
+   a new version
+== K2 two modules' skills, each copied whole (but the Finder's files); a folder with no SKILL.md isn't one
+   skills/find-place/SKILL.md 644
+   skills/hand-over/SKILL.md 644
+   skills/hand-over/scripts/send.sh 755
+   a new version
+== K3 a skill's words changed
+   a new version
+== K4 a skill renamed
+   a new version
+== K5 two modules with a skill of the same name: no copy
+Two modules have a skill named hand-over: T/skill-modules/notes/plugin/skills/hand-over and T/skill-modules/tasks/plugin/skills/hand-over
+   stopped
+   no copy

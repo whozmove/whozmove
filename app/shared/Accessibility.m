@@ -1,11 +1,32 @@
-// Accessibility: reading another app's windows, and finding its controls.
+// Accessibility: reading another app's windows, finding its controls, and pressing them or posting keys.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Accessibility.h"
+#import "OtherApps.h"
 
 BOOL MayUseAccessibility(void) {
     if (AXIsProcessTrusted()) return YES;
     AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)@{(__bridge NSString *)kAXTrustedCheckOptionPrompt: @YES});
     return NO;
+}
+
+AXError PressElement(AXUIElementRef el, CFStringRef action) {
+    return MayActOnOtherApps() ? AXUIElementPerformAction(el, action) : kAXErrorAPIDisabled;
+}
+
+AXError SetElementAttribute(AXUIElementRef el, CFStringRef attribute, CFTypeRef value) {
+    return MayActOnOtherApps() ? AXUIElementSetAttributeValue(el, attribute, value) : kAXErrorAPIDisabled;
+}
+
+BOOL PostEvent(CGEventTapLocation tap, CGEventRef event) {
+    if (!MayActOnOtherApps()) return NO;
+    CGEventPost(tap, event);
+    return YES;
+}
+
+BOOL PostEventTo(pid_t pid, CGEventRef event) {
+    if (!MayActOnOtherApps()) return NO;
+    CGEventPostToPid(pid, event);
+    return YES;
 }
 
 NSString *ElementText(AXUIElementRef el, CFStringRef attribute) {

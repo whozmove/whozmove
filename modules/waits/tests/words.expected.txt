@@ -1,0 +1,2 @@
+wait's flags, as ask-panel.sh's usage gives them: --now --comments
+the module gives every order of them: yes

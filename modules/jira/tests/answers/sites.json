@@ -1,0 +1,4 @@
+[{"id": "1", "url": "https://acme.atlassian.net", "name": "acme", "scopes": ["read:jira-work"]},
+ {"id": "1", "url": "https://acme.atlassian.net", "name": "acme", "scopes": ["read:confluence-content.all"]},
+ {"id": "2", "url": "https://beta.atlassian.net", "name": "beta", "scopes": ["read:jira:agent-interface"]},
+ {"id": "3", "url": "https://evil.example", "name": "evil", "scopes": ["read:jira-work"]}]

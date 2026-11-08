@@ -63,8 +63,13 @@ NSString *AuthStateFrom(NSData *output) {
     return [status[@"loggedIn"] boolValue] ? @"signedIn" : @"signedOut";
 }
 
-// The command that signs in the `claude` at this path, as typed in a terminal.
-static NSString *SignInCommand(NSString *claude) {
+NSString *UsageNoPlanReason(NSString *auth, BOOL shellUsesOther) {
+    if ([auth isEqual:@"signedIn"]) return @"signedIn";
+    if ([auth isEqual:@"signedOut"]) return shellUsesOther ? @"shell" : nil;
+    return @"unknown";
+}
+
+NSString *ClaudeSignInCommand(NSString *claude) {
     return [NSString stringWithFormat:@"%@ %@", ShellWord(claude),
                                       [ClaudeSignInArguments() componentsJoinedByString:@" "]];
 }
@@ -81,12 +86,13 @@ static NSString *SignInCommand(NSString *claude) {
 
 #pragma mark Asking
 
-// Claude Code's answer, as {state, plan, session, week, limits, extraUsage, signIn}. state is "ok" (a Claude plan's
-// numbers), "signedOut", "other" (signed in with an API key or another provider: no plan to show), "none" (no `claude`
-// here) or "failed"; `signIn` is the command that signs in the `claude` that answered. A `claude` that can't answer
-// (too old, broken) gives way to the next one. The check runs in a folder of its own, so its session (Claude Code
-// registers one even for this) is told apart from yours, and its per-folder entry in Claude Code's own records stays
-// one. Only you may read it, as with Whozmove's other files.
+// Claude Code's answer, as {state, plan, session, week, limits, extraUsage, signIn, noPlan}. state is "ok" (a Claude
+// plan's numbers), "signedOut", "other" (signed in or set up, but with no plan's numbers), "none" (no `claude` here) or
+// "failed"; `signIn` is the command that signs in the `claude` that answered; `noPlan`, with "other" and "none", why
+// there are no plan's numbers, as read (UsageNoPlanReason's words, or "notFound"). A `claude` that can't answer (too
+// old, broken) gives way to the next one. The check runs in a folder of its own, so its session (Claude Code registers
+// one even for this) is told apart from yours, and its per-folder entry in Claude Code's own records stays one. Only
+// you may read it, as with Whozmove's other files.
 - (NSDictionary *)ask {
     [NSFileManager.defaultManager createDirectoryAtPath:UsageFolder() withIntermediateDirectories:YES
                                              attributes:@{NSFilePosixPermissions: @0700} error:nil];
@@ -96,7 +102,7 @@ static NSString *SignInCommand(NSString *claude) {
         [candidates removeObject:self.answered];
         [candidates insertObject:self.answered atIndex:0];
     }
-    if (!candidates.count) return @{@"state": @"none"};
+    if (!candidates.count) return @{@"state": @"none", @"noPlan": @"notFound"};
     NSDictionary *environment = ClaudeEnvironment(path);
     NSDictionary *request = @{@"type": @"control_request", @"request_id": kRequestId,
                               @"request": @{@"subtype": kClaudeUsageRequest, @"skip_behaviors": @YES}};
@@ -108,7 +114,7 @@ static NSString *SignInCommand(NSString *claude) {
                                             ^BOOL(NSData *line) {
             answer = UsageFromReply(line);
             return answer != nil;
-        }, kDeadline);
+        }, kDeadline, nil);
         if (!answer || answer[@"error"]) {
             LogProblem([NSString stringWithFormat:@"plan usage: %@ didn't answer (%@)", claude,
                         answer[@"error"] ?: (!run ? @"didn't start" : [run[@"timedOut"] boolValue] ? @"too slow"
@@ -118,16 +124,18 @@ static NSString *SignInCommand(NSString *claude) {
         self.answered = claude;
         NSMutableDictionary *found = [answer mutableCopy];
         [found removeObjectForKey:@"available"];
-        found[@"signIn"] = SignInCommand(claude);
+        found[@"signIn"] = ClaudeSignInCommand(claude);
         if ([answer[@"available"] boolValue]) {
             found[@"state"] = @"ok";
             return found;
         }
         // No plan's numbers: signed out (when your terminal doesn't use an API key or another provider), or signed in
-        // with something that has no plan.
+        // or set up with no plan's numbers, which is said as read. Your shell is asked only while signed out.
         NSDictionary *status = RunBriefly(claude, ClaudeAuthStatusArguments(), environment, 10, 64 * 1024, NO);
-        BOOL signedOut = [AuthStateFrom(status[@"out"]) isEqual:@"signedOut"] && ![self shellUsesOtherAuth];
-        return @{@"state": signedOut ? @"signedOut" : @"other", @"signIn": SignInCommand(claude)};
+        NSString *auth = AuthStateFrom(status[@"out"]);
+        NSString *why = UsageNoPlanReason(auth, [auth isEqual:@"signedOut"] && [self shellUsesOtherAuth]);
+        return why ? @{@"state": @"other", @"noPlan": why, @"signIn": ClaudeSignInCommand(claude)}
+                   : @{@"state": @"signedOut", @"signIn": ClaudeSignInCommand(claude)};
     }
     return @{@"state": @"failed"};
 }

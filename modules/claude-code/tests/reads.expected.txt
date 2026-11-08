@@ -1,0 +1,280 @@
+{
+  "kept" : {
+    "as written" : {
+      "files" : {
+        "main" : {
+          "inode" : "(its inode)",
+          "mark" : "80e0bb7e490e74b5",
+          "offset" : 4640
+        },
+        "subs" : {
+          "agent-a1.jsonl" : {
+            "inode" : "(its inode)",
+            "mark" : "0f252524d217bd8a",
+            "offset" : 1448
+          },
+          "agent-b2.jsonl" : {
+            "inode" : "(its inode)",
+            "mark" : "6967db84a6407e73",
+            "offset" : 735
+          }
+        }
+      },
+      "found" : {
+        "editIds" : [
+          "e1",
+          "e10",
+          "e11",
+          "e2",
+          "e20",
+          "w1"
+        ],
+        "editLines" : {
+          "e1" : {
+            "added" : "oWUbD6nFrG4gcHbyQ0oaAaFlGw+pxaxuoWUbD6nFrG4=",
+            "path" : "\/sample\/shop\/cart.js",
+            "removed" : "vt3Czy8\/OBq+3cLPLz84Gr7dws8vPzga"
+          },
+          "e10" : {
+            "added" : "nS6ddmRIUQedLp12ZEhRBw==",
+            "path" : "\/sample\/shop\/tax.js",
+            "removed" : ""
+          },
+          "e11" : {
+            "added" : "eEcWjbWqTAz6FP7uWbPXfLLdMVj5gly+",
+            "path" : "\/sample\/shop\/tax.js",
+            "removed" : "nS6ddmRIUQezHgodGNwYTg=="
+          },
+          "e20" : {
+            "added" : "m2PjeLYs+7Ql7cCvCZG9oIhVn4Q8HT3X",
+            "path" : "\/sample\/shop\/README.md",
+            "removed" : "mmu5+AdBYLrpl\/7jJF9qcQ=="
+          },
+          "w1" : {
+            "added" : "F3fCX\/wvyainjQ5HaXbBMxd3wl\/8L8mop40OR2l2wTM=",
+            "path" : "\/sample\/shop\/docs\/totals.md",
+            "removed" : ""
+          }
+        },
+        "edits" : {
+          "\/sample\/shop\/cart.js" : {
+            "added" : "IHB28kNKGgGhZRsPqcWsbqFlGw+pxaxuoWUbD6nFrG4=",
+            "at" : 946721040000,
+            "created" : false,
+            "edits" : 1,
+            "path" : "\/sample\/shop\/cart.js",
+            "removed" : "vt3Czy8\/OBq+3cLPLz84Gr7dws8vPzga"
+          },
+          "\/sample\/shop\/docs\/totals.md" : {
+            "added" : "p40OR2l2wTOnjQ5HaXbBMxd3wl\/8L8moF3fCX\/wvyag=",
+            "at" : 946720980000,
+            "created" : false,
+            "edits" : 1,
+            "path" : "\/sample\/shop\/docs\/totals.md",
+            "removed" : ""
+          },
+          "\/sample\/shop\/README.md" : {
+            "added" : "Je3ArwmRvaCbY+N4tiz7tIhVn4Q8HT3X",
+            "at" : 946771620000,
+            "created" : false,
+            "edits" : 1,
+            "path" : "\/sample\/shop\/README.md",
+            "removed" : "6Zf+4yRfanGaa7n4B0Fgug=="
+          },
+          "\/sample\/shop\/tax.js" : {
+            "added" : "nS6ddmRIUQedLp12ZEhRB3hHFo21qkwM+hT+7lmz13yy3TFY+YJcvg==",
+            "at" : 946771500000,
+            "created" : true,
+            "edits" : 2,
+            "path" : "\/sample\/shop\/tax.js",
+            "removed" : "nS6ddmRIUQezHgodGNwYTg=="
+          }
+        },
+        "editsVersion" : 6,
+        "failedIds" : [
+          "e2"
+        ],
+        "gitCalls" : [
+
+        ],
+        "prs" : {
+          "https:\/\/github.com\/sample\/shop\/pull\/12" : {
+            "at" : "2000-01-01T10:05:00.000Z",
+            "number" : 12,
+            "repo" : "sample\/shop",
+            "url" : "https:\/\/github.com\/sample\/shop\/pull\/12"
+          }
+        },
+        "shellBase" : "acceptEdits",
+        "shellDoubts" : [
+
+        ],
+        "shellFailed" : 0,
+        "shellMode" : "acceptEdits",
+        "shellModes" : {
+          "default" : 1
+        },
+        "shellPartial" : 0,
+        "spent" : {
+          "main" : {
+            "day" : 946771200000,
+            "lastId" : "r5",
+            "lastTokens" : 97100,
+            "tokens" : 97390
+          },
+          "subs" : {
+            "agent-a1.jsonl" : {
+              "day" : 946771200000,
+              "lastId" : "s2",
+              "lastTokens" : 21160,
+              "tokens" : 21160
+            },
+            "agent-b2.jsonl" : {
+              "day" : 946771200000,
+              "lastId" : "t1",
+              "lastTokens" : 9080,
+              "tokens" : 9080
+            }
+          }
+        },
+        "usage" : {
+          "at" : "2000-01-02T00:03:00.000Z",
+          "effort" : "high",
+          "model" : "claude-opus-5-5",
+          "tokens" : 96900
+        },
+        "waiting" : {
+
+        },
+        "writings" : {
+          "\/sample\/shop\/docs\/receipt.html" : {
+            "at" : 946721160000,
+            "id" : "\/sample\/shop\/docs\/receipt.html",
+            "kind" : "prototype",
+            "order" : 2066002,
+            "path" : "\/sample\/shop\/docs\/receipt.html",
+            "title" : "A receipt",
+            "url" : "https:\/\/example.com\/page\/7"
+          },
+          "\/sample\/shop\/docs\/totals.md" : {
+            "at" : 946720980000,
+            "id" : "\/sample\/shop\/docs\/totals.md",
+            "kind" : "notes",
+            "order" : 857001,
+            "path" : "\/sample\/shop\/docs\/totals.md",
+            "title" : "How totals round"
+          },
+          "p1" : {
+            "at" : 946720860000,
+            "callId" : "p1",
+            "id" : "p1",
+            "kind" : "plan",
+            "offset" : 371,
+            "order" : 371002,
+            "path" : "\/sample\/home\/.claude\/plans\/totals.md",
+            "status" : "approved",
+            "title" : "Round the totals once"
+          }
+        }
+      },
+      "path" : "~\/.claude\/projects\/-sample-shop\/5a3e0c1d-7b2f-4c9a-9e61-0d4b8f2a1c37.jsonl",
+      "sessionId" : "5a3e0c1d-7b2f-4c9a-9e61-0d4b8f2a1c37",
+      "shape" : 3,
+      "version" : "(this version)"
+    },
+    "file" : "600",
+    "fingerprint" : "9a9b0e77491d360d",
+    "folder" : "700",
+    "shape" : 3
+  },
+  "pruned" : {
+    "listed, days later" : [
+      "00000000-0000-4000-8000-000000000000.json",
+      "not plain.json"
+    ],
+    "listed, its transcript another file" : [
+      "00000000-0000-4000-8000-000000000000.json",
+      "5a3e0c1d-7b2f-4c9a-9e61-0d4b8f2a1c37.json",
+      "not plain.json"
+    ],
+    "not listed, days later" : [
+      "00000000-0000-4000-8000-000000000000.json",
+      "5a3e0c1d-7b2f-4c9a-9e61-0d4b8f2a1c37.json",
+      "not plain.json"
+    ],
+    "not listed, now" : [
+      "00000000-0000-4000-8000-000000000000.json",
+      "not plain.json"
+    ]
+  },
+  "read" : {
+    "before the cut" : 3751,
+    "from its start" : 6823,
+    "going on" : 3072
+  },
+  "session" : {
+    "changesAllKnown" : false,
+    "context" : 96900,
+    "edits" : {
+      "cart.js" : {
+        "added" : 2,
+        "created" : false,
+        "edits" : 1,
+        "removed" : 1
+      },
+      "README.md" : {
+        "added" : 3,
+        "created" : false,
+        "edits" : 1,
+        "removed" : 2
+      },
+      "tax.js" : {
+        "added" : 4,
+        "created" : true,
+        "edits" : 2,
+        "removed" : 2
+      },
+      "totals.md" : {
+        "added" : 2,
+        "created" : false,
+        "edits" : 1,
+        "removed" : 0
+      }
+    },
+    "mode" : "acceptEdits",
+    "prs" : [
+      "https:\/\/github.com\/sample\/shop\/pull\/12"
+    ],
+    "spentToday" : 127630,
+    "title" : "Fix the checkout's totals and tax",
+    "writings" : [
+      "prototype A receipt (listed) at https:\/\/example.com\/page\/7",
+      "notes How totals round (listed)",
+      "plan Round the totals once (approved)"
+    ]
+  },
+  "the same as from its start" : true,
+  "why it's read from its start" : {
+    "a sub-agent's record gone" : "its sub-agent's record agent-a1.jsonl has gone",
+    "a sub-agent's record replaced" : "its sub-agent's record agent-a1.jsonl is another file now",
+    "a writing's title shaped like a key" : "not kept, and what was kept before has gone",
+    "as kept" : "goes on",
+    "its transcript gone" : "its transcript has gone",
+    "its transcript replaced" : "its transcript is another file now",
+    "its transcript shorter" : "its transcript is shorter than what was read",
+    "its transcript written over" : "its transcript was written over",
+    "kept by another version" : "it was kept by another version of Whozmove",
+    "kept for a session id that isn't plain" : "not kept",
+    "kept in another shape" : "it was kept in another shape",
+    "read back, as kept" : "goes on, in acceptEdits, about Fix the checkout's totals and tax",
+    "read back, its mode named" : "it doesn't read back as it should",
+    "read back, its topic's line named" : "it doesn't read back as it should",
+    "reads back, a part it doesn't know" : "doesn't read back as it should",
+    "reads back, a PR link that isn't https" : "doesn't read back as it should",
+    "reads back, a writing's title that isn't text" : "doesn't read back as it should",
+    "reads back, an edit's lines that aren't keys" : "doesn't read back as it should",
+    "reads back, another session's" : "doesn't read back as it should",
+    "reads back, as kept" : "goes on",
+    "reads back, its transcript somewhere else" : "doesn't read back as it should"
+  }
+}

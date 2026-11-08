@@ -1,0 +1,22 @@
+== What the hook is handed
+one: "The user sent this from Whozmove while you were working: Do the smaller migration first."
+two, in the order sent: "The user sent this from Whozmove while you were working: Do the smaller migration first.\nKeep the old table."
+none: null
+
+== Whose hook may take a session's words (the session's process is 500)
+started by the session's own process: true
+under a shell it started: true
+under something else it started: false
+another session's: false
+a tool's process, two levels down: false
+no session process: false
+
+== Taken in, and what Claude wrote after them
+between steps, its turn going on: {"at":1767348003100,"how":"PostToolBatch","reply":"Okay: the smaller migration first.\n\nDone: the migration runs on its own now.","turnEnded":false}
+…its turn ended: you've sent another prompt since: {"at":1767348003100,"how":"PostToolBatch","reply":"Okay: the smaller migration first.\n\nDone: the migration runs on its own now.","turnEnded":true}
+…read from its second line, as a part of the file: {"at":1767348003100,"how":"PostToolBatch","reply":"Okay: the smaller migration first.\n\nDone: the migration runs on its own now.","turnEnded":false}
+…handed after what the transcript has: not yet: null
+…other words: not these: null
+taken in as its turn ended (Stop), no reply yet: {"at":1767348005000,"how":"Stop","turnEnded":false}
+a sub-agent's: not the session's: null
+nothing: null

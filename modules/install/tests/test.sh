@@ -10,6 +10,7 @@
 #   modules/install/tests/test.sh            run and compare
 #   modules/install/tests/test.sh --update   run and save the output as the new expected (after a change you meant)
 cd "$(dirname "$0")/../../.." || exit 1
+. tests/sandboxed.sh "$@"
 HERE=modules/install/tests
 # Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
 T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-install.XXXXXX") || exit 1
@@ -30,6 +31,9 @@ echo "== Hooks taken out of the agent, or turned off in it, and two presses on t
 HOME="$T" "$APP" --print-install taken-out turned-off presses
 echo "== Opened again while it's still so: since when it has been so is kept, so a × on the line still holds"
 HOME="$T" "$APP" --print-install turned-off-again
+echo "== Once settled, it looks again when the agent's stamp changes (not for the check's own writing), else hourly;"
+echo "   every 5 minutes for an agent with no stamp"
+HOME="$T" "$APP" --print-install stamp-written stamp-changed no-stamp
 echo "== Install: macOS's installer opens, and while it's open, and once after, macOS is asked again at each look;"
 echo "   closed without them, they're missing again; and once they're in, Install asks for nothing"
 HOME="$T" "$APP" --print-install install-pressed installer-closed tools-in-first

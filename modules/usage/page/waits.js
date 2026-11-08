@@ -5,7 +5,9 @@
 // A style draws in a layer the strip gives it (an <svg> the strip's full width and `height` tall), never into the
 // session's line at the top: the strip's text lane. The strip calls:
 //   build(layer)            once, as the wait starts
-//   draw(progress, calm)    each second of the wait, from 0 at the limit to 1 at the reset; `calm` is reduced motion
+//   draw(progress, calm, still)  each second of the wait, from 0 at the limit to 1 at the reset; `calm` is reduced
+//                           motion, and `still` (calm too, or the one look the card takes as it comes back into
+//                           sight) that what grows meanwhile is there at once, without coming out
 //   resetFrame(t, stage)    each frame of the reset, `t` ms in, up to `resetMs`. `stage` holds the strip's own parts it
 //                           moves: the session line's message and the text at its right, the session bar's track and
 //                           fill, the session's percent, the week row and its fill, and the strip itself (its height).

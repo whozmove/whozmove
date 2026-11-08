@@ -1,6 +1,7 @@
 /* The panel's back (back.js): the list's header (base.css), with the same buttons in the same places, then the apps
-   four across, or one app's page, scrolling under it. Its colours, sizes and corners are tokens.css's; its switches and
-   buttons are the panel's (controls.css).
+   four across, Settings first, with Whozmove's own tools under them, or Settings, a choice's page or an app's (a
+   tool's with its card), scrolling under it. Its colours, sizes and corners are tokens.css's; its switches and buttons
+   are the panel's (controls.css).
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 #back { display: flex; flex-direction: column; height: 100vh; }
@@ -8,19 +9,98 @@
                         font-size: var(--size-title); color: var(--text); }
 #back header .b-title b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #back header .b-slot { visibility: hidden; }
-.b-back { flex: none; width: 24px; height: 24px; margin-left: -6px; border: none; border-radius: var(--radius-button);
-          background: none; color: var(--muted); display: grid; place-items: center; }
-.b-back.is-hover { background: var(--hover); color: var(--text); }
+/* The line under its head, only while its page is scrolled under it (backLines, back.js), as under the list's. */
+#back header::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+                      background: var(--rule); }
+#back header:not(.line-under)::after { display: none; }
+/* ‹ back (the kit's icon button), its mark lined up with the list's dots. */
+.b-back { margin-left: -6px; }
 .b-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 16px; }
 .b-body::-webkit-scrollbar { width: 0; }
 
-/* The apps, four across: each its icon and its name. */
+/* The apps, four across: each its icon and its name, Settings' gear first. */
 .b-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 4px; padding-top: 4px; }
 .b-tile { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 8px 2px 7px;
           border-radius: var(--radius-box); }
 .b-tile.is-hover { background: var(--hover); }
 .b-tile b { max-width: 100%; font-size: var(--size-small); font-weight: 400; color: var(--text); white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis; }
+
+/* Settings' rows, as a phone's are: on a card, each with its tile (or an app's icon), its name, what it's set to and ›,
+   or its switch; a choice's row has a tick on the one picked. The line between rows starts after the tile. */
+.b-body > .b-card:first-child { margin-top: 6px; }
+/* Settings' cards keep more room between them than an app's cards do (below), whatever comes later. */
+.b-card.b-set + .b-card.b-set, .b-foot + .b-card { margin-top: 14px; }
+.b-row { position: relative; display: flex; align-items: center; gap: 10px; min-height: 34px; padding: 0 10px 0 8px; }
+.b-row + .b-row::before { content: ''; position: absolute; top: 0; left: 40px; right: 0;
+                          border-top: 1px solid var(--rule); }
+.b-choice:not(:has(.b-row-icon)) { padding-left: 12px; }
+.b-choice:not(:has(.b-row-icon)) + .b-row::before { left: 12px; }
+.b-row.is-hover { background: var(--hover); }
+.b-row[aria-disabled] { opacity: .4; }
+.b-glyph { flex: none; width: 22px; height: 22px; border-radius: var(--radius-icon); display: grid; place-items: center;
+           background: var(--app-tile); color: var(--on-colour); }
+.b-glyph svg { width: 13px; height: 13px; }
+.b-glyph.g-look { background: var(--tile-appearance); }
+.b-glyph.g-list { background: var(--tile-list); }
+.b-glyph.g-keys { background: var(--tile-shortcut); }
+.b-glyph.g-file { background: var(--tile-editor); }
+.b-glyph.g-chat { background: var(--tile-conversation); }
+.b-glyph.g-gauge { background: var(--tile-usage); }
+/* Settings' own tile among the apps, as big as an app's icon is within its square: a dark gear on silver, as a Mac's
+   Settings app is. */
+.b-glyph.g-settings { background: linear-gradient(var(--tile-settings-from), var(--tile-settings-to));
+                      color: var(--tile-settings-mark); box-shadow: inset 0 0 0 .5px var(--tile-settings-edge); }
+.b-glyph.b-big { width: 36px; height: 36px; margin: 4px; }
+.b-glyph.b-big svg { width: 27px; height: 27px; }
+.b-row-icon { flex: none; width: 22px; height: 22px; display: grid; place-items: center; }
+.b-row-icon .b-mark i svg { width: 60%; height: 60%; }
+.b-name { flex: 1; min-width: 0; font-size: var(--size-body); color: var(--text); white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; }
+.b-value { flex: none; max-width: 50%; font-size: var(--size-small); color: var(--muted); white-space: nowrap;
+           overflow: hidden; text-overflow: ellipsis; }
+.b-chev { flex: none; display: grid; color: var(--faint); }
+.b-tick { flex: none; display: grid; color: var(--tick); opacity: 0; transform: scale(.7);
+          transition: opacity .2s ease, transform .3s cubic-bezier(.2, .8, .2, 1); }
+[aria-checked="true"] > .b-tick { opacity: 1; transform: none; }
+.b-foot { padding: 6px 12px 0; font-size: var(--size-small); line-height: 1.4; color: var(--faint); }
+.b-foot + .b-more { padding: 8px 12px 0; }
+
+/* The looks, each a small panel in that look's colours as it is now, light or dark, with its name and a round pick
+   under it; more scroll sideways once they don't fit. */
+.b-looks { display: flex; gap: 8px; padding: 12px 10px 10px; overflow-x: auto; }
+.b-looks::-webkit-scrollbar { height: 0; }
+.b-look { flex: 1 0 0; min-width: 76px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+          padding: 4px 2px 6px; border-radius: var(--radius-control); }
+.b-look.is-hover { background: var(--hover); }
+.b-look[aria-disabled] { opacity: .4; }
+.b-preview { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; display: flex;
+             flex-direction: column; gap: 6px; padding: 7px 7px 0; border-radius: var(--radius-card);
+             background: var(--look-grey); box-shadow: 0 0 0 1px var(--rule); transition: box-shadow .25s ease; }
+[aria-checked="true"] > .b-preview { box-shadow: 0 0 0 2px var(--tick); }
+.b-preview.p-black { background: var(--look-black); }
+.b-preview.p-glass { background: linear-gradient(135deg, var(--look-wash-from), var(--look-wash-to)); }
+.b-preview.p-glass::before { content: ''; position: absolute; inset: 0; background: var(--look-glass); }
+.b-preview i { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 3px 4px; }
+.b-preview .p-head { height: 9px; margin-bottom: 2px; padding-left: 11px; }
+.b-preview .p-head::before { content: ''; position: absolute; left: 0; width: 7px; height: 7px;
+                             border-radius: var(--radius-circle); background: var(--look-line); }
+.b-preview .p-head b { width: 34%; height: 3px; border-radius: var(--radius-bar); background: var(--look-line); }
+.b-preview .p-line { padding-left: 9px; }
+.b-preview .p-line b { position: absolute; left: 0; top: 1px; width: 5px; height: 5px;
+                       border-radius: var(--radius-circle); }
+.b-preview .p-line s, .b-preview .p-line u { height: 3px; border-radius: var(--radius-bar); }
+.b-preview .p-line s { width: 70%; background: var(--look-line); }
+.b-preview .p-line u { width: 48%; background: var(--look-line-soft); }
+.b-preview .p-turn { background: var(--turn); }
+.b-preview .p-busy { background: var(--busy); }
+.b-preview .p-done { background: var(--pr); }
+.b-look-name { font-size: var(--size-small); color: var(--text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-tick, .b-preview { transition: none; }
+}
+
 .b-icon { display: block; flex: none; }
 /* The tile for an app with no icon of its own, as big as an app's icon is within its square. */
 .b-mark { flex: none; display: grid; place-items: center; }
@@ -35,13 +115,13 @@
 .b-words { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .b-words b { font-size: var(--size-body); font-weight: 500; color: var(--text); }
 .b-words i { font-style: normal; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
-.b-sec { padding: 14px 4px 6px; font-size: var(--size-tag); letter-spacing: .04em; text-transform: uppercase;
-         color: var(--label); }
+/* A label over a card (the kit's capitals). */
+.b-sec { padding: 14px 4px 6px; }
 .b-card { overflow: hidden; border-radius: var(--radius-box); background: var(--surface); }
 .b-switch, .b-perm { display: flex; align-items: center; gap: 12px; padding: 9px 12px; }
 .b-switch + .b-switch { border-top: 1px solid var(--rule); }
 .b-switch.is-hover { background: var(--hover); }
-.b-switch.off { opacity: .45; }
+.b-switch.off { opacity: .4; }
 .b-state { flex: none; display: flex; align-items: center; gap: 4px; font-size: var(--size-small);
            color: var(--muted); }
 .b-perm.allowed .b-state, .b-perm.ok .b-state { color: var(--done-text); }
@@ -50,8 +130,64 @@
    its own room. */
 .b-card + .b-card { margin-top: 10px; }
 .b-note { padding: 0 12px 10px; font-size: var(--size-small); line-height: 1.4; color: var(--faint); }
+/* Whozmove's own tools, under the apps; and a tool's card on its page: its figure, its bar and its lines, in the
+   amber of your move once it's low, and the red of something wrong once it's severe. */
+.b-tools { padding-top: 18px; }
+.b-figures { padding: 12px 12px 11px; }
+.b-figures + .b-card { margin-top: 10px; }
+.b-figure { display: flex; align-items: baseline; gap: 6px; }
+.b-figure b { font-size: var(--size-heading); font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.b-figure span { font-size: var(--size-small); color: var(--muted); }
+.b-figures.low .b-figure b { color: var(--turn-text); }
+.b-figures.severe .b-figure b { color: var(--needs-text); }
+.b-bar { height: 6px; margin-top: 8px; }
+.b-line { margin-top: 7px; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
+.b-line + .b-line { margin-top: 2px; }
+.b-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+.b-need { display: flex; align-items: center; gap: 10px; margin: 12px -12px -11px; padding: 9px 12px;
+          border-top: 1px solid var(--rule); }
+.b-need p { flex: 1; min-width: 0; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
+.b-need .button { flex: none; }
+/* Under a tile's name: what it invites you to do, until you have. */
+.b-hint { max-width: 100%; margin-top: -3px; font-style: normal; font-size: var(--size-tag); color: var(--turn-text);
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .b-more { display: flex; padding-top: 14px; }
 .b-card .b-more { padding: 0 12px 12px; }
-.b-more .button { font-size: var(--size-small); }
-/* While what its press set going is under way, it waits. */
-.b-more .button:disabled { opacity: .45; }
+
+/* A group on an app's page: its heading, then its switches, choices and parts of the day on one card, a line over each
+   after the first, a choice's as a switch's is, and its line under the card. A choice is a name over what it does, with
+   its tick, and the row above the choices that can't be pressed says what holds whichever is picked. */
+.b-group > * + *, .b-picks > * + * { border-top: 1px solid var(--rule); }
+.b-picks > .b-row + .b-row::before { content: none; }
+.b-choice > .b-words { padding: 8px 0; }
+/* A part of the day: its name and line, then its two ends, each a button with its time, opening its menu. */
+.b-span { display: flex; align-items: center; gap: 12px; padding: 9px 12px; }
+.b-span.off > .b-words { opacity: .4; }
+.b-ends { flex: none; display: flex; align-items: center; gap: 6px; font-size: var(--size-small); color: var(--muted); }
+.b-time { font-variant-numeric: tabular-nums; }
+/* A list's page (Sessions): on its cards, rows with a box to tick, their title over a line, the box greyed on one that
+   can't be ticked now while its line, saying why, stays readable; and rows with their buttons (In the Trash). Its
+   words while it's read, or with nothing in it. */
+.b-pickable { align-items: flex-start; gap: 10px; padding: 7px 10px 7px 12px; }
+.b-pickable .tickbox { margin-top: 1px; }
+.b-pickable .b-words b { font-weight: 400; }
+.b-row.b-pickable + .b-row.b-pickable::before { left: 35px; }
+.b-pickable.b-cant .tickbox { opacity: .4; }
+.b-pickable.b-cant .b-words b { color: var(--muted); }
+.b-listed .b-words b { font-weight: 400; }
+/* A listed row's name and line take the row's width, and its buttons go under them, so the name reads whole however
+   narrow the panel or long the buttons. */
+.b-perm.b-listed { flex-wrap: wrap; row-gap: 8px; }
+.b-listed .b-words { flex: 1 0 100%; }
+.b-listed + .b-listed { border-top: 1px solid var(--rule); }
+.b-list-wait { padding-top: 14px; }
+/* The tray under a list's page, standing still as the list scrolls above it, on the glass as the header is, with its
+   line on top: what's ticked and its buttons, the question (its words over its answers), or what the last press did;
+   and under it, a line about one that can't be ticked, with its way forward. */
+.b-tray { flex: none; padding: 8px 14px 12px; border-top: 1px solid var(--rule); }
+.b-tray .tray.b-asking { flex-wrap: wrap; row-gap: 6px; }
+.b-tray .b-asking .tray-ask { flex-basis: 100%; }
+.b-tray .b-asking .button:first-of-type { margin-left: auto; }
+.b-tray-note { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; font-size: var(--size-small);
+               line-height: 1.4; color: var(--muted); }
+.b-tray-note span { flex: 1; min-width: 0; }

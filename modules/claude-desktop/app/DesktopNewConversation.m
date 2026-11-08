@@ -10,6 +10,7 @@
 #import "PanelWindow.h"
 #import "Files.h"
 #import "Log.h"
+#import "Links.h"
 
 // What has a name in the message box's column of Claude's window, in order, as {element, role, name}, up to `most`:
 // the column leaves out the list of conversations beside it, and the box's own text. Nil if the box isn't on screen.
@@ -34,20 +35,33 @@ static NSArray<NSDictionary *> *NamedInColumn(id box, NSUInteger most) {
     return seen;
 }
 
-// What Claude's window shows in the message box's column, as role "name" in order: for the log, when a start goes
-// somewhere it shouldn't.
-static NSString *ScreenAround(id box) {
-    NSArray<NSDictionary *> *named = NamedInColumn(box, 120);
-    if (!named) return @"(its message box isn't on screen)";
+NSString *DesktopScreenLogged(NSArray<NSDictionary *> *named) {
+    NSMutableSet<NSString *> *labels = [NSMutableSet setWithArray:ClaudeDesktopSendLabels()];
+    [labels addObjectsFromArray:@[kClaudeDesktopPromptLabel, kClaudeDesktopSwitchModelLabel, kClaudeDesktopCancelLabel,
+                                  kClaudeDesktopTrustLabel, kClaudeDesktopRecentEnvironmentsLabel,
+                                  kClaudeDesktopNoFolderLabel, kClaudeDesktopSelectFolderLabel,
+                                  kClaudeDesktopNoBranchLabel]];
     NSMutableArray *seen = [NSMutableArray array];
     NSString *last = nil;  // a button's name is often its text's too
     for (NSDictionary *one in named) {
-        if (seen.count >= 60 || [one[@"name"] isEqualToString:last]) continue;
-        last = one[@"name"];
-        NSString *role = [one[@"role"] stringByReplacingOccurrencesOfString:@"AX" withString:@""];
-        [seen addObject:[NSString stringWithFormat:@"%@ \"%@\"", role.lowercaseString, Clip(one[@"name"], 60)]];
+        NSString *name = [one[@"name"] isKindOfClass:NSString.class] ? one[@"name"] : @"";
+        if (seen.count >= 60 || [name isEqualToString:last]) continue;
+        last = name;
+        NSString *role = [[one[@"role"] isKindOfClass:NSString.class] ? one[@"role"] : @""
+                          stringByReplacingOccurrencesOfString:@"AX" withString:@""].lowercaseString;
+        [seen addObject:[labels containsObject:name]
+            ? [NSString stringWithFormat:@"%@ \"%@\"", role, name]
+            : [NSString stringWithFormat:@"%@ with a name of %lu characters", role, (unsigned long)name.length]];
     }
     return seen.count ? [seen componentsJoinedByString:@", "] : @"nothing with a name";
+}
+
+// What Claude's window shows in the message box's column, for the log, when a start goes somewhere it shouldn't: only
+// its own labels, never the conversation's words or what's in the box (DesktopScreenLogged).
+static NSString *ScreenAround(id box) {
+    NSArray<NSDictionary *> *named = NamedInColumn(box, 120);
+    if (!named) return @"(its message box isn't on screen)";
+    return DesktopScreenLogged(named);
 }
 
 // Claude's folder button for the conversation it's about to start, and the branch box beside it, as {button, folder,
@@ -77,6 +91,13 @@ static NSDictionary *FolderShown(id box, NSString *wanted) {
     return shown;
 }
 
+// A folder as Claude writes it, with `~` for the home folder Whozmove goes by (Home()): stringByExpandingTildeInPath
+// would take the account's own whatever HOME says.
+static NSString *InHome(NSString *path) {
+    if ([path isEqualToString:@"~"]) return Home();
+    return [path hasPrefix:@"~/"] ? [Home() stringByAppendingPathComponent:[path substringFromIndex:2]] : path;
+}
+
 // Claude's newer screen: the button beside Send that names the environment a new conversation will start in, as
 // {button, name}, with `path` when the page shows that environment's folder too (the chosen one of the recent
 // environments it lists shows its name and then its folder). Nil on its older screen, or until the button shows.
@@ -92,7 +113,7 @@ static NSDictionary *EnvironmentShown(id box) {
         NSString *text = named[i + 1][@"name"];
         if ([named[i][@"role"] isEqual:@"AXStaticText"] && [named[i][@"name"] isEqualToString:name]
             && [named[i + 1][@"role"] isEqual:@"AXStaticText"] && ([text hasPrefix:@"~/"] || [text hasPrefix:@"/"])) {
-            shown[@"path"] = text.stringByExpandingTildeInPath;
+            shown[@"path"] = InHome(text);
             break;
         }
     }
@@ -102,7 +123,7 @@ static NSDictionary *EnvironmentShown(id box) {
 // The names Claude gives a folder's environments: those in its presets for this Mac whose folder is this one. Claude
 // keeps the file; it's only read. Empty when there's none, or it can't be read.
 static NSArray<NSString *> *EnvironmentsFor(NSString *folder) {
-    NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:kClaudeDesktopPresets];
+    NSString *path = [Home() stringByAppendingPathComponent:kClaudeDesktopPresets];
     NSData *data = [NSData dataWithContentsOfFile:path];
     NSDictionary *all = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
     NSDictionary *accounts = [all isKindOfClass:NSDictionary.class] ? all[@"byAccount"] : nil;
@@ -118,7 +139,7 @@ static NSArray<NSString *> *EnvironmentsFor(NSString *folder) {
                 || ![target[@"kind"] isEqual:kClaudeDesktopLocalTarget]
                 || ![target[@"cwd"] isKindOfClass:NSString.class])
                 continue;
-            if ([RealPath([target[@"cwd"] stringByExpandingTildeInPath]) isEqualToString:wanted]
+            if ([RealPath(InHome(target[@"cwd"])) isEqualToString:wanted]
                 && ![names containsObject:name])
                 [names addObject:name];
         }
@@ -214,7 +235,7 @@ NSURL *NewConversationLink(NSString *words) {
 - (void)startIn:(NSString *)folder words:(NSString *)words trusted:(BOOL)trusted done:(void (^)(NSString *why))done {
     // The panel's box had the keyboard; it goes to Claude, which is about to come forward.
     if ([self.core.window releaseKeyboard]) ActivateClaudeDesktop();
-    BOOL opened = [NSWorkspace.sharedWorkspace openURL:NewConversationLink(words)];
+    BOOL opened = OpenInOtherApp(NewConversationLink(words));
     PanelLog(@"new desktop conversation in %@ -> %@", folder, opened ? @"sent" : @"failed");
     if (!opened) return done(@"Claude didn't open: is Claude Desktop installed?");
     // With no words, the conversation is only opened, in its folder, with the caret in its box, where Whozmove may; it
@@ -271,7 +292,7 @@ NSURL *NewConversationLink(NSString *words) {
     message.done = done;
     if (!words.length) {
         return [self chooseFolder:message then:^{
-            AXUIElementSetAttributeValue((__bridge AXUIElementRef)message.box, kAXFocusedAttribute, kCFBooleanTrue);
+            SetElementAttribute((__bridge AXUIElementRef)message.box, kAXFocusedAttribute, kCFBooleanTrue);
             done(nil);
         }];
     }
@@ -280,8 +301,8 @@ NSURL *NewConversationLink(NSString *words) {
     NSString *shown = [ElementText((__bridge AXUIElementRef)box, kAXValueAttribute) ?: @"" stringByTrimmingCharactersInSet:space];
     if (!shown.length) {
         if (words.length <= kClaudeDesktopLinkWordsMax && filled < 15) return again(filled + 1);
-        AXUIElementSetAttributeValue((__bridge AXUIElementRef)box, kAXFocusedAttribute, kCFBooleanTrue);
-        AXUIElementSetAttributeValue((__bridge AXUIElementRef)box, kAXValueAttribute, (__bridge CFStringRef)words);
+        SetElementAttribute((__bridge AXUIElementRef)box, kAXFocusedAttribute, kCFBooleanTrue);
+        SetElementAttribute((__bridge AXUIElementRef)box, kAXValueAttribute, (__bridge CFStringRef)words);
     } else if (![shown isEqualToString:[words stringByTrimmingCharactersInSet:space]]) {
         PanelLog(@"new desktop conversation -> not sent: its message box has other words in it");
         return done(@"There's a message half-written in Claude's new conversation: send or clear it there");
@@ -325,14 +346,14 @@ NSURL *NewConversationLink(NSString *words) {
     } else if (shown && message.listOpenedAt < 0) {
         PanelLog(@"new desktop conversation -> Claude shows %@ as its folder: choosing %@ in its folder list",
                  shown[@"folder"], name);
-        AXUIElementPerformAction((__bridge AXUIElementRef)shown[@"button"], kAXPressAction);
+        PressElement((__bridge AXUIElementRef)shown[@"button"], kAXPressAction);
         message.listOpenedAt = message.folderChecks;
         return again(0.25);
     } else if (message.listOpenedAt >= 0 && !message.chosen) {
         NSMutableArray *listed = [NSMutableArray array];
         id item = [self folderListItem:message.folder named:name listed:listed];
         if (item) {
-            AXUIElementPerformAction((__bridge AXUIElementRef)item, kAXPressAction);
+            PressElement((__bridge AXUIElementRef)item, kAXPressAction);
             message.chosen = YES;
             PanelLog(@"new desktop conversation -> chose %@ in Claude's folder list", message.folder);
             return again(0.25);
@@ -340,7 +361,7 @@ NSURL *NewConversationLink(NSString *words) {
         if (message.folderChecks - message.listOpenedAt >= 8) {
             PanelLog(@"new desktop conversation -> not sent: %@ isn't in Claude's folder list (it lists %@)",
                      message.folder, listed.count ? [listed componentsJoinedByString:@", "] : @"nothing");
-            if (shown[@"button"]) AXUIElementPerformAction((__bridge AXUIElementRef)shown[@"button"], kAXPressAction);
+            if (shown[@"button"]) PressElement((__bridge AXUIElementRef)shown[@"button"], kAXPressAction);
             return message.done(left);
         }
         return again(0.25);
@@ -368,7 +389,7 @@ NSURL *NewConversationLink(NSString *words) {
     if (!message.chosen) {
         id item = RecentEnvironment(message.box, message.environments);
         if (item) {
-            AXUIElementPerformAction((__bridge AXUIElementRef)item, kAXPressAction);
+            PressElement((__bridge AXUIElementRef)item, kAXPressAction);
             message.chosen = YES;
             message.listOpenedAt = message.folderChecks;
             PanelLog(@"new desktop conversation -> Claude shows the environment %@: chose %@ among its recent ones",
@@ -454,7 +475,7 @@ NSURL *NewConversationLink(NSString *words) {
         return [label isEqualToString:kClaudeDesktopTrustLabel];
     });
     if (!trust) return NO;
-    AXUIElementPerformAction((__bridge AXUIElementRef)trust, kAXPressAction);
+    PressElement((__bridge AXUIElementRef)trust, kAXPressAction);
     PanelLog(@"new desktop conversation -> pressed Claude's \"%@\" for a folder trusted already",
              kClaudeDesktopTrustLabel);
     return YES;
@@ -527,7 +548,7 @@ NSURL *NewConversationLink(NSString *words) {
             NSArray *buttons = DesktopSendButtons(message.box);
             if (buttons.count == 1) {
                 if (!presses) PanelLog(@"new desktop conversation -> Claude shows: %@", ScreenAround(message.box));
-                AXUIElementPerformAction((__bridge AXUIElementRef)buttons[0], kAXPressAction);
+                PressElement((__bridge AXUIElementRef)buttons[0], kAXPressAction);
                 if (!presses) {
                     message.firstPressAt = NSDate.date.timeIntervalSince1970 * 1000;
                     message.firstPressedAt = message.checks;

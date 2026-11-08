@@ -2,15 +2,15 @@
    rather than writing a value out: tests/checks.sh fails on a value written out that tests/styles-by-hand.txt doesn't
    list, and that list only ever gets shorter.
    Each colour has a dark value, here, and a light one, in the block after this one: the page takes whichever its window
-   has, as the Look menu sets it (app/core/MenuBar.m), and tests/checks.sh fails on a colour without both.
+   has, as Settings' Appearance sets it (parts/settings), and tests/checks.sh fails on a colour without both.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 :root {
   color-scheme: light dark;
 
-  /* The panel's own colour, under everything: grey, as it starts, or black from the Look menu (data-look,
-     at the end of this file), and about the same under glass. The window's tint (Tint in app/core/PanelWindow.m) has
-     the same colours, and Whozmove beside the panel (PanelColour in app/core/SideCat.m) each look's: keep them
+  /* The panel's own colour, under everything: grey, as it starts, or black from Appearance (data-look,
+     at the end of this file), and about the same under glass. The window's tint (Tint in parts/glass) has
+     the same colours, and Whozmove beside the panel (PanelColour in SideCat.m, parts/beside) each look's: keep them
      matching. What has to match the panel exactly takes it from here: the cat's eyes and nose, and a changed file's
      head as its lines scroll under it. */
   --panel: #202023;
@@ -23,7 +23,7 @@
   --reading-text: rgba(255, 255, 255, 0.84);  /* what the reader shows to read: a plan, notes, a song's lyrics */
   --diff-code: rgba(255, 255, 255, 0.82);  /* a changed file's lines, in the changes view */
   --work-text: rgba(255, 255, 255, 0.72);  /* what Claude's doing as it works, under its shine */
-  --work-shine: rgba(255, 255, 255, 0.95);  /* the band of light that crosses it */
+  --work-glint: rgba(255, 255, 255, 0.23);  /* the band of light that crosses it, added to it: 0.95 at its middle */
   --branch-text: rgba(255, 255, 255, 0.7);  /* a session's branch */
   --muted: rgba(255, 255, 255, 0.55);
   --label: rgba(255, 255, 255, 0.5);     /* a project's name over its group, how a session's agent is set up, a song's
@@ -44,7 +44,7 @@
   --turn: #ffc53d;
   --pr: #56d364;
   --idle: rgba(255, 255, 255, 0.28);
-  --working-dot: rgba(255, 255, 255, 0.62);  /* a working row's dot, fading on and off */
+  --working-dot: rgba(255, 255, 255, 0.62);  /* a working row's dot, fading on and off, and its background work's marks */
   /* Words in your move's own amber, where the dark panel has them as bright as its mark: a question's count, the
      usage card's pace. */
   --turn-words: #ffc53d;
@@ -52,12 +52,12 @@
      around a card that's about it. */
   --needs-text: #ff9b85;
   --needs-edge: rgba(255, 107, 74, 0.3);
-  --needs-edge-keys: rgba(255, 107, 74, 0.75);  /* a request's edge while it has the keyboard */
-  --needs-glow: rgba(255, 107, 74, 0.55);  /* the ring a needs-you dot sends out, and where it fades to */
-  --needs-glow-gone: rgba(255, 107, 74, 0);
+  --needs-edge-keys: rgba(255, 107, 74, 0.75);  /* the waiting strip's edge while pointed at */
+  --needs-fill: rgba(255, 107, 74, 0.16);  /* a tag in the colour ("Outside the sandbox"), as turn-fill is for amber */
+  --needs-glow: rgba(255, 107, 74, 0.55);  /* the ring a needs-you dot sends out, as it starts */
   --turn-text: #ffd166;
   --turn-fill: rgba(255, 197, 61, 0.16);
-  --turn-edge: rgba(255, 197, 61, 0.35);  /* Deploy's set-up card */
+  --turn-bubble: rgba(255, 197, 61, 0.11);  /* an ask in your move's colour, its bubble lighter than a tag's */
   --done-text: #7ee2a0;
   --pr-pointed: rgba(86, 211, 100, 0.14);  /* a PR, pointed at */
   --link: #8cc6ff;
@@ -66,11 +66,13 @@
   /* The session you're on: its row's warm tint, there and where it holds on at the list's edge, and pointed at. */
   --focused: rgba(224, 138, 104, 0.12);
   --focused-hover: rgba(224, 138, 104, 0.18);
-  /* What a session wrote for you to read: its tag, and the edge of a plan's card. */
+  /* What a session wrote for you to read: its tag. */
   --plan-text: #d9c8ff;
   --plan-fill: rgba(170, 140, 255, 0.18);
-  --plan-edge: rgba(170, 140, 255, 0.35);
   --prototype-text: #9fe3d6;
+  /* A choice you picked yourself: its tag, in the blue of a picked choice's mark (--tick), as a link's words are. */
+  --pick-text: #8cc6ff;
+  --pick-fill: rgba(52, 120, 246, 0.18);
   /* A PR's state on its card, in GitHub's colours: open, or a draft (or not known). */
   --pr-open-text: #3fb950;
   --pr-open-fill: rgba(46, 160, 67, 0.15);
@@ -100,14 +102,16 @@
   /* Lines, edges and fills on the panel. */
   --rule: rgba(255, 255, 255, 0.08);     /* a line between parts */
   --edge: rgba(255, 255, 255, 0.12);     /* around a card, a choice, the song's cover */
-  --edge-firm: rgba(255, 255, 255, 0.14);  /* around the Compact card and a pick going in */
   --box-edge: rgba(255, 255, 255, 0.4);  /* an unpicked choice's mark, a task's box */
-  --tickbox-edge: rgba(255, 255, 255, 0.35);  /* "Don't ask again"'s box, unticked */
   --quote-line: rgba(255, 255, 255, 0.16);  /* beside a quote, in the reader */
-  --outline: rgba(255, 255, 255, 0.16);  /* around a count on the PR card */
   --surface: rgba(255, 255, 255, 0.05);  /* what's set on the panel: a card on a row, the changes view's tabs */
+  --ask-fill: rgba(255, 255, 255, 0.07);  /* a card on a row that needs you, a step up from the panel */
+  --ask-edge: transparent;  /* its ring, which shows only on the light panel, where the card is white */
+  --ask-risk-fill: rgba(255, 107, 74, 0.11);  /* the fill of a request that could do harm (outside the sandbox) */
   --track: rgba(255, 255, 255, 0.06);    /* the empty part of a line or a bar */
   --usage-track: rgba(255, 255, 255, 0.1);  /* the usage card's bars' */
+  --usage-even: rgba(255, 255, 255, 0.75);  /* where even use would be, on the usage card's bars */
+  --usage-pace-slow: #7fa7d9;  /* a pace slow enough that some of the window would go unused */
   --song-played: rgba(255, 255, 255, 0.45);  /* how far in the song is, firmer pointed at */
   --song-played-pointed: rgba(255, 255, 255, 0.8);
   --handle: rgba(255, 255, 255, 0.35);   /* the usage strip's handle, firmer pointed at */
@@ -116,7 +120,6 @@
   --avatar: rgba(255, 255, 255, 0.12);   /* a PR author's picture, until it has loaded */
   --scrim: rgba(0, 0, 0, 0.45);          /* under a mark on a picture: the lyrics mark on a song's cover */
   --tag: rgba(255, 255, 255, 0.08);      /* a grey tag */
-  --chip: rgba(255, 255, 255, 0.1);      /* a question's chip */
   --picked: rgba(255, 255, 255, 0.13);   /* a picked choice, a pressed switch */
   --picked-edge: rgba(242, 242, 243, 0.75);  /* around a picked choice */
   --shelf-picked: rgba(255, 255, 255, 0.1);  /* the reader's list: what's open */
@@ -127,13 +130,16 @@
   --blank-fill: rgba(255, 255, 255, 0.02);  /* where one side of the changes side by side has no line */
   /* A changed file's head, which stays at the top as its lines scroll under it, in the panel's own colour. */
   --sticky-head: color-mix(in srgb, var(--panel) 96%, transparent);
+  /* What stays at a view's foot as the rest scrolls up under it (One Task's answer), in the panel's own colour: it
+     follows --panel, so it needs no light value of its own. */
+  --sticky-foot: color-mix(in srgb, var(--panel) 96%, transparent);
   /* A choice on a card, pointed at. */
   --choice: rgba(255, 255, 255, 0.04);
   --choice-pointed: rgba(255, 255, 255, 0.09);
   /* Pointed at: a row, and firmer for smaller things; and the soft circle round Deploy's mark, firmer pointed at. */
   --hover: rgba(255, 255, 255, 0.07);
   --hover-firm: rgba(255, 255, 255, 0.08);  /* a row's numbers */
-  --hover-strong: rgba(255, 255, 255, 0.1);  /* a pick, a ×, the player's buttons, Open */
+  --hover-strong: rgba(255, 255, 255, 0.1);  /* a pick, a ×, a quiet button (Open) */
   --pointed-filter: brightness(1.3);     /* a writing's tag */
   --play-fill: rgba(255, 255, 255, 0.08);
   --play-fill-pointed: rgba(255, 255, 255, 0.16);
@@ -154,13 +160,13 @@
   /* Text boxes, firmer while they have the keyboard (a card's, and the new conversation's), and code. */
   --field: rgba(0, 0, 0, 0.25);
   --field-edge: rgba(255, 255, 255, 0.14);
+  /* A box typed in, and a card that has the keys: at least 3:1 on what's behind it, as a focus edge needs. */
   --field-focus: rgba(255, 255, 255, 0.45);
-  --compose-focus: rgba(255, 255, 255, 0.42);
   --compose-dot: rgba(255, 255, 255, 0.5);  /* the new conversation's dot, a ring */
   --code-fill: rgba(0, 0, 0, 0.3);
   /* The folded panel's cat (cat.js) and the name in the header; and the cat's eyes and nose, the panel's own colour
      showing through. The app icon (icon/make-icon.m) draws its cat in the dark --cream too, and Whozmove beside the
-     panel (app/core/SideCat.m) in both: keep them matching. */
+     panel (parts/beside) in both: keep them matching. */
   --cream: #f3ebe2;
   --cat-feature: var(--panel);
   /* A chat beside the folded cat (chats.js): a session's row on a card of the panel's own colour, with an edge and a
@@ -169,17 +175,34 @@
   --chat-edge: rgba(255, 255, 255, 0.09);
   --chat-shadow: 0 0 0 0.8px rgba(255, 255, 255, 0.09), 0 10px 26px rgba(10, 12, 20, 0.42);
   --chat-pill: rgba(24, 24, 27, 0.86);
-  /* The cards that float over the list: a PR's, Create PR's, where a session runs. */
-  --card: #232327;
-  --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
   /* On the panel's back (modules/apps), the tile drawn for an app with no icon of its own (git), and its mark. */
   --app-tile: #3a3a40;
   --app-tile-mark: #f3ebe2;
-  /* A menu the page draws itself (Open With's), its edge and shadow, and a choice in it pointed at. */
+  /* Settings on the panel's back: each row's tile, as a phone's settings have them, its mark white on it (--on-colour),
+     and Settings' own among the apps, silver with its gear dark; and the looks on Appearance, each a small panel in
+     that look's own colour as it is now (as data-look sets --panel, at the end of this file: keep them matching),
+     glass a tint over a wash, with its lines. */
+  --tile-appearance: #2f7cf6;
+  --tile-list: #5b5bd6;
+  --tile-shortcut: #7d7d86;
+  --tile-editor: #2a9fb8;
+  --tile-conversation: #30a46c;
+  --tile-usage: #e8833a;                 /* Usage Gear, the usage card's gear */
+  --tile-settings-from: #e9e9ee;
+  --tile-settings-to: #b4b4bb;
+  --tile-settings-mark: #3c3c43;
+  --tile-settings-edge: rgba(0, 0, 0, 0.25);
+  --look-grey: #202023;
+  --look-black: #0e0e11;
+  --look-glass: rgba(29, 29, 32, 0.55);
+  --look-wash-from: #3b4f8f;
+  --look-wash-to: #7a3f62;
+  --look-line: rgba(255, 255, 255, 0.22);
+  --look-line-soft: rgba(255, 255, 255, 0.12);
+  /* A menu the page draws itself (Open With's), its edge and shadow. */
   --menu: rgba(34, 34, 40, 0.98);
   --menu-edge: rgba(255, 255, 255, 0.1);
   --menu-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
-  --menu-pointed: rgba(74, 168, 255, 0.25);
   /* The usage card behind the panel (modules/usage): its own colour, the past-the-bar part, its faint edge, the
      shadow it has while it's out from under the panel, and the panel's shadow on it then. */
   --usage-card: #2b2b30;
@@ -191,19 +214,33 @@
   --vine-leaf: #56d364;
   --vine-petal: #ffd166;
   --vine-heart: #c98a12;
+  /* The map of your disk (modules/storage): a colour for each folder round the folder you're in, the same in its list;
+     grey for what can't go (macOS, what isn't counted, what it can't look inside); what's collected for the Trash, and
+     its edge; and the middle, firmer pointed at. */
+  --map-1: #7fa8ff;
+  --map-2: #b393ff;
+  --map-3: #ff92b4;
+  --map-4: #f4ab62;
+  --map-5: #66cdb5;
+  --map-6: #93bde3;
+  --map-grey: rgba(255, 255, 255, 0.2);
+  --map-picked: rgba(255, 255, 255, 0.06);
+  --map-picked-edge: rgba(255, 255, 255, 0.5);
+  --map-middle: rgba(255, 255, 255, 0.04);
+  --map-middle-pointed: rgba(255, 255, 255, 0.08);
 
   /* Text sizes, smallest first. */
-  --size-chip: 9.5px;                    /* a question's chip */
   --size-tag: 10px;                      /* tags, small capitals, the build line */
   --size-meta: 10.5px;                   /* what's said beside: the Compact label, the shortcut, a writing's details */
   --size-small: 11px;                    /* a row's details and its chat, a card's help, the strips */
   --size-card: 11.5px;                   /* a card's sentences, and what Claude's doing */
   --size-body: 12px;                     /* the panel's words */
-  --size-title: 13px;                    /* the panel's name, a project, a card's title, the reader's */
+  --size-title: 13px;                    /* the panel's name, a project, the reader's title */
   --size-reading: 14px;                  /* what the reader shows */
-  --size-heading: 16px;                  /* a heading in the reader, the changes card's big numbers */
+  --size-heading: 16px;                  /* a heading in the reader */
   --size-lyrics: 16px;                   /* a song's lines, in the reader */
   --size-close: 16px;                    /* the × that closes a card */
+  --size-hero: 44px;                     /* the team board's one bold figure: what's moving */
 
   /* Corners, smallest first. */
   --radius-bar: 2px;                     /* a bar's ends, a swatch */
@@ -221,21 +258,30 @@
   --radius-pill: 999px;
 
   /* The layout. */
-  --header: 46px;  /* must match kHeaderHeight in app/core/PanelWindow.m, and HEADER_TALL (and its line) in header.js */
+  --header: 46px;  /* must match kHeaderHeight in PanelWindow+Private.h, and HEADER_TALL (and its line) in header.js */
   /* The page is laid out at one width always, with room for the reader on either side of the list (kReaderRoom in
-     app/core/PanelWindow.m, which shows only the part in use): the list's column starts this far in. */
+     PanelWindow+Private.h; the window shows only the part in use): the list's column starts this far in. */
   --side: 1254px;
   --column: 340px;
-  /* And room above the list, laid out always too (kAboveRoom in app/core/PanelWindow.m), which the folded cat's chats
+  /* The room above a group in the list: over a project's name, or over rows a module groups with no header (the session
+     leading a team, above its team), so the list never starts right against the header in either. */
+  --group-top: 12px;
+  /* And room above the list, laid out always too (kAboveRoom in PanelWindow+Private.h), which the folded cat's chats
      come up into while it's low on the screen (chats.js): the list starts this far down. */
   --above: 800px;
 
-  /* Motion: a spring, with a slight overshoot, where WebKit has it (the header's ＋ turning, in base.css). */
+  /* Motion: a spring, with a slight overshoot, where WebKit has it (the header's ＋ turning, in parts/header). */
   --spring: linear(0, .0063, .0255 1.2%, .1006 2.6%, .2161 4.1%, .4237 6.3%, .6366 8.7%, .8137 11.3%,
                    .9346 13.9%, 1.0098 16.6%, 1.0453 19.3%, 1.0548 21.8%, 1.0491 24.6%, 1.0215 31.5%,
                    1.0035 38.6%, .9978 45.5%, .9992 61.4%, 1);
+  /* A swell you can see: a looser spring, carrying a quarter past where it ends and back over about 350ms (Side Chat's
+     bar at a row's far edge, in parts/row), so a few points of growth still read as a bounce. */
+  --swell: linear(0, .0185 2%, .0698 4%, .1471 6%, .2437 8%, .3534 10%, .4702 12%, .5889 14%, .7048 16%, .8657 19%,
+                  1.0027 22%, 1.1391 26%, 1.2197 30%, 1.2477 36%, 1.1711 44%, 1.0177 55%, .9378 70%, .9803 85%, 1);
 }
-@supports not (transition-timing-function: linear(0, 1)) { :root { --spring: cubic-bezier(.2, .8, .2, 1); } }
+@supports not (transition-timing-function: linear(0, 1)) {
+  :root { --spring: cubic-bezier(.2, .8, .2, 1); --swell: cubic-bezier(.28, 2, .55, 1); }
+}
 
 /* The light panel: the same jobs, in the same order. Words and lines are black where the dark panel's are white, each
    as far from the panel as it is there; the status colours are deeper, so their words read on the light panel; the
@@ -251,7 +297,7 @@
     --reading-text: rgba(0, 0, 0, 0.8);
     --diff-code: rgba(0, 0, 0, 0.79);
     --work-text: rgba(0, 0, 0, 0.73);
-    --work-shine: rgba(0, 0, 0, 0.95);
+    --work-glint: #c7c7c7;
     --branch-text: rgba(0, 0, 0, 0.72);
     --muted: rgba(0, 0, 0, 0.6);
     --label: rgba(0, 0, 0, 0.58);
@@ -271,11 +317,11 @@
     --needs-text: #b02c10;
     --needs-edge: rgba(201, 52, 18, 0.35);
     --needs-edge-keys: rgba(201, 52, 18, 0.75);
+    --needs-fill: rgba(201, 52, 18, 0.16);
     --needs-glow: rgba(201, 52, 18, 0.45);
-    --needs-glow-gone: rgba(201, 52, 18, 0);
     --turn-text: #7f5300;
     --turn-fill: rgba(214, 150, 0, 0.14);
-    --turn-edge: rgba(191, 131, 0, 0.45);
+    --turn-bubble: rgba(191, 131, 0, 0.11);
     --done-text: #17702f;
     --pr-pointed: rgba(26, 127, 55, 0.1);
     --link: #0a5cb3;
@@ -285,8 +331,9 @@
     --focused-hover: rgba(224, 138, 104, 0.24);
     --plan-text: #6a3fc4;
     --plan-fill: rgba(106, 63, 196, 0.1);
-    --plan-edge: rgba(106, 63, 196, 0.35);
     --prototype-text: #0c6b62;
+    --pick-text: #0a5cb3;
+    --pick-fill: rgba(52, 120, 246, 0.1);
     --pr-open-text: #1a7f37;
     --pr-open-fill: rgba(31, 136, 61, 0.1);
     --pr-open-edge: rgba(31, 136, 61, 0.4);
@@ -311,14 +358,16 @@
 
     --rule: rgba(0, 0, 0, 0.08);
     --edge: rgba(0, 0, 0, 0.1);
-    --edge-firm: rgba(0, 0, 0, 0.13);
     --box-edge: rgba(0, 0, 0, 0.4);
-    --tickbox-edge: rgba(0, 0, 0, 0.35);
     --quote-line: rgba(0, 0, 0, 0.14);
-    --outline: rgba(0, 0, 0, 0.16);
     --surface: rgba(0, 0, 0, 0.035);
+    --ask-fill: #fff;
+    --ask-edge: rgba(0, 0, 0, 0.07);
+    --ask-risk-fill: rgba(201, 52, 18, 0.07);
     --track: rgba(0, 0, 0, 0.06);
     --usage-track: rgba(0, 0, 0, 0.08);
+    --usage-even: rgba(0, 0, 0, 0.6);
+    --usage-pace-slow: #2f6db3;
     --song-played: rgba(0, 0, 0, 0.4);
     --song-played-pointed: rgba(0, 0, 0, 0.7);
     --handle: rgba(0, 0, 0, 0.25);
@@ -327,7 +376,6 @@
     --avatar: rgba(0, 0, 0, 0.1);
     --scrim: rgba(0, 0, 0, 0.45);
     --tag: rgba(0, 0, 0, 0.06);
-    --chip: rgba(0, 0, 0, 0.07);
     --picked: rgba(0, 0, 0, 0.09);
     --picked-edge: rgba(29, 29, 32, 0.55);
     --shelf-picked: rgba(0, 0, 0, 0.07);
@@ -357,22 +405,35 @@
     --switch-off: rgba(0, 0, 0, 0.16);
     --field: #fff;
     --field-edge: rgba(0, 0, 0, 0.16);
-    --field-focus: rgba(0, 0, 0, 0.4);
-    --compose-focus: rgba(0, 0, 0, 0.4);
+    --field-focus: rgba(0, 0, 0, 0.45);
     --compose-dot: rgba(0, 0, 0, 0.45);
     --code-fill: rgba(0, 0, 0, 0.045);
     --cream: #2a2420;
     --chat-edge: rgba(0, 0, 0, 0.1);
     --chat-shadow: 0 0 0 0.8px rgba(0, 0, 0, 0.1), 0 10px 26px rgba(10, 12, 20, 0.16);
     --chat-pill: rgba(255, 255, 255, 0.92);
-    --card: #fff;
-    --card-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
     --app-tile: #e3e3e8;
     --app-tile-mark: #3a3a40;
+    --tile-appearance: #2f7cf6;
+    --tile-list: #5b5bd6;
+    --tile-shortcut: #8e8e96;
+    --tile-editor: #2a9fb8;
+    --tile-conversation: #2b9a63;
+    --tile-usage: #e07a2f;
+    --tile-settings-from: #e9e9ee;
+    --tile-settings-to: #b4b4bb;
+    --tile-settings-mark: #3c3c43;
+    --tile-settings-edge: rgba(0, 0, 0, 0.15);
+    --look-grey: #f5f5f7;
+    --look-black: #fff;
+    --look-glass: rgba(245, 245, 247, 0.55);
+    --look-wash-from: #a9c2ff;
+    --look-wash-to: #f2b9cf;
+    --look-line: rgba(0, 0, 0, 0.2);
+    --look-line-soft: rgba(0, 0, 0, 0.09);
     --menu: rgba(255, 255, 255, 0.98);
     --menu-edge: rgba(0, 0, 0, 0.1);
     --menu-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
-    --menu-pointed: rgba(11, 107, 203, 0.14);
     --usage-card: #e6e6ea;
     --usage-card-edge: 0 0 0 0.5px rgba(0, 0, 0, 0.08);
     --usage-card-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 10px 24px rgba(10, 12, 20, 0.14);
@@ -381,14 +442,26 @@
     --vine-leaf: #1a7f37;
     --vine-petal: #d4a000;
     --vine-heart: #9a6700;
+    --map-1: #3f6fe0;
+    --map-2: #7d55dc;
+    --map-3: #d6517e;
+    --map-4: #c7731f;
+    --map-5: #1f9479;
+    --map-6: #4a7fb0;
+    --map-grey: rgba(0, 0, 0, 0.16);
+    --map-picked: rgba(0, 0, 0, 0.05);
+    --map-picked-edge: rgba(0, 0, 0, 0.45);
+    --map-middle: rgba(0, 0, 0, 0.035);
+    --map-middle-pointed: rgba(0, 0, 0, 0.07);
   }
 }
 
-/* Black, from the Look menu: darker than the grey; on the light panel, white. Glass: about the dark its tint makes over
+/* Black, from Appearance: darker than the grey; on the light panel, white, where a card that needs you, white on the
+   others, takes the grey panel's colour, so it still stands a step apart. Glass: about the dark its tint makes over
    the glass, as the panel's own colour was before it could be picked; on the light panel, the light one. */
 :root[data-look="black"] { --panel: #0e0e11; }
 :root[data-look="glass"] { --panel: #1d1d20; }
 @media (prefers-color-scheme: light) {
-  :root[data-look="black"] { --panel: #fff; }
+  :root[data-look="black"] { --panel: #fff; --ask-fill: #f5f5f7; }
   :root[data-look="glass"] { --panel: #f5f5f7; }
 }

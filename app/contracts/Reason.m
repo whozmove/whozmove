@@ -33,6 +33,7 @@
         case ReasonOpenTwice: return @"session is open more than once";
         case ReasonPaused: return @"session is paused";
         case ReasonTerminal: return [@"its terminal won't take them: " stringByAppendingString:_words];
+        case ReasonYouCame: return @"you came to it";
         default: return [NSString stringWithFormat:@"session is %@", _status ?: @"not idle"];
     }
 }
@@ -45,6 +46,8 @@
         case ReasonOpenTwice: return @"It's open more than once: close all but one first";
         case ReasonPaused: return @"It's paused in its terminal: bring it back with fg first";
         case ReasonTerminal: return _words;
+        case ReasonYouCame: return @"You came to it, so it was left for you";
+        case ReasonOtherStatus: return @"Claude is busy: try again when it's idle";
         default: return @"This session isn't running";
     }
 }

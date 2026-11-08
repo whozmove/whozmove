@@ -1,5 +1,5 @@
 // ChangesModule: the changes view's face for the core (Module): each session's numbers on its row, the view the page
-// asks for, a changed file opened in your editor, the pawn menu's Open With, and the print mode the tests check.
+// asks for, a changed file opened in your editor, Open Files With in Settings, and the print mode the tests check.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 #import "Module.h"
@@ -10,12 +10,10 @@
 #import "Printing.h"
 #import "Changes.h"
 #import "Editors.h"
-#import "Menus.h"
 
-@interface ChangesModule : NSObject <Module, NSMenuDelegate>
+@interface ChangesModule : NSObject <Module, FilesAtLines>
 @property (weak) Core *core;
 @property (strong) Changes *changes;
-@property (strong) NSMenu *openWithMenu;  // filled as it opens: the editors on this Mac change
 @end
 
 // The scopes the changes view has, as git splits what it shows: not staged (new files included), staged, and the
@@ -40,6 +38,13 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
     while (!done && deadline.timeIntervalSinceNow > 0)
         [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.02]];
     return PrintJSON(view ?: @{});
+}
+
+// Names in a sentence: "A, B or C".
+static NSString *ListedWithOr(NSArray<NSString *> *names) {
+    if (names.count < 2) return names.firstObject ?: @"";
+    NSArray *first = [names subarrayWithRange:NSMakeRange(0, names.count - 1)];
+    return [NSString stringWithFormat:@"%@ or %@", [first componentsJoinedByString:@", "], names.lastObject];
 }
 
 @implementation ChangesModule
@@ -85,6 +90,8 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
             }
             if (path && !OpenInEditor(path, [msg[@"line"] integerValue])) NSBeep();
         },
+        // The picker's way forward with no editor on this Mac: the one it names, from its download page.
+        @"getEditor": ^(NSDictionary *msg) { GetEditor(); },
     };
 }
 
@@ -100,34 +107,42 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
     return self.changes.working;
 }
 
-#pragma mark Open With
+#pragma mark Open Files With
 
-// Open With ▸ in the pawn menu: the editors a changed file can open in (the changes view's Open in Editor), the chosen
-// one ticked.
-- (NSArray<MenuEntry *> *)menuEntries {
-    self.openWithMenu = [NSMenu new];
-    self.openWithMenu.autoenablesItems = NO;
-    self.openWithMenu.delegate = self;
-    NSMenuItem *openWith = [[NSMenuItem alloc] initWithTitle:@"Open With" action:nil keyEquivalent:@""];
-    openWith.submenu = self.openWithMenu;
-    return @[[MenuEntry entryIn:MenuSectionFeatures order:30 item:openWith]];
-}
-
-- (void)menuNeedsUpdate:(NSMenu *)menu {
-    [menu removeAllItems];
+// Open Files With, in Settings on the panel's back: the editors on this Mac a changed file can open in (the changes
+// view's Open in Editor), each with its icon, and the one chosen. Until one is, the changes view asks the first time.
+- (NSArray<SettingEntry *> *)settingEntries {
+    __weak typeof(self) weakSelf = self;
     NSDictionary *choices = EditorChoices();
-    for (NSDictionary *app in choices[@"apps"]) {
-        NSMenuItem *item = [menu addItemWithTitle:app[@"name"] action:@selector(chooseEditor:) keyEquivalent:@""];
-        item.target = self;
-        item.representedObject = app[@"id"];
-        item.state = [app[@"id"] isEqual:choices[@"choice"]] ? NSControlStateValueOn : NSControlStateValueOff;
+    SettingEntry *editor = [SettingEntry choiceWithKey:@"openWith" title:@"Open Files With" glyph:@"file"
+        choices:^NSArray<NSDictionary *> * {
+            NSMutableArray *apps = [NSMutableArray array];
+            for (NSDictionary *app in choices[@"apps"])
+                [apps addObject:@{@"id": app[@"id"], @"name": app[@"name"], @"appId": app[@"id"]}];
+            return apps;
+        }
+        picked:^NSString * { return choices[@"choice"]; }
+        pick:^(NSString *choice) {
+            ChooseEditor(choice);
+            [weakSelf.core.page call:@"setEditors" with:@[EditorChoices()]];
+        }];
+    editor.foot = [choices[@"apps"] count]
+        ? @"A changed file in the changes view opens here. Only the editors on this Mac are listed."
+        : [NSString stringWithFormat:@"None of the editors Whozmove opens files in is on this Mac: %@.",
+                                     ListedWithOr(KnownEditorNames())];
+    // With none of them here, the way forward is one to get, by name.
+    if (choices[@"get"]) {
+        editor.button = [@"Get " stringByAppendingString:choices[@"get"]];
+        editor.press = ^{ GetEditor(); };
     }
-    if (![choices[@"apps"] count]) SayInMenu(menu, @"No Editor Found");
+    editor.group = 10;
+    editor.order = 30;
+    return @[editor];
 }
 
-- (void)chooseEditor:(NSMenuItem *)item {
-    ChooseEditor(item.representedObject);
-    [self.core.page call:@"setEditors" with:@[EditorChoices()]];
+// Another module's file, at a line, in the editor you chose (FilesAtLines): it has checked the file is its to open.
+- (BOOL)openFile:(NSString *)path atLine:(NSInteger)line {
+    return path.length && OpenInEditor(path, line);
 }
 
 @end

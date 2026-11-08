@@ -1,0 +1,5 @@
+{
+  "order": 35,
+  "scripts": ["page/order.js", "page/one-task-view.js", "page/one-task.js"],
+  "styles": ["page/one-task.css"]
+}

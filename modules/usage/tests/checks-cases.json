@@ -1,0 +1,10 @@
+[
+  {"name": "at the Mac, nothing at work, the card folded", "minutes": 60},
+  {"name": "a session at work, or the card out or open", "minutes": 60, "busy": [[0, 61]]},
+  {"name": "away from minute 10 to 70, nothing at work", "minutes": 90, "away": [[10, 70]]},
+  {"name": "away from minute 10 to 80, a session at work throughout", "minutes": 90, "away": [[10, 80]], "busy": [[0, 91]]},
+  {"name": "a window resets at minute 25", "minutes": 50, "resetsAt": 25},
+  {"name": "asking fails until minute 20", "minutes": 60, "failing": [[0, 20]]},
+  {"name": "away while asking fails, back at minute 40", "minutes": 60, "failing": [[0, 50]], "away": [[2, 40]]},
+  {"name": "Sign in pressed at minute 5", "minutes": 20, "signInAt": 5}
+]

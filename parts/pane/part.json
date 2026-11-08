@@ -1,0 +1,7 @@
+{
+  "scripts": ["page/markdown.js", "page/reader.js"],
+  "styles": ["page/reader.css"],
+  "talksTo": ["core", "bridge", "header", "keyboard", "glass", "list", "morph"],
+  "provides": ["openReader", "toggleReader", "closeReader", "drawReader", "fitReader", "putHTML", "readerRefill",
+               "readerSession", "readerWait", "markdownHTML", "mdFences", "mdInline", "reader", "Browser.h"]
+}

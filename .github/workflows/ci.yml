@@ -1,13 +1,25 @@
-# Builds the app with every warning an error, and runs all the tests on that build, for each push and pull request.
+# Builds the app with every warning an error, and runs all the tests on that build, for each push to main and each
+# pull request. A version tag isn't built here: the release workflow runs every test on the zip it makes.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions:
   contents: read
+# A pull request's newer push stops the run still going for its last one, so a Mac runner isn't held for a commit
+# nobody will merge; every push to main is kept, so each one gets its result.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
     runs-on: macos-latest
+    # A run takes a few minutes; one still going after half an hour is stuck, and would otherwise hold its runner
+    # for six hours.
+    timeout-minutes: 30
     steps:
       # Pinned to the commit of a release, which can't be moved the way a version tag can; Dependabot
       # (.github/dependabot.yml) moves the pin when there's a new release. The job never pushes, so it doesn't
@@ -15,6 +27,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Betterleaks' download, which the build and Keys' tests fetch from GitHub (tools/betterleaks.sh), kept between
+      # runs for as long as tools/betterleaks.txt names the same versions. Its checksum is checked each time it's used,
+      # so a cached copy can't stand in for another one.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/Whozmove-build
+          key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
       - name: Build, with warnings as errors
         run: tools/compile.sh "$RUNNER_TEMP/Whozmove" -Werror
       - name: Tests, on that build

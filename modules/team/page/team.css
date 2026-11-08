@@ -1,0 +1,25 @@
+/* Group by Team (team.js): every row a title line, its name, Chief on the lead, what a member looks after (or whose
+   folder it's in, or that it's a duplicate of a member), and its job's track at the line's end (the row's gap before it lines the tracks up from row to
+   row); and a line under it, what it needs you for or where its job stands. Its dot is the list's, saying whose move
+   it is.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+.row.tbrief { padding-top: 7px; padding-bottom: 7px; }
+.row.tbrief .line1 { align-items: center; }
+.row.tbrief .dot { align-self: flex-start; margin-top: 3px; }
+.tpart { flex: 0 1 auto; min-width: 0; color: var(--label); font-size: var(--size-small); white-space: nowrap;
+         overflow: hidden; text-overflow: ellipsis; }
+.tpart::before { content: '· '; }
+/* Where a member's job stands, when nothing of it waits on you, and a duplicate's line to close the previous session:
+   the note's own quiet colour, on one line, cut with "…" as an ask's words are. */
+.row.tbrief .tstatus, .row.tbrief .tdup { display: flex; }
+.tstatus .tstatus-words, .tdup .tdup-words { min-width: 0; white-space: nowrap; overflow: hidden;
+                                             text-overflow: ellipsis; }
+/* The lead: how many wait on you, by how pressing, and how many are at work, in its note. */
+.row.tbrief .tsum { display: flex; align-items: center; gap: 10px; }
+.tcount { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.tcount-of { margin-left: -6px; color: var(--faint); }
+.tmini { display: inline-block; width: 6px; height: 6px; border-radius: var(--radius-circle); }
+.tmini.urgent { background: var(--needs); }
+.tmini.normal { background: var(--turn); }
+.tmini.low { box-shadow: inset 0 0 0 1.2px var(--turn); }
+.tmini.busy { background: var(--working-dot); }

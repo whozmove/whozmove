@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core"],
+  "provides": ["Work.h"]
+}

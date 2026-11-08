@@ -1,0 +1,44 @@
+[
+ {
+  "name": "one start: each answer in turn, the log saying only what changed",
+  "agent": "Claude Code",
+  "answers": [
+   {"state": "ok", "plan": "max", "week": {"used": 30, "resetsAt": 1900000000000}},
+   {"state": "other", "noPlan": "signedIn"},
+   {"state": "other", "noPlan": "signedIn"},
+   {"state": "other", "noPlan": "unknown"},
+   {"state": "other", "noPlan": "shell"},
+   {"state": "other"},
+   {"state": "failed"},
+   {"state": "other"},
+   {"state": "none", "noPlan": "notFound"},
+   {"state": "none", "noPlan": "notReady"},
+   {"state": "none"},
+   {"state": "other", "noPlan": "a word the usage module doesn't know"},
+   {"state": "ok", "plan": "max", "week": {"used": 30, "resetsAt": 1900000000000}},
+   {"state": "ok", "plan": "max", "week": {"used": 31, "resetsAt": 1900000000000}},
+   {"state": "signedOut"},
+   {},
+   {},
+   {"state": "a state Whozmove doesn't know"},
+   {"state": "ok", "plan": "max", "week": {"used": 31, "resetsAt": 1900000000000}}
+  ]
+ },
+ {
+  "name": "a fresh start with the same first answers: said once again",
+  "agent": "Claude Code",
+  "answers": [
+   {"state": "ok", "plan": "max", "week": {"used": 30, "resetsAt": 1900000000000}},
+   {"state": "other", "noPlan": "signedIn"},
+   {"state": "other", "noPlan": "signedIn"}
+  ]
+ },
+ {
+  "name": "no agent to ask: nothing named",
+  "agent": null,
+  "answers": [
+   {"state": "none"},
+   {"state": "none"}
+  ]
+ }
+]

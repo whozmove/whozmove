@@ -1,0 +1,33 @@
+{
+  "site": "acme.atlassian.net",
+  "sites": ["acme.atlassian.net", "beta.atlassian.net"],
+  "keys": ["PAY-142", " PAY-142\n", "pay-142", "PAY-0", "A_B2-7", "PAY142", "PAY-142 and more",
+           "https://acme.atlassian.net/browse/PAY-142",
+           "https://Acme.atlassian.net/browse/PAY-142?focusedCommentId=1",
+           "https://acme.atlassian.net/jira/software/projects/PAY/boards/3?selectedIssue=PAY-9",
+           "https://acme.jira.com/browse/WEB-77", "http://acme.atlassian.net/browse/PAY-142",
+           "https://evil.example/browse/PAY-142", "https://a.b.atlassian.net/browse/PAY-1",
+           "https://atlassian.net/browse/PAY-1", "https://acme.atlassian.net/browse/not-a-key"],
+  "links": [["PAY-142", "acme.atlassian.net"], ["PAY-142", "ACME.atlassian.net"], ["PAY-142", "evil.example"],
+            ["PAY-142\"><x", "acme.atlassian.net"]],
+  "searches": ["", "login", "PAY-142", "https://acme.atlassian.net/browse/PAY-142", "say \"hi\" \\ or ORDER BY",
+               "  safari  login  "],
+  "kinds": [["new", ""], ["indeterminate", ""], ["done", ""], ["done", "Won't Do"], ["done", "Duplicate"],
+            ["done", "Done"], ["undefined", ""]],
+  "wellKnown": [["https://mcp.atlassian.com/v2/mcp", "oauth-protected-resource"],
+                ["https://auth.atlassian.com/abc", "oauth-authorization-server"]],
+  "servers": [
+    {"authorization_endpoint": "https://a.example/authorize", "token_endpoint": "https://a.example/token",
+     "registration_endpoint": "https://a.example/register", "code_challenge_methods_supported": ["S256"],
+     "token_endpoint_auth_methods_supported": ["none", "client_secret_post"]},
+    {"authorization_endpoint": "https://a.example/authorize", "token_endpoint": "https://a.example/token",
+     "registration_endpoint": "https://a.example/register", "code_challenge_methods_supported": ["plain"],
+     "token_endpoint_auth_methods_supported": ["none"]},
+    {"authorization_endpoint": "https://a.example/authorize", "token_endpoint": "https://a.example/token",
+     "registration_endpoint": "https://a.example/register", "code_challenge_methods_supported": ["S256"],
+     "token_endpoint_auth_methods_supported": ["client_secret_basic"]},
+    {"authorization_endpoint": "http://a.example/authorize", "token_endpoint": "https://a.example/token",
+     "registration_endpoint": "https://a.example/register", "code_challenge_methods_supported": ["S256"],
+     "token_endpoint_auth_methods_supported": ["none"]}
+  ]
+}

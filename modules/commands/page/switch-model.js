@@ -15,24 +15,25 @@ function switchAnswered(sid) {
   return answered && Date.now() - answered.at < SWITCH_ANSWER_MS ? answered : null;
 }
 
-// How much the conversation holds, when that's known (`tokens`), says what re-reading it costs. Don't ask again is
-// offered only where the app keeps that answer (`never`: Claude Desktop).
+// The model it would switch to, and what re-reading the conversation costs: how much it holds, when that's known
+// (`tokens`). Its answers say both outcomes, keeping the model it has or switching. Don't ask again is offered only
+// where the app keeps that answer (`never`: Claude Desktop).
 function switchHTML(s) {
   const q = s.switchAsk, sid = s.sessionId;
   state.shownAt['switch:' + sid] ??= Date.now();
   const was = esc(core.agent.modelName(q.from) || 'its model'), now = esc(core.agent.modelName(q.to) || q.to);
-  const size = q.tokens > 0 ? ` (about ${kTokens(q.tokens)} tokens)` : '';
+  const size = q.tokens > 0 ? `${kTokens(q.tokens)} tokens` : 'the whole session';
   return `<div class="perm switch-ask" data-switch="${esc(sid)}" data-stage="switch">`
-    + '<div class="perm-title">Switch model?</div>'
-    + `<div class="perm-why">This session is cached for ${was}. Switching to ${now} means Claude re-reads the whole`
-    + ` session${size} on your next message, which uses more of your limit.</div>`
-    + (q.never ? `<div class="never${state.switchNever[sid] ? ' on' : ''}"><span class="box"></span>Don't ask again</div>`
+    + `<div class="card-title">Switch to ${now}?</div>`
+    + `<div class="perm-why">Claude re-reads ${size} on your next message, which uses more of your limit.</div>`
+    + (q.never ? `<div class="never" role="checkbox" aria-checked="${!!state.switchNever[sid]}"><span class="tickbox">`
+      + '</span>Don\'t ask again</div>'
       : '')
-    + '<div class="perm-actions"><button class="cancel">Cancel</button>'
-    + '<button class="go perm-allow">Switch model</button></div></div>';
+    + `<div class="perm-actions"><button class="cancel">Keep ${was}</button>`
+    + '<button class="go perm-allow">Switch</button></div></div>';
 }
 
-// Don't ask again ticks on and off; Switch model or Cancel answers, once the card has been up long enough to be seen.
+// Don't ask again ticks on and off; Switch or Keep answers, once the card has been up long enough to be seen.
 // Switching, the card turns into the pick going in at once (commands.js), while the app passes the answer on.
 function pressSwitchCard(card, e) {
   const sid = card.dataset.switch, s = state.last.sessions.find((x) => x.sessionId === sid);

@@ -14,6 +14,19 @@ show('a request waiting', classify(session({ ask: { id: 'a', tool: 'Bash', input
 show('Claude waiting on you', classify(session({ status: 'waiting' }), NOW, unread));
 show('working', classify(session({ status: 'busy' }), NOW, unread));
 show('replied 5 min ago, not opened', classify(session({ ...reply, sessionId: 'r1' }), NOW, unread));
+const agentJob = { what: 'Review the native side', startedAt: min(5), holds: true, step: 'Reading Storage.m' };
+const shellJob = { what: 'Start the dev server', command: 'npm run dev', startedAt: min(5), holds: false };
+show('replied, with an agent of its own still at work in the background: not your move yet',
+  classify(session({ ...reply, background: [agentJob] }), NOW, unread));
+show('…a request for your OK among it: that waits on you',
+  classify(session({ ...reply, background: [agentJob], ask: { id: 'b', tool: 'Bash', input: {} } }), NOW, unread));
+show('…its next turn under way: working', classify(session({ status: 'busy', background: [agentJob] }), NOW, unread));
+show('replied, with only a shell command left running (a dev server): your move as before',
+  classify(session({ ...reply, background: [shellJob] }), NOW, unread));
+show('how many jobs run in the background, of every kind, and how many of them hold its work',
+  [[], [shellJob], [agentJob, shellJob], [agentJob, { ...agentJob, what: 'Write the docs' }, shellJob, shellJob,
+                                          shellJob]].map(
+    (background) => [backgroundRunning(session({ background })), backgroundAtWork(session({ background }))]));
 show('replied, opened here since', classify(session({ ...reply, sessionId: 'r2' }), NOW, readHere('r2')));
 show('replied, open in Claude since',
   classify(session({ ...reply, sessionId: 'r3', lastFocusedAt: min(1) }), NOW, unread));
@@ -147,6 +160,13 @@ show('another app taking the keyboard: the panel no longer has it, and the list 
 state.pressedRows.clear();
 renderWhenSettled = settle;
 pointerGone = gone;
+show("the list scrolls to show the row of the session you're on: one you switched to in Claude Desktop; one you "
+     + 'pressed here; going back for a moment, under that press, to the one its app still says; one you pressed in the '
+     + 'reader with none of its row in view, and with some of it in view; the same one as before; none',
+     [revealsOpen('b', 'a', new Set(), false), revealsOpen('b', 'a', new Set(['b']), true),
+      revealsOpen('a', 'b', new Set(['b']), true), revealsOpen('b', 'a', new Set(['b']), false),
+      revealsOpen('b', 'a', new Set(['b']), true), revealsOpen('a', 'a', new Set(), false),
+      revealsOpen(null, 'a', new Set(), false)]);
 
 section('What you have read');
 // One update after another, each with the session the app marks as the one you're on (followClaude runs on them, as
@@ -161,18 +181,18 @@ const tabs = [session({ sessionId: 'ta', ...repliedAt(min(10)) }), session({ ses
 markOn('ta', tabs, min(7));
 markOn('tb', tabs, min(6));
 show('the session you are on follows the mark, which alone reads nothing', [state.current, kindOn('tb')]);
-markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(5) }], min(5));
+markOn('tb', [tabs[0], asSent({ ...tabs[1], seenAt: min(5) })], min(5));
 keepSeen(state.last.sessions, min(5));
 show('…the app saw you looking at it after it replied: read', kindOn('tb'));
 markOn('tb', tabs, min(4));
 show('…and still read once the app has restarted, as the page keeps it', kindOn('tb'));
 markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(min(3)), seenAt: min(4) })], min(3));
 show('…a reply that came after you last looked is not read', kindOn('tb'));
-markOn('tb', [tabs[0], { ...tabs[1], seenAt: min(1) }], min(1));
+markOn('tb', [tabs[0], asSent({ ...tabs[1], seenAt: min(1) })], min(1));
 keepSeen(state.last.sessions, min(1));
 show('what the page keeps follows you while you stay on it', state.seen.tb === min(1));
 markOn('ta', tabs, NOW);
-markOn('tb', [tabs[0], { ...tabs[1], seenAt: NOW + 12 * 60000 }], NOW + 12 * 60000);
+markOn('tb', [tabs[0], asSent({ ...tabs[1], seenAt: NOW + 12 * 60000 })], NOW + 12 * 60000);
 keepSeen(state.last.sessions, NOW + 12 * 60000);
 show('…and once you have moved on, being on it again leaves it as it was', state.seen.tb === min(1));
 markOn('tb', [tabs[0], session({ sessionId: 'tb', ...repliedAt(NOW + 13 * 60000), seenAt: NOW + 14 * 60000 })],
@@ -244,9 +264,40 @@ show(`how long each change takes, all within the rebuild's motion (${MORPH_MS} m
        chatEnds(0, 110, 560, false), chatEnds(CHAT_STAGGER, 560, 70, false), chatEnds(CHAT_STAGGER, 560, 560, false)]);
 show('…erasing a little quicker than writing the same text', [chatTimes(0, 280, 0, false).erase,
                                                              chatTimes(0, 0, 280, false).write]);
+// Where a rewrite has got to, along the way (points), for a chat line or any other line of text taking new words.
+const rewriteSays = (t, from, to, tm) => {
+  const at = rewriteAt(t, from, to, tm);
+  return `${at.erasing ? 'erasing' : 'writing'} ${Math.round(at.pos)}`;
+};
+const kept = { from: { length: 110, keepPos: 60 }, to: { length: 100, keepPos: 60 } };
+const keptTimes = chatTimes(0, 50, 40, true), keptSwap = keptTimes.erase + keptTimes.gap;
+show('a rewrite keeping a verb (60 points of 110, then 100): the old erasing down to the verb, the new writing on from '
+     + 'it with no pause between, at its start, halfway through erasing, as it turns to writing, halfway through, and '
+     + 'at its end', [0, keptTimes.erase / 2, keptSwap, keptSwap + keptTimes.write / 2, keptSwap + keptTimes.write]
+  .map((ms) => rewriteSays(ms, kept.from, kept.to, keptTimes)));
+const apart = { from: { length: 110, keepPos: 0 }, to: { length: 70, keepPos: 0 } };
+const apartTimes = chatTimes(0, 110, 70, false), apartSwap = apartTimes.erase + apartTimes.gap;
+show('…sharing nothing: all of the old erased, a moment with nothing there, then the new written from the start',
+     [apartTimes.erase, apartTimes.erase + apartTimes.gap / 2, apartSwap, apartSwap + apartTimes.write]
+       .map((ms) => rewriteSays(ms, apart.from, apart.to, apartTimes)));
 const frames = listFrames(200, 185, [{ delta: -15, start: 400, ms: 600 }]);
 show('the list\'s height while a line gives up its room only once its text has gone (15 points, from 400 ms): where it '
      + 'starts, at 400 ms, and where it ends', [frames[0].height, frames[12].height, frames[30].height]);
+// How much taller than where it ends a box still gets on the rest of its way (overshootAhead), as morphOvershoot reads
+// it from the box's easing: what it has passed no longer counts.
+const ahead = (list) => {
+  const keys = list.map((k) => ({ offset: k.offset, height: parseFloat(k.height) }));
+  return (ms) => {
+    const done = ms / MORPH_MS, i = Math.floor(done * (keys.length - 1));
+    return Math.round(overshootAhead(keys, done, keys[i].height) * 10) / 10;
+  };
+};
+const shrinking = ahead(listFrames(140, 100, []));
+show('a row shrinking 40 points: taller only by what it has still to lose, within a point of its end by 640 ms of '
+     + 'its 1000, and none at its end', [0, 200, 400, 640, 1000].map(shrinking));
+const past = ahead(listFrames(100, 100, [{ delta: -20, start: 400, ms: 600 }]));
+show('one whose lines grow at once while another folds late, ending as tall as it began: taller by the most it gets '
+     + 'still to come, from the start, past its tallest, and at its end', [0, 400, 800, 1000].map(past));
 
 section("The row you're on, held at the edge");
 show('in view', stickyEdge(10, 150, 500));
@@ -335,6 +386,30 @@ show('…past the top, more of its place in view than that', stickyCovers(-30, 1
 show('…back in view, nothing', stickyCovers(-30, 150, 500, 72, -40));
 show('…past the bottom', stickyCovers(420, 150, 500, 72, 0));
 show('…taller than the list, nothing', stickyCovers(-100, 520, 500, 72, 0));
+// How far the list scrolls on by itself as your scroll ends, the row you're on 150 tall in a visible part 500 tall,
+// with room to scroll 300 each way, your scroll going on down the list (1) or back up (-1).
+show('the row left 35 short of the top, coming to it: the list scrolls on 35',
+  stickySnapBy(35, 150, 500, 300, 300, 1));
+show('…60 short: nothing', stickySnapBy(60, 150, 500, 300, 300, 1));
+show('…scrolled back away from it: nothing', stickySnapBy(35, 150, 500, 300, 300, -1));
+show('…its foot 35 short of the bottom, coming to it: the list scrolls back 35',
+  stickySnapBy(315, 150, 500, 300, 300, -1));
+show('…scrolled away from it: nothing', stickySnapBy(315, 150, 500, 300, 300, 1));
+show('…on the edge already: nothing',
+  [stickySnapBy(0, 150, 500, 300, 300, 1), stickySnapBy(350, 150, 500, 300, 300, -1)]);
+show('…where the list can\'t scroll that far: nothing', [stickySnapBy(35, 150, 500, 300, 20, 1),
+  stickySnapBy(315, 150, 500, 20, 300, -1)]);
+show('…taller than the list: nothing', stickySnapBy(30, 520, 500, 300, 300, 1));
+// How far the list moves as a box opens to type in, the list's visible part from 77 to 560 and the box's card at 382:
+// already in view, nothing; opened past the foot, the least that shows it, at that edge; the card's top kept in view.
+show('a box opened in view: nothing', leastToShow(500, 530, 382, 77, 560));
+show('…opened past the list\'s foot, 2 pt above it: the least that shows it', leastToShow(563, 591, 382, 77, 560));
+show('…so far past it that showing it whole would take its card\'s top out of view: only as far as the card\'s top',
+  leastToShow(700, 740, 120, 77, 560));
+show('…past the top: the least that shows it, back up', leastToShow(60, 90, 40, 77, 560));
+show('a row\'s details opened at the list\'s foot (480 to 576, the row\'s own foot at 584): down to the row\'s foot, its '
+     + 'room under them kept, not only to the details\' own', [leastToShow(480, 584, 382, 77, 560),
+                                                                leastToShow(480, 576, 382, 77, 560)]);
 // Back in view, what came on the row while it was away counts as only just shown.
 state.shownAt = { 'compact:s': NOW - 5000, 'steps:other': NOW - 5000, ask1: NOW - 5000 };
 const realNow = Date.now;
@@ -344,6 +419,93 @@ Date.now = realNow;
 show('the row back in view: its cards and its request count as just shown, another row\'s don\'t',
   Object.entries(state.shownAt).map(([key, at]) => `${key} ${at === NOW ? 'now' : 'before'}`).join(', '));
 state.shownAt = {};
+
+section('The line under the heads');
+// Which of the things that stay put over what scrolls has the thin line under it (top first, those showing), by how far
+// the view under them is scrolled: the lowest, only while something scrolls under it.
+const headLine = (fixed, scrolled) => lineUnder(fixed, scrolled) || 'none';
+show('the list at its top, under the header: none', headLine(['header'], 0));
+show('…scrolled: under the header', headLine(['header'], 40));
+show('…a part of a point down, as the list settles: still none', headLine(['header'], 0.4));
+show('the setup line and notifications\' line under the header, scrolled: under the lowest, notifications\'',
+     headLine(['header', 'install', 'notices'], 40));
+show('…at its top: none', headLine(['header', 'install', 'notices'], 0));
+show('a new conversation\'s card under the header, scrolled: under the card', headLine(['header', 'dock'], 12));
+show('the folded panel\'s head in the header\'s place, its list scrolled: under it', headLine(['peekHead'], 30));
+show('the panel\'s back, its page scrolled: under its head; at its top: none',
+     [headLine(['back head'], 80), headLine(['back head'], 0)]);
+show('the reader, its body scrolled: under its head; at its top: none',
+     [headLine(['reader head'], 120), headLine(['reader head'], 0)]);
+show('One Task\'s strip under the reader\'s head, the task scrolled: under the strip, not the head',
+     headLine(['reader head', 'ot-strip'], 120));
+show('nothing that stays put: none', headLine([], 50));
+
+section('Requests waiting on you');
+// Each { id, fresh, inView, edge, gone, y }, the one waiting longest first; what's brought into view, what the strip at
+// each of the list's edges names, and what counts as seen. Past an edge, a row is wholly out of sight unless said.
+const ask = (id, fresh, edge = null, y = 0, gone = edge) => ({ id, fresh, inView: !edge, edge, gone, y });
+const stripsSaid = (s) => ['top', 'bottom'].filter((e) => s[e]).map((e) => `${s[e].id} at the ${e}${s[e].more ? ` +${s[e].more}` : ''}`)
+  .join(' and ') || '-';
+const next = (waiting, how) => {
+  const n = waitingNext(waiting, { busy: false, pointer: false, answered: false, ...how });
+  return `bring ${n.bring?.id || '-'}, strip ${stripsSaid(n.strips)}, seen [${n.seen.join(' ')}]`;
+};
+show('a new one out of view, nothing else going on: brought into view', next([ask('a', true, 'top')]));
+show('…already in view: only seen', next([ask('a', true)]));
+show('two new at once: the newer is brought, the older counts as seen', next([ask('a', true, 'bottom'), ask('b', true, 'top')]));
+show('a new one while you answer another: the strip, after this', next([ask('a', true, 'top')], { busy: true }));
+show('…with the pointer on the panel instead: the strip too', next([ask('a', true, 'top')], { pointer: true }));
+show('…one seen before, out of view, pointer on the panel: not brought, but the strip names it', next([ask('a', false, 'top')], { pointer: true }));
+show('…while you answer: a strip at each edge with one past it',
+  next([ask('a', false, 'bottom'), ask('b', true, 'top'), ask('c', true)], { busy: true }));
+show('you answered one: the one waiting longest out of view is brought, pointer or not',
+  next([ask('a', false, 'bottom'), ask('b', true, 'top')], { answered: true, pointer: true }));
+show('…nothing out of view: nothing moves', next([ask('a', false)], { answered: true }));
+show('…answered, then straight on to another card: nothing moves', next([ask('a', false, 'top')],
+  { answered: true, busy: true }));
+show('one being brought into view isn\'t named in the strip on its way',
+  next([ask('a', true, 'top')], { pointer: true, bringing: 'a' }));
+show('…stopped by your scrolling before it showed: still named', next([ask('a', true, 'top')], { pointer: true }));
+show('…three new at once: the newest is brought, the others count as seen, and the strip names them',
+  next([ask('a', true, 'top'), ask('b', true, 'bottom'), ask('c', true, 'top')]));
+
+// Looks in a row, as the list is drawn: what each brings or names, and whether an answer is still to be gone on from.
+const looks = (steps) => {
+  const ws = { answerAt: 0, answered: false, bringing: null };
+  return steps.map(([waiting, how]) => {
+    const n = waitingLook(ws, waiting, { lastAnswer: 0, card: false, keys: false, settled: true, pointer: true, ...how });
+    return `bring ${n.bring?.id || '-'}, strip ${stripsSaid(n.strips)}${ws.answered ? ', answer kept' : ''}`;
+  }).join(' → ');
+};
+show('a second asks while you answer the first, then you answer with the panel still holding the keys: it\'s brought',
+  looks([[[ask('b', true, 'top')], { card: true, keys: true }],
+         [[ask('b', false, 'top')], { lastAnswer: 5, keys: true }]]));
+show('…a draw while the answered card is still going: the answer is kept, and the next look brings it',
+  looks([[[ask('b', true, 'top')], { card: true }],
+         [[ask('b', false)], { lastAnswer: 5, settled: false }],
+         [[ask('b', false, 'top')], { lastAnswer: 5 }]]));
+show('…the answer looked at once only: a look after that doesn\'t bring it again',
+  looks([[[ask('b', false, 'top')], { lastAnswer: 5 }], [[ask('b', false, 'top')], { lastAnswer: 5 }]]));
+show('…straight on to another card before the rows stop: nothing moves, and the strip names it',
+  looks([[[ask('b', false, 'top')], { lastAnswer: 5, settled: false, card: true }],
+         [[ask('b', false, 'top')], { lastAnswer: 5, card: true }]]));
+show('one brought into view, then scrolled away from by hand, the pointer off the panel: never brought again, the strip held at its edge',
+  looks([[[ask('a', true, 'bottom')], { pointer: false }], [[ask('a', false, 'bottom')], { pointer: false }],
+         [[ask('a', false, 'top')], { pointer: false }]]));
+show('…back in view: the strip goes', next([ask('a', false)]));
+show('two seen before, one below and one above: a strip at each edge, top and bottom at once',
+  next([ask('a', false, 'bottom'), ask('b', false, 'top')], { pointer: true }));
+show('two above: the top strip names the one nearest the edge, the lower of them, with how many more',
+  next([ask('a', false, 'top', 10), ask('b', false, 'top', 50)], { pointer: true }));
+show('two below: the bottom strip names the one nearest the edge, the higher of them',
+  next([ask('a', false, 'bottom', 500), ask('b', false, 'bottom', 400)], { pointer: true }));
+show('one partly in view past the bottom: no strip, so it never shows twice',
+  next([ask('a', false, 'bottom', 400, null)], { pointer: true }));
+show('…brought into view all the same, after an answer, as it doesn\'t show whole',
+  next([ask('a', false, 'bottom', 400, null)], { answered: true }));
+show('two below, the nearer still partly in view: the strip names the one wholly out of sight, and no more',
+  next([ask('a', false, 'bottom', 400, null), ask('b', false, 'bottom', 500)], { pointer: true }));
+show('typing in a box elsewhere, no answer given: nothing moves', looks([[[ask('b', true, 'top')], { keys: true, pointer: false }]]));
 
 section('Sorting');
 const since = (t) => `now-${Math.round((NOW - t) / 60000)}m`;
@@ -375,48 +537,33 @@ section('Details line');
 for (const id of ['claude-opus-5-5', 'claude-sonnet-5-5[1m]', 'claude-haiku-5-5', 'claude-fable-5-1', 'claude-opus-5',
                   'other-model'])
   show(`model name of ${id}`, modelName(id));
-show('context window, Opus 5.5', contextWindow('claude-opus-5-5', 1000));
-show('context window, Sonnet 5.5', contextWindow('claude-sonnet-5-5', 1000));
-show('context window, Sonnet 5.5 [1m]', contextWindow('claude-sonnet-5-5[1m]', 1000));
-show('context window, Sonnet 5.5 past 200k', contextWindow('claude-sonnet-5-5', 250000));
-show('auto-compact at, 1M window', compactLimit({ model: 'claude-opus-5-5', tokens: 1000 }));
+show('context window, as the app gives it', contextWindow({ model: 'claude-opus-5-5', tokens: 1000, window: 1000000 }));
+show('context window, none given', contextWindow({ model: 'claude-opus-5-5', tokens: 1000 }));
+show('auto-compact at, 1M window', compactLimit({ model: 'claude-opus-5-5', tokens: 1000, window: 1000000 }));
 show('auto-compact at, your own setting',
-  compactLimit({ model: 'claude-sonnet-5-5', tokens: 1000, compactWindow: 150000 }));
-show('auto-compact at, 200k window', compactLimit({ model: 'claude-sonnet-5-5', tokens: 1000 }));
+  compactLimit({ model: 'claude-sonnet-5-5', tokens: 1000, window: 200000, compactWindow: 150000 }));
+show('auto-compact at, 200k window', compactLimit({ model: 'claude-sonnet-5-5', tokens: 1000, window: 200000 }));
 for (const n of [427000, 1000000, 1500000]) show(`tokens ${n}`, kTokens(n));
 for (const s of [5, 45, 300, 3 * 3600, 2 * 86400]) show(`ago ${s}s`, ago(s * 1000));
 for (const s of [12, 76, 3780]) show(`elapsed ${s}s`, elapsed(s * 1000));
 const ringColour = (agent) => (/color:([^;]+);/.exec(contextRing(session({ agent })) || '') || [])[1];
-show('ring colour, 10% used', ringColour({ model: 'claude-opus-5-5', tokens: 100000 }));
-show('ring colour, 70% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 140000 }));
-show('ring colour, 90% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 180000 }));
-const opus = (tokens) => ({ model: 'claude-opus-5-5', tokens });
-const nowWhy = (fields) => compactNow(session({ ...reply, ...fields }), NOW);
-show('compact now: nearly full', nowWhy({ agent: { model: 'claude-sonnet-5-5', tokens: 175000 } }));
-show('compact now: long', nowWhy({ agent: opus(450000) }));
-show('compact now: big, its work committed', nowWhy({ agent: opus(250000), outcome: 'Committed' }));
-show('compact now: big, after an hour away', nowWhy({ agent: opus(250000), ...repliedAt(min(61)) }));
-show('not now: big, its edits not committed yet', nowWhy({ agent: opus(250000), editedAt: min(10),
-  workRoot: '/work/app', checkout: { changes: 3 } }));
-show('not now: committed, but small', nowWhy({ agent: opus(150000), outcome: 'Committed' }));
-show('not now: small, after an hour away', nowWhy({ agent: opus(150000), ...repliedAt(min(61)) }));
-show('not now: at work', nowWhy({ agent: opus(950000), status: 'busy' }));
-show('not now: asking', nowWhy({ agent: opus(950000), ask: { id: 'a', tool: 'Bash', input: {} } }));
-show('not now: compacting', nowWhy({ agent: opus(950000), compacting: min(1) }));
-show('not now: ended', nowWhy({ agent: opus(950000), status: 'closed', pid: 0 }));
-show("not now: the app says a compaction couldn't go in", nowWhy({ agent: opus(950000), noCompact: true }));
-show('not now: big, its edits left in another checkout', nowWhy({ agent: opus(250000), editedAt: min(10),
-  workRoot: '/work/app-x', checkout: { changes: 0 } }));
-show('compact now: big, its edits in its own checkout all committed', nowWhy({ agent: opus(250000),
-  editedAt: min(10), workRoot: '/work/app', checkout: { changes: 0 } }));
-show('not now: big, quiet for an hour, but you were on it since', nowWhy({ agent: opus(250000),
-  ...repliedAt(min(61)), seenAt: min(5) }));
-show("not now: big, quiet for an hour, and it's the one you're on", nowWhy({ agent: opus(250000),
-  ...repliedAt(min(61)), focused: true }));
+show('ring colour, 10% used', ringColour({ model: 'claude-opus-5-5', tokens: 100000, window: 1000000 }));
+show('ring colour, 70% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 140000, window: 200000 }));
+show('ring colour, 90% used', ringColour({ model: 'claude-sonnet-5-5', tokens: 180000, window: 200000 }));
+const opus = (tokens) => ({ model: 'claude-opus-5-5', tokens, window: 1000000 });
 state.last.now = NOW;
-const nowRing = contextRing(session({ ...reply, sessionId: 'n1', agent: opus(980000) }));
+// Whether now is a good time to compact is the app's (CompactTime, --print-compact-time in tests/rows.sh): the ring
+// goes by the row's compactTime.
+const full = { why: "it's nearly full, and would soon compact by itself", kind: 'full' };
+const nowRing = contextRing(session({ ...reply, sessionId: 'n1', agent: opus(980000), compactTime: full }));
 show('a ring that says compact now', /class="ctx open now"/.test(nowRing) && /% · Compact now</.test(nowRing));
 show('…and why, in its tip', /title="([^"·]*)/.exec(nowRing)?.[1]);
+show("a ring with no compactTime doesn't, however full",
+  /Compact now/.test(contextRing(session({ ...reply, sessionId: 'n2', agent: opus(980000) }))));
+const cantRing = contextRing(session({ ...reply, sessionId: 'n3', agent: opus(450000), compactTime: full,
+  compactNote: { text: "Compact at Breaks can't: Its window has other tabs, which the terminal could type into" } }));
+show("…and a module's note on why a compaction can't go in, in its tip", /title="[^"]*· (Compact at Breaks[^"]*)"/
+  .exec(cantRing)?.[1]);
 calm.matches = false;  // the settling is motion, which the stand-in otherwise turns off
 const ringOf = (fields) => contextRing(session({ ...reply, sessionId: 'k1', agent: opus(640000), ...fields }));
 state.hoverCtx = 'k1';
@@ -431,7 +578,8 @@ show('compacted: the arc fades where it was as the ring fills to its new size', 
 show("…which one that wasn't compacting doesn't",
   /settling/.test(contextRing(session({ ...reply, sessionId: 'k2', agent: opus(80000) }))));
 calm.matches = true;
-const k3 = (fields) => contextRing(session({ ...reply, sessionId: 'k3', agent: opus(980000), ...fields }));
+const k3 = (fields) => contextRing(session({ ...reply, sessionId: 'k3', agent: opus(980000), compactTime: full,
+  ...fields }));
 k3({ compacting: min(1) });
 show("compacted, its new size not read yet: it doesn't say compact now", !/Compact now/.test(k3({})));
 show('…nor 29s on with the same size; 31s on (stopped with Esc), it does again',
@@ -441,7 +589,290 @@ const k4 = (tokens, fields) => contextRing(session({ ...reply, sessionId: 'k4', 
 k4(980000, { compacting: min(1) });
 k4(980000, {});
 k4(80000, {});
-show('once its new size is in, a size that grows big again says compact now', /Compact now/.test(k4(980000, {})));
+show('once its new size is in, a size that grows big again says compact now',
+  /Compact now/.test(k4(980000, { compactTime: full })));
+
+{
+  // Beside the folded panel, out for what a module says is new in the session (a reply in its side chat): its line in
+  // Claude's place, as a reply you haven't read, and its time on the title line, working or not; in the list, the row
+  // as it is.
+  const said = { line: 'In your side chat: Yes, <it> is search-v2 now.', at: NOW - 120000 };
+  const parts = (s, kind, opts) => {
+    const html = rowHTML(s, kind, NOW, opts);
+    return [/<div class="claude[^>]*>.*?<\/div>/s.exec(html)?.[0] ?? null, /<div class="you">/.test(html),
+            /class="time"[^>]*>([^<]*)</.exec(html)?.[1] ?? null];
+  };
+  const idle = session({ sessionId: 'q1', lastReply: 'Done with Quill.', lastReplyAt: NOW - 3600000,
+                         lastPrompt: 'Ship it', lastPromptAt: NOW - 3700000 });
+  show('a chat out for a side chat\'s reply: its line, nothing of yours, its time',
+       parts(idle, 'seen', { chat: true, said }));
+  const busy = session({ sessionId: 'q2', status: 'busy', lastPrompt: 'Tidy the docs', lastPromptAt: NOW - 60000,
+                         activity: 'Reading index.md' });
+  show('…while the session works', parts(busy, 'busy', { chat: true, said }));
+  show('…without a line, the row as it is', parts(idle, 'seen', { chat: true, said: { at: said.at } }));
+  show('…in the list, the row as it is', parts(idle, 'seen', { said }));
+}
+{
+  // Settings' Show Conversation Text off (state.conversationShown, setConversationShown): no one's words on a row, yours
+  // or another session's, and Claude's line only where conversationLine keeps it: what the panel knows, not what anyone
+  // wrote. The time goes on the title line, the dot says the row's state in words, and the rest of the row stays: a
+  // request's card, what runs in the background, and a module's note, a task's ask line among them.
+  const keeps = (fields, kind, answered = null) => conversationLine(session(fields), kind, answered);
+  show('Claude\'s line kept with the conversation hidden: [asks you, answered beside the folded panel, compacting, '
+       + 'starting from the panel, a reply, working, idle]',
+       [keeps({}, 'needs'), keeps({}, 'needs', { text: '✓ Answered' }), keeps({ compacting: min(1) }, 'busy'),
+        keeps({ pending: true }, 'busy'), keeps({}, 'turn'), keeps({}, 'busy'), keeps({}, 'idle')]);
+  const askNote = (row) => (row.s.sessionId === 'h9'
+    ? { text: 'Do: Answer the question in Fern\'s new tab', tone: 'turn', cls: 'ask-note',
+        html: askLineHTML('Do: Answer the question in Fern\'s new tab') } : null);
+  const brief = (row) => {
+    if (row.s.sessionId.startsWith('hb')) { row.brief = true; row.chatless = row.kind !== 'needs'; }
+  };
+  core.rowNotes.push(askNote); core.rowLooks.push(brief);
+  const text = (html) => html?.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() ?? null;
+  const seen = (s, kind = classify(s, NOW, view()), opts = {}) => {
+    const html = rowHTML(s, kind, NOW, opts);
+    return { you: /<div class="you">/.test(html), claude: text(/<div class="claude[^>]*>(.*?)<\/div>/s.exec(html)?.[1]),
+             time: /class="time"/.test(html), dot: /class="dot"[^>]*aria-label="([^"]*)"/.exec(html)?.[1] ?? null,
+             card: /<div class="perm [^"]*" data-ask=/.test(html), running: /background-work/.test(html),
+             note: text(/<div class="step-note[^>]*>(.*?)<\/div>/s.exec(html)?.[1]) };
+  };
+  const command = { id: 'h4a', tool: 'Bash', input: { command: 'npm test', description: 'Run the tests' },
+                    truncated: false };
+  const question = { id: 'h5a', tool: 'AskUserQuestion', truncated: false, input: { questions: [
+    { question: 'Which database?', header: 'Database', options: [{ label: 'Postgres' }, { label: 'SQLite' }] }] } };
+  const cases = [
+    ['a reply you haven\'t read', session({ sessionId: 'h1', ...reply })],
+    ['working, its step and timer', session({ sessionId: 'h2', status: 'busy', statusUpdatedAt: min(2),
+      lastPrompt: 'run the suite', lastPromptAt: min(2), activity: 'Reading cart.test.ts' })],
+    ['a message another session sent, under its name', session({ sessionId: 'h3', ...reply,
+      lastPrompt: 'Take the cent next.', promptFrom: 'Wren', lastFocusedAt: min(1) })],
+    ['a command waiting for your OK: what for, and its card', session({ sessionId: 'h4', status: 'waiting',
+      lastPrompt: 'add the coupons table', lastPromptAt: min(3), ask: command })],
+    ['a question: what about, and its card', session({ sessionId: 'h5', status: 'waiting', ask: question })],
+    ['compacting', session({ sessionId: 'h6', ...reply, compacting: min(1) })],
+    ['replied, a dev server running in the background', session({ sessionId: 'h7', ...reply, background: [shellJob] })],
+    ['a conversation starting from the panel, your words in it', session({ sessionId: 'h8', pending: true,
+      status: 'busy', name: 'New conversation', lastPrompt: 'Tidy the docs', lastPromptAt: min(0),
+      activity: 'Starting in Ghostty' })],
+    ['a task waiting on you, its ask line in the row\'s note', session({ sessionId: 'h9', ...reply })],
+    ['a row shown briefly (Group by Team), replied', session({ sessionId: 'hb1', ...reply })],
+    ['…asking you', session({ sessionId: 'hb2', status: 'waiting', ask: { ...command, id: 'hb2a' } })],
+    ['stopped', session({ sessionId: 'h10', ...reply, status: 'closed', pid: 0, opensIn: 'Ghostty' })],
+  ];
+  state.conversationShown = false;
+  for (const [name, s] of cases) show(name, seen(s));
+  const chatAsk = session({ sessionId: 'h11', status: 'waiting', ask: { ...command, id: 'h11a' } });
+  answered('h11a', 'once');
+  show('a chat beside the folded panel, just answered there: what you answered stays', seen(chatAsk, 'needs',
+                                                                                             { chat: true }));
+  delete state.answering.h11a; delete state.answeredAt.h11a;
+  const listAsk = session({ sessionId: 'h13', status: 'waiting', ask: { ...command, id: 'h13a' } });
+  answered('h13a', 'once');
+  const receipt = rowHTML(listAsk, 'needs', NOW);
+  show('a list row whose request you just answered: its line, and the line saying what you answered in the card\'s '
+       + 'place', [seen(listAsk).claude, text(/<div class="perm ask-receipt[^>]*>(.*?)<\/div>/s.exec(receipt)?.[1])]);
+  delete state.answering.h13a; delete state.answeredAt.h13a;
+  show('the dot\'s words: stopped, its reply read; and a request answered beside the folded panel',
+       [dotWords(session({ status: 'closed', pid: 0 }), 'seen'), dotWords(session({}), 'needs', { text: '✓' })]);
+  show('a chat out for a side chat\'s reply: its name and time, without the reply', seen(session({ sessionId: 'h12',
+    ...reply }), 'seen', { chat: true, said: { line: 'In your side chat: Yes, it is.', at: min(1) } }));
+  state.conversationShown = true;
+  show('…and with it on again, the reply and your message are back', seen(session({ sessionId: 'h1', ...reply })));
+  core.rowNotes.splice(core.rowNotes.indexOf(askNote), 1);
+  core.rowLooks.splice(core.rowLooks.indexOf(brief), 1);
+}
+{
+  // An ask line has one action, at its end: another module's for what it wants (`act.want`, askAct: 'try' is Deploy's),
+  // else the note's own (`act.html`), else none; and while it asks, nothing else on the row offers one: what ends the
+  // bottom line (Deploy's button, core.slots.placeEnd) is drawn nowhere, on a row shown briefly, a full row or the chat
+  // beside the folded panel. Any other note leaves it where it was: on a full row's bottom line, at a brief row's note.
+  // Rows whose id starts with deb are shown briefly; one ending in try asks you to try (Deploy), plan to approve a plan
+  // (its own button), ask has no action, quiet a quiet note, and said an ask said in the work line's place.
+  // As the team module does, a chat beside the folded panel is the row whole.
+  const look = (row) => {
+    if (row.s.sessionId.startsWith('deb') && !row.chat) { row.brief = true; row.chatless = true; }
+  };
+  const asked = (act) => ({ html: askLineHTML('Do: Try the search box'), cls: 'ask-note', line: true, quiet: false,
+                            tone: 'turn', act });
+  const askNote = (row) => {
+    const id = row.s.sessionId;
+    if (id.endsWith('try')) return asked({ want: 'try', html: '<span class="play">[There]</span>' });
+    if (id.endsWith('plan')) return asked({ html: '<span class="play">[Plan]</span>' });
+    if (id.endsWith('ask')) return asked();
+    if (id.endsWith('quiet')) return { text: 'Up next: after the search box', quiet: true, line: true };
+    if (id.endsWith('said')) return { text: 'Do: Try the search box', cls: 'ask-note', quiet: false, tone: 'turn' };
+    return null;
+  };
+  const deploy = () => '<button class="play">[Deploy]</button>';
+  const tryAct = (row) => (row.askWant === 'try' ? '<button class="play">[Deploy]</button>' : '');
+  core.rowLooks.push(look); core.rowNotes.push(askNote); core.slots.placeEnd.push(deploy);
+  core.slots.askAct.push(tryAct);
+  const where = (id, opts) => {
+    const html = rowHTML(session({ sessionId: id, ...reply }), 'turn', NOW, opts);
+    const note = /<div class="step-note[^>]*>(?:(?!<\/div>).)*<\/div>/s.exec(html)?.[0] || '';
+    return { atNote: (note.match(/\[(\w+)\]/g) || []).join(' '),
+             onBottomLine: /<div class="where">(?:(?!<\/div>).)*\[Deploy\]/s.test(html),
+             times: (html.match(/\[Deploy\]/g) || []).length };
+  };
+  show('an ask to try has Deploy alone at its end: on a row shown briefly', where('deb-try'));
+  show('…on a full row, which leaves the bottom line without it', where('de-try'));
+  show('…and on the chat beside the folded panel', where('de-try', { chat: true }));
+  show('an ask to approve a plan has its own button alone, and no Deploy anywhere: on a row shown briefly',
+       where('deb-plan'));
+  show('…on a full row', where('de-plan'));
+  show('…and on the chat beside the folded panel', where('de-plan', { chat: true }));
+  show('an ask with no action of its own: nothing at its end, and no Deploy anywhere', where('de-ask'));
+  show('a quiet note on a full row leaves Deploy on the bottom line', where('de-quiet'));
+  show('…and so does a note said in the work line\'s place', where('de-said'));
+  show('…and a full row with no note', where('de-none'));
+  show('…while a quiet note on a row shown briefly has it at its end', where('deb-quiet'));
+  // The list's row and its chat drawn in turn, as each update draws both: the chat isn't the row, so its Deploy in
+  // another place doesn't count as the row's moving, and its buttons stay as long shown as they were.
+  // (A button of the case's own, as the modules' forget theirs on a row without them.)
+  core.forgotten.prefixes.push('end-test');
+  where('deb-quiet');
+  state.shownAt['end-test:deb-quiet'] = Date.now() - 60000;
+  where('deb-quiet', { chat: true }); where('deb-quiet'); where('deb-quiet', { chat: true });
+  show('…the row and its chat drawn in turn: its buttons aren\'t taken as just shown again',
+       !justShown('end-test:deb-quiet'));
+  delete state.shownAt['end-test:deb-quiet'];
+  // A member's chat, drawn whole beside the folded panel, keeps where its own Deploy was apart from its brief row's:
+  // with the panel folded only the chat is drawn, and when an ask to try arrives the chat's Deploy moves to the ask
+  // line; open, each update draws the row and then the chat, and when the ask goes the chat's Deploy moves back to the
+  // bottom line. Each move waits to be seen, once.
+  let asking = false;
+  const memberAsk = (row) => (asking && row.s.sessionId === 'deb-member' ? asked({ want: 'try' }) : null);
+  core.rowNotes.unshift(memberAsk);
+  const chatAt = () => !!where('deb-member', { chat: true }).atNote;
+  const update = () => [!!where('deb-member').atNote, chatAt()];
+  const seenAgo = () => { state.shownAt['end-test:deb-member'] = Date.now() - 60000; };
+  const fresh = () => justShown('end-test:deb-member');
+  update(); seenAgo(); update();
+  const still = !fresh();
+  asking = true;
+  const arrived = [chatAt(), fresh()];
+  seenAgo(); chatAt();
+  const once = !fresh();
+  update(); seenAgo(); update();
+  asking = false;
+  const gone = [update(), fresh()];
+  show('a member\'s chat: [its row and chat drawn in turn: not just shown, folded, the ask arriving: its Deploy at the '
+       + 'ask line and just shown, drawn again: not just shown, open, the ask going: [row, chat] at the ask line and '
+       + 'just shown]', [still, arrived, once, gone]);
+  core.rowNotes.splice(core.rowNotes.indexOf(memberAsk), 1);
+  // An ask's own button giving way to Deploy at the same place (a Run's Copy, then a Try): Deploy waits to be seen,
+  // as a press meant for Copy may land on it.
+  let swap = 'plan';
+  const swapAsk = (row) => (row.s.sessionId === 'de-swap'
+    ? asked(swap === 'plan' ? { html: '<span class="play">[Plan]</span>' } : { want: 'try' }) : null);
+  core.rowNotes.unshift(swapAsk);
+  where('de-swap');
+  state.shownAt['end-test:de-swap'] = Date.now() - 60000;
+  where('de-swap');
+  const before = justShown('end-test:de-swap');
+  swap = 'try';
+  const swapped = where('de-swap').atNote;
+  show('an ask\'s own button giving way to Deploy: [just shown before, Deploy now there, just shown]',
+       [before, swapped, justShown('end-test:de-swap')]);
+  core.rowNotes.splice(core.rowNotes.indexOf(swapAsk), 1);
+  delete state.shownAt['end-test:de-swap'];
+  delete state.shownAt['end-test:deb-member'];
+  core.forgotten.prefixes.pop();
+  core.rowLooks.splice(core.rowLooks.indexOf(look), 1);
+  core.rowNotes.splice(core.rowNotes.indexOf(askNote), 1);
+  core.slots.placeEnd.splice(core.slots.placeEnd.indexOf(deploy), 1);
+  core.slots.askAct.splice(core.slots.askAct.indexOf(tryAct), 1);
+}
+{
+  // The context ring is the commands module's: on a full row's bottom line, but not while the row asks something of
+  // you, so the ask has one action.
+  let want = null;
+  const askNote = (row) => (row.s.sessionId === 'ring' && want !== null
+    ? { html: askLineHTML('Compact: its context is nearly full'), cls: 'ask-note', line: true, quiet: false,
+        tone: 'turn', act: want ? { want } : undefined } : null);
+  core.rowNotes.unshift(askNote);
+  const rings = () => {
+    const html = rowHTML(session({ sessionId: 'ring', ...reply, agent: { model: 'claude-opus-5-5', tokens: 150000,
+                                                                          compactWindow: 200000 } }), 'turn', NOW);
+    const note = /<div class="step-note[^>]*>(?:(?!<\/div>).)*/s.exec(html)?.[0] ?? '';
+    const bottom = /<div class="where">(?:(?!<\/div>).)*/s.exec(html)?.[0] ?? '';
+    return [/class="ctx/.test(note), /class="ctx/.test(bottom)];
+  };
+  show('the context ring [at the ask, on the bottom line]: no ask', rings());
+  want = '';
+  show('…an ask with no action of its own', rings());
+  want = 'try';
+  show('…an ask to try', rings());
+  core.rowNotes.splice(core.rowNotes.indexOf(askNote), 1);
+}
+{
+  // An ask line's bubble, in the colour of how pressing it is (`look`; normal when it doesn't say), its priority's name
+  // first in bold in place of the mark, and its one action's button (askActHTML), its words in its tip, made safe.
+  const bubble = (look, priority) => noteHTML({ html: askLineHTML('Try the search box', 0, '', '', '', priority),
+                                                cls: 'ask-note task', line: true, look, quiet: false, tone: 'turn' })
+    .replace(/<svg[^]*?<\/svg>/, '[mark]');
+  show('an ask\'s bubble: urgent, named', bubble('urgent', 'Critical'));
+  show('…quiet, named', bubble('low', 'P2'));
+  show('…with no look or name: your move\'s colour, and the mark', bubble(undefined, ''));
+  show('an ask\'s action', askActHTML('[icon]', 'Read the plan, in <Wren>’s session', ' data-x="1"'));
+}
+// The line saying what a session is doing while it works, as the row gives it to others to draw (workLineHTML): the
+// same as the row's Claude's line, under the label it's given, made safe.
+show('the working line under its own label', workLineHTML(session({ status: 'busy', activity: 'Reading cart.ts',
+  lastPromptAt: min(2) }), NOW, { label: 'Wren <cart>' }));
+show('…the same as the row\'s Claude\'s line, under Claude\'s', (() => {
+  const s = session({ status: 'busy', activity: 'Reading cart.ts', lastPromptAt: min(2) });
+  return chatHTML(s, 'busy', NOW, { yours: false }) === workLineHTML(s, NOW);
+})());
+{
+  // A module's end after Claude's words (core.slots.chatEnd), on every Claude line and only there; whether the row has
+  // that line, as the bottom line's slots see it (row.claudeLine).
+  let saw;
+  core.slots.chatEnd.push((row) => `[Talk ${row.s.sessionId}]`);
+  core.slots.placeEnd.push((row) => { saw = row.claudeLine; return ''; });
+  const claudeLine = (s, kind) => {
+    const html = rowHTML(s, kind, NOW);
+    return [/<div class="claude[^>]*>.*?<\/div>/s.exec(html)?.[0] ?? null, (html.match(/chat-end/g) || []).length, saw];
+  };
+  const working = session({ sessionId: 'e1', status: 'busy', lastPrompt: 'Tidy the docs', lastPromptAt: NOW - 60000,
+                            activity: 'Reading index.md' });
+  show('working: after the time', claudeLine(working, 'busy'));
+  show('a reply: after its words', claudeLine(session({ sessionId: 'e2', ...reply }), 'turn'));
+  show('asking: after what for', claudeLine(session({ sessionId: 'e3', status: 'waiting', notice: 'Pick one' }), 'needs'));
+  show('only your message (a turn you stopped): none, and no Claude line',
+       claudeLine(session({ sessionId: 'e4', lastPrompt: 'go on', lastPromptAt: min(2), lastReply: 'Done.',
+                           lastReplyAt: min(3) }), 'turn'));
+  show('idle: none, and no Claude line', claudeLine(session({ sessionId: 'e5' }), 'idle'));
+  core.slots.chatEnd.pop();
+  core.slots.placeEnd.pop();
+  show('with no module there: no end', claudeLine(working, 'busy').slice(0, 2));
+}
+{
+  // The title line's places: after its words (titleEnd), then what lines up at its end before the time (titleTrail);
+  // and what a module sees as they're asked, so one thing goes in one place: whether the row has Claude's line
+  // (row.claudeLine) and whether the bottom line's end is drawn (row.placeEnd). Rows whose id starts with b are
+  // shown briefly, and those with bn have a note, as a team's are.
+  const saw = [];
+  const look = (row) => { if (row.s.sessionId.startsWith('b')) row.brief = true; };
+  const note = (row) => (row.s.sessionId.startsWith('bn') ? { text: 'Planning: 2 of 5' } : null);
+  const words = (row) => (row.brief ? '<span class="tpart">design system</span>' : '');
+  const end = (row) => { saw.push([row.s.sessionId, row.claudeLine, row.placeEnd]); return '[Talk]'; };
+  const trail = (row) => (row.brief ? '[track]' : '');
+  core.rowLooks.push(look); core.rowNotes.push(note); core.slots.brief.push(words);
+  core.slots.titleEnd.push(end); core.slots.titleTrail.push(trail);
+  const titleLine = (s, kind) => /<div class="line1">[^]*?<\/div>/.exec(rowHTML(s, kind, NOW))[0]
+    .replace(/\s+/g, ' ').replace(/<span class="time"[^>]*>[^<]*<\/span>/, '[time]');
+  show('a brief row, idle, no note: the words, then the end, then the trail, then the time',
+       titleLine(session({ sessionId: 'b1' }), 'idle'));
+  show('a brief row with a reply', titleLine(session({ sessionId: 'b2', ...reply }), 'turn'));
+  show('a brief row with a note', titleLine(session({ sessionId: 'bn3' }), 'idle'));
+  show('a full row: the same places, after the name', titleLine(session({ sessionId: 'f4' }), 'idle'));
+  show('what each saw: [row, Claude\'s line, the bottom line\'s end drawn]', saw);
+  for (const [list, part] of [[core.rowLooks, look], [core.rowNotes, note], [core.slots.brief, words],
+                              [core.slots.titleEnd, end], [core.slots.titleTrail, trail]])
+    list.splice(list.indexOf(part), 1);
+}
 
 section('Projects');
 show('a worktree counts toward its repo', projectOf(session({
@@ -468,7 +899,7 @@ const rows = [
     { question: 'Name it?', kind: 'text' }] }, truncated: false } })],
   ['working', session({ sessionId: 'w1', status: 'busy', statusUpdatedAt: min(2), lastPrompt: 'run the suite',
     lastPromptAt: min(2), activity: 'Run the tests',
-    agent: { model: 'claude-opus-5-5', effort: 'high', mode: 'acceptEdits', tokens: 120000 } })],
+    agent: { model: 'claude-opus-5-5', effort: 'high', mode: 'acceptEdits', tokens: 120000, window: 1000000 } })],
   ['your turn, with PRs and a worktree', session({ sessionId: 't1', ...reply, outcome: 'Tested',
     checkout: { changes: 1 },
     git: { branch: 'feature', root: '/work/app-f', worktree: 'app-f', worktreeOf: 'app', mainRoot: '/work/app' },
@@ -476,18 +907,50 @@ const rows = [
           pr({ url: 'https://github.com/e/app/pull/2', number: 2, isDraft: true, title: 'Draft' })],
     agent: { model: 'claude-sonnet-5-5', effort: 'medium', mode: 'bypassPermissions', tokens: 150000 } })],
   ['a reply you have read', session({ sessionId: 'v1', ...reply, outcome: 'Answered', lastFocusedAt: min(1) })],
+  ['replied, its agent and a dev server running in the background: a mark for each, and what they are',
+   session({ sessionId: 'g1', ...reply, background: [agentJob, shellJob] })],
+  ['a command waiting for your OK, a dev server running in the background: its mark goes round the waiting dot, and '
+   + 'what runs comes under the card',
+   session({ sessionId: 'g2', status: 'waiting', background: [shellJob],
+             ask: { id: 'g2a', tool: 'Bash', input: { command: 'npm test', description: 'Run the tests' },
+                    truncated: false } })],
+  ['five jobs in the background: three marks, and how many first',
+   session({ sessionId: 'g3', ...reply, background: [agentJob, shellJob, { ...shellJob, command: 'vitest --watch' },
+                                                    { ...agentJob, what: 'Write the docs' },
+                                                    { ...shellJob, command: 'tsc --watch' }] })],
+  ['stopped, its hook last listing a job: nothing goes round it',
+   session({ sessionId: 'g4', ...reply, status: 'closed', pid: 0, background: [shellJob] })],
   ['a turn you stopped: only your message, not the reply before it', session({ sessionId: 'v2',
     ...repliedAt(min(20)), lastPrompt: 'now rename it', lastPromptAt: min(2) })],
+  ['a message another session sent, under its name, escaped', session({ sessionId: 'v3', ...reply,
+    lastPrompt: 'Tidy <the> notes', promptFrom: 'Lead & co', lastFocusedAt: min(1) })],
   ['a closed Claude Desktop conversation, open in Claude', session({ sessionId: 'd1', status: 'closed',
     entrypoint: 'claude-desktop', focused: true, name: 'Desk chat', pid: 0, lastReply: 'Done.', lastReplyAt: min(300),
     lastPromptAt: min(301), lastFocusedAt: min(299), outcome: 'Answered', git: null, cwd: '/work/notes' })],
   ['a terminal session that has ended, which a press opens again in Ghostty', session({ sessionId: 'k1',
     status: 'closed', pid: 0, opensIn: 'Ghostty', name: 'Fix the page', lastReply: 'Done.', lastReplyAt: min(120),
     lastPromptAt: min(121), git: null, cwd: '/work/site' })],
+  ['…with a pull request on its work line', session({ sessionId: 'k3', status: 'closed', pid: 0, opensIn: 'Terminal',
+    lastReply: 'Done.', lastReplyAt: min(120), lastPromptAt: min(121), prs: [pr({ title: 'Fix the tests' })] })],
 ];
 for (const [name, s] of rows) print(`-- ${name}\n${rowHTML(s, classify(s, NOW, view()), NOW)}`);
+// "Stopped · press to carry on", at the work line's start, on the row of a session that has stopped, whichever app it
+// was in, and on no running one's; a step's note says its piece over the work line, the words with it.
+{
+  const html = (s) => rowHTML(s, classify(s, NOW, view()), NOW);
+  const line = (s) => /class="nopr ended"><span class="pt">([^<]*)</.exec(html(s))?.[1] ?? 'no line';
+  const ended = session({ sessionId: 'k4', status: 'closed', pid: 0, git: null });
+  show('a terminal session that has ended', line(ended));
+  show('…a Claude Desktop conversation Claude isn\u2019t running', line({ ...ended, entrypoint: 'claude-desktop' }));
+  show('…a running session', line({ ...ended, status: 'idle', pid: 100 }));
+  state.stepNotes.k4 = { text: 'Couldn’t open it in iTerm2', at: Date.now() };
+  show('…a step note said over its work line',
+       /class="work noted">.*class="work-note[^"]*"[^>]*>([^<]*)</.exec(html(ended).replace(/\n/g, ''))?.[1]);
+  delete state.stepNotes.k4;
+}
 state.compactOpen.c1 = true;
-const compacting = session({ sessionId: 'c1', agent: { model: 'claude-opus-5-5', tokens: 900000 } });
+const compacting = session({ sessionId: 'c1', agent: { model: 'claude-opus-5-5', tokens: 900000, window: 1000000 },
+  compactTime: full });
 print(`-- the Compact card open\n${rowHTML(compacting, classify(compacting, NOW, view()), NOW)}`);
 delete state.compactOpen.c1;
 // A pick going into a terminal session, then Claude Code asking about it in the terminal: a model by its name, anything
@@ -496,7 +959,7 @@ for (const inTerminal of [false, true])
   for (const [field, value] of [['effort', 'low'], ['model', 'claude-sonnet-5-5']]) {
     const going = session({ sessionId: 'a1', goingIn: { field, value, inTerminal } });
     const html = rowHTML(going, classify(going, NOW, view()), NOW);
-    const words = /class="perm-title">([^<]*)</.exec(html)?.[1];
+    const words = /class="card-title">([^<]*)</.exec(html)?.[1];
     show(`the ${field} picked, going in${inTerminal ? ', Claude asking in the terminal' : ''}`,
          `${words}${/perm-go/.test(html) ? ' [Take me there]' : ''}`);
   }
@@ -507,15 +970,62 @@ for (const never of [false, true]) {
     switchAsk: { from: 'claude-sonnet-5-5', to: 'claude-opus-5-5', tokens: 152000, never } });
   const html = rowHTML(asked, classify(asked, NOW, view()), NOW);
   show(`"Switch model?" on its row${never ? ", with Don't ask again" : ''}`,
-       [/class="perm-title">([^<]*)</, /class="perm-why">([^<]*)</].map((r) => r.exec(html)?.[1]).join(' / ')
+       [/class="card-title">([^<]*)</, /class="perm-why">([^<]*)</].map((r) => r.exec(html)?.[1]).join(' / ')
        + (/class="never/.test(html) ? " / Don't ask again" : '') + (/going-line/.test(html) ? ' / and going in' : ''));
 }
+// The whole card, with Don't ask again ticked.
+const neverAsked = session({ sessionId: 'a1', goingIn: { field: 'model', value: 'claude-opus-5-5', inTerminal: false },
+  switchAsk: { from: 'claude-sonnet-5-5', to: 'claude-opus-5-5', tokens: 152000, never: true } });
+state.switchNever.a1 = true;
+show('"Switch model?" with Don\'t ask again ticked', /<div class="perm switch-ask[^]*?<div class="perm-actions">[^]*?<\/div><\/div>/.exec(
+  rowHTML(neverAsked, classify(neverAsked, NOW, view()), NOW))?.[0]);
+delete state.switchNever.a1;
 // A step that couldn't go in, with the button past its reason in its note.
 state.stepNotes.n1 = { text: 'It shares its iTerm2 window, and iTerm2\'s Python API is off: ask there', quiet: false,
                        way: "Turn On iTerm2's Python API…", at: Date.now() };
 show("a step's note with the button past its reason",
-     /<div class="step-note">[^]*?<\/div>/.exec(rowHTML(session({ sessionId: 'n1' }), 'idle', NOW))?.[0]);
+     /<div class="step-note[^"]*">[^]*?<\/div>/.exec(rowHTML(session({ sessionId: 'n1' }), 'idle', NOW))?.[0]);
 delete state.stepNotes.n1;
+{
+  // A note whose reason has no way past it in the terminal: its button does something on the page instead (`go`).
+  state.stepNotes.n2 = { text: 'It\'s open elsewhere too: change its mode in the terminal', quiet: false,
+                         way: 'Take me there', go: 'open', at: Date.now() };
+  show("a step's note with Take me there",
+       /<div class="step-note[^"]*">[^]*?<\/div>/.exec(rowHTML(session({ sessionId: 'n2' }), 'idle', NOW))?.[0]);
+  const sent = [], last = state.last, draw = render, rows = list.querySelectorAll;
+  render = () => {};
+  window.webkit = { messageHandlers: { panel: { postMessage: (msg) => sent.push(msg) } } };
+  state.last = { sessions: [session({ sessionId: 'n2' }), session({ sessionId: 'n3' }), session({ sessionId: 'n4' })],
+                 now: NOW };
+  const pressWay = (sid) => pressNoteWay({ dataset: { way: sid } }, { preventDefault() {} });
+  pressWay('n2');
+  show('…pressed as it comes: nothing yet, as it has only just shown', { sent: sent.map((m) => m.type) });
+  state.stepNotes.n2.at -= 5000;
+  pressWay('n2');
+  show('…pressed once it has been seen: the app is asked to open the session, and the note goes',
+       { sent: sent.map((m) => `${m.type} ${m.sessionId}`), note: !!state.stepNotes.n2 });
+  // The commands module's own: a switch's note opens the mode menu again, under the row's mode.
+  sent.length = 0;
+  list.querySelectorAll = () => [{ dataset: { pick: 'mode' }, closest: () => ({ dataset: { id: 'n3' } }),
+                                   getBoundingClientRect: () => ({ left: 120, bottom: 60 }) }];
+  state.stepNotes.n3 = { text: 'Let It Deploy couldn\'t be changed: try again', way: 'Open the Menu', go: 'modeMenu',
+                         at: Date.now() - 5000 };
+  pressWay('n3');
+  show("a switch's note pressed: the app is asked for the row's mode menu, under its label",
+       sent.map((m) => `${m.type} ${m.field} ${m.sessionId} at ${m.x},${m.y}`));
+  // And the terminal's way past, as before.
+  sent.length = 0;
+  state.stepNotes.n4 = { text: 'It shares its iTerm2 window', way: "Turn On iTerm2's Python API…",
+                         at: Date.now() - 5000 };
+  pressWay('n4');
+  show("a terminal's way past pressed: the app takes it, and the note stays for how it went",
+       { sent: sent.map((m) => `${m.type} ${m.sessionId}`), way: state.stepNotes.n4.way });
+  delete window.webkit;
+  list.querySelectorAll = rows;
+  state.last = last;
+  render = draw;
+  state.stepNotes = {};
+}
 show("a terminal session that's the one you're on says where it's open",
      /title="Open in your terminal now"/.test(rowHTML(session({ sessionId: 'f1', focused: true }), 'idle', NOW)));
 const tipOf = (fields) => /title="([^"]*)"/.exec(rowHTML(session({ sessionId: 'k2', status: 'closed', pid: 0,
@@ -540,7 +1050,7 @@ section('Open twice');
 const twice = session({ sessionId: 'o1', alsoOpen: [{ entrypoint: 'cli', paused: false }] });
 show('its title line: the icon after the time',
   /<div class="line1"[^]*?<\/div>/.exec(rowHTML(twice, 'idle', NOW))?.[0]);
-show('…open three times: the icon and 3', twiceHTML(session({ sessionId: 'o3', alsoOpen: [{ entrypoint: 'cli' },
+show('…open three times: the icon, and how many times in words', twiceHTML(session({ sessionId: 'o3', alsoOpen: [{ entrypoint: 'cli' },
                                                                                         { entrypoint: 'cli' }] })));
 show('…and its bottom line says nothing of it', /twice/.test(/<div class="where"[^]*?$/.exec(rowHTML(twice, 'idle',
                                                                                                     NOW))[0]));
@@ -566,36 +1076,6 @@ print(projectsHTML(placeRows([
     lastReplyAt: min(500), seenAt: min(499) }),
 ].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false), NOW));
 state.groupBy = 'status';
-
-section('Command cards');
-// Allow once allows the command exactly as asked, so how it would run is in the card's title.
-const commandTitle = (input) => /class="perm-title">([^<]*)</.exec(askHTML({ id: 'k', tool: 'Bash', input }))[1];
-show('a command', commandTitle({ command: 'make' }));
-show('in the background', commandTitle({ command: 'make', run_in_background: true }));
-show('outside the sandbox', commandTitle({ command: 'make', dangerouslyDisableSandbox: true }));
-show('both', commandTitle({ command: 'make', run_in_background: true, dangerouslyDisableSandbox: true }));
-
-section('Tool cards');
-// Any other tool's input, field by field as Claude's own prompt lists it: the shortest first, a text with its line
-// breaks, a list of texts one to a line, anything else as JSON. With no input there's no box, just the title.
-print(askHTML({ id: 'w', tool: 'mcp__charts__draw_chart', input: {
-  chart_code: '<style>\n.bars { display: flex; gap: 6px; }\n</style>\n<div class="bars"></div>',
-  title: 'sales_by_month', status_notes: ['Gathering the numbers', 'Drawing the bars'] } }));
-print(askHTML({ id: 'e', tool: 'mcp__planner__add_event', input: {
-  alerts: { minutesBefore: 10 }, title: 'Planning call', minutes: 30, notifyGuests: false, guests: [],
-  room: null } }));
-print(askHTML({ id: 'n', tool: 'mcp__server__list_things', input: {} }));
-
-section('Keys on a question once it has been pressed');
-show('of 3 options, none picked yet: 1, 3 and 4 (past them), ↓ and ↑ (the first and the last), and a letter',
-     ['1', '3', '4', 'ArrowDown', 'ArrowUp', 'a'].map((key) => keyPick(3, false, [], key)));
-show('…the second picked: 2 again (kept, not taken back), 1, ↓, ↑',
-     ['2', '1', 'ArrowDown', 'ArrowUp'].map((key) => keyPick(3, false, [1], key)));
-show('…at the ends, ↑ on the first and ↓ on the last: nowhere to go',
-     [keyPick(3, false, [0], 'ArrowUp'), keyPick(3, false, [2], 'ArrowDown')]);
-show('taking several, the first and third picked: 2 adds it, 3 takes it out, and ↓ does nothing',
-     ['2', '3', 'ArrowDown'].map((key) => keyPick(3, true, [0, 2], key)));
-show('no options (a question answered in words): nothing', ['1', 'ArrowDown'].map((key) => keyPick(0, false, [], key)));
 
 section('What the page forgets');
 // forgetGone works from the page's own clock.
@@ -711,6 +1191,9 @@ show('another agent working in the folder: dimmed, saying which', offer(built, '
 show('…the row\'s own agent working as well: its own', offer(built, 'busy', dep({ waitsFor: ['codegen'] })));
 show('…a deploy running: whatever the agents do', offer({}, 'idle', dep({ waitsFor: ['codegen'],
   run: { running: true, startedAt: NOW - 2000 } })));
+const waitWords = 'until “Review the native side” is done in the background (type /tasks in the session to stop it sooner)';
+show('the row\'s own agents in the background: dimmed, saying what the app says it waits for',
+  offer({ ...built, background: [agentJob, shellJob], backgroundWait: waitWords }, 'background', dep({ at: min(30) })));
 const byKind = (sessions) => agentsAtWork(sessions,
   Object.fromEntries(sessions.map((s) => [s.sessionId, classify(s, NOW, unread)])));
 show('the agents at work, by each folder they work in (their own checkout, and the one their edits land in); not one '
@@ -727,6 +1210,8 @@ show('the agents at work, by each folder they work in (their own checkout, and t
     session({ sessionId: 'compacting', compacting: NOW - 1000, git: null, cwd: '/work/notes' }),
     session({ sessionId: 'idle' }),
     session({ sessionId: 'replied', ...reply }),
+    session({ sessionId: 'agents-in-the-background', ...reply, background: [agentJob] }),
+    session({ sessionId: 'dev-server-left-running', ...reply, background: [shellJob] }),
   ])).map(([folder, sessions]) => [folder, sessions.map((s) => s.sessionId)])));
 show('how a wait for other agents is said', [['a'], ['a', 'b'], ['a', 'b', 'c']].map(untilDone));
 const look = (fields, kind, d) => deployHTML(session({ sessionId: 'd1', ...fields }), d,
@@ -739,12 +1224,166 @@ print('-- only suggested');
 print(look(built, 'idle', suggested({})));
 print('-- the agent working');
 print(look(built, 'busy', dep({ at: min(30) })));
+print('-- the row\'s own agent in the background: its tip names it');
+print(look({ ...built, background: [agentJob], backgroundWait: waitWords }, 'background', dep({ at: min(30) })));
 print('-- agents in two other sessions working in the folder');
 print(look(built, 'idle', dep({ at: min(30), waitsFor: ['codegen', 'formatter'] })));
+print('-- only suggested, the agent working: no press to keep, as there\'s no command yet');
+print(look(built, 'busy', suggested({ at: min(30) })));
+print('-- your press kept, for the agent in another session: the menu, with Don\'t Deploy');
+print(look(built, 'idle', dep({ folder: '/work/app-cart', waitsFor: ['cart total'], kept: { sessionId: 'd1' } })));
+print('-- …for the row\'s own agent');
+print(look(built, 'busy', dep({ kept: { sessionId: 'd1' } })));
+show('a press kept: the offer', deployOffer(session(built), 'idle', true,
+  dep({ waitsFor: ['cart total'], kept: { sessionId: 'd1' } }), NOW));
+show('…the row\'s note, for one other session', keptNote({ waitsFor: ['cart total'] }, 'app-cart'));
+show('…for two', keptNote({ waitsFor: ['cart total', 'codegen'] }, 'app-cart'));
+show('…for the row\'s own agent', keptNote({}, 'app-cart'));
 print('-- 300ms after the press');
 print(look({}, 'idle', dep({ pressed: NOW - 300 })));
 print('-- running for 2s');
 print(look({}, 'idle', dep({ run: { running: true, startedAt: NOW - 2000 } })));
+// A server, up: the stop square in a steady ring, its arc closing from where it had got to as the page first saw it up,
+// and its address after the folder.
+const upRun = (fields) => ({ running: true, startedAt: min(10) - 2500, up: { port: 3001, at: min(10), every: false,
+                                                                           also: [], ...fields } });
+show('a server, up: the button\'s look', deployOffer(session({}), 'idle', true, dep({ run: upRun({}) }), NOW).look);
+print('-- up for 10 minutes, as the page loaded');
+print(look({}, 'idle', dep({ run: upRun({}) })));
+print('-- seen up just now: its arc closes into the ring from where it was, a turn every 1.2s from the run\'s start');
+print(deployHTML(session({ sessionId: 'd1' }), dep({ run: { running: true, startedAt: NOW - 3100,
+  up: { port: 3001, at: NOW - 400, every: false, also: [] } } }),
+  deployOffer(session({}), 'idle', true, dep({ run: { running: true, startedAt: NOW - 3100,
+    up: { port: 3001, at: NOW - 400 } } }), NOW), NOW, NOW - 400));
+print('-- up on every address, on another port too, with files changed since it started: the tip says each');
+print(look(built, 'idle', dep({ at: min(30), run: upRun({ every: true, also: [9229] }) })));
+show('its tip, started just now', upTip(dep({ run: upRun({ at: NOW - 20000 }) }), { due: false }, NOW));
+show('…up for 2 hours', upTip(dep({ run: upRun({ at: NOW - 125 * 60000 }) }), { due: false }, NOW));
+print('-- its address, after the folder');
+print(deployAddressHTML(session({ sessionId: 'd1' }), dep({ run: upRun({}) }), NOW));
+print('-- …seen up just now: its room opens and it fades in after the ring has closed');
+print(deployAddressHTML(session({ sessionId: 'd1' }), dep({ run: upRun({}) }), NOW, NOW - 200));
+{
+  // A full row with an ask to try and a build up: Deploy's button, its one action, at the ask line's end (askAct), and
+  // its address left on the bottom line, where it can still be pressed (core.slots.placeStays).
+  const up = (row) => {
+    if (row.s.sessionId !== 'dup') return;
+    row.deploy = dep({ run: upRun({}) });
+    row.offer = deployOffer(row.s, row.kind, true, row.deploy, NOW);
+  };
+  const ask = (row) => (row.s.sessionId === 'dup' ? { html: askLineHTML('Do: Try the search box'), cls: 'ask-note',
+                                                       line: true, quiet: false, tone: 'turn', act: { want: 'try' } }
+    : null);
+  core.rowLooks.push(up); core.rowNotes.push(ask);
+  const html = rowHTML(session({ sessionId: 'dup', ...reply }), 'turn', NOW);
+  const note = /<div class="step-note[^>]*>(?:(?!<\/div>).)*/s.exec(html)?.[0] ?? '';
+  const bottom = /<div class="where">(?:(?!<\/div>).)*/s.exec(html)?.[0] ?? '';
+  show('a full row with an ask to try and a build up: [Deploy at the ask line, its address there, Deploy on the bottom '
+       + 'line, its address there]', [/class="play/.test(note), /d-addr/.test(note), /class="play/.test(bottom),
+                                     /d-addr/.test(bottom)]);
+  core.rowLooks.splice(core.rowLooks.indexOf(up), 1);
+  core.rowNotes.splice(core.rowNotes.indexOf(ask), 1);
+}
+print('-- Deploy\'s card: another of Deploy\'s builds on the port, whose server takes $PORT: the next port leads');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'clash', port: 3001, other: 'app', next: 3003 },
+                     dep({ folder: '/work/app-cart' })));
+print('-- …a server that picks its own port: only replacing it');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'clash', port: 5173, other: 'app', fixed: true },
+                     dep({ folder: '/work/app-cart' })));
+print('-- …the same, met by a session\'s ask: it says who asked, its title escaped');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'clash', port: 5173, other: 'app', fixed: true,
+                                                     asked: 'tidy <b>up</b>' },
+                     dep({ folder: '/work/app-cart' })));
+print('-- …a command confirmed before ports: giving each a port leads');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'clash', port: 3000, other: 'app', old: true },
+                     dep({ folder: '/work/app-cart' })));
+print('-- the port held by a server an agent started, for 20 minutes');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'held', port: 3001, name: 'node', minutes: 20, next: 3003,
+                                                     session: 's9', sessionName: 'cart total' },
+                     dep({ folder: '/work/app-cart' })));
+print('-- …by a program no listed session started, just now, with no port to offer (a command confirmed before ports)');
+print(deployCardHTML(session({ sessionId: 'd1' }), { kind: 'held', port: 3000, name: 'Python', minutes: 0 },
+                     dep({ folder: '/work/app-cart' })));
+// The run's own cards (deployRunCard), and their words.
+const runCard = (d, seen = 0, shut) => deployRunCard(d, NOW, seen, shut);
+const cart = (fields) => dep({ folder: '/work/app-cart', command: 'npm run dev', ...fields });
+show('a run\'s card: a server seen up just now: Deployed', runCard(cart({ run: upRun({ at: NOW - 400 }) }), NOW - 400));
+show('…up as the page loaded: none', runCard(cart({ run: upRun({}) })));
+show('…seen up 11 minutes ago: none', runCard(cart({ run: upRun({ at: min(11) }) }), min(11)));
+show('…put away: none', runCard(cart({ run: upRun({ at: NOW - 400 }) }), NOW - 400, `up:${NOW - 400}`));
+show('…a server running 3 minutes with no port', runCard(cart({ run: { running: true, startedAt: min(3) } })));
+show('…the same for a command that isn\'t one: none (the note says it)',
+  runCard(dep({ run: { running: true, startedAt: min(3) } })));
+const ended = (fields) => ({ running: false, ok: false, startedAt: min(30), finishedAt: NOW - 2000,
+                             lastLines: ['> app@1.0.0 dev', 'Error: listen EADDRINUSE', '    at Server.listen'], ...fields });
+show('…one that stopped by itself after 25 minutes up',
+  runCard(cart({ run: ended({ endedItself: true, up: { port: 3001, at: min(25) } }) })));
+show('…one with no packages', runCard(cart({ run: ended({ noPackages: true }) })));
+show('…one that failed', runCard(cart({ run: ended({}) })));
+show('…one you stopped: none', runCard(cart({ run: ended({ stopped: true }) })));
+show('…one that went well: none', runCard(cart({ run: doneRun })));
+print('-- Deployed, the first time for the project: its address a link, and each checkout runs beside the others');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: upRun({ at: NOW - 400 }) }), NOW - 400),
+                     cart({ run: upRun({ at: NOW - 400 }) }), true));
+print('-- …after that, just the title');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: upRun({ at: NOW - 400 }) }), NOW - 400),
+                     cart({ run: upRun({ at: NOW - 400 }) })));
+print('-- a server running 3 minutes with no port: Keep Waiting leads');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: { running: true, startedAt: min(3) } })),
+                     cart({})));
+print('-- one that stopped by itself, with its last lines, each cut at the card\'s edge');
+print(deployCardHTML(session({ sessionId: 'd1' }),
+  runCard(cart({ run: ended({ endedItself: true, up: { port: 3001, at: min(25) } }) })), cart({})));
+print('-- one with no packages, from a pnpm lock file: Install First… leads, with Copy and Go to the row\'s session');
+print(deployCardHTML(session({ sessionId: 'd1' }),
+  runCard(cart({ run: ended({ noPackages: true, install: 'pnpm install --frozen-lockfile' }) })), cart({})));
+print('-- Install First…, its second step, while the app looks at what it runs: Install and Deploy waits');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: ended({ noPackages: true, install: 'npm ci',
+                                                                             lockfile: 'package-lock.json' }) })),
+                     cart({}), false, true));
+print('-- …from the project\'s lock file, with no install scripts of its own');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: ended({ noPackages: true, install: 'npm ci',
+                                                                             lockfile: 'package-lock.json' }) })),
+                     cart({}), false, { words: 'npm ci', lockfile: 'package-lock.json', hash: 'h1',
+                                        files: ['package.json', 'package-lock.json'],
+                                        packagesRun: true, runnerFiles: true }));
+print('-- …with the project\'s own install scripts, each escaped, and what isn\'t followed');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: ended({ noPackages: true,
+  install: 'pnpm install --frozen-lockfile', lockfile: 'pnpm-lock.yaml' }) })), cart({}), false,
+  { words: 'pnpm install --frozen-lockfile', lockfile: 'pnpm-lock.yaml', hash: 'h2',
+    runs: 'preinstall: node scripts/check-node.js\npostinstall: node scripts/<b>setup</b>.js && husky\n'
+      + 'prepare: npm run build:icons',
+    files: ['package.json', 'pnpm-lock.yaml', 'scripts/check-node.js'], others: ['node'],
+    unsure: ['Whozmove doesn\'t know what husky runs'] }));
+print('-- …with no lock file: it makes one');
+print(deployCardHTML(session({ sessionId: 'd1' }),
+                     runCard(cart({ run: ended({ noPackages: true, install: 'npm install' }) })), cart({}), false,
+                     { words: 'npm install', makesLockfile: true, hash: 'h3', files: ['package.json'] }));
+show('the note while it installs first', deployNote(cart({ run: { running: true, startedAt: min(3),
+                                                                  installing: 'npm ci' } }), NOW));
+show('…and no card for a server not listening yet, 3 minutes on', runCard(cart({ run: { running: true,
+                                                                  startedAt: min(3), installing: 'npm ci' } })));
+print('-- Install First\'s install that didn\'t go through: its own card, not Install First again');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: ended({
+  installFailed: 'pnpm install --frozen-lockfile',
+  lastLines: ['Installing packages first: pnpm install --frozen-lockfile', 'zsh: command not found: pnpm'] }) })),
+                     cart({})));
+show('…3 minutes on, a server whose packages went in a minute ago: no card yet',
+     runCard(cart({ run: { running: true, startedAt: min(3), installedAt: min(1) } })));
+show('…and its note, the same',
+     deployNote(cart({ run: { running: true, startedAt: min(3), installedAt: min(1) } }), NOW));
+print('-- a server that stopped before it was up, its last five lines of seven');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(cart({ run: ended({ lastLines: ['1', '2', '3', '4', '5', '6',
+                                                                                          '<b>7</b>'] }) })), cart({})));
+print('-- a deploy that isn\'t a server, which didn\'t go through');
+print(deployCardHTML(session({ sessionId: 'd1' }), runCard(dep({ run: ended({}) })), dep({})));
+show('the note while a server\'s up: none (the ring and the address say it)', deployNote(dep({ run: upRun({}) }), NOW));
+show('the note after 3 minutes with no address yet',
+  deployNote(dep({ run: { running: true, startedAt: min(3) } }), NOW));
+show('…for a server: no address yet', deployNote(dep({ command: 'npm run dev', run: { running: true, startedAt: min(3) } }),
+                                                NOW));
+show('…for a watch, which isn\'t one', deployNote(dep({ command: 'tsc --watch', run: { running: true,
+                                                                                   startedAt: min(3) } }), NOW));
 print('-- went through 400ms ago: the check');
 print(look({}, 'idle', dep({ run: doneRun, at: doneRun.finishedAt, seenDone: doneRun.finishedAt })));
 print('-- back to play, 300ms after the check');
@@ -755,10 +1394,21 @@ show('the row\'s note, while it runs', deployNote(dep({ run: { running: true, st
 show('…just pressed', deployNote(dep({ pressed: NOW - 300 }), NOW));
 show('…still running after 3 minutes', deployNote(dep({ run: { running: true, startedAt: NOW - 180000 } }), NOW));
 show("…after one that didn't go through", deployNote(dep({ run: failedRun }), NOW));
+show('…nothing once its card is put away', deployNote(dep({ run: failedRun }), NOW, `end:${failedRun.finishedAt}`));
 show('…ten minutes on, nothing more', deployNote(dep({ run: { ...failedRun, finishedAt: min(11) } }), NOW));
 show('…after you stopped it',
   deployNote(dep({ run: { running: false, ok: false, stopped: true, finishedAt: NOW - 5000 } }), NOW));
 show('…nothing after one that went well', deployNote(dep({ run: doneRun }), NOW));
+show('…a deploy a session asked for, waiting', deployNote(dep({
+  asked: { by: 'shop api', waits: 'waits until the agent is done' } }), NOW));
+show('…once it runs, as a press does', deployNote(dep({ asked: { by: 'shop api', waits: 'waits until you\'ve stepped '
+  + 'off the panel' }, run: { running: true, startedAt: NOW - 2000 } }), NOW));
+show('…a session\'s ask to restart its build that\'s up, waiting: said over the ring', deployNote(dep({
+  asked: { by: 'shop api', waits: 'waits until the agent in “codegen” is done', restart: true }, run: upRun({}) }),
+  NOW));
+show('…once one a session asked for went through', deployNote(dep({ run: { ...doneRun, by: 'shop api' } }), NOW));
+show('…and nothing once it\'s ten minutes old', deployNote(dep({ run: { ...doneRun, by: 'shop api', finishedAt: min(11) } }),
+  NOW));
 print('-- the set-up card: the suggested command, to change');
 print(setupHTML(session({ sessionId: 'd6' }), { step: 1, text: 'cargo install --path .', then: 'deploy' },
                 dep({ command: undefined })));
@@ -772,7 +1422,25 @@ print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'npm run deploy:l
   command: 'npm run deploy:local', production: true, runs: 'fly deploy --local-only' } }, dep({})));
 print('-- …and one that runs more than the card shows');
 print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'make', then: 'save', checked: {
-  command: 'make', production: false, runs: 'one\ntwo', more: 3 } }, dep({})));
+  command: 'make', production: false, runs: 'one\ntwo', cut: true } }, dep({})));
+print('-- …with the files checked before every run, the programs that aren\'t, and what Whozmove can\'t follow');
+print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'make install', then: 'save', checked: {
+  command: 'make install', production: false, runs: 'cc -o tool main.c\ncp tool $(PREFIX)/',
+  files: ['Makefile', 'config.mk'], others: ['cc', 'cp'],
+  unsure: ['its Makefile includes a file it names with a variable or a pattern'] } }, dep({})));
+print('-- …a file given to node: it\'s checked, and what it loads isn\'t');
+print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'node server.js', then: 'save', checked: {
+  command: 'node server.js', production: false, runs: 'node server.js (the file, 12 lines)', files: ['server.js'],
+  others: ['what server.js loads'] } }, dep({})));
+print('-- …one file checked, one program not');
+print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'npm run build', then: 'save', checked: {
+  command: 'npm run build', production: false, runs: 'build: tsc', files: ['package.json'],
+  others: ['tsc'], runnerFiles: true } },
+                dep({})));
+print('-- confirming in a worktree: the port it gets in $PORT there, as a command confirmed here runs with one');
+print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'npm run dev', then: 'deploy', checked: {
+  command: 'npm run dev', production: false, runs: 'next dev' } },
+                dep({ folder: '/work/app-cart', port: 3001 })));
 // The app's answer about a command (deployChecked in deploy-row.js) moves the card on only while it still shows that
 // command.
 const drawn = render;
@@ -969,8 +1637,12 @@ print(JSON.stringify(workHTML({ s: withSteps('w4', { changes: 0 }, audit(5, 0, m
 print('-- a branch pushed with no pull request yet, as GitHub says: Create PR where the pull requests go');
 const noPR = withSteps('w3', { ahead: 0, aheadOfBase: 1, pr: null }, { git: { branch: 'f', root: '/work/app' } });
 print(rowHTML(noPR, 'idle', NOW));
+print('-- …with changes not committed too: its numbers and its step at the line\'s end');
+const noPRChanged = withSteps('w3', { ahead: 0, aheadOfBase: 1, pr: null, changes: 2 }, { git: { branch: 'f',
+  root: '/work/app' }, changes: { all: { added: 26, removed: 13, files: 2, unstaged: { files: 2 } } } });
+print(rowHTML(noPRChanged, 'idle', NOW));
 state.last = { sessions: [noPR], now: NOW };
-print('-- its card: into the repo\'s default branch until the branches on GitHub are known');
+print('-- its details: into the repo\'s default branch until the branches on GitHub are known');
 print(createPRCardHTML(noPR, stepsOf(noPR, true)));
 print('-- …pressed open, the branches, the one it goes into ticked, the default named');
 setPRBranches('w3', { base: 'main', branches: ['develop', 'f', 'main', 'release/1.4'] });
@@ -980,7 +1652,7 @@ state.prInto.w3 = 'develop';
 show('…another picked: it goes into that one',
   createPRCardHTML(noPR, stepsOf(noPR, true)).match(/cp-pick[^>]*>[^<]*/)[0]);
 Object.assign(state, { prPicking: null, prInto: {}, prBranches: {} });
-print('-- where it runs, pointed at: a worktree of its project, a branch, a folder outside git');
+print('-- where it runs, in its details: a worktree of its project, a branch, a folder outside git');
 print(placeCardHTML(session({ git: { branch: 'f', root: '/work/app-f', worktree: 'app-f', worktreeOf: 'app',
                                      mainRoot: '/work/app' } })));
 print(placeCardHTML(session({ cwd: '/work/app', git: { branch: 'main', root: '/work/app' } })));
@@ -991,6 +1663,87 @@ show('where it runs, with a long name: it shortens first, before the model and e
                mainRoot: '/work/app' }));
 show('…a dozen letters or fewer: it doesn\'t', placeOf({ branch: 'fix-login-12', root: '/work/app' }));
 show('…a folder outside git, by its name', placeOf(null, '/work/quarterly-planning-notes'));
+{
+  // With a module's part after where it runs (Deploy's address): a short name still isn't one to shorten, so it keeps
+  // its letters and the effort and model give way; a long one still shortens first.
+  core.slots.placeEnd.push(() => '<span class="d-addr">:3001</span>');
+  const bottom = (branch) => /<span class="place[^"]*"[^]*<\/div>$/.exec(whereHTML({ s: session({
+    cwd: '/work/shop', git: { branch, root: '/work/shop' } }) }))[0].replace(/<svg[^]*?<\/svg>/, '');
+  show('a short name with an address after it', bottom('main'));
+  show('a long name with an address after it', bottom('feature/checkout-wallets-on-phones'));
+  core.slots.placeEnd.pop();
+}
+// A pick on the bottom line squeezed past a letter goes whole, and the "·" with it (fitWhere): which "·" show.
+show('all three show: both', sepsShown(['pick', 'sep', 'pick', 'sep', 'pick']));
+show('the effort gone: the one between the model and the mode', sepsShown(['pick', 'sep', 'gone', 'sep', 'pick']));
+show('the effort and the model gone: none before the mode', sepsShown(['gone', 'sep', 'gone', 'sep', 'pick']));
+show('the model gone: the one between the effort and the mode', sepsShown(['gone', 'sep', 'pick', 'sep', 'pick']));
+show('no effort, the model gone', sepsShown(['gone', 'sep', 'pick']));
+{
+  // A module's button in the slot, in the strip at the row's far edge: the row's last child; the row marked while the
+  // pointer is on the strip, its bar swelled; no strip on a row the slot gives nothing. The modules' own buttons are
+  // set aside meanwhile.
+  const modules = core.slots.edge.splice(0);
+  core.slots.edge.push((row) => (row.s.sessionId === 'e1' ? `<button class="keep">${row.s.sessionId}</button>` : ''));
+  const tail = (html) => /<span class="edge-room">[^]*$/.exec(html)?.[0].replace(/\s+/g, ' ') ?? 'no room';
+  const marks = (html) => /class="row ([^"]*)"/.exec(html)[1];
+  show('a row with the strip', tail(rowHTML(session({ sessionId: 'e1' }), 'idle', NOW)));
+  show('a row the slot gives nothing', tail(rowHTML(session({ sessionId: 'e2' }), 'idle', NOW)));
+  show('…and one with a card open on it, a request for your OK: its strip still', tail(rowHTML(session({
+    sessionId: 'e1', status: 'waiting', ask: { id: 'e1a', tool: 'Bash', input: { command: 'npm test' },
+                                                truncated: false } }), 'needs', NOW)));
+  show('…and a request\'s chat beside the folded panel: its strip still', /edge-room/.test(rowHTML(session({
+    sessionId: 'e1', status: 'waiting', ask: { id: 'e1b', tool: 'Bash', input: { command: 'npm test' },
+                                                truncated: false } }), 'needs', NOW, { chat: true })));
+  state.compactOpen.e1 = true;
+  const compact = rowHTML(session({ sessionId: 'e1' }), 'idle', NOW);
+  show('…and one with Compact open on it: its card, and its strip still', [/data-compact=/.test(compact),
+                                                                          /edge-room/.test(compact)]);
+  delete state.compactOpen.e1;
+  state.edgePointed = 'e1';
+  show('its strip pointed at', marks(rowHTML(session({ sessionId: 'e1' }), 'idle', NOW)));
+  state.edgePointed = null;
+  core.slots.edge.splice(0, Infinity, ...modules);
+}
+{
+  // What's pressable at the far end of a row's lines stays where it is as the pointer comes to it, so a press there is
+  // its own: hover looks (every watcher, as hover.js runs them) with the pointer on Deploy's button where the row draws
+  // it, the bottom line's last 18 points inside the row's 8 of padding (314 to 332 on a row from 0 to 340); on a next
+  // step's button at its note's end, there too; and on the end of the folder's name, on a row without Deploy. Nothing
+  // opens over them and the bar doesn't swell; only the strip past them, in the row's last 8 points, swells it.
+  const row = { dataset: { id: 'p1' }, classList: element().classList,
+                querySelector: (sel) => (sel === ':scope > .edge-room' ? {} : null),
+                getBoundingClientRect: () => ({ left: 0, right: 340, top: 0, bottom: 62 }) };
+  const on = { closest: (sel) => (sel === '.row[data-id]' ? row : null), dataset: {}, classList: element().classList };
+  const pointer = state.pointer;
+  for (const [what, x, y] of [["Deploy's button", 323, 44], ["a next step's button at its note's end", 323, 58],
+                              ["the end of the folder's name", 330, 44]]) {
+    state.pointer = { x, y };
+    for (const watch of core.pointerWatchers) { try { watch(on); } catch (e) {} }
+    show(`the pointer on ${what}: the row's lines stay where they are`, state.edgePointed !== 'p1');
+    state.pointer = null;
+    for (const watch of core.pointerWatchers) { try { watch(null); } catch (e) {} }
+  }
+  // A card on the row fills its lines to their end (332), its buttons 10 points further in (cards.css): the pointer on
+  // Allow once's end, and 1 point inside the card's edge, is the card's, and the bar doesn't swell.
+  for (const [what, x, y] of [["Allow once's end, on a request's card", 322, 40], ["1 point inside the card's edge", 331,
+                                                                                    40]]) {
+    state.pointer = { x, y };
+    for (const watch of core.pointerWatchers) { try { watch(on); } catch (e) {} }
+    show(`the pointer on ${what}: the bar doesn't swell`, state.edgePointed !== 'p1');
+    state.pointer = null;
+    for (const watch of core.pointerWatchers) { try { watch(null); } catch (e) {} }
+  }
+  const strip = { parentElement: row, closest: (sel) => (sel === '.row[data-id] > .edge-room' ? strip : null) };
+  const onStrip = { closest: (sel) => (sel === '.row[data-id]' ? row : strip.closest(sel)), dataset: {},
+                    classList: element().classList };
+  state.pointer = { x: 336, y: 44 };
+  for (const watch of core.pointerWatchers) { try { watch(onStrip); } catch (e) {} }
+  show('the pointer on the strip, 4 points from the edge: the bar swells', state.edgePointed === 'p1');
+  state.pointer = null;
+  for (const watch of core.pointerWatchers) { try { watch(null); } catch (e) {} }
+  state.pointer = pointer;
+}
 print('-- how a step went, said quietly in the work line\'s place, which keeps its height');
 state.stepNotes.w4 = { text: 'Asked Claude to commit the changes', quiet: true, at: Date.now() };
 print(rowHTML(withSteps('w4', { changes: 3, ahead: 1 }), 'idle', NOW));
@@ -1012,11 +1765,11 @@ state.stepNotes = {};
 // Deploy's button and line go by the page's own clock: held at NOW while they're drawn, so they read the same each run.
 const pageClock = Date.now;
 Date.now = () => NOW;
-print("-- Deploy's button at the end of the bottom line, with the dot; why its last deploy didn't go through");
+print("-- Deploy's button at the end of the bottom line, with the dot; why its last deploy didn't go through, on its card");
 state.deploys = { projects: { '/work/app': { command: 'make install' } },
                   folders: { '/work/app': { at: min(30), run: failedRun } } };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
-print('-- while the agent works: Deploy dimmed, shown all the same, and the work line only for its note');
+print('-- while the agent works: Deploy dimmed, shown all the same, and its last deploy\'s card');
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5), { status: 'busy' })), 'busy', NOW));
 state.shownAt['deploy:w5'] -= 5000;  // up a while
 state.owners.delete('w5');  // another row speaks for the folder for a while
@@ -1034,6 +1787,20 @@ show("the line when a deploy couldn't start: why, for a few seconds, in place of
   (state.stepNotes.w5 = { text: 'Deploy waits until the agent is done', at: Date.now() },
    stepLine({ s: withSteps('w5', {}), deploy: rowDeploy(withSteps('w5', {})), offer: {} })));
 state.stepNotes = {};
+// Install and Deploy refused while an agent works there: the card stays, at its first step, and the row says why.
+const deploysBefore = state.deploys;
+state.deploys = { projects: { '/work/app': { command: 'npm run dev' } },
+                  folders: { '/work/app': { run: { running: false, ok: false, startedAt: NOW - 9000,
+                                                   finishedAt: NOW - 2000, noPackages: true, install: 'npm ci',
+                                                   lockfile: 'package-lock.json',
+                                                   lastLines: ["Error: Cannot find module 'vite'"] } } } };
+state.stepNotes.w5 = { text: 'Deploy waits until the agent in “codegen” is done', at: Date.now() };
+const refused = rowHTML(withSteps('w5', {}), 'idle', NOW);
+show('Install and Deploy refused for an agent at work: the card stays, and the row says why',
+     { card: refused.includes('has no packages installed yet'),
+       note: refused.includes('Deploy waits until the agent') });
+state.stepNotes = {};
+state.deploys = deploysBefore;
 print('-- the set-up card on its row');
 state.deploySetup.w5 = { step: 1, text: 'make install', then: 'save' };
 print(rowHTML(withSteps('w5', { changes: 3 }, editedHere(min(5))), 'idle', NOW));
@@ -1058,7 +1825,7 @@ show('the newest thing, and how many more', writingsTag(session({ writings: wrot
 show('the plan waiting for you leads, while Claude asks about it', writingsTag(session({ writings: wrote, ask: planAsk })));
 state.reading = { sessionId: 's', mode: 'writings' };
 show("the tag shows as pressed while the reader is open on its session",
-  writingsTag(session({ writings: wrote.slice(1) })).includes('wtag quiet on'));
+  writingsTag(session({ writings: wrote.slice(1) })).includes('tag wtag on'));
 state.reading = null;
 show('a plan only just asked about shows from its request, before the transcript lists it',
      writingsOf(session({ ask: planAsk })).map((w) => [w.id, w.title, w.status]));
@@ -1091,8 +1858,15 @@ md('a table and a rule', '| Q | A |\n|---|:-:|\n| colour | blue |\n\n---');
 md('a code block keeps its text as it is', '```js\nconst a = "<b>" && 1;\n```');
 md('HTML in the text stays text, and a link shows its words', '<script>alert(1)</script> [docs](https://x.dev/a?b=1&c) > not a quote');
 md('a quote', '> quoted **line**\n> second');
+md('a diagram: drawn by the diagrams module, its text inside until it is', '```mermaid\ngraph TD\n  A[Save] --> B[Open]\n```');
+md('a diagram it doesn\'t draw: as written, saying why', '```mermaid\npie title Saved\n  "Mains" : 3\n```');
+const mdDiagrams = core.fences.mermaid;
+delete core.fences.mermaid;
+md('a diagram without the diagrams module: code, as before', '```mermaid\ngraph TD\n  A[Save] --> B[Open]\n```');
+core.fences.mermaid = mdDiagrams;
+print(`-- a diagram on the list (a request's card): code, as before\n${markdownHTML('```mermaid\ngraph TD\n  A --> B\n```', 'list')}`);
 
-section('What isn\'t committed: the row\'s numbers, their card, the changes view');
+section('What isn\'t committed: the row\'s numbers, their details, the changes view');
 const chAll = { added: 245, removed: 42, files: 6, unstaged: { files: 5, added: 227, removed: 35 },
                 staged: { files: 2, added: 18, removed: 7 } };
 const chRow = session({ sessionId: 'me', name: 'Retry queue', changes: { all: chAll, v: 4 },
@@ -1110,10 +1884,10 @@ show('nothing to commit: no numbers', countsHTML(session({ changes: { all: { add
 show('a file only renamed counts, with no lines', countsHTML(session({ sessionId: 'mv',
   changes: { all: { added: 0, removed: 0, files: 1 } } }), true));
 state.owners = new Set();
-print('-- its card: what isn\'t committed, and how many files are staged and not');
+print('-- their details: what isn\'t committed, and how many files are staged and not');
 print(changesCardHTML(chRow));
 show('…nothing staged', changesCardHTML(session({ changes: { all: { ...chAll, files: 5,
-  staged: { files: 0, added: 0, removed: 0 } } } })).match(/cc-lede">[^<]*/)[0]);
+  staged: { files: 0, added: 0, removed: 0 } } } })).match(/card-lead">[^<]*/)[0]);
 const chHunk = { oldStart: 10, newStart: 10, lines: [[' ', 'def a():'], ['-', '    old()'], ['-', '    older()'],
                                                    ['+', '    new()'], [' ', ''], ['+', '# tested']] };
 const chUnstaged = { scope: 'unstaged', v: 4, files: [
@@ -1210,57 +1984,13 @@ show('…and at 30 frames a second, each frame further on than the last, without
      [1, 2, 3, 4, 5, 6, 8].map((n) => eyesAfter(n, 30)));
 
 section('The chats beside the folded cat (chats.js)');
-show('what brings a chat out: a request, a wait without one, a reply you haven\'t read; nothing for one you have read, '
-     + 'one at work, one idle, nor a start not listed yet',
-     [chatNews(session({ ask: { id: 'q1' } }), 'needs'), chatNews(session({ statusUpdatedAt: min(2) }), 'needs'),
-      chatNews(session({ lastReplyAt: min(1) }), 'turn'), chatNews(session({}), 'seen'), chatNews(session({}), 'busy'),
-      chatNews(session({}), 'idle'), chatNews(session({ pending: true, ask: { id: 'q2' } }), 'needs')]);
-const chatRow = (sid, news, on = false) => ({ sid, news, on });
-const chatsAt = (chats) => ({ out: chats.out.map((c) => `${c.sid} ${Math.round(c.left / 1000)}s${c.kept ? ' pinned' : ''}`),
-                              queue: chats.queue.map((q) => q.sid), came: chats.came, went: chats.went });
-const foldedRule = { open: false, quiet: false, holding: false, most: 3 };
-// The list's order is newest first: d's request is the newest, then c's, b's reply and a's request.
-const asking = [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5'), chatRow('a', 'ask:1')];
-let chats = chatsStep({ out: [], queue: [], done: {}, seeded: false }, [chatRow('a', 'ask:1'), chatRow('b', null)],
-                      foldedRule);
-show('as the page loads, what\'s already waiting doesn\'t come out', chatsAt(chats));
-chats = chatsStep(chats, asking, foldedRule);
-show('three more come to need you: all three come out, newest first, nearest the cat', chatsAt(chats));
-const newest = [chatRow('e', 'ask:9'), ...asking];
-show('…a newer one comes out on top, and the oldest of the three goes back in to wait',
-     chatsAt(chatsStep(chats, newest, foldedRule)));
-show('…but while you hold one (pointing at it, typing in it, or in its tab), the newer one waits, and nothing moves',
-     chatsAt(chatsStep(chats, newest, { ...foldedRule, holding: true })));
-show('…their time runs, but not for one that\'s held',
-     chatsTick(chats.out, 1000, (c) => c.sid === 'c').out.map((c) => `${c.sid} ${c.left}`));
-const ran = chatsTick(chats.out, CHAT_MS, (c) => c.sid !== 'd');
-show('…and once one\'s time has run out, it goes back', ran.expired.map((c) => c.sid));
-chats = chatsStep(chatsBack({ ...chats, out: [...ran.out, ...ran.expired] }, 'd'), asking, foldedRule);
-show('…counted as seen, so it doesn\'t come out again for the same request', chatsAt(chats));
-show('…but does for something new in its session, newest again',
-     chatsAt(chatsStep(chats, [chatRow('d', 'ask:7'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5'),
-                               chatRow('a', 'ask:1')], foldedRule)));
-show('one answered elsewhere goes', chatsAt(chatsStep(chats,
-  [chatRow('d', 'ask:3'), chatRow('c', null), chatRow('b', 'reply:5'), chatRow('a', 'ask:1')], foldedRule)));
-show('pressed, its tab in front: it stays, held, though its reply has been read there', chatsAt(chatsStep(chats,
-  [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', null, true), chatRow('a', 'ask:1')], foldedRule)));
-show('…and goes once you\'ve left the tab', chatsAt(chatsStep(chats,
-  [chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', null), chatRow('a', 'ask:1')], foldedRule)));
-show('what comes in the tab you\'re in is seen there, and doesn\'t come out', chatsAt(chatsStep(chats,
-  [chatRow('f', 'ask:11', true), chatRow('d', 'ask:3'), chatRow('c', 'ask:2'), chatRow('b', 'reply:5')], foldedRule)));
-const pinnedB = { ...chats, out: chats.out.map((c) => (c.sid === 'b' ? { ...c, kept: true } : c)) };
-show('a pinned one stays out as newer ones come, the newest taking the rest of the room',
-     chatsAt(chatsStep(pinnedB, [chatRow('g', 'ask:12'), chatRow('e', 'ask:9'), ...asking], foldedRule)));
-show('while the cat is moved, or its list is out, nothing more comes out', chatsAt(chatsStep(chats, newest,
-  { ...foldedRule, quiet: true })));
-show('with the panel open, all of it counts as seen, and what was out goes', chatsAt(chatsStep(chats, newest,
-  { ...foldedRule, open: true })));
-show('in a session\'s tab: the one you\'re on, seen there 1 second ago, or opened from here 2 seconds ago; not 4 '
-     + 'seconds after the app last saw you there, nor another session',
-     [chatLookedAt(session({ focused: true, seenAt: min(1 / 60) }), NOW),
-      chatLookedAt(session({ sessionId: 'x', focused: true }), NOW, { sid: 'x', ago: 2000 }),
-      chatLookedAt(session({ focused: true, seenAt: min(4 / 60) }), NOW),
-      chatLookedAt(session({ focused: false, seenAt: min(1 / 60) }), NOW)]);
+// Which come out and when is notifications' (modules/notifications/tests/page-cases.js); here, their time and their
+// places beside the cat.
+const chatsOut = ['d', 'c', 'b'].map((sid) => ({ sid, news: 'ask:1', left: CHAT_MS, kept: false }));
+show('their time runs, but not for one that\'s held',
+     chatsTick(chatsOut, 1000, (c) => c.sid === 'c').out.map((c) => `${c.sid} ${c.left}`));
+show('…and once one\'s time has run out, it goes back',
+     chatsTick(chatsOut, CHAT_MS, (c) => c.sid !== 'd').expired.map((c) => c.sid));
 show('how many chats fit, 160 and 220 tall, in 600, 300 and 100 points (the first always)',
      [600, 300, 100].map((tall) => chatsFit([160, 220], tall)));
 const catAt = { x: 45, y: 23 };
@@ -1268,9 +1998,277 @@ show('where they go, two of them 160 and 120 tall, 340 across, with the pill 22 
      chatsLayout([160, 120], { right: false, up: false }, 340, catAt, 22));
 show('…right and up, from a cat low on the screen\'s left half',
      chatsLayout([160, 120], { right: true, up: true }, 340, catAt, 22));
+{
+  // Three were laid out 100, 80 and 100 tall; then the middle one grows to 130 while you hold one.
+  const down = { right: false, up: false }, up = { right: true, up: true }, heights = [100, 130, 100];
+  const keptAt = (way) => chatsLayout([100, 80, 100], way, 340, catAt, 22).chats.map((p, i) => ({ ...p,
+    tall: [100, 80, 100][i] }));
+  show('held, the middle one of three grows: the one after it moves on so as not to cover it, down…',
+       chatsKept(chatsLayout(heights, down, 340, catAt, 22), keptAt(down), heights, down, 22));
+  show('…and up, each keeping its end nearest the cat', chatsKept(chatsLayout(heights, up, 340, catAt, 22),
+       keptAt(up), heights, up, 22));
+  const gone = keptAt(down);
+  gone[0] = null;
+  show('pointing at the last, the first one gone: the rest stay where they were, a gap left where it went',
+       chatsKept(chatsLayout([80, 100], down, 340, catAt, 22), gone.slice(1), [80, 100], down, 22));
+  // Three were laid out 100, 130 and 100 tall; then the middle one shrinks to 80, or goes.
+  const tallAt = (way) => chatsLayout([100, 130, 100], way, 340, catAt, 22).chats.map((p, i) => ({ ...p,
+    tall: [100, 130, 100][i] }));
+  const shrunk = [100, 80, 100], onMiddle = (way) => [...tallAt(way).slice(0, 2), null];
+  show('pointing at the middle one as it shrinks: it keeps its top, and the one after it moves up to it, down…',
+       chatsKept(chatsLayout(shrunk, down, 340, catAt, 22), onMiddle(down), shrunk, down, 22));
+  show('…and up, each keeping its end nearest the cat', chatsKept(chatsLayout(shrunk, up, 340, catAt, 22),
+       onMiddle(up), shrunk, up, 22));
+  show('pointing at the first, the middle one gone: the last moves up to it',
+       chatsKept(chatsLayout([100, 100], down, 340, catAt, 22), [tallAt(down)[0], null], [100, 100], down, 22));
+  show('none kept, the middle one shrinks: they close up as the layout has them',
+       chatsKept(chatsLayout(shrunk, down, 340, catAt, 22), [null, null, null], shrunk, down, 22));
+}
+{
+  // You answer a question on the first of two chats and leave the pointer where you pressed. The question goes, the
+  // chat shrinks, and the second closes up under the pointer: while it moves it isn't held, so it closes up all the
+  // way rather than keep its place with a gap above it; once it has stopped there, it's the one you read next, and
+  // holds their time as if you'd pointed at it, but not its place, so it goes on closing up as the first shrinks
+  // again. Moving the pointer onto it while it's still closing up holds their time too, but it keeps no place till it
+  // has stopped, so it doesn't stop short with a gap above it. Each line is what holds their time (chatsOn), then the
+  // chat keeping its place (chatKeptTo).
+  const sids = ['first', 'second'];
+  const under = { first: true }, savedPointer = state.pointer;
+  const saved = { pointSeen: state.chats.pointSeen, pointedSid: state.chats.pointedSid,
+                  pointLanded: state.chats.pointLanded, pointPassing: state.chats.pointPassing, out: state.chats.out };
+  state.chats.out = sids.map((sid) => ({ sid }));
+  const realUnder = document.elementFromPoint;
+  document.elementFromPoint = () => {
+    const sid = sids.find((s) => under[s]);
+    return sid ? { closest: () => ({ dataset: { chat: sid } }) } : null;
+  };
+  // The second's frame, moving to its place while `moving`.
+  let moving = false;
+  chatFrames.set('second', { el: { getAnimations: () => (moving ? [{ playState: 'running' }] : []) },
+                             row: { getAnimations: () => [] } });
+  const look = (x, y) => { state.pointer = { x, y }; return [chatsOn(), chatKeptTo()]; };
+  Object.assign(state.chats, { pointSeen: null, pointedSid: undefined, pointLanded: false, pointPassing: false });
+  show('the pointer comes onto the first chat', look(100, 200));
+  show('…and rests on it', look(100, 200));
+  delete under.first;
+  under.second = true;
+  moving = true;
+  show('closed up under a still pointer: not held while it moves…', look(100, 200));
+  show('…nor as it goes on moving', look(100, 200));
+  moving = false;
+  show('…held once it\'s still, keeping no place', look(100, 200));
+  show('…and while the pointer rests on it', look(100, 200));
+  delete under.second;
+  show('the pointer moves off the chats', look(100, 400));
+  under.second = true;
+  moving = true;
+  show('moving the pointer onto one still moving points at it at once, holding their time but keeping no place, so it '
+       + 'finishes closing up', look(100, 200));
+  show('…nor while the pointer rests on it as it goes on moving', look(100, 200));
+  moving = false;
+  show('…and once it has stopped, it keeps its place', look(100, 200));
+  moving = true;
+  show('…which it goes on keeping if it moves again under the pointer resting on it', look(100, 200));
+  // The first easing smaller as the pointer comes onto the second, which hasn't moved yet.
+  let easing = false;
+  chatFrames.set('first', { el: { getAnimations: () => [] },
+                            row: { getAnimations: () => (easing ? [{ playState: 'running' }] : []) } });
+  moving = false;
+  delete under.second;
+  look(100, 400);
+  easing = true;
+  under.second = true;
+  show('the pointer comes onto the second as the first shrinks, before it has moved: held, keeping no place',
+       look(100, 210));
+  easing = false;
+  moving = true;
+  show('…nor as it closes up after the first', look(100, 210));
+  moving = false;
+  show('…keeping its place once it has got there', look(100, 210));
+  chatFrames.delete('first');
+  chatFrames.delete('second');
+  state.pointer = savedPointer;
+  document.elementFromPoint = realUnder;
+  Object.assign(state.chats, saved);
+}
+show('where a chat starts as it comes out: the first from under the cat, left of it then right of it; one with '
+     + 'another nearer the cat, in its own place, a little lower, to lift into it, down and up',
+     [chatComesFrom({ x: 0, y: 23 }, true, { right: false }), chatComesFrom({ x: 0, y: 23 }, true, { right: true }),
+      chatComesFrom({ x: 0, y: 150 }, false, { right: false }),
+      chatComesFrom({ x: 0, y: 150, tall: 120 }, false, { right: true, up: true })]);
+show('how long it waits: till the last of those moving lands, or the one going has faded; none once they have',
+     [chatComesAfter([420, 0], 0), chatComesAfter([0, 200], 0), chatComesAfter([420, 200], 500),
+      chatComesAfter([], 0)]);
+{
+  // Chats coming out beside the cat, on a fake clock. Each line is what's drawn by then: every place each chat is put,
+  // in order (a chat coming out is put where it starts, then where it goes, at once, and eases between them), and
+  // whether it shows, hidden while it waits, and whether it can be pointed at or pressed.
+  const realNow = Date.now, realTimeout = setTimeout, realClear = clearTimeout, wasCalm = calm.matches;
+  const wasWay = state.cat.way, wasFaded = state.chats.fadedAt;
+  let clock = 0;
+  const timers = [];
+  Date.now = () => clock;
+  setTimeout = (fn, ms) => timers.push({ fn, at: clock + ms });
+  clearTimeout = (id) => { if (timers[id - 1]) timers[id - 1].fn = null; };
+  const runTo = (ms) => {
+    clock = ms;
+    for (const timer of timers) if (timer.fn && timer.at <= ms) { const fn = timer.fn; timer.fn = null; fn(); }
+  };
+  const put = {};
+  const frameAt = (sid, placed) => {
+    put[sid] = [];
+    const style = new Proxy({}, { set(o, k, v) { if (k === 'transform') put[sid].push(v); o[k] = v; return true; } });
+    const on = new Set();
+    const classList = { add: (c) => on.add(c), remove: (c) => on.delete(c),
+                        toggle: (c, yes) => (yes ? on.add(c) : on.delete(c)) };
+    return { el: { style, classList }, placed, tucked: false, coming: false, comeTimer: 0, first: true, landsAt: 0 };
+  };
+  const drawn = (frames) => Object.fromEntries(Object.entries(frames).map(([sid, f]) => [sid,
+    `${put[sid].join(' → ') || 'not put'}; ${f.el.style.opacity === '1' ? 'shows' : 'hidden'}`
+    + (chatShown(f) ? '' : ', not pointed at')]));
+  const settle = (frames) => { for (const sid of Object.keys(frames)) put[sid] = []; };
+  calm.matches = false;
+  state.cat.way = { right: false, up: false };
+
+  // One goes back into the cat at 0, fading till 200; once it has, the one after it moves up into its place, and once
+  // that has landed, the next waiting comes out after it.
+  let frames = { second: frameAt('second', { x: 0, y: 200 }), third: frameAt('third', null) };
+  state.chats.fadedAt = 200;
+  moveChats([{ frame: frames.second, to: { x: 0, y: 23 }, fresh: false, i: 0 },
+             { frame: frames.third, to: { x: 0, y: 150 }, fresh: true, i: 1 }], [{ x: 0, y: 23 }, { x: 0, y: 150 }],
+            false);
+  show('one swaps in: as the one nearest the cat fades back into it, the one after it stays where it is, and the new '
+       + 'one waits, hidden', drawn(frames));
+  clock = 7;
+  moveChats([{ frame: frames.second, to: { x: 0, y: 23 }, fresh: false, i: 0 },
+             { frame: frames.third, to: { x: 0, y: 150 }, fresh: false, i: 1 }], [{ x: 0, y: 23 }, { x: 0, y: 150 }],
+            false);
+  show('…laid out again a moment on, before it has come out: it goes on waiting, for the one after it to land too',
+       drawn(frames));
+  runTo(199);
+  show('…till it has faded', drawn(frames));
+  runTo(200);
+  show('…then the one after it moves up into its place', drawn(frames));
+  settle(frames);
+  runTo(619);
+  show('…the new one still waiting as it eases in', drawn(frames));
+  runTo(620);
+  show('…which has landed: it comes out in its own place, lifting into it as it fades in', drawn(frames));
+
+  // The first out, nearest the cat, with nothing moving: from under the cat, at once.
+  clock = 1000;
+  frames = { only: frameAt('only', null) };
+  state.chats.fadedAt = 0;
+  moveChats([{ frame: frames.only, to: { x: 0, y: 23 }, fresh: true, i: 0 }], [{ x: 0, y: 23 }], false);
+  show('the first, with nothing moving: it slides out from under the cat at once', drawn(frames));
+
+  // A new request comes out nearest the cat, the two out moving down for it: it slides out once they have.
+  clock = 2000;
+  frames = { newest: frameAt('newest', null), older: frameAt('older', { x: 0, y: 23 }),
+             oldest: frameAt('oldest', { x: 0, y: 150 }) };
+  moveChats([{ frame: frames.newest, to: { x: 0, y: 23 }, fresh: true, i: 0 },
+             { frame: frames.older, to: { x: 0, y: 130 }, fresh: false, i: 1 },
+             { frame: frames.oldest, to: { x: 0, y: 257 }, fresh: false, i: 2 }],
+            [{ x: 0, y: 23 }, { x: 0, y: 130 }, { x: 0, y: 257 }], false);
+  show('a new first, the others moving down for it: it waits, hidden', drawn(frames));
+  settle(frames);
+  runTo(2420);
+  show('…and slides out from under the cat once they have landed', drawn(frames));
+
+  // Up from a cat low on the screen: the one after the cat's has a foot nearest it, and lifts into its place too.
+  clock = 3000;
+  state.cat.way = { right: true, up: true };
+  frames = { below: frameAt('below', { x: 0, y: 400, tall: 100 }), above: frameAt('above', null) };
+  moveChats([{ frame: frames.below, to: { x: 0, y: 300, tall: 100 }, fresh: false, i: 0 },
+             { frame: frames.above, to: { x: 0, y: 190, tall: 100 }, fresh: true, i: 1 }],
+            [{ x: 0, y: 300, tall: 100 }, { x: 0, y: 190, tall: 100 }], false);
+  settle(frames);
+  runTo(3420);
+  show('up from the cat: the one coming out after the first lifts into its own place too', drawn(frames));
+
+  // One shrinking 40 points, the one after it riding its foot up, on the row's own curve and clock: put where it goes
+  // at once, without sliding there, and drawn on its way from where the row has got to, landing with it; and one coming
+  // out after them waits till then. The row's easing is 16 ms on, of its 1000.
+  show('each keyframe of a row shrinking 40 points puts those after it that much lower, down from the cat, or that '
+       + 'much higher, up from it', [chatRideFrames([{ offset: 0, height: 140, easing: 'ease-out' }, { offset: 1,
+         height: 100 }], 100, 1), chatRideFrames([{ offset: 0, height: 140 }, { offset: 1, height: 100 }], 100, -1)]);
+  clock = 5000;
+  const rideOf = (sid) => {
+    const frame = frameAt(sid, sid === 'rider' ? { x: 0, y: 160 } : sid === 'shrinking' ? { x: 0, y: 23 } : null);
+    frame.el.getAnimations = () => [];
+    frame.el.animate = (keys, timing) => {
+      put[sid].push(`rides ${keys[0].transform} → ${keys[keys.length - 1].transform} (${timing.duration} ms)`);
+      return { playState: 'running', startTime: null, currentTime: 0, cancel() {}, commitStyles() {} };
+    };
+    return frame;
+  };
+  frames = { shrinking: rideOf('shrinking'), rider: rideOf('rider'), next: rideOf('next') };
+  state.cat.way = { right: false, up: false };
+  const ride = { i: 0, ease: { startTime: 4984, currentTime: 16, effect: { getTiming: () => ({ duration: 1000,
+                 easing: 'linear' }) } }, keys: [{ offset: 0, height: 140 }, { offset: 1, height: 100 }], end: 100,
+                 sign: 1, left: 984 };
+  moveChats([{ frame: frames.shrinking, to: { x: 0, y: 23 }, fresh: false, i: 0 },
+             { frame: frames.rider, to: { x: 0, y: 120 }, fresh: false, i: 1 },
+             { frame: frames.next, to: { x: 0, y: 220 }, fresh: true, i: 2 }],
+            [{ x: 0, y: 23 }, { x: 0, y: 120 }, { x: 0, y: 220 }], false, ride);
+  show('one shrinking: the one after it rides its foot up, put where it goes and drawn from 40 points lower, and the '
+       + 'one coming out waits', drawn(frames));
+  show('…the rider on the row\'s own clock, landing with it', [frames.rider.ride.startTime, frames.rider.landsAt]);
+  settle(frames);
+  runTo(5983);
+  show('…still waiting a moment before the ride lands', drawn(frames));
+  runTo(5984);
+  show('…and coming out once it has', drawn(frames));
+  calm.matches = true;
+  show('under reduced motion nothing rides: the row just ends', chatRide([{ sid: 'shrinking' }]));
+  calm.matches = false;
+  chatFrames.set('one', { row: { getAnimations: () => [{ playState: 'running' }] } });
+  chatFrames.set('two', { row: { getAnimations: () => [{ playState: 'running' }] } });
+  show('nor while two of them ease at once: they close up once each has stopped', chatRide([{ sid: 'one' },
+                                                                                            { sid: 'two' }]));
+  chatFrames.delete('one');
+  chatFrames.delete('two');
+  let stopped = '';
+  const riding = { el: { style: {} }, ride: { playState: 'running', commitStyles: () => { stopped += 'left where it '
+    + 'is, '; }, cancel: () => { stopped += 'stopped'; } } };
+  riding.ride = chatRideStop(riding.el, riding.ride);
+  show('a ride stopped part-way (the chat goes, or moves on): left where it has got to', [stopped, riding.ride]);
+
+  // Reduced motion: nothing slides, so nothing waits; it fades in where it goes.
+  calm.matches = true;
+  clock = 4000;
+  frames = { moved: frameAt('moved', { x: 0, y: 200 }), fresh: frameAt('fresh', null) };
+  moveChats([{ frame: frames.moved, to: { x: 0, y: 23 }, fresh: false, i: 0 },
+             { frame: frames.fresh, to: { x: 0, y: 150 }, fresh: true, i: 1 }], [{ x: 0, y: 23 }, { x: 0, y: 150 }],
+            false);
+  show('under reduced motion, one coming out as another moves comes out at once', drawn(frames));
+
+  Date.now = realNow;
+  setTimeout = realTimeout;
+  clearTimeout = realClear;
+  calm.matches = wasCalm;
+  state.cat.way = wasWay;
+  state.chats.fadedAt = wasFaded;
+}
 
 section('The folded cat\'s list, while it\'s pointed at (peek.js)');
 show('what its head says', [peekTitle(0), peekTitle(1), peekTitle(4)]);
+{
+  // Flicked off the screen's edge, a panel open from pointing is kept open, so it never folds while it's away. The
+  // chats beside the cat aren't drawn here.
+  const sent = [], draw = drawChats;
+  drawChats = () => {};
+  window.webkit = { messageHandlers: { panel: { postMessage: (msg) => sent.push(msg.type) } } };
+  state.peek.open = true;
+  flickedAway();
+  show('flicked away with its list out: whether the list is still out on pointing, and what the app is told',
+       { out: state.peek.open, sent });
+  sent.length = 0;
+  flickedAway();
+  show('…flicked away again, open for good now: what the app is told', sent);
+  delete window.webkit;
+  drawChats = draw;
+}
 
 section('The header, pushed away by the held row (header.js)');
 show('scrolled down 20 points with the row you\'re on in view, or still folding at the top: it stays',
@@ -1295,3 +2293,359 @@ const nameO = { left: 40, top: 15, width: 10, height: 10 }, rootAt = { left: 0, 
 show('the folded cat\'s place from the name\'s o, with the header all there, and with it slid 47 points away (the o '
      + '47 points up): the same', [catPlaceFrom(nameO, rootAt, 0),
                                    catPlaceFrom({ ...nameO, top: nameO.top - 47 }, rootAt, 47)]);
+
+section('A row\'s details, whole');
+// Each as a row draws it, under its lines (detailsBlock), so the whole of it can be drawn.
+print(detailsBlock('twice:o1', twiceCardHTML(twice)));
+print(detailsBlock('place:s', placeCardHTML(session({ git: { branch: 'f', root: '/work/app-f', worktree: 'app-f',
+  worktreeOf: 'app', mainRoot: '/work/app' } }))));
+print(detailsBlock('pr:https://github.com/e/app/pull/7', prCardHTML({ url: 'https://github.com/e/app/pull/7', number: 7,
+  state: 'OPEN', isDraft: false, title: 'Retry failed payments with backoff', repo: 'e/app', additions: 120,
+  deletions: 31, changedFiles: 4 })));
+state.last = { sessions: [noPR], now: NOW };
+setPRBranches('w3', { base: 'main', branches: ['develop', 'f', 'main'] });
+state.prPicking = 'w3';
+print(detailsBlock('pr-create:w3', createPRCardHTML(noPR, stepsOf(noPR, true))));
+Object.assign(state, { prPicking: null, prInto: {}, prBranches: {} });
+print(detailsBlock('changes:ch', changesCardHTML(chRow)));
+const manyPRs = session({ sessionId: 'm1', prs: [7, 8, 9, 10, 11].map((n) => ({ url: `https://github.com/e/app/pull/${n}`,
+  number: n, state: 'OPEN', title: `Change ${n}`, repo: 'e/app' })) });
+print('-- "+2 more open": the row\'s line, and its details, each PR pressed as the row\'s are');
+print(prsHTML(manyPRs).match(/<div class="pr more"[^>]*>[^<]*<\/div>/)[0]);
+print(detailsBlock('pr-more:m1', morePRsHTML(manyPRs)));
+print('-- a long name beside "Open twice": the name shortens (its style), the words never do');
+print(rowHTML(session({ sessionId: 'o9', name: 'a session with a very long name that runs past the title line',
+  alsoOpen: [{ entrypoint: 'cli', paused: false }] }), 'idle', NOW).match(/<div class="line1">[\s\S]*?<\/div>/)[0]);
+
+section('A long title in a row\'s details (detailsTitle)');
+const titled = (t) => JSON.stringify(detailsTitle(t));
+show('short: all bold', [titled('Search box'), titled('Make the checkout page open at once')]);
+show('a head before a colon or a dash near the start: bold, the rest in the body\'s weight',
+     [titled('Row details: open inside the row, never over the list'),
+      titled('Row details — open inside the row, never over the list')]);
+show('no colon or dash near the start, and long: all in the body\'s weight, never split mid-phrase',
+     [titled('Let the list of sessions grow by adding a bigger folder of its own each time'),
+      titled('Try the dark theme at night, and say if it\'s easy to read'),
+      titled('Fix the gap. Close it as the details fold, every time'),
+      titled('Make every row of the list say who it waits on: you or the agent')]);
+show('clipped mid-word where it was read (200 characters): cut at a word well before, with "…"',
+     titled(('Grouped list: let the list grow by adding a bit more each time a member joins the team, and keep its '
+       + 'headers where they were, so nothing moves under the pointer while you read it, and grow by adding a bigger '
+       + 'room').slice(0, 200)));
+show('long and with no break, cut at a word', titled(('Let the list of sessions grow by adding a bigger folder of its '
+  + 'own each time a member joins the team, and keep the headers where they were while you read').slice(0, 200)));
+show('a word longer than the head: never cut inside it',
+     [titled('Supercalifragilisticexpialidociousnessesqueness'),
+      titled('Supercalifragilisticexpialidociousnessesqueness and more')]);
+show('as the details draw it, escaped', [detailsTitleHTML('A <b>bold</b> idea: one & two'),
+     detailsTitleHTML('Try the dark theme at night, and say if it\'s easy to read')]);
+
+section('What a row\'s details do as the pointer moves (detailsNext)');
+const step = (how) => JSON.stringify(detailsNext(how));
+const open = { key: 'pr:7' };
+show('resting on something with details: they wait, then open', [step({ at: 'pr:7' }), step({ at: 'pr:7', rested: true })]);
+show('the pointer on their row, or in them: they stay', step({ open, at: 'pr:7', on: true, onList: true }));
+show('another thing in the same row, rested on: what\'s open changes in place',
+     step({ open, at: 'place:s', on: true, onList: true, rested: true }));
+show('off the row upward, or off the list: they fold', [step({ open, onList: true }), step({ open })]);
+show('off the row downward: they fold holding the row under the pointer, the list scrolling back as far as it can and '
+     + 'the rows closing up for the rest (near its top), never leaving an empty room',
+     step({ open, onList: true, below: true }));
+show('your own scroll takes the row from under the pointer: they fold', step({ open, onList: true, below: true,
+     yours: true }));
+show('opened at the foot: the list eases up to show them, the pointer off the row meanwhile: still open',
+     step({ open, onList: true, below: true, moving: true }));
+show('a reply moves the rows (the list moving by itself): still open', step({ open, onList: true, moving: true }));
+show('what\'s open goes away by itself (the PR merged, the other copy ended, the job moved on): they fold, opening '
+     + 'nothing else', step({ open, on: true, onList: true, gone: true }));
+
+section('The list drawn again only when it changes');
+// A second on, each sample row draws the same but for its clocks (and where its endless animations have got to), so
+// the list only ticks its clocks rather than being rebuilt.
+const onAt = (t, ms) => {
+  performance.now = () => t;
+  return rows.map(([, s]) => rowHTML(s, classify(s, ms, view()), ms));
+};
+const drawnNow = onAt(0, NOW), drawnLater = onAt(1234, NOW + 61000);
+performance.now = () => 0;
+show('a minute on, rows whose HTML changed',
+     rows.filter((r, i) => drawnNow[i] !== drawnLater[i]).map(([name]) => name));
+show('…and whose drawing did (none)',
+     rows.filter((r, i) => drawingOf(drawnNow[i]) !== drawingOf(drawnLater[i])).map(([name]) => name));
+const busyRow = rows.find(([name]) => name === 'working')[1];
+show('a step that changes what it does: drawn again', drawingOf(rowHTML(busyRow, 'busy', NOW))
+     !== drawingOf(rowHTML({ ...busyRow, activity: 'Read the logs' }, 'busy', NOW)));
+// The clocks, ticked where they're drawn: only those whose text changes are written.
+const clock = (data, text) => ({ dataset: data, textContent: text });
+const clocks = [clock({ since: String(min(2)) }, '2m 0s'), clock({ ago: String(min(5)) }, '5m'),
+                clock({ ago: String(NOW - 4000) }, 'now'), clock({ left: String(NOW + 5 * 60000) }, '5m')];
+const written = [];
+clocks.forEach((c) => {
+  let text = c.textContent;
+  Object.defineProperty(c, 'textContent', { get: () => text, set: (t) => { written.push(t); text = t; } });
+});
+// And a ring counting down 5 minutes from now, its fill (--left) set as the time goes.
+const style = { left: '1.000', getPropertyValue: () => style.left, setProperty: (_, v) => { style.left = v; } };
+const ring = { dataset: { until: String(NOW + 5 * 60000), span: '300000' }, style };
+const clocksIn = { querySelectorAll: (sel) => [...clocks, ring].filter((c) => /^\[data-(\w+)\]$/.exec(sel)[1]
+                                                                     in c.dataset) };
+tickTimes(clocksIn, NOW + 75000);
+show('ticked 75s on: each clock\'s text, and those written', [clocks.map((c) => c.textContent), written]);
+show('…and the ring\'s fill', style.left);
+
+section('The list drawn only while the panel can be seen');
+show('hidden (or the screen asleep): not drawn, whatever else',
+     [listDrawing({ shown: false, stale: false, same: false }),
+      listDrawing({ shown: false, stale: true, same: true })]);
+show('seen again after that: drawn afresh, without moving, even if it would draw the same',
+     [listDrawing({ shown: true, stale: true, same: false }), listDrawing({ shown: true, stale: true, same: true })]);
+show('seen, the same as last time but for its clocks: only they are set', listDrawing({ shown: true, stale: false,
+                                                                                         same: true }));
+show('seen, something else changed: rebuilt, with its motion', listDrawing({ shown: true, stale: false, same: false }));
+
+section('The list fills a taller panel');
+show('what the panel asks for, its content 725pt with the list 640pt in it at its usual limit; the list filling a '
+     + 'panel 200pt taller (840pt, the content then 925pt); a short list (300pt, the content 385pt): the same as with no '
+     + 'filling', [panelAsks(725, 640, 640), panelAsks(925, 840, 640), panelAsks(385, 300, 640)]);
+show('how far past its limit the list goes: the panel 925pt from the list down, its content asking 725pt; the panel '
+     + 'just as tall as it asks; something hanging below the list (kept as it is, so nothing moves under it); folded',
+     [listFill(925, 725, 0, false), listFill(725, 725, 0, false), listFill(925, 725, 900, false),
+      listFill(925, 725, 0, true)]);
+
+section('A request drawn in two places: which copy has the keys (keyboard.js)');
+{
+  // Just enough of a request's card on its row for the keyboard part: the copy's place, its main button (counting
+  // its presses), its edge, and the chat it's out in, if any. A press lands on the card, or on one of its buttons.
+  const requestKeys = core.keyCards.find((k) => k.card.startsWith('.perm[data-ask]'));
+  const copy = (where, { row = { dataset: { id: 's1' } }, chat = null } = {}) => {
+    const edge = new Set(), allow = { presses: 0, dispatchEvent() { allow.presses++; } };
+    const card = {
+      where, dataset: { ask: 'twice' }, allow,
+      classList: { add: (c) => edge.add(c), remove: (c) => edge.delete(c), contains: (c) => edge.has(c) },
+      closest: (sel) => (sel === '.row[data-id]' ? row : sel === '.chat' ? chat : sel === requestKeys.card ? card
+                                                                                                         : null),
+      querySelector: (sel) => (sel === '.perm-allow' ? allow : null),
+    };
+    return card;
+  };
+  const on = (card, button = null) => ({ closest: (sel) => (sel === 'button' ? button : card.closest(sel)) });
+  const placeOf = (cards) => ({
+    contains: (c) => cards.includes(c),
+    querySelectorAll: (sel) => cards.filter((c) => (sel === '.has-keys' ? c.classList.contains('has-keys')
+                                                                      : sel === requestKeys.card)),
+  });
+  const inList = copy('the list'), beside = copy('beside the list');
+  const inChat = copy('a chat beside the folded panel', { chat: { dataset: { chat: 's1' } } });
+  const besidePlace = placeOf([beside]);
+  const was = { list: { contains: list.contains, querySelectorAll: list.querySelectorAll },
+                chats: { contains: chatsEl.contains, querySelectorAll: chatsEl.querySelectorAll }, last: state.last };
+  Object.assign(list, placeOf([inList]));
+  Object.assign(chatsEl, placeOf([inChat]));
+  core.keyPlaces.push(besidePlace);
+  const ask = { id: 'twice', tool: 'Bash', input: { command: 'ls' } };
+  state.last = { sessions: [session({ sessionId: 's1', ask })] };
+  globalThis.MouseEvent ??= class { constructor(type, init) { Object.assign(this, init, { type }); } };
+  const press = (target) => { state.keyCard = keyCardPressed(target); showHeldCard(); };
+  const key = (k) => keyOnHeldCard({ key: k, target: { closest: () => null }, preventDefault() {} });
+  const copies = [inList, beside, inChat];
+  const edges = () => copies.filter((c) => c.classList.contains('has-keys')).map((c) => c.where);
+  const presses = () => copies.map((c) => c.allow.presses);
+  const answered = (then) => { state.answering.twice = true; then(); delete state.answering.twice; };
+
+  press(on(inList));
+  show('pressed in the list: the copy with the keys, and the copies showing it', [heldCard()?.where, edges()]);
+  press(on(beside));
+  show('then pressed beside the list: that copy has them, and the list\'s is let go', [heldCard()?.where, edges()]);
+  key('Enter');
+  show('Return there: the main button pressed on that copy only (list, beside, chat)', presses());
+  answered(() => {
+    key('Enter');
+    showHeldCard();
+    show('once it\'s answered: no copy has the keys, and Return does nothing more',
+         [heldCard(), state.keyCard, edges(), presses()]);
+  });
+
+  // The same request out in a chat beside the folded panel (chats.js's place), its frame as the chats keep it.
+  const frame = { placed: { x: 0, y: 0 }, tucked: false, flying: false, shownAt: Date.now() };
+  chatFrames.set('s1', frame);
+  press(on(inChat));
+  show('pressed in a chat only just come out or moved up: no keys', state.keyCard);
+  frame.shownAt = 0;
+  press(on(inChat));
+  show('pressed in it once it has stayed a moment: that copy has the keys, and no other shows them',
+       [heldCard()?.where, edges()]);
+  show('…which holds the chat out, as typing in it does', chatsOn());
+  key('Enter');
+  show('Return there: the main button pressed on the chat\'s copy only (list, beside, chat)', presses());
+  answered(() => show('once it\'s answered: let go', [heldCard(), state.keyCard]));
+  const goes = [
+    ['tucked in while the folded panel is dragged', () => { frame.tucked = true; }, () => { frame.tucked = false; }],
+    ['landing into its row as the panel opens', () => { frame.flying = true; }, () => { frame.flying = false; }],
+    ['going back in', () => chatFrames.delete('s1'), () => chatFrames.set('s1', frame)],
+  ];
+  for (const [how, set, unset] of goes) {
+    press(on(inChat));
+    const had = heldCard()?.where;
+    set();
+    show(`held in a chat, then the chat ${how}: let go`, [had, heldCard(), state.keyCard]);
+    unset();
+  }
+  chatFrames.delete('s1');
+
+  press(on(beside, { disabled: false, matches: () => false }));  // Allow once, say
+  show('pressed on a button that answers it: no keys', state.keyCard);
+  press(on(copy('the row\'s copy held at the list\'s edge', { row: null })));
+  show('pressed on the copy of a row held at the list\'s edge: no keys', state.keyCard);
+  press(on(beside));
+  core.keyPlaces.splice(core.keyPlaces.indexOf(besidePlace), 1);
+  show('held beside the list, and that place goes: let go', [heldCard(), state.keyCard]);
+
+  Object.assign(list, was.list);
+  Object.assign(chatsEl, was.chats);
+  state.last = was.last;
+}
+
+section('Esc in a card\'s box (core.escapes, input.js)');
+// What the list does with keys, on a stand-in element that keeps the handlers it's given; then Esc in a box: the
+// first entry whose selector the box matches takes it, nothing else does; with none matching, or while composing, no
+// entry is asked.
+{
+  const handlers = [], heard = [];
+  takesPresses({ addEventListener: (type, handler) => { if (type === 'keydown') handlers.push(handler); } });
+  const box = (classes) => ({ closest: () => true, matches: (sel) => sel.split(',').some((s) => classes.includes(s.trim())) });
+  const esc = (target, extra = {}) => {
+    const e = { key: 'Escape', target, isComposing: false, keyCode: 27, prevented: false, stopped: false,
+                preventDefault() { this.prevented = true; }, stopPropagation() { this.stopped = true; }, ...extra };
+    handlers.forEach((h) => h(e));
+    return e;
+  };
+  const was = core.escapes.slice();
+  core.escapes.length = 0;
+  core.escapes.push(['.mine', () => heard.push('mine')], ['.mine', () => heard.push('second')], ['.theirs',
+    () => heard.push('theirs')]);
+  const taken = esc(box(['.mine']));
+  show('Esc in a box an entry names: that one, and only it, takes it', [heard.join(' '), taken.prevented, taken.stopped]);
+  heard.length = 0;
+  const left = esc(box(['.other']));
+  show('…in a box none names: none asked, and Esc goes on as before', [heard.length, left.prevented]);
+  esc(box(['.mine']), { isComposing: true });
+  show('…while composing: none asked', heard.length);
+  core.escapes.length = 0;
+  core.escapes.push(...was);
+}
+
+section('Esc closes the view beside the list (keyboard.js)');
+// The view beside the list open (the reader, One Task), and the keys pressed on the panel with it: a press in it gives
+// the panel the keyboard, Esc closes it, as its ✕ does, unless something there takes Esc first, and the keyboard goes
+// back as it closes. Each Esc is heard by the card that has the keys, then by the view, as the page's listeners are.
+{
+  const sent = [], draw = render, contains = reader.contains;
+  render = () => {};
+  window.webkit = { messageHandlers: { panel: { postMessage: (msg) => sent.push(msg.type) } } };
+  reader.contains = (target) => !!target.inView;
+  const inView = { inView: true, closest: () => null };
+  const onClose = { inView: true, closest: (sel) => (sel === '.r-close' ? {} : null) };
+  const onTag = { closest: () => null };
+  const box = (value) => ({ inView: true, value, blurred: false, blur() { this.blurred = true; },
+                            closest(sel) { return sel === textBoxes() ? this : null; } });
+  const esc = (target, extra = {}) => {
+    const e = { key: 'Escape', target, isComposing: false, keyCode: 27, defaultPrevented: false,
+                preventDefault() { this.defaultPrevented = true; }, ...extra };
+    keyOnHeldCard(e);
+    escClosesView(e);
+    return e.defaultPrevented;
+  };
+  const open = () => {
+    sent.length = 0;
+    state.reading = { mode: 'oneTask', sessionId: null };
+    state.viewKeys = null;
+    state.keyCard = null;
+  };
+  const press = (target) => { state.viewKeys = viewPressed(target); };
+  const closing = () => !!state.reading?.closing;
+
+  open();
+  press(onTag);
+  show('opened by a row\'s tag: the view has no keys', [!!state.viewKeys, keepsKeyboard()]);
+  press(onClose);
+  show('pressed on its ✕: no keys, as the ✕ closes it', !!state.viewKeys);
+  press(inView);
+  show('pressed in it: the view has the keys', [viewHasKeys(), keepsKeyboard()]);
+  show('Esc there: taken, the view closes, and its keys go with it',
+       [esc(inView), closing(), sent, viewHasKeys(), keepsKeyboard()]);
+
+  open();
+  press(inView);
+  const was = state.reading;
+  state.reading = { mode: 'writings', sessionId: 's' };
+  show('a view opened since, by a tag or the pawn menu: none of the last one\'s keys',
+       [viewHasKeys(), keepsKeyboard()]);
+  state.reading = was;
+  press(inView);
+  was.mode = 'writings';
+  was.sessionId = 's';
+  show('…or the view turned to another session\'s page: none either', [viewHasKeys(), keepsKeyboard()]);
+  Object.assign(was, { mode: 'oneTask', sessionId: null });
+  esc(inView, { isComposing: true });
+  show('Esc while composing: the input method\'s, and the view stays', closing());
+  esc(inView, { metaKey: true });
+  show('⌘Esc: the view stays', closing());
+
+  open();
+  const words = box('Ship it on Friday');
+  press(words);
+  show('Esc in a box with words typed: the box is left, its words kept, and the view keeps its keys',
+       [esc(words), words.blurred, words.value, closing(), viewHasKeys(), keepsKeyboard()]);
+  show('…then Esc again: the view closes', [esc(inView), closing()]);
+  open();
+  const blank = box('  ');
+  show('Esc in an empty box: the view closes in one press, the box let go of', [esc(blank), closing(), blank.blurred]);
+
+  // Keys typed as if back in the app you were in, after a press in the view: taken before anything hears them, so the
+  // focus stays where it is, and no button is pressed nor anything sent.
+  const typed = (key, target) => {
+    const e = { key, target, prevented: false, stopped: false, preventDefault() { this.prevented = true; },
+                stopPropagation() { this.stopped = true; } };
+    viewKeyOnly(e);
+    return [e.prevented, e.stopped];
+  };
+  const button = { inView: true, closest: () => null, tagName: 'BUTTON' };
+  open();
+  press(inView);
+  show('pressed in it, then Tab: taken, so the focus stays where it is', typed('Tab', inView));
+  show('…then Return on a button focused there: taken, so nothing is sent', typed('Enter', button));
+  show('…and Space: taken', typed(' ', button));
+  show('…and a letter: left alone, so it does nothing', typed('g', inView));
+  show('Return in a box typed in, in the view: left to the box', typed('Enter', box('a comment')));
+  press(onTag);
+  show('with no keys in the view: Return left alone', typed('Enter', button));
+
+  open();
+  esc(inView, { defaultPrevented: true });
+  show('Esc that a box of a module\'s own card or the new conversation\'s card took: the view stays', closing());
+
+  // A request's card in the view, pressed: it has the keys, as a place beside the list has its cards' (heldCard).
+  open();
+  const card = { closest: () => ({}), classList: { add() {}, remove() {} } };
+  const place = { el: { inView: true, contains: (c) => c === card, querySelectorAll: () => [card] }, open: () => true };
+  const kind = { card: '.held', id: () => 'r1', open: () => true, key: () => false };
+  core.keyPlaces.push(place);
+  press(inView);
+  state.keyCard = { kind, id: 'r1', place: place.el };
+  show('a held card in the view, then Return: left to the card', typed('Enter', inView));
+  show('a held card in the view, then Esc: the card lets go of its keys, and the view stays',
+       [esc(inView), !!state.keyCard, closing(), viewHasKeys()]);
+  show('…then Esc again: the view closes', [esc(inView), closing(), sent]);
+  core.keyPlaces.splice(core.keyPlaces.indexOf(place), 1);
+
+  open();
+  press(inView);
+  keyboardGone();
+  show('pressed in it, then another app takes the keyboard: the view has none', [viewHasKeys(), keepsKeyboard()]);
+
+  state.reading = null;
+  state.viewKeys = null;
+  render = draw;
+  reader.contains = contains;
+  delete window.webkit;
+}

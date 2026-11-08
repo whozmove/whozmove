@@ -104,8 +104,7 @@ static NSString *Ask(NSString *root, NSArray<NSString *> *arguments) {
 
 // The repo's main checkout, for a folder in it (or in one of its worktrees), or nil outside git.
 static NSString *RepoOf(NSString *folder) {
-    NSDictionary *info = GitInfo(folder);
-    return info[@"mainRoot"] ?: info[@"root"];
+    return ProjectRoot(folder);
 }
 
 // Each folder a repo's branches are checked out in, as git lists them: {path: branch}, the main checkout among them.

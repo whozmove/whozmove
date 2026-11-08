@@ -378,6 +378,94 @@
     "went in" : "not recorded"
   }
 ]
+== Once settled, it looks again when the agent's stamp changes (not for the check's own writing), else hourly;
+   every 5 minutes for an agent with no stamp
+[
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "stamp-written",
+    "connected" : "recorded",
+    "found" : [
+      "added"
+    ],
+    "next look" : {
+      "5 s after" : "waits",
+      "11 s after" : "waits",
+      "301 s after" : "waits",
+      "3601 s after" : "looks again"
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "stamp-changed",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "next look" : {
+      "5 s after" : "waits",
+      "11 s after" : "looks again",
+      "301 s after" : "looks again",
+      "3601 s after" : "looks again"
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  },
+  {
+    "asked" : [
+      "start: at launch, before no",
+      "end: at launch, before no"
+    ],
+    "case" : "no-stamp",
+    "connected" : "recorded",
+    "found" : [
+      "ready"
+    ],
+    "next look" : {
+      "5 s after" : "waits",
+      "11 s after" : "waits",
+      "301 s after" : "looks again",
+      "3601 s after" : "looks again"
+    },
+    "noted" : "~\/Applications\/Whozmove.app",
+    "since" : [
+      "new"
+    ],
+    "tools" : [
+      "in"
+    ],
+    "tools asked" : [
+      "as last asked"
+    ],
+    "went in" : "not recorded"
+  }
+]
 == Install: macOS's installer opens, and while it's open, and once after, macOS is asked again at each look;
    closed without them, they're missing again; and once they're in, Install asks for nothing
 [

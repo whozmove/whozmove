@@ -1,0 +1,205 @@
+
+== The line above the list
+low: <div class="disk-line" role="button" title="Clean Up"><span class="disk-mark"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg></span><span class="disk-words"><b>18 GB left · full in about 6 days</b><i>Know your storage</i></span><span class="disk-go"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.6 2 6.6 5l-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><button class="icon-button small disk-x" title="Not now"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+nearly out: <div class="disk-line severe" role="button" title="Clean Up"><span class="disk-mark"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg></span><span class="disk-words"><b>3.2 GB left on your Mac</b><i>Builds and sessions may fail</i></span><span class="disk-go"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.6 2 6.6 5l-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><button class="icon-button small disk-x" title="Not now"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+not showing: null
+nothing said yet: null
+words escaped: <div class="disk-line" role="button" title="Clean Up"><span class="disk-mark"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg></span><span class="disk-words"><b>&lt;b&gt;18 GB&lt;/b&gt; left</b><i>A &amp; B</i></span><span class="disk-go"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.6 2 6.6 5l-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><button class="icon-button small disk-x" title="Not now"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+the map ready, while it’s closed: <div class="disk-line" role="button" title="Clean Up"><span class="disk-mark"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg></span><span class="disk-words"><b>18 GB left · full in about 6 days</b><i>Know your storage</i></span><span class="disk-go"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.6 2 6.6 5l-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><button class="icon-button small disk-x" title="Not now"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+the map ready, while it’s open: the disk’s line: null
+the map ready, with room to spare: <div class="disk-line ready" role="button" title="Open the Map"><span class="disk-mark"><svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg></span><span class="disk-words"><b>Your storage map is ready</b><i>See what fills your disk</i></span><span class="disk-go"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.6 2 6.6 5l-3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><button class="icon-button small disk-x" title="Not now"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+nothing ready: null
+
+== Sizes, as Finder says them
+sizes: ["0 KB","1 KB","1 KB","450 KB","1 MB","1 MB","995 MB","1 GB","4.4 GB","9.9 GB","10 GB","18 GB","460 GB"]
+
+== The rings
+pieces: ["part 1 ring 1 from 0.000 to 3.770, h0 d1","part 11 ring 2 from 0.000 to 1.885, h1 d2","part 111 ring 3 from 0.000 to 1.257, h1 d3","part 12 ring 2 from 1.885 to 3.142, h2 d2","3 small items ring 2 from 3.142 to 3.770, h3 d2 rest","part 2 ring 1 from 3.770 to 5.341, h1 d1","part 21 ring 2 from 3.770 to 5.341, h1 d2","part 3 ring 1 from 5.341 to 5.969, grey","9 small items ring 1 from 5.982 to 6.283, h5 d1 rest"]
+a piece of the first ring: M166.50 77.00A89 89 0 0 1 255.00 165.50L221.00 165.69A55 55 0 0 0 166.31 111.00Z
+a whole ring: M166.50 41.00A125 125 0 1 1 165.50 41.00L165.64 75.00A91 91 0 1 0 166.36 75.00Z
+nothing measured: []
+growing, at the start: the piece itself: true
+growing, halfway: M127.53 107.52A70 70 0 1 1 180.15 234.56L171.56 192.93A27.5 27.5 0 1 0 150.89 143.03Z
+growing, nearly round: M114.69 178.87A52.9 52.9 0 1 1 120.62 193.18L163.64 167.41A2.75 2.75 0 1 0 163.33 166.67Z
+growing from a piece nearly all the way round: a ring, its hole closing: M111.20 166A54.80 54.80 0 1 1 220.80 166A54.80 54.80 0 1 1 111.20 166ZM160.50 166A5.50 5.50 0 1 0 171.50 166A5.50 5.50 0 1 0 160.50 166Z
+growing, at the end: the middle: M115.00 166A51.00 51.00 0 1 1 217.00 166A51.00 51.00 0 1 1 115.00 166Z
+growing from the second ring, at the start: true
+a step: one in: in, ring 1
+a step: two in, a piece on the second ring: in, ring 2
+a step: one out: out, ring 1
+a step: two out, a crumb above the one above: out, ring 2
+a step: the same folder again: no step
+a step: across to another branch: no step
+a step: nothing shown before: no step
+
+== Finding what was pressed
+a file after a file: a file in it
+a folder: a folder
+a folder further in: a folder in it
+a part that isn’t there: null
+nothing shown yet: null
+the way to a folder: ["a folder"]
+the way to a folder further in: ["a folder","a folder in it"]
+the way to a part that isn’t there: null
+
+== Collecting for the Trash
+one: ["11 (10)"]
+another beside it: ["11 (10)","12 (10)"]
+the same again: put back: ["12 (10)"]
+the folder they’re in: it takes them in: ["1 (10)"]
+a folder collected whole: what’s in it shows as collected: [true,true,true]
+one of its parts pressed: taken out, the folder keeps the rest: ["11 but 111 (20)"]
+… and what’s in that part isn’t collected now: [false,false,true]
+something in the part taken out, pressed: collected on its own: ["11 but 111 (20)","1111 (10)"]
+the part taken out, pressed again: back in the folder: ["11 (30)"]
+the folder, pressed: put back, and what was taken out of it with it: []
+a part further in taken out: ["11 but 1111 (20)"]
+then the part holding it: that one taken out, not both: ["11 but 111 (20)"]
+
+== Clean up
+ticked to start with: what can go and says so: ["brew","built:3"]
+what it adds up to: {"all":10000000000,"ticked":8000000000,"trash":1,"commands":["brew cleanup --prune=all"]}
+a new list: what you unticked stays unticked, what you ticked stays ticked: ["built:4"]
+…and what joins a list already shown comes unticked, ticked or not as it says: ["brew","built:3"]
+the first list: what’s new comes ticked as it says: ["brew","built:3","folder:10"]
+something that can’t go now: unticked: []
+what it did: some in the Trash, a tool’s command, one stayed: Cleaned up 2 of 3 · 1 stayed. 5 GB is in the Trash. Empty it with Finder ▸ Empty Trash to get the space back. Your tools’ own commands freed 3 GB.
+what it did: two parts of one item stayed, counted once: Cleaned up 1 of 1 · 1 stayed. 2 GB is in the Trash. Empty it with Finder ▸ Empty Trash to get the space back.
+what it did: a tool’s command only: Cleaned up 1 of 1. Your tools’ own commands freed 3 GB.
+what it did: nothing: Nothing was cleaned up.
+each step’s words: ["Waiting","Moving to the Trash…","In the Trash","Running its command…","Done"]
+one that stayed: why, and what to do: {"word":"Stayed","line":"Claude Code is working in busy now. Clean Up again once it’s done."}
+one that stayed, its why saying what to do already: {"word":"Stayed","line":"The map was measured again since: look at the list again."}
+how far it has got: ["Cleaning up 2 things","Cleaning up 3 things · 1 done, 1 stayed"]
+
+== Clean up as it shows: first, ready at once, and its foot
+before the usual places are measured: looking, and Clean Up there but off: ["<p class=\"map-empty\">Looking at the usual places…</p>","<div class=\"tray\"><span class=\"tray-said\"></span><button class=\"button main\" disabled>Clean Up</button></div>"]
+the usual places, the map still measured: projects’ built files said to come, and Clean Up with its amount: ["<div class=\"clean\"><div class=\"clean-lede\"><span>Space you can get back. Each of these comes back by itself when it’s needed.</span></div><section class=\"clean-group\"><div class=\"clean-group-head\"><span class=\"clean-group-words\"><b class=\"caps\">Your tools’ caches</b><i>Downloaded again when they’re needed</i></span><span class=\"clean-size\">21 GB</span></div><div class=\"clean-row\" data-clean-tick=\"folder:/u/.npm\" role=\"checkbox\" aria-checked=\"true\"><span class=\"tickbox\" aria-hidden=\"true\"></span><span class=\"clean-words\"><b>npm’s cache</b><i>~/.npm</i></span><span class=\"clean-size\">21 GB</span></div></section><p class=\"clean-later\">Your projects’ built files are added once your disk is measured.</p></div>","<div class=\"tray\"><span class=\"tray-said\">1 ticked</span><button class=\"button main\" data-clean-go=\"1\">Clean Up 21 GB</button></div>"]
+opened by the press that turned Storage on: it says so, with Turn Off: <div class="notice boxed clean-on"><span class="notice-text">Storage is on: it keeps a map of your disk’s sizes on this Mac, never what’s in your files.</span><button class="button small" data-storage-off="1">Turn Off</button></div>
+nothing in the usual places: the map, for the rest, and never Clean Up 0 GB: ["<p class=\"map-empty\">Nothing to clean in the usual places. The map shows what’s using the rest.</p><p class=\"map-empty\"><button class=\"button\" data-map-view=\"map\">Open the Map</button></p><p class=\"clean-later\">Your projects’ built files are added once your disk is measured.</p>","<div class=\"tray\"><span class=\"tray-said\"></span><button class=\"button main\" disabled>Clean Up</button></div>"]
+projects’ built files join at the foot, unticked: Clean Up keeps its amount: [["folder:/u/.npm"],"<div class=\"tray\"><span class=\"tray-said\">1 ticked</span><button class=\"button main\" data-clean-go=\"1\">Clean Up 21 GB</button></div>"]
+cleaned before they came: the foot says how much they add: <div class="tray"><span class="tray-said done">Cleaned up 21 GB. Your projects’ built files: 8 GB more.</span><button class="button main" disabled>Clean Up</button></div>
+while it cleans: the row says its step, has no tick to press, and the foot how far it has got: ["<div class=\"clean-row moving\" aria-checked=\"true\"><span class=\"tickbox\" aria-hidden=\"true\"></span><span class=\"clean-words\"><b>npm’s cache</b><i>~/.npm</i></span><span class=\"clean-size\"><span class=\"shining\"><span class=\"shine\">Moving to the Trash…</span><span class=\"glint\" aria-hidden=\"true\" style=\"animation-delay:-0ms\"><span>Moving to the Trash…</span></span></span></span></div>","<div class=\"tray\"><span class=\"tray-said\">Cleaning up 1 thing. You can close Storage: what it did shows here when you come back.</span></div>"]
+one that stayed says why and what to do, in place of where it is: <div class="clean-row stayed" aria-checked="true"><span class="tickbox" aria-hidden="true"></span><span class="clean-words"><b>npm’s cache</b><i>npm is using it. Quit npm, then Clean Up again.</i></span><span class="clean-size">Stayed</span></div>
+a step told once cleaning is over: nothing: {}
+while it cleans: those cleaned keep their tick with nothing to press, the rest rest, and a step that’s going shines: ["<span class=\"clean-size\">6 GB","<div class=\"clean-row moving\" aria-checked=\"true\">","<span class=\"clean-size\"><span class=\"shining\">","<div class=\"clean-row waiting\" aria-checked=\"true\">","<span class=\"clean-size\">Waiting","<div class=\"clean-row running\" aria-checked=\"true\">","<span class=\"clean-size\"><span class=\"shining\">","<span class=\"clean-size\">10 GB","<div class=\"clean-row waiting\" aria-checked=\"true\">","<span class=\"clean-size\">Waiting","<div class=\"clean-row resting\">","<span class=\"clean-size\">1 GB"]
+…and Measure Again waits: ["<button class=\"button quiet map-again\" disabled title=\"Waits until Clean up is done\">"]
+…and once it’s done, it can be pressed: ["<button class=\"button quiet map-again\" data-map-again=\"1\">"]
+how far it has got, one stayed: said apart from what’s done: Cleaning up 4 things · 3 done, 1 stayed
+one that stayed: “Stayed” where its size was, its line only why and what to do: {"word":"Stayed","line":"Yarn is using it."}
+after: each row where it was, what went saying so: ["[Your tools’ caches]","npm’s cache: In the Trash","Yarn’s cache: Stayed","Support files: In the Trash","[Xcode]","Xcode’s built files: In the Trash","playground: 1 GB"]
+…with no box to see on what went, its room kept: ["<div class=\"clean-row trashed\"><span class=\"tickbox went\"","<div class=\"clean-row stayed\" data-clean-tick=\"b\" role=\"checkbox\" aria-checked=\"true\"><span class=\"tickbox\"","<div class=\"clean-row trashed\"><span class=\"tickbox went\"","<div class=\"clean-row trashed\"><span class=\"tickbox went\"","<div class=\"clean-row\" data-clean-tick=\"e\" role=\"checkbox\" aria-checked=\"false\"><span class=\"tickbox\""]
+a group that all went keeps its place and every row: ["[Your tools’ caches]","npm’s cache: In the Trash","Yarn’s cache: In the Trash","Support files: In the Trash","[Xcode]","Xcode’s built files: 9 GB","playground: 1 GB"]
+…until the disk is measured again: [[],null]
+what was done, in the Trash: Finder named once: Cleaned up 1 of 1. 2 GB is in the Trash. Empty it with Finder ▸ Empty Trash to get the space back.
+Clean up’s count while the disk is still measured: so far: <span class="map-tab-count">21 GB so far
+…and once it’s measured: <span class="map-tab-count">21 GB
+the tabs: Clean up first: ["data-map-view=\"clean\"","data-map-view=\"map\"","data-map-view=\"keys\""]
+on Keys, the head’s × is the kit’s icon button, as on the other tabs: ["<button class=\"icon-button r-close\" title=\"Close\">"]
+how far a measure has got, against what’s in use: [{"words":"142 of 476 GB","share":0.29831932773109243},{"words":"820 MB of 476 GB","share":0.0017226890756302522},{"words":"142 GB so far","share":null}]
+
+== The map’s rows: ＋ only where something can go, and the one way to allow Full Disk Access
+a ＋ only on what can go, the kit’s ＋ hidden on the rest, Allow Access under the unread row’s reason: ["code: — · no Allow · <button class=\"icon-button map-add\" data-map-add=\"21\" title=\"Collect it for the Trash\">","busy locked: Claude Code is working in busy now · no Allow · <button class=\"icon-button map-add none\" aria-hidden=\"true\">","4 small items rest: — · no Allow · <button class=\"icon-button map-add none\" aria-hidden=\"true\">","Desktop locked allow: Allow Full Disk Access to look inside · <button class=\"button small map-allow\" data-map-allow=\"1\">Allow Access</button> · <button class=\"icon-button map-add none\" aria-hidden=\"true\">"]
+once Allow Access is pressed, the row says what to do in System Settings, listed or not: Desktop locked allow: In System Settings, turn Whozmove on. Not in the list? Press + under the list there and choose Whozmove. · <button class="button small map-allow" data-map-allow="1">Allow Access</button> · <button class="icon-button map-add none" aria-hidden="true">
+
+== The rings, collected further out
+a folder collected whole: everything in it, all the way out: ["11 collected","111 collected","1111 collected","112 collected","12"]
+with a part taken back out: that part, and what’s in it, aren’t: ["11 collected","111","1111","112 collected","12"]
+
+== Keys: how soon each needs you, what counts, and the line above the list
+each key’s band, by its group in a look from before the app said: ["a: now","b: soon","c: now","d: sample"]
+the app’s band comes first: an ended token on GitHub is soon: soon
+what counts: all but the sample: ["a","b","c"]
+keys found: the line speaks only of those that left or are about to: {"head":"2 keys to replace now","sub":"1 pushed · 1 not pushed yet","ids":["a","c"]}
+one that left: {"head":"A key to replace now","sub":"1 pushed","ids":["c"]}
+one about to leave: {"head":"A key to take out before you push","sub":"1 not pushed yet","ids":["a"]}
+only on this Mac: nothing on the line: null
+only a sample on GitHub: nothing on the line: null
+put away for all of them: nothing to say: null
+put away, then another found: it says them all: {"head":"2 keys to replace now","sub":"1 pushed · 1 not pushed yet","ids":["a","c"]}
+its × puts away only the keys it spoke for, not the one only on this Mac: ["a","c"]
+none found: null
+it couldn’t look: nothing on the line: null
+nothing told yet: null
+all of them left: to replace now: {"head":"2 keys to replace now","sub":"1 sent to Claude · 1 pushed","ids":["c","e"]}
+two places: both named, most exposed first: {"head":"3 keys to replace now","sub":"2 sent to Claude · 1 not pushed yet","ids":["a","e","f"]}
+three places: the most exposed, and how many more are elsewhere: {"head":"3 keys to replace now","sub":"1 sent to Claude · 2 more elsewhere","ids":["a","c","e"]}
+every place: still two parts: {"head":"4 keys to replace now","sub":"1 sent to Claude · 3 more elsewhere","ids":["a","c","e","g"]}
+one the app says needs you now, of a place the line doesn’t name: said to be elsewhere: {"head":"2 keys to replace now","sub":"1 sent to Claude · 1 elsewhere","ids":["e","h"]}
+a dozen sent to Claude: the head fits the line: 12 keys to replace now
+
+== Keys: whether a key looks real
+sample: ["Probably made up","it’s only in tests’ and examples’ files"]
+said: ["Probably made up","the conversation it was in calls it made up"]
+made: ["Probably made up","an agent first wrote it in a conversation, and it’s nowhere else"]
+id: ["Probably not a key","it’s shaped like an id (a UUID), and nothing around it calls it a key"]
+test: ["Could be real","it’s only in tests’ files, but has its kind’s own shape"]
+shape: ["Looks real","it has its kind’s own shape"]
+kept: ["Looks real","it’s a file of sign-ins"]
+typed: ["Looks real","you typed it"]
+sent: ["Looks real","it was sent in a message"]
+file: ["Could be real","it looks like a key in a file"]
+not said: ["Could be real","it looks like a key in a file"]
+a sign-in token past its own end date: ["Probably no longer works","it ran out 90 days ago, by the date written in it"]
+
+== Keys: where a key is, in one sentence, and place by place
+a sample in every copy of a project, and in 3 commits: In harbor’s tests/api.expected.txt, on 2 lines, in main and 31 worktrees, and in 3 commits, 2 of them pushed.
+its places: one line for the file: ["lines 24 and 67 · in main and 31 worktrees · not pushed yet in a1b2c3d · pushed in 9e8f7a6, 4d5c6b7"]
+your shell history, on 4 lines: In your shell history, on 4 lines.
+its lines, said: ["4 lines, from line 1,204 to line 2,210"]
+one line: In your shell history, on line 12.
+your shell’s settings: where every terminal gets it from: In ~/.zshrc, your shell’s settings, on line 7.
+three lines: ["lines 8, 9 and 31"]
+a sign-in file others can read: In ~/.docker/config.json, which other accounts on this Mac can read.
+sent to Claude, and in its history of your messages: Your message in a Claude Code conversation in ~/code/atlas. And in one more place.
+a commit not pushed yet, in a worktree: In shop’s .env, on line 3, in its worktree shop-fix, and in a commit not pushed yet. Take it out of that commit before you push.
+a download: In service.json in your Downloads, on line 1.
+only in a commit not pushed yet: take it out before you push: In shop’s pay.ts, on line 1, and in a commit not pushed yet. Take it out of that commit before you push.
+a merged line’s press acts on its main copy: 1: /u/code/shop/app.ts
+what it’s set as: set as GITHUB_TOKEN
+the host it’s the password for: for db.example.dev
+the host it’s sent to: to api.example.dev
+nothing said: 
+a remote’s address: In the address of shop’s remote origin.
+
+== Keys: what each place’s line offers
+a .env line: Open at the Line, and no Trash: <span class="keys-place"><i><code>shop/.env</code> · line 1</i><button class="button quiet" data-keys-place="k" data-place="0" data-action="open">Open at the Line</button></span>
+a download that’s nothing but the key: Open at the Line still; the Trash is in its ⌄: <span class="keys-place"><i><code>~/Downloads/service.json</code> · line 1</i><button class="button quiet" data-keys-place="k" data-place="0" data-action="open">Open at the Line</button></span>
+a file with no line: Show in Finder: <span class="keys-place"><i><code>~/.ssh/id_ed25519</code></i><button class="button quiet" data-keys-place="k" data-place="0" data-action="reveal">Show in Finder</button></span>
+a conversation: Open the Conversation: <span class="keys-place"><i>Your message in a Claude Code conversation in ~/code/shop</i><button class="button quiet" data-keys-place="k" data-place="0" data-action="conversation">Open the Conversation</button></span>
+nothing to press: what to do, in a few words: <span class="keys-place"><i>shop’s remote origin</i><small>In the remote’s address: take the token out of it</small></span>
+in code type: a path; as words: a sentence or a remote: ["code: shop/src/pay.ts","code: ~/.zsh_history","code: /etc/app.conf","words: Your message in a Claude Code conversation in ~/code/atlas","words: shop’s remote origin"]
+Move to Trash picked from the ⌄: asked on the file’s line: <span class="keys-place"><i><code>~/Downloads/service.json</code> · line 1</i><span class="tray-ask"><b>Move service.json to the Trash?</b></span><button class="button" data-keys-cancel="1">Cancel</button><button class="button main" data-keys-yes="1">Confirm</button></span>
+
+== Keys: a key, as the tab draws it
+a key that has left: red, its fix the main one: <div class="keys-key needs"><span class="dot still"></span><span class="keys-words"><span class="keys-name"><b>GitHub</b><span class="keys-masked">ghp_…7Kq2</span></span><span class="keys-where">In atlas’s src/config.ts, on line 12, and in a commit that’s pushed.</span><span class="keys-real shape"><b>Looks real</b> · it has its kind’s own shape</span><button class="button quiet keys-show" data-keys-show="g">Show Where</button></span><span class="keys-fix"><span class="split-button main"><button class="button main" data-keys-fix="g">Replace at GitHub ↗</button><button class="button main" data-keys-more="g" title="More"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></span></div>
+the same, only on this Mac: your move’s colour, its fix a plain one: <div class="keys-key turn"><span class="dot still"></span><span class="keys-words"><span class="keys-name"><b>GitHub</b><span class="keys-masked">ghp_…7Kq2</span></span><span class="keys-where">In atlas’s src/config.ts, on line 12.</span><span class="keys-real shape"><b>Looks real</b> · it has its kind’s own shape</span><button class="button quiet keys-show" data-keys-show="g">Show Where</button></span><span class="keys-fix"><span class="split-button"><button class="button" data-keys-fix="g">Replace at GitHub ↗</button><button class="button" data-keys-more="g" title="More"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></span></div>
+a sample: the hollow ring, Not a Key first and quiet: <div class="keys-key idle closed"><span class="dot still"></span><span class="keys-words"><span class="keys-name"><b>Generic api key</b><span class="keys-masked">…3f9c</span></span><span class="keys-where">In harbor’s tests/api.expected.txt, on 2 lines, in main and 31 worktrees, and in 3 commits, 2 of them pushed.</span><span class="keys-real sample"><b>Probably made up</b> · it’s only in tests’ and examples’ files</span><button class="button quiet keys-show" data-keys-show="s">Show Where</button></span><span class="keys-fix"><span class="split-button"><button class="button quiet" data-keys-fix="s">Not a Key</button><button class="button quiet" data-keys-more="s" title="More"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></span></div>
+Show Where pressed: its places folded out: <div class="keys-key needs"><span class="dot still"></span><span class="keys-words"><span class="keys-name"><b>GitHub</b><span class="keys-masked">ghp_…7Kq2</span></span><span class="keys-where">In atlas’s src/config.ts, on line 12, and in a commit that’s pushed.</span><span class="keys-real shape"><b>Looks real</b> · it has its kind’s own shape</span><button class="button quiet keys-show" data-keys-show="g">Hide Where</button><span class="keys-places"><span class="keys-place"><i><code>atlas/src/config.ts</code> · line 12 · pushed in 4c1d9e2</i><button class="button quiet" data-keys-place="g" data-place="0" data-action="open">Open at the Line</button></span></span></span><span class="keys-fix"><span class="split-button main"><button class="button main" data-keys-fix="g">Replace at GitHub ↗</button><button class="button main" data-keys-more="g" title="More"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></span></div>
+the lede, with keys to replace now: <div class="clean-lede"><b>1 key to replace now</b><span>1 more can wait.</span></div>
+the lede, with none that has left: <div class="clean-lede"><b>1 key to tidy up</b><span>None needs replacing now.</span></div>
+a sample, folded at the foot: <div class="notice boxed keys-foot"><span class="notice-text">1 more looks like a sample in a test or example file, so it isn’t counted.</span><button class="button small" data-keys-samples="1">Show</button></div>
+the foot, for two samples: 2 more look like samples in test or example files, so they aren’t counted.
+the foot, for an id: 1 more looks like an id, not a key, so it isn’t counted.
+the foot, for two ids: 2 more look like ids, not keys, so they aren’t counted.
+the foot, for a sample and an id: 2 more look like samples in test or example files, or like ids, so they aren’t counted.
+the foot, for one its conversation calls made up: 1 more looks made up, as its conversation says, so it isn’t counted.
+the foot, for two: 2 more look made up, as their conversations say, so they aren’t counted.
+the foot, for one made up for a test and one said to be: 2 more look made up, for tests or by agents, so they aren’t counted.
+the foot, for one said to be made up and an id: 2 more look made up, as their conversations say, or like ids, so they aren’t counted.
+the foot, for one an agent made: 1 more looks made up by an agent, so it isn’t counted.
+the foot, for two agents made and one in a test file: 3 more look made up, for tests or by agents, so they aren’t counted.
+the lede, with only keys about to leave: <div class="clean-lede"><b>1 key to take out before you push</b><span>Take each out of its commit before you push.</span></div>
+the lede, with an ended token that left, and nothing to do now: <div class="clean-lede"><b>1 key to tidy up</b><span>None needs replacing now.</span></div>
+Do now’s note: all have left: It has left this Mac: make a new one where it came from
+Do now’s note: some about to: It has left this Mac, or is about to
+Do now’s note: all about to: About to leave this Mac: take it out before you push
+When you can’s note, with one that has left but no longer works: Only on this Mac, or no longer works
+a remote’s address, in every copy, said once: 1
+two clones with one name: two places: 2
+Move to Trash from the ⌄: its places are shown, to ask on the file’s line: ["dl"]
+the first look, starting: how far it has got beside the tabs, and none found so far: ["<span class=\"map-measured\">Read 0 of 5 places</span><span class=\"bar map-progress\"><i style=\"width: 0.0%\"></i></span>","<div class=\"keys\"><p class=\"map-empty\">None found so far. Each key shows here as it’s found. Keys looks by itself, once a day, in your projects and their commits, in what AI tools keep of your conversations, in your shell history and in who can read your credential files. Nothing leaves this Mac, and no key is kept whole: only how it starts and its last 4 characters.</p></div>"]
+the first look, two places read: the key found so far, listed: ["<span class=\"map-measured\">Read 2 of 5 places · 1 key so far</span><span class=\"bar map-progress\"><i style=\"width: 40.0%\"></i></span>",true]
+a look again, four places read: <span class="map-measured">Read 4 of 5 places · 2 keys so far</span><span class="bar map-progress"><i style="width: 80.0%"></i></span>
+while the disk is measured, Keys’ tab says how far the measuring has got, as the others do: true
+before the first look: that it looks a moment after Whozmove opens: <p class="map-empty">Keys looks a moment after Whozmove opens. Keys looks by itself, once a day, in your projects and their commits, in what AI tools keep of your conversations, in your shell history and in who can read your credential files. Nothing leaves this Mac, and no key is kept whole: only how it starts and its last 4 characters.</p>

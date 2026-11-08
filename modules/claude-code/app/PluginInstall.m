@@ -29,7 +29,8 @@ static NSString *VersionOf(NSString *plugin) {
 // The copy Claude Code reads, made again from `hooks` when its version differs or it has gone (which also clears the
 // "failed to load" Claude Code lists a plugin with while its folder is missing), or `again` (Try Again): copied beside
 // it, then swapped in, so Claude Code never reads half of one. Whozmove's folder is yours alone, as Claude Code's own
-// is. Nil once it's there, else why not.
+// is. Its hooks are dated as they go in, not as they were built, which a copy keeps: SessionHasHookPart goes by when a
+// part went in. Nil once it's there, else why not.
 static NSString *CopyHooks(NSString *hooks, BOOL again) {
     NSString *plugin = PluginFolder(), *want = VersionOf(hooks);
     if (!want) return @"This copy of Whozmove carries no hooks";
@@ -45,6 +46,10 @@ static NSString *CopyHooks(NSString *hooks, BOOL again) {
         : rename(beside.fileSystemRepresentation, plugin.fileSystemRepresentation) == 0;
     [files removeItemAtPath:beside error:nil];  // the copy that was there before, once swapped
     if (!swapped) return @"Couldn't put the hooks in Whozmove's folder";
+    NSString *placed = [plugin stringByAppendingPathComponent:@"hooks"];
+    for (NSString *name in [files contentsOfDirectoryAtPath:placed error:nil])
+        [files setAttributes:@{NSFileModificationDate: NSDate.date}
+                ofItemAtPath:[placed stringByAppendingPathComponent:name] error:nil];
     PanelLog(@"plugin: hooks %@ copied into Whozmove's folder", want);
     return nil;
 }
@@ -161,4 +166,66 @@ NSDictionary *ConnectPlugin(NSString *answer, BOOL before, NSString *hooks, NSSt
     NSString *error = AsText(AsList(mine[@"errors"]).firstObject);
     if (error) return @{@"state": @"failed", @"detail": Clip(error, 200)};
     return @{@"state": turnedOn || again ? @"added" : @"ready"};
+}
+
+#pragma mark Which sessions have a part of the hooks
+
+// Since when the hooks in Whozmove's folder have had each part, as first seen there (the app's own defaults; the
+// switch part's key is as it was before there were others).
+static NSString *const kHookPartSince[] = {
+    [HookPartSwitches] = @"switchHookSince",
+    [HookPartDontWait] = @"dontWaitHookSince",
+    [HookPartHookLine] = @"hookLineSince",
+    [HookPartApprovePlan] = @"approvePlanSince",
+    [HookPartBetweenSteps] = @"betweenStepsHookSince",
+};
+
+// The file in the hooks put in place that has the part, if it has it now.
+static NSString *FileWithPart(HookPart part) {
+    NSString *hooks = [PluginFolder() stringByAppendingPathComponent:@"hooks"];
+    if (part == HookPartSwitches || part == HookPartBetweenSteps) {
+        NSString *path = [hooks stringByAppendingPathComponent:@"hooks.json"];
+        NSString *event = part == HookPartSwitches ? @"PreModelSwitch" : @"PostToolBatch";
+        return AsRecord(AsRecord(ReadJSON(path))[@"hooks"])[event] ? path : nil;
+    }
+    NSString *path = [hooks stringByAppendingPathComponent:@"whozmove-claude-permission.py"];
+    NSString *text = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    NSString *marker = part == HookPartDontWait ? @"\nDONT_WAIT = "
+        : part == HookPartApprovePlan ? @"\nAPPROVE_PLAN = " : @"\nHOOK_LINE = ";
+    return [text containsString:marker] ? path : nil;
+}
+
+// The hooks are dated as they're put in place (CopyHooks), so the time of the first copy with the part the app sees is
+// when that part went in; a later copy's time is kept back from it.
+BOOL SessionHasHookPart(pid_t pid, HookPart part, BOOL remember) {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    NSString *key = kHookPartSince[part], *path = FileWithPart(part);
+    if (!path) {
+        if (remember) [defaults removeObjectForKey:key];
+        return NO;
+    }
+    NSDate *placed = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil].fileModificationDate;
+    double since = remember ? [defaults doubleForKey:key] : 0;
+    if (placed && (!since || placed.timeIntervalSince1970 < since)) {
+        since = placed.timeIntervalSince1970;
+        if (remember) [defaults setDouble:since forKey:key];
+    }
+    long long started = ProcessStartedAt(pid);  // microseconds since 1970
+    return since > 0 && started > 0 && started / 1e6 > since;
+}
+
+BOOL HookPartInPlace(HookPart part) {
+    return FileWithPart(part) != nil;
+}
+
+NSString *HooksStamp(void) {
+    NSString *folder = ClaudeDir(kClaudeCodePlugins);
+    double installed = FileModifiedAt([folder stringByAppendingPathComponent:kClaudeCodeInstalledPlugins]);
+    if (!installed) return nil;
+    double marketplaces = FileModifiedAt([folder stringByAppendingPathComponent:kClaudeCodeKnownMarketplaces]);
+    // The settings files say whether it's on, but they're never read for it: when they were written is enough, as
+    // they hold other things that are no one else's business.
+    double settings = FileModifiedAt(ClaudeDir(kClaudeCodeSettings));
+    double machine = FileModifiedAt(MachineFile(kClaudeCodeManagedSettings));
+    return [NSString stringWithFormat:@"%f %f %f %f", installed, marketplaces, settings, machine];
 }

@@ -8,6 +8,7 @@
 #   tests/panel.sh --update   run and save the output as the new expected (after a change you meant)
 # Needs nothing beyond macOS. Takes under a second.
 cd "$(dirname "$0")/.." || exit 1
+. tests/sandboxed.sh "$@"
 REPO=$PWD
 . "$REPO/tests/lib.sh"
 . "$REPO/tests/compare.sh"

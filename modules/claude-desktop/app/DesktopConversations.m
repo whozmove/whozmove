@@ -32,7 +32,7 @@
                 if (![file hasPrefix:kClaudeDesktopConversationPrefix] || ![file.pathExtension isEqualToString:@"json"])
                     continue;
                 NSString *path = [orgDir stringByAppendingPathComponent:file];
-                NSDate *mtime = [fm attributesOfItemAtPath:path error:nil].fileModificationDate;
+                NSNumber *mtime = @(FileModifiedAt(path));
                 NSDictionary *cached = self.cache[path];
                 if (!cached || ![cached[@"mtime"] isEqual:mtime]) {
                     NSDictionary *c = ReadJSON(path);
@@ -42,8 +42,8 @@
                                             @"isArchived", @"lastActivityAt", @"lastFocusedAt", @"permissionMode",
                                             @"model", @"effort"])
                         if (c[key] && c[key] != NSNull.null) fields[key] = c[key];
-                    fields[@"savedAt"] = @(mtime.timeIntervalSince1970 * 1000);  // when Claude last wrote it
-                    cached = @{@"mtime": mtime ?: NSDate.distantPast, @"fields": fields};
+                    fields[@"savedAt"] = @(mtime.doubleValue * 1000);  // when Claude last wrote it
+                    cached = @{@"mtime": mtime, @"fields": fields};
                     self.cache[path] = cached;
                 }
                 [present addObject:path];

@@ -11,6 +11,12 @@ NSDictionary *WritingNews(NSData *chunk, NSUInteger end, unsigned long long base
 // (key -> writing) and `waiting` (call id -> the writing it decides). On the main thread.
 void AddWritingNews(NSMutableDictionary *state, NSDictionary *news);
 
+// How this part of a session's transcript state is kept across restarts (Transcripts' kept reads): its writings and
+// the calls they wait on, as they are, plain JSON; and taken back into `state`, every value checked for its kind (a
+// page's address for https) and the count for its limits. NO, with `state` as it was, for any that doesn't fit.
+NSDictionary *KeptWritings(NSDictionary *state);
+BOOL TakeBackWritings(NSDictionary *kept, NSMutableDictionary *state);
+
 // A session's writings for its row, newest first, without where each is kept in the transcript.
 NSArray<NSDictionary *> *RowWritings(NSDictionary *state);
 

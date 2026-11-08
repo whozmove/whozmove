@@ -1,0 +1,541 @@
+## facts
+== keys and links
+"PAY-142" → PAY-142
+" PAY-142\n" → PAY-142
+"pay-142" → (none)
+"PAY-0" → (none)
+"A_B2-7" → A_B2-7
+"PAY142" → (none)
+"PAY-142 and more" → (none)
+"https://acme.atlassian.net/browse/PAY-142" → PAY-142 on acme.atlassian.net
+"https://Acme.atlassian.net/browse/PAY-142?focusedCommentId=1" → PAY-142 on acme.atlassian.net
+"https://acme.atlassian.net/jira/software/projects/PAY/boards/3?selectedIssue=PAY-9" → PAY-9 on acme.atlassian.net
+"https://acme.jira.com/browse/WEB-77" → WEB-77 on acme.jira.com
+"http://acme.atlassian.net/browse/PAY-142" → (none)
+"https://evil.example/browse/PAY-142" → (none)
+"https://a.b.atlassian.net/browse/PAY-1" → (none)
+"https://atlassian.net/browse/PAY-1" → (none)
+"https://acme.atlassian.net/browse/not-a-key" → (none)
+== links made
+"PAY-142" on acme.atlassian.net → https://acme.atlassian.net/browse/PAY-142
+"PAY-142" on ACME.atlassian.net → https://acme.atlassian.net/browse/PAY-142
+"PAY-142" on evil.example → (none)
+"PAY-142\"><x" on acme.atlassian.net → (none)
+== searches
+"" → assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC
+"login" → text ~ "login" ORDER BY statusCategory ASC, updated DESC
+"PAY-142" → key = PAY-142
+"https://acme.atlassian.net/browse/PAY-142" → key = PAY-142
+"say \"hi\" \\ or ORDER BY" → text ~ "say \"hi\" \\ or ORDER BY" ORDER BY statusCategory ASC, updated DESC
+"  safari  login  " → text ~ "safari  login" ORDER BY statusCategory ASC, updated DESC
+== kinds
+new "" → todo
+indeterminate "" → doing
+done "" → done
+done "Won't Do" → dropped
+done "Duplicate" → dropped
+done "Done" → done
+undefined "" → todo
+== sign-in
+scopes: read:jira:agent-interface search:jira:agent-interface write:jira:agent-interface offline_access read:me read:account
+oauth-protected-resource of https://mcp.atlassian.com/v2/mcp: https://mcp.atlassian.com/.well-known/oauth-protected-resource/v2/mcp
+oauth-authorization-server of https://auth.atlassian.com/abc: https://auth.atlassian.com/.well-known/oauth-authorization-server/abc
+challenge: ln3NCqBQ5pQxcBNc1ojaJjCYuIs0lktkyfrbjqSRYzY
+random: 64 characters, new each time
+service: usable
+service: The service doesn't offer PKCE with S256 any more
+service: The service doesn't offer sign-in for apps with no secret any more
+service: The service doesn't offer its sign-in addresses any more
+== the card on the panel's back
+signed out: {"actions":[{"id":"signIn","main":true,"title":"Sign In with Atlassian"}],"figure":"Not signed in","lines":["Sign in with Atlassian once, and you can give a conversation a Jira ticket from the new conversation card."]}
+signing in: {"actions":[{"id":"cancel","title":"Cancel"},{"id":"copyAsk","title":"Copy What to Ask"}],"figure":"Signing in…","lines":["Waiting for Atlassian's page in your browser…","If that page says your admin has blocked this, they can allow it once, for everyone."]}
+signed in: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+blocked: {"actions":[{"id":"copyAsk","main":true,"title":"Copy What to Ask"},{"id":"signIn","title":"Try Again"}],"figure":"Not allowed yet","lines":["Your Jira admin hasn't let apps sign in from this Mac yet.","Copy what to ask them, and send it."]}
+expired: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"}],"figure":"Sign in again","lines":["The sign-in has run out.","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+macOS asks first: {"actions":[{"id":"signIn","main":true,"title":"Allow"},{"id":"signOut","title":"Sign Out"}],"figure":"Allow it once","lines":["Whozmove was updated, so macOS asks once before it hands over your Atlassian sign-in.","Press Allow, then Always Allow in macOS's box: it asks once for each new build."]}
+signed in, two sites: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To 2 sites: acme.atlassian.net, beta.atlassian.net","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+signed in, reading only: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"},{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","Sign in again to let Whozmove move tickets.","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+blocked, copied: {"actions":[{"id":"copyAsk","main":true,"title":"Copied"},{"id":"signIn","title":"Try Again"}],"figure":"Not allowed yet","lines":["Your Jira admin hasn't let apps sign in from this Mac yet.","Copied: paste it to your Jira admin."]}
+## answers
+== boards.json
+3 board "Payments board"
+9 board "Payments support"
+== error-404.json
+error 404
+== error-none.json
+error 0
+== error-scope.json
+error 401, naming a scope
+== issue-none.json
+null
+== issue-plain.json
+{"groups":[{"id":"WEB","kind":"project","name":"Web","sprint":"Sprint 3"}],"id":"10077","key":"WEB-77","link":"https://acme.atlassian.net/browse/WEB-77","site":"acme.atlassian.net","state":{"kind":"dropped","name":"Closed"},"steps":[],"title":"Log in link in the footer goes nowhere <b>bold</b>","tracker":"Jira","type":"Bug"}
+== issue-v2.json
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== search-list.json
+{"groups":[],"key":"WEB-77","link":"https://acme.atlassian.net/browse/WEB-77","site":"acme.atlassian.net","state":{"kind":"todo","name":"Open"},"steps":[],"title":"Footer link","tracker":"Jira"}
+== search-nodes.json
+{"groups":[{"id":"PAY","kind":"project","name":"Payments"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"groups":[{"id":"PAY","kind":"project","name":"Payments"}],"id":"10131","key":"PAY-131","link":"https://acme.atlassian.net/browse/PAY-131","site":"acme.atlassian.net","state":{"kind":"todo","name":"To Do"},"steps":[],"title":"Login page is slow on mobile data","tracker":"Jira","type":"Story"}
+== sites.json
+["acme.atlassian.net","beta.atlassian.net"]
+== transitions.json
+[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"51","name":"QA sign-off","needs":[{"id":"customfield_10100","kind":"person","name":"Approved by","required":false},{"id":"customfield_10200","kind":"number","name":"Story points","required":false},{"id":"fixVersions","kind":"option","many":true,"name":"Fix versions","options":["2.1","2.2"],"required":false},{"id":"resolution","kind":"option","name":"Resolution","options":["Done","Won't Do"],"required":true}],"to":{"kind":"done","name":"Done"}}]
+step 51 with {"customfield_10200":3,"fixVersions":["2.1","2.2"],"resolution":"Won't Do"}: {"customfield_10200":3,"fixVersions":[{"id":"10200"},{"id":"10201"}],"resolution":{"name":"Won't Do"}}
+step 51 with {"fixVersions":"2.2"}: {"fixVersions":[{"id":"10201"}]}
+step 51 with {"resolution":"Fixed"}: Resolution doesn't take that now
+step 51 with {"resolution":["Done"]}: Resolution doesn't take that now
+step 51 with {"customfield_10200":"three"}: Story points doesn't take that now
+step 51 with {"customfield_10100":"Sam Rivera"}: Approved by is a person to pick in Jira itself, so move it there
+step 31 with {"resolution":"Done"}: This step doesn't set resolution now
+## the Keychain's stand-in, kept afresh
+none kept
+in the stand-in file
+couldn't read it
+in the stand-in file
+written
+in the stand-in file
+one is kept
+in the stand-in file
+read it back
+in the stand-in file
+read it back
+in the stand-in file
+forgotten
+in the stand-in file
+none kept
+in the stand-in file
+couldn't read it
+in the stand-in file
+## the Keychain's stand-in, an entry other apps can read
+written
+in the stand-in file
+opened to other apps
+in the stand-in file
+kept, but other apps can read it, so not used
+in the stand-in file
+kept, but other apps can read it, so not used
+in the stand-in file
+kept, but other apps can read it, so not used
+in the stand-in file
+not updated
+in the stand-in file
+written
+in the stand-in file
+one is kept
+in the stand-in file
+updated
+in the stand-in file
+read it back, changed
+in the stand-in file
+## the Keychain's stand-in, an entry another build kept, or something else changed
+written
+in the stand-in file
+kept by an older build, which macOS asks about
+in the stand-in file
+macOS would ask first, so not read
+in the stand-in file
+read it back
+in the stand-in file
+read it back
+in the stand-in file
+written
+in the stand-in file
+changed by something else, which macOS asks about
+in the stand-in file
+one is kept
+in the stand-in file
+kept by this build, but changed since, so not used
+in the stand-in file
+kept by this build, but changed since, so not used
+in the stand-in file
+written
+in the stand-in file
+read it back
+in the stand-in file
+## talk
+== state
+sign-in: signed out
+notices: 0
+== search login
+sign in: Sign in with Atlassian first, 0 found
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== kept
+keychain stand-in: holds the sign-in
+== search login
+done, 1 found
+  {"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== search nothing like it
+done, 0 found
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== take PAY-142 31 The fix is in pull request #57.
+done; it stands: In Review
+== take PAY-142 31
+step gone: PAY-142 is In Review already; it stands: In Review
+== take PAY-142 51
+failed: Couldn't reach Jira just now; it stands: In Review
+== take PAY-142 51 {"resolution":"Fixed"}
+failed: Resolution doesn't take that now; it stands: In Review
+== take PAY-142 51 {"resolution":"Done"} Signed off.
+done; it stands: Done
+== read PAY-999
+not found: There's no such ticket, or it isn't yours to see
+no ticket
+== types PAY
+done: {"group":"PAY","kind":"project","types":["Task","Bug","Story"]}
+== types NOPE
+not found: There's no such ticket, or it isn't yours to see: no options
+== create
+done: PAY-151
+== create refused
+refused: Jira turned it away as it is: a priority, a parent or a field this project wants may be wrong: no key
+== create unread
+done: PAY-152
+== signout
+sign-in: signed out
+== kept
+keychain stand-in: empty
+== state
+sign-in: signed out
+notices: 0
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call searchJiraIssuesUsingJql
+POST tools/call searchJiraIssuesUsingJql
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call transitionJiraIssue
+POST tools/call addOrEditJiraIssueComment with a note
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call transitionJiraIssue
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call transitionJiraIssue with fields {"resolution": {"id": "10000"}}
+POST tools/call addOrEditJiraIssueComment with a note
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call createJiraIssue
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call createJiraIssue
+POST tools/call createJiraIssue
+POST tools/call getJiraIssue
+## talk (blocked)
+== signin
+sign-in: blocked (Your Jira admin hasn't let apps sign in from this Mac yet. They can allow it once, for everyone.)
+sites: []
+== state
+sign-in: blocked (Your Jira admin hasn't let apps sign in from this Mac yet. They can allow it once, for everyone.)
+notices: 0
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+## talk (slow)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: []
+== read PAY-142
+slow down: Atlassian asked Whozmove to slow down (with a time to try again)
+no ticket
+== search login
+slow down: Atlassian asked Whozmove to slow down (with a time to try again), 0 found
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources: asked to slow down
+## talk (expired)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: expired (The sign-in has run out.)
+sites: []
+== read PAY-142
+sign in: The sign-in has run out.
+no ticket
+== state
+sign-in: expired (The sign-in has run out.)
+notices: 1
+== kept
+keychain stand-in: empty
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources: turned away, the token has run out
+POST token for a refresh: the latest refresh token
+## talk (newbuild)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== newbuild
+sign-in: signed in
+== state
+sign-in: signed in
+notices: 0
+== kept
+keychain stand-in: holds the sign-in
+== read PAY-142
+macOS asks first: Whozmove was updated, so macOS asks once before it hands over your Atlassian sign-in.
+no ticket
+== state
+sign-in: macOS asks first (Whozmove was updated, so macOS asks once before it hands over your Atlassian sign-in.)
+notices: 1
+== notices
+notice: Whozmove was updated, so macOS asks once before it hands over Jira's sign-in: press Allow, then Always Allow. [Allow]
+== signin
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== state
+sign-in: signed in
+notices: 0
+== restart
+sign-in: signed in
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== rewritten
+sign-in: signed in
+== read PAY-142
+sign in: The sign-in kept on this Mac was changed by another app, so Whozmove won't use it.
+no ticket
+== state
+sign-in: expired (The sign-in kept on this Mac was changed by another app, so Whozmove won't use it.)
+notices: 1
+== notices
+notice: The sign-in kept on this Mac was changed by another app, so Whozmove won't use it. [Sign In Again]
+== log
+log: Jira: signed in with Atlassian
+log: Jira: macOS asks before it gives this build the sign-in
+log: Jira: macOS gave this build the sign-in
+log: Jira: the sign-in kept in the Keychain was changed since this build kept it, so it isn't used
+== replaced
+sign-in: signed in
+== read PAY-142
+sign in: You aren't signed in with Atlassian
+no ticket
+== state
+sign-in: signed out
+notices: 0
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+GET the resource's page
+GET the sign-in service's page
+POST token for a refresh: the latest refresh token
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+GET the resource's page
+GET the sign-in service's page
+POST token for a refresh: the latest refresh token
+POST initialize
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+## talk (planted)
+== planted
+sign-in: expired
+== state
+sign-in: expired (The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.)
+notices: 1
+== read PAY-142
+sign in: The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.
+no ticket
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== restart
+sign-in: signed in
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== state
+sign-in: signed in
+notices: 0
+== log
+log: Jira: the sign-in kept in the Keychain can be read by other apps, so it isn't used
+log: Jira: signed in with Atlassian
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+GET the resource's page
+GET the sign-in service's page
+POST token for a refresh: the latest refresh token
+POST initialize
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+## talk (midsession)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== others
+the entry lets other apps read it now
+== refused
+the access token is turned away
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== log
+log: Jira: signed in with Atlassian
+log: Jira: the new sign-in is kept in memory only: the Keychain didn't take it
+== restart
+sign-in: expired (The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.)
+== read PAY-142
+sign in: The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.
+no ticket
+== state
+sign-in: expired (The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.)
+notices: 1
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST token for a refresh: the latest refresh token
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+## talk (drop)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== create
+failed: Couldn't reach Jira just now: no key
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call createJiraIssue: made, and its answer dropped
+## talk (noscope)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== card
+card: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+== take PAY-142 31
+sign in: This sign-in may only read tickets; it stands: In Progress
+== card
+card: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"},{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","Sign in again to let Whozmove move tickets.","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== card
+card: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+== readonly
+kept without its scopes; sign-in: signed in
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== take PAY-142 31
+sign in: This sign-in may only read tickets; it stands: unknown
+== card
+card: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"},{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To your Jira sites, found as you first look for a ticket.","Sign in again to let Whozmove move tickets.","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
+== log
+log: Jira: signed in with Atlassian
+log: Jira: transitionJiraIssue was refused for the sign-in's scope
+log: Jira: signed in with Atlassian
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call transitionJiraIssue: refused, the token has no write scope
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+GET the resource's page
+GET the sign-in service's page
+POST token for a refresh: the latest refresh token
+POST initialize
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards

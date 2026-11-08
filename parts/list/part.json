@@ -1,0 +1,10 @@
+{
+  "scripts": ["page/whose-move.js", "page/strips.js", "page/input.js", "page/panel.js"],
+  "talksTo": ["core", "bridge", "focus", "row", "morph", "keyboard", "pane", "header", "hover", "cat", "held", "chats",
+              "landing"],
+  "provides": ["Rows.h", "list", "render", "renderWhenSettled", "reportHeight", "hangingBelow", "linesUnder",
+               "forgetGone", "keepInPlace", "openedNow", "view", "foldPanel", "stillFolded", "openFromCat", "openSession",
+               "takesPresses", "turnToApps", "ago", "elapsed", "minutesLeft", "editedAt", "isRead", "lastActive",
+               "onItAt", "turnSince", "waitsOnYou", "projectOf", "unpushedCommits", "IDLE_AFTER_MS", "setText",
+               "easeHeight", "growIn", "foldAway", "backgroundAtWork", "backgroundRunning", "--list-fill"]
+}

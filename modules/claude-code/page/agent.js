@@ -15,18 +15,17 @@ function modelName(id) {
   return m ? `${m[1][0].toUpperCase()}${m[1].slice(1)} ${m[2]}${m[3] ? '.' + m[3] : ''}` : (id || '');
 }
 
-// The context window: 1M for Opus and Fable 5.x and "[1m]" models, else 200k. A session using more than 200k
-// can only have the larger window, so it gets 1M too.
-function contextWindow(model, tokens) {
-  const large = /\[1m\]/.test(model) || /claude-(opus|fable)-5/.test(model) || tokens > 200000;
-  return large ? 1000000 : 200000;
+// The context window, as the app works it out for the row's agent (ClaudeCodeFacts' ClaudeContextWindow, which the
+// commands module's CompactTime goes by too), so there's one rule for it; 200k for a row that doesn't say.
+function contextWindow(a) {
+  return a?.window > 0 ? a.window : 200000;
 }
 
 // Where auto-compact starts: your own setting (/autocompact), else about 967k with a 1M window (Claude Code's
 // default), else the end of the window.
 const AUTO_COMPACT_1M = 967000;
 function compactLimit(a) {
-  const window = contextWindow(a.model, a.tokens);
+  const window = contextWindow(a);
   return a.compactWindow > 0 ? Math.min(a.compactWindow, window) : window >= 1e6 ? AUTO_COMPACT_1M : window;
 }
 

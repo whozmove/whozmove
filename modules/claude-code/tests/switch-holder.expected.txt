@@ -1,0 +1,156 @@
+== Ticked while another Claude Code session runs inside the folder: refused; once it's closed: on
+== Its session closes and a new one there is made the lead: on for it, and said under the header
+== Then each that can't hold them: any program counts for nothing; npm's Claude Code, another program, one
+   running elsewhere than its record says, one a Claude Code session started (signed, npm's, or in no registry
+   at all, and where that walk stops: at this run in a print run, never short in the app); then a /clear, recorded
+   as the lead, holds them; a member in a worktree inside the folder doesn't count against it, one whose record
+   names a folder above it does, and so does a second copy of the lead's own conversation
+   with a new line; one whose starting shell has exited passes (the limit the line under the header covers); and
+   one that might bypass holds all but May Approve Plans
+> open s-one shop
+> open s-two shop/sub
+> tick s-one
+sendBack: not changed
+answerQuestions: not changed
+approvePlans: not changed
+> close s-two
+> tick s-one
+sendBack: tick
+answerQuestions: tick
+approvePlans: tick
+> why s-one
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> notices
+> close s-one
+> open s-three shop
+> lead s-three
+> why s-three
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> notices
+Switches Came On: May Send Back Plans, May Answer Questions and May Approve Plans came on for a new session<app>, started at <time>: kept for shop while Whozmove runs. (button Take Me There)
+> open s-four shop/sub as=other
+> why s-three
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> close s-four
+> open s-five shop as=node
+> why s-three
+sendBack: May Send Back Plans is kept for shop, but off now: another Claude Code session, s-five, runs in shop too: close it
+answerQuestions: May Answer Questions is kept for shop, but off now: another Claude Code session, s-five, runs in shop too: close it
+approvePlans: May Approve Plans is kept for shop, but off now: another Claude Code session, s-five, runs in shop too: close it
+> lead s-five
+> why s-five
+sendBack: May Send Back Plans is kept for shop, but off now: it runs an older Claude Code from npm, run by Node, which no signature can check: update Claude Code (npm's is its own signed build from 2.1.113 on) and start it again
+answerQuestions: May Answer Questions is kept for shop, but off now: it runs an older Claude Code from npm, run by Node, which no signature can check: update Claude Code (npm's is its own signed build from 2.1.113 on) and start it again
+approvePlans: May Approve Plans is kept for shop, but off now: it runs an older Claude Code from npm, run by Node, which no signature can check: update Claude Code (npm's is its own signed build from 2.1.113 on) and start it again
+> close s-five
+> open s-six shop as=other
+> lead s-six
+> why s-six
+sendBack: May Send Back Plans is kept for shop, but off now: it isn't Claude Code's own program, signed by Anthropic
+answerQuestions: May Answer Questions is kept for shop, but off now: it isn't Claude Code's own program, signed by Anthropic
+approvePlans: May Approve Plans is kept for shop, but off now: it isn't Claude Code's own program, signed by Anthropic
+> close s-six
+> open s-seven shop at=elsewhere
+> lead s-seven
+> why s-seven
+sendBack: May Send Back Plans is kept for shop, but off now: its process doesn't work in shop, whatever its record says
+answerQuestions: May Answer Questions is kept for shop, but off now: its process doesn't work in shop, whatever its record says
+approvePlans: May Approve Plans is kept for shop, but off now: its process doesn't work in shop, whatever its record says
+> close s-seven
+> pair s-boss s-eight shop
+> lead s-eight
+> why s-eight
+sendBack: May Send Back Plans is kept for shop, but off now: it was started inside another Claude Code session, s-boss: start it in a terminal of its own
+answerQuestions: May Answer Questions is kept for shop, but off now: it was started inside another Claude Code session, s-boss: start it in a terminal of its own
+approvePlans: May Approve Plans is kept for shop, but off now: it was started inside another Claude Code session, s-boss: start it in a terminal of its own
+> close s-boss
+> pair s-npm-boss s-eleven shop as=node
+> lead s-eleven
+> why s-eleven
+sendBack: May Send Back Plans is kept for shop, but off now: it was started inside another Claude Code session, s-npm-boss: start it in a terminal of its own
+answerQuestions: May Answer Questions is kept for shop, but off now: it was started inside another Claude Code session, s-npm-boss: start it in a terminal of its own
+approvePlans: May Approve Plans is kept for shop, but off now: it was started inside another Claude Code session, s-npm-boss: start it in a terminal of its own
+> close s-npm-boss
+> pair s-unlisted s-twelve shop unlisted
+> lead s-twelve
+> why s-twelve
+sendBack: May Send Back Plans is kept for shop, but off now: it was started inside another Claude Code session: start it in a terminal of its own
+answerQuestions: May Answer Questions is kept for shop, but off now: it was started inside another Claude Code session: start it in a terminal of its own
+approvePlans: May Approve Plans is kept for shop, but off now: it was started inside another Claude Code session: start it in a terminal of its own
+> close s-unlisted
+> stops
+in a print run, the walk up a session's parents stops at: this run's own process
+in the app, it stops at: nothing short of the system's own
+> rule
+its folder can't be read: Its folder can't be read (folder)
+its process's folder can't be read: The folder its process works in can't be read (folder)
+it works elsewhere: Its process doesn't work in shop, whatever its record says (folder)
+it works in a folder inside: may hold them
+it follows a copy that isn't Claude Code's: Open in more than one place: close the copy you don't use first, in its own terminal (copy)
+an older one from npm: It runs an older Claude Code from npm, run by Node, which no signature can check: update Claude Code (npm's is its own signed build from 2.1.113 on) and start it again (npm)
+another program: It isn't Claude Code's own program, signed by Anthropic (program)
+open twice: Open in more than one place: close the copy you don't use first, in its own terminal (copy)
+started inside a listed session: It was started inside another Claude Code session, Rook: start it in a terminal of its own (started, s-rook)
+started inside one not listed: It was started inside another Claude Code session: start it in a terminal of its own (started)
+a listed session there too: Another Claude Code session, Rook, runs in shop too: close it (other, s-rook)
+one not listed there too: Another Claude Code session runs in shop too: close it (other)
+all of them at once: Open in more than one place: close the copy you don't use first, in its own terminal (copy)
+none of them: may hold them
+> clear s-three s-cleared
+> lead s-cleared
+> why s-cleared
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> notices
+Switches Came On: May Send Back Plans, May Answer Questions and May Approve Plans came on for a new session<app>, started at <time>: kept for shop while Whozmove runs. (button Take Me There)
+Switches Came On: May Send Back Plans, May Answer Questions and May Approve Plans came on for a new session<app>, started at <time>: kept for shop while Whozmove runs. (button Take Me There)
+> close s-cleared
+> orphan s-ten shop
+> lead s-ten
+> why s-ten
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> close s-ten
+> open s-lead shop
+> lead s-lead
+> open s-moss shop/wt-moss
+> why s-lead
+sendBack: on
+answerQuestions: on
+approvePlans: on
+> close s-moss
+> open s-rook . at=shop
+> why s-lead
+sendBack: May Send Back Plans is kept for shop, but off now: another Claude Code session, Rook, runs in shop too: close it
+answerQuestions: May Answer Questions is kept for shop, but off now: another Claude Code session, Rook, runs in shop too: close it
+approvePlans: May Approve Plans is kept for shop, but off now: another Claude Code session, Rook, runs in shop too: close it
+> close s-rook
+> open s-copy shop id=s-lead
+> why s-lead
+sendBack: May Send Back Plans is kept for shop, but off now: open in more than one place: close the copy you don't use first, in its own terminal
+answerQuestions: May Answer Questions is kept for shop, but off now: open in more than one place: close the copy you don't use first, in its own terminal
+approvePlans: May Approve Plans is kept for shop, but off now: open in more than one place: close the copy you don't use first, in its own terminal
+> close s-copy
+> close s-lead
+> open s-nine shop bypass
+> lead s-nine
+> why s-nine
+sendBack: on
+answerQuestions: on
+approvePlans: May Approve Plans is kept for shop, but off now: its session was started so it can bypass permissions: start it without that
+> untick s-nine
+sendBack: untick
+answerQuestions: untick
+approvePlans: untick
+> why s-nine
+sendBack: May Send Back Plans isn't on for this session's folder
+answerQuestions: May Answer Questions isn't on for this session's folder
+approvePlans: May Approve Plans isn't on for this session's folder

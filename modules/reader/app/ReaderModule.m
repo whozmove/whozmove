@@ -1,6 +1,6 @@
 // ReaderModule: the reader's part in the app: a prototype a session wrote, shown from its file in a Browser of its own
-// (app/core/Browser.h) over the reader's body, and opened in your web browser. Everything else the reader shows is the
-// page's (page/writings.js), and reading a session's writings back is its agent's.
+// (parts/pane/app/Browser.h) over the reader's body, and opened in your web browser. Everything else the reader shows
+// is the page's (page/writings.js), and reading a session's writings back is its agent's.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 #import "Module.h"
@@ -15,7 +15,7 @@
 #import "Printing.h"
 
 // How long a prototype takes to come into view once its page has loaded: as long as the reader's own fade (.r-in, in
-// panel/styles/reader.css), so it comes in as the rest of the reader does.
+// parts/pane/page/reader.css), so it comes in as the rest of the reader does.
 static const NSTimeInterval kFadeIn = 0.12;
 
 // Where a prototype can be shown from: its file, read from the folder it's in, which its pages may show the other files

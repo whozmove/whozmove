@@ -5,6 +5,7 @@ Whozmove is running from T/stand-in/Whozmove, so nothing was restarted: quit it,
 installed: agent=True branch=main changes=False root=T/repo commit: 40 digits
 the app in ~/Applications: replaced
 it carries the hooks: 0.2.0+<hash>
+and ask-panel.sh
 its signature checks out
 an unchanged copy checks out
 with a hook changed, it no longer checks out
@@ -65,10 +66,41 @@ Restarted Whozmove (its login item)
 exit=0
 the copy opened another way has stopped
 launchctl was asked:
-launchctl kickstart -k gui/<uid>/com.whozmove.app
+launchctl bootout gui/<uid>/com.whozmove.app
+launchctl bootstrap gui/<uid> T/Elsewhere/com.whozmove.app.plist
 == 11 the login item's own copy is the one running: just the login item is restarted
 Restarted Whozmove (its login item)
 exit=0
 its copy is left to launchctl to restart
 launchctl was asked:
-launchctl kickstart -k gui/<uid>/com.whozmove.app
+launchctl bootout gui/<uid>/com.whozmove.app
+launchctl bootstrap gui/<uid> T/Elsewhere/com.whozmove.app.plist
+== 11b the job names no file it came from: the usual place for a login item is loaded
+Restarted Whozmove (its login item)
+exit=0
+launchctl was asked:
+launchctl bootout gui/<uid>/com.whozmove.app
+launchctl bootstrap gui/<uid> T/Library/LaunchAgents/com.whozmove.app.plist
+== 11c loading it fails for a moment after it was unloaded: it's tried again
+Restarted Whozmove (its login item)
+exit=0
+launchctl was asked:
+launchctl bootout gui/<uid>/com.whozmove.app
+launchctl bootstrap gui/<uid> T/Library/LaunchAgents/com.whozmove.app.plist
+launchctl bootstrap gui/<uid> T/Library/LaunchAgents/com.whozmove.app.plist
+launchctl bootstrap gui/<uid> T/Library/LaunchAgents/com.whozmove.app.plist
+launchctl bootstrap gui/<uid> T/Library/LaunchAgents/com.whozmove.app.plist
+== 11d loading it never works: this build is started on its own, with the login item's copy gone
+Started Whozmove on its own, as its login item wouldn't load again; the login item starts it again at your next login
+exit=0
+launchctl was asked 20 times to load it
+copies running from T/Applications: 1
+== 11e loading it never works, and this build won't start on its own either: it says how to start it
+Couldn't restart Whozmove: its login item wouldn't load again. Open T/Applications/Whozmove.app to start this build; the login item starts it again at your next login
+exit=1
+== 12 a Mac older than the macOS the app needs: nothing is built, and the app in place stays
+Whozmove needs macOS 15.0 or later, and this Mac has 14.6, so nothing was built or put in place.
+The last version for this Mac is 0.2.0: git checkout v0.2.0, then ./build.sh, or download it from
+https://github.com/whozmove/whozmove/releases/tag/v0.2.0
+exit=1
+the app in ~/Applications: as it was

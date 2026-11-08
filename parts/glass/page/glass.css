@@ -1,0 +1,28 @@
+/* The panel's frame: the column the header and the list are laid out in, at the page's one width, and the list's
+   room under the header.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* The header and the list are at most --most tall together (640pt, or the screen's room where it has less: setRoom, from
+   the glass's ListLimitFor): the list keeps the header's room at its top, under it, and scrolls; with a card, the
+   setup line or notifications' line under the header, they have that room, and the list takes what the header leaves.
+   Those lines, a new conversation's card and the strips under the list come on top of that, and the panel grows to
+   fit them, down to the room the glass gives it (setRoom: the screen's bottom, less what's kept there for what hangs
+   under the panel), where the list gives way. Whatever makes the panel taller than that, the list fills it down
+   to the strips at its foot (--list-fill, set by the list's part: fillList), so no room is left under its last row
+   while there are rows to scroll to; the height the panel asks for is what it was without that. A new conversation
+   moves from its card down to its row over the list, on a layer of its own (#flight), and never crosses the strips. */
+#root { position: relative; display: flex; flex-direction: column; margin-left: var(--side); margin-top: var(--above);
+        width: var(--column); }
+#list { position: relative; flex: 1 1 auto; min-height: 0; max-height: calc(var(--most, 640px) + var(--list-fill, 0px));
+        overflow-y: auto; padding: calc(var(--header) + 1px) 6px 6px; }
+#dock:not(:empty) ~ #list { padding-top: 0; border-top: 1px solid var(--rule);
+                            max-height: calc(var(--most, 640px) - var(--header) + var(--list-fill, 0px)); }
+/* The list's top line, under a card under the header, shows only while the list is scrolled under it (headerLines,
+   header.js). */
+#dock:not(.line-under) ~ #list { border-top-color: transparent; }
+:is(#install, #notices):not([hidden]) ~ #list {
+  padding-top: 0; max-height: calc(var(--most, 640px) - var(--header) + var(--list-fill, 0px)); }
+/* Beside the reader the panel is the reader's height (pane's reader.css), and the list down its side fills all of it,
+   down to the strips at its foot. */
+body.reading #root > #list { max-height: none; }
+#list::-webkit-scrollbar { width: 0; }

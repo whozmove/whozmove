@@ -1,0 +1,62 @@
+== The asks, from each stand-in session, and Gone's tasks once its process has ended
+Asker sends a task, with no switch on: sent: passkeys, step 1 of 2. Ask for the answer with ask-panel.sh task-answer passkeys --wait
+Asker asks for its answer: waiting: passkeys hasn't been answered yet
+Other asks for Asker's task's answer: gone: no task passkeys from this session waits (it was never sent, or went with the session's process or conversation): send it again with ask-panel.sh task if it's still needed
+Other sends a task with Asker's id: sent: passkeys, step 1 of 2. Ask for the answer with ask-panel.sh task-answer passkeys --wait
+…answered as Other's, Asker asks: waiting: passkeys hasn't been answered yet
+Asker's answered, Asker asks: answered: {"answer":"Works","at":(when),"id":"passkeys","step":1}
+Asker asks by an id that's a path: refused: name the task by the id it was sent with
+Asker sends words the panel can't read: refused: Whozmove couldn't read the task: give it on stdin as JSON (docs/reference/task.md)
+Asker sends a task too large: refused: a task may be 12 KB at most: send it with less in it
+A process no session runs sends one: refused: this doesn't run in one of the sessions Whozmove lists
+Put back with Can't Now, Asker asks: can't now: later is at the back of the user's line
+Asker takes it back, answered elsewhere: taken back: later leaves the user's line
+…and asks for its answer: gone: you took later back (answered)
+…takes back one with no why it knows: refused: say why it's taken back, as one of answered, parked, dropped
+…takes back one that doesn't wait: gone: no task nope from this session waits
+…by an id that's a path: refused: name the task by the id it was sent with
+Other, leading no team, sends a pick: refused: only a team's chief may send a pick, and this session leads no team
+Asker, the lead, sends a pick for Wren, by name: sent: j12. It shows the user once your team file's queue names it; ask for the answer with ask-panel.sh task-answer j12 --wait
+…asks for its answer before its queue names it: waiting: j12 isn't in your team file's queue yet, so the user doesn't see it
+…sends it again unchanged, by Wren's session id: sent: j12 waits as it was
+…for a listed session that isn't on its team: refused: s-gone isn't on your team
+…for a name no one on its team has: refused: Moss isn't on your team
+…with a why past 160 characters, refused before it's kept: refused: why may be 160 characters at most
+…for a name two on its team share: refused: two on your team are called Wren: use its session id
+…for Wren once its own row no longer places it on the team: refused: Wren isn't on your team
+Only a team's chief may hand tasks: Other, leading none, sends one: refused: the user lets only a team's chief hand them tasks: ask them in your chat instead
+…Asker, a lead, sends one: sent: lead-own. Ask for the answer with ask-panel.sh task-answer lead-own --wait
+…with teams not shown, Other sends one: refused: only a team's chief may hand the user tasks, and teams aren't shown: the user can tick Working on Whozmove ▸ Show Teams, or choose Any session in One Task's settings
+…and Asker, the lead, sends a pick for Wren: refused: teams aren't shown in this Whozmove, so a pick can't reach One Task: the user can tick Working on Whozmove ▸ Show Teams (holding ⌥ as they open the pawn menu)
+Its queue names it: task-answer says: waiting: j12 hasn't been answered yet
+…an id its queue names that Asker never sent: gone: your team file's queue names unsent, a pick you haven't sent: send it with ask-panel.sh task --pick-for
+…the talk's words to Wren go to: Other
+…once Wren has left the team: (nobody)
+Gone sends a task: sent: passkeys, step 1 of 2. Ask for the answer with ask-panel.sh task-answer passkeys --wait
+Once Gone's process has ended, its record is there: no
+…and Asker's: yes
+Other's row missing from one read, its record is there: yes
+…and once it has been missing a minute: no
+Tasks from a conversation its process has left (a /clear), once that process runs a listed session: gone at once
+== From inside Asker's process: a task sent, its answer asked for, then with --wait, then an id never sent
+sent: offline. Ask for the answer with ask-panel.sh task-answer offline --wait
+exit=0
+waiting: offline hasn't been answered yet
+exit=0
+answered: {"answer":"Works","at":(when),"id":"offline"}
+exit=0
+gone: no task never-sent from this session waits (it was never sent, or went with the session's process or conversation): send it again with ask-panel.sh task if it's still needed
+exit=1
+== ask-panel.sh with words it can't send
+Give the task on stdin, as JSON: docs/reference/task.md has its shape
+exit=2
+Name the task by the id it was sent with
+exit=2
+Name the task by the id it was sent with
+exit=2
+Only --wait may follow the task's id
+exit=2
+A task may be 12 KB at most: send it with less in it
+exit=2
+Whozmove isn't running, so there's no panel to ask
+exit=1

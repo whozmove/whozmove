@@ -1,0 +1,286 @@
+
+== What each request is, and what Claude's line says about it
+command: command · Wants to run a command
+risky: command · Wants to run a command
+wide: command · Wants to run a command
+long: command · Wants to run a command
+edit: edit · Wants to edit total.ts
+multi: edit · Wants to edit Form.tsx
+big: bigEdit · Wants to edit Form.tsx
+bigCut: edit · Wants to edit Form.tsx
+notebook: edit · Wants to edit prices.ipynb
+write: write · Wants to write search.test.ts
+writeOut: write · Wants to write <b>draft.md
+writeCut: write · Wants to write big.json
+read: read · Wants to read hosts
+fetch: fetch · Wants to read a page on docs.example.com
+fetchBare: fetch · Wants to read a page on example.com
+search: search · Wants to search the web
+connector: mcp · Wants to use Claude Docs
+plugin: mcp · Wants to use Linear
+mcp: mcp · Wants to use Linear
+kill: other · Wants to stop a background command
+other: other · Wants to use Frobnicate
+plan: plan · Wants your OK on its plan
+qOne: qOne · Asks about Checkout
+qMulti: qMulti · Has a question for you
+qSteps: qSteps · Has 3 questions for you
+qNumber: qNumber · Has a question for you
+planBare: plan · Wants your OK on its plan
+qText: qText · Has a question for you
+a question with no topic: Has a question for you
+a page with no address: Wants to read a page
+
+== The words about a request
+folders: inside the project, at its top, and outside it: ["src/cart","","/etc","/work/shopping"]
+lines put in and taken out, over every edit: {"add":5,"del":4}
+an empty text has no lines: [0,1,1]
+a connected app: [{"app":"Linear","action":"Create issue"},{"app":"Gh","action":""}]
+-- a connected app's short message, drawn as words; a long description cut short with Show all, then whole
+<div class="perm ask-mcp" data-ask="mcp__slack__post_message-1"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Slack</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Post message</span></div><dl class="ask-fields"><dt>Channel</dt><dd>web</dd><dt>Message</dt><dd class="prose">Coupons are fixed, try <strong>SPRING10</strong>.</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm ask-mcp" data-ask="issue"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Linear</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Create issue: Coupons</span></div><div class="ask-field">Description</div><div class="ask-prose capped" style="--lines:4"><p>Expired codes still apply at checkout. The check runs before the total, so an <strong>expired</strong> code takes money off anyway.</p><ol><li>Check <code>expires_at</code> first</li><li>Say why a code was turned down</li></ol><p>A fix belongs in the check itself, not in the form.</p></div><button class="button quiet small ask-more" data-part="description">Show all</button><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm ask-mcp" data-ask="issue"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Linear</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Create issue: Coupons</span></div><div class="ask-field">Description</div><div class="ask-prose" style="--lines:4"><p>Expired codes still apply at checkout. The check runs before the total, so an <strong>expired</strong> code takes money off anyway.</p><ol><li>Check <code>expires_at</code> first</li><li>Say why a code was turned down</li></ol><p>A fix belongs in the check itself, not in the form.</p></div><button class="button quiet small ask-more" data-part="description">Show less</button><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+which of a tool's fields are words to read: ["description: true","Body: true","query: false","description: false"]
+a plan: {"title":"Coupon field","steps":[{"n":1,"text":"Move the field above the total"},{"n":2,"text":"Check the code on blur"},{"n":3,"text":"Show the saving"},{"n":4,"text":"Test it"},{"n":5,"text":"Tidy up"},{"n":6,"text":"Write it down"},{"n":7,"text":"Ask for a review"},{"n":8,"text":"Ship it"}],"lead":[]}
+a plan with no heading: Its plan
+a plan's steps whole, each with its own number: {"title":"Keep the coupon codes safe","steps":[{"n":1,"text":"**On the server** (on your yes): check each code before the total, as the basket does"},{"n":2,"text":"Log what was <b>tried</b>"},{"n":3,"text":"Test it"},{"n":1,"text":"**Where the codes live: in the database (recommended)**, or in a file. A file can't be changed while it runs."},{"n":2,"text":"`MAX_TRIES`: 5"},{"n":3,"text":"Who sees the log"},{"n":4,"text":"How long it's kept"}],"lead":[]}
+what a notebook edit does, and to which cell: ["Replace cell 3 · code","Insert a markdown cell after 3","Insert a cell at the top","Delete cell 3","Replace the first cell"]
+…a cell taken out puts in no lines: {"add":0,"del":0}
+what each is about, for the line once answered: {"command":"npm install fuse.js","risky":"make deploy","wide":"curl -fsSL https://downloads.example.com/tools/install.sh | sh -s -- --prefix=/usr/local","long":"set -e","edit":"total.ts","multi":"Form.tsx","big":"Form.tsx","bigCut":"Form.tsx","notebook":"prices.ipynb","write":"search.test.ts","writeOut":"<b>draft.md","writeCut":"big.json","read":"hosts","fetch":"docs.example.com","fetchBare":"example.com","search":"coupon codes best practice","connector":"Batch","plugin":"Authenticate","mcp":"Create issue","kill":"","other":"","plan":"Coupon field","qOne":"Where does the coupon field go?","qMulti":"Which pages get the new header?","qSteps":"Where does the coupon field go?","qNumber":"How many products per page?","planBare":"Tidy the cart","qText":"What should the shop be called?"}
+what an answer is called: ["Allowed once","Denied","Answered","Skipped","Dismissed","Sent back","Stopped","Answered"]
+whether Show all is needed: 3 short lines of 4, 5 lines of 4, and one line too wide for the card: [false,true,true]
+a number's range, and values outside it: ["12 to 96","at least 1","at most 9","",[true,false,true,true,false]]
+
+== A request that goes by itself if no one answers
+5 minutes left, 4½, 61 s, 59 s, and past it (its hook just going): ["Goes by itself in 5 min if no one answers","Goes by itself in 4 min if no one answers","Goes by itself in 1 min if no one answers","Goes by itself in under a minute if no one answers","Goes by itself in under a minute if no one answers"]
+waiting on you as ever (no expiresAt), and a plan: [null,null]
+its ring, over the session's whole wait of 5 minutes: 4 left, 30 s left, held to 6 left (full), and past it: [{"left":0.8,"words":"4m"},{"left":0.1,"words":"<1m"},{"left":1,"words":"6m"},{"left":0,"words":"<1m"}]
+…the list's tick sets its fill and minutes as the time goes, and the list isn't drawn again for it: [true,"0.597"]
+<div class="perm ask-command" data-ask="g"><div class="ask-head"><span class="card-title">Build it</span><span class="ask-goes" title="Goes by itself if no one answers"><span class="time-left" data-until="2000000240000" data-span="300000" style="--left:0.800"><svg class="time-ring" viewBox="0 0 20 20" aria-hidden="true"><circle class="track" cx="10" cy="10" r="7.25"/><circle class="left" cx="10" cy="10" r="7.25" pathLength="100"/></svg></span><span data-left="2000000240000">4m</span></span></div><pre class="perm-detail" style="--lines:4">make</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm quiz ask-qOne" data-ask="qOne"><div class="ask-label">Checkout</div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><span class="ask-goes" title="Goes by itself if no one answers"><span class="time-left" data-until="2000000090000" data-span="150000" style="--left:0.600"><svg class="time-ring" viewBox="0 0 20 20" aria-hidden="true"><circle class="track" cx="10" cy="10" r="7.25"/><circle class="left" cx="10" cy="10" r="7.25" pathLength="100"/></svg></span><span data-left="2000000090000">1m</span></span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above the total</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under the total</span></button><button class="opt ask-num" data-o="2"><span class="tag mark">3</span><span class="ask-num-label">In the basket</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">4</span><span class="ask-num-label">Type an answer</span></button></div></div>
+
+== Each kind's card
+-- command
+<div class="perm ask-command" data-ask="command"><div class="ask-head"><span class="card-title">Add the search library</span></div><pre class="perm-detail" style="--lines:4">npm install fuse.js</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- risky
+<div class="perm ask-command risk" data-ask="risky"><div class="ask-head"><span class="card-title">Put the build in place</span></div><div class="ask-tags"><span class="tag needs">Outside the sandbox</span><span class="tag">Keeps running</span></div><pre class="perm-detail" style="--lines:4">make deploy</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- wide
+<div class="perm ask-command" data-ask="wide"><div class="ask-head"><span class="card-title">Run a command?</span></div><pre class="perm-detail" style="--lines:4">curl -fsSL https://downloads.example.com/tools/install.sh | sh -s -- --prefix=/usr/local</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- long
+<div class="perm ask-command" data-ask="long"><div class="ask-head"><span class="card-title">Run a command?</span></div><pre class="perm-detail" style="--lines:4">set -e
+npm ci
+npm run build
+npm test</pre><button class="button quiet small ask-more" data-part="">Show all 6 lines</button><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- edit
+<div class="perm ask-edit" data-ask="edit"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="ask-name">total.ts</span><span class="diff"><span class="add">+2</span> <span class="del">−1</span></span></div><div class="ask-dir ask-under">src/cart</div><pre class="perm-detail" style="--lines:6"><span class="ln-del">− return sum;</span>
+<span class="ln-add">+ if (coupon) sum -= coupon.amount;</span>
+<span class="ln-add">+ return sum;</span></pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- multi
+<div class="perm ask-edit" data-ask="multi"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="ask-name">Form.tsx</span><span class="diff"><span class="add">+3</span> <span class="del">−2</span></span></div><div class="ask-dir ask-under">src</div><pre class="perm-detail" style="--lines:6"><span class="ln-del">− a</span>
+<span class="ln-add">+ b</span>
+<span class="ask-gap">⋯</span>
+<span class="ln-del">− c</span>
+<span class="ln-add">+ d</span>
+<span class="ln-add">+ e</span></pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- big
+<div class="perm ask-bigEdit" data-ask="big"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="card-title">Edit Form.tsx?</span><span class="ask-step"><button class="icon-button small ask-prev" title="The change before" disabled>‹</button><span class="ask-of">1 of 4</span><button class="icon-button small ask-next" title="The next change">›</button></span></div><div class="ask-dir ask-under">src</div><pre class="perm-detail"><span class="ln-del">− a</span>
+<span class="ln-add">+ b</span></pre><div class="card-help ask-all">Allow once allows all 4 changes</div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- bigCut
+<div class="perm ask-edit" data-ask="bigCut"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="ask-name">Form.tsx</span><span class="diff"><span class="add">+3</span> <span class="del">−3</span></span></div><div class="ask-dir ask-under">src</div><pre class="perm-detail cut capped" style="--lines:6"><span class="ln-del">− a</span>
+<span class="ln-add">+ b</span>
+<span class="ask-gap">⋯</span>
+<span class="ln-del">− c</span>
+<span class="ln-add">+ d</span>
+<span class="ask-gap">⋯</span>
+<span class="ln-del">− e</span>
+<span class="ln-add">+ f</span></pre><button class="button quiet small ask-more" data-part="">Show all 8 lines</button><div class="notice inline warn ask-cut">Claude sent more than the panel can show. Allow once allows all of it. <button class="button quiet small perm-go">See it in the session</button></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- notebook
+<div class="perm ask-edit" data-ask="notebook"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="ask-name">prices.ipynb</span><span class="diff"><span class="add">+1</span> <span class="del">−0</span></span></div><div class="ask-dir ask-under">notes</div><div class="ask-cell">Replace the first cell</div><pre class="perm-detail" style="--lines:6"><span class="ln-add">+ df.head()</span></pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- write
+<div class="perm ask-write" data-ask="write"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3 1.5h4.5L10 4v7.5H3Z M7.5 1.5V4H10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="ask-name">search.test.ts</span><span class="diff"><span class="add">+5</span></span></div><div class="ask-dir ask-under">tests</div><pre class="perm-detail cut capped" style="--lines:4">import { find } from &quot;../src/find&quot;;
+
+test(&quot;finds&quot;, () =&gt; {
+  expect(find(&quot;a&quot;)).toBe(1);
+});</pre><button class="button quiet small ask-more" data-part="">Show all 5 lines</button><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- writeOut
+<div class="perm ask-write" data-ask="writeOut"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3 1.5h4.5L10 4v7.5H3Z M7.5 1.5V4H10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="ask-name">&lt;b&gt;draft.md</span><span class="diff"><span class="add">+1</span></span></div><div class="ask-dir ask-under">/tmp/notes</div><pre class="perm-detail" style="--lines:4">One line</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- writeCut
+<div class="perm ask-write" data-ask="writeCut"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3 1.5h4.5L10 4v7.5H3Z M7.5 1.5V4H10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="ask-name">big.json</span><span class="diff"><span class="add">+3</span></span></div><div class="ask-dir ask-under">data</div><pre class="perm-detail" style="--lines:4">[1,
+2,
+3</pre><div class="notice inline warn ask-cut">Claude sent more than the panel can show. Allow once allows all of it. <button class="button quiet small perm-go">See it in the session</button></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- read
+<div class="perm ask-one-line" data-ask="read"><div class="ask-line"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3 1.5h4.5L10 4v7.5H3Z M7.5 1.5V4H10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="card-title">Read</span><span class="ask-obj">/<wbr>etc/<wbr>hosts</span></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- fetch
+<div class="perm ask-fetch" data-ask="fetch"><div class="ask-head"><span class="ask-lead">How are coupon codes checked?</span></div><div class="ask-obj ask-url">https://<wbr>docs.example.com/<wbr>coupons</div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- fetchBare
+<div class="perm ask-fetch" data-ask="fetchBare"><div class="ask-head"><span class="card-title">Read a page on example.com?</span></div><div class="ask-obj ask-url">https://<wbr>example.com/<wbr></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- search
+<div class="perm" data-ask="search"><div class="ask-head"><span class="card-title">Search the web</span></div><div class="ask-line"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><circle cx="5.6" cy="5.6" r="3.6" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8.3 8.3 11.2 11.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="ask-query">coupon codes best practice</span></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- connector
+<div class="perm ask-mcp" data-ask="connector"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Claude Docs</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Batch</span></div><dl class="ask-fields"><dt>Doc</dt><dd>Notes</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- plugin
+<div class="perm ask-mcp" data-ask="plugin"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Linear</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Authenticate</span></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- mcp
+<div class="perm ask-mcp" data-ask="mcp"><div class="card-head"><span class="ask-app"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4.5 1.5v3M8.5 1.5v3M3 4.5h7v2a3.5 3.5 0 0 1-7 0Z M6.5 10v2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/></svg>Linear</span><span class="end">a connected app</span></div><div class="ask-head"><span class="card-title">Create issue: Coupon field misplaced</span></div><dl class="ask-fields"><dt>Team</dt><dd>Web</dd><dt>Priority</dt><dd>2</dd></dl><div class="ask-field">Description</div><div class="ask-prose" style="--lines:4"><p>On the checkout page the coupon field sits under the total, where nobody sees it before paying.</p></div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- kill
+<div class="perm ask-other" data-ask="kill"><div class="ask-head"><span class="card-title">Stop a command running in the background?</span></div><dl class="ask-fields"><dt>Shell id</dt><dd>bash_3</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Stop it</button></div></div>
+-- other
+<div class="perm ask-other" data-ask="other"><div class="ask-head"><span class="card-title">Use Frobnicate?</span></div><dl class="ask-fields"><dt>Level</dt><dd>3</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- plan
+<div class="perm plan-ask" data-ask="plan"><div class="ask-head"><span class="card-title">Coupon field</span></div><ol class="ask-steps"><li value="1"><p>Move the field above the total</p></li><li value="2"><p>Check the code on blur</p></li><li value="3"><p>Show the saving</p></li><li value="4"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 8 steps</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+-- qOne
+<div class="perm quiz ask-qOne" data-ask="qOne"><div class="ask-label">Checkout</div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above the total</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under the total</span></button><button class="opt ask-num" data-o="2"><span class="tag mark">3</span><span class="ask-num-label">In the basket</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">4</span><span class="ask-num-label">Type an answer</span></button></div></div>
+-- qMulti
+<div class="perm quiz ask-qMulti" data-ask="qMulti"><div class="ask-label">Pick any</div><div class="q-top"><span class="card-title">Which pages get the new header?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="q-opts multi"><button class="opt" data-q="0" data-o="0"><span class="opt-label">Cart</span><span class="opt-desc">above the total</span></button><button class="opt" data-q="0" data-o="1"><span class="opt-label">Checkout</span></button><button class="opt" data-q="0" data-o="2"><span class="opt-label">Account</span></button><button class="opt ask-type-opt" data-q="0"><span class="opt-label">Type an answer</span></button></div><div class="perm-actions"><button class="q-skip">Skip</button><button class="perm-allow q-submit" disabled>Submit</button></div></div>
+-- qSteps
+<div class="perm quiz ask-qSteps" data-ask="qSteps"><div class="q-title">Before I start</div><div class="q-head"><div class="ask-label">Checkout</div><span class="ask-step"><button class="icon-button small ask-prev" title="The question before" disabled>‹</button><span class="ask-of">1 of 3</span><button class="icon-button small ask-next" title="The next question">›</button></span></div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-page"><div class="ask-nums"><button class="opt ask-num" data-q="0" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-q="0" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">3</span><span class="ask-num-label">Type an answer</span></button></div></div><div class="perm-actions"><button class="q-pass">Skip</button><button class="perm-allow q-next">Next</button></div></div>
+-- qNumber
+<div class="perm quiz ask-qNumber" data-ask="qNumber"><div class="q-top"><span class="card-title">How many products per page?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-foot"><span class="ask-stepper"><button class="ask-dec" title="Less">−</button><input class="field q-type" type="number" data-q="0" min="12" max="96" step="12" value="24"><button class="ask-inc" title="More">+</button></span><span class="q-unit">products</span><span class="ask-foot-words ask-range" data-q="0">12 to 96</span></div><div class="perm-actions"><button class="perm-allow q-submit">Submit</button></div></div>
+-- planBare
+<div class="perm plan-ask" data-ask="planBare"><div class="ask-head"><span class="card-title">Tidy the cart</span></div><div class="ask-lead-lines"><p>Move the coupon code into the basket page.</p><p>Keep the old route as a redirect.</p></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+-- qText
+<div class="perm quiz ask-qText" data-ask="qText"><div class="q-top"><span class="card-title">What should the shop be called?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><input class="field q-type" data-q="0" placeholder="A name" value=""><div class="perm-actions"><button class="q-skip">Skip</button><button class="perm-allow q-submit" disabled>Submit</button></div></div>
+-- a request from a session started before the update, which the panel doesn't answer: answered in Claude
+<div class="perm legacy-ask" data-ask="command"><div class="card-title">Answer this in the session</div><div class="perm-why">It started before Whozmove's update</div><div class="perm-actions"><button class="button main perm-go">Take me there</button></div></div>
+-- a command with a long reason, and a long first line: the reason whole as the title, the command whole, wrapped, with no Show all, as it has no more than 4 lines
+<div class="perm ask-command" data-ask="Bash-1"><div class="ask-head"><span class="card-title">Delete coupons that expired more than 30 days ago from the production database</span></div><pre class="perm-detail" style="--lines:4">psql &quot;$SHOP_DATABASE_URL&quot; -c &quot;DELETE FROM coupons WHERE expires_at &lt; now() - interval &#39;30 days&#39;&quot;
+vacuumdb --table=coupons shop</pre><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+-- a command shown in full, and a big change at its third edit
+<div class="perm ask-command" data-ask="long"><div class="ask-head"><span class="card-title">Run a command?</span></div><pre class="perm-detail" style="--lines:4">set -e
+npm ci
+npm run build
+npm test
+npm run lint
+echo done</pre><button class="button quiet small ask-more" data-part="">Show less</button><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+<div class="perm ask-bigEdit" data-ask="big"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="card-title">Edit Form.tsx?</span><span class="ask-step"><button class="icon-button small ask-prev" title="The change before">‹</button><span class="ask-of">3 of 4</span><button class="icon-button small ask-next" title="The next change">›</button></span></div><div class="ask-dir ask-under">src</div><pre class="perm-detail"><span class="ln-add">+ f</span></pre><div class="card-help ask-all">Allow once allows all 4 changes</div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
+…past its last edit, the last: 1 of 4
+…: 4 of 4
+-- a plan being sent back, its notes typed, and a single pick's box to type in
+<div class="perm plan-ask" data-ask="plan"><div class="ask-head"><span class="card-title">Coupon field</span></div><ol class="ask-steps"><li value="1"><p>Move the field above the total</p></li><li value="2"><p>Check the code on blur</p></li><li value="3"><p>Show the saving</p></li><li value="4"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 8 steps</button><div class="ask-say"><input class="field small q-type ask-say-box" placeholder="What should change?" value="Keep &lt;codes&gt; on the server"><button class="button small ask-say-cancel">Cancel</button><button class="button small main ask-say-send">Send back</button></div><div class="perm-actions"><button class="button main perm-go">Take me there</button></div></div>
+-- a plan that starts at a glance: its few lines (the plans module's) in place of its steps
+<div class="perm plan-ask" data-ask="ExitPlanMode-1"><div class="ask-head"><span class="card-title">Coupon field</span></div><div class="gl-minis"><div class="gl-mini"><span class="gl-ml">For you</span><span class="gl-mt">The coupon field sits above the total, where it&#39;s seen.</span></div><div class="gl-mini"><span class="gl-ml">You decide</span><span class="gl-mt">1 choice, Claude's pick ready</span></div><div class="gl-mini"><span class="gl-ml">Could go wrong</span><span class="gl-mt">A code typed with spaces reads as wrong.</span></div></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+<div class="perm quiz ask-qOne" data-ask="qOne"><div class="ask-label">Checkout</div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above the total</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under the total</span></button><button class="opt ask-num" data-o="2"><span class="tag mark">3</span><span class="ask-num-label">In the basket</span></button><div class="opt ask-num ask-type-opt is-typing"><span class="tag mark">4</span><input class="field q-type ask-row-box" data-q="0" placeholder="Type an answer" aria-label="Type an answer" value=""></div></div></div>
+…"Type an answer" became the box in its own row, with no second box under it: 1 box, in the row: true
+Esc gives the row back, keeping what was typed, which the row shows faint: [false,"Beside the &lt;b&gt;button&lt;/b&gt;"]
+…nothing kept: "Type an answer" again: ["ask-num-label","Type an answer"]
+-- several picks, its last row "Type an answer" become the box
+<div class="perm quiz ask-qMulti" data-ask="qMulti"><div class="ask-label">Pick any</div><div class="q-top"><span class="card-title">Which pages get the new header?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="q-opts multi"><button class="opt" data-q="0" data-o="0"><span class="opt-label">Cart</span><span class="opt-desc">above the total</span></button><button class="opt" data-q="0" data-o="1"><span class="opt-label">Checkout</span></button><button class="opt" data-q="0" data-o="2"><span class="opt-label">Account</span></button><div class="opt ask-type-opt is-typing"><span class="opt-label"><input class="field q-type ask-row-box" data-q="0" placeholder="Type an answer" aria-label="Type an answer" value=""></span></div></div><div class="perm-actions"><button class="q-skip">Skip</button><button class="perm-allow q-submit" disabled>Submit</button></div></div>
+…the ticks and the words typed go together: {"Which pages get the new header?":"Cart, Account, Footer"}
+…and the row, kept, is ticked, its words shown: Footer
+-- a question whose words have markdown marks: drawn, never shown
+<div class="perm quiz ask-qOne" data-ask="AskUserQuestion-1"><div class="ask-label">Team</div><div class="q-top"><span class="card-title">Watch the <strong>reliability</strong> workspace?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Yes, add <code>reliability</code></span><span class="ask-num-desc">Workspace <code>reliability</code>, from <strong>main</strong>, &lt;b&gt;checked&lt;/b&gt;</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Not now</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">3</span><span class="ask-num-label">Type an answer</span></button></div></div>
+-- a number typed outside its range
+<div class="perm quiz ask-qNumber" data-ask="qNumber"><div class="q-top"><span class="card-title">How many products per page?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-foot"><span class="ask-stepper"><button class="ask-dec" title="Less">−</button><input class="field q-type" type="number" data-q="0" min="12" max="96" step="12" value="200"><button class="ask-inc" title="More">+</button></span><span class="q-unit">products</span><span class="ask-foot-words ask-range warn" data-q="0">12 to 96</span></div><div class="perm-actions"><button class="perm-allow q-submit" disabled>Submit</button></div></div>
+
+== Claude's line on a row waiting on you
+a command, a question, a plan: ["Wants to run a command","Asks about Checkout","Wants your OK on its plan"]
+a request with no tool named: Wants to use a tool
+
+== Presses and keys
+a single pick's second option, pressed as the card appears: nothing sent
+…pressed once it's been seen: {"type":"answerAsk","id":"qOne","allow":true,"answers":{"Where does the coupon field go?":"Under the total"}}
+…pressed again: the first answer stands: nothing sent
+its keys, once pressed: 3 answers, 4 (after the last) opens the box, 5 and a letter do nothing: ["3: true {\"type\":\"answerAsk\",\"id\":\"qOne\",\"allow\":true,\"answers\":{\"Where does the coupon field go?\":\"In the basket\"}}","4: true nothing sent (box open)","5: true nothing sent","a: false nothing sent"]
+several picks' keys tick and untick: 1, 3, then 1: ["[0]","[0,2]","[2]"]
+…and Submit sends them: {"type":"answerAsk","id":"qMulti","allow":true,"answers":{"Which pages get the new header?":"Account"}}
+several questions: one at a time, the first in view, its options numbered and only picked, never sent: ["1 of 3","nothing sent","[1]"]
+…Next moves on: ["nothing sent","2 of 3"]
+…pressed again as the next one appears, nothing: it takes no press for its first moment: ["nothing sent","2 of 3"]
+-- …the second, a typed answer, with ‹ to go back
+<div class="perm quiz ask-qSteps" data-ask="qPager"><div class="q-title">Before I start</div><div class="q-head"><span></span><span class="ask-step"><button class="icon-button small ask-prev" title="The question before">‹</button><span class="ask-of">2 of 3</span><button class="icon-button small ask-next" title="The next question">›</button></span></div><div class="q-top"><span class="card-title">What should the button say?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-page"><input class="field small q-type" data-q="1" placeholder="Your answer" value="Apply"></div><div class="perm-actions"><button class="q-pass">Skip</button><button class="perm-allow q-next">Next</button></div></div>
+…Skip leaves it out and moves on; going back, it says so: ["3 of 3","2 of 3 · skipped","{\"Where does the coupon field go?\":\"Under\"}"]
+-- …the last: Submit, with the other answers in a line above it
+<div class="perm quiz ask-qSteps" data-ask="qPager"><div class="q-title">Before I start</div><div class="q-head"><div class="ask-label">Checkout · Pick any</div><span class="ask-step"><button class="icon-button small ask-prev" title="The question before">‹</button><span class="ask-of">3 of 3</span><button class="icon-button small ask-next" title="The next question" disabled>›</button></span></div><div class="q-top"><span class="card-title">Which screens?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-page"><div class="ask-nums"><button class="opt ask-num" data-q="2" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Mobile</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-q="2" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Desktop</span></button><button class="opt ask-num ask-type-opt" data-q="2"><span class="tag mark">3</span><span class="ask-num-label">Type an answer</span></button></div></div><div class="card-help ask-with">With: Under</div><div class="perm-actions"><button class="q-pass">Skip</button><button class="perm-allow q-submit">Submit</button></div></div>
+…its keys: 1 and 2 tick and untick on it, 3 (after its options) opens its box, ← and → move: ["1: true nothing sent [0]","2: true nothing sent [0,1]","1: true nothing sent [1]","3: true nothing sent [1] (box open)","true nothing sent 2 of 3","true nothing sent 3 of 3"]
+…a key as the question appears does nothing: ["true nothing sent","[1]"]
+…a moment later it picks, though a press would still wait: ["true nothing sent","[1,0]","nothing sent","[1,0]"]
+…on a choice question with no options, 1 opens its box: ["true {\"type\":\"holdAsk\",\"id\":\"qPagerBare\"}",1]
+…Submit sends what was answered, the skipped one left out: {"type":"answerAsk","id":"qPager","allow":true,"answers":{"Where does the coupon field go?":"Under","Which screens?":"Desktop, Mobile"}}
+several questions, none answered on the last: Submit off, and what to do instead: [true,"Answer one, or × to leave them all to Claude"]
+several questions: Type an answer on a choice question, open as its box: [true,1]
+…the first question's words kept: its row on, showing them: [true,"Beside the button"]
+…a pick on that one-pick question replaces the words, the last press winning: ["",[1]]
+…a tick on the several-picks question keeps its words, which go with it: ["Watch",[0],"{\"Where does the coupon field go?\":\"Under\",\"What should the button say?\":\"Apply\",\"Which screens?\":\"Mobile, Watch\"}"]
+a number's − and +, within its range: ["12","12","24","36","48"]
+several questions, one a number typed outside its range: Submit stays off, and its range says why: [false,true,"1 to 9"]
+…Skip on a typed answer sends none: {"type":"answerAsk","id":"qText","allow":true,"answers":{}}
+× dismisses a question: {"type":"answerAsk","id":"qText","allow":false}
+a command's Allow once: {"type":"answerAsk","id":"command","allow":true}
+Show less on a command shown in full: nothing sent, and it's cut short again: ["nothing sent","{\"\":false}"]
+Send back… opens the box for notes, and Cancel closes it: ["{\"text\":\"\"}","null"]
+a plan sent back with its notes: {"type":"answerAsk","id":"plan","allow":false,"message":"Keep <codes> on the server"} · sentBack
+…with no notes, nothing: 0
+-- a long plan: its first list's 3 steps, as its numbers start again after them, drawn from their markdown, then Read all 7 steps, Send back… and Take me there
+<div class="perm plan-ask" data-ask="longPlan"><div class="ask-head"><span class="card-title">Keep the coupon codes safe</span></div><ol class="ask-steps"><li value="1"><p><strong>On the server</strong> (on your yes): check each code before the total, as the basket does</p></li><li value="2"><p>Log what was &lt;b&gt;tried&lt;/b&gt;</p></li><li value="3"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 7 steps</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+Read all its steps opens the whole plan in the reader, and Take me there its session: nothing sent: ["reader: sLong, writings","session: sLong","nothing sent","nothing sent"]
+a plan of 4 steps or fewer: Read the plan: Read the plan
+a plan whose pick you changed: its row says so, and that your note waits, in place of its box: ["1 choice, 1 changed by you",false,"<p class=\"ask-say-waits\">Your note waits with your picks beside the list.</p>",true]
+…its Return or Send back, from a box drawn before: nothing sent without your picks: 0
+…and Send back… opens the plan beside the list, its box open, which takes your note from here: ["nothing sent","the plan in sCoupon, its box open"]
+the box beside the list takes your note, and the row no longer has it: ["Keep it short",null,false]
+…given back as the reader closes unsent: it waits on the row again: true
+-- a plan with no steps: its first lines drawn from their markdown
+<div class="perm plan-ask" data-ask="ExitPlanMode-1"><div class="ask-head"><span class="card-title">Tidy</span></div><div class="ask-lead-lines"><p>Move <strong>the coupon</strong> into <code>basket.ts</code>.</p><ul><li>and keep <em>the</em> route</li></ul></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+which presses answer (and so leave the keyboard where it was): ["perm-allow: true","q-close: true","ask-num: true","ask-type-opt: false","opt: false","ask-inc: false","ask-more: false","q-next: false","q-pass: false"]
+…and on several questions, a numbered option only picks: false
+a request drawn twice: the box opened with its copy beside the list holding the keys, another card, and none: ["beside the list","the list","the list"]
+of 3 options, none ticked: 1, 3 and 4 (past them), and a letter: [[0],[2],null,null]
+…the first and third ticked: 2 adds it, 3 takes it out: [[0,2,1],[0]]
+
+== Once answered
+-- command, allow
+<div class="perm ask-receipt" data-stage="answered" data-receipt="r1" data-for="command"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Allowed once</span><span class="ask-obj">npm install fuse.js</span></div>
+-- command, deny
+<div class="perm ask-receipt denied" data-stage="answered" data-receipt="r1" data-for="command"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Denied</span><span class="ask-obj">npm install fuse.js</span></div>
+-- qOne, answered
+<div class="perm ask-receipt" data-stage="answered" data-receipt="r1" data-for="qOne"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Answered</span><span class="ask-obj">In the basket</span></div>
+-- qText, dismissed
+<div class="perm ask-receipt denied" data-stage="answered" data-receipt="r1" data-for="qText"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Dismissed</span><span class="ask-obj">What should the shop be called?</span></div>
+-- plan, sentBack
+<div class="perm ask-receipt" data-stage="answered" data-receipt="r1" data-for="plan"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Sent back</span><span class="ask-obj">Coupon field</span></div>
+-- plan, stopped
+<div class="perm ask-receipt denied" data-stage="answered" data-receipt="r1" data-for="plan"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Stopped</span><span class="ask-obj">Coupon field</span></div>
+-- qMulti, skipped
+<div class="perm ask-receipt denied" data-stage="answered" data-receipt="r1" data-for="qMulti"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Skipped</span><span class="ask-obj">Which pages get the new header?</span></div>
+a question answered names what was sent: Under the total
+-- still there after a few seconds
+<div class="perm ask-receipt denied" data-stage="answered" data-receipt="r1" data-for="command"><svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="ask-receipt-words">Denied</span><span class="ask-obj">npm install fuse.js</span><button class="button quiet small ask-receipt-go">Take me there</button></div>
+…its Take me there, pressed as it appears, does nothing; once seen, it opens the session: ["nothing sent","open"]
+which cards want the row: a request answered, and one not answered: [["answered (11)"],["request (10)"]]
+answered just now: in the list, then as a chat beside the folded panel: ["line","no line"]
+answered a while ago and still there: in the list, then as a chat: ["line, Take me there","line, Take me there"]
+answered just now, Claude's line and dot: in the list, then as a chat: ["asking dot · wait: Wants to run a command","working dot · done: ✓ Allowed once · npm install fuse.js"]
+…turned down, as a chat: working dot · done no: ✓ Denied · npm install fuse.js
+…answered a while ago and still there, as a chat: ["asking dot · wait: Wants to run a command","line, Take me there"]
+
+== What a session you allow answered for this one
+-- its plan sent back
+<div class="perm ask-for"><div class="card-head"><span><svg class="ask-for-mark" width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M2 1.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5L2.5 9.5V7.5H2a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg> Atlas answered for you</span><span class="end" data-ago="1999999940000">1m</span></div><div class="perm-why">Sent the plan back: “Keep &lt;b&gt;codes&lt;/b&gt; on the server.”</div></div>
+-- its questions answered
+<div class="perm ask-for"><div class="card-head"><span><svg class="ask-for-mark" width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M2 1.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5L2.5 9.5V7.5H2a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg> Atlas answered for you</span><span class="end" data-ago="1999999940000">1m</span></div><div class="perm-why">Answered: Where? “Above the total”</div></div>
+-- its plan approved
+<div class="perm ask-for"><div class="card-head"><span><svg class="ask-for-mark" width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M2 1.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5L2.5 9.5V7.5H2a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg> Atlas answered for you</span><span class="end" data-ago="1999999940000">1m</span></div><div class="perm-why turn">Approved the plan: “Coupon field”</div><div class="perm-actions"><button class="af-read" data-sid="af" data-at="1999999940000" data-wid="toolu_p1">Read plan</button><button class="af-go" data-sid="af" data-at="1999999940000">Take me there</button></div></div>
+-- its approval not taken
+<div class="perm ask-for"><div class="card-head"><span><svg class="ask-for-mark" width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M2 1.5h7a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5L2.5 9.5V7.5H2a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></svg> Atlas answered for you</span><span class="end" data-ago="1999999940000">1m</span></div><div class="perm-why warn">Its approval wasn&#39;t taken: approve the plan in its tab</div><div class="perm-actions"><button class="af-go perm-allow" data-sid="af" data-at="1999999940000">Take me there</button></div></div>
+-- its approval not settled yet
+(nothing)
+shown while no request waits, not while one does, and after every other card: [true,false,true]
+
+== A reply to a message another session sent
+known by its address: gone there, not yours to read: seen
+…by the session that sent it: seen
+…but a name alone isn't enough: turn
+…nor a reply from before that message: turn
+…and one to your own message is yours: turn
+…a question it asks you itself still waits on you: needs
+…and long after, it never comes to be yours: idle
+…one to you not read yet is kept: true
+…the reply to the other session after it doesn't read it for you: turn
+…until you've read it: seen, kept: false
+…one to it, kept before its sender was known: seen, kept: false
+
+== A session that has stopped
+its row says so, and that a press carries it on: true
+…not while it runs: 
+…nor once it closed while it waits on someone else, whose own line says it once: 
+…but it does for one whose wait isn't shown as closed (run again a moment ago): true

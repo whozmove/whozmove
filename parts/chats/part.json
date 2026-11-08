@@ -1,0 +1,8 @@
+{
+  "scripts": ["page/chats.js"],
+  "styles": ["page/chats.css"],
+  "talksTo": ["core", "bridge", "glass", "fold", "hover", "list", "row", "morph", "cat", "keyboard"],
+  "provides": ["drawChats", "chatsMoving", "chatsTurned", "chatGoesAway", "chatTowardCat", "chatTransform",
+               "chatRideStop",
+               "startChatClock", "chatFrames", "chatsEl", "chatsPlaced", "CHAT_MS"]
+}

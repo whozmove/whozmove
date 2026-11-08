@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # The session hook: records what each Claude Code session is doing, for the Whozmove panel.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
-"""Wired to UserPromptSubmit, Notification, Stop, PreToolUse, PostToolUse and PostToolUseFailure. Keeps
-~/Library/Application Support/Whozmove/sessions/<session_id>.json up to date with your last message, Claude's
-last reply, any notice waiting (a permission prompt, say), the permission mode, a live line for the step Claude
-is on ("Run the tests", "Reading app.ts", …) and, once Claude stops, how far its turn took the work ("Committed",
-"Tested", "PR raised", …).
+"""Wired to UserPromptSubmit, Notification, Stop, SubagentStop, PreToolUse, PostToolUse, PostToolUseFailure,
+PreCompact and PostCompact. Keeps ~/Library/Application Support/Whozmove/sessions/<session_id>.json up to date with
+your last message, Claude's last reply, any notice waiting (a permission prompt, say), the permission mode, a live
+line for the step Claude is on ("Run the tests", "Reading app.ts", …), the jobs still running in the background
+after its turn, and, once Claude stops, how far its turn took the work ("Committed", "Tested", "PR raised", …).
 """
 import fcntl
 import json
@@ -22,6 +22,8 @@ BASE = os.path.join(ROOT, "sessions")
 # made again.
 APP_NOTE = os.path.join(ROOT, "app")
 SNIPPET = 280
+# A background job's id, as Claude Code gives it (job_id).
+PLAIN_ID = re.compile(r"[A-Za-z0-9._-]{1,64}\Z")
 
 # How a shell line is read (command_segments): what's dropped from it, what separates its commands, and the
 # words that only run the command after them.
@@ -332,6 +334,70 @@ def last_assistant_text(transcript_path):
     return ""
 
 
+def job_id(value):
+    """A background job's id as Claude Code gives it, or None for anything else: letters, digits, '.', '_' or '-', 64
+    at most (TaskIdPlain in the app's Task.m), as the app names the agent's own record after it."""
+    return value if isinstance(value, str) and PLAIN_ID.match(value) else None
+
+
+def as_number(value, default=0):
+    """A number from the session's record, or `default` for anything else, so one damaged field never stops the record
+    being kept."""
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else default
+
+
+def exact(command):
+    """Whether a command's record holds it just as it was written: clip changed nothing (no line break of any kind, tab,
+    doubled space or cut). The app leaves a job off a row only for an exact one, so nothing it can't see, a second
+    command on a line of its own say, is ever taken for part of the first."""
+    written = str(command or "")
+    return written == clip(written)
+
+
+def background_start(tool_input, response):
+    """The job a tool call of the main agent's started in the background, as (its id, the job), or None: a shell
+    command (`backgroundTaskId`), or an agent or workflow launched (`async_launched`). Claude Code's answer says so,
+    whether the call asked for the background or was moved there part-way through."""
+    if not isinstance(response, dict):
+        return None
+    tool_input = tool_input if isinstance(tool_input, dict) else {}
+    shell = job_id(response.get("backgroundTaskId"))
+    if shell:
+        written = str(tool_input.get("command") or "")
+        command = clip(written)
+        what = clip(str(tool_input.get("description") or "")) or command
+        return shell, dict(type="shell", what=what, command=command, exact=exact(written))
+    agent, task = job_id(response.get("agentId")), job_id(response.get("taskId"))
+    if response.get("status") == "async_launched" and (agent or task):
+        what = response.get("description") or tool_input.get("description")
+        return agent or task, dict(type="subagent" if agent else "workflow", what=clip(str(what or "")))
+    return None
+
+
+def background_listed(tasks, known, now):
+    """The jobs as Claude Code lists them as the turn stops (`background_tasks`: every one still running or pending,
+    {id, type, description, command}, the command a shell command's), each keeping when it was first noted and its step
+    from the list it had, and
+    noting when it was listed: a conversation carried on in a new process keeps the jobs Claude Code carries on with
+    it, while the app takes the ones not listed since that process started for the old process's."""
+    jobs = {}
+    for task in tasks:
+        listed = job_id(task.get("id")) if isinstance(task, dict) else None
+        if not listed:
+            continue
+        old = known.get(listed) if isinstance(known.get(listed), dict) else {}
+        what = task.get("description") or task.get("command")
+        job = dict(type=str(task.get("type") or ""), what=clip(str(what or "")),
+                   startedAt=as_number(old.get("startedAt"), now), listedAt=now)
+        if task.get("command"):
+            job["command"] = clip(str(task["command"]))
+            job["exact"] = exact(task["command"])
+        if old.get("step"):
+            job.update(step=str(old["step"]), stepAt=as_number(old.get("stepAt"), now))
+        jobs[listed] = job
+    return jobs
+
+
 def app_installed():
     """Whether the app noted in Whozmove's folder is there. A build or an upgrade swapping it in can leave a moment
     without it, so it's looked for again 2 seconds later before it counts as gone: this hook runs in the background,
@@ -351,16 +417,24 @@ def app_installed():
 
 def main():
     now = int(time.time() * 1000)  # taken first: hooks run async, so this orders racing events
-    event = json.load(sys.stdin)
+    try:
+        event = json.load(sys.stdin)
+    except ValueError:
+        return
+    if not isinstance(event, dict):
+        return
     session_id = event.get("session_id")
     name = event.get("hook_event_name")
-    if not session_id or not app_installed():
+    # Its file is named by the id, so an id that isn't a plain one ("../x") is never written anywhere.
+    if not isinstance(session_id, str) or not re.fullmatch(r"[A-Za-z0-9-]{1,128}", session_id) \
+            or not app_installed():
         return
 
     update = {}              # the fields this event sets
     activity = None          # a new live line, when this event starts a step or the turn
     reached = None           # a work stage this event reached (PostToolUse only)
     audit = None             # a local code review's report (PostToolUse of ReportFindings)
+    started = None           # a job the main agent started in the background (PostToolUse only)
     if name == "UserPromptSubmit":
         prompt = str(event.get("prompt") or "")
         if prompt.lstrip().startswith(("<task-notification>", "<agent-message")):
@@ -381,6 +455,14 @@ def main():
             activity = activity_for(event.get("tool_name"), event.get("tool_input"))
     elif name == "PostToolUse":
         reached = outcome_for(event.get("tool_name"), event.get("tool_input"))
+        # A command that went to the background has only started, whoever ran it, so "make test" there has tested
+        # nothing yet: what it reaches counts once Claude reads how it went, as any other step does. Only the main
+        # agent's jobs are the session's: a sub-agent's are handed back to that sub-agent.
+        backgrounded = background_start(event.get("tool_input"), event.get("tool_response"))
+        if backgrounded and backgrounded[1]["type"] == "shell":
+            reached = None
+        if not event.get("agent_id"):
+            started = backgrounded
         if event.get("tool_name") == "ReportFindings":
             # Noted with the branch it was run on, so a checkout switched to another branch doesn't show it.
             audit = audit_of(event.get("tool_input"))
@@ -399,6 +481,8 @@ def main():
         pass  # a step ended: only its time is kept (stageAt, below)
     elif name in ("PreCompact", "PostCompact"):
         pass  # a compaction started or ended, by itself or asked for (compactingAt, below)
+    elif name == "SubagentStop":
+        pass  # a sub-agent ended: one in the background comes off the list (background, below)
     else:
         return
 
@@ -422,8 +506,8 @@ def main():
             state = {}
         state.update(update)
         # When a step or the turn last started or ended (any event but a notification): the app takes it as the
-        # session's last event.
-        if name != "Notification":
+        # session's last event. A background agent ending isn't a step of the session's own turn.
+        if name not in ("Notification", "SubagentStop"):
             state["stageAt"] = max(state.get("stageAt", 0), now)  # never let an older event win
         # The live line changes only when a step starts (or the turn starts or ends), like Claude's own:
         # after a step finishes it stays up, timed from when that step began, while Claude thinks on.
@@ -445,6 +529,38 @@ def main():
             state.update(compactingAt=None, compactedAt=now)
         elif compacting_at and ends and now - compacting_at >= COMPACT_END_AFTER_MS:
             state["compactingAt"] = None
+        # The jobs still running in the background once Claude's turn has ended, {id: {type, what, startedAt, step}}:
+        # the session takes your messages meanwhile, but its work may not be done. The list each Stop hands over is
+        # Claude Code's own, so it's taken as it is; a job's start, and a background agent's end, change it between
+        # stops, for a turn that ends with no Stop or a Claude Code that sends no list. An event from before the list
+        # last changed is older news (the hooks run on their own, so they can come in out of order), and changes
+        # nothing.
+        background = state.get("background") if isinstance(state.get("background"), dict) else {}
+        listed = event.get("background_tasks") if name == "Stop" else None
+        agent = event.get("agent_id") if isinstance(event.get("agent_id"), str) else None
+        if now >= as_number(state.get("backgroundAt")):
+            jobs = None
+            if started:
+                started_id, job = started
+                old = background.get(started_id) if isinstance(background.get(started_id), dict) else {}
+                jobs = dict(background, **{started_id: dict(old, **job,
+                                                            startedAt=as_number(old.get("startedAt"), now))})
+            elif isinstance(listed, list):
+                jobs = background_listed(listed, background, now)
+            elif name == "SubagentStop" and agent in background:
+                jobs = {k: v for k, v in background.items() if k != agent}
+            if jobs is not None:
+                state.update(background=jobs, backgroundAt=now)
+                background = jobs
+                # Where the session's transcript is, beside which Claude Code keeps each agent's own record (one that
+                # says when it has finished): the app looks there only for the agents listed. Taken from the main
+                # agent's events only, which are surely about the session's own transcript.
+                if event.get("transcript_path") and not event.get("agent_id"):
+                    state["transcriptPath"] = str(event["transcript_path"])
+        # A background agent's own step, for the line that says what it's doing.
+        job = background.get(agent) if name == "PreToolUse" and agent else None
+        if isinstance(job, dict) and as_number(job.get("stepAt")) <= now:
+            job.update(step=activity_for(event.get("tool_name"), event.get("tool_input")), stepAt=now)
         if reached and reached not in state.setdefault("turnReached", []):
             state["turnReached"].append(reached)
         # What the current piece of work has been through (built, tested, validated, audited), kept until it's

@@ -1,0 +1,13 @@
+/* What Compact at Breaks did, after the context ring: quiet, in the bottom line's own size and the colour of what's
+   said beside. Short of room, where the session runs makes way for it first, whole (the row part's place-gives-way),
+   then the agent's effort and model; it shortens only last, and never wraps. While the ring widens into Compact it
+   fades and steps aside first, so the two never share its room, and comes back once the ring has folded.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+.where .for-you { min-width: 0; max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+                  flex-shrink: 1; margin-left: 6px; font-size: var(--size-meta); color: var(--muted);
+                  transition: max-width .2s ease .25s, opacity .15s ease .25s, margin-left .2s ease .25s; }
+.where .ctx.open + .for-you { max-width: 0; margin-left: 0; opacity: 0;
+                              transition: max-width .12s ease, opacity .1s ease, margin-left .12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .where .for-you, .where .ctx.open + .for-you { transition: none; }
+}

@@ -25,6 +25,16 @@ Fingers lifting, at a speed in points a second, having gone so far across: wheth
   801, gone 5: yes
 A panel at (1000, 200), 340 wide, flicked: to the right, to (1440, 200); to the left, to (-340, 200)
 How much shows on its way to the right, its left edge at 1000, 1100, 1270, 1355, 1440: 1.000 1.000 0.250 0.062 0.000
+Pulled back out, 300 from where it was, the fingers gone 0, 100, 300, 340, 600, 2000 toward the middle: out 0.0 100.0 300.0 314.2 332.2 338.4
+Fingers lifting, the panel 340 wide, so far out, at a speed toward the middle: whether it comes back:
+  113 out, at 200: no
+  114 out, at 200: yes
+  200 out, at -799: yes
+  200 out, at -801: no
+  20 out, at 801: yes
+  20 out, at 799: no
+  0 out, at 1500: yes
+Whozmove pushed into the edge, the fingers gone 0, 10, 30, 60, 150, 1000 toward it: in 0.0 4.0 7.9 10.3 12.7 14.6
 Which way what comes out of the folded cat goes, its glass 76 across on a screen 1440 by 875:
   at the top right: left and down, 1378 across, 800 tall
   at the top left: right and down, 1382 across, 800 tall
@@ -41,3 +51,29 @@ A press there, 6 points round each chat taking it (else it goes through to what'
   4 left of the first: taken
   10 left of it: goes through
   under both: goes through
+Turning over, the panel 340 by 600 under the top of a screen whose room is 1440 by 875: the room the window asks for, where macOS keeps it, and the list's top-left on the screen as the turn starts, the page placed by where the window is kept, and by the room asked for:
+  16 under the top, the list at (1084, 859): (1080, 202) 348 by 714, kept at (1080, 161); (1084, 859), (1084, 818)
+  at the very top, the list at (1084, 875): (1080, 218) 348 by 714, kept at (1080, 161); (1084, 875), (1084, 818)
+  200 under the top, the list at (1084, 675): (1080, 18) 348 by 714, kept at (1080, 18); (1084, 675), (1084, 675)
+The most the header and the list take, on screens whose room under the menu bar is so tall:
+  600: 600
+  775: 640
+  875: 640
+  923: 640
+  945: 640
+  1080: 640
+  1164: 640
+  1415: 640
+How tall the open panel can grow, on a screen whose room starts 0 up, its top edge so high, with nothing hanging below it, and with a card 200 below it:
+  929: 929; 713
+  600: 600; 384
+  470: 470; 254
+  300: 300; 126
+  200: 200; 126
+…on a screen whose room starts 70 up, above a Dock along its foot, its top edge at 929: 859; 643
+…with a card 200 below and a notice 101 tall under the header, its top edge so high (the notice whole, with the header and a row, where the screen has that much):
+  600: 384
+  470: 254
+  300: 227
+  200: 200
+Opening out of the folded panel, kept 741 tall as it folded on a screen 1415 tall, then taken to one 945 tall, its top at 929 with a card kept and a notice 101 tall: the page asking 741 there, it opens at 713; had it not asked, at 713; and with nothing known, at 200

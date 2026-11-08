@@ -59,7 +59,8 @@ static Reason *WhyNoKey(NSString *sessionId, pid_t pid, NSArray<NSString *> *sta
     if (ProcessStopped(pid)) return [Reason kind:ReasonPaused];
     if (alone && [live[@"entrypoint"] isEqual:kClaudeCodeTerminalEntrypoint] && InAnotherTerminal(sessionId, pid))
         return [Reason kind:ReasonOpenTwice];
-    if (![statuses containsObject:live[@"status"] ?: @""]) return [Reason status:live[@"status"]];
+    NSString *status = ClaudeStatus(live[@"status"]);
+    if (![statuses containsObject:status ?: @""]) return [Reason status:status];
     if (PendingAsks()[sessionId]) return [Reason kind:ReasonRequestWaiting];
     return nil;
 }

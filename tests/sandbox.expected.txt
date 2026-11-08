@@ -1,0 +1,3 @@
+A socket in a test's own folder in /tmp: reached
+A socket in a test's own folder in the temporary folder: reached
+A socket in a folder a test may write in, but not its own: refused

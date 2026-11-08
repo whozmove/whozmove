@@ -1,0 +1,48 @@
+waits: ticket --wait
+waits: wait
+waits: wait --comments
+waits: wait --now
+waits: wait --now --comments
+waits: wait --comments --now
+its own wait (yes): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait
+its own wait (yes): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait --comments
+its own wait (yes): "${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh" wait
+its own wait (yes): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh ticket --wait
+its own wait (yes): <copies>/0.2.0-abc123/scripts/ask-panel.sh wait
+its own wait (yes): '<copies>/0.2.0-abc123/scripts/ask-panel.sh' ticket --wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task-answer passkeys-try --wait
+not its own (no): '<copies>/0.2.0-abc123/scripts/ask-panel.sh' task-answer t1 --wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task-answer code --wait
+not its own (no): '${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh' wait
+not its own (no): <copies>/$X/scripts/ask-panel.sh wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait; rm -rf build
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait && npm run dev
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait | tee out.txt
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait > out.txt
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait\nnpm run dev
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task-answer $(cat id) --wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task-answer `cat id` --wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task-answer "t 1" --wait
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait &
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task t1
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh ticket
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait --soon
+not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh
+not its own (no): sh ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait
+not its own (no): ${OTHER_ROOT}/scripts/ask-panel.sh wait
+not its own (no): <plugins>/other/0.2.0/scripts/ask-panel.sh wait
+not its own (no): <copies>/../scripts/ask-panel.sh wait
+not its own (no): <copies>/0.2.0-abc123/scripts/other.sh wait
+not its own (no): npm run dev
+not its own (no): 
+not its own (no): "~/.claude/plugins/cache/whozmove/whozmove/0.2.0-abc123/scripts/ask-panel.sh" wait
+not recorded as written, so not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh ticket --wait
+not recorded as written, so not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh wait
+with no plugin folder known, its real path: no
+a module's waits with a word after the first that isn't a flag, kept: 1 of 3
+ask-panel.sh takes: ticket --wait
+ask-panel.sh takes: wait
+ask-panel.sh takes: wait --comments
+ask-panel.sh takes: wait --now
+ask-panel.sh takes: wait --now --comments
+ask-panel.sh takes: wait --comments --now

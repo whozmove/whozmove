@@ -36,6 +36,19 @@ if [ "${1:-}" = "--restart" ]; then
     say "Couldn't stop $name (pid $1), so it wasn't restarted: quit it and open it again"
     return 1
   }
+  # Starts this build on its own, as the login item starts it: with this home folder (a test's throwaway one stays its
+  # own) and what macOS gives an app, but nothing else of the shell that ran this. That may be an agent's, and the
+  # panel would pass it on to every deploy. Fails if the copy has ended a second later.
+  start_on_its_own() {
+    local clean=(HOME="$HOME" USER="$(id -un)" LOGNAME="$(id -un)" PATH=/usr/bin:/bin:/usr/sbin:/sbin) var started
+    for var in SHELL TMPDIR LANG SSH_AUTH_SOCK __CF_USER_TEXT_ENCODING; do
+      [ -n "${!var:-}" ] && clean+=("$var=${!var}")
+    done
+    env -i "${clean[@]}" nohup "$program" >/dev/null 2>&1 &
+    started=$!
+    sleep 1
+    kill -0 "$started" 2>/dev/null
+  }
   # Only what runs this very app is restarted. The login item and the panel's pid are the Mac's own and the home
   # folder's, so a build for another home (a test's throwaway one) would otherwise restart the panel you're using.
   # The copy running now is found by the pid the app keeps in its folder, checked to be this app's. A copy running from
@@ -57,20 +70,38 @@ if [ "${1:-}" = "--restart" ]; then
     # Finder) is stopped first, as the login item's new copy would bow out to it.
     job_pid=$(sed -n 's/^[[:space:]]*pid = //p' <<< "$job_info" | head -1)
     if [ -n "$pid" ] && [ "$pid" != "$job_pid" ]; then stop "$pid" || exit 1; fi
-    launchctl kickstart -k "$job" && say "Restarted $name (its login item)"
-    exit
+    # The login item is unloaded and loaded again rather than restarted in place: on macOS 27.2, launchd ties a loaded
+    # login item to the exact build it found when it loaded it, and every build here is signed afresh. A restart in
+    # place would start this build under the old build's tie, and macOS would refuse it at launch, leaving no panel.
+    # Loading the item again ties it to the build that is in place now. The file to load is the one launchd says the
+    # item came from, as it may not be in the usual place.
+    tab=$'\t'
+    agent_file=$(sed -n "s/^${tab}path = //p" <<< "$job_info" | head -1)
+    [ -n "$agent_file" ] || agent_file="$HOME/Library/LaunchAgents/$bundle_id.plist"
+    launchctl bootout "$job" 2>/dev/null
+    # Loading it can fail for a moment while the old one is still going away, so it's tried again for a few seconds.
+    for _ in $(seq 20); do
+      if launchctl bootstrap "gui/$(id -u)" "$agent_file" 2>/dev/null; then
+        say "Restarted $name (its login item)"
+        exit 0
+      fi
+      sleep 0.25
+    done
+    # The panel has stopped by now (a Deploy from it stops it first), so this build is started on its own rather
+    # than leaving none, as the line below would go only to a log nobody has open.
+    if start_on_its_own; then
+      say "Started $name on its own, as its login item wouldn't load again; the login item starts it again at your" \
+          "next login"
+      exit 0
+    fi
+    say "Couldn't restart $name: its login item wouldn't load again. Open $app to start this build; the login item" \
+        "starts it again at your next login"
+    exit 1
   fi
   # Started some other way.
   if [ -n "$pid" ]; then
     stop "$pid" || exit 1
-    # Started as the login item starts it: with this home folder (a test's throwaway one stays its own) and what
-    # macOS gives an app, but nothing else of the shell that ran this. That may be an agent's, and the panel would
-    # pass it on to every deploy.
-    clean=(HOME="$HOME" USER="$(id -un)" LOGNAME="$(id -un)" PATH=/usr/bin:/bin:/usr/sbin:/sbin)
-    for var in SHELL TMPDIR LANG SSH_AUTH_SOCK __CF_USER_TEXT_ENCODING; do
-      [ -n "${!var:-}" ] && clean+=("$var=${!var}")
-    done
-    env -i "${clean[@]}" nohup "$program" >/dev/null 2>&1 &
+    start_on_its_own
     say "Restarted $name (the copy running from $app)"
   elif [ "$(plutil -extract agent raw -o - "$here/Contents/Resources/build.json" 2>/dev/null)" = true ]; then
     say "$name isn't running, so nothing was restarted: open it to run this build"

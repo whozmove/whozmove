@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core", "bridge", "glass"],
+  "provides": ["Settings.h"]
+}

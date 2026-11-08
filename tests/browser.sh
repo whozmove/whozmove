@@ -1,5 +1,5 @@
 #!/bin/bash
-# The Browser's rules (app/core/Browser.m), as Whozmove --print-browsing prints them for a sample folder: where each
+# The Browser's rules (Browser.m, parts/pane), as Whozmove --print-browsing prints them for a sample folder: where each
 # kind of address goes from each sample setup, the folders too wide to show a page from, the store each name's sign-ins
 # are kept in, and how it introduces itself, compared with tests/browser.expected.txt.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
@@ -8,6 +8,7 @@
 #   tests/browser.sh            run and compare
 #   tests/browser.sh --update   run and save the output as the new expected (after a change you meant)
 cd "$(dirname "$0")/.." || exit 1
+. tests/sandboxed.sh "$@"
 # Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
 T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-browser.XXXXXX") || exit 1
 T=$(cd "$T" && pwd -P) || exit 1

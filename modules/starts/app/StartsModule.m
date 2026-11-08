@@ -1,5 +1,6 @@
 // StartsModule: new conversations' face for the core (Module): the card's messages, the starts still waiting matched to
-// the sessions they became, New Conversation and ⌃⌥N in the pawn menu, and the print modes the tests check.
+// the sessions they became, New Conversation in the pawn menu, ⌃⌥N's switch in Settings, and the print modes the tests
+// check.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 #import "Module.h"
@@ -14,7 +15,7 @@
 #import "Shortcut.h"
 #import "Worktrees.h"
 
-// ⌃⌥N from any app, on until unticked.
+// ⌃⌥N from any app, on until its switch in Settings is turned off.
 static NSString *const kNewShortcut = @"newConversationShortcut";
 
 // `Whozmove --print-starts`: what sample starts would run, as JSON, then quit: a terminal start's command, with and
@@ -35,8 +36,11 @@ static int PrintStarts(Core *core) {
                        @"desktop, words": [desktop newConversationLink:words].absoluteString ?: NSNull.null,
                        @"desktop, words too long for a link":
                            [desktop newConversationLink:long_].absoluteString ?: NSNull.null,
-                       @"terminal, an ended session carried on": [agent resumeCommand:sid] ?: NSNull.null,
-                       @"terminal, not a session's id": [agent resumeCommand:@"x; echo hi"] ?: NSNull.null});
+                       @"terminal, an ended session carried on": [agent resumeCommand:sid wordsFile:nil] ?: NSNull.null,
+                       @"terminal, an ended session carried on, with words":
+                           [agent resumeCommand:sid wordsFile:file] ?: NSNull.null,
+                       @"terminal, not a session's id":
+                           [agent resumeCommand:@"x; echo hi" wordsFile:nil] ?: NSNull.null});
 }
 
 // `Whozmove --print-worktrees [--make] <folder> <target>…`: what the repo the folder is in has (its own folder, its
@@ -65,7 +69,6 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
 @property (weak) Core *core;
 @property (strong) Starts *starts;      // made as the app starts: it clears the words left from earlier starts
 @property (strong) Shortcut *shortcut;
-@property (strong) NSMenuItem *shortcutItem;
 @property BOOL toldDesktop;  // whether the card was last told Claude Desktop's sessions are tracked
 @end
 
@@ -137,24 +140,29 @@ static int PrintWorktrees(Core *core, NSArray<NSString *> *arguments) {
 
 #pragma mark New Conversation
 
-// New Conversation (with ⌃⌥N shown beside it) at the top of the pawn menu, and whether ⌃⌥N works from any app.
+// New Conversation (with ⌃⌥N shown beside it) at the top of the pawn menu.
 - (NSArray<MenuEntry *> *)menuEntries {
     NSMenuItem *start = [[NSMenuItem alloc] initWithTitle:@"New Conversation" action:@selector(openStart)
                                             keyEquivalent:@"n"];
     start.keyEquivalentModifierMask = NSEventModifierFlagControl | NSEventModifierFlagOption;
     start.target = self;
-    self.shortcutItem = [[NSMenuItem alloc] initWithTitle:@"Use ⌃⌥N in Any App" action:@selector(toggleShortcut)
-                                            keyEquivalent:@""];
-    self.shortcutItem.target = self;
-    self.shortcutItem.state = SwitchedOn(kNewShortcut) ? NSControlStateValueOn : NSControlStateValueOff;
-    return @[[MenuEntry entryIn:MenuSectionTop order:10 item:start],
-             [MenuEntry entryIn:MenuSectionTop order:20 item:self.shortcutItem]];
+    return @[[MenuEntry entryIn:MenuSectionTop order:10 item:start]];
 }
 
-- (void)toggleShortcut {
-    FlipSwitch(kNewShortcut);
-    self.shortcutItem.state = SwitchedOn(kNewShortcut) ? NSControlStateValueOn : NSControlStateValueOff;
-    self.shortcut.on = SwitchedOn(kNewShortcut);
+// Whether ⌃⌥N works from any app, a switch in Settings on the panel's back.
+- (NSArray<SettingEntry *> *)settingEntries {
+    __weak typeof(self) weakSelf = self;
+    SettingEntry *shortcut = [SettingEntry switchWithKey:@"newConversationShortcut"
+        title:@"New Conversation with ⌃⌥N" glyph:@"keys"
+        on:^BOOL { return SwitchedOn(kNewShortcut); }
+        set:^(BOOL on) {
+            SetSwitch(kNewShortcut, on);
+            weakSelf.shortcut.on = on;
+        }];
+    shortcut.foot = @"⌃⌥N opens the new conversation card from any app.";
+    shortcut.group = 20;
+    shortcut.order = 10;
+    return @[shortcut];
 }
 
 // New Conversation in the pawn menu, or ⌃⌥N from any app: the panel comes up (if it was hidden), turned back to its

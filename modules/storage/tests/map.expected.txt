@@ -1,0 +1,148 @@
+== The map of a sample home folder: each part's size on the disk (in MB, to a tenth), what's counted together,
+   and what keeps it from going to the Trash
+{
+  "(home)": {
+    "lock": "Your home folder: open it to choose",
+    "size": "24.3 MB",
+    "small": "0, 0.0 MB"
+  },
+  "Desktop": {
+    "allow": true,
+    "lock": "unread: Allow Full Disk Access to look inside",
+    "size": "0.0 MB",
+    "unread": true
+  },
+  "Library": {
+    "lock": "keep: Open it to choose what goes",
+    "size": "7.0 MB"
+  },
+  "Library/Caches": {
+    "lock": "keep: Open it to choose what goes",
+    "size": "3.0 MB"
+  },
+  "Library/Caches/tool": {
+    "size": "3.0 MB"
+  },
+  "Library/Caches/tool/blob": {
+    "size": "3.0 MB"
+  },
+  "Library/Developer": {
+    "lock": "keep: Open it to choose what goes",
+    "size": "4.0 MB"
+  },
+  "Library/Developer/CoreSimulator": {
+    "lock": "inside: Holds Devices, which can't go: open it to choose",
+    "size": "4.0 MB"
+  },
+  "Library/Developer/CoreSimulator/Devices": {
+    "lock": "tool: Xcode keeps its simulators here: Clean up deletes those no longer available",
+    "size": "4.0 MB"
+  },
+  "Library/Developer/CoreSimulator/Devices/sim.img": {
+    "lock": "tool: Xcode keeps its simulators here: Clean up deletes those no longer available",
+    "size": "4.0 MB"
+  },
+  "code": {
+    "lock": "agent: Claude Code is working in busy now",
+    "size": "12.2 MB"
+  },
+  "code/ahead": {
+    "checkout": true,
+    "lock": "repo: Commits not pushed yet",
+    "size": "2.1 MB",
+    "small": "1, 0.1 MB"
+  },
+  "code/ahead/big.bin": {
+    "size": "2.0 MB"
+  },
+  "code/busy": {
+    "checkout": true,
+    "lock": "agent: Claude Code is working in busy now",
+    "size": "2.0 MB",
+    "small": "1, 0.0 MB"
+  },
+  "code/busy/src": {
+    "lock": "agent: Claude Code is working in busy now",
+    "size": "2.0 MB"
+  },
+  "code/busy/src/data.bin": {
+    "lock": "agent: Claude Code is working in busy now",
+    "size": "2.0 MB"
+  },
+  "code/dirty": {
+    "checkout": true,
+    "lock": "repo: Changes not committed yet",
+    "size": "4.1 MB",
+    "small": "2, 0.1 MB"
+  },
+  "code/dirty/node_modules": {
+    "size": "2.0 MB"
+  },
+  "code/dirty/node_modules/pkg": {
+    "size": "2.0 MB"
+  },
+  "code/dirty/node_modules/pkg/lib.bin": {
+    "size": "2.0 MB"
+  },
+  "code/dirty/src": {
+    "lock": "repo: Part of dirty, which has changes not committed yet",
+    "size": "2.0 MB",
+    "small": "1, 0.0 MB"
+  },
+  "code/dirty/src/big.bin": {
+    "lock": "repo: Part of dirty, which has changes not committed yet",
+    "size": "2.0 MB"
+  },
+  "code/local": {
+    "checkout": true,
+    "lock": "repo: Its history is only on this Mac",
+    "size": "4.0 MB"
+  },
+  "code/local/.git": {
+    "lock": "repo: Git's own record: move the whole checkout instead",
+    "size": "2.0 MB",
+    "small": "6, 0.0 MB"
+  },
+  "code/local/.git/objects": {
+    "lock": "repo: Git's own record: move the whole checkout instead",
+    "size": "2.0 MB",
+    "small": "4, 0.0 MB"
+  },
+  "code/local/.git/objects/ad": {
+    "lock": "repo: Git's own record: move the whole checkout instead",
+    "size": "2.0 MB"
+  },
+  "code/local/.git/objects/ad/0681366eca3377df1b0689251cd03e429f98d7": {
+    "lock": "repo: Git's own record: move the whole checkout instead",
+    "size": "2.0 MB"
+  },
+  "code/local/data.bin": {
+    "size": "2.0 MB"
+  },
+  "movies": {
+    "size": "5.0 MB",
+    "small": "4, 0.0 MB"
+  },
+  "movies/film.mov": {
+    "size": "5.0 MB"
+  },
+  "notes": {
+    "lock": "inside: Holds shut, which can't go: open it to choose",
+    "size": "0.0 MB"
+  },
+  "notes/kept": {
+    "lock": "inside: Holds shut, which can't go: open it to choose",
+    "size": "0.0 MB"
+  },
+  "notes/kept/shut": {
+    "lock": "unread: Whozmove isn't allowed to look inside it",
+    "size": "0.0 MB",
+    "unread": true
+  },
+  "notes/tiny": {
+    "checkout": true,
+    "lock": "repo: Changes not committed yet",
+    "size": "0.0 MB",
+    "small": "2, 0.0 MB"
+  }
+}

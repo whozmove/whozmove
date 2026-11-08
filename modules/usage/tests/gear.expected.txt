@@ -1,0 +1,46 @@
+who's counted: busy, compacting, a copy busy, agents in the background; not asking, waiting, idle, a dev server: {"atWork":4,"counted":["a","c","e","f"],"over":[],"room":null}
+four working at gear 2: the two whose turns began last are over it: {"atWork":4,"counted":["a","b","c","d"],"over":["b","c"],"room":0}
+two working at gear 5: none over, room for 3 more: {"atWork":2,"counted":["a","b"],"over":[],"room":3}
+two working, no gear set: none over: {"atWork":2,"counted":["a","b"],"over":[],"room":null}
+a gear of -3 kept as it is, two working: both over, no further: {"atWork":2,"counted":["a","b"],"over":["b","a"],"room":0}
+a gear of -3 in the preferences: no gear set: {"atWork":2,"counted":["a","b"],"over":[],"room":null}
+a gear of 31 in the preferences: no gear set: {"atWork":2,"counted":["a","b"],"over":[],"room":null}
+a gear of 2.5 in the preferences: no gear set: {"atWork":2,"counted":["a","b"],"over":[],"room":null}
+reads a second apart: "0.0014 session-hours, 0.0011 watched, 0.0006 with a session at work"
+reads closer than a second: "0.0001 session-hours, 0.0001 watched, 0.0001 with a session at work"
+a gap over 10 seconds adds nothing: "0.0006 session-hours, 0.0003 watched, 0.0003 with a session at work"
+measurable, no gear set: recommended 8, the week ending near 94% at it: {"bound":"week","checkedAt":36000000,"forecast":{"ends":94,"gear":8,"resetsAt":360000000},"limit":false,"recommended":8}
+gear 6: room: {"bound":"week","checkedAt":36000000,"forecast":{"ends":79,"gear":6,"resetsAt":360000000},"limit":false,"recommended":8}
+gear 12: the week runs out 64 hours on: {"bound":"week","checkedAt":36000000,"forecast":{"ends":122,"gear":12,"resetsAt":360000000,"runsOutAt":276000000},"limit":false,"recommended":8}
+a reset that jitters within its minute is the same window: {"bound":"week","checkedAt":36000000,"forecast":{"ends":94,"gear":8,"resetsAt":360000240},"limit":false,"recommended":8}
+not measurable: the week has gone up 3 points: {"checkedAt":7200000,"limit":false,"notYet":{"hours":15,"reason":"rise","rise":3}}
+not measurable: sessions have worked 1 hour: {"checkedAt":36000000,"limit":false,"notYet":{"hours":1,"reason":"hours","rise":6}}
+a stretch dropped around a restart alone: still too little rise, not unwatched: {"checkedAt":36000000,"limit":false,"notYet":{"hours":15,"reason":"rise","rise":3}}
+not measurable: most of the rise came in the 20 hours Whozmove wasn't watching: {"checkedAt":86400000,"limit":false,"notYet":{"hours":10,"reason":"watched","rise":2}}
+the week just reset: nothing of the last window carried over: {"checkedAt":39600000,"limit":false,"notYet":{"hours":0,"reason":"rise","rise":0}}
+stretches over 2 days old don't count: {"checkedAt":208800000,"limit":false,"notYet":{"hours":0,"reason":"rise","rise":0}}
+the session window lowers the gear: {"bound":"session","checkedAt":7200000,"forecast":{"ends":85,"gear":5,"resetsAt":360000000},"limit":false,"recommended":5}
+gear 8, the session runs out first: {"bound":"session","checkedAt":7200000,"forecast":{"ends":114,"gear":8,"resetsAt":360000000,"runsOutAt":295200000,"sessionRunsOutAt":13950000},"limit":false,"recommended":5}
+even gear 1 runs the week out: {"bound":"week","checkedAt":7200000,"forecast":{"ends":180,"gear":1,"resetsAt":360000000,"runsOutAt":72000000},"limit":false,"recommended":1}
+the plan carries more than 30: {"bound":"week","checkedAt":36000000,"forecast":{"ends":38,"gear":30,"resetsAt":360000000},"limit":false,"recommended":30}
+the session at its limit: {"bound":"week","checkedAt":36000000,"forecast":{"ends":94,"gear":8,"resetsAt":360000000},"limit":true,"recommended":8}
+the session at its limit with extra usage on: no limit: {"bound":"week","checkedAt":36000000,"forecast":{"ends":94,"gear":8,"resetsAt":360000000},"limit":false,"recommended":8}
+a press on seat 12: gear 12: 12
+a press on seat 1, the lowest: 1
+a press on seat 30, the highest: 30
+a press past the seats sets none: null
+a press below the seats sets none: null
+a press between two seats sets none: null
+a press as words sets none: null
+samples kept 3 days: [3000,4400,4500]
+usage-gear.json edited by hand: only records kept, anything not a number is 0: {"carriedOn":3,"measured":{"bound":"week","checkedAt":0,"forecast":{"ends":0,"gear":30,"resetsAt":0},"limit":false,"recommended":30},"samples":[{"at":0,"session":{"resetsAt":0,"used":0},"sessionHours":0,"watchedHours":2,"week":{"resetsAt":360000000,"used":0},"workHours":0},{"at":600,"session":{"resetsAt":0,"used":12},"sessionHours":3,"watchedHours":4,"week":{"resetsAt":360000000,"used":40},"workHours":1}]}
+gear.json: no session's id, readable only by you: {"file":{"atWork":6,"changedAt":900,"checkedAt":1000,"gear":8,"recommended":8,"updatedAt":0},"mode":"600"}
+gear.json while Usage Gear is on but the gear isn't known yet: gear null, which lets nothing in: {"file":{"atWork":0,"changedAt":null,"checkedAt":null,"gear":null,"recommended":null,"updatedAt":0},"mode":"600"}
+a lead's reading of gear.json: the off record, no limit: null
+a lead's reading of gear.json: a gear, that many: 8
+a lead's reading of gear.json: no gear yet, none: 0
+a lead's reading of gear.json: no file, or one that can't be read, none, never no limit: 0
+a lead's reading of gear.json: a gear that isn't a whole number from 1 to 30, or off said some other way, none: 0
+…off said as the number 1, none: 0
+…a gear said as true, none, never gear 1: 0
+the gear turned off: nothing it measured is left, and gear.json says it's off, with no gear in it: {"before":["gear","gearChangedAt","gear.json","usage-gear.json"],"gear.json":{"off":true,"updatedAt":0},"left":["gear.json"]}

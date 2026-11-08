@@ -39,6 +39,16 @@ const WORKTREE_ICON = '<svg width="11" height="11" viewBox="0 0 16 16"><path fil
   + 'stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M6.2 9.2v1.2M10.2 9.2c0 1.1-.9 1.5-2 '
   + '1.6l-1.1.2"/></svg>';
 
+// The disk, as a ring with the part in use filled: the low-disk line above the list, and Storage's tile on the back.
+const DISK_ICON = '<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.6"/><path d="M8 8V1.9A6.1 6.1 0 0 1 13.9 9.6Z" fill="currentColor"/></svg>';
+
+// A key, its bow a ring and its blade with two teeth: the line above the list when keys were found where they shouldn't
+// be, and Storage's Keys tab.
+const KEY_ICON = '<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="5" cy="8" r="3" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.6"/><path d="M8 8h6.2M11.5 8v2.4M13.6 8v1.8" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
 // Desktop / Terminal, as an icon on the new conversation card.
 // Two windows, one over the other: a conversation open more than once.
 const TWICE_ICON = '<svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><rect x=".65" y="3.15" '
@@ -53,6 +63,14 @@ const CHEVRON_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M
   + 'stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CLOSE_ICON = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" '
   + 'stroke-width="1.5" stroke-linecap="round"/></svg>';
+// The time left, as a ring (controls.css's .time-ring): its track and the part left. Round a small round icon button's
+// × (.timed), or standing by itself (.time-left).
+const TIME_RING_ICON = '<svg class="time-ring" viewBox="0 0 20 20" aria-hidden="true"><circle class="track" cx="10" '
+  + 'cy="10" r="7.25"/><circle class="left" cx="10" cy="10" r="7.25" pathLength="100"/></svg>';
+// The × with the time left round it, for a small round icon button (.timed): the ring, then a smaller ×, 4pt across, so
+// it sits clear inside the ring.
+const TIMED_CLOSE_ICON = TIME_RING_ICON + '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M3 3l4 4M7 3l-4 4" '
+  + 'stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 // A pin: a chat beside the folded cat kept out until you're done with it (chats.js), its head filled while it's kept.
 const PIN_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path class="pin-head" '
   + 'd="M4 1.5h4l-.6 3.2L9.6 7H2.4l2.2-2.3z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>'
@@ -62,3 +80,24 @@ const PIN_ICON = '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="t
 const DONE_ICON = '<svg class="done-tick" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle '
   + 'cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.3 8.2 7.2 10.1 10.8 6.2" '
   + 'fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+// What takes you out of the panel, to another app or a session's window (Take Me There): a box, its arrow from the
+// middle out past its corner.
+const OUT_ICON = '<svg class="out-icon" width="10" height="10" viewBox="0 0 12 12" aria-hidden="true" fill="none" '
+  + 'stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 1.5H2.5a1 1 '
+  + '0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.8"/><path d="M6 6l4.8-4.8M7.6 1.2h3.2v3.2"/></svg>';
+// What an ask is for, on the button that does it (a row's ask line): a plan to read, a prototype to open, a command to
+// copy, a question to answer, something to look at. Each 10px, in the button's colour.
+const ACT_ICON = (paths) => '<svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true" fill="none" '
+  + `stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+const PLAN_ICON = ACT_ICON('<rect x="2" y="1.3" width="8" height="9.4" rx="1.2"/>'
+  + '<path d="M4.2 4h3.6M4.2 6h3.6M4.2 8h2.2"/>');
+const PROTOTYPE_ICON = ACT_ICON('<rect x="1.3" y="2" width="9.4" height="7.4" rx="1.2"/><path d="M1.3 4.2h9.4"/>'
+  + '<path d="M6 5.6l3 1.1-1.3.5-.5 1.3z" fill="currentColor"/>');
+const COPY_ICON = ACT_ICON('<rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/>'
+  + '<path d="M8 2.5V2.3a1 1 0 0 0-1-1H2.5a1 1 0 0 0-1 1V7a1 1 0 0 0 1 1h.2"/>');
+const ANSWER_ICON = ACT_ICON('<circle cx="6" cy="6" r="4.8"/><path d="M4.3 4.4a1.8 1.8 0 1 1 2.5 1.7c-.5.2-.8.6-.8 '
+  + '1.1v.3"/><circle cx="6" cy="9.4" r=".35" fill="currentColor"/>');
+const COPIED_ICON = ACT_ICON('<path d="M2.6 6.3 5 8.7 9.6 3.6"/>');  // what Copy shows a moment, once it's copied
+const SEEN_ICON = ACT_ICON('<path d="M1 6s1.8-3.4 5-3.4S11 6 11 6 9.2 9.4 6 9.4 1 6 1 6z"/>'
+  + '<circle cx="6" cy="6" r="1.5"/>');

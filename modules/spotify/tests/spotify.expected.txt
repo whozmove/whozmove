@@ -1,7 +1,9 @@
 == What the now-playing strip gets from what Spotify tells the Mac and answers (null: nothing playing), and
    whether an Apple event's error is macOS refusing Whozmove control of Spotify; what its token shows, and its side;
    where LRCLIB is asked about a song, what its answers say, the waits after trouble and what's kept on this Mac;
-   and whether a position is a jump
+   whether a position is a jump; and the music quieter while you talk: where it goes, its turning, what's set,
+   whether a volume read is Whozmove's, the volume a talk brings back, and whether a record a quit left puts it
+   back
 {
   "announce-no-track.json": null,
   "announce-paused.json": {
@@ -251,6 +253,83 @@
   "position-paused.json": {
     "moved": false
   },
+  "quieter-from-a-record-a-day-old.json": 50,
+  "quieter-from-a-record-left-lowered.json": 100,
+  "quieter-from-as-read.json": 80,
+  "quieter-from-changed-since-the-last-landed.json": 70,
+  "quieter-from-where-the-last-landed.json": 99,
+  "quieter-kept-a-day-old.json": {
+    "bringsBack": false
+  },
+  "quieter-kept-back-already.json": {
+    "bringsBack": false
+  },
+  "quieter-kept-on-its-way-down.json": {
+    "bringsBack": true
+  },
+  "quieter-kept-still-lowered.json": {
+    "bringsBack": true
+  },
+  "quieter-kept-turned-down-since.json": {
+    "bringsBack": false
+  },
+  "quieter-ours-an-old-value.json": {
+    "ours": false
+  },
+  "quieter-ours-answering-late.json": {
+    "ours": true
+  },
+  "quieter-ours-changed-by-hand.json": {
+    "ours": false
+  },
+  "quieter-ours-the-last-set.json": {
+    "ours": true
+  },
+  "quieter-set-each-volume.json": {
+    "0": 0,
+    "1": 2,
+    "100": 100,
+    "19": 19,
+    "20": 20,
+    "49": 50,
+    "50": 51,
+    "59": 59,
+    "60": 60,
+    "99": 99
+  },
+  "quieter-target-a-quarter-of-100.json": 25,
+  "quieter-target-half-of-0.json": null,
+  "quieter-target-half-of-1.json": null,
+  "quieter-target-half-of-100.json": 50,
+  "quieter-target-half-of-2.json": 1,
+  "quieter-target-two-thirds-of-73.json": 48,
+  "quieter-turn-down-again-on-the-way-up.json": [
+    71,
+    71,
+    66,
+    61,
+    60
+  ],
+  "quieter-turn-down-to-half.json": [
+    69,
+    69,
+    68,
+    68,
+    67,
+    59,
+    52,
+    52,
+    36
+  ],
+  "quieter-turn-up-from-a-quarter.json": [
+    26,
+    27,
+    28,
+    59,
+    100,
+    100,
+    100
+  ],
   "reply-no-cover.json": {
     "album": "Example Album",
     "artist": "Example Artist",

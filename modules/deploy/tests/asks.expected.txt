@@ -1,0 +1,266 @@
+== Let It Deploy: the switch, each ask and its answer, how long one waits, and when the switch ends
+Asker's mode menu, no Deploy command yet: Set up Deploy for this project first, with Set Up Deploy…
+Turned on then: not changed
+Asker asks then: refused: Let It Deploy isn't on for this session
+Asker's mode menu, with a Deploy command: It can ask to deploy its own checkout, once no other agent's at work there and you're off the panel
+Turned on then: on
+Asker asks: asked: Deploy runs the command you confirmed for shop once no other agent is at work there and you've stepped off the panel, without waiting for your turn to end, so change nothing there until it has run; ask for status to see how it went
+…and the look decides: would run now
+Asker asks for status: status: no deploy has run here yet
+Asker asks for something no module answers: refused: Whozmove can't be asked to launch
+Asker asks in words the panel can't read: refused: Whozmove didn't understand that
+Asker's conversation resumed in another process asks: refused: Let It Deploy is on only in the process it was turned on in, not this copy of the conversation
+Asker asks, naming its own checkout: asked: Deploy runs the command you confirmed for shop once no other agent is at work there and you've stepped off the panel, without waiting for your turn to end, so change nothing there until it has run; ask for status to see how it went
+Asker asks for its project's other checkout: refused: Deploy can only be asked for in this session's own checkout
+…and for its status: refused: Deploy's status is only for this session's own checkout
+Asker asks for a folder outside its project: refused: elsewhere isn't a checkout of this session's project, shop
+Asker asks for a folder whose .git only points at the repo: refused: shop-fake isn't one of shop's worktrees, as its repo lists them
+Asker asks for a folder that isn't there: refused: there's no folder at T/gone
+Other asks, naming Asker: refused: Let It Deploy isn't on for this session
+A process no session runs asks: refused: this doesn't run in one of the sessions Whozmove lists
+Asked during Asker's own turn: would run now
+Asked while Other works in the same folder: waits until the agent in “Other” is done
+…once Other is done: would run now
+Asked, then Asker moves to another project: dropped, as its session's row is about another checkout now
+Asked, then Let It Deploy turned off: dropped, as Let It Deploy went off for its session
+Whether an ask restarts, its build up: restarts
+Asker asks while its checkout's build is up: asked: Deploy restarts the build of shop that's up, running the command you confirmed again, once no other agent is at work there and you've stepped off the panel, without waiting for your turn to end, so change nothing there until it has run; ask for status to see how it went
+…and the look decides: stops its build now, to restart it
+…a second on, the build still stopping: waits for its build there to stop
+Whether an ask restarts, its build stopped: deploys
+…once it has stopped: would run now
+Waits, with nothing in the way: runs now
+Waits, while you're on the panel: waits until you've stepped off the panel
+Waits, while a deploy runs there: waits for the deploy running there now
+Waits, while Asker's own turn goes on: runs now
+Waits, while Other works in the same folder: waits until the agent in “Other” is done
+After the command changed, Asker asks: refused: Let It Deploy ended: this project's Deploy command has changed since it was turned on
+Turned on again: on
+Asker asks then: asked: Deploy runs the command you confirmed for shop once no other agent is at work there and you've stepped off the panel, without waiting for your turn to end, so change nothing there until it has run; ask for status to see how it went
+With another process given its pid: Let It Deploy ended with the session it was turned on in
+Its own process again: on
+With Deploy hidden, Asker asks: refused: Let It Deploy is off while Deploy is hidden in the panel (Show Deploy, on Git's page on its back)
+…and once it shows again, after the rows were read meanwhile: Let It Deploy isn't on for this session
+Other turned on: on
+Once Other's process has ended: Let It Deploy ended with the session it was turned on in
+A made-up token in the command, run and failed, then status and put-in-place asked: status's answer names the token, put-in-place's doesn't name it, panel.log hasn't it
+== From inside Asker's process: put-in-place, status, then put-in-place for shop-try and for elsewhere
+asked: Deploy runs the command you confirmed for shop once no other agent is at work there and you've stepped off the panel, without waiting for your turn to end, so change nothing there until it has run; ask for status to see how it went
+status: no deploy has run here yet
+refused: Deploy can only be asked for in this session's own checkout
+refused: elsewhere isn't a checkout of this session's project, shop
+== ask-panel.sh status, from outside any session
+refused: this doesn't run in one of the sessions Whozmove lists
+exit=1
+== ask-panel.sh with no panel to ask, and with no word
+Whozmove isn't running, so there's no panel to ask
+exit=1
+Ask with one word, such as put-in-place or status
+exit=2
+There's no folder at T/gone
+exit=2
+== The session hook doesn't take asking the panel for a deploy for one (names_deploy)
+"$HOME/Applications/Whozmove.app/Contents/Resources/ask-panel.sh" put-in-place: not a deploy
+/Applications/Whozmove.app/Contents/Resources/ask-panel.sh status: not a deploy
+== The build in place (--print-deploys): what a deploy from shop and from shop-try would note it starts from now,
+   and the project's build in place, shop's deploy having ended 2 minutes ago and shop-try's 5: the later is in
+   place, the other before it. shop has a commit since shop-try branched, a file changed and a new one
+{
+  "shop": {
+    "inPlace": {
+      "at": "now-2m",
+      "before": {
+        "at": "now-5m",
+        "by": "Asker",
+        "commit": "<shop-try's commit>",
+        "folder": "shop-try",
+        "uncommitted": 0
+      },
+      "commit": "<shop's commit>",
+      "folder": "shop",
+      "uncommitted": 0
+    },
+    "now": {
+      "commit": "<shop's commit>",
+      "uncommitted": 2
+    },
+    "port": 3000,
+    "run": {
+      "commit": "<shop's commit>",
+      "finishedAt": "now-2m",
+      "ok": true,
+      "running": false,
+      "startedAt": "now-2m",
+      "uncommitted": 0
+    },
+    "suggested": null
+  },
+  "shop-try": {
+    "inPlace": {
+      "at": "now-2m",
+      "before": {
+        "at": "now-5m",
+        "by": "Asker",
+        "commit": "<shop-try's commit>",
+        "folder": "shop-try",
+        "uncommitted": 0
+      },
+      "commit": "<shop's commit>",
+      "folder": "shop",
+      "uncommitted": 0
+    },
+    "now": {
+      "commit": "<shop-try's commit>",
+      "uncommitted": 0
+    },
+    "port": 3001,
+    "run": {
+      "by": "Asker",
+      "commit": "<shop-try's commit>",
+      "finishedAt": "now-5m",
+      "ok": true,
+      "running": false,
+      "startedAt": "now-5m",
+      "uncommitted": 0
+    },
+    "suggested": null
+  }
+}
+== …and nothing kept by a print run
+in-place.json: No such file or directory
+ports.json as it was
+== Real runs (--print-builds-up): `make show`, which says the port it's given, confirmed in shop (its port
+   kept then) and run there and in shop-try, each with its own port; then shop-try's recipe changed after the card
+   showed it, as a branch could: it doesn't run, and isn't saved as the card showed it, until the card has shown it
+   again; a command confirmed before what it runs was kept, confirmed once more first; and one that runs nothing
+   checked, without a port as it was confirmed before ports
+== …and stand-in servers (Python's http.server): one in shop and one in shop-try at once, each on its own $PORT,
+   the later in place; one on every address; one on a port of its own; one on two; one that never listens; one
+   whose program isn't installed, in a checkout with no packages and then without its package.json; Install
+   First, with a stand-in npm; one that ends
+   by itself once up; one its shell leaves running, which Stop Deploy stops by its pid; Restart; a press kept while
+   an agent works there; and the port checked before a press: one of Deploy's own builds on it (an older command's,
+   a server's that picks its own port), or a program it didn't start
+The card in the main checkout shows it runs: @echo port=$${PORT:-none}
+Confirmed: saved: make show, with ports, what it runs kept
+The ports kept once it's confirmed: shop 3000
+Deployed in the main checkout: went through, $PORT 3000, it said "port=3000"
+Deployed in the worktree: went through, $PORT 3001, it said "port=3001"
+The ports kept: shop 3000, shop-try 3001
+The card in the worktree shows it runs: @echo port=$${PORT:-none}
+The worktree's recipe changed then, and Deploy pressed there: not run: What make show runs here has changed since you confirmed it: confirm it again to deploy (and the set-up card shows it again)
+…and asked for there by a session: not run: Couldn't deploy: what make show runs here has changed since it was confirmed, and only you can confirm it again
+Confirmed in the worktree, as the card showed it before the change: not saved
+…and once the card has shown it again: saved: make show, with ports, what it runs kept
+Deployed in the worktree then: went through, $PORT 3001, it said "changed by a branch"
+Deployed in the main checkout then: not run: What make show runs here has changed since you confirmed it: confirm it again to deploy (and the set-up card shows it again)
+A command confirmed before what it runs was kept, deployed in the main checkout: not run: Deploy now checks what make show runs before each run: confirm it once more to deploy (and the set-up card shows it again)
+…and asked for by a session: not run: Couldn't deploy: make show needs confirming once more, as Deploy now checks what it runs, and only you can confirm it
+One that names nothing checked, deployed in the main checkout: went through, $PORT not given, it said "nothing checked"
+…which keeps that from then on: echo nothing checked, without ports, what it runs kept
+A server on $PORT, confirmed: saved: python3 -m http.server --bind 127.0.0.1 $PORT, with ports, what it runs kept
+Deployed in the main checkout: started
+Deployed in the worktree: started
+The main checkout's: up at base+0, its $PORT, on this Mac only
+The worktree's: up at base+1, its $PORT, on this Mac only
+The build in place: shop-try's, the last up
+Stop Deploy in the main checkout: stopped
+…and in the worktree: stopped
+A server on every address, confirmed and deployed: saved: python3 -m http.server --bind :: $PORT, with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on every address
+Stopped: stopped
+A server on a port of its own, confirmed and deployed: saved: python3 -m http.server --bind 127.0.0.1 <base+5>, with ports, what it runs kept, started
+It's: up at base+5, not its $PORT, on this Mac only
+Stopped: stopped
+Two servers, confirmed and deployed: saved: python3 -m http.server --bind 127.0.0.1 $PORT & python3 -m http.server --bind 127.0.0.1 <base+6>, with ports, what it runs kept, started
+They're: up at base+0, its $PORT, on this Mac only, also base+6
+Stopped: stopped
+One that never listens, confirmed and deployed: saved: sleep 30, with ports, what it runs kept, started
+It's: running, listening on nothing
+Stopped: stopped
+One whose program isn't installed, in a checkout with a package.json and no node_modules, confirmed and deployed: saved: printf 'starting\n\033[31m\342\200\256vite\033[0m: command not found\n'; exit 127, with ports, what it runs kept, started
+It: failed, its packages not installed (npm install), its last lines "starting / vite: command not found"
+Its card's Copy, with no lock file, then with each: npm install, making a lock file; package-lock.json: npm ci; pnpm-lock.yaml: pnpm install --frozen-lockfile; yarn.lock (Yarn 1): yarn install --frozen-lockfile; yarn.lock (Yarn 2 on): yarn install --immutable; bun.lock: bun install --frozen-lockfile; bun.lockb: bun install --frozen-lockfile
+The same, once its package.json is gone: started
+It: failed, its last lines "starting / vite: command not found"
+One that needs its packages, in a checkout with a package-lock.json and no node_modules, confirmed and deployed: saved: test -d node_modules && echo started || { echo "Error: Cannot find module 'vite'"; exit 1; }, with ports, what it runs kept, started
+It: failed, its packages not installed (npm ci), its last lines "Error: Cannot find module 'vite'"
+Install First's second step shows: npm ci, from package-lock.json, no install scripts of its own
+Install and Deploy pressed while an agent works there: nothing run
+Install and Deploy pressed after package.json gained a postinstall: nothing run, the step now shows npm ci, from package-lock.json, runs: postinstall: node scripts/setup.js
+Install and Deploy pressed once it's done: went through, its log "Installing packages first: npm ci / stand-in npm ci / started", node_modules there
+…and with a pnpm lock file whose install doesn't go through: failed, its log "Installing packages first: pnpm install --frozen-lockfile / stand-in pnpm install --frozen-lockfile: the lock file is out of date", node_modules not there, its install (pnpm install --frozen-lockfile) didn't go through
+A server that ends by itself once up, confirmed and deployed: saved: python3 -m http.server --bind 127.0.0.1 $PORT & for i in $(seq 1 150); do nc -z 127.0.0.1 $PORT 2>/dev/null && break; sleep 0.2; done; sleep 1; kill $!; echo the server ended; exit 1, with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on this Mac only
+It: failed, ended by itself once up, its last lines "the server ended"
+A server its shell leaves running, confirmed and deployed: saved: nohup python3 -m http.server --bind 127.0.0.1 $PORT > /dev/null 2>&1 & for i in $(seq 1 150); do nc -z 127.0.0.1 $PORT 2>/dev/null && break; sleep 0.2; done; sleep 1, with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on this Mac only
+Once its shell has ended: its shell gone, the run still running
+Stopped: stopped
+A process that joins its group after its shell has ended, confirmed and deployed: saved: nohup python3 -m http.server --bind 127.0.0.1 $PORT > /dev/null 2>&1 & nohup sh -c 'while kill -0 $PPID 2>/dev/null; do sleep 0.2; done; sleep 60' > /dev/null 2>&1 & for i in $(seq 1 150); do nc -z 127.0.0.1 $PORT 2>/dev/null && break; sleep 0.2; done; sleep 1, with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on this Mac only
+Once its shell has ended: 1 process in its group not noted
+Stopped: stopped
+What joined it after its shell ended: left alone by Stop Deploy
+A server that ignores being told to end, confirmed and deployed: saved: sh -c 'trap "" TERM; exec python3 -m http.server --bind 127.0.0.1 $PORT', with ports, what it runs kept, started
+Stopped, before the panel looked: stopped
+Its group: processes in it as Stop was pressed, nothing left 3 seconds later
+A server on $PORT, confirmed and deployed for Restart: saved: python3 -m http.server --bind 127.0.0.1 $PORT, with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on this Mac only
+Restarted: up again
+Restarted while an agent starts work there: left stopped
+…which the row says: Not restarted: Deploy waits until the agent in “codegen” is done
+Deployed again: started
+It's: up at base+0, its $PORT, on this Mac only
+Restarted while its own session starts a turn: left stopped
+…which the row says: Not restarted: Deploy waits until the agent is done
+Deployed again: started
+It's: up at base+0, its $PORT, on this Mac only
+Restarted once its session is no longer listed: left stopped
+…which the row says: Not restarted: its session is no longer listed
+Deployed again: started
+It's: up at base+0, its $PORT, on this Mac only
+Restarted, then Stop Deploy pressed as it waits: left stopped
+A server that ignores being told to end, confirmed and deployed for Restart: saved: sh -c 'trap "" TERM; exec python3 -m http.server --bind 127.0.0.1 $PORT', with ports, what it runs kept, started
+It's: up at base+0, its $PORT, on this Mac only
+Restarted, looking only once: left stopped
+…which the row says: Not restarted: the build before is still stopping
+Stopped: stopped
+A server on $PORT, confirmed: saved: python3 -m http.server --bind 127.0.0.1 $PORT, with ports, what it runs kept
+Deploy pressed while an agent works there: Deploy waits until the agent in “codegen” is done
+…a second on, the agent still at work: Deploy waits until the agent in “codegen” is done
+…once it's done: would run now
+It's: up at base+0, its $PORT, on this Mac only
+…and nothing kept after: nothing kept
+Stopped: stopped
+Kept, then the command changed: dropped, as the project's Deploy command changed
+Kept, then Don't Deploy: nothing kept
+Kept, then its session no longer listed: dropped, as its session isn't listed any more
+…and nothing ran: nothing runs
+A command confirmed before ports, deployed in the main checkout: started
+It's: up at base+5, not its $PORT, on this Mac only
+Deploy pressed in the worktree: clash on base+5, shop's build, a command confirmed before ports, next none
+…Cancel: no card
+Stopped: stopped
+A server on a port of its own, confirmed and deployed in the main checkout: saved: python3 -m http.server --bind 127.0.0.1 <base+5>, with ports, what it runs kept, started
+It's: up at base+5, not its $PORT, on this Mac only
+Asked for in the worktree by a session: didn't run, the card waits: clash on base+5, shop's build, a server that picks its own port, next none, asked by “Asker”
+…its status: status: asked by “Asker”, it waits on its card for you, as port base+5 is in use and this server can't take another
+…and the main checkout's: still running
+Deploy pressed in the worktree: clash on base+5, shop's build, a server that picks its own port, next none
+…Stop It and Deploy: up at base+5, not its $PORT, on this Mac only
+…and the main checkout's: stopped
+Stopped: stopped
+Deploy pressed in the worktree, its port held: held on base+7, named, running as long as it has, next base+1
+…with the session that started it listed: held on base+7, named, running as long as it has, started by “cart total”, next base+1
+…and one listed as starting after it (a pid used again): held on base+7, named, running as long as it has, next base+1
+…Use Port while an agent starts work there: didn't run, Not deployed on port <base+1>: Deploy waits until the agent in “codegen” is done, the card still there
+…Use Port: up at base+1, its $PORT, on this Mac only
+The worktree's port from now on: base+1
+Stopped: stopped
+Asked for in the worktree by a session, its port held: ran, up at base+1, its $PORT, on this Mac only
+…its status: status: running (asked by “Asker”), up on port base+1, the next free one, as base+7 was in use; it keeps base+1 from now on
+…the worktree's port from now on: base+1
+…and the program on its old port: still there
+Stopped: stopped
+A made-up token in a confirmed command, set, pressed, asked for and too long to save: the press ran, panel.log hasn't it, the run's own log has it

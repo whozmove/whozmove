@@ -4,6 +4,11 @@
 # file lists a module's page files, and a module adds its own by naming them in its module.json:
 #   {"order": 20, "scripts": ["page/now-playing.js"], "styles": ["page/now-playing.css"]}
 #
+# The panel's parts (parts/<name>/) are loaded where panel/panel.html names them, one line a file, as the panel's own
+# are, by their path from the repo's top (parts/details/page/details.js); each part's part.json names its page files, and each
+# must be loaded there exactly once:
+#   {"scripts": ["page/details.js"], "styles": ["page/details.css"], "talksTo": [...], "provides": [...]}
+#
 # A module can have a page of its own as well, for a window of its own (the usage card's): its module.json names it,
 # its markup and its scripts and styles, which tools/page.sh lists at the two lines that page marks for them:
 #   {"pages": {"card": {"page": "page/card.html", "scripts": ["page/card.js"], "styles": ["page/usage.css"]}}}
@@ -13,9 +18,10 @@
 #   tools/page.sh --pages      the modules' own pages, one a line, as <module>/<page> (tests/checks.sh)
 #   tools/page.sh --scripts <module>/<page>   one of those pages' scripts, the panel's ones it loads among them
 #   tools/page.sh --styles <module>/<page>    its styles, the same way
-#   tools/page.sh <folder>     the whole page, written into a new folder (relative to where you are): panel/'s files, and
-#                              each module's page files under modules/<name>/ there, its own pages among them (build.sh,
-#                              into the app). It never writes over a folder it didn't make.
+#   tools/page.sh <folder>     the whole page, written into a new folder (relative to where you are): panel/'s files,
+#                              each part's page files under parts/<name>/ there, and each module's under
+#                              modules/<name>/, its own pages among them (build.sh, into the app). It never writes over
+#                              a folder it didn't make.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 here=$PWD
@@ -42,6 +48,35 @@ def specs():
                 found.append((spec.get("order", 0), name, spec))
     found.sort(key=lambda m: (m[0], m[1]))
     return found
+
+# Each part's part.json, by its name.
+def part_specs():
+    found = {}
+    if os.path.isdir("parts"):
+        for name in sorted(os.listdir("parts")):
+            path = os.path.join("parts", name, "part.json")
+            if os.path.isfile(path):
+                with open(path, encoding="utf-8") as f:
+                    found[name] = json.load(f)
+    return found
+
+# Each part's page files, as paths in this checkout, by kind.
+def parts():
+    files = {"scripts": [], "styles": []}
+    for name, spec in part_specs().items():
+        for kind in files:
+            for file in spec.get(kind, []):
+                path = os.path.join("parts", name, file)
+                if not os.path.isfile(path):
+                    spec_path = os.path.join("parts", name, "part.json")
+                    sys.exit("tools/page.sh: %s names %s, which isn't there" % (spec_path, file))
+                files[kind].append(path)
+    return files
+
+# Where a line of panel/panel.html points, as a path in this checkout: a part's file by its path from the repo's top,
+# else one of the panel's own.
+def served(src):
+    return src if src.startswith("parts/") else "panel/" + src
 
 def named(name, file):
     path = os.path.join("modules", name, file)
@@ -79,9 +114,10 @@ def page_lines(path):
             sys.exit("tools/page.sh: %s must have this line exactly once:\n%s" % (path, mark))
     return lines
 
-# A module page's scripts or styles in the order it loads them, as paths in this checkout: the panel's own ones its
-# markup names (in the app the panel's files sit at the top of the page folder, and the modules' under modules/, so a
-# path out of the modules' folders is one of the panel's), and its module's at the mark.
+# A module page's scripts or styles in the order it loads them, as paths in this checkout: the panel's own ones and the
+# parts' its markup names (in the app the panel's files sit at the top of the page folder, and the parts' and the
+# modules' under parts/ and modules/, so a path out of those folders is one of the panel's), and its module's at the
+# mark.
 def page_listed(key, kind):
     pages = module_pages()
     if key not in pages:
@@ -97,18 +133,28 @@ def page_listed(key, kind):
         found = re.fullmatch(tag, line)
         if found:
             served = os.path.normpath(os.path.join(here, found.group(1)))
-            out.append(served if served.startswith("modules" + os.sep) else os.path.join("panel", served))
+            out.append(served if served.startswith(("modules" + os.sep, "parts" + os.sep))
+                       else os.path.join("panel", served))
         elif line == mark:
             out.extend(entry[kind])
     return out
 
-# The page's lines. Each mark must be there exactly once, or the modules' files would quietly be left out.
+# The page's lines. Each mark must be there exactly once, or the modules' files would quietly be left out; and each
+# file a part names is loaded once, and only those of the parts' files are.
 def page():
     with open("panel/panel.html", encoding="utf-8") as f:
         lines = f.read().split("\n")
     for mark in (STYLES, SCRIPTS):
         if lines.count(mark) != 1:
             sys.exit("tools/page.sh: panel/panel.html must have this line exactly once:\n" + mark)
+    for kind, tag in (("scripts", r'<script src="(.*)"></script>'), ("styles", r'<link rel="stylesheet" href="(.*)">')):
+        loaded = [served(m.group(1)) for m in (re.fullmatch(tag, line) for line in lines) if m]
+        for path in parts()[kind]:
+            if loaded.count(path) != 1:
+                sys.exit("tools/page.sh: panel/panel.html must load %s exactly once, as its part.json names it" % path)
+        for path in loaded:
+            if path.startswith("parts/") and path not in parts()[kind]:
+                sys.exit("tools/page.sh: panel/panel.html loads %s, which no part.json names" % path)
     return lines
 
 def listed(kind):
@@ -121,7 +167,7 @@ def listed(kind):
     for line in lines:
         found = re.fullmatch(tag, line)
         if found:
-            out.append("panel/" + found.group(1))
+            out.append(served(found.group(1)))
         elif line == mark:
             out.extend(theirs)
     return out
@@ -142,7 +188,8 @@ def write(folder):
             out.extend('<link rel="stylesheet" href="%s">' % p for p in theirs["styles"])
         elif line == SCRIPTS:
             out.extend('<script src="%s"></script>' % p for p in theirs["scripts"])
-    for path in theirs["styles"] + theirs["scripts"]:
+    mine = parts()
+    for path in theirs["styles"] + theirs["scripts"] + mine["styles"] + mine["scripts"]:
         os.makedirs(os.path.join(folder, os.path.dirname(path)), exist_ok=True)
         shutil.copy2(path, os.path.join(folder, path))
     with open(os.path.join(folder, "panel.html"), "w", encoding="utf-8") as f:

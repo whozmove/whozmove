@@ -1,0 +1,252 @@
+
+== Whom it's with
+its name: Wren
+a team member's name first: Ivy
+no name: its folder's: rq
+not listed: The session
+
+== Before you send: why nothing can go in, or how it will
+working, with the hook: nothing to say: null
+idle in a terminal it can type into: nothing to say: null
+its session has ended: {"why":"Wren’s session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
+not listed any more: {"why":"Wren’s session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
+idle in Terminal: {"why":"Whozmove can’t type into Terminal: Copy and Go copies your words and brings Wren’s window forward","way":"Copy and Go","act":"copyAndGo"}
+working in Terminal: the hook hands words in, nothing typed: null
+idle, open in two places: {"why":"Wren is open in two places: close the other copy, and your words can go in","way":"Close the Other Copy","act":"closeCopy"}
+working, open in two places: the hook hands words in: null
+working, its agent with no hook yet: {"note":"Your words go in when Wren’s turn ends"}
+working, started before this update: {"note":"Wren started before this update: your words go in when its turn ends"}
+working in Claude Desktop, with no hook: {"note":"Claude Desktop takes your words once Wren’s turn ends"}
+idle in Claude Desktop: {"note":"Sending brings Claude Desktop forward"}
+
+== What goes in, shown whole under the box
+nothing written: 
+working: the words that open yours, then yours: Goes in as: The user sent this from Whozmove while you were working: Do the smaller migration first.
+idle: yours alone, typed: Goes in as: Do the smaller migration first.
+working, started before this update: yours alone, at its turn's end: Goes in as: Keep the old table.
+room for your own words while it works: 543
+room while it's idle: 600
+nearly full: how much is left: xxxxxxx · 43 characters left
+
+== How far your words got (Take Back always first, so Send Now never comes in its place)
+waiting while it works: Waiting for its current step to end (held) [wait] · Take Back
+…a side question sent with Send's words: when it goes in: Goes in once Wren’s step ends (held) [wait] · Take Back
+waiting while it asks first: Wren asks first: Wants to run a command. Answer it on its row, and your words go after (held) [wait] · Show It | Take Back
+waiting, started before this update: Goes in when Wren’s turn ends (held) [wait] · Take Back
+its turn ended, no hook: going in by themselves: Going in… (held) [wait] · Take Back
+its turn ended, its tab is the one you're on: Wren’s tab is in front: waits for your Send Now (held) [wait] · Take Back | Send Now
+its turn ended, its terminal in front: Ghostty is in front: waits for your Send Now (held) [wait] · Take Back | Send Now
+its turn ended, in a terminal Whozmove can't type into: Whozmove can’t type into Terminal: copy your words and go there (held) [wait] · Take Back | Copy and Go
+…while it works, started before this update: Whozmove can’t type into Terminal: once Wren’s turn ends, copy your words and paste them there (held) [wait] · Take Back
+…copied with Copy and Go: Copied for you to paste · 1m
+its turn ended in Claude Desktop: Waits for your Send Now, which brings Claude Desktop forward (held) [wait] · Take Back | Send Now
+its session ended while they waited: Wren’s session has ended (held) [no] · Take Back
+handed to its hook: Going to Wren… [wait] · Take Back
+Take Back pressed once they were on their way: Already on its way to Wren [wait]
+typed at its prompt: Going in… [wait]
+typed in: Typed in · just now
+sent in Claude Desktop: Sent in Claude Desktop · 2m
+read between steps: Read between steps · just now [read]
+read as its turn ended: Read as its turn ended · it carried on · 9m [read]
+Take Back pressed once it had read them: Read between steps · just now · Wren has read this already [read]
+replied, after reading them between steps: Read between steps · 14m [read]
+it stopped before reading them: Wren stopped before reading this [no] · Take Back | Send Now
+it stopped before reading them, in Terminal: Wren stopped before reading this [no] · Take Back | Copy and Go
+it finished without a reply: Wren finished without a reply · Take Me There
+
+== Words put back in the box
+taken back: no why: null
+its session ended first: {"why":"Wren’s session ended before this went in.","way":"Open Wren Again","act":"openAgain"}
+Whozmove restarted first: {"why":"Whozmove restarted before this went in.","way":null,"act":null}
+couldn't be typed in, with the way past: {"why":"Can’t type into iTerm2. Its Python API is off.","way":"Turn It On","act":"wayPast"}
+couldn't be typed in, no reason given: {"why":"Can’t type it in. It didn’t go in.","way":null,"act":null}
+what the conversation shows of them: read, held
+
+== A reply
+prose and a command, each in its place: [{"prose":"Okay: the smaller migration first."},{"code":"npm run migrate -- --dry-run","lang":"sh","n":1},{"prose":"Then I carry on."}]
+nothing usable: []
+
+== Side Chat on the row
+offered on a running session's row: true
+not on a session still being started: false
+not on one that has ended: false
+on a Claude Desktop conversation sitting idle with no process: true
+…which hasn't ended: before you send: {"note":"Sending brings Claude Desktop forward"}
+…under its head: {"words":"Waiting for you","works":false}
+no reply waiting: {"reply":false,"label":"Side Chat with Wren"}
+a reply you haven't seen: {"reply":true,"label":"Side Chat with Wren, a reply waiting"}
+when the newest came: true
+seen since: {"reply":false,"label":"Side Chat with Wren"}
+in its tab since the reply came: seen: {"reply":false,"label":"Side Chat with Wren"}
+…and still seen once you've left its tab: {"reply":false,"label":"Side Chat with Wren"}
+in its tab before the reply came: not seen: {"reply":true,"label":"Side Chat with Wren, a reply waiting"}
+
+== What's new, for notifications
+a reply you haven't seen: {"news":"side:1999999940000","level":"soon","line":"In your side chat: a reply","at":1999999940000}
+…with its words as one line: {"news":"side:1999999940000","level":"soon","line":"In your side chat: Yes: it is search-v2 now. The old one stays.","at":1999999940000}
+…a long reply, cut: In your side chat: word word word word word word word word word word word word word word word word word word word word word word word word word word word word…
+…only a command: In your side chat: a command to copy
+…code: its words, a _ in them kept: In your side chat: Rename the user_id column.
+…words with _ in them, as written: In your side chat: snake_case and file_names stay; so does __init__.py.
+…bold, its marks out: In your side chat: This is the smaller one.
+…emphasis with * and _, their marks out: In your side chat: Do this first, then that.
+…__bold__ around words: In your side chat: It is very important now.
+…a heading and a quote: In your side chat: Plan Keep the old table.
+…a link: its words, not its address: In your side chat: See the PR and npm test.
+seen in its chat or its tab: null
+no reply: null
+its session has ended: null
+
+== Under the head, and an empty chat
+working: {"words":"Working","works":true}
+working, its step not named yet: {"words":"Working","works":true}
+asking: {"words":"Wants to run a command","works":true}
+idle: {"words":"Waiting for you","works":false}
+ended: {"words":"Its session has ended","works":false}
+compacting by itself, idle otherwise: {"words":"Compacting","works":true}
+
+== The line its row shows while it works, at the conversation's foot
+working: there: true
+working, its step not named yet: there (Thinking): true
+compacting: there: true
+asking for your OK: not there, its head says so: false
+idle: not there, its reply in its place: false
+ended: not there: false
+drawn again for a new step, not for a second gone by: [true,true,true,""]
+the row's own line, under the session's name: <div class="claude work" data-mode="work"><span class="who" style="…">Wren</span><span class="what"><span class="shining"><span class="shine">Running tests · checkout.spec.ts</span><span class="glint" aria-hidden="true" style="…"><span>Running tests · checkout.spec.ts</span></span></span></span><span class="elapsed" data-since="1999996400000">1h 0m</span></div>
+…a name that is markup is shown as text: <div class="claude work" data-mode="work"><span class="who" style="…">&lt;b&gt;Wren&lt;/b&gt;</span><span class="what"><span class="shining"><span class="shine">Running tests · checkout.spec.ts</span><span class="glint" aria-hidden="true" style="…"><span>Running tests · checkout.spec.ts</span></span></span></span><span class="elapsed" data-since="1999996400000">1h 0m</span></div>
+
+== An empty chat
+empty, working, with the hook: Words you send here reach Wren between its steps, and its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+empty, working, with no hook: Words you send here reach Wren when its turn ends, and its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+empty, idle: straight in: Words you send here go straight in to Wren, and its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+empty, idle in Terminal: nothing can go in from here: Its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+empty, idle, open in two places: Its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+
+== As HTML (side-chat-view.js)
+the head: <span class="r-title">Wren</span><span class="r-sub">Side chat · checkout</span><button class="icon-button r-close" title="Close">✕</button>
+a name that is markup is shown as text: <span class="r-title">&lt;b&gt;Wren&lt;/b&gt;</span><span class="r-sub">Side chat · a&amp;b</span><button class="icon-button r-close" title="Close">✕</button>
+the live line, working: <div class="sc-live works"><span class="sc-dot"></span><span class="sc-now">Working</span></div>
+an empty conversation: <p class="sc-empty">Words you send here reach Wren between its steps, and its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.</p>
+words waiting, then words read and replied to, a command copied: <div class="sc-lines"><div class="sc-you"><p>Do the smaller migration first.</p><span class="sc-said read">Read between steps · 14m</span></div><div class="sc-reply"><b>Wren</b><div class="sc-reply-text"><p>Okay: <strong>the smaller</strong> migration first.</p><div class="sc-code"><pre class="perm-detail">npm run migrate -- --dry-run</pre><button type="button" class="button small" data-sc="copyCode" data-at="1999999160000" data-part="1">Copied</button></div></div></div><div class="sc-you held"><p>And keep &lt;the old&gt; table.</p><span class="sc-said wait">Waiting for its current step to end<button type="button" class="sc-act" data-sc="takeBack" data-at="1999999940000">Take Back</button></span></div></div>
+a reply read before Whozmove last started: in its session: <div class="sc-lines"><div class="sc-you"><p>Do the smaller migration first.</p><span class="sc-said read">Read between steps · 20m</span></div><div class="sc-reply"><b>Wren</b><span class="sc-said">Answered in its session, before Whozmove restarted<button type="button" class="sc-act" data-sc="there" data-at="1999999820000">Take Me There</button></span></div></div>
+the box while it works: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send After This Step</button></div><span class="sc-goes"></span></div>
+the box in Terminal at idle: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="copyAndGo" disabled>Copy and Go</button></div><span class="sc-goes"></span></div>
+under the box: what goes in: Goes in as: The user sent this from Whozmove while you were working: Do &lt;it&gt; now.
+under the box: how they'll go, with no hook: <span class="sc-note">Your words go in when Wren’s turn ends.</span> Goes in as: Hi.
+under the box: why nothing can go in: <span class="sc-why">Wren’s session has ended: open it again, and your words can go in</span>
+under the box: words back in it: <span class="sc-why">Wren’s session ended before this went in. Your words are back in the box.</span> <button type="button" class="sc-act" data-sc="openAgain">Open Wren Again</button>
+Side Chat, the bar at a row's far edge: no words, named for a screen reader: <button type="button" class="sc-edge" data-sc-open="wren" aria-label="Side Chat with Wren" aria-pressed="false"></button>
+…with a reply waiting: it lights the bar in your move's colour: <button type="button" class="sc-edge lit" data-sc-open="wren" aria-label="Side Chat with Wren, a reply waiting" aria-pressed="false"></button>
+…while its chat is open: kept lit, and pressed: <button type="button" class="sc-edge keep" data-sc-open="wren" aria-label="Side Chat with Wren" aria-pressed="true"></button>
+…its name written out for its label: <button type="button" class="sc-edge" data-sc-open="w&quot;1" aria-label="Side Chat with A &quot;quoted&quot; &lt;name&gt;" aria-pressed="false"></button>
+
+== Send says when your words go in
+idle: Send: Send
+…Claude Desktop, idle: Send: Send
+working, with its hook: after this step: Send After This Step
+working, without its hook: after its turn: Send After Its Turn
+waiting on your answer: after you answer: Send After You Answer
+…without its hook too: Send After You Answer
+its session has ended: Send: Send
+not listed: Send: Send
+
+== Asked without interrupting
+Ask Without Interrupting, working, with nothing in the way: null
+…idle: asked all the same: null
+…in Terminal at idle, where nothing can be typed: asked all the same: null
+…a Claude Desktop conversation: not yet: {"why":"Not in Claude Desktop yet: ask Wren there","way":"Take Me There","act":"there"}
+…its session has ended: no Ask Without Interrupting at all: {"why":"","way":null,"act":null,"gone":true}
+…one already being answered: its Stop in Ask's place: {"why":"A copy of Wren is still answering your last question","way":"Stop","act":"askStop","at":1999999940000}
+…no Claude Code command on this Mac: {"why":"Asking without interrupting needs Claude Code’s own command, which isn’t on this Mac","way":"Get Claude Code","act":"getAgent"}
+…another agent's command not on this Mac: named for it: {"why":"Asking without interrupting needs Quill’s own command, which isn’t on this Mac","way":"Get Quill","act":"getAgent"}
+…nothing said yet: {"why":"Nothing to ask about yet: Wren hasn’t said anything","way":null,"act":null}
+…its conversation not found: {"why":"Whozmove can’t find Wren’s conversation to ask a copy of it","way":"Take Me There","act":"there"}
+asking: Asking a copy of Wren…
+answered:  · Add to Message | Copy
+took too long: Took too long · Ask Again | Send After This Step
+didn't answer: Didn’t answer · Ask Again | Send After This Step
+an error its provider sent back: Claude Code couldn’t answer just now · Ask Again | Send After This Step
+…sent the normal way, with Send's words: says so, no presses: Sent to Wren
+it wanted to use a tool: It wanted to look at files, which a copy can’t · Send After This Step
+…its press is Send's words for the session now: idle, working with and without its hook, waiting on you: ["It wanted to look at files, which a copy can’t · Send","It wanted to look at files, which a copy can’t · Send After This Step","It wanted to look at files, which a copy can’t · Send After Its Turn","It wanted to look at files, which a copy can’t · Send After You Answer"]
+your plan's limit, until its reset: Your plan’s limit is reached until 12:00 AM · Copy the Question
+your plan's limit, no reset said: Your plan’s limit is reached · Copy the Question
+signed out: Claude Code is signed out · Copy the Sign-In Command
+too long to read again: Too long for a copy of Wren to read again · Send After This Step
+stopped: Stopped · Ask Again
+no Claude Code command found when asked: Claude Code’s own command wasn’t found · Get Claude Code
+…another agent's, and it signed out: each named for it: ["Quill’s own command wasn’t found · Get Quill","Quill is signed out · Copy the Sign-In Command"]
+…an agent that hasn't said its name: "its agent", capitalised only to open a sentence: [{"why":"Asking without interrupting needs its agent’s own command, which isn’t on this Mac","way":"Get its agent","act":"getAgent"},"Its agent’s own command wasn’t found · Get its agent","Its agent is signed out · Copy the Sign-In Command"]
+couldn't be asked once pressed, what stood in the way having changed: Couldn’t be asked just then · Ask Again | Send After This Step
+…another being asked now: no Ask Again until it's answered: Took too long · Send After This Step
+its tip and what VoiceOver says: ["A copy of Wren answers here. Wren won’t see this or stop","Asked without interrupting: Wren didn’t see this"]
+
+== Keys in the box
+Return sends: send
+⌥Return goes the other way from the dark button: asks without interrupting while Send is dark: ask
+after pressing Ask Without Interrupting, Return asks: ask
+after pressing Send, Return sends: send
+⌥Return with Ask dark sends: send
+⌥Return with Send dark asks: ask
+the way you chose last: Ask, while it can go: ask
+…Ask, while a copy is still answering (Stop in its place): ask
+…Ask, on Claude Desktop: Send is the way: send
+…Ask, on an ended session: Send is the way: send
+…Ask, with another can't in its place: Send is the way: send
+…nothing chosen: Send: send
+Esc closes the chat: close
+any other key: nothing of side chat's: null
+
+== Add to Message, and a question put in the box
+an empty box: the question and the answer, on one line: I asked a copy of you “Why that file?” and it said: Because checkout.ts holds the cart. `npm test -- cart`
+after what you've written, never in its place: Go on, and I asked a copy of you “Why that file?” and it said: Because checkout.ts holds the cart. `npm test -- cart`
+a long question: its first 60 characters: I asked a copy of you “Why that very long file name that very long file name that…” and it said: Because checkout.ts holds the cart. `npm test -- cart`
+a long answer: cut to the box's room: [600,"word. A wor…"]
+…the room while it works, after the words that open yours: true
+no room left: the box as it was: true
+no answer: the box as it was: Hi
+a question too long to send: after what's there: Also: Why that file?
+…cut to the room: 600
+
+== A side answer you haven't seen
+its chat closed since it came: the bar lit: {"reply":true,"label":"Side Chat with Wren, a reply waiting"}
+in its tab since: still not seen, as the tab doesn't show it: {"reply":true,"label":"Side Chat with Wren, a reply waiting"}
+its chat open since: seen: {"reply":false,"label":"Side Chat with Wren"}
+for notifications: {"news":"side:1999999880000","level":"soon","line":"Asked without interrupting: Because checkout.ts holds the cart.","at":1999999880000}
+one still being answered: nothing new: null
+
+== Asked without interrupting, as HTML
+an empty chat says you can ask without interrupting: Words you send here reach Wren between its steps, and its answers come back here. Ask Without Interrupting, and a copy of Wren answers here; Wren won’t see it.
+…not on a Claude Desktop conversation: Words you send here go straight in to Wren, and its answers come back here.
+waiting on your answer, with its hook: ask about it first, then your words: Wren is waiting for your answer on its row. Ask Without Interrupting, and a copy of Wren answers about it first; Wren won’t see it. Words you send go in once you’ve answered, between its steps.
+…without its hook: your words when its turn ends: Wren is waiting for your answer on its row. Ask Without Interrupting, and a copy of Wren answers about it first; Wren won’t see it. Words you send go in when its turn ends.
+…on a Claude Desktop conversation: no Ask Without Interrupting: Wren is waiting for your answer on its row. Words you send go in when its turn ends.
+…where nothing can be asked without interrupting now: Wren is waiting for your answer on its row. Words you send go in once you’ve answered, between its steps.
+Stop and Send's words, after a pass while their session is listed: kept, and pressable: [true,true]
+…once their session has been gone a minute: let go: [false,false]
+the bar drawn beside a request keeps its own time, not the card's: [true,false]
+the bar pressed as a request comes: nothing opens: 0
+…a moment after it came: the chat opens: 1
+your words and your side questions, in the order you sent them: <div class="sc-lines"><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p></div><div class="sc-reply sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><b>A copy of Wren</b><div class="sc-reply-text"><p>Because <strong>checkout.ts</strong> holds the cart.</p><div class="sc-code"><pre class="perm-detail">npm test -- cart</pre><button type="button" class="button small" data-sc="asideCopyCode" data-at="1999999520000" data-part="1">Copied</button></div></div><span class="sc-said"><button type="button" class="sc-act" data-sc="addAnswer" data-at="1999999520000">Add to Message</button><button type="button" class="sc-act" data-sc="asideCopy" data-at="1999999520000">Copy</button></span></div><div class="sc-you"><p>Do the smaller migration first.</p><span class="sc-said read">Read between steps · 5m</span></div><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> And &lt;the&gt; tests?</p><span class="sc-said">Asking a copy of Wren…</span></div></div>
+a side question that couldn't be answered: <div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p><span class="sc-said">It wanted to look at files, which a copy can’t<button type="button" class="sc-act" data-sc="waitTurn" data-at="1999999760000">Send After This Step</button></span></div>
+…while its session waits on your answer: Send After You Answer: <div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p><span class="sc-said">It wanted to look at files, which a copy can’t<button type="button" class="sc-act" data-sc="waitTurn" data-at="1999999760000">Send After You Answer</button></span></div>
+the box with Ask Without Interrupting: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send After This Step</button></div><span class="sc-goes"></span></div>
+…Ask Without Interrupting chosen last: it is the dark button, Send is not: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small main" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Enter">Ask Without Interrupting</button><button type="button" class="button small" data-sc="send" disabled aria-keyshortcuts="Alt+Enter">Send After This Step</button></div><span class="sc-goes"></span></div>
+…Ask chosen while a copy still answers: Stop in Ask's place, neither button dark: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="askStop" data-at="1999999760000" title="A copy of Wren is still answering your last question">Stop</button><button type="button" class="button small" data-sc="send" disabled aria-keyshortcuts="Alt+Enter">Send After This Step</button></div><span class="sc-goes"></span></div>
+…Ask chosen, idle in Terminal: Copy and Go in Send's place, not dark: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small main" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Enter">Ask Without Interrupting</button><button type="button" class="button small" data-sc="copyAndGo" disabled>Copy and Go</button></div><span class="sc-goes"></span></div>
+…and under it, nothing written: why Copy and Go: <span class="sc-why">Whozmove can’t type into Terminal: Copy and Go copies your words and brings Wren’s window forward</span>
+…idle: Send says Send: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send</button></div><span class="sc-goes"></span></div>
+…working without its hook: Send After Its Turn: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send After Its Turn</button></div><span class="sc-goes"></span></div>
+…waiting on your answer: Send After You Answer: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send After You Answer</button></div><span class="sc-goes"></span></div>
+the box while a side question is answered: Stop in Ask's place: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="543" placeholder="Message Wren…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="askStop" data-at="1999999760000" title="A copy of Wren is still answering your last question">Stop</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send After This Step</button></div><span class="sc-goes"></span></div>
+the box on a Claude Desktop conversation: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="there" title="Not in Claude Desktop yet: ask Wren there">Take Me There</button><button type="button" class="button small main" data-sc="send" disabled aria-keyshortcuts="Enter">Send</button></div><span class="sc-goes"></span></div>
+the box once its session has ended: no Ask Without Interrupting: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren…" aria-label="Your words to Wren"><button type="button" class="button small main" data-sc="openAgain">Open Wren Again</button></div><span class="sc-goes"></span></div>
+under the box, nothing written: why nothing can be asked: <span class="sc-why">Nothing to ask about yet: Wren hasn’t said anything.</span>
+…with words written: what goes in: Goes in as: Hi.
+…while one is answered: nothing more: 
+…Ask the dark button: what Return asks: Asks without interrupting: Why that file?
+…Ask the dark button while a copy still answers: why it can't just now: <span class="sc-why">A copy of Wren is still answering your last question.</span>
+…Ask the dark button, nothing written: nothing: 
+…a press that couldn't act just now: why, first: <span class="sc-why">Nothing to ask about yet: Wren hasn’t said anything.</span>
+a failed question while another is answered: no Ask Again: <div class="sc-lines"><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p><span class="sc-said">Took too long<button type="button" class="sc-act" data-sc="waitTurn" data-at="1999999460000">Send After This Step</button></span></div><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p><span class="sc-said">Asking a copy of Wren…</span></div></div>

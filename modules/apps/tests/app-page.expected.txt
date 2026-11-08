@@ -1,0 +1,439 @@
+== A made-up tool's page with groups, and what each press makes of it
+{
+  "a time, as two places write it" : [
+    "22:00",
+    "10:00 PM",
+    "00:00",
+    "23:30",
+    "00:30"
+  ],
+  "after each press" : [
+    {
+      "after" : "nothing pressed",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who any",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : true
+    },
+    {
+      "after" : "Only a team's chief picked",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "a choice that can't be picked now: nothing changes",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "a choice that isn't one: nothing changes",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "the tool turned off: its own groups dim, the other module's doesn't",
+      "groups" : [
+        "(no heading): on off",
+        "Who may send (dimmed): who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first (dimmed): next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "a choice and a switch in a dimmed group: nothing changes",
+      "groups" : [
+        "(no heading): on off",
+        "Who may send (dimmed): who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first (dimmed): next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "23:00 picked while quiet hours are off: nothing changes",
+      "groups" : [
+        "(no heading): on off",
+        "Who may send (dimmed): who lead",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first (dimmed): next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "quiet hours on, and 23:00 picked for when they start",
+      "groups" : [
+        "(no heading): on off",
+        "Who may send (dimmed): who lead",
+        "Quiet hours: quiet on, quietHours 23:00 to 08:00",
+        "What comes first (dimmed): next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "06:30 picked for when they end",
+      "groups" : [
+        "(no heading): on off",
+        "Who may send (dimmed): who lead",
+        "Quiet hours: quiet on, quietHours 23:00 to 06:30",
+        "What comes first (dimmed): next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : false
+    },
+    {
+      "after" : "Use the Recommended Settings: every entry for the page puts itself back",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who any",
+        "Quiet hours: quiet off, quietHours 23:00 to 06:30 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "(no heading): only its line"
+      ],
+      "recommended" : true
+    }
+  ],
+  "each end's menu: how many times, the first and the last" : {
+    "from, at 22:00, ending at 08:00" : [
+      47,
+      "00:00",
+      "23:30",
+      "leaves out the other end's time",
+      "has the time it is now"
+    ],
+    "from, at 22:15, between the half hours" : [
+      48,
+      "00:00",
+      "23:30",
+      "leaves out the other end's time",
+      "has the time it is now"
+    ],
+    "to, at 08:00, starting at 22:00" : [
+      47,
+      "00:00",
+      "23:30",
+      "leaves out the other end's time",
+      "has the time it is now"
+    ]
+  },
+  "Settings' rows" : [
+    {
+      "app" : "sample-tool",
+      "button" : null,
+      "foot" : null,
+      "glyph" : "",
+      "group" : 0,
+      "key" : "sampleTool",
+      "kind" : "page",
+      "order" : 0,
+      "page" : null,
+      "said" : "On",
+      "style" : null,
+      "title" : "Sample Tool"
+    }
+  ],
+  "the groups, in their order" : [
+    {
+      "enabled" : "always",
+      "foot" : "Settings ▸ Sample Tool opens this page.",
+      "order" : 10,
+      "rows" : [
+        {
+          "group" : null,
+          "help" : "The one thing, beside the list.",
+          "key" : "on",
+          "kind" : "switch",
+          "title" : "Sample Tool"
+        }
+      ],
+      "shown" : "always",
+      "title" : null
+    },
+    {
+      "enabled" : "sometimes",
+      "foot" : "A session that may not is told so.",
+      "order" : 20,
+      "rows" : [
+        {
+          "choices" : [
+            {
+              "help" : "Every agent can. Recommended.",
+              "id" : "any",
+              "name" : "Any session"
+            },
+            {
+              "help" : "The others are told why.",
+              "id" : "lead",
+              "isNew" : true,
+              "name" : "Only a team’s chief"
+            },
+            {
+              "enabled" : false,
+              "help" : "Not yet.",
+              "id" : "allowed",
+              "name" : "Only those you’ve allowed"
+            }
+          ],
+          "fixed" : null,
+          "key" : "who",
+          "kind" : "choice",
+          "title" : "Who may send"
+        }
+      ],
+      "shown" : "always",
+      "title" : "Who may send"
+    },
+    {
+      "enabled" : "always",
+      "foot" : "The rest waits for the morning.",
+      "order" : 25,
+      "rows" : [
+        {
+          "group" : null,
+          "help" : "At night, only what's urgent.",
+          "key" : "quiet",
+          "kind" : "switch",
+          "title" : "Quiet hours"
+        },
+        {
+          "help" : "Only what's urgent is said.",
+          "key" : "quietHours",
+          "kind" : "time",
+          "title" : "Night"
+        }
+      ],
+      "shown" : "always",
+      "title" : "Quiet hours"
+    },
+    {
+      "enabled" : "sometimes",
+      "foot" : null,
+      "order" : 30,
+      "rows" : [
+        {
+          "choices" : [
+            {
+              "help" : "In its order.",
+              "id" : "picks",
+              "name" : "Then a chief’s picks"
+            },
+            {
+              "help" : "By how long it has waited.",
+              "id" : "oldest",
+              "name" : "Then the oldest"
+            }
+          ],
+          "fixed" : {
+            "help" : "First, whatever else you choose.",
+            "name" : "Urgent ones, always"
+          },
+          "key" : "next",
+          "kind" : "choice",
+          "title" : "What comes first"
+        },
+        {
+          "group" : null,
+          "help" : "A line on why the one in front is first.",
+          "isNew" : true,
+          "key" : "why",
+          "kind" : "switch",
+          "title" : "Say why each is here"
+        }
+      ],
+      "shown" : "always",
+      "title" : "What comes first"
+    },
+    {
+      "enabled" : "always",
+      "foot" : null,
+      "order" : 40,
+      "rows" : [
+        {
+          "group" : null,
+          "help" : "",
+          "key" : "never",
+          "kind" : "switch",
+          "title" : "Never"
+        }
+      ],
+      "shown" : "sometimes",
+      "title" : "Shown only sometimes"
+    },
+    {
+      "enabled" : "always",
+      "foot" : "A change applies to what comes next.",
+      "order" : 90,
+      "rows" : [
+
+      ],
+      "shown" : "always",
+      "title" : null
+    }
+  ],
+  "what the back is sent for the page, before any press" : {
+    "groups" : [
+      {
+        "enabled" : true,
+        "foot" : "Settings ▸ Sample Tool opens this page.",
+        "rows" : [
+          {
+            "enabled" : true,
+            "group" : null,
+            "help" : "The one thing, beside the list.",
+            "isNew" : false,
+            "key" : "on",
+            "kind" : "switch",
+            "on" : true,
+            "title" : "Sample Tool"
+          }
+        ],
+        "title" : null
+      },
+      {
+        "enabled" : true,
+        "foot" : "A session that may not is told so.",
+        "rows" : [
+          {
+            "choices" : [
+              {
+                "enabled" : true,
+                "help" : "Every agent can. Recommended.",
+                "id" : "any",
+                "isNew" : false,
+                "name" : "Any session"
+              },
+              {
+                "enabled" : true,
+                "help" : "The others are told why.",
+                "id" : "lead",
+                "isNew" : true,
+                "name" : "Only a team’s chief"
+              },
+              {
+                "enabled" : false,
+                "help" : "Not yet.",
+                "id" : "allowed",
+                "isNew" : false,
+                "name" : "Only those you’ve allowed"
+              }
+            ],
+            "enabled" : true,
+            "fixed" : null,
+            "key" : "who",
+            "kind" : "choice",
+            "title" : "Who may send",
+            "value" : "any"
+          }
+        ],
+        "title" : "Who may send"
+      },
+      {
+        "enabled" : true,
+        "foot" : "The rest waits for the morning.",
+        "rows" : [
+          {
+            "enabled" : true,
+            "group" : null,
+            "help" : "At night, only what's urgent.",
+            "isNew" : false,
+            "key" : "quiet",
+            "kind" : "switch",
+            "on" : false,
+            "title" : "Quiet hours"
+          },
+          {
+            "enabled" : false,
+            "from" : 1320,
+            "fromSaid" : "22:00",
+            "help" : "Only what's urgent is said.",
+            "key" : "quietHours",
+            "kind" : "time",
+            "title" : "Night",
+            "to" : 480,
+            "toSaid" : "08:00"
+          }
+        ],
+        "title" : "Quiet hours"
+      },
+      {
+        "enabled" : true,
+        "foot" : null,
+        "rows" : [
+          {
+            "choices" : [
+              {
+                "enabled" : true,
+                "help" : "In its order.",
+                "id" : "picks",
+                "isNew" : false,
+                "name" : "Then a chief’s picks"
+              },
+              {
+                "enabled" : true,
+                "help" : "By how long it has waited.",
+                "id" : "oldest",
+                "isNew" : false,
+                "name" : "Then the oldest"
+              }
+            ],
+            "enabled" : true,
+            "fixed" : {
+              "help" : "First, whatever else you choose.",
+              "name" : "Urgent ones, always"
+            },
+            "key" : "next",
+            "kind" : "choice",
+            "title" : "What comes first",
+            "value" : "picks"
+          },
+          {
+            "enabled" : true,
+            "group" : null,
+            "help" : "A line on why the one in front is first.",
+            "isNew" : true,
+            "key" : "why",
+            "kind" : "switch",
+            "on" : false,
+            "title" : "Say why each is here"
+          }
+        ],
+        "title" : "What comes first"
+      },
+      {
+        "enabled" : true,
+        "foot" : "A change applies to what comes next.",
+        "rows" : [
+
+        ],
+        "title" : null
+      }
+    ],
+    "recommended" : true
+  }
+}

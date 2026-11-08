@@ -195,7 +195,7 @@ WAITS.vine = {
     this.drawn = -1;
   },
 
-  draw(progress, calm) {
+  draw(progress, calm, still = calm) {
     const shape = vineShape(), grown = vineGrowth(progress);
     this.stem.setAttribute('d', VINE_PATH);
     this.stem.style.strokeDasharray = `${shape.total}`;
@@ -207,7 +207,7 @@ WAITS.vine = {
         + ` rotate(${leaf.angle.toFixed(1)}deg)`;
       each.g.style.opacity = '';
       // A leaf coming out unfurls, unless it came out before the strip was there to see it.
-      if (out && !each.out && this.drawn >= 0 && !calm)
+      if (out && !each.out && this.drawn >= 0 && !still)
         each.leaf.animate([{ transform: 'scale(0) rotate(-30deg)' },
                            { transform: 'scale(1.15) rotate(4deg)', offset: 0.7 },
                            { transform: 'scale(1) rotate(0deg)' }],

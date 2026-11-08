@@ -1,0 +1,7 @@
+{
+  "scripts": ["page/cat.js"],
+  "styles": ["page/cat.css"],
+  "talksTo": ["core", "bridge", "header", "morph", "chats"],
+  "provides": ["CatShape.h", "drawCat", "catLook", "catHover", "catOnGlass", "pointOnCat", "catFolding", "catOpening",
+               "catFromSideEnds", "askCatRoom"]
+}

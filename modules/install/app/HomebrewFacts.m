@@ -19,6 +19,10 @@ static NSArray<NSString *> *TapParts(NSString *tap) {
     return @[parts[0], [@"homebrew-" stringByAppendingString:parts[1]]];
 }
 
+NSString *BrewReinstallCommand(NSString *tap, NSString *cask) {
+    return [NSString stringWithFormat:@"brew reinstall --cask %@/%@", tap, cask];
+}
+
 NSString *BrewUpgradeCommand(NSString *tap, NSString *cask) {
     return [NSString stringWithFormat:@"brew upgrade --cask %@/%@", tap, cask];
 }

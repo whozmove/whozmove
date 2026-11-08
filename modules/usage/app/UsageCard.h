@@ -3,6 +3,12 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Cocoa/Cocoa.h>
 
+// The most of the card that can show under the panel's bottom edge, in points: the open strip at its tallest, with
+// today's pace on two lines, your gear's seats and why it can't be measured yet on two lines, and the session using the
+// most (201 at its tallest), or the wait at the session limit. Its window is sized by
+// it, and the panel keeps this much room under itself while there's a card (UsageModule, PanelWindow's keepBelow:for:).
+static const CGFloat UsageCardReach = 220;
+
 @interface UsageCard : NSObject
 // Its own small window, which the panel holds over itself (PanelWindow attachAbove:), drawing only outside it.
 @property (readonly) NSWindow *window;
@@ -23,6 +29,8 @@
 // While the panel is turned over to its back, the card stays out of sight: it fades as the panel starts turning, and
 // comes back once it's on its list side again.
 @property (nonatomic) BOOL away;
+// It shows more than its folded line: slid out, or open.
+@property (readonly) BOOL seen;
 // The pointer, wherever it is: its page is told where it is while it's near the card (it slides out, or shows what
 // the pointer is on), and the window takes clicks only while it's on the part of the card that shows.
 - (void)pointerAt:(NSPoint)point;

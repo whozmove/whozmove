@@ -36,11 +36,47 @@ static const NSTimeInterval kLookEvery = 10;
 @property NSTimeInterval lookedAt;
 // Its conversation files, read on the sessions' queue as the rows are; its log, which both sides read; and its pieces.
 @property (strong) DesktopConversations *conversations;
+@property (strong) DesktopConversations *kept;  // a reader of its own for keptConversations, on its asker's queue
 @property (strong) DesktopLog *log;
 @property (strong) DesktopMessageBox *messageBox;
 @property (strong) DesktopNewConversation *starts;
 @property (copy) NSString *lastFocusTrace;  // what the log last said about the open conversation; on the queue only
 @end
+
+// `Whozmove --print-desktop-logs`: how panel.log says what's written in a conversation's message box
+// (DesktopWordsLogged), for a slash command and for a message, each holding a made-up token: a slash command keeps its
+// first word, anything else is "words"; and what Claude's window shows round it (DesktopScreenLogged), where only
+// Claude's own labels are named. The token comes back in none of them. It's made as it starts and never printed.
+// modules/claude-desktop/tests/test.sh compares it with a recorded copy.
+static int PrintDesktopLogs(void) {
+    NSString *token = [@"wz-made-up-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    NSArray<NSArray<NSString *> *> *cases = @[
+        @[@"A /compact whose focus holds it", [@"/compact keep what we said about " stringByAppendingString:token]],
+        @[@"A model pick", @"/model claude-opus-5-5"],
+        @[@"A message holding it", [NSString stringWithFormat:@"please use %@ for the test", token]],
+        @[@"A message that starts with it", [token stringByAppendingString:@" is the one"]],
+        @[@"A message on two lines", [NSString stringWithFormat:@"first\n/compact %@", token]],
+        @[@"A message that starts with it after a slash", [NSString stringWithFormat:@"/%@ is the one", token]],
+        @[@"A message that starts with a path holding it", [NSString stringWithFormat:@"/projects/shop/%@.txt has it",
+                                                                                     token]],
+    ];
+    for (NSArray<NSString *> *each in cases) {
+        NSString *logged = DesktopWordsLogged(each[1]);
+        printf("%s, as the log says it: %s\n", each[0].UTF8String,
+               [logged containsString:token] ? "the token's in it" : logged.UTF8String);
+    }
+    NSString *screen = DesktopScreenLogged(@[
+        @{@"role": @"AXTextArea", @"name": kClaudeDesktopPromptLabel},
+        @{@"role": @"AXStaticText", @"name": [@"please use " stringByAppendingString:token]},
+        @{@"role": @"AXButton", @"name": token},
+        @{@"role": @"AXButton", @"name": token},
+        @{@"role": @"AXButton", @"name": ClaudeDesktopSendLabels().firstObject},
+        @{@"role": @"AXButton", @"name": kClaudeDesktopNoFolderLabel},
+    ]);
+    printf("What Claude's window shows round the message box, the conversation's words holding it, as the log says it: "
+           "%s\n", [screen containsString:token] ? "the token's in it" : screen.UTF8String);
+    return 0;
+}
 
 @implementation ClaudeDesktop
 
@@ -48,10 +84,15 @@ static const NSTimeInterval kLookEvery = 10;
     return @"claude-desktop";
 }
 
++ (NSDictionary<NSString *, PrintMode> *)printModes {
+    return @{@"--print-desktop-logs": ^(Core *core, NSArray *a) { return PrintDesktopLogs(); }};
+}
+
 - (instancetype)initWithCore:(Core *)core {
     if (!(self = [super init])) return nil;
     self.core = core;
     self.conversations = [DesktopConversations new];
+    self.kept = [DesktopConversations new];
     self.log = [DesktopLog new];
     self.messageBox = [[DesktopMessageBox alloc] initWithLog:self.log];
     self.starts = [[DesktopNewConversation alloc] initWithCore:core log:self.log messageBox:self.messageBox];
@@ -94,6 +135,10 @@ static const NSTimeInterval kLookEvery = 10;
 
 - (NSString *)name {
     return @"Claude";
+}
+
+- (NSString *)fullName {
+    return @"Claude Desktop";
 }
 
 - (BOOL)holds:(Row *)row {
@@ -196,6 +241,17 @@ static const NSTimeInterval kLookEvery = 10;
     row.hostDetails = details;
 }
 
+- (NSDictionary<NSString *, NSString *> *)keptConversations {
+    NSMutableDictionary<NSString *, NSString *> *kept = [NSMutableDictionary dictionary];
+    @synchronized (self.kept) {
+        for (NSDictionary *c in [self.kept all]) {
+            NSString *own = AsText(c[@"sessionId"]), *agents = AsText(c[@"cliSessionId"]) ?: own;
+            if (own && agents) kept[agents] = own;
+        }
+    }
+    return kept;
+}
+
 - (BOOL)isOwnId:(NSString *)sessionId {
     return [sessionId hasPrefix:kClaudeDesktopConversationPrefix];
 }
@@ -217,7 +273,7 @@ static const NSTimeInterval kLookEvery = 10;
                                                              ? hostId : @"last"]];
     // When a text box in the panel had the keyboard, it goes to Claude.
     if ([self.core.window releaseKeyboard]) ActivateClaudeDesktop();
-    BOOL opened = [NSWorkspace.sharedWorkspace openURL:url.URL];
+    BOOL opened = OpenInOtherApp(url.URL);
     PanelLog(@"open desktop session %@ -> %@", hostId, opened ? @"sent" : @"failed");
     if (opened && [hostId hasPrefix:kClaudeDesktopConversationPrefix]) [self.messageBox focusBoxFor:hostId tries:0];
     return opened;

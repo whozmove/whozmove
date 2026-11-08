@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core", "bridge", "keyboard", "list", "send"],
+  "provides": ["Focus.h"]
+}

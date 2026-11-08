@@ -8,7 +8,12 @@
 #import "Log.h"
 #import "ClaudeCodeFacts.h"
 
-const NSTimeInterval kKeptFor = 3 * 24 * 3600;
+const NSTimeInterval kKeptFor = 3 * 24 * 3600, kKeptWaitingFor = 30 * 24 * 3600;
+
+// How long a kept session stays listed after its conversation last moved: longer while its record says it waits.
+static NSTimeInterval KeptForOf(NSDictionary *record) {
+    return [record[@"waits"] isEqual:@YES] ? kKeptWaitingFor : kKeptFor;
+}
 // How often the terminal a running session is in is looked for again while it isn't known.
 static const NSTimeInterval kLookAgainAfter = 10;
 
@@ -37,6 +42,14 @@ NSDictionary *KeptRecord(Row *row, NSString *transcript, NSString *terminal) {
     return record;
 }
 
+NSDictionary *KeptNoting(NSDictionary *record, BOOL waits) {
+    if (!record || [record[@"waits"] isEqual:@YES] == waits) return record;
+    NSMutableDictionary *noted = [record mutableCopy];
+    if (waits) noted[@"waits"] = @YES;
+    else [noted removeObjectForKey:@"waits"];
+    return noted;
+}
+
 static NSString *ProcessOf(NSDictionary *record) {
     return ProcessKey([AsNumber(record[@"pid"]) intValue], AsText(record[@"procStart"]));
 }
@@ -60,7 +73,7 @@ NSArray<NSString *> *Stale(NSDictionary<NSString *, NSDictionary *> *kept, NSSet
     [kept enumerateKeysAndObjectsUsingBlock:^(NSString *sessionId, NSDictionary *record, BOOL *stop) {
         if ([running containsObject:sessionId]) return;
         NSString *transcript = AsText(record[@"transcript"]);
-        if ([AsNumber(record[@"activeAt"]) doubleValue] / 1000 < now - kKeptFor || !transcript
+        if ([AsNumber(record[@"activeAt"]) doubleValue] / 1000 < now - KeptForOf(record) || !transcript
             || ![NSFileManager.defaultManager fileExistsAtPath:transcript])
             [gone addObject:sessionId];
     }];
@@ -79,6 +92,11 @@ static NSDictionary *KeptAt(NSString *path) {
     if (!SafeId(sessionId) || ![path.lastPathComponent isEqualToString:named] || !AsText(record[@"cwd"]).length)
         return nil;
     return record;
+}
+
+NSDictionary *KeptOf(NSString *sessionId) {
+    return SafeId(sessionId) ? KeptAt([KeptFolder() stringByAppendingPathComponent:
+                                                       [sessionId stringByAppendingPathExtension:@"json"]]) : nil;
 }
 
 NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
@@ -130,6 +148,14 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
     self.pruning.tolerance = 60;
 }
 
+- (void)readNow {
+    self.kept = [KeptIn(self.folder) mutableCopy];
+}
+
+- (void)written {
+    dispatch_sync(self.queue, ^{});
+}
+
 - (NSString *)pathOf:(NSString *)sessionId {
     return [self.folder stringByAppendingPathComponent:[sessionId stringByAppendingPathExtension:@"json"]];
 }
@@ -177,7 +203,7 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
 }
 
 - (void)keep:(NSArray<Row *> *)rows transcriptOf:(NSString *(^)(Row *row))transcriptOf
-  terminalOf:(NSString *(^)(Row *row))terminalOf {
+  terminalOf:(NSString *(^)(Row *row))terminalOf waits:(BOOL (^)(Row *row))waits {
     if (!self.kept) return;
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
     NSMutableDictionary<NSString *, NSString *> *terminals = [NSMutableDictionary dictionary];
@@ -197,10 +223,20 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
         terminals[process] = terminal ?: @"";
         NSDictionary *record = KeptRecord(row, transcriptOf(row), terminals[process]);
         if (!record) continue;
+        // Its note that it waits stays as it was until the rows have said.
+        record = KeptNoting(record, waits ? waits(row) : [self.kept[row.sessionId][@"waits"] isEqual:@YES]);
         [running addObject:row.sessionId];
         if ([self.kept[row.sessionId] isEqualToDictionary:record]) continue;
         self.kept[row.sessionId] = record;
         [self write:record];
+    }
+    // An ended one's note follows its row as last listed: kept while it waits, gone once its wait is over.
+    for (Row *row in waits ? rows : @[]) {
+        NSDictionary *record = row.pid <= 0 && row.sessionId ? self.kept[row.sessionId] : nil;
+        NSDictionary *noted = KeptNoting(record, waits(row));
+        if (!record || noted == record) continue;
+        self.kept[row.sessionId] = noted;
+        [self write:noted];
     }
     self.terminals = terminals;
     self.missedAt = missedAt;
@@ -219,14 +255,14 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
         if (row.pid > 0) [processes addObject:ProcessKey(row.pid, row.procStart)];
     }
     NSFileManager *files = NSFileManager.defaultManager;
-    double since = (NSDate.date.timeIntervalSince1970 - kKeptFor) * 1000;
+    double now = NSDate.date.timeIntervalSince1970;
     NSMutableSet<NSString *> *present = [NSMutableSet set];
     NSMutableArray<Row *> *ended = [NSMutableArray array];
     NSArray *names = [files contentsOfDirectoryAtPath:self.folder error:nil];
     for (NSString *file in [names sortedArrayUsingSelector:@selector(compare:)]) {
         if (![file.pathExtension isEqualToString:@"json"]) continue;
         NSString *path = [self.folder stringByAppendingPathComponent:file];
-        NSDate *at = [files attributesOfItemAtPath:path error:nil].fileModificationDate ?: NSDate.distantPast;
+        NSNumber *at = @(FileModifiedAt(path));
         NSDictionary *read = self.read[path];
         if (!read || ![read[@"at"] isEqual:at]) self.read[path] = read = @{@"at": at, @"record": KeptAt(path) ?: @{}};
         [present addObject:path];
@@ -235,7 +271,7 @@ NSDictionary<NSString *, NSDictionary *> *KeptIn(NSString *folder) {
         BOOL folder = NO;
         // One whose process runs another conversation now was left there (KeptSessions' keep: drops it soon too).
         if (!sessionId || [ids containsObject:sessionId] || [processes containsObject:ProcessOf(record)]
-            || [AsNumber(record[@"activeAt"]) doubleValue] < since || !transcript
+            || [AsNumber(record[@"activeAt"]) doubleValue] < (now - KeptForOf(record)) * 1000 || !transcript
             || ![files fileExistsAtPath:transcript] || ![files fileExistsAtPath:cwd isDirectory:&folder] || !folder)
             continue;
         Row *row = [Row new];

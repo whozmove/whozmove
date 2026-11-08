@@ -1,0 +1,48 @@
+== What it runs
+Its arguments: ["-p","--resume","0b6c1d2e-3f40-4a51-8b62-7c83d94ea5f6","--fork-session","--no-session-persistence","--input-format","stream-json","--output-format","stream-json","--verbose","--max-turns","1","--permission-mode","dontAsk","--setting-sources","","--settings","{\"env\":{\"DISABLE_AUTO_COMPACT\":\"1\"},\"hooks\":{\"PreToolUse\":[{\"matcher\":\"*\",\"hooks\":[{\"type\":\"command\",\"command\":\"\/bin\/sh -c 'echo A side question uses no tools >&2; exit 2'\"}]}]}}","--model","claude-opus-5-5[1m]","--effort","high"]
+No model or effort known: neither passed, so Claude Code's own: 0
+The words that open the question: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. Use no tools; answer from what you already know, in a few short paragraphs, and don't carry on the task."
+A session whose id is a UUID: asked: true
+…one whose id looks like a flag: never asked, as Claude Code would read it as one: false
+…one whose id is any other word: never asked: false
+…and no arguments for one, however it's asked: 1
+
+== The model it's asked with
+The session's, as its replies say: "claude-sonnet-5-5"
+The long context its own --model asked for: "claude-opus-5-5[1m]"
+Another model's long context: not this one's: "claude-sonnet-5-5"
+A conversation over 200k: the long context: "claude-sonnet-5-5[1m]"
+…but Opus 5.x over 200k: its own name, its window the long one already: "claude-opus-5-5"
+Said with it already: "claude-opus-5-5[1m]"
+None known: its --model's: "opus"
+
+== The program it runs
+The session's own, where Claude Code is installed: "HOME\/bin\/claude"
+The session's own isn't where Claude Code is installed: the first that is: "HOME\/.local\/bin\/claude"
+Its own not known: "HOME\/.local\/bin\/claude"
+None installed: null
+
+== How its output is read
+Answered: {"cacheRead":301611,"fresh":4,"output":180,"state":"answered","text":"Because it holds the cart.","written":2400}
+Answered, the result's words empty: its reply's: {"state":"answered","text":"Because it holds the cart."}
+It reached for a tool, and the run ended: {"cacheRead":301611,"fresh":4,"output":180,"state":"wantedTool","written":2400}
+It ran out of turns without a tool: no answer: {"state":"noAnswer"}
+Your plan's limit, with when it resets: {"resetsAt":1798000000000,"state":"limit"}
+Signed out: {"state":"signedOut"}
+Too long to read again: {"state":"tooLong"}
+…or past its model's context limit: too long, not your plan's limit: {"state":"tooLong"}
+Your plan's limit, in Claude Code's own words: {"state":"limit"}
+Another error: no answer: {"state":"noAnswer"}
+An error the API sent back: said as one, with its status: {"fresh":0,"output":0,"state":"apiError","status":400}
+…one with no status, in Claude Code's words: {"state":"apiError"}
+Nothing in time: too slow: {"state":"tooSlow"}
+Nothing, and it ended: no answer: {"state":"noAnswer"}
+Stopped, whatever it said: {"state":"stopped"}
+A line that isn't JSON is passed over: "answered"
+A long answer: 16,384 characters kept: 16384
+
+== Its process, kept out of Claude Code's registry while it runs
+Registered, not a side question: its session, listed, a copy in another terminal: ["s-copy",1,true]
+…asking the panel in that session's name: the session, and why not: ["s-copy","it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask"]
+A side question's: none of them: [null,0,false]
+Once it has ended: as before: ["s-copy",1,true]

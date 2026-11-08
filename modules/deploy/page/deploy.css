@@ -1,0 +1,40 @@
+/* Deploy's own looks on a row, beside the round button's in parts/row (rows.css) and parts/morph (motion.css): a build
+   that's up, and its address.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* A build that's up (deployHTML's 'up'): the stop square in a steady ring. The arc, turning as the build started
+   (motion.css's playTurn), closes into the ring from where it had got to (--turn, worked out from the same clock),
+   slowing from the speed it turned at (34° over .45s on this curve starts at the turn's own 0.3° a millisecond), from
+   when the page first saw it up (--up-since). The stop square stays as it was. */
+@keyframes deployRingSettle { from { transform: rotate(var(--turn)); } to { transform: rotate(calc(var(--turn) + 34deg)); } }
+@keyframes deployRingClose { from { stroke-dasharray: 13 38; } to { stroke-dasharray: 51 0; } }
+@keyframes deployFadeIn { from { opacity: 0; } }
+.play.up .play-ring { opacity: 1; animation: deployRingSettle .45s cubic-bezier(.2, .8, .2, 1) both;
+                      animation-delay: var(--up-since); }
+.play.up .play-ring circle { stroke-dasharray: 51 0; animation: deployRingClose .45s cubic-bezier(.2, .8, .2, 1) both;
+                             animation-delay: var(--up-since); }
+
+/* Its address, after the folder on the bottom line (deployAddressHTML): once the ring has closed, its room opens, the
+   line's gap with it, to exactly the address's width (a column growing from nothing), then ":3001" fades in, lifting
+   3px. It never gives way: the folder's name is cut first. Pointed at, it brightens. */
+@keyframes deployAddressRoom { from { grid-template-columns: 0fr; } }
+@keyframes deployAddressIn { from { opacity: 0; transform: translateY(3px); } }
+.where .d-addr { flex: none; display: inline-grid; grid-template-columns: 1fr; margin-left: -5px; color: var(--muted);
+                 font-variant-numeric: tabular-nums; animation: deployAddressRoom .18s ease both;
+                 animation-delay: calc(var(--up-since) + 380ms); }
+.d-addr-in { min-width: 0; overflow: hidden; padding-left: 5px; white-space: nowrap;
+             animation: deployAddressIn .2s ease both; animation-delay: calc(var(--up-since) + 520ms); }
+.where .d-addr.is-hover { color: var(--bright); }
+
+/* Deploy's card (deployCardHTML): the address in the Deployed card's title is a link, and a run's last lines show whole,
+   each cut with … at the card's edge rather than wrapped. */
+.deploy-state .d-link { padding: 0; border: 0; background: none; font: inherit; color: var(--link); cursor: pointer; }
+.deploy-state .d-link.is-hover { text-decoration: underline; }
+.deploy-state .d-words { max-height: none; overflow: hidden; }
+.deploy-state .d-line { overflow: hidden; white-space: pre; text-overflow: ellipsis; }
+
+/* Reduced motion: the ring is there as it comes up, and the address fades in, its room already open. */
+@media (prefers-reduced-motion: reduce) {
+  .play.up .play-ring, .play.up .play-ring circle, .where .d-addr { animation: none; }
+  .d-addr-in { animation: deployFadeIn .3s ease-out both; animation-delay: var(--up-since); }
+}

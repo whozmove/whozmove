@@ -1,0 +1,22 @@
+words joined by dashes: no key
+words joined by underscores: no key
+a long passphrase: counts · …aple
+a constant ending in KEY: no key
+a constant ending in KEYS: no key
+a variable as the user of a curl-style -u: no key
+a UUID a lookup sets as key: id · …209b · named {"as": "key"}
+a UUID set as a service key: counts · …ad42 · named {"as": "SERVICE_API_KEY"}
+a path, its hex part: no key
+a hook address ending in its secret: counts · …0dc4
+what a Spotify address names: id · …jQhW
+a sentence a match ran into: no key
+a sentence set as a password: no key
+a password ending in a full stop: counts · …236.
+a token in escaped JSON: counts · …xWnD
+a variable given to a curl-style -u after its address: no key
+a password given to a curl-style -u after its address: counts · …f!46
+a sentence with commas and a bracket: no key
+a private key header alone: no key
+a private key with its key: counts · …----
+an id of 32 hex in a tool result: no key
+a header token beside a variable given to -u: counts · …MHKy · named {"to": "api.example.dev"}

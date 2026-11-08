@@ -37,7 +37,7 @@ static void AskForTools(void) {
              : run ? run[@"status"] : @"didn't start");
 }
 
-@interface InstallModule : NSObject <Module>
+@interface InstallModule : NSObject <Module, WhozmoveAgain>
 @property (weak) Core *core;
 @property (strong) Install *install;
 @property (strong) Reloads *reloads;
@@ -86,6 +86,7 @@ static void AskForTools(void) {
     install.connect = ^NSDictionary *(NSString *answer, BOOL before, NSString *from) {
         return [agent connect:answer before:before from:from];
     };
+    install.stamp = ^NSString * { return agent.hooksStamp; };
     __weak typeof(self) weakSelf = self;
     Reloads *reloads = agent ? [[Reloads alloc] initWithCore:self.core agent:agent] : nil;
     reloads.onChange = ^{ [weakSelf tell]; };
@@ -106,8 +107,8 @@ static void AskForTools(void) {
     };
     self.install = install;
     [install check:nil];
-    // A new version out, for a copy Homebrew installed; a build from a checkout (one with a build record, the core's
-    // RunningBuild) never looks.
+    // A new version out, for a copy Homebrew installed; a build from a checkout (one with a build record,
+    // RunningBuild in parts/builds) never looks.
     NSString *own = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     Updates *updates = [[Updates alloc] initWithPrefix:kHomebrewPrefix version:own fromCheckout:RunningBuild() != nil];
     updates.fetch = ^NSString *(NSURL *url) { return FetchText(url); };
@@ -216,13 +217,41 @@ static NSString *FetchText(NSURL *url) {
 
 #pragma mark A new version
 
-// The command that updates it, put on the clipboard for you to paste in a terminal: Whozmove never runs brew itself.
-- (void)copyUpgrade {
-    NSString *command = self.updates.found[@"command"];
-    if (!command) return;
+// A brew command put on the clipboard for you to paste in a terminal: Whozmove never runs brew itself.
+static void CopyCommand(NSString *command) {
     [NSPasteboard.generalPasteboard clearContents];
     [NSPasteboard.generalPasteboard setString:command forType:NSPasteboardTypeString];
     PanelLog(@"updates: copied \"%@\"", command);
+}
+
+// The command that updates it.
+- (void)copyUpgrade {
+    NSString *command = self.updates.found[@"command"];
+    if (command) CopyCommand(command);
+}
+
+#pragma mark Getting it again (WhozmoveAgain)
+
+// The command that installs this copy again, for one Homebrew installed (its receipt names the tap it came from), read
+// as a print run reads the Mac's files; nil for one it didn't.
+- (NSString *)reinstallCommand {
+    NSDictionary *receipt = AsRecord(ReadJSON(MachineFile(HomebrewReceipt(kHomebrewPrefix, kWhozmoveCask))));
+    NSString *tap = AsText(AsRecord(receipt[@"source"])[@"tap"]);
+    return tap.length ? BrewReinstallCommand(tap, kWhozmoveCask) : nil;
+}
+
+- (NSDictionary *)wayToGetWhozmoveAgain {
+    NSString *command = [self reinstallCommand];
+    return command ? @{@"title": @"Copy Command",
+                       @"says": [NSString stringWithFormat:@"Copy Command puts %@ on the clipboard, for your terminal",
+                                 command]}
+                   : @{@"title": @"Download Whozmove", @"says": @"Download Whozmove opens the page it comes from"};
+}
+
+- (void)getWhozmoveAgain {
+    NSString *command = [self reinstallCommand];
+    if (command) CopyCommand(command);
+    else OpenLink(kWhozmoveReleases);
 }
 
 // Homebrew put the new version in place of this one, which still runs: it's opened again from where it is, a second
@@ -237,14 +266,16 @@ static NSString *FetchText(NSURL *url) {
         LogProblem(@"updates: couldn't start Whozmove again, so it's left running");
         return;
     }
-    [NSApp terminate:nil];
+    // Stopped as a Deploy stops it (the app catches SIGTERM and ends as a restart), not by terminate:, which counts as
+    // a Quit: a Quit forgets what a session had ticked, and this restart should leave it all for one press to bring back.
+    kill(getpid(), SIGTERM);
 }
 
 #pragma mark Open at Login
 
 // Ticked while Whozmove opens at login, as the last check found; outside an Applications folder, where nothing is set
-// up, it isn't there. On macOS 13 and later, macOS also says whether you've turned Whozmove off in its Login Items:
-// then it's unticked, and a press opens Login Items, as only you can turn it on there.
+// up, it isn't there. macOS also says whether you've turned Whozmove off in its Login Items: then it's unticked, and a
+// press opens Login Items, as only you can turn it on there.
 - (NSArray<MenuEntry *> *)menuEntries {
     self.loginItem = [[NSMenuItem alloc] initWithTitle:@"Open at Login" action:@selector(pressLogin)
                                          keyEquivalent:@""];
@@ -261,18 +292,16 @@ static NSString *FetchText(NSURL *url) {
     self.loginItem.hidden = login == nil;
     BOOL on = login.boolValue;
     self.loginOffInSettings = NO;
-    if (@available(macOS 13.0, *)) {
-        if (on && self.install.label) {
-            NSURL *file = [NSURL fileURLWithPath:LoginItemPath(self.install.label)];
-            self.loginOffInSettings = [SMAppService statusForLegacyURL:file] == SMAppServiceStatusRequiresApproval;
-        }
+    if (on && self.install.label) {
+        NSURL *file = [NSURL fileURLWithPath:LoginItemPath(self.install.label)];
+        self.loginOffInSettings = [SMAppService statusForLegacyURL:file] == SMAppServiceStatusRequiresApproval;
     }
     self.loginItem.state = on && !self.loginOffInSettings ? NSControlStateValueOn : NSControlStateValueOff;
 }
 
 - (void)pressLogin {
     if (self.loginOffInSettings) {
-        if (@available(macOS 13.0, *)) [SMAppService openSystemSettingsLoginItems];
+        [SMAppService openSystemSettingsLoginItems];
         return;
     }
     BOOL on = self.loginItem.state != NSControlStateValueOn;

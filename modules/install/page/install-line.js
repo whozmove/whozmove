@@ -1,7 +1,7 @@
 // The line under the header while Whozmove sets itself up, and when a new version is out (install.js says what it
 // says), in its place between the
 // header and a new conversation's card (#install, panel.html), where it takes the header's room from the list as a
-// card there does (base.css). It eases open under the header, the rows moving down with it, and folds away the same
+// card there does (parts/glass). It eases open under the header, the rows moving down with it, and folds away the same
 // way, with the strips' helpers (strips.js); when what it says changes, the old words fade before the new come in, the
 // line easing to its new height. Its button asks the app (`install`, naming the action: the app holds the commands and
 // the address) and waits until the app has done it (Copy Command, which only puts a command on the clipboard, says
@@ -22,10 +22,10 @@ const INSTALL_DONE_MS = 4000;
 
 function installHTML(line) {
   return `<div class="notice in-line">${line.done ? DONE_ICON : ''}<span class="notice-text">${esc(line.text)}</span>`
-    + (line.button ? `<button class="notice-button" data-action="${esc(line.action)}"`
+    + (line.button ? `<button class="button main small notice-button" data-action="${esc(line.action)}"`
       + `${line.session ? ` data-session="${esc(line.session)}"` : ''}${line.busy ? ' disabled' : ''}>`
       + `${esc(line.button)}</button>` : '')
-    + (line.close ? `<button class="q-close" title="${esc(line.closeTitle || 'Not now')}">×</button>` : '') + '</div>';
+    + (line.close ? `<button class="icon-button small q-close" title="${esc(line.closeTitle || 'Not now')}">×</button>` : '') + '</div>';
 }
 
 const sameWords = (a, b) => a.text === b.text && a.button === b.button && a.close === b.close && a.done === b.done

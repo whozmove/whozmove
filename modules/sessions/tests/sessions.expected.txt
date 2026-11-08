@@ -1,0 +1,352 @@
+count 7
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Running in Ghostty · last reply 25 min ago · marks: open
+  Old refactor: Ended 3 h ago · ran in Ghostty · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+
+== Move to Trash: Old refactor, Coupon codes (open), Image resize (working)
+count 5
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  Coupon codes: shop · moved just now · Put Back / Show in Finder
+  (They stay here until you empty the Trash.)
+said: Moved 2 conversations to the Trash. Image resize is left out. Working: stop it first. [Undo] [Show in Finder] [Take me there]
+steps of Old refactor: Waiting > Moving to the Trash… > In the Trash
+steps of Coupon codes: Waiting > Ending it… > Moving to the Trash… > In the Trash
+Coupon codes' process: ended · Image resize's: running
+files:
+  ~/.claude/projects/~-code-blog
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000005.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000006.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000007.jsonl
+  ~/.claude/projects/~-code-shop
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000002.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000004.jsonl
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001 2
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001 2.json
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001 2/a1b2@v1
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001.json
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001.jsonl
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000001/subagents
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000003.jsonl
+
+== Move to Trash: Old feed, whose file names another process
+count 5
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  Coupon codes: shop · moved just now · Put Back / Show in Finder
+  (They stay here until you empty the Trash.)
+said: Old feed is left out. Whozmove can't be sure which process it is: end it in its terminal. [Take me there]
+steps of Old feed: Waiting > Ending it… > Stayed: Whozmove can't be sure which process it is: end it in its terminal
+that process: running
+
+== Undo
+count 7
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Old refactor: Ended 3 h ago · ran in Ghostty · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+files:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001/a1b2@v1
+  ~/.claude/projects/~-code-blog
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000005.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000006.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000007.jsonl
+  ~/.claude/projects/~-code-shop
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000002.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000003.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000004.jsonl
+  ~/Library/Application Support/Whozmove/conversations/0a1b2c3d-0000-4000-8000-000000000001.json
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000001.json
+
+== Move Old refactor again, then Put Back
+count 6
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  (It stays here until you empty the Trash.)
+said: Moved Old refactor to the Trash. [Undo] [Show in Finder]
+steps of Old refactor: Waiting > Moving to the Trash… > In the Trash
+count 7
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Old refactor: Ended 3 h ago · ran in Ghostty · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+files:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001/a1b2@v1
+  ~/.claude/projects/~-code-blog
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000005.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000006.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000007.jsonl
+  ~/.claude/projects/~-code-shop
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000002.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000003.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000004.jsonl
+  ~/Library/Application Support/Whozmove/conversations/0a1b2c3d-0000-4000-8000-000000000001.json
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000001.json
+
+== Move Old refactor again, then Finder's Put Back
+count 6
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  (It stays here until you empty the Trash.)
+said: Moved Old refactor to the Trash. [Undo] [Show in Finder]
+steps of Old refactor: Waiting > Moving to the Trash… > In the Trash
+put back by Finder:
+files:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001 2
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001 2/a1b2@v1
+  ~/.claude/projects/~-code-blog
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000005.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000006.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000007.jsonl
+  ~/.claude/projects/~-code-shop
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000002.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000003.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000004.jsonl
+  ~/Library/Application Support/Whozmove/conversations/0a1b2c3d-0000-4000-8000-000000000001 2.json
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000001.json
+then Sessions:
+count 7
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Old refactor: Ended 3 h ago · marks: ended
+  Docs links: Ended 7 h ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+files:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000001/a1b2@v1
+  ~/.claude/projects/~-code-blog
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000005.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000006.jsonl
+  ~/.claude/projects/~-code-blog/0a1b2c3d-0000-4000-8000-000000000007.jsonl
+  ~/.claude/projects/~-code-shop
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000001.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000002.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000003.jsonl
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000004.jsonl
+  ~/Library/Application Support/Whozmove/conversations/0a1b2c3d-0000-4000-8000-000000000001.json
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000001.json
+a note naming another file: nothing renamed
+
+== Move Docs links, then Put Back with a file there again
+count 6
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Old refactor: Ended 3 h ago · ran in Ghostty · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Docs links: shop · moved just now · Put Back / Show in Finder
+  (It stays here until you empty the Trash.)
+said: Moved Docs links to the Trash. [Undo] [Show in Finder]
+steps of Docs links: Waiting > Moving to the Trash… > In the Trash
+count 6
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Old refactor: Ended 3 h ago · ran in Ghostty · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Docs links: shop · moved just now · Put Back / Show in Finder
+  (It stays here until you empty the Trash.)
+said: Docs links can't go back: there's a conversation file there again. [Show in Finder]
+
+== Move Old refactor, then Put Back with its note sending a file elsewhere
+count 5
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  Docs links: shop · moved just now · Put Back / Show in Finder
+  (They stay here until you empty the Trash.)
+said: Moved Old refactor to the Trash. [Undo] [Show in Finder]
+steps of Old refactor: Waiting > Moving to the Trash… > In the Trash
+count 5
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Old refactor: shop · moved just now · Put Back / Show in Finder
+  Docs links: shop · moved just now · Put Back / Show in Finder
+  (They stay here until you empty the Trash.)
+said: Old refactor can't go back: put it back from the Trash in Finder. [Show in Finder]
+a file there: no
+
+== The Trash emptied
+count 6
+Other
+  Untitled conversation: Ended just now · marks: ended
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+
+== What the run for one file refuses
+trash item, not a whole path: it isn't a whole path, exit 1
+trash item, with "..": it isn't a whole path, exit 1, left where it was
+trash item, not there: it isn't there, exit 1
+trash item, a link named as a transcript: it's a link, exit 1, left where it was
+trash item, a project's file that isn't a conversation's: it isn't one of a conversation's files, exit 1, left where it was
+trash item, a transcript in a project folder that's a link: it isn't one of a conversation's files, exit 1, left where it was
+trash item, a conversation's transcript, in a home folder that isn't yours: HOME isn't your own home folder, exit 1, left where it was
+
+== Move Many pieces through the run, then Undo
+count 7
+Other
+  Untitled conversation: Ended just now · marks: ended
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+elsewhere
+  Elsewhere: Ended 30 min ago · why: Kept through a link to another folder: move it in Finder · way: Show in Finder · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+In the Trash (not tickable)
+  Many pieces: shop · moved just now · Put Back / Show in Finder
+  (It stays here until you empty the Trash.)
+said: Moved Many pieces to the Trash. [Undo] [Show in Finder]
+steps of Many pieces: Waiting > Moving to the Trash… > In the Trash
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009 2
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009 2/c3d4@v1
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009.json
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009/subagents
+
+
+== Move Many pieces, the run refusing its edited files' copies
+count 8
+Other
+  Untitled conversation: Ended just now · marks: ended
+shop
+  Image resize: Running in Ghostty · last reply 1 min ago · why: Working: stop it first · way: Take me there · marks: open
+  Coupon codes: Ended 25 min ago · marks: ended
+  Many pieces: Ended 4 h ago · marks: ended
+elsewhere
+  Elsewhere: Ended 30 min ago · why: Kept through a link to another folder: move it in Finder · way: Show in Finder · marks: ended
+blog
+  Pricing page copy: Ended 48 min ago · why: Delete it in Claude Desktop · way: Open in Claude Desktop · marks: ended
+  Draft post: Running in Ghostty · last reply 1 h ago · why: Paused in its terminal: bring it back first · way: Take me there · marks: open
+  Old feed: Running in Ghostty · last reply 1 h ago · marks: open
+said: Many pieces couldn't go to the Trash: one of its files couldn't be moved, as it's a link. Nothing of it was moved. [Show in Finder]
+steps of Many pieces: Waiting > Moving to the Trash… > Stayed: one of its files couldn't be moved
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009/c3d4@v1
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000009.json
+
+== Move Many pieces, the run moving its edited files' copies but not finishing
+said: Moved Many pieces to the Trash. [Undo] [Show in Finder]
+steps of Many pieces: Waiting > Moving to the Trash… > In the Trash
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009 2
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009 2/c3d4@v1
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009.json
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  T/Trash/0a1b2c3d-0000-4000-8000-000000000009/subagents
+
+
+== Move Many pieces, the run moving its edited files' copies without saying where
+  Elsewhere: Ended 30 min ago · why: Kept through a link to another folder: move it in Finder · way: Show in Finder · marks: ended
+said: Many pieces went to the Trash in part: one of its files is there, the rest stayed. [Show in Finder]
+steps of Many pieces: Waiting > Moving to the Trash… > In the Trash in part
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000009.json
+  T/Trash/unsaid-0a1b2c3d-0000-4000-8000-000000000009
+  T/Trash/unsaid-0a1b2c3d-0000-4000-8000-000000000009/c3d4@v1
+
+== Move Many pieces, Finder's Put Back, then the module's tick
+said: Moved Many pieces to the Trash. [Undo] [Show in Finder]
+put back by Finder:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009 2
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009 2/c3d4@v1
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000009.json
+after the tick:
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/file-history/0a1b2c3d-0000-4000-8000-000000000009/c3d4@v1
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009
+  ~/.claude/projects/~-code-shop/0a1b2c3d-0000-4000-8000-000000000009.jsonl
+  ~/Library/Application Support/Whozmove/sessions/0a1b2c3d-0000-4000-8000-000000000009.json

@@ -1,0 +1,5 @@
+{
+  "scripts": ["page/hover.js"],
+  "talksTo": ["core", "bridge", "details", "keyboard", "flick", "glass", "fold", "held", "chats"],
+  "provides": ["pointedAt", "syncHover", "pointerAt", "pointerGone"]
+}

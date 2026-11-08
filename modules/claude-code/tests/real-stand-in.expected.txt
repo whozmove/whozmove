@@ -1,0 +1,216 @@
+== Whozmove's plugin put in
+{
+  "state" : "added"
+}
+== started
+   registry pid: true
+   registry sessionId: true
+   registry startedAt: true
+   registry cwd: true
+   registry status: "idle"
+   registry entrypoint: "cli"
+   registry kind: "interactive"
+   registry procStart: true
+   registry statusUpdatedAt: true
+== the programs that may ask in a session's name
+   the session's: not Claude Code's own program
+   a program not Claude Code's: not Claude Code's own program
+== 1 a reply
+   the stand-in was asked: True
+   hooks recorded lastPrompt: "Say hello STEP:reply"
+   hooks recorded lastReply: "Hello from the stand-in."
+   hooks recorded outcome: "Answered"
+   hooks recorded permissionMode: "default"
+== 2 a request for your OK, at the panel's own end of the line
+   Claude Code was told: "Denied in Whozmove." (an error)
+   the panel's end: ask asked by <id>
+   the panel's end: answered <id>
+== 3 a file written, allowed from the panel
+   asked in the panel: Write
+   the file: written; Claude Code got its result: True
+== 4 a command typed over a half-written draft, as the panel types it
+   the switch was asked in the panel: allowed
+   the draft came back as the next message: True
+   the model the reply came from: claude-opus-5-5
+   what Whozmove takes the command's result to say:
+      {
+        "<id>.jsonl" : {
+          "applies" : "claude-opus-5-5",
+          "command" : "\/model claude-opus-5-5",
+          "result" : "Set model to claude-opus-5-5 and saved as your default for new sessions",
+          "savedDefault" : true
+        }
+      }
+== 5 a question, answered from the panel
+   asked in the panel: AskUserQuestion
+   Claude Code got the answer: True
+== 6 a command left running in the background
+   the registry says: shell
+== 7 a compaction
+   a compaction record with its size after: True
+   the hooks saw it begin and end: True
+== 8 folder trust, written while Claude Code runs
+   still trusted: True; Claude Code's own keys still there: True
+== 9 the mode, moved with the Shift+Tabs Whozmove gives
+   acceptEdits: 1 Shift+Tab, landed in acceptEdits
+   plan: 1 Shift+Tab, landed in plan
+   default: Whozmove wouldn't type it ("plan" now)
+== 10 a plan, sent back with a note from the panel
+   asked in the panel: ExitPlanMode
+   Claude Code got the note: True
+== 10b questions on its side, asked as the panel asks them
+   a question: forked True, listed after False; ended success, a tool ran False, said "Hello from the stand-in."
+   a question: the home changed [], a hook ran for it False
+   a question: its request starts as the session's last did, up to its last cache mark: True
+   a question that reaches for a command: forked True, listed after False; ended error_max_turns, a tool ran False, said null
+   a question that reaches for a command: the home changed [], a hook ran for it False
+   a question that reaches for a command: its request starts as the session's last did, up to its last cache mark: True
+== 11 the session ends
+   its registry file went: True
+== --print-rows
+[
+  {
+    "activityAt": "<time>",
+    "agent": {
+      "compactWindow": 0,
+      "effort": "high",
+      "mode": "plan",
+      "model": "claude-opus-5-5",
+      "today": 480630,
+      "tokens": 32012,
+      "window": 1000000
+    },
+    "background": [
+      {
+        "command": "sleep 600",
+        "holds": false,
+        "startedAt": "<time>",
+        "stop": "/tasks",
+        "what": "Wait in the background"
+      }
+    ],
+    "changes": {
+      "added": 1,
+      "all": {
+        "added": 1,
+        "files": 1,
+        "removed": 0,
+        "staged": {
+          "added": 0,
+          "files": 0,
+          "removed": 0
+        },
+        "unstaged": {
+          "added": 1,
+          "files": 1,
+          "removed": 0
+        }
+      },
+      "complete": true,
+      "files": [
+        {
+          "added": 1,
+          "at": "<time>",
+          "created": true,
+          "edits": 1,
+          "path": "notes.txt",
+          "removed": 0,
+          "saved": false
+        }
+      ],
+      "known": true,
+      "parts": {
+        "<id>": [
+          1,
+          0
+        ]
+      },
+      "removed": 0,
+      "v": 2
+    },
+    "checkout": {
+      "ahead": 0,
+      "aheadOfBase": 0,
+      "base": "main",
+      "baseRef": "main",
+      "behind": 0,
+      "changes": 0,
+      "checkedAt": "<time>",
+      "filesPartly": 0,
+      "filesStaged": 0,
+      "filesUnstaged": 0,
+      "headAt": "<time>",
+      "newFiles": 1,
+      "remotes": 0,
+      "upstream": false
+    },
+    "cwd": "T/home/project",
+    "editedAt": "<time>",
+    "entrypoint": "cli",
+    "git": {
+      "branch": "main",
+      "root": "T/home/project"
+    },
+    "lastPrompt": "Make a plan STEP:plan",
+    "lastPromptAt": "<time>",
+    "lastReply": "Done: the step ran.",
+    "lastReplyAt": "<time>",
+    "onItAt": "<time>",
+    "outcome": "Documented",
+    "outcomeAt": "<time>",
+    "permissionMode": "plan",
+    "pid": "<pid>",
+    "procStart": "<time>",
+    "prs": [],
+    "sessionId": "<id>",
+    "stageAt": "<time>",
+    "status": "idle",
+    "statusUpdatedAt": "<time>",
+    "workEditedAt": "<time>",
+    "workRoot": "T/home/project"
+  }
+]
+== --print-mode-moves
+{
+  "<id>": {
+    "mode": "plan",
+    "possibleCycles": [
+      [
+        "default",
+        "acceptEdits",
+        "plan",
+        "auto"
+      ],
+      [
+        "default",
+        "acceptEdits",
+        "plan"
+      ]
+    ],
+    "presses": {
+      "acceptEdits": null,
+      "auto": null,
+      "bypassPermissions": null,
+      "default": null,
+      "plan": null
+    },
+    "whyNotEditDraft": null,
+    "whyNotType": null
+  }
+}
+== --print-kept
+{
+  "keeps": {},
+  "left": [],
+  "stale": []
+}
+== Claude Code fetched its public plugin catalogue: no
+== asked of the stand-in, by kind
+   ask
+   background
+   bash
+   plan
+   reply
+   result
+   summary
+   write

@@ -1,0 +1,167 @@
+[
+  {
+    "found" : {
+      "duplicates" : {
+        "s-early" : true
+      },
+      "holder" : {
+        "pid" : 12,
+        "process" : "12 b",
+        "session" : "s-own",
+        "startedAt" : 200
+      },
+      "seat" : "s-own"
+    },
+    "name" : "the file's own session runs there, beside one opened before it: it holds the seat"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+        "s-older" : true
+      },
+      "holder" : {
+        "pid" : 21,
+        "process" : "21 a",
+        "session" : "s-cleared",
+        "startedAt" : 200
+      },
+      "seat" : "s-cleared"
+    },
+    "name" : "a \/clear on the holder's process, with an older session there: the new conversation keeps the seat"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+        "s-other" : true
+      },
+      "holder" : {
+        "pid" : 31,
+        "process" : "31 a",
+        "session" : "s-held",
+        "startedAt" : 200
+      }
+    },
+    "name" : "a pass that misses the holder's row while its process runs: nobody else is seated"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+        "s-first" : true
+      },
+      "holder" : {
+        "pid" : 43,
+        "process" : "43 c",
+        "session" : "s-held",
+        "startedAt" : 300
+      },
+      "seat" : "s-held"
+    },
+    "name" : "the holder's conversation now speaks from another copy of it: the seat stays"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+        "s-desktop" : false,
+        "s-later" : false
+      },
+      "holder" : {
+        "pid" : 53,
+        "process" : "53 c",
+        "session" : "s-first",
+        "startedAt" : 200
+      },
+      "seat" : "s-first"
+    },
+    "name" : "the holder gone: the one opened first, then one with no known start last"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "holder" : {
+        "pid" : 61,
+        "process" : "61 a",
+        "session" : "s-new",
+        "startedAt" : 400
+      },
+      "seat" : "s-new"
+    },
+    "name" : "the file's own session ended, a new one there: the new one holds the seat"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "ended" : "s-own",
+      "holder" : {
+        "session" : "s-own",
+        "startedAt" : 0
+      }
+    },
+    "name" : "only ended ones there: the file's own stands for the member, ended, though another moved since"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "ended" : "s-held",
+      "holder" : {
+        "session" : "s-held",
+        "startedAt" : 0
+      }
+    },
+    "name" : "the holder's tab closed, the file's older one listed too: the holder stands for the member, ended"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "ended" : "s-held",
+      "holder" : {
+        "session" : "s-held",
+        "startedAt" : 0
+      }
+    },
+    "name" : "the ended one kept as the holder, the next pass: it still stands for the member"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "ended" : "s-late",
+      "holder" : {
+        "session" : "s-late",
+        "startedAt" : 0
+      }
+    },
+    "name" : "the file's id names no session listed, nor the holder: the one that moved last stands for the member"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      },
+      "holder" : {
+        "pid" : 81,
+        "process" : "81 a",
+        "session" : "s-new",
+        "startedAt" : 500
+      },
+      "seat" : "s-new"
+    },
+    "name" : "an ended one standing for the member, then a new one opened there: the new one holds the seat"
+  },
+  {
+    "found" : {
+      "duplicates" : {
+
+      }
+    },
+    "name" : "nothing there at all"
+  }
+]

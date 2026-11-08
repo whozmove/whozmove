@@ -3,14 +3,15 @@
 New conversations started from the panel's card, in Claude Desktop or a terminal: the folder's trust checked (and
 recorded once you've said yes on the card), in the project's own folder or a worktree (one that's there, or made first),
 the session opened with your words, and watched for until it's listed, when the page's pending row becomes its row; and
-New Conversation and ⌃⌥N in the pawn menu.
+New Conversation in the pawn menu, and ⌃⌥N's switch in Settings on the panel's back.
 
 ## Its pieces
 
 - `app/StartsModule.m`: its face for the core (contracts/Module.h): the card's messages, the starts still waiting
   matched to the sessions they became, New Conversation and its shortcut, and the print modes the tests check. It adds
   Open new conversations here to each terminal's page on the panel's back, and turns the panel back to its list before
-  the card opens (`appEntries`).
+  the card opens (`appEntries`), and New Conversation with ⌃⌥N, the shortcut's switch, to Settings there
+  (`settingEntries`).
 - `app/Starts.m`: a start, from the card to its row: in a terminal that says which tab it shows (Ghostty or iTerm2,
   the one you picked on the card's menu, kept from then on by the core, where an ended terminal session opens again
   when the one it ran in can't open it: Core's `startTerminal`), with the session id the page chose and the command its
@@ -29,6 +30,11 @@ New Conversation and ⌃⌥N in the pawn menu.
   until it's listed, and the card turning into that row and moving down to its place; `page/starts.css`, their style,
   and the pawn's hop as a conversation starts; `page/start-words.js`, what the card reads in your words (@ for the
   project, # for where in it) and a new worktree's name (plain functions). `module.json` lists them for tools/page.sh.
+  Other modules add to the card through `core.startCardParts` (parts/bridge/page/modules.js says its shape): a chip
+  after where it starts, a list under the box, whose own field the card keeps in place, with what's typed in it and the
+  caret, as the list comes in afresh around it, the box's words, a line added to your words, and what the start
+  carries for that module (`with`), which `app/Starts.m` hands to it once the start is a session (Module's
+  `started:with:`, to the module named, never another). The card never names one: tickets' is the Ticket chip.
 - `tests/test.sh`: what sample starts would run, a terminal tab's command and Claude Desktop's link (`--print-starts`,
   `starts.expected.txt`), what a sample repo has and worktrees checked and made in it, or refused without Apple's
   developer tools (`--print-worktrees`, `worktrees.expected.txt`),
@@ -38,8 +44,9 @@ Folder trust is the Claude Code module's: tests/rows.sh checks how it's read and
 
 ## Between the page and the app
 
-- The page sends `start` (`{startId, folder, app, words, sessionId, trust, target}`, `target` being `{kind: open,
-  path}`, `{kind: branch, name}` or `{kind: new, name, base}`), `checkFolder` (`{folder}`), `listBranches`
+- The page sends `start` (`{startId, folder, app, words, sessionId, trust, target, with}`, `target` being `{kind: open,
+  path}`, `{kind: branch, name}` or `{kind: new, name, base}`, and `with` what the card's other parts gave it, by module
+  name), `checkFolder` (`{folder}`), `listBranches`
   (`{folder}`), `checkWorktreeName` (`{folder, name, base}`), `startMenu` (`{kind: app, app, worktree}`, `{kind:
   places, repo}` or `{kind: choose}`) and `startWay` (`{kind: track}` or `{kind: getDesktop}`, the card's way past
   having nowhere to start it).
@@ -65,3 +72,5 @@ Folder trust is the Claude Code module's: tests/rows.sh checks how it's read and
   instead. A start in a worktree that's there goes only to one of the repo's own folders, as git lists them.
 - Nothing switches the branch of a folder in use: a branch is only ever checked out in a new worktree.
 - Where a repo's worktrees go is kept in Whozmove's folder, never in the repo.
+- A new worktree's branch starts from the repo's base branch as this Mac has it, and follows it (`--track`), never
+  from GitHub's copy: so it starts with everything there, commits not pushed yet included.

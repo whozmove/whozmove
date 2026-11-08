@@ -1,0 +1,12 @@
+{
+  "after" : [
+    "s-on.json"
+  ],
+  "before" : [
+    "s-off.json",
+    "s-on.json"
+  ],
+  "taken away" : [
+    "s-off"
+  ]
+}

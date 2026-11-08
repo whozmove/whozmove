@@ -1,0 +1,15 @@
+typed: sent
+queued: sent
+queued-typed: sent
+queued-peer: nobody
+queued-task: nobody
+queued-meta: nobody
+other-attachment: nobody
+result: read
+reply: wrote
+summary: nobody
+meta: nobody
+agent-prompt: wrote
+agent-meta: nobody
+agent-result: read
+agent-reply: wrote

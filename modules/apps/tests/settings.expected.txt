@@ -1,0 +1,114 @@
+== Settings' rows, the panel's own and each module's, in their order
+[
+  {
+    "glyph" : "look",
+    "group" : 10,
+    "key" : "look",
+    "kind" : "choice",
+    "order" : 10,
+    "page" : "Appearance",
+    "style" : "looks",
+    "title" : "Look"
+  },
+  {
+    "glyph" : "look",
+    "group" : 10,
+    "key" : "appearance",
+    "kind" : "choice",
+    "order" : 11,
+    "page" : "Appearance",
+    "style" : null,
+    "title" : "Light or Dark"
+  },
+  {
+    "glyph" : "list",
+    "group" : 10,
+    "key" : "groupBy",
+    "kind" : "choice",
+    "order" : 20,
+    "page" : null,
+    "style" : null,
+    "title" : "Session List"
+  },
+  {
+    "glyph" : "chat",
+    "group" : 10,
+    "key" : "showConversationText",
+    "kind" : "switch",
+    "order" : 25,
+    "page" : null,
+    "style" : null,
+    "title" : "Show Conversation Text"
+  },
+  {
+    "glyph" : "file",
+    "group" : 10,
+    "key" : "openWith",
+    "kind" : "choice",
+    "order" : 30,
+    "page" : null,
+    "style" : null,
+    "title" : "Open Files With"
+  },
+  {
+    "glyph" : "keys",
+    "group" : 20,
+    "key" : "newConversationShortcut",
+    "kind" : "switch",
+    "order" : 10,
+    "page" : null,
+    "style" : null,
+    "title" : "New Conversation with ⌃⌥N"
+  },
+  {
+    "glyph" : "keys",
+    "group" : 20,
+    "key" : "bringForwardSession",
+    "kind" : "choice",
+    "order" : 20,
+    "page" : "Bring Forward",
+    "style" : null,
+    "title" : "Session"
+  },
+  {
+    "glyph" : "keys",
+    "group" : 20,
+    "key" : "bringForwardKeys",
+    "kind" : "choice",
+    "order" : 21,
+    "page" : "Bring Forward",
+    "style" : null,
+    "title" : "Keys"
+  },
+  {
+    "app" : "one-task",
+    "glyph" : "",
+    "group" : 20,
+    "key" : "oneTask",
+    "kind" : "page",
+    "order" : 30,
+    "page" : null,
+    "style" : null,
+    "title" : "One Task"
+  },
+  {
+    "glyph" : "list",
+    "group" : 20,
+    "key" : "autoCompact",
+    "kind" : "switch",
+    "order" : 40,
+    "page" : null,
+    "style" : null,
+    "title" : "Compact at Breaks"
+  },
+  {
+    "glyph" : "gauge",
+    "group" : 30,
+    "key" : "usageGear",
+    "kind" : "switch",
+    "order" : 10,
+    "page" : null,
+    "style" : null,
+    "title" : "Usage Gear"
+  }
+]

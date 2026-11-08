@@ -1,0 +1,13 @@
+# The Claude Code that the real Claude Code run checks Whozmove against (real.sh, through claude-code.sh, both
+# beside this file). `checked` is the version Whozmove was last checked with: CI's run uses it on every push, so a
+# failure there is a change on Whozmove's side. Then the SHA-256 of that version's program for each kind of Mac, as its
+# release's manifest.json gives it. The nightly run takes the newest version instead, checked against its own
+# release's manifest.
+#
+# Moving the pin, once the nightly run has passed on a version: take its sums from
+# https://downloads.claude.ai/claude-code-releases/<version>/manifest.json (darwin-arm64 and darwin-x64), move
+# docs/using/install.md's line for Claude Code to it, and record the run's output again (real.sh --update) in the same
+# change.
+checked 2.1.304
+2.1.304 arm64 b9ac5374839f14abf3f1f45610637c332b5daee5ce0d1634726cef87aab78e6a
+2.1.304 x86_64 f2ae409b46b1bdc1dec7afa12c6a094ff64e7d4ca272ca09f69dd0080c846703

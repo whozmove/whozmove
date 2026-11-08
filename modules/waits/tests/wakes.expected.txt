@@ -1,0 +1,447 @@
+## begun, refused, and woken
+== row s1
+== ask s1
+nothing to wait for: nothing of this session's waits on someone else now
+== has s1 #12 cant
+== ask s1
+nothing to wait for: #12 can't be read now (it can't be reached)
+== has s1 #12
+== has s1 PAY-142 other
+== ask s1 comments
+   (sample watches s1 from +0s, comments too)
+   (other watches s1 from +0s, comments too)
+waiting: Waits on #12 · PAY-142
+== rows
+s1: {"on":[{"id":"#12","source":"sample"},{"id":"PAY-142","source":"other"}],"says":"Waits on #12 · PAY-142","spoken":"Waits on sample #12 and sample PAY-142"}
+== kept
+s1.json (600): {"closed":false,"comments":true,"on":[{"id":"#12","source":"sample"},{"id":"PAY-142","source":"other"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+== later 10
+== ask s1
+waiting: Waits on #12 · PAY-142
+== ask s1 now
+nothing yet: Waits on #12 · PAY-142
+== came s1 approved
+== pass
+== rows
+s1: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","on":[{"id":"#12","source":"sample"},{"id":"PAY-142","source":"other"}],"says":"Waits on #12 · PAY-142","spoken":"Waits on sample #12 and sample PAY-142"}
+== ask s1
+   (sample stops watching s1)
+   (other stops watching s1)
+woke: {"came":[{"at":"2033-05-18T03:33:30Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== kept
+(none)
+== rows
+s1: null
+== ask s1 now
+nothing yet: no wait has begun here; run ask-panel.sh wait in the background to begin one
+== closed s9
+== ask s9
+refused: only a session that's running can wait
+== logged
+s1 asked wait: nothing to wait for
+s1 asked wait: nothing to wait for
+s1 -> waits on 2, comments too
+s1 -> something came for its wait
+s1 -> wait over: woke: sample approved
+## the gear: the oldest wake first, one let go counted as taken, your answer at once
+== gear 1
+== row s2
+== row s3
+== row s4
+== has s2 #12
+== has s3 #13
+== has s4 PAY-7 other
+== ask s2
+   (sample watches s2 from +0s)
+waiting: Waits on #12
+== ask s3
+   (sample watches s3 from +0s)
+waiting: Waits on #13
+== ask s4
+   (other watches s4 from +0s)
+waiting: Waits on PAY-7
+== later 5
+== came s3 approved
+== later 5
+== came s2 merged
+== gear 0
+== came s4 answered yours other
+== pass
+== rows
+s2: {"came":"#12 merged","cameFirst":"#12 merged","cameMore":0,"cameSpoken":"#12 merged","held":true,"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s3: {"came":"#13 approved","cameFirst":"#13 approved","cameMore":0,"cameSpoken":"#13 approved","held":true,"on":[{"id":"#13","source":"sample"}],"says":"Waits on #13","spoken":"Waits on sample #13"}
+s4: {"came":"PAY-7 answered","cameFirst":"PAY-7 answered","cameMore":0,"cameSpoken":"PAY-7 answered","on":[{"id":"PAY-7","source":"other"}],"says":"Waits on PAY-7","spoken":"Waits on sample PAY-7"}
+== ask s4
+   (other stops watching s4)
+woke: {"came":[{"at":"2033-05-18T03:33:30Z","by":"someone","kind":"answered","source":"other","what":"PAY-7"}]}
+== ask s2
+waiting: for a free seat in the gear: #12 merged
+== ask s3
+waiting: for a free seat in the gear: #13 approved
+== gear 1
+== pass
+== rows
+s2: {"came":"#12 merged","cameFirst":"#12 merged","cameMore":0,"cameSpoken":"#12 merged","held":true,"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s3: {"came":"#13 approved","cameFirst":"#13 approved","cameMore":0,"cameSpoken":"#13 approved","held":true,"on":[{"id":"#13","source":"sample"}],"says":"Waits on #13","spoken":"Waits on sample #13"}
+s4: null
+== ask s2
+waiting: for a free seat in the gear: #12 merged
+== ask s3
+waiting: for a free seat in the gear: #13 approved
+== rows
+s2: {"came":"#12 merged","cameFirst":"#12 merged","cameMore":0,"cameSpoken":"#12 merged","held":true,"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s3: {"came":"#13 approved","cameFirst":"#13 approved","cameMore":0,"cameSpoken":"#13 approved","held":true,"on":[{"id":"#13","source":"sample"}],"says":"Waits on #13","spoken":"Waits on sample #13"}
+s4: null
+== later 31
+== pass
+== rows
+s2: {"came":"#12 merged","cameFirst":"#12 merged","cameMore":0,"cameSpoken":"#12 merged","held":true,"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s3: {"came":"#13 approved","cameFirst":"#13 approved","cameMore":0,"cameSpoken":"#13 approved","on":[{"id":"#13","source":"sample"}],"says":"Waits on #13","spoken":"Waits on sample #13"}
+s4: null
+== ask s2
+waiting: for a free seat in the gear: #12 merged
+== ask s3
+   (sample stops watching s3)
+woke: {"came":[{"at":"2033-05-18T03:33:25Z","by":"someone","kind":"approved","source":"sample","what":"#13"}]}
+== ask s2
+waiting: for a free seat in the gear: #12 merged
+== gear 0 s3
+== pass
+== ask s2
+waiting: for a free seat in the gear: #12 merged
+== gear 1 s3
+== pass
+== ask s2
+   (sample stops watching s2)
+woke: {"came":[{"at":"2033-05-18T03:33:30Z","by":"someone","kind":"merged","source":"sample","what":"#12"}]}
+== logged
+s2 -> waits on 1
+s3 -> waits on 1
+s4 -> waits on 1
+s2 -> something came for its wait
+s4 -> something came for its wait
+s3 -> something came for its wait
+s2 -> its wake waits for a seat in the gear
+s3 -> its wake waits for a seat in the gear
+s4 -> wait over: woke: other answered
+s3 -> wait over: woke: sample approved
+s2 -> wait over: woke: sample merged
+## no gear picked, and Usage Gear off: every wake goes
+== gear unpicked
+== row s2
+== row s3
+== has s2 #12
+== has s3 #13
+== ask s2
+   (sample watches s2 from +0s)
+waiting: Waits on #12
+== ask s3
+   (sample watches s3 from +0s)
+waiting: Waits on #13
+== later 1
+== came s2 approved
+== came s3 approved
+== ask s2
+   (sample stops watching s2)
+woke: {"came":[{"at":"2033-05-18T03:33:21Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== gear off
+== ask s3
+   (sample stops watching s3)
+woke: {"came":[{"at":"2033-05-18T03:33:21Z","by":"someone","kind":"approved","source":"sample","what":"#13"}]}
+## ended: a new process, closed, its row gone, its command stopped asking
+== row s5
+== row s6
+== row s7
+== row s8
+== has s5 #12
+== has s6 #13
+== has s7 #14
+== has s8 #15
+== ask s5
+   (sample watches s5 from +0s)
+waiting: Waits on #12
+== ask s6
+   (sample watches s6 from +0s)
+waiting: Waits on #13
+== ask s7
+   (sample watches s7 from +0s)
+waiting: Waits on #14
+== ask s8
+   (sample watches s8 from +0s)
+waiting: Waits on #15
+== kept
+s5.json (600): {"closed":false,"comments":false,"on":[{"id":"#12","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+s6.json (600): {"closed":false,"comments":false,"on":[{"id":"#13","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+s7.json (600): {"closed":false,"comments":false,"on":[{"id":"#14","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+s8.json (600): {"closed":false,"comments":false,"on":[{"id":"#15","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+== newproc s5
+== closed s6
+== gone s7
+== later 50
+== pass
+   (sample stops watching s7)
+== rows
+s5: {"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s6: {"closed":true,"on":[{"id":"#13","source":"sample"}],"says":"Stopped, waiting on #13","spoken":"Stopped, waiting on sample #13"}
+s8: {"on":[{"id":"#15","source":"sample"}],"says":"Waits on #15","spoken":"Waits on sample #15"}
+== later 11
+== pass
+   (sample stops watching s8)
+== rows
+s5: {"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+s6: {"closed":true,"on":[{"id":"#13","source":"sample"}],"says":"Stopped, waiting on #13","spoken":"Stopped, waiting on sample #13"}
+s8: null
+== kept
+s5.json (600): {"closed":false,"comments":false,"on":[{"id":"#12","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+s6.json (600): {"closed":true,"comments":false,"on":[{"id":"#13","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+== row s5
+== ask s5
+waiting: Waits on #12
+== newproc s5
+== ask s5
+   (sample stops watching s5)
+   (sample watches s5 from +0s)
+waiting: Waits on #12
+== logged
+s5 -> waits on 1
+s6 -> waits on 1
+s7 -> waits on 1
+s8 -> waits on 1
+s6 -> its conversation closed while it waits: kept for Resume
+s7 -> wait over: its row has gone
+s8 -> wait over: its wait stopped asking
+s5 -> wait over: its conversation runs in another process beside it
+s5 -> waits on 1
+## a restart: what's kept is read back, kept through a pass before the rows are read, watched again from when
+## it began on what it began on (though the source can't name it yet), and what came meanwhile wakes it
+== row s9
+== has s9 #12
+== ask s9
+   (sample watches s9 from +0s)
+waiting: Waits on #12
+== later 20
+== came s9 approved
+== relaunch
+== unread
+== rows
+s9: null
+== kept
+s9.json (600): {"closed":false,"comments":false,"on":[{"id":"#12","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+== nothing s9
+== pass
+   (sample watches s9 from -20s)
+== rows
+s9: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","on":[{"id":"#12","source":"sample"}]}
+== ask s9
+   (sample stops watching s9)
+woke: {"came":[{"at":"2033-05-18T03:33:40Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== kept
+(none)
+## the Mac asleep an hour: the wait goes on; awake a minute without an ask: it ends
+== row s11
+== has s11 #12
+== ask s11
+   (sample watches s11 from +0s)
+waiting: Waits on #12
+== pass
+== sleep 3600
+== pass
+== rows
+s11: {"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+== ask s11
+waiting: Waits on #12
+== later 61
+== pass
+   (sample stops watching s11)
+== rows
+s11: null
+== logged
+s11 -> waits on 1
+s11 -> wait over: its wait stopped asking
+## nothing it waits on can be read: the row says why, and after 30 minutes the wait ends, saying so
+== row s10
+== has s10 #12
+== ask s10
+   (sample watches s10 from +0s)
+waiting: Waits on #12
+== has s10 #12 cant
+== pass
+== rows
+s10: {"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12: it can't be reached","spoken":"Waits on sample #12: it can't be reached"}
+== later 1700
+== ask s10
+waiting: Waits on #12: it can't be reached
+== pass
+== rows
+s10: {"on":[{"id":"#12","source":"sample"}],"says":"Waits on #12: it can't be reached","spoken":"Waits on sample #12: it can't be reached"}
+== later 101
+== ask s10
+   (sample stops watching s10)
+nothing to wait for: none of what it waited on could be read for 30 minutes (Waits on #12: it can't be reached); tell the user
+== rows
+s10: null
+== kept
+(none)
+## closed while it waits: kept and watched, its row saying so; woken, your move with its notice; its words as
+## it's opened again, kept through a restart; carried on in its new process, which hears what came
+== row s12
+== has s12 #12
+== ask s12
+   (sample watches s12 from +0s)
+waiting: Waits on #12
+== closed s12
+== pass
+== rows
+s12: {"closed":true,"on":[{"id":"#12","source":"sample"}],"says":"Stopped, waiting on #12","spoken":"Stopped, waiting on sample #12"}
+== notices
+(no notices)
+== reopen s12
+its words as it's opened again: Whozmove: this conversation closed while it waited on someone else. As the waiting skill says, run ask-panel.sh wait --now to hear what came since the wait began, and carry on from there.
+== later 600
+== pass
+== rows
+s12: {"closed":true,"on":[{"id":"#12","source":"sample"}],"says":"Stopped, waiting on #12","spoken":"Stopped, waiting on sample #12"}
+== came s12 approved
+== pass
+== rows
+s12: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","closed":true,"on":[{"id":"#12","source":"sample"}],"says":"Stopped, waiting on #12","spoken":"Stopped, waiting on sample #12"}
+== notices
+resume-s12 (s12): #12 approved: Resume “its conversation”? [Resume], since 2000000600000
+== kept
+s12.json (600): {"closed":true,"comments":false,"on":[{"id":"#12","source":"sample"}],"pid":"this process","since":2000000000000,"started":"(when it started)"}
+== relaunch
+== unread
+== pass
+   (sample watches s12 from -600s)
+== rows
+s12: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","closed":true,"on":[{"id":"#12","source":"sample"}],"says":"Stopped, waiting on #12","spoken":"Stopped, waiting on sample #12"}
+== notices
+resume-s12 (s12): #12 approved: Resume “its conversation”? [Resume], since 2000000600000
+== reopen s12
+its words as it's opened again: Whozmove: this conversation closed while it waited on someone else. As the waiting skill says, run ask-panel.sh wait --now to hear what came since the wait began, and carry on from there.
+== newproc s12
+== pass
+== rows
+s12: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+== ask s12 now
+   (sample stops watching s12)
+woke: {"came":[{"at":"2033-05-18T03:43:20Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== rows
+s12: null
+== notices
+(no notices)
+== kept
+(none)
+== row s14
+== reopen s14
+its words as it's opened again: (none)
+== logged
+s12 -> waits on 1
+s12 -> its conversation closed while it waits: kept for Resume
+s12 -> something came for its wait
+s12 -> something came for its wait
+s12 -> its wait carries on in its new process
+s12 -> wait over: woke: sample approved
+## run again in a new process that doesn't ask (opened only to look): after two minutes its row says it no
+## longer waits, with Resume, whose press says Resume's words into it, and it then hears what came; a copy beside
+## the running one begins its own
+== row s13
+== has s13 #12
+== ask s13
+   (sample watches s13 from +0s)
+waiting: Waits on #12
+== closed s13
+== pass
+== later 1
+== came s13 approved
+== newproc s13
+== pass
+== later 100
+== pass
+== rows
+s13: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+== notices
+(no notices)
+== say s13
+== later 21
+== pass
+== rows
+s13: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","missed":true,"on":[{"id":"#12","source":"sample"}],"says":"Not waiting on #12 any more","spoken":"Not waiting on sample #12 any more"}
+== notices
+(no notices)
+== say s13
+   (said into s13, by your press: Whozmove: this conversation closed while it waited on someone else. As the waiting skill says, run ask-panel.sh wait --now to hear what came since the wait began, and carry on from there.)
+== ask s13 now
+   (sample stops watching s13)
+woke: {"came":[{"at":"2033-05-18T03:33:21Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== rows
+s13: null
+== row s15
+== has s15 #13
+== ask s15
+   (sample watches s15 from +0s)
+waiting: Waits on #13
+== newproc s15
+== ask s15
+   (sample stops watching s15)
+   (sample watches s15 from +0s)
+waiting: Waits on #13
+== logged
+s13 -> waits on 1
+s13 -> its conversation closed while it waits: kept for Resume
+s13 -> something came for its wait
+s13 -> its conversation runs again and hasn't asked: Resume offered
+s13 -> Resume pressed on its row: its words go in
+s13 -> its wait carries on in its new process
+s13 -> wait over: woke: sample approved
+s15 -> waits on 1
+s15 -> wait over: its conversation runs in another process beside it
+s15 -> waits on 1
+## a first Resume whose session closed before it asked, then a second ten minutes later: that one has its own
+## while, and hears what came
+== row s16
+== has s16 #12
+== ask s16
+   (sample watches s16 from +0s)
+waiting: Waits on #12
+== closed s16
+== pass
+== later 1
+== came s16 approved
+== newproc s16
+== pass
+== closed s16
+== pass
+== rows
+s16: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","closed":true,"on":[{"id":"#12","source":"sample"}],"says":"Stopped, waiting on #12","spoken":"Stopped, waiting on sample #12"}
+== later 600
+== newproc s16
+== pass
+== rows
+s16: {"came":"#12 approved","cameFirst":"#12 approved","cameMore":0,"cameSpoken":"#12 approved","on":[{"id":"#12","source":"sample"}],"says":"Waits on #12","spoken":"Waits on sample #12"}
+== ask s16 now
+   (sample stops watching s16)
+woke: {"came":[{"at":"2033-05-18T03:33:21Z","by":"someone","kind":"approved","source":"sample","what":"#12"}]}
+== logged
+s16 -> waits on 1
+s16 -> its conversation closed while it waits: kept for Resume
+s16 -> something came for its wait
+s16 -> its wait carries on in its new process
+s16 -> wait over: woke: sample approved
+## the plain functions
+== cases
+says, one: Waits on #12 | Waits on pull request 12
+says, two: Waits on #12 · PAY-142 | Waits on pull request 12 and ticket PAY-142
+says, three: Waits on #12 · PAY-142 · your try | Waits on pull request 12, ticket PAY-142 and your try
+says, one can't be read: Waits on PAY-142 · #12 can't be read now | Waits on ticket PAY-142
+says, none can be read: Waits on #12: gh isn't signed in | Waits on pull request 12: gh isn't signed in
+says, a long name, cut at a word: Waits on A very long ticket… | Waits on A very long ticket name that goes on
+says, nothing: (nothing) | (nothing)
+came: #12 approved | #12 approved +1 | (nothing)
+go, held d@5 a@10 b@20 c@20: gear off ["a","b","c","d"]; no gear picked ["a","b","c","d"]; room 0 []; room 1 ["d"]; room 3 ["a","b","d"]; room 3 with 1 let go ["a","d"]; room 9 ["a","b","c","d"]; room 2 with 5 let go []
+let go still taken: 10s on 1; 10s on, at work 0; 31s on 0; never let go 0
+kept: {"closed":false,"comments":false,"on":[{"says":"#12","source":"sample"}],"pid":42,"since":2000000000000,"started":7}
+read back: since 2000000000000, pid 42, started 7, on {"says":"#12","source":"sample"}
+read back, not a wait's: nil nil nil
+== log
+panel.log has none of a word of what came or what it waits on

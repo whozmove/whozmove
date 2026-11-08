@@ -50,35 +50,31 @@ body.collapsed #nowplaying { display: none; }
 
 /* The time and the controls share one place at the right, so the song's text never runs under the controls. Pointed
    at, the time leaves first, then the controls fade in and lift 3px into its place; going, they leave quicker and the
-   time comes back after them. */
+   time comes back after them. While the music is lowered as you talk, a sign beside the time fades in, lifting 3px as
+   it lands, and fades as the music comes back; its room is always kept, so the time never moves for it. The sign is a
+   mark to read, not one to press, so it's none of the kit's buttons or tags: its class only places it, in the time's
+   colour, and moves it. */
 .np-side { flex: none; position: relative; width: 84px; height: 24px; }
-.np-clock { position: absolute; right: 4px; top: 0; line-height: 24px; font-size: var(--size-small);
-            color: var(--faint); font-variant-numeric: tabular-nums; transition: opacity .15s ease .1s; }
-.np-strip.is-hover .np-clock { opacity: 0; transition-delay: 0s; }
+.np-time { position: absolute; right: 4px; top: 0; height: 24px; display: flex; align-items: center; gap: 4px;
+           color: var(--faint); transition: opacity .15s ease .1s; }
+.np-clock { line-height: 24px; font-size: var(--size-small); font-variant-numeric: tabular-nums; }
+.np-quieter { display: grid; place-items: center; opacity: 0; transform: translateY(3px);
+              transition: opacity .25s ease, transform .3s cubic-bezier(.2, .8, .2, 1); }
+#nowplaying.is-quieter .np-quieter { opacity: 1; transform: none; }
+.np-strip.is-hover .np-time { opacity: 0; transition-delay: 0s; }
 .np-controls { position: absolute; inset: 0; display: flex; justify-content: flex-end; gap: 2px; opacity: 0;
                transform: translateY(3px); pointer-events: none; transition: opacity .1s ease, transform .1s ease; }
 .np-strip.is-hover .np-controls { opacity: 1; transform: none; pointer-events: auto;
                                   transition: opacity .25s ease .12s, transform .3s cubic-bezier(.2, .8, .2, 1) .12s; }
-.np-btn { width: 26px; height: 24px; display: grid; place-items: center; padding: 0; border: none;
-          border-radius: var(--radius-button); background: none; color: var(--muted); }
-.np-btn.np-play { width: 28px; color: var(--text); }
-.np-btn.is-hover { background: var(--hover-strong); color: var(--text); }
+/* Back, play and next: the kit's icon buttons, play in the words' colour. */
+.np-btn.np-play { color: var(--text); }
 
-/* The note under it: where to hide the strip, the first time; the question about lyrics after that, with a × beside
-   its answer; and what to do when Whozmove isn't allowed. */
-.np-note { display: flex; align-items: center; gap: 8px; padding: 0 10px 8px 51px; font-size: var(--size-small);
-           color: var(--muted); }
-.np-note[hidden] { display: none; }
-.np-note-text { flex: 1; min-width: 0; }
-.np-note-btn { flex: none; font: inherit; font-size: var(--size-small); padding: 2px 8px;
-               border-radius: var(--radius-small); color: var(--text); border: 1px solid var(--button-edge);
-               background: var(--button); }
-.np-note-btn.is-hover { background: var(--button-hover); }
-.np-note-btn.np-x { border: none; background: none; padding: 0 4px; font-size: 14px; line-height: 1;
-                     color: var(--faint); }
-.np-note-btn.np-x.is-hover { color: var(--text); background: none; }
-.np-note.refused .np-note-text { color: var(--needs-text); }
+/* The note under it (the kit's notice, its button the small one, or a × for one that only goes away): where to hide
+   the strip, the first time; the question about lyrics after that, with a × beside its answer; and what to do when
+   Whozmove isn't allowed, in the colour of something to put right. */
+.np-note { padding: 0 10px 8px 51px; }
+.np-note[hidden], .np-note [hidden] { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .np-fill, .np-lyrics-mark { transition: none; }
+  .np-fill, .np-lyrics-mark, .np-quieter { transition: none; }
 }

@@ -13,12 +13,14 @@
 #import <QuartzCore/QuartzCore.h>
 #import <WebKit/WebKit.h>
 
-// The open panel's width and its corners (kWidth and kCorner in app/core/PanelWindow.m).
+// The open panel's width and its corners (kWidth and kCorner in app/core/PanelWindow+Private.h).
 static const CGFloat kPanelWidth = 340, kCorner = 24;
 // The window: room beside the panel and below the card for the card's shadow, the most of the card that can show
-// under the panel's edge (the strip at the session limit, with its wait), and up to the top of the panel's corners.
+// under the panel's edge (UsageCardReach, UsageCard.h), and up to the top of the panel's corners.
 // Its page is laid out the same way: the panel's bottom-left corner kBeside in and kCorner down (#uc in usage.css).
-static const CGFloat kBeside = 24, kReach = 120, kBelow = 36;
+static const CGFloat kBeside = 24, kBelow = 36;
+// The folded card's line under the panel's edge (UC_LINE in card.js): more than that shows, it's slid out or open.
+static const CGFloat kLine = 3;
 
 static BOOL Calm(void) { return NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion; }
 
@@ -36,6 +38,12 @@ static NSURL *CardPage(void) {
 static NSString *JSONText(id value) {
     NSData *json = [NSJSONSerialization dataWithJSONObject:value options:0 error:nil];
     return json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : nil;
+}
+
+// A place on the screen as the card's page has it, in whole points: from the window's left, its y running down from
+// the window's top.
+static NSPoint InPage(NSPoint screen, NSRect frame) {
+    return NSMakePoint(round(screen.x - NSMinX(frame)), round(NSMaxY(frame) - screen.y));
 }
 
 // What of the window is outside the panel, the part of the card that can show: all of it below the glass's bottom
@@ -101,7 +109,7 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
 
 - (instancetype)init {
     if (!(self = [super init])) return nil;
-    NSRect frame = NSMakeRect(0, 0, kPanelWidth + 2 * kBeside, kBelow + kReach + kCorner);
+    NSRect frame = NSMakeRect(0, 0, kPanelWidth + 2 * kBeside, kBelow + UsageCardReach + kCorner);
     self.panel = [[UsageCardWindow alloc] initWithContentRect:frame
                                                     styleMask:NSWindowStyleMaskBorderless
                                                               | NSWindowStyleMaskNonactivatingPanel
@@ -123,7 +131,7 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
     CAShapeLayer *outline = [CAShapeLayer layer];
     outline.frame = holder.bounds;
     outline.fillColor = NSColor.blackColor.CGColor;
-    CGPathRef outside = OutsidePanel(holder.bounds, kBeside, kBeside + kPanelWidth, kBelow + kReach);
+    CGPathRef outside = OutsidePanel(holder.bounds, kBeside, kBeside + kPanelWidth, kBelow + UsageCardReach);
     outline.path = outside;
     CGPathRelease(outside);
     holder.layer.mask = outline;
@@ -135,7 +143,19 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
     self.view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     [holder addSubview:self.view];
     [self load];
+    // Showing, it goes from sight with the panel (hidden from the menu bar, the screen asleep or locked): its page's
+    // clock stops meanwhile, and it looks again, without drawing in, once it can be seen.
+    __weak typeof(self) weakSelf = self;
+    [NSNotificationCenter.defaultCenter addObserverForName:NSWindowDidChangeOcclusionStateNotification object:self.panel
+                                                     queue:NSOperationQueue.mainQueue
+                                                usingBlock:^(NSNotification *note) { [weakSelf seenOrNot]; }];
     return self;
+}
+
+- (void)seenOrNot {
+    if (!self.showing) return;
+    BOOL seen = (self.panel.occlusionState & NSWindowOcclusionStateVisible) != 0;
+    [self call:seen ? @"cardAppear" : @"cardGone" with:seen ? @[@NO] : @[]];
 }
 
 - (NSWindow *)window {
@@ -191,7 +211,7 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
 
 - (void)took:(NSDictionary *)state {
     self.wanted = [state[@"shown"] boolValue];
-    self.extent = MAX(0, MIN(kReach, [state[@"extent"] doubleValue]));
+    self.extent = MAX(0, MIN(UsageCardReach, [state[@"extent"] doubleValue]));
     self.inset = MAX(0, MIN(kPanelWidth / 2, [state[@"inset"] doubleValue]));
     [self update];
     [self clicksAt:self.lastPointer];
@@ -235,11 +255,15 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
     } else if (self.wanted && !self.showing) {
         self.showing = YES;
         [self place];
+        [self call:@"cardAppear" with:@[@YES]];
         [self fadeTo:1 over:0.2];
-        [self call:@"cardAppear" with:@[]];
     } else if (!self.wanted && self.showing) {
         [self hide:YES];
     }
+}
+
+- (BOOL)seen {
+    return self.showing && self.extent > kLine;
 }
 
 - (void)hide:(BOOL)fade {
@@ -250,29 +274,34 @@ static CGPathRef OutsidePanel(CGRect bounds, CGFloat left, CGFloat right, CGFloa
         [self call:@"cardPointer" with:@[NSNull.null]];
     }
     [self fadeTo:0 over:fade ? 0.15 : 0];
+    [self call:@"cardGone" with:@[]];
 }
 
 // Its window under the glass's bottom edge, the panel's bottom-left corner kBeside in and kCorner down.
 - (void)place {
     NSRect glass = self.glass;
-    NSRect frame = NSMakeRect(NSMinX(glass) - kBeside, NSMinY(glass) - kReach - kBelow,
-                              kPanelWidth + 2 * kBeside, kBelow + kReach + kCorner);
+    NSRect frame = NSMakeRect(NSMinX(glass) - kBeside, NSMinY(glass) - UsageCardReach - kBelow,
+                              kPanelWidth + 2 * kBeside, kBelow + UsageCardReach + kCorner);
     if (!NSEqualRects(frame, self.panel.frame)) [self.panel setFrame:frame display:NO];
 }
 
 #pragma mark The pointer
 
 - (void)pointerAt:(NSPoint)point {
+    NSPoint before = self.lastPointer;
     self.lastPointer = point;
     if (!self.showing) return;
-    // Near the card, its page is told where the pointer is in it, its y running down, from the window's top-left.
+    // Near the card, its page is told where the pointer is in it, its y running down, from the window's top-left, and
+    // where it was at the look before (`from`), even beyond the window: a quick hand crosses the panel's edge between
+    // two looks, and the page slides the card out for it as for a hand seen on the edge.
     NSRect frame = self.panel.frame;
     if (NSPointInRect(point, NSInsetRect(frame, -2, -2))) {
-        NSPoint at = NSMakePoint(round(point.x - NSMinX(frame)), round(NSMaxY(frame) - point.y));
+        NSPoint at = InPage(point, frame), from = InPage(before, frame);
         if (!self.pointerNear || !NSEqualPoints(at, self.toldPointer)) {
             self.pointerNear = YES;
             self.toldPointer = at;
-            [self call:@"cardPointer" with:@[@{@"x": @(at.x), @"y": @(at.y)}]];
+            [self call:@"cardPointer" with:@[@{@"x": @(at.x), @"y": @(at.y),
+                                               @"from": @{@"x": @(from.x), @"y": @(from.y)}}]];
         }
     } else if (self.pointerNear) {
         self.pointerNear = NO;

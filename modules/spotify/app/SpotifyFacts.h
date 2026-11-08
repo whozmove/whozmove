@@ -1,5 +1,5 @@
 // SpotifyFacts: what Whozmove relies on about Spotify that Spotify could change. When it does, the fix goes here. The
-// version these were last checked with is in the README ("Tested with").
+// version these were last checked with is in docs/using/install.md ("What it's tested with").
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
@@ -27,4 +27,9 @@ enum : FourCharCode {
     kSpotifyTrackId = 'ID  ', kSpotifyTrackName = 'pnam', kSpotifyTrackArtist = 'pArt', kSpotifyTrackAlbum = 'pAlb',
     kSpotifyTrackDuration = 'pDur', kSpotifyTrackArtwork = 'aUrl',
     kSpotifyStatePlaying = 'kPSP', kSpotifyStatePaused = 'kPSp', kSpotifyStateStopped = 'kPSS',
+    kSpotifySoundVolume = 'pVol',
 };
+// Its sound volume, 0 to 100 (kSpotifySoundVolume, read and set). It keeps the volume finer than that and reads it
+// back rounded down, so one set reads back one lower but for multiples of this (checked with 1.3.5: 92 reads 91, 60
+// reads 60). It also answers a read a moment late just after a change: the volume before it, for some tens of ms.
+extern const NSInteger kSpotifyVolumeExactEvery;

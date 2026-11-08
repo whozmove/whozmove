@@ -1,0 +1,20 @@
+/* A row's details: under the row's own lines, inside the row, on a step of their own, and the steps on them.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* The details (details.js), a line of the row (morph's .details): a step raised from the row, with no edge or shadow of
+   its own, as they're part of it. The kit's card head, title and lead say what they are. */
+.details { padding-top: 8px; }
+.details-in { padding: 9px 11px 10px; border-radius: var(--radius-box); background: var(--hover); }
+.row.focused .details-in { background: var(--focused-hover); }
+.details .card-head { margin-bottom: 3px; }
+.details .card-head .warn { color: var(--needs-text); }
+.details .card-lead { margin-top: 2px; }
+/* A long title (detailsTitleHTML): its short head in bold, the rest in the body's weight. */
+.details .card-rest { font-weight: 400; }
+/* A card's steps (the kit's options), under a line, as a menu's items are, and what it says while a step waits. */
+.st-steps { display: flex; flex-direction: column; padding: 5px 5px 0; margin-top: 4px;
+            border-top: 1px solid var(--rule); }
+.st-wait { padding: 5px 11px 0; font-size: var(--size-small); color: var(--muted); }
+/* The details' steps, their words lined up with the details'. */
+.details .st-steps { margin: 8px -8px -4px; padding: 5px 0 0; }
+.details .st-wait { padding: 4px 0 0; }

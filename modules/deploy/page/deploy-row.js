@@ -6,9 +6,14 @@
 // shows; the set-up card open on each row, { step, text, then, checking, checked }; when each folder's sessions last
 // changed or built something, and which are at work in it, from the last render (folderWork, agentsAtWork); and each
 // folder's last run that went through, { finishedAt, at }, `at` being when the page first saw it had (0 for one that
-// ended before the page could have seen it), which is when its check shows.
+// ended before the page could have seen it), which is when its check shows; and each folder's build that's up,
+// { at, seen }, `seen` being when the page first saw it up (0 for one up before the page loaded), which is when its arc
+// closes into the ring and its address comes in; the run's own card put away in each folder, by its key
+// (deployRunCard), and the one at Install First's second step, each by its key, with what its install runs as the app
+// found it, by folder (deployInstallChecked), and whether that changed under a press, so the step shows again; and for each project, the Deployed card that says each checkout runs beside the others, once.
 moduleState({ deploys: { projects: {}, folders: {} }, deployPressed: {}, deploySetup: {}, folderWork: {}, atWork: {},
-              deploySeen: {} });
+              deploySeen: {}, deployUpSeen: {}, deployShut: {}, deploySide: {}, deployInstall: {},
+              deployInstallChecks: {}, deployInstallAgain: {} });
 
 // What a row's Deploy knows (deployFor), with when it was pressed here (until the app's run shows), when any session
 // in its folder last changed or built something, when the page saw its last run go through, and the titles of the
@@ -29,12 +34,17 @@ function rowDeploy(s) {
 // with none saved yet, opens the set-up card. While a deploy runs, a press opens its menu instead (Stop Deploy, its
 // log); only just pressed, before the run shows, or while the agent works or asks, it takes nothing. A Control-click is
 // a right-click, which opens the menu whatever the button shows (deployMenu), so it's left to that. A button only just
-// shown doesn't take a press yet.
+// shown doesn't take a press yet. Dimmed while an agent works there, a press is kept by the app, to deploy once that's
+// done (DeployKept), and while one is kept, a press opens the menu, with Don't Deploy.
 function pressDeploy(button, e) {
   e.preventDefault();
   const sid = button.dataset.deploy;
   if (e.ctrlKey || justShown('deploy:' + sid)) return;
-  if (button.classList.contains('running')) return deployMenu(button);
+  if (button.classList.contains('running') || button.classList.contains('kept')) return deployMenu(button);
+  if (button.classList.contains('keeps')) {
+    native({ type: 'deploy', sessionId: sid });
+    return;
+  }
   if (button.classList.contains('going') || button.classList.contains('off')) return;
   const s = state.last.sessions.find((x) => x.sessionId === sid);
   if (!s) return;
@@ -44,6 +54,84 @@ function pressDeploy(button, e) {
   delete state.stepNotes[sid];
   state.deployPressed[deploy.folder] = Date.now();
   native({ type: 'deploy', sessionId: sid });
+  render();
+}
+
+// The address of a build that's up: a press opens it in the app that opens web pages (the app makes the address from
+// the port it read, never from the page). Not while it's only just shown.
+function pressAddress(el, e) {
+  e.preventDefault();
+  if (justShown('addr:' + el.dataset.addr)) return;
+  native({ type: 'openAddress', sessionId: el.dataset.addr });
+  // Opened: the Deployed card has said what it had to.
+  const s = state.last.sessions.find((x) => x.sessionId === el.dataset.addr);
+  const up = s && deployFor(s, state.deploys).run?.up;
+  if (up) {
+    state.deployShut[folderOf(s)] = `up:${up.at}`;
+    render();
+  }
+}
+
+// Deploy's card: × or Cancel puts it away, Take Me There opens the session that started what holds the port, and the
+// rest the app does (deployCard in DeployModule.m), deciding the port itself. A run's own card (deployRunCard) opens
+// the address or the log, copies the install command and opens the row's session (Copy and Go), asks whether to
+// install the packages first and then does (installAndDeploy, from this press alone), stops the run or deploys again,
+// and is put away by its key, so it stays away for that run. Not while it's only just shown (its second step waits again, as a card just shown).
+function pressCard(card, e) {
+  const button = e.target.closest('button');
+  if (!button) return;
+  e.preventDefault();
+  const sid = card.dataset.dstate;
+  if (justShown('dcard:' + sid)) return;
+  const act = button.matches('.d-x') ? 'close' : button.dataset.act;
+  const s = state.last.sessions.find((x) => x.sessionId === sid);
+  const d = s && deployFor(s, state.deploys);
+  if (!d) return;
+  const seen = state.deployUpSeen[d.folder]?.seen || 0;
+  const c = d.card || deployRunCard(d, Date.now(), seen, state.deployShut[d.folder]);
+  // Take Me There: the session that started what holds the port.
+  if (act === 'session') {
+    const there = state.last.sessions.find((x) => x.sessionId === c?.session);
+    if (there) openSession(there);
+    return;
+  }
+  if (!c?.key) return native({ type: 'deployCard', sessionId: sid, act });
+  // The run's own card: what it says to do, done here or by the app; putting it away is remembered by its key.
+  if (act === 'open') native({ type: 'openAddress', sessionId: sid });
+  else if (act === 'log') return native({ type: 'openDeployLog', sessionId: sid });
+  else if (act === 'copyAndGo') {
+    // Copy and Go: the install on the clipboard, then the row's own session, in that checkout, to paste it there.
+    native({ type: 'copyInstall', sessionId: sid });
+    return openSession(s);
+  } else if (act === 'install' || act === 'back') {
+    // Install First's second step, which asks before anything runs, showing what the install runs once the app has
+    // looked; and Back from it.
+    delete state.deployInstallChecks[d.folder];
+    if (act === 'install') {
+      state.deployInstall[d.folder] = c.key;
+      native({ type: 'checkInstall', sessionId: sid });
+    } else delete state.deployInstall[d.folder];
+    state.shownAt['dcard:' + sid] = Date.now();
+    return render();
+  } else if (act === 'installNow') {
+    // Only what the step showed, which the app checks is still what the install runs. The card isn't put away: once
+    // the run starts it goes by itself; if the app refuses (an agent at work there), the row says why and the card is
+    // still there, at its first step, for when it can; and if what it runs has changed, the step shows it again.
+    const check = state.deployInstallChecks[d.folder];
+    if (!check) return;
+    delete state.stepNotes[sid];
+    delete state.deployInstall[d.folder];
+    state.deployPressed[d.folder] = Date.now();
+    native({ type: 'installAndDeploy', sessionId: sid, words: check.words, hash: check.hash });
+    return render();
+  }
+  else if (act === 'stop') native({ type: 'stopDeploy', sessionId: sid });
+  else if (act === 'again') {
+    delete state.stepNotes[sid];
+    state.deployPressed[d.folder] = Date.now();
+    native({ type: 'deploy', sessionId: sid });
+  }
+  state.deployShut[d.folder] = c.key;
   render();
 }
 
@@ -116,11 +204,26 @@ window.setDeploys = (deploys) => {
     if (!state.deploys.folders[folder]) delete state.deploySeen[folder];
   }
   for (const [folder, f] of Object.entries(state.deploys.folders)) {
+    const up = f.run?.running && f.run.up;
+    if (!up) delete state.deployUpSeen[folder];
+    else if (state.deployUpSeen[folder]?.at !== up.at) {
+      state.deployUpSeen[folder] = { at: up.at, seen: now - up.at < 10000 ? now : 0 };
+    }
+  }
+  for (const [folder, f] of Object.entries(state.deploys.folders)) {
     const run = f.run;
     if (!run?.ok || run.running || state.deploySeen[folder]?.finishedAt === run.finishedAt) continue;
     state.deploySeen[folder] = { finishedAt: run.finishedAt, at: now - run.finishedAt < 10000 ? now : 0 };
   }
   if (!state.sliding && !state.composing) render();
+};
+
+// What Install First's install runs in a folder, as the app followed it (DeployInstallCheck in app/Deploys.m), for its
+// card's second step; `again` when it changed under a press of Install and Deploy, so the step shows it again.
+window.deployInstallChecked = (folder, check, again) => {
+  state.deployInstallChecks[folder] = check;
+  if (again) state.deployInstallAgain[folder] = true;
+  render();
 };
 
 // What a command on the set-up card really runs, and whether it looks as if it could reach production, as the app
@@ -147,25 +250,75 @@ core.rowLooks.push((row) => {
   row.offer = deployOffer(row.s, row.kind, row.owner, row.deploy, row.clock);
   if (row.offer) state.shownAt['deploy:' + row.s.sessionId] ??= row.clock;
   else delete state.shownAt['deploy:' + row.s.sessionId];
+  // Deploy's card for the folder: the app's, or else the run's own.
+  if (row.deploy) {
+    const seen = state.deployUpSeen[row.deploy.folder]?.seen || 0;
+    row.deployCard = row.deploy.card
+      || deployRunCard(row.deploy, row.clock, seen, state.deployShut[row.deploy.folder]);
+  }
+  // The address, while it shows: a press is taken once it's been shown a moment.
+  if (row.offer?.look === 'up' && !row.brief) state.shownAt['addr:' + row.s.sessionId] ??= row.clock;
+  else delete state.shownAt['addr:' + row.s.sessionId];
 });
-// At the end of the bottom line, after where the session runs: Deploy goes with the folder it puts in place.
-core.slots.placeEnd.push((row) => (row.offer ? deployHTML(row.s, row.deploy, row.offer, row.clock) : ''));
-// The row's note, on a row with the button: what its folder's deploy has to say.
-core.rowNotes.push((row) => (row.offer ? deployNote(row.deploy, Date.now()) : null));
-// The set-up card, after a request or the Compact card on the row.
+// When the page first saw the row's build up (0 for one up before it loaded).
+const upSeenOf = (row) => state.deployUpSeen[row.deploy.folder]?.seen || 0;
+// At the end of the bottom line, after where the session runs: Deploy goes with the folder it puts in place, and a
+// build that's up has its address between them. The button goes wherever the row's end does (a row shown briefly's
+// note's end), and while the row asks something of you, only at the end of an ask to try, as its one action (askAct);
+// the address stays on the bottom line, where it can still be pressed (a row shown briefly has it in the button's
+// tip).
+core.slots.placeStays.push((row) => (row.offer?.look === 'up' && !row.brief
+  ? deployAddressHTML(row.s, row.deploy, row.clock, upSeenOf(row)) : ''));
+core.slots.placeEnd.push((row) => (row.offer
+  ? deployHTML(row.s, row.deploy, row.offer, row.clock, upSeenOf(row)) : ''));
+// An ask to try something has Deploy as its one action, at the ask's end, while it's offered (row.askWant).
+core.slots.askAct.push((row) => (row.askWant === 'try' && row.offer
+  ? deployHTML(row.s, row.deploy, row.offer, row.clock, upSeenOf(row)) : ''));
+// The row's note, on a row with the button: what its folder's deploy has to say, unless Deploy's card says it. A row
+// shows one card, the most pressing, so while another's in its place (a request, the set-up card), the note still says
+// it.
+const DEPLOY_CARD_ORDER = 31;
+const deployCardShows = (row) => !!(row.offer && row.deployCard)
+  && core.rowCards.every((card) => card.order >= DEPLOY_CARD_ORDER || !card.wants(row));
+core.rowNotes.push((row) => (row.offer?.kept ? { text: keptNote(row.offer, base(row.deploy.folder)), quiet: true }
+  : row.offer && !deployCardShows(row) ? deployNote(row.deploy, Date.now(), state.deployShut[row.deploy.folder])
+  : null));
+// The set-up card, after a request or the Compact card on the row; and after that, Deploy's card for its folder, when
+// a press didn't run as it was or its run has something to say (deployCardHTML), on the row that has the button. The
+// Deployed card says each checkout runs beside the others the first time a project's shows (deploySide), and while
+// any card shows, the row's note leaves it to the card.
 core.rowCards.push({
   name: 'setup', order: 30,
   wants: (row) => !!state.deploySetup[row.s.sessionId],
   html: (row) => setupHTML(row.s, state.deploySetup[row.s.sessionId], deployFor(row.s, state.deploys)),
+}, {
+  name: 'deployCard', order: DEPLOY_CARD_ORDER,
+  wants: (row) => !!(row.offer && row.deployCard),
+  html: (row) => {
+    const c = row.deployCard;
+    state.shownAt['dcard:' + row.s.sessionId] ??= Date.now();
+    if (c.kind === 'ok') state.deploySide[row.deploy.key] ??= c.key;
+    const folder = row.deploy.folder;
+    // What it runs changed under Install and Deploy: its second step again, with what it runs now.
+    if (state.deployInstallAgain[folder] && c.kind === 'packages') {
+      delete state.deployInstallAgain[folder];
+      state.deployInstall[folder] = c.key;
+      state.shownAt['dcard:' + row.s.sessionId] = Date.now();
+    }
+    return deployCardHTML(row.s, c, row.deploy, c.kind === 'ok' && state.deploySide[row.deploy.key] === c.key,
+                          state.deployInstall[folder] === c.key && (state.deployInstallChecks[folder] || true));
+  },
+  away: (row) => { delete state.shownAt['dcard:' + row.s.sessionId]; },
 });
-core.presses.push(['.play[data-deploy]', pressDeploy], ['.perm[data-setup]', pressSetup]);
+core.presses.push(['.play[data-deploy]', pressDeploy], ['.perm[data-setup]', pressSetup], ['.d-addr', pressAddress],
+                  ['.perm[data-dstate]', pressCard]);
 core.typing.push(['.d-cmd', (box) => {
   const setup = state.deploySetup[box.closest('.perm').dataset.setup];
   if (setup) setup.text = box.value;
   const next = box.closest('.perm').querySelector('.d-next');
   if (next) next.disabled = !box.value.trim();
 }]);
-core.pointerTargets.push('.play:not(.off)');
+core.pointerTargets.push('.play:not(.off)', '.play.keeps', '.play.kept', '.d-addr', '.d-link');
 // When each folder's sessions last changed or built something, and which are at work in it, from the sessions listed.
 core.beforeDraw.push((listed) => {
   state.folderWork = folderWork(listed);
@@ -174,4 +327,4 @@ core.beforeDraw.push((listed) => {
 // A step's note (why a deploy couldn't start, say): a Deploy pressed there stops standing in for a run.
 core.noted.push((s) => { delete state.deployPressed[folderOf(s)]; });
 core.forgotten.keys.push('deploySetup');
-core.forgotten.prefixes.push('setup', 'deploy');
+core.forgotten.prefixes.push('setup', 'deploy', 'addr', 'dcard');

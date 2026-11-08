@@ -1,0 +1,54 @@
+== Clean up for a sample developer's home folder: each group's items, ticked or not, and what keeps any
+Xcode's built files: Built again the next time you build
+  ticked  Xcode's built files · 3.0 MB · DerivedData, for every project Xcode has built
+Your tools' caches: Downloaded again when they're needed
+  ticked  npm's cache · 2.0 MB · ~/.npm
+  ticked  Yarn's cache · 2.0 MB · Library/Caches/Yarn
+  ticked  Support files for older iOS versions · 2.0 MB · 16.4 (20E247) · Xcode adds them again when a phone on one connects
+Models: Downloaded again the next time you use one
+          Ollama's models · 2.0 MB · ~/.ollama/models
+Your projects' built files: Built again the next time you build
+  ticked  node_modules, .next and ios/build · 5.0 MB · old-app · not changed in over a year
+          node_modules · 2.0 MB · fresh · changed today
+  locked  node_modules · 2.0 MB · busy · changed today
+            Claude Code is working in busy now
+Worktrees you're done with: Their branches are merged: the folder goes to the Trash, and the branch stays
+  ticked  proj-done · 3.0 MB · Merged into main · not changed in over a year
+
+== The same before the first map: the first pass's usual places only, listed in a few seconds
+Xcode's built files: Built again the next time you build
+  ticked  Xcode's built files · 3.0 MB · DerivedData, for every project Xcode has built
+Your tools' caches: Downloaded again when they're needed
+  ticked  npm's cache · 2.0 MB · ~/.npm
+  ticked  Yarn's cache · 2.0 MB · Library/Caches/Yarn
+  ticked  Support files for older iOS versions · 2.0 MB · 16.4 (20E247) · Xcode adds them again when a phone on one connects
+Models: Downloaded again the next time you use one
+          Ollama's models · 2.0 MB · ~/.ollama/models
+
+== The first pass in a home whose Library is a link elsewhere: only what's in the home folder itself
+Your tools' caches: Downloaded again when they're needed
+  ticked  npm's cache · 2.0 MB · ~/.npm
+
+== The first pass in a home folder that's a checkout: listed, and kept until the disk is measured
+Your tools' caches: Downloaded again when they're needed
+  locked  npm's cache · 2.0 MB · ~/.npm
+            Part of the checkout in your home folder: git is asked about it once your disk is measured
+== …and once it's measured, kept for what git says of that checkout
+Your tools' caches: Downloaded again when they're needed
+  locked  npm's cache · 2.0 MB · ~/.npm
+            Part of home, which has changes not committed yet
+
+== Cleaning, step by step
+  folder:~/.npm/_cacache: moving
+  folder:~/.npm/_cacache: trashed
+  built:~/code/busy: stayed · Claude Code is working in busy now · Clean Up again once it's done
+  folder:~/gone: stayed · It isn't on the list now · Look at the list again
+  then: 2.0 MB in the Trash, cleaned ["npm's cache"], 1 stayed
+  in the stand-in Trash: _cacache
+== After the map is measured again
+  folder:~/Library/Caches/Yarn: stayed · The map was measured again since: look at the list again
+  then: 0.0 MB in the Trash, cleaned [], 1 stayed
+== Library behind a link by the time it's cleaned
+  folder:~/Library/Caches/Yarn: moving
+  folder:~/Library/Caches/Yarn: stayed · Something else is there now
+  then: 0.0 MB in the Trash, cleaned [], 1 stayed

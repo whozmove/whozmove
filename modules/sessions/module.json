@@ -1,0 +1,4 @@
+{
+  "order": 120,
+  "scripts": ["page/sessions.js"]
+}

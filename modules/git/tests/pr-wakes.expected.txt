@@ -1,0 +1,125 @@
+{
+  "events" : [
+    {
+      "at" : 1893498600000,
+      "by" : "alex",
+      "kind" : "commented"
+    },
+    {
+      "at" : 1893499500000,
+      "by" : "sam",
+      "kind" : "commented"
+    },
+    {
+      "at" : 1893500100000,
+      "by" : "robin",
+      "kind" : "changes"
+    },
+    {
+      "at" : 1893500400000,
+      "by" : "robin",
+      "kind" : "commented"
+    },
+    {
+      "at" : 1893501000000,
+      "by" : "robin",
+      "kind" : "approved"
+    },
+    {
+      "at" : 1893501600000,
+      "kind" : "merged"
+    }
+  ],
+  "waits on" : {
+    "cant" : "gh isn't on this Mac (install GitHub's gh)",
+    "on" : {
+      "source" : "pull request",
+      "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+    },
+    "says" : "#12",
+    "spoken" : "pull request 12"
+  },
+  "waits on a merged one" : "nothing",
+  "wakes" : [
+    {
+      "at" : 1893500100000,
+      "facts" : {
+        "by" : "robin",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "changes",
+      "says" : "#12 needs changes"
+    },
+    {
+      "at" : 1893501000000,
+      "facts" : {
+        "by" : "robin",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "approved",
+      "says" : "#12 approved"
+    },
+    {
+      "at" : 1893501600000,
+      "facts" : {
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "merged",
+      "says" : "#12 merged"
+    }
+  ],
+  "wakes with comments" : [
+    {
+      "at" : 1893499500000,
+      "facts" : {
+        "by" : "sam",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "commented",
+      "says" : "#12 has a comment"
+    },
+    {
+      "at" : 1893500100000,
+      "facts" : {
+        "by" : "robin",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "changes",
+      "says" : "#12 needs changes"
+    },
+    {
+      "at" : 1893500400000,
+      "facts" : {
+        "by" : "robin",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "commented",
+      "says" : "#12 has a comment"
+    },
+    {
+      "at" : 1893501000000,
+      "facts" : {
+        "by" : "robin",
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "approved",
+      "says" : "#12 approved"
+    },
+    {
+      "at" : 1893501600000,
+      "facts" : {
+        "pr" : 12,
+        "url" : "https:\/\/github.com\/acme\/shop\/pull\/12"
+      },
+      "kind" : "merged",
+      "says" : "#12 merged"
+    }
+  ]
+}

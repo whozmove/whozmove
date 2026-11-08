@@ -1,0 +1,172 @@
+{
+  "due" : [
+    [
+      "not watched, unchanged, 3s, active since",
+      true
+    ],
+    [
+      "not watched, unchanged, 3s, quiet",
+      false
+    ],
+    [
+      "not watched, unchanged, 21s, quiet",
+      true
+    ],
+    [
+      "watched, unchanged, 21s, active since",
+      false
+    ],
+    [
+      "watched, changed, 1s, active since",
+      false
+    ],
+    [
+      "watched, changed, 3s, active since",
+      true
+    ],
+    [
+      "watched, changed, 3s, quiet",
+      false
+    ],
+    [
+      "watched, changed, 21s, quiet",
+      true
+    ],
+    [
+      "watched, unchanged, 299s, quiet",
+      false
+    ],
+    [
+      "watched, unchanged, 301s, quiet",
+      true
+    ]
+  ],
+  "onRemote" : [
+    [
+      "shop",
+      "main",
+      true
+    ],
+    [
+      "shop",
+      "try",
+      false
+    ],
+    [
+      "shop",
+      "nosuch",
+      false
+    ],
+    [
+      "shop-try",
+      "main",
+      true
+    ]
+  ],
+  "steps" : [
+    [
+      "nothing",
+      [
+
+      ]
+    ],
+    [
+      "git reads in each, as Whozmove reads (status, log, show, diff)",
+      [
+
+      ]
+    ],
+    [
+      "a file edited in the worktree",
+      [
+        "shop-try: files"
+      ]
+    ],
+    [
+      "a file edited in shop, through its link",
+      [
+        "shop-link: files"
+      ]
+    ],
+    [
+      "a new file in shop",
+      [
+        "shop-link: files"
+      ]
+    ],
+    [
+      "a file edited in the submodule",
+      [
+        "shop-link: files",
+        "parts: files"
+      ]
+    ],
+    [
+      "staged in the worktree",
+      [
+        "shop-try: files"
+      ]
+    ],
+    [
+      "a commit in the worktree",
+      [
+        "shop-try: files refs"
+      ]
+    ],
+    [
+      "a commit in the submodule",
+      [
+        "shop-link: files",
+        "parts: files refs repo"
+      ]
+    ],
+    [
+      "a commit in shop, on main, the base with no copy on a remote",
+      [
+        "shop-link: files refs repo",
+        "shop-try: refs repo"
+      ]
+    ],
+    [
+      "a remote added (config)",
+      [
+        "shop-link: refs repo",
+        "shop-try: refs repo"
+      ]
+    ],
+    [
+      "a remote branch moves (a packed ref)",
+      [
+        "shop-link: refs repo",
+        "shop-try: refs repo"
+      ]
+    ],
+    [
+      "a commit in shop, on main, now with a copy on a remote",
+      [
+        "shop-link: files refs repo",
+        "shop-try: repo"
+      ]
+    ],
+    [
+      "another branch made in shop",
+      [
+
+      ]
+    ]
+  ],
+  "watched" : [
+    [
+      "shop-link",
+      true
+    ],
+    [
+      "shop-try",
+      true
+    ],
+    [
+      "parts",
+      true
+    ]
+  ]
+}

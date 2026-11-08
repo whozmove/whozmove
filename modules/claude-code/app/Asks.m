@@ -1,7 +1,12 @@
-// Asks: permission requests waiting in the panel, left by the permission hook, and the answers given there.
+// Asks: permission requests waiting in the panel, asked by the permission hook over its line, and the answers given
+// there.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Asks.h"
+#import "HookLine.h"
+#import "ClaudeSessions.h"
+#import "PluginInstall.h"
 #import "Log.h"
+#import "DontWait.h"
 #import "Files.h"
 #import "Processes.h"
 
@@ -32,46 +37,64 @@ static id ShownInput(id value, BOOL *cut) {
     return value;
 }
 
-// Permission requests waiting in the panel, the oldest per session. hooks/whozmove-claude-permission.py leaves them
-// in the asks folder of Whozmove's own folder. One whose hook is gone (answered in Claude, or timed out) is
-// cleared away.
+// A request an old hook left in the asks folder of Whozmove's own folder, to show, never to answer: only while its
+// hook runs, in the session it names, and that session started before the hooks asked over their line, so a request
+// written there for a session that asks over its line shows nothing. One whose hook is gone is cleared away.
+static NSDictionary *LegacyAsk(NSString *path) {
+    NSDictionary *ask = AsRecord(ReadJSON(path));
+    NSString *sessionId = AsText(ask[@"sessionId"]);
+    pid_t hook = AsNumber(ask[@"pid"]).intValue;
+    if (!sessionId) return nil;
+    if (!ProcessAlive(hook)) {
+        [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+        return nil;
+    }
+    if ([HookLine shared].printing) return ask;
+    // Since when the hooks have asked over their line is remembered as it was first seen, as the other parts are, so a
+    // later copy of the hooks doesn't make a session that asks over it look older than it is.
+    pid_t session = 0;
+    if (![SessionAbove(hook, &session) isEqual:sessionId] || SessionHasHookPart(session, HookPartHookLine, YES))
+        return nil;
+    NSMutableDictionary *shown = [ask mutableCopy];
+    shown[@"legacy"] = @YES;
+    return shown;
+}
+
+// Permission requests waiting in the panel, the oldest per session: those asked over the hook's line, and, from
+// sessions that started before it, those their hooks leave in files.
 NSDictionary<NSString *, NSDictionary *> *PendingAsks(void) {
+    NSMutableArray<NSDictionary *> *asks = [[HookLine shared].requests.allValues mutableCopy];
     NSString *dir = AppDir(@"asks");
-    NSMutableDictionary *bySession = [NSMutableDictionary dictionary];
     for (NSString *file in [NSFileManager.defaultManager contentsOfDirectoryAtPath:dir error:nil]) {
         if (![file.pathExtension isEqualToString:@"json"] || [file hasSuffix:@".answer.json"]) continue;
-        NSString *path = [dir stringByAppendingPathComponent:file];
-        NSDictionary *ask = ReadJSON(path);
-        if (![ask isKindOfClass:NSDictionary.class] || ![ask[@"sessionId"] isKindOfClass:NSString.class]) continue;
-        if (!ProcessAlive([ask[@"pid"] intValue])) {
-            [NSFileManager.defaultManager removeItemAtPath:path error:nil];
-            continue;
-        }
+        NSDictionary *ask = LegacyAsk([dir stringByAppendingPathComponent:file]);
+        if (ask) [asks addObject:ask];
+    }
+    NSMutableDictionary *bySession = [NSMutableDictionary dictionary];
+    for (NSDictionary *ask in asks) {
+        if (![ask[@"sessionId"] isKindOfClass:NSString.class]) continue;
         NSMutableDictionary *shown = [ask mutableCopy];
         BOOL cut = NO;
         shown[@"input"] = [ask[@"input"] isKindOfClass:NSDictionary.class] ? ShownInput(ask[@"input"], &cut) : @{};
         shown[@"truncated"] = @(cut);
+        // One that goes by itself if no one answers carries its session's whole wait, which its card counts down.
+        if (ask[@"expiresAt"]) shown[@"waits"] = DontWaitFor(ask[@"sessionId"]);
         NSDictionary *older = bySession[ask[@"sessionId"]];
         if (!older || [ask[@"at"] doubleValue] < [older[@"at"] doubleValue]) bySession[ask[@"sessionId"]] = shown;
     }
     return bySession;
 }
 
-// An answer given in the panel, for the hook to pass on: allow this once, or deny. For Claude's questions it also
-// carries the answers (question text -> answer), and for a plan your notes or that you stopped it, which the hook
-// passes on only for those tools.
-void AnswerAsk(NSDictionary *msg) {
-    NSString *askId = msg[@"id"];
+NSString *AskId(id value) {
     NSCharacterSet *notHex = [[NSCharacterSet characterSetWithCharactersInString:@"0123456789abcdef"] invertedSet];
-    if (![askId isKindOfClass:NSString.class] || !askId.length
-        || [askId rangeOfCharacterFromSet:notHex].location != NSNotFound)
-        return;
+    if (![value isKindOfClass:NSString.class] || ![value length] || [value length] > 64
+        || [value rangeOfCharacterFromSet:notHex].location != NSNotFound)
+        return nil;
+    return value;
+}
+
+NSDictionary *AskReply(NSDictionary *msg) {
     NSString *behavior = [msg[@"allow"] boolValue] ? @"allow" : @"deny";
-    NSString *path = [AppDir(@"asks") stringByAppendingPathComponent:[askId stringByAppendingString:@".answer.json"]];
-    if ([NSFileManager.defaultManager fileExistsAtPath:path]) {  // answered already: the first answer stands
-        PanelLog(@"permission %@: already answered; %@ ignored", askId, behavior);
-        return;
-    }
     NSMutableDictionary *reply = [@{@"behavior": behavior} mutableCopy];
     if ([msg[@"answers"] isKindOfClass:NSDictionary.class]) {
         NSMutableDictionary *answers = [NSMutableDictionary dictionary];
@@ -84,11 +107,30 @@ void AnswerAsk(NSDictionary *msg) {
     if (![msg[@"allow"] boolValue] && [msg[@"message"] isKindOfClass:NSString.class])
         reply[@"message"] = Clip(msg[@"message"], 10000);
     if (![msg[@"allow"] boolValue] && [msg[@"stop"] boolValue]) reply[@"stop"] = @YES;
-    NSData *json = [NSJSONSerialization dataWithJSONObject:reply options:0 error:nil];
-    if (!json) {
-        PanelLog(@"permission %@: answer not written (not JSON)", askId);
-        return;
-    }
-    BOOL written = [json writeToFile:path atomically:YES];
-    PanelLog(@"permission %@ -> %@%@", askId, behavior, written ? @"" : @" (couldn't write the answer)");
+    if (![msg[@"allow"] boolValue] && [msg[@"clarify"] boolValue]) reply[@"clarify"] = @YES;
+    return reply;
+}
+
+BOOL SendAnswer(NSString *askId, NSDictionary *reply) {
+    BOOL sent = [[HookLine shared] answer:askId with:reply];
+    PanelLog(@"permission %@ -> %@%@", askId, reply[@"behavior"], sent ? @"" : @" (gone, or answered already)");
+    return sent;
+}
+
+// An answer given in the panel, for the hook to pass on: allow this once, or deny. For Claude's questions it also
+// carries the answers (question text -> answer), or that you'd like to chat about them (`clarify`, with the answers
+// picked so far), and for a plan your notes or that you stopped it, which the hook passes on only for those tools. Only
+// down the request's own line, once: the first answer stands, and a request from an old hook, in a file, isn't answered
+// from here.
+void AnswerAsk(NSDictionary *msg) {
+    NSString *askId = AskId(msg[@"id"]);
+    if (askId) SendAnswer(askId, AskReply(msg));
+}
+
+// A hold is kept for every request, so a session you allow doesn't answer one you're answering; for one that goes by
+// itself it goes down the request's line too, and the hook waits at least a minute past now. A hold only ever puts off
+// its going by itself, and never answers it.
+void HoldAsk(NSString *askId) {
+    askId = AskId(askId);
+    if (askId) [[HookLine shared] hold:askId at:floor(NSDate.date.timeIntervalSince1970 * 1000)];
 }

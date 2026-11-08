@@ -5,14 +5,16 @@
 #import "Changes.h"
 #import "Files.h"
 #import "Git.h"
+#import "CheckoutWatch.h"
 #import "Processes.h"
 #import "Row.h"
 #import "Text.h"
 #import "Core.h"
 
-// How often a checkout is looked at again, at most; the biggest new file read whole; the most a diff is read for (a
-// checkout changing more than that isn't counted line by line); the longest line kept; the most lines a changes view
-// is sent, the files past that listed with their counts only; and the most new files read.
+// How often a checkout is looked at again, at most (and, while nothing in it seems to have changed, as macOS's file
+// system events tell it, CheckoutQuietEvery); the biggest new file read whole; the most a diff is read for (a checkout
+// changing more than that isn't counted line by line); the longest line kept; the most lines a changes view is sent,
+// the files past that listed with their counts only; and the most new files read.
 static const NSTimeInterval kEvery = 3;
 static const unsigned long long kNewFileLargest = 1024 * 1024;
 static const NSUInteger kDiffLargest = 32 * 1024 * 1024, kLineLongest = 2000, kViewLines = 30000, kNewFiles = 500;
@@ -309,8 +311,9 @@ static const NSUInteger kOutgoingCommits = 50;
 
 // The commits from `from` (where GitHub's copy is, as a row's ↑N counts them) to HEAD, newest first, as git log lists
 // them, each with what it changed, as git show has it: {commits: [{hash, short, subject, at (ms), files}], more}. Nil
-// when git can't say.
-static NSDictionary *ReadOutgoing(NSString *root, NSString *from) {
+// when git can't say. A commit never changes, so one already read (`shown`: what each listed commit changed, by its
+// hash, from the lists held now) isn't shown again, however often HEAD moves on a branch dozens of commits ahead.
+static NSDictionary *ReadOutgoing(NSString *root, NSString *from, NSDictionary<NSString *, NSArray *> *shown) {
     NSString *range = [from stringByAppendingString:@"..HEAD"];
     NSString *log = Git(root, @[@"log", @"--no-color", @"--format=%H%x1f%h%x1f%ct%x1f%s",
                                 [NSString stringWithFormat:@"-n%lu", (unsigned long)kOutgoingCommits], range]);
@@ -320,27 +323,52 @@ static NSDictionary *ReadOutgoing(NSString *root, NSString *from) {
     for (NSString *line in [log componentsSeparatedByString:@"\n"]) {
         NSArray *f = [line componentsSeparatedByString:@"\x1f"];
         if (f.count < 4) continue;
-        NSString *shown = Git(root, @[@"show", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3", @"-M",
-                                      @"--format=", f[0]]);
+        NSArray *files = shown[f[0]];
+        if (!files) {
+            NSString *diff = Git(root, @[@"show", @"--no-ext-diff", @"--no-textconv", @"--no-color", @"-U3", @"-M",
+                                         @"--format=", f[0]]);
+            files = diff ? Bare(ParseDiff(diff)) : @[];
+        }
         [commits addObject:@{@"hash": f[0], @"short": f[1], @"at": @([f[2] doubleValue] * 1000),
                              @"subject": [[f subarrayWithRange:NSMakeRange(3, f.count - 3)] componentsJoinedByString:@"\x1f"],
-                             @"files": shown ? Bare(ParseDiff(shown)) : @[]}];
+                             @"files": files}];
     }
     NSInteger all = [[count stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] integerValue];
     return @{@"commits": commits, @"more": @(MAX(0, all - (NSInteger)commits.count))};
 }
 
-// A full path as it is in a checkout, or nil if it's outside it.
+// A path as it is in a folder, or nil if it isn't in it.
+static NSString *InFolder(NSString *path, NSString *folder) {
+    NSUInteger length = folder.length;
+    if (path.length <= length + 1 || [path characterAtIndex:length] != '/' || ![path hasPrefix:folder]) return nil;
+    return [path substringFromIndex:length + 1];
+}
+
+// A full path as it is in a checkout, or nil if it's outside it. It's asked of every edited file for every checkout,
+// every second, so the real path (symlinks resolved) is found once per path, and kept as null when it's the path
+// itself, as most are, which then needs no second look.
 static NSString *Within(NSString *path, NSString *root) {
-    NSString *prefix = [root stringByAppendingString:@"/"];
-    if ([path hasPrefix:prefix]) return [path substringFromIndex:prefix.length];
-    // The real path (symlinks resolved) is asked for once per path: it's asked about every second.
-    static NSCache *reals;
+    NSString *inside = InFolder(path, root);
+    if (inside || !path.length) return inside;
+    static NSMutableDictionary<NSString *, id> *reals;
+    static NSLock *lock;
     static dispatch_once_t once;
-    dispatch_once(&once, ^{ reals = [NSCache new]; reals.countLimit = 5000; });
-    NSString *real = [reals objectForKey:path];
-    if (!real) [reals setObject:(real = RealPath(path) ?: @"") forKey:path];
-    return [real hasPrefix:prefix] ? [real substringFromIndex:prefix.length] : nil;
+    dispatch_once(&once, ^{
+        reals = [NSMutableDictionary dictionary];
+        lock = [NSLock new];
+    });
+    [lock lock];
+    id real = reals[path];
+    [lock unlock];
+    if (!real) {
+        NSString *found = RealPath(path);
+        real = !found.length || [found isEqualToString:path] ? NSNull.null : found;
+        [lock lock];
+        if (reals.count > 5000) [reals removeAllObjects];
+        reals[path] = real;
+        [lock unlock];
+    }
+    return real == NSNull.null ? nil : InFolder(real, root);
 }
 
 // What a checkout's owners were worked out from, to tell when that's changed: each session's edits of each file, by
@@ -395,12 +423,21 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *outgoing;
 @property (strong) NSMutableSet<NSString *> *outgoingBusy;
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *outgoingLookedAt;
-// Each session's checkouts edited (rootsEditedBy:).
+// What each checkout's commits not on GitHub were last read from (its CheckoutRefChanges, and the upstream or base
+// branch they're ahead of), and its CheckoutFileChanges and CheckoutRefChanges as its changes were last counted.
+@property (strong) NSMutableDictionary<NSString *, NSString *> *outgoingSeen;
+@property (strong) NSMutableDictionary<NSString *, NSArray<NSNumber *> *> *changesSeen;
+// Each session's checkouts edited (rootsEditedBy:), and its lines edited in each checkout, by the version of its edits
+// they were counted at (linesOf:in:).
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *edited;
+@property (strong) NSMutableDictionary<NSString *, NSMutableDictionary *> *linesIn;
+// Each session's files in doubt (a shell command changed them, its record leaving out which lines), as they are within
+// each checkout, by the version of its edits they were worked out at (doubtsOf:in:).
+@property (strong) NSMutableDictionary<NSString *, NSMutableDictionary *> *doubtsIn;
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *results;
 @property (strong) NSMutableDictionary<NSString *, NSString *> *sources;
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *lookedAt;
-// Each checkout's sessions' edits as its last count was started with (OwnersSource), so new ones are counted at once.
+// Each checkout's editors' lines edited there as its last count was started with, so new ones are counted at once.
 @property (strong) NSMutableDictionary<NSString *, NSString *> *ownersSeen;
 @property (strong) NSMutableSet<NSString *> *busy;
 @property (assign) NSInteger version;
@@ -433,7 +470,11 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     self.outgoing = [NSMutableDictionary dictionary];
     self.outgoingBusy = [NSMutableSet set];
     self.outgoingLookedAt = [NSMutableDictionary dictionary];
+    self.outgoingSeen = [NSMutableDictionary dictionary];
+    self.changesSeen = [NSMutableDictionary dictionary];
     self.edited = [NSMutableDictionary dictionary];
+    self.linesIn = [NSMutableDictionary dictionary];
+    self.doubtsIn = [NSMutableDictionary dictionary];
     self.unknown = @{};
     self.doubts = @{};
     self.failing = @{};
@@ -461,6 +502,14 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     [self.roots removeAllObjects];
     [self.rows removeAllObjects];
     [self.edits removeAllObjects];
+    // Lines counted and files in doubt worked out for sessions no longer listed are let go.
+    if (self.linesIn.count > sessions.count || self.doubtsIn.count > sessions.count) {
+        NSSet *listed = [NSSet setWithArray:[sessions valueForKey:@"sessionId"]];
+        for (NSString *sid in self.linesIn.allKeys)
+            if (![listed containsObject:sid]) [self.linesIn removeObjectForKey:sid];
+        for (NSString *sid in self.doubtsIn.allKeys)
+            if (![listed containsObject:sid]) [self.doubtsIn removeObjectForKey:sid];
+    }
     // Every checkout a listed session runs in, and the sessions that edited files anywhere.
     NSMutableSet<NSString *> *checkouts = [NSMutableSet set];
     NSMutableArray<Row *> *editing = [NSMutableArray array];
@@ -472,6 +521,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         [checkouts addObject:root];
         if ([[self editsOf:row][@"files"] count]) [editing addObject:row];
     }
+    WatchCheckouts(@"changes", checkouts);
     // Each checkout's editors: the sessions running in it that edited files, and any other listed session that edited
     // files in it from elsewhere, whose lines there are as much its own. Those, and the sessions running in it, are
     // the ones whose changes have to be known for it to be complete. Who edited only says whose a line is: every
@@ -486,9 +536,15 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     NSMutableDictionary<NSString *, NSMutableArray<NSString *> *> *unknown = [NSMutableDictionary dictionary];
     NSMutableDictionary<NSString *, NSMutableSet<NSString *> *> *doubts = [NSMutableDictionary dictionary];
     NSMutableDictionary<NSString *, NSMutableSet<NSString *> *> *failing = [NSMutableDictionary dictionary];
+    // Each editing session's checkouts are worked out once a refresh, not once for every checkout: with dozens of each,
+    // that was thousands of times a second.
+    NSArray<NSString *> *sortedRoots = [checkouts.allObjects sortedArrayUsingSelector:@selector(compare:)];
+    NSString *rootsKey = [sortedRoots componentsJoinedByString:@"\n"];
+    NSMutableDictionary<NSString *, NSSet<NSString *> *> *editedBy = [NSMutableDictionary dictionary];
+    for (Row *row in editing) editedBy[row.sessionId] = [self rootsEditedBy:row among:sortedRoots key:rootsKey];
     for (NSString *root in checkouts) {
         for (Row *row in editing)
-            if ([self.roots[row.sessionId] isEqualToString:root] || [[self rootsEditedBy:row] containsObject:root])
+            if ([self.roots[row.sessionId] isEqualToString:root] || [editedBy[row.sessionId] containsObject:root])
                 [editors[root] ?: (editors[root] = [NSMutableArray array]) addObject:row];
         for (Row *row in sessions) {
             if (!row.sessionId || !self.roots[row.sessionId]) continue;
@@ -500,10 +556,8 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
             // no listed session's.
             if ([edits[@"failed"] integerValue] > 0)
                 [failing[root] ?: (failing[root] = [NSMutableSet set]) addObject:row.sessionId];
-            for (NSString *path in edits[@"doubts"]) {
-                NSString *inside = Within(path, root);
-                if (inside) [doubts[root] ?: (doubts[root] = [NSMutableSet set]) addObject:inside];
-            }
+            NSSet<NSString *> *inside = [self doubtsOf:row in:root];
+            if (inside.count) [doubts[root] ?: (doubts[root] = [NSMutableSet set]) unionSet:inside];
         }
     }
     // Which sessions' changes are known goes into what the page is sent, so it's told when that changes.
@@ -522,6 +576,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
             [self.results removeObjectForKey:root];
             [self.sources removeObjectForKey:root];
             [self.ownersSeen removeObjectForKey:root];
+            [self.changesSeen removeObjectForKey:root];
         }
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
     // A checkout's commits not on GitHub yet are read ahead, while it has some (as a row's ↑N counts them).
@@ -531,20 +586,42 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         NSDictionary *c = row.checkout;
         NSInteger waiting = [c[@"remotes"] integerValue] > 0
             ? [c[[c[@"upstream"] boolValue] ? @"ahead" : @"aheadOfBase"] integerValue] : 0;
-        if (waiting <= 0 || now - [self.outgoingLookedAt[root] doubleValue] < kEvery) continue;
+        NSTimeInterval since = now - [self.outgoingLookedAt[root] doubleValue];
+        // Nothing they're read from has changed since (no commit, no branch moved, the same branch they're ahead of):
+        // they still stand.
+        NSString *from = [NSString stringWithFormat:@"%lu %@ %@", (unsigned long)CheckoutRefChanges(root),
+                          c[@"upstream"], c[@"baseRef"]];
+        BOOL quiet = CheckoutWatched(root) && [self.outgoingSeen[root] isEqualToString:from]
+            && since < CheckoutQuietEvery(root);
+        if (waiting <= 0 || since < kEvery || quiet) continue;
         self.outgoingLookedAt[root] = @(now);
+        self.outgoingSeen[root] = from;
         [self workOutgoingAt:root row:row done:nil];
     }
     for (NSString *root in pending) {
         if ([self.busy containsObject:root]) continue;
+        // New edits are counted at once, rather than a few seconds on, as they say whose lines are whose (they come in
+        // after the checkout's first count, as transcripts are read). Whether there are any is told by how many lines
+        // each editor's edits put in or took out in this checkout, which an edit's result can change after its request
+        // came, rather than by working out whose each line is every second (ownersAt).
+        NSMutableArray *counted = [NSMutableArray array];
+        for (Row *row in editors[root])
+            [counted addObject:[NSString stringWithFormat:@"%@ %lu", row.sessionId,
+                                                         (unsigned long)[self linesOf:row in:root]]];
+        NSString *editsAt = [[counted sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"\n"];
+        NSTimeInterval since = now - [self.lookedAt[root] doubleValue];
+        // Nor while nothing in it has changed, as macOS tells it: git would say what it said last time.
+        NSArray *changes = @[@(CheckoutFileChanges(root)), @(CheckoutRefChanges(root))];
+        BOOL quiet = CheckoutWatched(root) && [self.changesSeen[root] isEqualToArray:changes]
+            && since < CheckoutQuietEvery(root);
+        if ((since < kEvery || quiet) && [editsAt isEqualToString:self.ownersSeen[root]]) continue;
         // The files its sessions edited in this checkout, each with whose edits and their lines, newest edit first:
-        // copied, as they're read on the queue. New edits are counted at once, rather than a few seconds on, as they
-        // say whose lines are whose (they come in after the checkout's first count, as transcripts are read).
+        // copied, as they're read on the queue.
         NSDictionary *byPath = [self ownersAt:root rows:editors[root] ?: @[]];
         NSString *edits = OwnersSource(byPath), *known = self.sources[root];
-        if (now - [self.lookedAt[root] doubleValue] < kEvery && [edits isEqualToString:self.ownersSeen[root]]) continue;
         self.lookedAt[root] = @(now);
-        self.ownersSeen[root] = edits;
+        self.changesSeen[root] = changes;
+        self.ownersSeen[root] = editsAt;
         [self.busy addObject:root];
         dispatch_async(self.queue, ^{
             // What it would be worked out from: the commit, what's staged, each changed file's size and time,
@@ -581,12 +658,53 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     }
 }
 
-// The checkouts a session edited files in, from its edits, worked out again only when they or the checkouts change.
-- (NSSet<NSString *> *)rootsEditedBy:(Row *)row {
+// A session's files in doubt, as they are within a checkout. Asked of every session in every checkout each second, so
+// they're worked out again only once its edits have moved on (their version, which files newly in doubt move on too)
+// or for a checkout not asked about yet; every time when the agent gives no version.
+- (NSSet<NSString *> *)doubtsOf:(Row *)row in:(NSString *)root {
     NSDictionary *edits = [self editsOf:row];
-    NSArray *roots = [[NSSet setWithArray:self.roots.allValues].allObjects sortedArrayUsingSelector:@selector(compare:)];
-    NSString *key = [NSString stringWithFormat:@"%lu %@", [edits[@"count"] unsignedLongValue],
-                     [roots componentsJoinedByString:@"\n"]];
+    id all = edits[@"doubts"];
+    if (![all count]) return nil;
+    NSNumber *version = AsNumber(edits[@"version"]);
+    NSString *sid = row.sessionId ?: @"";
+    NSMutableDictionary *known = self.doubtsIn[sid];
+    if (version && ![known[@"version"] isEqual:version])
+        self.doubtsIn[sid] = known = [NSMutableDictionary dictionaryWithObject:version forKey:@"version"];
+    NSSet *found = version ? known[root] : nil;
+    if (found) return found;
+    NSMutableSet *inside = [NSMutableSet set];
+    for (NSString *path in all) {
+        NSString *within = Within(path, root);
+        if (within) [inside addObject:within];
+    }
+    if (version) known[root] = inside;
+    return inside;
+}
+
+// How many lines a session's edits put in or took out in a checkout. Asked of every editor in every checkout each
+// second, so it's counted again only once the edits have moved on (their version) or for a checkout not counted yet;
+// every time when the agent gives no version.
+- (NSUInteger)linesOf:(Row *)row in:(NSString *)root {
+    NSDictionary *edits = [self editsOf:row];
+    NSNumber *version = AsNumber(edits[@"version"]);
+    NSString *sid = row.sessionId ?: @"";
+    NSMutableDictionary *known = self.linesIn[sid];
+    if (version && ![known[@"version"] isEqual:version])
+        self.linesIn[sid] = known = [NSMutableDictionary dictionaryWithObject:version forKey:@"version"];
+    NSNumber *counted = version ? known[root] : nil;
+    if (counted) return counted.unsignedIntegerValue;
+    NSUInteger lines = 0;
+    for (NSDictionary *file in [edits[@"files"] allValues])
+        if (Within(file[@"path"], root)) lines += [file[@"added"] count] + [file[@"removed"] count];
+    if (version) known[root] = @(lines);
+    return lines;
+}
+
+// The checkouts a session edited files in, from its edits, worked out again only when they or the checkouts change.
+// `roots` are the listed checkouts, sorted, and `rootsKey` them as one string.
+- (NSSet<NSString *> *)rootsEditedBy:(Row *)row among:(NSArray<NSString *> *)roots key:(NSString *)rootsKey {
+    NSDictionary *edits = [self editsOf:row];
+    NSString *key = [NSString stringWithFormat:@"%lu %@", [edits[@"count"] unsignedLongValue], rootsKey];
     NSDictionary *known = self.edited[row.sessionId];
     if ([known[@"key"] isEqualToString:key]) return known[@"roots"];
     NSMutableSet *edited = [NSMutableSet set];
@@ -732,13 +850,17 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         return;
     }
     [self.outgoingBusy addObject:root];
-    // As a row's ↑N counts them (unpushedCommits in panel/scripts/whose-move.js): past the upstream when there is
+    // As a row's ↑N counts them (unpushedCommits in parts/list/page/whose-move.js): past the upstream when there is
     // one, else past the base branch's GitHub copy; none without a remote.
+    // The base branch's ref is the checkout's, as its last read found it (Checkouts).
     BOOL remote = [row.checkout[@"remotes"] integerValue] > 0, upstream = [row.checkout[@"upstream"] boolValue];
+    NSString *baseRef = [row.checkout[@"baseRef"] isKindOfClass:NSString.class] ? row.checkout[@"baseRef"] : nil;
     NSDictionary *last = self.outgoing[root];
+    // What each commit listed now changed, by its hash: a commit's diff is the same in every checkout of its repo.
+    NSMutableDictionary<NSString *, NSArray *> *shown = [NSMutableDictionary dictionary];
+    for (NSDictionary *read in self.outgoing.allValues)
+        for (NSDictionary *commit in read[@"commits"]) shown[commit[@"hash"]] = commit[@"files"];
     dispatch_async(self.queue, ^{
-        NSString *baseRef = nil;
-        if (!upstream) BranchStart(root, NULL, &baseRef);
         NSString *from = !remote ? nil : upstream ? @"@{upstream}" : baseRef;
         // The same commits, from the same place: what they changed still stands.
         NSString *source = [NSString stringWithFormat:@"%@ %@", Git(root, @[@"rev-parse", @"HEAD"]),
@@ -746,7 +868,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         NSString *name = upstream ? [Git(root, @[@"rev-parse", @"--abbrev-ref", @"@{upstream}"])
                                      stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] : nil;
         NSDictionary *read = [last[@"source"] isEqualToString:source] ? last
-                           : from ? ReadOutgoing(root, from) : @{@"commits": @[], @"more": @0};
+                           : from ? ReadOutgoing(root, from, shown) : @{@"commits": @[], @"more": @0};
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.outgoingBusy removeObject:root];
             if (!read) { if (done) done(nil); return; }

@@ -1,13 +1,14 @@
 // The next steps on a row's work line: an icon for each step its checkout has to take (stepsOf), its word coming in
 // beside it as it's pointed at, a press asking the session's agent to take it; once a branch is pushed with no pull
-// request, Create PR where the pull requests go, whose card says which branch it goes into, the repo's default picked,
-// another to be picked there; and, while no pull request shows, how the last code review went while there's work to
-// go, else, while commits wait to go, where the branch stands, there too.
+// request, Create PR where the pull requests go, whose details say which branch it goes into, the repo's default
+// picked, another to be picked there; and, while no pull request shows, how the last code review went while there's
+// work to go, else, while commits wait to go, where the branch stands, there too.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The step pointed at ("sid:step"), drawn open as the list is drawn again, so its word doesn't come in afresh each
-// second; and for Create PR's card: the branch picked for each session's pull request, the session whose card has its
-// list of branches open, and the branches each session's repo has on GitHub, as the app last read them, with when.
+// second; and for Create PR's details: the branch picked for each session's pull request, the session whose details
+// have their list of branches open, and the branches each session's repo has on GitHub, as the app last read them,
+// with when.
 moduleState({ hoverStep: null, prInto: {}, prPicking: null, prBranches: {} });
 
 const STEP_ICONS = {
@@ -38,11 +39,11 @@ function stepHTML(row, step) {
     + `<span class="step-word">${word}</span></span>`;
 }
 
-// Where the pull requests go, while the branch has none: Create PR, whose card says into which branch.
+// Where the pull requests go, while the branch has none: Create PR, whose details say into which branch.
 function noPRHTML(row) {
   if (!row.steps?.pr) return '';
   return `<div class="nopr" data-pr-for="${esc(row.s.sessionId)}">${PR_ICON}<span class="pt">No pull request</span>`
-    + '<span class="create-pr">Create PR</span></div>';
+    + '<span class="button quiet create-pr">Create PR</span></div>';
 }
 
 // Where the pull requests go, while none shows and Create PR isn't offered, and the work has a step still to take: how
@@ -67,30 +68,32 @@ function outgoingHTML(row) {
     + `<span class="pt">${esc(words[0])}</span><span class="out-n">${words[1]}</span></div>`;
 }
 
-// Create PR's card: the branch it goes into, the repo's default to begin with; pressed, the branches GitHub's copy has,
-// as the app read them, to pick another; then Create PR and Create Draft PR.
+// Create PR's details: a head line, that the branch has no pull request, and the branch; the branch it goes into, the
+// repo's default to begin with; pressed, the branches GitHub's copy has, as the app read them, to pick another; then
+// Create PR and Create Draft PR.
 function createPRCardHTML(s, steps) {
   const sid = s.sessionId, known = state.prBranches[sid];
   const base = known?.base ?? steps.pr.into, into = state.prInto[sid] ?? base;
   const branch = (s.workGit || s.git)?.branch || '';
   const names = known?.branches && [...new Set([base, ...known.branches].filter(Boolean))].filter((b) => b !== branch);
   const list = state.prPicking !== sid ? ''
-    : `<div class="cp-list">${names ? names.map((b) => `<button class="cp-opt${b === into ? ' on' : ''}"`
-        + ` data-act="into:${esc(b)}"><span class="cp-tick">${PICKED_ICON}</span>${esc(b)}`
+    : `<div class="options cp-list">${names ? names.map((b) => `<button class="option${b === into ? ' on' : ''}"`
+        + ` data-act="into:${esc(b)}"><span class="tick">${PICKED_ICON}</span>${esc(b)}`
         + `${b === base ? '<i>default</i>' : ''}</button>`).join('')
         : '<div class="cp-wait">Reading the branches on GitHub…</div>'}</div>`;
-  return '<div class="cp-head">Create a pull request</div>'
-    + `<div class="cp-into"><span>${esc(branch)} into</span><button class="cp-pick" data-act="pick">`
+  return `<div class="card-head"><span>No pull request</span><span class="end">${esc(branch)}</span></div>`
+    + '<div class="card-title">Create a pull request</div>'
+    + `<div class="cp-into"><span>${esc(branch)} into</span><button class="button quiet cp-pick" data-act="pick">`
     + `${esc(into || 'its default branch')}${CHEVRON_ICON}</button></div>${list}`
-    + '<div class="st-steps"><button class="st-step" data-act="pr">Create PR</button>'
-    + '<button class="st-step" data-act="draftPR">Create Draft PR</button></div>'
+    + '<div class="st-steps"><button class="option" data-act="pr">Create PR</button>'
+    + '<button class="option" data-act="draftPR">Create Draft PR</button></div>'
     + '<div class="cp-hint">Into the repo\'s default branch, unless you pick another.</div>';
 }
 
-// The branches GitHub's copy of a session's repo has, as the app read them for Create PR's card ({base, branches}).
+// The branches GitHub's copy of a session's repo has, as the app read them for Create PR's details ({base, branches}).
 window.setPRBranches = (sid, known) => {
   state.prBranches[sid] = { ...known, at: Date.now() };
-  syncHover();  // the card, drawn again with them if it's up
+  if (detailsOpenKey() === 'pr-create:' + sid) detailsDraw();  // its details, drawn again with them if they're open
 };
 
 // ---- What it plugs into ----
@@ -112,6 +115,11 @@ core.presses.push(['.step[data-step]', (el, e) => {
   e.preventDefault();
   if (!justShown('steps:' + el.dataset.sid)) native({ type: 'gitStep', sessionId: el.dataset.sid, step: el.dataset.step });
 }]);
+// Create PR on its row, pressed: its details open at once, rather than the session (the row's own press).
+core.presses.push(['.nopr[data-pr-for]', (el, e) => {
+  e.preventDefault();
+  detailsOpen(el);
+}]);
 // Where the branch stands, pressed: the changes view on its commits, as the numbers open it on what isn't committed.
 core.presses.push(['.outgoing[data-outgoing]', (el, e) => {
   e.preventDefault();
@@ -126,7 +134,7 @@ core.cards.push({
     const steps = s && stepsOf(s, state.switches.nextSteps && state.owners.has(s.sessionId));
     return steps?.pr ? createPRCardHTML(s, steps) : '';
   },
-  // Picking a branch keeps the card up, drawn again; Create PR asks the agent, into the branch picked, and its row
+  // Picking a branch keeps the details open, drawn again; Create PR asks the agent, into the branch picked, and its row
   // stays where it is meanwhile.
   press(key, act) {
     const sid = key.slice('pr-create:'.length);
@@ -140,7 +148,7 @@ core.cards.push({
   },
 });
 // A step pointed at opens, its word coming in; Create PR pointed at has the branches asked for (again after a minute),
-// and its card's list folds once the pointer has left both.
+// and the list in its details folds once they've gone.
 core.pointerWatchers.push((el) => {
   const step = el?.closest('.step[data-step]');
   state.hoverStep = step ? `${step.dataset.sid}:${step.dataset.step}` : null;
@@ -151,7 +159,7 @@ core.pointerWatchers.push((el) => {
     state.prBranches[sid] = { ...state.prBranches[sid], asked: Date.now() };
     native({ type: 'prBranches', sessionId: sid });
   }
-  if (!sid && !el?.closest('#card')) state.prPicking = null;
+  if (state.prPicking && detailsOpenKey() !== 'pr-create:' + state.prPicking) state.prPicking = null;
 });
 core.forgotten.keys.push('prInto', 'prBranches');
 core.forgotten.prefixes.push('steps');

@@ -11,13 +11,23 @@ clock time, tomorrow, within 12 hours: Thu 1:33 AM
 clock time, in two days: Thu 8:33 PM
 clock time, a week off: May 24, 3:33 PM
 Claude Code not signed in: signin
-signed in with an API key or another provider: hidden
+no plan's numbers (signed in or set up without them): hidden
 no claude on this Mac: hidden
 not asked yet: hidden
-20% half an hour in: {"state":"ok","session":[20,"normal","var(--level-normal)"],"pace":"At this pace you'll hit the session limit around 5:33 AM."}
-30% three hours in: on course, no note: null
+20% half an hour in: {"state":"ok","session":[20,"normal","var(--level-normal)"],"pace":{"text":"Going fast: the session runs out before it resets.\nEase off to make it last.","kind":"fast"}}
+30% three hours in: slow: ["→ 50%",{"text":"Going slow: about 50% of the session would go unused.\nRoom to do more.","kind":"slow"}]
 82% two hours in, Claude says warning: ["warning","var(--level-warning)","normal"]
-82% two hours in: the pace: At this pace you'll hit the session limit around 3:59 AM.
+82% two hours in: the pace: ["out 3:59 AM",{"text":"Going fast: the session runs out before it resets.\nEase off to make it last.","kind":"fast"}]
+39% two hours in: even, where the notch goes and where it ends up: [0.4,"→ 98%",98,"even",{"text":"About even: the session lasts until it resets at 6:33 AM.","kind":"even"}]
+9% ten minutes in: no pace yet: [0.03333333333333333,"–",{"text":"Where the session ends up shows 20 minutes in.","kind":null}]
+the week running out first, the session not: ["out in 1d 12h",{"text":"Going fast: the week runs out before it resets.\nEase off to make it last.","kind":"fast"}]
+the week a little over even, the session slow: the week says when it runs out: ["fast","out in 2d 0h",{"text":"Going fast: the week runs out before it resets.\nEase off to make it last.","kind":"fast"}]
+time to the reset, said as such beside "out …": ["resets 3d 12h","3h 00m"]
+the week, six hours in: no pace yet: –
+where it ends up, written: ["→ 60%","out 7:33 AM","out 4:33 AM","out in 1d 16h","–"]
+pace kinds: ["slow","even","fast","fast",null]
+the session using the most today: [{"name":"site-redesign","rest":" uses the most today: 17% · 744k long"},{"name":"docs","rest":" uses the most today: 52%"},null]
+tokens written: ["0","900","999","1k","744k","999k","1M","1.2M","12M"]
 82% with no severity from Claude: warning
 90% and a word past warning: limit
 at the session limit: wait
@@ -27,13 +37,33 @@ while waiting, hours off: Back at 5:33 AM
 while waiting, the last hour: Back in 42m
 while waiting, the last minute: Back in 9s
 how far through the wait: [0.5,1]
-folded, both windows calm: the session: {"window":"session","label":"Session","used":34,"colour":"var(--level-normal)","detail":"4h 10m left","other":{"label":"Week","used":12}}
-folded, the session getting close: {"window":"session","label":"Session","used":82,"colour":"var(--level-warning)","detail":"2h 59m left","other":{"label":"Week","used":30}}
-folded, the week the one running low: {"window":"week","label":"Week","used":92,"colour":"var(--level-warning)","detail":"1d 4h left","other":{"label":"Session","used":20}}
-folded, both close: the session: {"window":"session","label":"Session","used":80,"colour":"var(--level-warning)","detail":"2h 00m left","other":{"label":"Week","used":90}}
-folded, at the session limit: {"window":"session","label":"Session","used":100,"colour":"var(--level-limit)","detail":"back at 5:33 AM","other":{"label":"Week","used":61}}
+folded, both windows calm: the session: {"window":"session","label":"Session","used":34,"usedText":"34%","colour":"var(--level-normal)","back":false,"time":"4h 10m","after":"left","other":{"label":"Week","used":12,"usedText":"12%"}}
+folded, the session getting close: {"window":"session","label":"Session","used":82,"usedText":"82%","colour":"var(--level-warning)","back":false,"time":"2h 59m","after":"left","other":{"label":"Week","used":30,"usedText":"30%"}}
+folded, the week the one running low: {"window":"week","label":"Week","used":92,"usedText":"92%","colour":"var(--level-warning)","back":false,"time":"1d 4h","after":"left","other":{"label":"Session","used":20,"usedText":"20%"}}
+folded, both close: the session: {"window":"session","label":"Session","used":80,"usedText":"80%","colour":"var(--level-warning)","back":false,"time":"2h 00m","after":"left","other":{"label":"Week","used":90,"usedText":"90%"}}
+folded, at the session limit: {"window":"session","label":"Session","used":100,"usedText":"100%","colour":"var(--level-limit)","back":true,"time":"back at 5:33 AM","after":"","other":{"label":"Week","used":61,"usedText":"61%"}}
 folded, at the limit, the last hour: back in 42m
-folded, a window just reset: no time left: {"window":"session","label":"Session","used":0,"colour":"var(--level-normal)","detail":"","other":{"label":"Week","used":30}}
+folded, a window just reset: no time left: {"window":"session","label":"Session","used":0,"usedText":"0%","colour":"var(--level-normal)","back":false,"time":"","after":"","other":{"label":"Week","used":30,"usedText":"30%"}}
+the week but no session: the state, and the session with no reading: ["ok",0,false,0,0,null]
+the week but no session: the session's row, and the week's: [{"known":false,"percent":"–","bar":0,"ends":"","left":"no reading","clock":""},{"known":true,"percent":"40%","bar":40,"ends":"→ 80%","left":"3d 12h","clock":"Sat 3:33 PM"}]
+the week but no session: the line under the rows goes by the week (40% of 3.5 days in): {"text":"About even: the week lasts until it resets on Sat 3:33 PM.","kind":"even"}
+the week but no session, the week going fast: its sentence, though the session is unknown: {"text":"Going fast: the week runs out before it resets.\nEase off to make it last.","kind":"fast"}
+the week but no session, the week's pace not known yet: nothing under the rows: null
+the week but no session: folded, the week is shown and the session's percent is a dash: {"window":"week","label":"Week","used":40,"usedText":"40%","colour":"var(--level-normal)","back":false,"time":"3d 12h","after":"left","other":{"label":"Session","used":0,"usedText":"–"}}
+the session but no week: the session's row, the week's row, folded: [{"known":false,"percent":"–","bar":0,"ends":"","left":"no reading","clock":""},{"window":"session","label":"Session","used":34,"usedText":"34%","colour":"var(--level-normal)","back":false,"time":"4h 10m","after":"left","other":{"label":"Week","used":0,"usedText":"–"}}]
+neither window has a reading: both read a dash, nothing under the rows: [{"window":"session","label":"Session","used":0,"usedText":"–","colour":"var(--level-normal)","back":false,"time":"","after":"","other":{"label":"Week","used":0,"usedText":"–"}},null]
+the session known only by the limits list is a reading: {"known":true,"percent":"12%","bar":12,"ends":"→ 60%","left":"4h 00m","clock":"7:33 AM"}
+a session that really is at 0%: it reads 0% and its time, as before: {"row":{"known":true,"percent":"0%","bar":0,"ends":"→ 0%","left":"4h 00m","clock":"7:33 AM"},"folded":{"window":"session","label":"Session","used":0,"usedText":"0%","colour":"var(--level-normal)","back":false,"time":"4h 00m","after":"left","other":{"label":"Week","used":40,"usedText":"40%"}}}
+the wait strip beside a week with no reading: –
+a quick hand down from the list, across the edge: where it crossed: {"x":188,"y":23}
+a slow hand, seen in the band already, crossing the edge: {"x":151,"y":23}
+from beside the card's window, above the edge: {"x":324,"y":23}
+going up: no crossing: null
+stopping short of the edge: no crossing: null
+no look before: no crossing: null
+what's drawn over the open card lets presses and the pointer through to it: {".uc-face":true,".uc-travel":true,".uc-shade":true,".u-gear-tip":true,".u-box":true,".u-ring":true,".u-rec":true}
+Sign in's line breaks a long command anywhere, inside the card: true
+a row with no reading: "no reading" in the grey text is read in, and still while pointed at: {"colour":true,"left":true,"clock":true,"width":true}
 
 == The vine's growth and reset (wait-vine.js)
 growth at the limit, halfway, at the reset: [{"leaves":0,"bud":false},{"leaves":4,"bud":true},{"leaves":8,"bud":false}]
@@ -43,3 +73,35 @@ the drain carries on at the speed the stem landed with (px a ms): ["-0.026","-0.
 no leaf flies into the text lane (above y 32): clear
 the session line is clear before the stem rises into it: {"at":1870,"message":0,"right":0}
 the last frame is the normal strip: {"stem":false,"flower":null,"fill":0,"height":61,"week":1,"percent":1,"message":0,"right":0}
+
+== Your gear
+no gear set, measurable: Up next's line (core.gear.line), and today's pace under the rows: [{"line":"6 working · no gear yet","why":null,"forecast":"At gear 8, the one recommended, the week ends near 94%."},{"text":"Going slow: about 50% of the session would go unused.\nRoom to do more.","kind":"slow"}]
+set at the recommendation: the forecast under the rows: {"text":"At gear 8 the week ends near 94%.","kind":null}
+set lower: room: {"text":"At gear 6 the week ends near 79%.","kind":null}
+more working than the gear: Up next's line, two over it, in the line's grey: {"says":"10 working","over":" · 2 over the gear"}
+set above what the week carries: when it runs out, and how long before it resets: {"text":"At gear 12 the week runs out Sat 3:33 AM, 1d 4h before it resets.","kind":"fast"}
+the session is the limit: {"text":"At gear 10 the session runs out 4:13 AM.","kind":"fast"}
+even gear 1 runs the week out: {"text":"At gear 1 the week still runs out 9:33 PM, 3d 10h before it resets.","kind":"fast"}
+the plan carries more than 30: the notch under the last seat: 30
+not measurable yet: too little rise, with Up next's line: {"line":"6 working · no gear yet","why":"Not measurable yet: the week has gone up 2% while Whozmove watched; a first reading needs about 5%.","forecast":null}
+not measurable yet: too few hours, one: Not measurable yet: sessions have worked 1 hour of the 2 a first reading needs.
+not measurable yet: too few hours, none: Not measurable yet: sessions have worked 0 hours of the 2 a first reading needs.
+not measurable yet: not watched: Not measurable yet: Whozmove wasn't watching for most of the last 2 days.
+a gear set while not measurable: today's pace under the rows: {"text":"Going slow: about 50% of the session would go unused.\nRoom to do more.","kind":"slow"}
+nothing working: 0 working · no gear yet
+the line over the card's seats: no gear yet; a gear set; two over it; nothing working: [{"says":"No gear yet","over":""},{"says":"","over":""},{"says":"","over":"2 over the gear"},{"says":"","over":""}]
+VoiceOver: the seats as a whole say how many are working, and a seat that a session working lights says so: ["Gear, 2 working","Gear 1, a session working","Gear 2, a session working","Gear 3"]
+a seat pointed at, with no gear set: where a press starts, at the recommended seat and another: ["Start at gear 8, the one recommended","Start at gear 12","Start at gear 6"]
+a seat pointed at with a gear set: another gear, the recommended one, your own: ["Gear 12: the first 12 work, the rest wait","Gear 8, recommended: the most that lasts the week","Your gear: the first 7 work, the rest wait","Gear 8, recommended: the most that lasts the week"]
+the longest line over the seats: gear 1 with 30 working: {"says":"","over":"29 over the gear"}
+the seats: no gear set, six working: {"end":0,"rec":8,"seats":"OOOOOO........................","to":true}
+the seats: gear 8, six working, room for two: {"end":8,"rec":8,"seats":"LLLLLLII......................","to":true}
+the seats: gear 5, seven working, two over it: {"end":5,"rec":8,"seats":"LLLLLOO.......................","to":true}
+the seats: gear 1 and gear 30, nothing working, not measurable (no notch): [{"end":1,"rec":null,"seats":"I.............................","to":true},{"end":30,"rec":null,"seats":"IIIIIIIIIIIIIIIIIIIIIIIIIIIIII","to":true}]
+the seats: more working than there are seats: LLLLLLLLLLLLLLLLLLLLLLLLOOOOOO
+what VoiceOver says for a seat: yours, the recommended one, both, another (gear 5, then 8, recommended 8): [["Gear 5, a session working, your gear","Gear 8, recommended","Gear 12"],["Gear 5, a session working","Gear 8, your gear, recommended","Gear 12"]]
+the recommended seat pointed at when the session sets it (the week would carry more): ["Gear 5, recommended: the most that lasts the session","Gear 8, recommended: the most that lasts the week"]
+with no gear set, the forecast beyond the card names the recommended gear as that (Up next's why line): ["At gear 8, the one recommended, the week ends near 94%.","At gear 8 the week ends near 94%."]
+a time is never split across two lines: whole
+the gear in one line, every state (core.gear.whyLine): [null,"The session is at its limit until it resets.","Not measurable yet: Whozmove wasn't watching for most of the last 2 days.","At gear 8 the week ends near 94%."]
+where to change it beyond the card, every state (core.gear.words.where): with a gear, none set yet, at the session's limit, not known yet, and Usage Gear off: ["Change your gear on the usage card, under the panel: press a seat.","No gear yet: press a seat on the usage card to let jobs in.",null,null,"Usage Gear is off in Settings, so there's no limit on what starts."]

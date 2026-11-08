@@ -25,6 +25,9 @@
 - (void)putAway:(NSString *)version;
 @end
 
+// Where every release of Whozmove is downloaded from, for a copy Homebrew didn't install.
+extern NSString *const kWhozmoveReleases;
+
 // Whether version `a` comes before `b`, part by part (0.2.10 after 0.2.9).
 BOOL VersionBefore(NSString *a, NSString *b);
 // The newer version out for a copy at `own`, {version, tap, command}, or {version, tap, installed} when Homebrew's

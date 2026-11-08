@@ -113,6 +113,14 @@ typedef NS_ENUM(NSInteger, TerminalKey) {
 - (NSArray<NSDictionary *> *)startedConversations;
 // Whether a session id is one of its own (a conversation it started, before Claude Code's id for it is known).
 - (BOOL)isOwnId:(NSString *)sessionId;
+// The conversations it keeps, archived and old ones included, whether its sessions are tracked or not, as its own id
+// for each by the agent's id for it: what's in its list is deleted there, never by Whozmove (Sessions, on the panel's
+// back). Only which conversations it keeps is read, never what they say. Read off the main thread, and never on the
+// rows' queue's reader.
+- (NSDictionary<NSString *, NSString *> *)keptConversations;
+// Its app's name in full, where its name alone could be taken for something else ("Claude Desktop", where the panel's
+// rows say "Claude"): what Sessions says to delete one of its conversations in, and to open it in.
+@property (readonly) NSString *fullName;
 // When `folder` is one it made for a conversation started with no folder of yours, how the conversation's row says so
 // ("Claude started it with "No folder", not in <asked>"); else nil.
 - (NSString *)startedWithoutFolder:(NSString *)folder asked:(NSString *)asked;

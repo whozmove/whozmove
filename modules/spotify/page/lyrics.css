@@ -40,10 +40,7 @@
 .ly-switch { display: inline-flex; align-items: center; gap: 9px; padding: 3px 4px 3px 0; border: none;
              background: none; font: inherit; font-size: var(--size-body); color: var(--text); }
 .ly-switch.is-hover { color: var(--bright); }
-.ly-open { margin-left: auto; flex: none; font: inherit; font-size: var(--size-small); padding: 3px 9px;
-           border-radius: var(--radius-small); border: 1px solid var(--button-edge); background: var(--button);
-           color: var(--text); }
-.ly-open.is-hover { background: var(--button-hover); }
+.ly-open { margin-left: auto; flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .ly-col, .ly-line { transition: none; }

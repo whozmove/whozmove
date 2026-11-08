@@ -82,7 +82,8 @@ started in iTerm2 from the card opens in a new tab, as the usage card's Sign in 
   what it makes of a command it's given (so which characters it takes as they are), the characters each key sends, the
   codes in its scripting dictionary it's asked with, and its Python API: where it listens, what a connection's request
   must say, its messages' fields, the setting that turns it on, and the words of its Settings window that lead there.
-  When iTerm2 changes, the fix goes here. The README's "Tested with" names the version they were last checked with.
+  When iTerm2 changes, the fix goes here. docs/using/install.md ("What it's tested with") names the version
+  they were last checked with.
 - `tests/test.sh`: what a new tab for a new conversation and for Sign in would run, from folders whose names need
   quoting, and what iTerm2 would be told to open it with, or that it wouldn't be, when a path isn't plain
   (`--print-iterm2-tab`, `tabs.expected.txt`); what iTerm2 would be told to find a session's tab, how its answers would
@@ -99,7 +100,7 @@ It has no page part.
 
 - iTerm2 is never started by a question: its Apple events go to its running process and never ask you anything, and
   its scripts run only while it's running. Only a press on one of its sessions' rows starts it, when the sessions have
-  outlived the app (Focus, in the core), or a new tab, and only those bring up macOS's question about controlling it.
+  outlived the app (Focus, parts/focus), or a new tab, and only those bring up macOS's question about controlling it.
 - Nothing is typed into a new tab: its command is the tab's own program, and iTerm2 is given only plain words.
 - Keys go only into the session they're for: through iTerm2's Python API, past Broadcast Input, or through its scripting
   only while it's alone in its window, where no copy Broadcast Input makes can reach another, checked by the script that
@@ -114,3 +115,26 @@ It has no page part.
   would, and only for a press of yours (the button past the window rule, or its switch on the panel's back), where
   iTerm2 asks you before it's on. It's used only once it's on, and with one-time cookies only: never a reusable one,
   which iTerm2 would ask you about, never one kept or logged.
+
+## Facts
+
+Checked with iTerm2 3.7.6 (its dictionary is `iTerm2.sdef` in the app; its scripting is in its source's
+`sources/Applescript/`):
+- macOS's question whether Whozmove may control iTerm2 stays up only for as long as the asking event's own timeout,
+  which is set for each event, not for a whole `with timeout` block; then it counts as unanswered, and is asked
+  again the next time.
+- `select` on a window, tab or session acts before it answers. `create tab` doesn't bring iTerm2 forward, and
+  `create window` does.
+- In `repeat with x in windows`, `contents of x` is sent to iTerm2 as a property its windows don't have, and fails
+  (-1728). `set w to window i` gets iTerm2's own reference to the window, by its id, which stays right as windows
+  reorder.
+- A script can be checked without iTerm2 running or being asked anything: `osacompile` reads its terms from the app's
+  dictionary and sends nothing.
+- A `trap '' TSTP` in the tab's file doesn't keep Ctrl+Z off what it starts: zsh puts job-control signals back for the
+  programs it runs.
+- Its Python API listens on its socket only while Enable Python API is on, and the socket file can stay behind when it
+  isn't, so a connection is tried rather than the file looked for. A cookie from its scripting works once, and
+  iTerm2 shows nothing for it (macOS's question about controlling iTerm2 is the only one, and a cookie can do nothing
+  that permission doesn't already allow); each one asked for adds a line to its Script Console. The connection is never pinged and never closed for being idle.
+- iTerm2 has a Claude Code integration of its own: a tab running `claude` gets a bar offering to set it up, a
+  conversation Whozmove starts there included.

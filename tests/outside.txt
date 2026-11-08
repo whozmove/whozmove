@@ -1,0 +1,108 @@
+# What Whozmove reaches outside this Mac, the files that start programs, and what it carries or fetches that isn't the
+# project's own. tests/outside.sh fails on one the code has that this list doesn't, or a line the code no longer has
+# (tests/outside.sh --update takes those off; nothing is ever added that way), so a change that adds one adds its line
+# here too, with a note of what it is, and a line in README's Privacy when it sends or gets something new.
+#   connects   host  file  what checks its certificate    the file reaches that host (* for any a page asks for)
+#   link       host  file                                 an address only opened in your browser, or in a form
+#   names      host  file                                 an address only written out (a user agent, a sample)
+#   starts     file                                       the file starts programs: which ones, in its note
+#   downloads  file                                       the script downloads something, while building
+#   not-ours   file                                       the file holds code or artwork that isn't the project's own
+#   action     name  file                                 the workflow uses one of GitHub's own actions
+action  actions/cache  .github/workflows/ci.yml  # the build's download of Betterleaks, kept between runs
+action  actions/cache  .github/workflows/release.yml  # the build's download of Betterleaks, kept between runs
+action  actions/checkout  .github/workflows/ci.yml
+action  actions/checkout  .github/workflows/release.yml
+action  actions/upload-artifact  .github/workflows/release.yml  # a trial zip, kept with its run
+connects  *  parts/pane/app/Browser.m  Apple's networking  # pages a session wrote, and what they ask the web for
+connects  127.0.0.1  app/shared/OAuth.m  nothing goes out  # a sign-in's one-time return address, on this Mac alone
+connects  127.0.0.1  modules/claude-code/tests/stand-in-claude.py  nothing goes out  # the stand-in server
+connects  127.0.0.1  modules/jira/tests/stand-in.py  nothing goes out  # the stand-in for Atlassian
+connects  auth.atlassian.com  app/shared/OAuth.h  Apple's networking  # signing in, at the service a server names
+connects  auth.atlassian.com  app/shared/OAuth.m  Apple's networking  # signing in, at the service a server names
+connects  auth.atlassian.com  modules/jira/app/JiraAccount.h  Apple's networking  # signing in with Atlassian
+connects  auth.atlassian.com  modules/jira/app/JiraAccount.m  Apple's networking  # signing in with Atlassian
+connects  data:  modules/apps/page/back.js  nothing goes out  # the apps' icons, data: addresses the app makes
+connects  downloads.claude.ai  modules/claude-code/tests/claude-code.sh  macOS's curl, SHA-256, signature  # Claude Code
+connects  github.com  modules/git/page/prs.js  Apple's networking  # PR authors' pictures
+connects  github.com  tools/betterleaks.sh  macOS's curl, and its SHA-256  # Betterleaks
+connects  i.scdn.co  modules/spotify/app/SpotifyToken.m  Apple's networking  # the song's cover, from Spotify
+connects  i.scdn.co  modules/spotify/page/lyrics-view.js  Apple's networking  # the song's cover, from Spotify
+connects  i.scdn.co  modules/spotify/page/np-strip.js  Apple's networking  # the song's cover, from Spotify
+connects  lrclib.net  modules/spotify/app/Lyrics.m  Apple's networking  # lyrics, once you turn them on
+connects  mcp.atlassian.com  app/shared/MCP.h  Apple's networking  # Jira's tickets, through Atlassian's server for AI tools
+connects  mcp.atlassian.com  app/shared/MCP.m  Apple's networking  # Jira's tickets, through Atlassian's server for AI tools
+connects  mcp.atlassian.com  modules/jira/app/JiraFacts.h  Apple's networking  # Jira's tickets, as you, once signed in
+connects  mcp.atlassian.com  modules/jira/app/JiraFacts.m  Apple's networking  # Jira's tickets, as you, once signed in
+connects  mcp.atlassian.com  modules/jira/app/JiraModule.m  Apple's networking  # Jira's tickets, as you, once signed in
+connects  raw.githubusercontent.com  modules/install/app/InstallModule.m  Apple's networking  # the tap's cask
+downloads  modules/claude-code/tests/claude-code.sh  # Claude Code, for the real Claude Code run (real.sh)
+downloads  tools/betterleaks.sh  # Betterleaks, which Keys looks with, checked against tools/betterleaks.txt's SHA-256
+link  claude.com  modules/claude-desktop/app/ClaudeDesktopFacts.m  # Claude Desktop's download page
+link  code.claude.com  modules/claude-code/app/ClaudeCodeFacts.m  # Claude Code's install page
+link  code.visualstudio.com  modules/changes/app/Editors.m  # VS Code's download page
+link  github.com  .github/ISSUE_TEMPLATE/bug_report.yml  # the security policy
+link  github.com  .github/ISSUE_TEMPLATE/config.yml  # the security policy
+link  github.com  modules/install/app/Updates.m  # Whozmove's releases page
+link  www.spotify.com  modules/spotify/app/SpotifyFacts.m  # Spotify's download page
+link  aistudio.google.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  api.slack.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  app.docker.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  app.sendgrid.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  cloud.digitalocean.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.anthropic.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.aws.amazon.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.cloud.google.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.groq.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.mistral.ai  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.twilio.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  console.x.ai  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  cursor.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  dash.cloudflare.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  dashboard.cohere.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  dashboard.heroku.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  dashboard.stripe.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  github.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  gitlab.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  huggingface.co  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  openrouter.ai  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  platform.deepseek.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  platform.openai.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  pypi.org  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  replicate.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  supabase.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  vercel.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  www.npmjs.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+link  www.perplexity.ai  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
+names  accounts.google.com  app/core/main.m  # a print run's sample address
+names  github.com  build.sh  # the last release for an older Mac, said when it can't build there
+names  github.com  modules/claude-code/plugin/.claude-plugin/plugin.json  # the plugin's repository
+names  github.com  modules/git/page/prs.js  # the icon's credit
+names  github.com  modules/spotify/app/LRCLIBFacts.m  # the user agent LRCLIB is told
+names  github.com  panel/scripts/icons.js  # the icon's credit
+names  github.com  tools/betterleaks.txt  # how a new Betterleaks pin is checked
+names  hooks.slack.com  modules/storage/app/KeyFacts.m  # how a Slack webhook's address starts
+names  lrclib.net  modules/spotify/app/LRCLIBFacts.m  # LRCLIB's addresses, asked by Lyrics.m
+names  mail.google.com  app/core/main.m  # a print run's sample address
+names  raw.githubusercontent.com  modules/install/app/HomebrewFacts.m  # the cask's address, asked by InstallModule.m
+names  token.actions.githubusercontent.com  tools/betterleaks.txt  # how a new Betterleaks pin is checked
+names  www.youtube.com  app/core/main.m  # a print run's sample address
+not-ours  modules/git/page/prs.js  # GitHub's Octicon git-pull-request, MIT
+not-ours  panel/scripts/icons.js  # GitHub's Octicon git-branch, MIT
+starts  app/shared/Git.m  # git, Apple's developer tools' own, for local commands only
+starts  app/shared/Processes.h  # where the app's code starts every program
+starts  app/shared/Processes.m  # where the app's code starts every program
+starts  icon/make-icon.m  # iconutil, making the app's icon (not part of the app)
+starts  modules/claude-code/app/ClaudeAside.m  # claude, a side question to a copy of a session's conversation, from api.anthropic.com
+starts  modules/claude-code/app/ClaudeCodePrints.m  # stand-in sessions for a print run's tests, in a throwaway home only
+starts  modules/claude-code/app/ClaudeUsage.m  # claude, for usage, from api.anthropic.com (Claude Code's own check)
+starts  modules/claude-code/app/PluginInstall.m  # claude plugin, putting the hooks in
+starts  modules/claude-code/plugin/hooks/whozmove-claude-permission.py  # ps, to find the session's own process
+starts  modules/claude-code/plugin/hooks/whozmove-claude-words.py  # ps, to name the panel's process
+starts  modules/deploy/app/Deploys.m  # the deploy command you confirmed, in your shell, the install Install First asks you to confirm, and git, to note the commit it puts in place
+starts  modules/git/app/GitHub.m  # gh, asking api.github.com about PRs (Go, on Apple's check)
+starts  modules/install/app/InstallModule.m  # xcode-select, launchctl, and open, for a new version
+starts  modules/sessions/app/Trashed.m  # Whozmove itself (--helper-trash-item), one file to the Trash per run
+starts  modules/starts/app/Worktrees.m  # git worktree add, in your shell
+starts  modules/storage/app/CleanUp.m  # brew cleanup, docker, xcrun simctl and git, for Storage's clean-ups, and docker system df, xcrun simctl list and git asked what they'd free once Storage is on, as the app starts too
+starts  modules/storage/app/KeyScan.m  # Betterleaks, with its online checks off

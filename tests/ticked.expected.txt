@@ -1,0 +1,443 @@
+== 1 ticking writes the file and a count goes in; unticking takes a switch out at once, and the file with the last
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runB
+on
+> on s-live runA
+on
+> on s-live runC
+on
+> count s-live runB
+> count s-live runB
+> count s-live runB
+> file
+ticked.json: there
+mode: 600
+> show
+s-live: on [runA 0, runB 3, runC 0], waiting []
+   s-live runA count=none process named
+   s-live runB count=3 process named
+   s-live runC count=none process named
+> row s-live <live>
+> start
+waiting: 3
+> off s-live runA
+off
+> show
+s-live: on [], waiting [runB 3, runC 0], item: Turn Back On Switch B and Switch C
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runA
+on
+> on s-live runC
+on
+> count s-live runC
+> off s-live runA
+off
+> show
+s-live: on [runC 1], waiting []
+> file
+ticked.json: there
+mode: 600
+   s-live runC count=1 process named
+> row s-live <live>
+> start
+waiting: 1
+> off s-live runC
+off
+> show
+s-live: on [], waiting []
+> file
+ticked.json: gone
+== 2 a new copy has nothing on, and the live session's switches wait, with their counts
+   s-live runA count=none process named
+   s-live runB count=3 process named
+   s-live runC count=1 process named
+> row s-live <live>
+> start
+waiting: 3
+> show
+s-live: on [], waiting [runA 0, runB 3, runC 1], item: Turn Back On Switch A, Switch B and Switch C
+> ask s-live runB
+Switch B is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> ask s-live runA
+Switch A is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+   s-live runA count=none process named
+   s-live runB count=3 process named
+   s-live runC count=1 process named
+== 3 not waiting: an ended session's, an id that isn't one, a switch Whozmove hasn't, a switch kept in a file, a process started at another time
+> row s-live <live>
+> row s-dying <dying>
+> row s-start <live>
+> start
+waiting: 3
+> show
+s-live: on [], waiting [runA 0, runB 3, runC 1], item: Turn Back On Switch A, Switch B and Switch C
+s-dying: on [], waiting []
+s-start: on [], waiting []
+   what the file keeps now:
+   s-live runA count=none process named
+   s-live runB count=3 process named
+   s-live runC count=1 process named
+== 4 one press brings them back with their counts, a second does nothing, and the file says they are on
+> row s-live <live>
+> start
+waiting: 3
+> bring s-live
+on: Switch A, 0
+on: Switch B, 3
+on: Switch C, 1
+> bring s-live
+refused: Nothing is waiting to be turned back on for this session
+> show
+s-live: on [runA 0, runB 3, runC 1], waiting []
+> file
+ticked.json: there
+mode: 600
+   s-live runA count=none process named
+   s-live runB count=3 process named
+   s-live runC count=1 process named
+   and a copy that starts after that one offers them again:
+> row s-live <live>
+> start
+waiting: 3
+> show
+s-live: on [], waiting [runA 0, runB 3, runC 1], item: Turn Back On Switch A, Switch B and Switch C
+== 5 a press is refused, and says why: the session open twice, the row following another process now
+> row s-live <live> twice
+> start
+waiting: 3
+> show
+s-live: on [], waiting [runA 0, runB 3, runC 1], item: Turn Back On Switch A, Switch B and Switch C
+> bring s-live
+refused: Open in more than one place
+> ask s-live runB
+Switch B is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> show
+s-live: on [], waiting [runA 0, runB 3, runC 1], item: Turn Back On Switch A, Switch B and Switch C
+> row s-live <other>
+> start
+waiting: 3
+> show
+s-live: on [], waiting []
+> bring s-live
+refused: Switch A was ticked in another process than the one this row follows now
+> ask s-live runB
+Switch B is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
+   with the process the same, it goes through:
+> row s-live <live>
+> start
+waiting: 3
+> bring s-live
+on: Switch A, 0
+on: Switch B, 3
+on: Switch C, 1
+== 6 a Quit takes the file away and nothing writes it again; a restart leaves it for the next copy
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runB
+on
+> quit
+> file
+ticked.json: gone
+> on s-live runA
+on
+> file
+ticked.json: gone
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runB
+on
+> restart
+> file
+ticked.json: there
+mode: 600
+> row s-live <live>
+> start
+waiting: 1
+> show
+s-live: on [], waiting [runB 0], item: Turn Back On Switch B
+== 7 a switch that waits answers an ask with why, in plain words; one never ticked says the usual; ticked by hand it is on
+> row s-live <live>
+> start
+waiting: 3
+> ask s-live runC
+Switch C is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> ask s-live runA
+Switch A is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> on s-live runC
+on
+> ask s-live runC
+on
+> show
+s-live: on [runC 0], waiting [runA 0, runB 3], item: Turn Back On Switch A and Switch B
+== 8 a print run that sets switches leaves a ticked.json in its home exactly as it was
+> row s-live <live>
+> on s-live runB
+on
+> off s-live runC
+off
+> count s-live runB
+> list
+> quit
+> file
+ticked.json: there
+mode: 600
+   ticked.json: untouched
+== 9 refused when the session isn't the team's lead now; a count of -5 comes back as 0; an untick holds when the folder can't be written
+> row s-live <live> member
+> start
+waiting: 3
+> show
+s-live: on [], waiting []
+> bring s-live
+refused: Switch A is off while this session isn't its team's lead
+> list
+   (no ticked.json)
+> row s-live <live>
+> start
+waiting: 3
+> bring s-live
+on: Switch A, 0
+on: Switch B, 0
+on: Switch C, 1
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runB
+on
+> on s-live runA
+on
+> lock
+> off s-live runB
+off
+> show
+s-live: on [runA 0], waiting []
+> unlock
+> list
+> file
+ticked.json: there
+mode: 600
+   once the folder can be written the file is written again, without it:
+   s-live runA count=none process named
+   unticked while the folder can't be changed, then a restart: the next copy is offered nothing for it
+> row s-live <live>
+> start
+waiting: 0
+> on s-live runB
+on
+> lock
+> off s-live runB
+off
+> restart
+> unlock
+> row s-live <live>
+> start
+waiting: 0
+> show
+s-live: on [], waiting []
+== 10 a switch kept for a folder: a new session there holds it, with nothing to press, counting afresh, only for asks from its own process; the file names the folder and switch only
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> count s-a keptOne
+> count s-a keptOne
+> show
+s-a: on [keptOne 2], waiting []
+> row s-a <live> member in=T/shop
+> row s-b <other> in=T/shop
+> list
+> show
+s-a: on [], waiting [], kept but off [keptOne]
+s-b: on [keptOne 0], waiting []
+> held s-b
+keptOne: ticked in s-a
+> ask s-b keptOne
+on
+> askfrom s-b keptOne <live>
+Kept One is on only in the process this session's row follows, not this copy of the conversation
+> askfrom s-b keptOne <other>
+on
+> file
+ticked.json: there
+mode: 600
+   folder T/shop keptOne: at, held
+== 11 off, with why, for: a lead in another folder, a member there, one open twice, one not running, one blocked from holding it
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> row s-x <other> in=T/other
+> row s-m <other> member in=T/shop
+> row s-t <other> twice in=T/shop
+> row s-z 0 in=T/shop
+> show
+s-a: on [keptOne 0], waiting []
+s-x: on [], waiting []
+s-m: on [], waiting [], kept but off [keptOne]
+s-t: on [], waiting [], kept but off [keptOne]
+s-z: on [], waiting [], kept but off [keptOne]
+> ask s-x keptOne
+Kept One isn't on for this session's folder
+> ask s-m keptOne
+Kept One is kept for shop, but off while this session isn't its team's lead
+> ask s-t keptOne
+Kept One is kept for shop, but off now: open in more than one place
+> ask s-z keptOne
+Kept One is kept for shop, but off now: the session isn't running
+> block s-a
+> ask s-a keptOne
+Kept One is kept for shop, but off now: another session runs in its folder
+> show
+s-a: on [], waiting [], kept but off [keptOne]
+s-x: on [], waiting []
+s-m: on [], waiting [], kept but off [keptOne]
+s-t: on [], waiting [], kept but off [keptOne]
+s-z: on [], waiting [], kept but off [keptOne]
+> unblock s-a
+> ask s-a keptOne
+on
+== 12 the session it was ticked in ending doesn't end it; your untick does, from any row in the folder, held or not
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> on s-a keptTwo
+on
+> row s-a 0 in=T/shop
+> list
+> row s-b <live> in=T/shop
+> show
+s-a: on [], waiting [], kept but off [keptOne, keptTwo]
+s-b: on [keptOne 0, keptTwo 0], waiting []
+> block s-b
+> show
+s-a: on [], waiting [], kept but off [keptOne, keptTwo]
+s-b: on [], waiting [], kept but off [keptOne, keptTwo]
+> off s-b keptOne
+off
+> row s-m <other> member in=T/shop
+> off s-m keptTwo
+off
+> show
+s-a: on [], waiting []
+s-b: on [], waiting []
+s-m: on [], waiting []
+> file
+ticked.json: gone
+== 13 a restart and a Quit leave it waiting for one press on any session in the folder, which it's then given in
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> on s-a runB
+on
+> restart
+   s-a runB count=none process named
+   folder T/shop keptOne: at, held
+> row s-b <other> in=T/shop
+> start
+waiting: 2
+> show
+s-b: on [], waiting [keptOne 0], item: Turn Back On Kept One, kept but off [keptOne]
+> ask s-b keptOne
+Kept One is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> bring s-b
+on: Kept One, 0
+> show
+s-b: on [keptOne 0], waiting []
+> held s-b
+keptOne: ticked in s-b
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> on s-a runB
+on
+> quit
+> file
+ticked.json: there
+mode: 600
+   a Quit keeps only what's kept for a folder:
+   folder T/shop keptOne: at, held
+> row s-b <other> in=T/shop
+> block s-b
+> start
+waiting: 1
+> show
+s-b: on [], waiting [keptOne 0], item: Turn Back On Kept One, kept but off [keptOne]
+> bring s-b
+refused: Another session runs in its folder
+> unblock s-b
+> bring s-b
+on: Kept One, 0
+> show
+s-b: on [keptOne 0], waiting []
+== 14 what ticked.json says of folders is only offered: a folder that isn't one, a switch not kept by folder and a session it names are refused or ignored
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> restart
+> row s-b <other> in=T/shop
+> start
+waiting: 1
+> show
+s-b: on [], waiting [keptOne 0], item: Turn Back On Kept One, kept but off [keptOne]
+> ask s-b keptOne
+Kept One is off since Whozmove restarted: the user turns it back on with one press in this session's mode menu
+> bring s-b
+on: Kept One, 0
+> held s-b
+keptOne: ticked in s-b
+   folder T/shop keptOne: at, held
+== 15 a switch kept for a folder lapses once no session there has held it for 7 days: one held 8 days ago isn't offered back, one held 6 days ago is
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a keptOne
+on
+> on s-a keptTwo
+on
+> restart
+> row s-b <other> in=T/shop
+> start
+waiting: 1
+> show
+s-b: on [], waiting [keptTwo 0], item: Turn Back On Kept Two, kept but off [keptTwo]
+   folder T/shop keptTwo: at, held
+== 16 Turn Back On's reason is one for a switch it offers: Switch B, ticked in another process, isn't offered, so the reason is Kept One's
+> row s-a <live> in=T/shop
+> start
+waiting: 0
+> on s-a runB
+on
+> on s-a keptOne
+on
+> restart
+> row s-a <other> in=T/shop
+> block s-a
+> start
+waiting: 2
+> show
+s-a: on [], waiting [keptOne 0], item: Turn Back On Kept One, kept but off [keptOne]
+> back s-a
+waiting 1, brings back [], why: Another session runs in its folder
+> bring s-a
+refused: Another session runs in its folder
+> unblock s-a
+> back s-a
+waiting 1, brings back [keptOne], why: none
+> bring s-a
+on: Kept One, 0

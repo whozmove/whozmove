@@ -1,0 +1,6 @@
+{
+  "scripts": ["page/keyboard.js"],
+  "talksTo": ["core", "bridge", "pane", "glass", "row", "list"],
+  "provides": ["textBoxes", "keepsKeyboard", "wantKeyboard", "hasKeyboard", "heldCard", "keyPlaces", "showHeldCard",
+               "TEXT_BOX"]
+}

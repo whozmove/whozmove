@@ -1,0 +1,4 @@
+{"id": "10077", "key": "WEB-77", "fields": {"summary": "Log in link in the footer goes nowhere <b>bold</b>",
+  "issuetype": {"name": "Bug"}, "status": {"name": "Closed", "statusCategory": {"key": "done"}},
+  "resolution": {"name": "Won't Do"}, "project": {"key": "WEB", "name": "Web"},
+  "customfield_10020": [{"name": "Sprint 2", "state": "closed"}, {"name": "Sprint 3", "state": "future"}]}}

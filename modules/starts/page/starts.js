@@ -74,7 +74,7 @@ function startState(card, folders) {
   if (!card.folder) return { help: 'Choose the folder it starts in.', warn: false, go: '' };
   if (folder?.gone) return { help: `${card.name} isn't there any more: choose another folder.`, warn: true, go: '' };
   const untrusted = folder?.trusted === false;
-  const go = !folder || !card.text.trim() ? '' : untrusted ? 'Trust and start' : 'Start';
+  const go = !folder || !hasWords(card) ? '' : untrusted ? 'Trust and start' : 'Start';
   const help = card.problem || (untrusted ? `Claude hasn't worked in ${card.name} before. Trusting it lets Claude Code `
     + 'read, edit and run files there.' : '');
   return { help, warn: !!help, go, ...(untrusted ? { trust: true } : {}) };
@@ -127,25 +127,36 @@ function busyHint(card, sessions) {
     + `${changed === 1 ? "isn't" : "aren't"} committed yet.`;
 }
 
+// ---- What other modules add to the card (core.startCardParts) ----
+
+// What each gives the card as it's drawn, the parts that answer, in their order; and what they're handed to say what
+// changed.
+const partsSay = (what, card) => core.startCardParts.map((p) => p[what]?.(card) || '').filter(Boolean);
+const partApi = { refresh: () => refreshStartCard(), focusBox: () => focusStart() };
+// Whether there's something to start with: your words, or a line a part adds (a ticket, say).
+const hasWords = (card) => !!card.text.trim() || partsSay('words', card).length > 0;
+
 // Where it starts, on chips under the box, where the row's details line will be: the project (press it, or type @), then where in it (press it, or type #): its
 // own folder on its branch; or a worktree (worktreeChip), one that's there, or a new one, for a branch that's there
 // or a new branch, after the branch it starts from on a chip of its own: the project, what it comes from, then it.
 function chipsHTML(card) {
   const repo = state.repos[card.folder], t = card.target;
-  const chips = [`<span class="st-chip c-proj" data-k="p" title="The project it starts in: press, or type @, for another">`
+  const chips = ['<span class="tag chip st-chip c-proj" data-k="p" '
+    + 'title="The project it starts in: press, or type @, for another">'
     + `<i>@</i><span class="c-pname">${esc(card.name)}</span></span>`];
   if (repo && !repo.none) {
     const tip = 'Where in it: press, or type #, for a worktree';
-    if (!t) chips.push(`<span class="st-chip c-in" data-k="b" title="${tip}">${BRANCH_ICON}${esc(repo.here?.branch || 'detached')}</span>`);
+    if (!t) chips.push(`<span class="tag chip st-chip c-in" data-k="b" title="${tip}">${BRANCH_ICON}`
+      + `${esc(repo.here?.branch || 'detached')}</span>`);
     else if (t.kind === 'open') chips.push(worktreeChip(t.branch, 'st-chip c-in', ` data-k="b" title="${tip}"`));
     else {
-      if (t.kind === 'new') chips.push(`<span class="st-chip c-base" data-k="base" title="The branch it starts from">`
+      if (t.kind === 'new') chips.push('<span class="tag chip outline st-chip c-base" data-k="base" title="The branch it starts from">'
         + `<span class="c-from">from</span>${BRANCH_ICON}${esc(t.base || '')}</span>`);
       chips.push(worktreeChip(t.name || 'name it', 'st-chip c-in', ` data-k="b" title="A new worktree: `
         + `${t.kind === 'new' ? 'a new branch' : 'this branch'}, in a folder of its own"`));
     }
   }
-  return `<div class="st-chips">${chips.join('')}</div>`;
+  return `<div class="st-chips">${chips.join('')}${partsSay('chip', card).join('')}</div>`;
 }
 
 // What `@` or `#` offers, under the box, the one picked lit; ↑↓ move, Return or Tab take it, Esc closes it.
@@ -160,8 +171,10 @@ function listHTML(card) {
     if (it.kind === 'branch') return `<span class="o-l">${BRANCH_ICON}${esc(it.name)}</span><span class="o-s">no folder yet: a new worktree</span>`;
     return `<span class="o-l"><b class="o-new">${WORKTREE_ICON}New worktree</b>${esc(it.name)}<span class="o-from">from</span>${esc(it.base || '')}</span>`;
   };
-  return `<div class="c-list" data-k="list">${l.head ? `<div class="c-lhead">${esc(l.head)}</div>` : ''}`
-    + l.items.map((it, i) => `<div class="c-opt${i === l.sel ? ' on' : ''}" data-i="${i}">${option(it)}</div>`).join('')
+  return '<div class="options under-box c-list" data-k="list">'
+    + `${l.head ? `<div class="c-lhead">${esc(l.head)}</div>` : ''}`
+    + l.items.map((it, i) => `<div class="option c-opt${i === l.sel ? ' current' : ''}" data-i="${i}">${option(it)}</div>`)
+      .join('')
     + `${l.foot ? `<div class="c-lfoot">${l.foot}</div>` : ''}</div>`;
 }
 
@@ -276,7 +289,7 @@ function setGoButton(button, card) {
   const { go } = cardState(card);
   easeButton(button, () => {
     button.disabled = !go;
-    button.classList.toggle('empty', !card.text.trim());
+    button.classList.toggle('empty', !hasWords(card));
     const verb = button.querySelector('.go-verb');
     if (verb && verb.textContent !== goVerb(go)) verb.textContent = goVerb(go);
   });
@@ -307,21 +320,26 @@ function holdCommand(held) {
 // Start, naming the app, with the app's menu beside it.
 function startCardHTML(card, sessions) {
   const { help, warn, go, way, wayLabel } = cardState(card), busy = help ? '' : busyHint(card, sessions);
-  const app = startApp(card), empty = !card.text.trim();
-  const button = `<span class="c-split"><button class="c-go${empty ? ' empty' : ''}"${go ? '' : ' disabled'} title="⌘Return starts it">`
+  const app = startApp(card), empty = !hasWords(card);
+  const placeholder = partsSay('placeholder', card)[0] || 'What should Claude do? @ for a project, # for a worktree';
+  const button = '<span class="split-button main">'
+    + `<button class="button main small c-go${empty ? ' empty' : ''}"${go ? '' : ' disabled'} title="⌘Return starts it">`
     + `${app === 'terminal' ? TERMINAL_ICON : DESKTOP_ICON}<span class="go-label"><span class="go-verb">${esc(goVerb(go))}</span>`
     + `${esc(appLabel(app))}</span></button>`
-    + `${startChoice() ? `<button class="st-app" title="Start it in another app">${CHEVRON_ICON}</button>` : ''}</span>`;
+    + `${startChoice() ? `<button class="button main small st-app" title="Start it in another app">${CHEVRON_ICON}</button>`
+      : ''}</span>`;
   return `<div class="row compose" data-card="${esc(card.id)}">
       <span class="dot"></span>
       <div class="main">
         <div class="line1"><span class="name">New conversation</span></div>
-        <div class="you"><span class="who">You</span><textarea class="c-box" id="${esc(card.id)}-words" rows="2"
-          spellcheck="false" aria-label="What should Claude do?" placeholder="What should Claude do? @ for a project, # for a worktree">${esc(card.text)}</textarea></div>
-        ${chipsHTML(card)}${listHTML(card)}${underHTML(card)}
-        ${busy ? `<div class="c-busy" data-k="busy"><span>${esc(busy)}</span><button class="c-usewt">Use a new worktree</button></div>` : ''}
-        ${help && way ? `<div class="c-busy" data-k="help"><span>${esc(help)}</span>`
-          + `<button class="c-usewt" data-way="${esc(way)}">${esc(wayLabel)}</button></div>`
+        <div class="you"><span class="who">You</span><textarea class="field small c-box" id="${esc(card.id)}-words"
+          rows="2"
+          spellcheck="false" aria-label="What should Claude do?" placeholder="${esc(placeholder)}">${esc(card.text)}</textarea></div>
+        ${chipsHTML(card)}${listHTML(card)}${card.list ? '' : partsSay('list', card).join('')}${underHTML(card)}
+        ${busy ? `<div class="notice warn c-busy" data-k="busy"><span class="notice-text">${esc(busy)}</span>`
+          + '<button class="button quiet c-usewt">Use a new worktree</button></div>' : ''}
+        ${help && way ? `<div class="notice warn c-busy" data-k="help"><span class="notice-text">${esc(help)}</span>`
+          + `<button class="button quiet c-usewt" data-way="${esc(way)}">${esc(wayLabel)}</button></div>`
           : help ? `<div class="c-help${warn ? ' warn' : ''}" data-k="help">${esc(help)}</div>` : ''}
         <div class="st-foot">${button}</div>
       </div>
@@ -464,7 +482,7 @@ function focusStart() {
 // part that opened or closed slides to its new place with the card's edge, measured where it was and where it lands,
 // so nothing jumps; a part that's gone fades where it was. The list follows your typing. The box with your words isn't
 // touched.
-const CARD_PARTS = ['.c-list', '.c-under', '.c-busy', '.c-help', '.st-foot'];
+const CARD_PARTS = ['.c-list', '.st-plist', '.c-under', '.c-busy', '.c-help', '.st-foot'];
 function refreshStartCard() {
   const el = dockCard(), card = state.dock;
   if (!el || !card) return;
@@ -492,6 +510,7 @@ function refreshStartCard() {
     for (const sel of CARD_PARTS) {
       const old = main.querySelector(`:scope > ${sel}:not(.gone)`), neu = mine.querySelector(`:scope > ${sel}`);
       if (old && !neu) opening ? old.remove() : fadeWhereItWas(old, places.get(old));
+      else if (old && sel === '.st-plist') after = keepField(old, neu);
       else if (old) after = sel === '.c-list' ? (old.replaceWith(neu), neu) : swap(old, neu, sel !== '.st-foot');
       else if (neu) {
         after.after(neu);
@@ -503,6 +522,11 @@ function refreshStartCard() {
                      { easing: 'linear' });
       }
     }
+    // The box's words, as a part has them say (a ticket picked, say), in place: the box itself isn't touched.
+    const box = main.querySelector('.c-box'), said = mine.querySelector('.c-box')?.placeholder;
+    if (box && said !== undefined && box.placeholder !== said) box.placeholder = said;
+    const button = main.querySelector('.c-go');
+    if (button) setGoButton(button, card);
     if (opening) return;
     for (const child of main.querySelectorAll(':scope > :not(.gone)')) {
       const was = tops.get(partOf(child)), dy = was === undefined ? 0 : was - child.getBoundingClientRect().top;
@@ -511,6 +535,23 @@ function refreshStartCard() {
   }, 240);
   syncHover();
 }
+// A part's list comes in afresh around its field, which stays where it is with what's typed in it and the caret, so
+// what's found as you type never takes the keyboard from it. The list is the old one, with the new one's look.
+function keepField(old, neu) {
+  const field = old.querySelector(':scope > .st-field'), fresh = neu.querySelector(':scope > .st-field');
+  if (!field || !fresh || field.dataset.part !== fresh.dataset.part) {
+    old.replaceWith(neu);
+    return neu;
+  }
+  const nodes = [...neu.childNodes], at = nodes.indexOf(fresh);
+  for (const child of [...old.childNodes]) if (child !== field) child.remove();
+  field.before(...nodes.slice(0, at));
+  field.after(...nodes.slice(at + 1));
+  old.className = neu.className;
+  for (const { name, value } of [...neu.attributes]) if (name !== 'class') old.setAttribute(name, value);
+  return old;
+}
+
 // A part of the card that's gone stays a moment where it was, out of the way of the rest, fading before what takes
 // its place opens there.
 function fadeWhereItWas(part, was) {
@@ -562,7 +603,13 @@ function sendStart() {
   if (card.list) return pickChoice(card.list.sel);
   const { go, trust } = cardState(card);
   if (!go) return focusStart();
-  const words = el.querySelector('.c-box').value.trim(), id = `start-${Date.now()}-${++startsMade}`;
+  // Your words, then each line a part adds (a ticket's), and what each part's module is handed once it's a session.
+  const words = [el.querySelector('.c-box').value.trim(), ...partsSay('words', card)].filter(Boolean).join('\n\n');
+  const id = `start-${Date.now()}-${++startsMade}`, withs = {};
+  for (const p of core.startCardParts) {
+    const given = p.with?.(card);
+    if (given && p.name) withs[p.name] = given;
+  }
   // Where in the project: a worktree's branch and folder go with the start, for its row to show until it's listed.
   const t = card.target, app = startApp(card), repo = state.repos[card.folder];
   const worktree = t ? (t.kind === 'open' ? t.branch : t.name) : null;
@@ -574,7 +621,8 @@ function sendStart() {
     ? { kind: 'branch', name: t.name } : { kind: 'new', name: t.name, ...(t.base ? { base: t.base } : {}) };
   native({ type: 'start', startId: id, folder: card.folder, app, words,
            ...(start.sessionId ? { sessionId: start.sessionId } : {}), ...(trust ? { trust: true } : {}),
-           ...(target ? { target } : {}) });
+           ...(target ? { target } : {}), ...(Object.keys(withs).length ? { with: withs } : {}) });
+  for (const p of core.startCardParts) p.sent?.(card);
   // Sent, so there's nothing to keep for the next card.
   Object.assign(card, { text: '', target: null, picked: false });
   keepDraft();
@@ -624,7 +672,12 @@ function handOverStart(el, start) {
                                   { ...gone, offset: 0.4 }, { ...gone, ...flat, color: muted, height: '15px' }],
                             300, { fill: 'forwards' }));
   motions.push(animateStart(you, [{ marginTop: '6px' }, { marginTop: '3px' }], 300, { fill: 'forwards' }));
-  if (start.words) {
+  // The row it becomes, drawn as the list will draw it. Your words stay only if it has a line of yours (not with Show
+  // Conversation Text off, the row part's to say): else they fold away as they would with none.
+  const row = rowFrom(rowHTML(pendingSessions({ [start.id]: { ...start, drawn: true } }, state.last.sessions,
+                                              state.startOptions.terminal)[0], 'busy', state.last.now));
+  const said = !!start.words && !!row.querySelector(':scope > .main > .you');
+  if (said) {
     const who = you.querySelector('.who');
     who.classList.add('said');
     motions.push(animateStart(who, [{ maxWidth: '0px', opacity: 0 }, { maxWidth: '42px', opacity: 1 }], 300, { fill: 'forwards' }));
@@ -645,11 +698,9 @@ function handOverStart(el, start) {
                                   { backgroundColor: tokenColour('--working-dot'),
                                     boxShadow: 'inset 0 0 0 0 rgba(255, 255, 255, 0)' }],
                             320, { fill: 'forwards' }));
-  const row = rowFrom(rowHTML(pendingSessions({ [start.id]: { ...start, drawn: true } }, state.last.sessions,
-                                              state.startOptions.terminal)[0], 'busy', state.last.now));
   const claude = row.querySelector(':scope > .main > .claude'), where = row.querySelector(':scope > .main > .where');
   if (claude) {
-    (start.words ? you : main.querySelector(':scope > .line1')).after(claude);
+    (said ? you : main.querySelector(':scope > .line1')).after(claude);
     motions.push(growPart(claude, 520));
   }
   const chips = main.querySelector(':scope > .st-chips');
@@ -738,7 +789,7 @@ function moveToRow(el, start) {
     next?.classList.replace('waiting', 'unseen');
   }, 520, () => {
     to = asItEnds(() => {
-      const row = rowAt(start.key);
+      const row = rowInView(start.key);
       if (!row) return null;
       showInList(row);
       return row.getBoundingClientRect();
@@ -752,7 +803,7 @@ function moveToRow(el, start) {
     syncHover();
   };
   if (!D_START(1)) return landed();
-  const row = rowAt(start.key);
+  const row = rowInView(start.key);
   const ghost = row ? row.cloneNode(true)
     : rowFrom(rowHTML(pendingSessions({ [start.id]: start }, [], state.startOptions.terminal)[0], 'busy', state.last.now));
   ghost.classList.remove('landing', 'arrive', 'is-hover');
@@ -782,7 +833,7 @@ function asItEnds(measure) {
 // Something can move the row while its copy is on the way (another card opening above the list, the list scrolled):
 // the copy then goes the rest of the way, arriving as whatever moved it finishes, so it still lands exactly on the row.
 function catchUp(ghost, start, from) {
-  const end = asItEnds(() => rowAt(start.key)?.getBoundingClientRect()), at = ghost.getBoundingClientRect();
+  const end = asItEnds(() => rowInView(start.key)?.getBoundingClientRect()), at = ghost.getBoundingClientRect();
   if (!end || (Math.abs(end.top - at.top) < 1 && Math.abs(end.left - at.left) < 1)) return null;
   const easing = dockMotion?.playState === 'running' ? dockMotion : null;
   const ms = Math.max(240, easing ? easing.effect.getTiming().duration - easing.currentTime : 0);
@@ -806,12 +857,6 @@ function showWaiting(card) {
   if (!card?.isConnected || !card.classList.contains('unseen')) return;
   card.classList.remove('unseen');
   animateStart(card, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], 360);
-}
-
-// A row in the list by its key, the one in view (a row pinned below its folded group is there twice).
-function rowAt(key) {
-  return [...document.querySelectorAll('#list .row[data-id]')]
-    .find((r) => r.dataset.id === key && !r.closest('.prows.closed')) || null;
 }
 
 // What the app says about a start: the session it became (a Claude Desktop conversation, now known by its id: the row
@@ -941,9 +986,11 @@ function rowFrom(html) {
 dockBox.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   const t = e.target;
-  if (!t.closest('.row.compose:not(.leaving)') || t.closest('.c-box')) return;  // the box takes the caret as usual
+  // The box, and a part's own field, take the caret as usual.
+  if (!t.closest('.row.compose:not(.leaving)') || t.closest('.c-box, .st-field')) return;
   e.preventDefault();
   const card = state.dock;
+  if (card && core.startCardParts.some((p) => p.press?.(t, card, partApi))) return;
   if (t.closest('.st-app')) return appMenu(t.closest('.st-app'));
   if (t.closest('.c-go')) return sendStart();
   const option = t.closest('.c-opt');
@@ -975,11 +1022,17 @@ newButton.addEventListener('mousedown', (e) => {
   else openCard(null, e.altKey ? 'terminal' : null);
 });
 dockBox.addEventListener('input', (e) => {
+  const field = e.target.closest('.st-field');
+  if (field && state.dock) {
+    core.startCardParts.find((p) => p.name === field.dataset.part)?.typed?.(state.dock, field, partApi);
+    return;
+  }
   const box = e.target.closest('.c-box'), card = state.dock;
   if (!box || !card || box.closest('.leaving')) return;
   card.text = box.value;
   keepDraft();
   fitStartBox(box);
+  for (const p of core.startCardParts) p.typed?.(card, box, partApi);
   let changed = followWords(box);
   // A new worktree's name follows your words until you name it yourself.
   const t = card.target;
@@ -994,7 +1047,19 @@ dockBox.addEventListener('input', (e) => {
 });
 dockBox.addEventListener('keydown', (e) => {
   if (e.key === 'Meta') holdCommand(true);
-  if (e.isComposing || e.keyCode === 229 || !e.target.closest('.c-box')) return;
+  if (e.isComposing || e.keyCode === 229) return;
+  // In a part's field: its keys first, then ⌘Return starts, as in the box.
+  const field = e.target.closest('.st-field');
+  if (field && state.dock) {
+    const part = core.startCardParts.find((p) => p.name === field.dataset.part);
+    if (part?.keys?.(state.dock, e, partApi)) return e.preventDefault();
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      sendStart();
+    }
+    return;
+  }
+  if (!e.target.closest('.c-box')) return;
   const card = state.dock, list = card?.list;
   if (list && list.items.length && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
     e.preventDefault();
@@ -1017,10 +1082,10 @@ dockBox.addEventListener('keydown', (e) => {
   }
 });
 dockBox.addEventListener('keyup', (e) => { if (e.key === 'Meta') holdCommand(false); });
-// The panel has the keyboard only while one of its boxes is typed in (wantKeyboard in input.js).
-dockBox.addEventListener('focusin', (e) => { if (e.target.closest('.c-box')) wantKeyboard(true); });
+// The panel has the keyboard only while one of its boxes is typed in (wantKeyboard in keyboard.js).
+dockBox.addEventListener('focusin', (e) => { if (e.target.closest('.c-box, .st-field')) wantKeyboard(true); });
 dockBox.addEventListener('focusout', (e) => {
-  if (!e.target.closest('.c-box')) return;
+  if (!e.target.closest('.c-box, .st-field')) return;
   holdCommand(false);
   wantKeyboard(false);
 });
@@ -1107,7 +1172,7 @@ core.updating.push(forgetStarted);
 core.slots.rowClass.push((row) => (startLanding(row.s.sessionId) ? ' landing' : ''));
 // A project's ＋ opens the card for that project (⌥: in the terminal). Claude Desktop's scratch conversations have no
 // folder to start in.
-core.slots.project.push((p) => (p.scratch ? '' : `<span class="add" data-folder="${esc(p.key)}"`
+core.slots.project.push((p) => (p.scratch ? '' : `<span class="icon-button add" data-folder="${esc(p.key)}"`
   + ` title="New conversation in ${esc(p.name)} (⌥: in the terminal)">${PLUS_ICON}</span>`));
 core.presses.push(['.add[data-folder]', (add, e) => {
   e.preventDefault();
@@ -1115,5 +1180,5 @@ core.presses.push(['.add[data-folder]', (add, e) => {
 }]);
 core.pointerTargets.push('.add', '.add-new', '.c-go:not(:disabled)', '.st-app', '.c-proj', '.c-in', '.c-base',
                          '.c-opt', '.c-place', '.c-usewt');
-core.textBoxes.push('.c-box');
+core.textBoxes.push('.c-box', '.st-field');
 core.strips.push('dock');

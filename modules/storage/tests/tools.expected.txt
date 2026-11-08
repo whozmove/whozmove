@@ -1,0 +1,16 @@
+== Without Apple's developer tools: the map's checkouts, and Clean up's worktrees
+  code/ahead: Git can't say what this checkout holds until Apple's developer tools are in
+  code/busy: Claude Code is working in busy now
+  code/dirty: Git can't say what this checkout holds until Apple's developer tools are in
+  code/local: Git can't say what this checkout holds until Apple's developer tools are in
+  notes/tiny: Git can't say what this checkout holds until Apple's developer tools are in
+  Clean up: no worktree offered, and it says they wait for the tools
+== With them: every git the map and Clean up ran was theirs (the stand-in's), never /usr/bin/git
+  code/ahead: Commits not pushed yet
+  code/busy: Claude Code is working in busy now
+  code/dirty: Changes not committed yet
+  code/local: Its history is only on this Mac
+  notes/tiny: Changes not committed yet
+  the map asked: check-ignore remote rev-list status 
+  Clean up: a worktree offered
+  Clean up asked: merge-base remote rev-list rev-parse show-ref status symbolic-ref worktree 

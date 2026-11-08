@@ -1,0 +1,9 @@
+{"transitions": [
+  {"id": "31", "name": "Send to review", "isAvailable": true, "to": {"name": "In Review", "statusCategory": {"key": "indeterminate"}}},
+  {"id": 51, "name": "QA sign-off", "to": {"name": "Done", "statusCategory": {"key": "done"}},
+   "fields": {"resolution": {"required": true, "name": "Resolution", "schema": {"type": "resolution"}, "allowedValues": [{"name": "Done"}, {"name": "Won't Do"}]},
+              "customfield_10100": {"required": false, "name": "Approved by", "schema": {"type": "user"}},
+              "customfield_10200": {"required": false, "name": "Story points", "schema": {"type": "number"}},
+              "fixVersions": {"required": false, "name": "Fix versions", "schema": {"type": "array", "items": "version"},
+                              "allowedValues": [{"id": "10200", "name": "2.1"}, {"id": 10201, "name": "2.2"}]}}},
+  {"id": "71", "name": "Hidden", "isAvailable": false, "to": {"name": "Archived", "statusCategory": {"key": "done"}}}]}

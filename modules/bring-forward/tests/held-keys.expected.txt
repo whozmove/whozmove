@@ -1,0 +1,40 @@
+== Saved picks, and when held keys count
+A saved pick:
+  The Chief, as its choice has always been saved: The Chief
+  a session: that session
+  a session named lead: that session
+  another word: Off
+  a session with no id: Off
+  none: Off
+Fn + Option:
+  Fn, then Option, held half a second: at 0.35s
+  Option, then Fn, held half a second: at 0.35s
+  both, the right-hand Option: at 0.30s
+  both, let go after 0.2s: never
+  both, with Caps Lock on: at 0.30s
+  both, with ⌘ held too: never
+  both, down to them from ⌘ held too, as ⌘ is let go: never
+  both, with ⌘ pressed and let go while they stay held: never
+  both, with a key pressed after 0.1s (a shortcut, as ⌥fn⌫ is): never
+  both, with a key pressed as they came down (an arrow, if it sets Fn's bit): never
+  ⌘V pasted with fn held (a dictation app's paste): never
+  both, held three seconds: at 0.30s
+  both, let go, then held again: at 0.30s and 0.85s
+  only Fn: never
+  Fn + Control held instead: never
+Fn + Shift:
+  Fn, then Shift, held half a second: at 0.35s
+  Shift, then Fn, held half a second: at 0.35s
+  both, the right-hand Shift: at 0.30s
+  both, let go after 0.2s: never
+  both, with Caps Lock on: at 0.30s
+  both, with ⌘ held too: never
+  both, down to them from ⌘ held too, as ⌘ is let go: never
+  both, with ⌘ pressed and let go while they stay held: never
+  both, with a key pressed after 0.1s (a shortcut, as ⌥fn⌫ is): never
+  both, with a key pressed as they came down (an arrow, if it sets Fn's bit): never
+  ⌘V pasted with fn held (a dictation app's paste): never
+  both, held three seconds: at 0.30s
+  both, let go, then held again: at 0.30s and 0.85s
+  only Fn: never
+  Fn + Option held instead: never

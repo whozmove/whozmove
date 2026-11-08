@@ -1,0 +1,15 @@
+== Starting up, away a moment, waiting, put back, then answered
+answered: {"answer":"Works","id":"t1"}
+exit=0
+== Refused while waiting (One Task turned off)
+refused: One Task is off: turn it on in Settings
+exit=1
+== Gone while waiting
+gone: no task t1 from this session waits
+exit=1
+== The panel gone for good while waiting: it stops once it's been out of reach a while (2 seconds here)
+Couldn't reach Whozmove's panel for 2 seconds, so stopped waiting: ask again once it's back
+exit=1
+== Without --wait, the panel starting up
+starting: Whozmove is starting up: ask again in a moment
+exit=1

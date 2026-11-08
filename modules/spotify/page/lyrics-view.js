@@ -13,7 +13,7 @@ const LYRICS_READER_WIDTH = 380, LYRICS_VIEW_HEIGHT = 330;
 // Their foot: whether the lines show in the strip too (its state is set on it, so its knob slides: the panel's switch,
 // controls.css), and Spotify.
 const LYRICS_FOOT = `<button class="ly-switch" role="switch" aria-checked="true">${SWITCH}Show lyrics in the strip`
-  + '</button><button class="ly-open">Open Spotify</button>';
+  + '</button><button class="button small ly-open">Open Spotify</button>';
 const ly = {
   timer: null,  // the next change of the words
   dots: null,   // the dots counting in to the next line beside the list: {line, animations}
@@ -116,7 +116,7 @@ function drawLyrics() {
   const shown = lyricsOfSong(song) || (lyricsOn() ? { state: 'looking', track: song.track } : state.lyrics);
   const head = `<span class="ly-art">${song.artUrl ? `<img src="${esc(song.artUrl)}" alt="">` : ''}</span>
     <span class="r-title">${esc(song.title || 'Unknown song')}</span><span class="r-sub">${esc(song.artist || '')}</span>
-    <button class="r-close" title="Close">${CLOSE_ICON}</button>`;
+    <button class="icon-button r-close" title="Close">${CLOSE_ICON}</button>`;
   let changed = putHTML(reader.querySelector('.r-head'), head);
   const foot = reader.querySelector('.r-answer');
   changed = putHTML(foot, LYRICS_FOOT) || changed;

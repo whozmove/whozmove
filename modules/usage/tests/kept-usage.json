@@ -1,0 +1,4 @@
+{"state": "ok", "plan": "max", "checkedAt": 1700000000000,
+ "session": {"used": 29, "resetsAt": 1700011200000},
+ "week": {"used": 69, "resetsAt": 1700220000000},
+ "limits": [{"kind": "opus", "percent": 40}], "extraUsage": false}

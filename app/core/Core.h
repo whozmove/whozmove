@@ -5,17 +5,22 @@
 #import "Host.h"
 #import "Agent.h"
 
-@class Page, PanelWindow, MenuBar, Modules, Rows, Focus, Send, Row, Browser, BrowserSetup;
+@class Page, PanelWindow, MenuBar, Settings, Modules, Rows, Focus, Send, Talking, Allowed, SessionAsks, Row, Browser,
+    BrowserSetup;
 @protocol BrowserOwner;
 
 @interface Core : NSObject
-// For the app, once its page, window and menu bar are made; then its modules are found and made.
-- (instancetype)initWithPage:(Page *)page window:(PanelWindow *)window menuBar:(MenuBar *)menuBar;
-// For a print run (the tests): no page, window or menu bar, and modules only set up their data.
+// For the app, once its page, window, menu bar and settings are made; then its modules are found and made.
+- (instancetype)initWithPage:(Page *)page window:(PanelWindow *)window menuBar:(MenuBar *)menuBar
+                    settings:(Settings *)settings;
+// For a print run (the tests): no page, window or menu bar, settings that only list their rows, and modules that only
+// set up their data.
 + (instancetype)forPrinting;
 @property (readonly) Page *page;
 @property (readonly) PanelWindow *window;
 @property (readonly) MenuBar *menuBar;
+// The panel's own settings: its look and the list's order, and their rows in Settings on the panel's back.
+@property (readonly) Settings *settings;
 @property (readonly) BOOL printing;
 @property (readonly) Modules *modules;
 // The rows the panel shows: read, phase by phase, and sent (Rows).
@@ -24,6 +29,18 @@
 @property (readonly) Focus *focus;
 // Words into a session, through its host and its agent, and why they can't go in now (Send).
 @property (readonly) Send *send;
+// Whether you're talking to an agent by voice right now, for a module to follow (Talking).
+@property (readonly) Talking *talking;
+// What each session may do by itself, as you've allowed it (Allowed), and what one asks the panel to do
+// (SessionAsks: listening only once the app has started, never in a print run).
+@property (readonly) Allowed *allowed;
+@property (readonly) SessionAsks *asks;
+// The session a process belongs to, among those listed: the one an agent runs it in, found by walking up its
+// parents, and that session's own process it was found under (`found`); nil for none.
+- (Row *)sessionOfProcess:(pid_t)pid found:(pid_t *)found;
+// The same for a session asking the panel something in its own name: refused, with why, when it runs inside another
+// listed session's commands, or its agent wouldn't let it ask (Agent's whyNotAsker:).
+- (Row *)sessionOfProcess:(pid_t)pid found:(pid_t *)found why:(NSString **)why;
 // The hosts sessions run in (the modules that adopt Host), in the modules' order.
 @property (readonly) NSArray<id<Host>> *hosts;
 // The host with this app id, or nil.
@@ -57,6 +74,10 @@
 - (id<Agent>)agentOf:(Row *)row;
 // The agents that can do what `capability` says (AgentWork, AgentCommands, …), in the modules' order.
 - (NSArray *)agentsThat:(Protocol *)capability;
+// The first module that offers what `capability` says (WhozmoveAgain, in contracts/Module.h), or nil.
+- (id)moduleThat:(Protocol *)capability;
+// Every module that offers it (Tracker, in contracts/Tracker.h), in the modules' order.
+- (NSArray *)modulesThat:(Protocol *)capability;
 // The marks every agent puts on the commands its sessions run (Agent's environmentMarks), to take off a command that's
 // yours; nil with no agent to say, so nothing that must be yours runs before they're known.
 @property (readonly) NSArray<NSString *> *agentMarks;

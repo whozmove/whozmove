@@ -8,6 +8,11 @@ BOOL ProcessStopped(pid_t pid);
 NSString *ProcessKey(pid_t pid, NSString *procStart);
 pid_t ProcessParent(pid_t pid);
 NSString *ProcessPath(pid_t pid);
+NSString *ProcessFolder(pid_t pid);
+NSArray<NSDictionary *> *YourProcesses(void);
+NSArray<NSDictionary *> *GroupMembers(pid_t group);
+NSArray<NSDictionary *> *ListeningOf(NSArray<NSDictionary *> *members);
+NSDictionary *PortHolder(int port);
 dev_t ProcessTerminal(pid_t pid, BOOL foregroundOnly);
 NSString *TerminalPath(dev_t device);
 dev_t TerminalAt(NSString *path);
@@ -21,7 +26,10 @@ NSDictionary *RunBriefly(NSString *path, NSArray<NSString *> *arguments, NSDicti
                          NSTimeInterval seconds, NSUInteger cap, BOOL errors);
 NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
-                              BOOL (^line)(NSData *line), NSTimeInterval seconds);
+                              BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid));
+NSDictionary *RunFeeding(NSString *path, NSArray<NSString *> *arguments, NSDictionary<NSString *, NSString *> *environment,
+                         NSData *(^more)(void), void (^line)(NSData *line), NSTimeInterval seconds,
+                         BOOL background);
 NSString *LoginShell(void);
 NSString *LoginPath(void);
 NSString *DeveloperToolsGit(void);

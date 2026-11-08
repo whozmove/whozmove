@@ -3,7 +3,8 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 
-// Runs `source`, and returns what it returns, as text (nil if it failed: why goes in the log).
+// Runs `source`, and returns what it returns, as text (nil if it failed: why goes in the log; nil, running nothing,
+// while Whozmove may not act on other apps, which the log says once).
 NSString *RunAppleScript(NSString *source);
 // Text as the inside of an AppleScript string literal: its backslashes and quotes escaped.
 NSString *AppleScriptText(NSString *text);

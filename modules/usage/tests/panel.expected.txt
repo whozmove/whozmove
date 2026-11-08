@@ -1,0 +1,15 @@
+
+== The gear beyond the card (core.gear)
+its words for a session over the gear: ["Over the gear","Over the gear · carries on"]
+its line in words, for VoiceOver: Gear 8: the first 8 work, the rest wait
+where to change it, for what shows the gear without its seats, before the gear is known: null
+what it gives the panel's page: ["facts","off","changed","line","whyLine","words"]
+
+== Over the gear at the end of a row's title line, in any grouping, with a team or without
+before the gear is known: nothing: 
+a session over the gear: grey, outlined, the kit's chip: <span class="tag chip outline u-over">Over the gear</span>
+a session within it: nothing: 
+a row shown briefly, under Group by Team, the same: <span class="tag chip outline u-over">Over the gear</span>
+the gear raised: no longer over, so nothing: 
+the gear turned off in Settings: no gear, no row says Over the gear, and it's said to be off, with no limit: [null,"",true,"Usage Gear is off in Settings, so there's no limit on what starts."]
+…turned on again: no longer off, and nothing to say until the gear is known: [false,null]

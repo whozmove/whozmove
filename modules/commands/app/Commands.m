@@ -14,8 +14,12 @@
 #import "Core.h"
 #import "Rows.h"
 #import "Send.h"
+#import "Allowed.h"
 
 #pragma mark Why not
+
+// A session whose agent takes no commands from the panel.
+static NSString *const kNoCommands = @"This session can't be changed from the panel: change it where it runs";
 
 // A Claude Desktop row with no transcript yet is Claude's new-session page (a session it starts ahead of the first
 // message). Claude doesn't count it as an open conversation, and a command there would start one.
@@ -55,6 +59,13 @@ BOOL CantCompactNow(id<Reach> reach) {
     return !reach.desktop && (!reach.terminal || reach.openTwice);
 }
 
+NSString *WhyNotByItself(id<Reach> reach) {
+    if (reach.desktop) return @"Claude Desktop would come forward for it: compact it from this card";
+    if (reach.openElsewhere)
+        return @"It's open in Claude Desktop too, where you may be writing: compact it from this card";
+    return nil;
+}
+
 // Whether a setting as a session's details show it is the value picked: a model by its id, which the details may
 // follow with more ("[1m]").
 static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
@@ -69,6 +80,8 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 @property (strong) NSMutableDictionary<NSString *, NSMutableDictionary *> *chosen;
 // sessionId -> when a /compact sent from the panel began, and when the last one had its result
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *compacting, *compactEnded;
+// sessionId -> when a /compact from the panel last compacted it, as its result said
+@property (strong) NSMutableDictionary<NSString *, NSNumber *> *compacted;
 // sessionId -> a pick on its way into the session's terminal, {field, value, inTerminal}
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *going;
 // "Switch model?" asked on a session's row, by sessionId: Claude Desktop's question, {from, to, tokens, never}, and the
@@ -90,6 +103,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     self.chosen = [NSMutableDictionary dictionary];
     self.compacting = [NSMutableDictionary dictionary];
     self.compactEnded = [NSMutableDictionary dictionary];
+    self.compacted = [NSMutableDictionary dictionary];
     self.going = [NSMutableDictionary dictionary];
     self.switchQuestions = [NSMutableDictionary dictionary];
     self.switchesToAsk = [NSMutableDictionary dictionary];
@@ -108,6 +122,14 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 
 - (NSNumber *)compactEndedAt:(NSString *)sessionId {
     return self.compactEnded[sessionId];
+}
+
+- (NSNumber *)compactedAt:(NSString *)sessionId {
+    return self.compacted[sessionId];
+}
+
+- (BOOL)compactingAny {
+    return self.compacting.count > 0;
 }
 
 - (NSDictionary *)goingIn:(NSString *)sessionId {
@@ -176,7 +198,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     id<AgentCommands, AgentPrompt> agent = [self agentOf:row];
     if (!agent) {
         PanelLog(@"%@ menu for %@: its agent takes no commands", field, row.sessionId);
-        NSBeep();
+        [self cantPickThere:row.sessionId why:kNoCommands];
         return;
     }
     SessionReach *reach = [self.core.send reachOf:row];
@@ -221,7 +243,150 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         }
         if (unsure) SayInMenu(menu, @"Can't tell if this session has Auto: change other modes in the terminal");
     }
+    if ([field isEqual:@"mode"]) [self addSwitchesTo:menu row:row];
     [self.window popUpMenu:menu atPagePoint:NSMakePoint([msg[@"x"] doubleValue], [msg[@"y"] doubleValue])];
+}
+
+// A switch kept for a folder says only why it can't be on now (its `whyNot`, the cause); what to do next depends on
+// where it's said, so the menu adds it: "then turn it on" under one to tick. Other switches' reasons say it whole.
+static NSString *ThenTick(SessionSwitch *each, NSString *why) {
+    return why && each.lasts == SwitchLastsWorkspace ? [why stringByAppendingString:@", then turn it on"] : why;
+}
+
+// The title of the way past a switch's reason for a row, or nil for none.
+static NSString *WayTitle(SessionSwitch *each, Row *row) {
+    if (!each.way) return nil;
+    return each.wayTitleFor ? each.wayTitleFor(row) : each.wayTitle;
+}
+
+// Names only the switches one press would turn back on (Allowed's bringableFor:among:why:, the press's own checks),
+// greyed with the reason only when none can be, so one that can't come back never keeps the others from it. Those kept
+// for a folder name it too, as a press gives them to whichever session there holds them.
+NSDictionary *TurnBackOnItem(Allowed *allowed, Row *row) {
+    NSArray<SessionSwitch *> *waiting = [allowed waitingFor:row];
+    if (!waiting.count) return nil;
+    NSString *why = nil, *folder = nil;
+    NSArray<SessionSwitch *> *able = [allowed bringableFor:row among:waiting why:&why];
+    for (SessionSwitch *each in waiting) folder = folder ?: [allowed keptFolder:each.key for:row];
+    NSString *title = [@"Turn Back On " stringByAppendingString:[Allowed namesOf:able.count ? able : waiting]];
+    if (folder) title = [title stringByAppendingFormat:@" for %@", folder.lastPathComponent];
+    return @{@"title": title,
+             @"line": able.count ? @"They went off as Whozmove restarted"
+                                 : [why stringByAppendingString:@", then this brings them back"],
+             @"greyed": @(!able.count)};
+}
+
+// The line under a switch kept for the row's folder that's off for it now (its dash): why, what brings it back, and
+// that a press stops keeping it.
+static NSString *KeptOffLine(Allowed *allowed, SessionSwitch *each, Row *row, NSString *folder) {
+    NSString *name = folder.lastPathComponent;
+    if (each.shown && !each.shown(row))
+        return [NSString stringWithFormat:@"Kept for %@, off while %@. Press to stop keeping it", name,
+                                          each.hiddenSays ?: @"it isn't offered for this session"];
+    if ([[allowed waitingFor:row] containsObject:each])
+        return [NSString stringWithFormat:@"Kept for %@: it went off as Whozmove restarted, and Turn Back On, above, "
+                                          @"brings it back. Press here to stop keeping it", name];
+    NSString *why = each.whyNot ? each.whyNot(row) : nil;
+    return [NSString stringWithFormat:@"Kept for %@, off now: %@. It comes back on by itself once that's done; press "
+                                      @"to stop keeping it", name, AfterColon(why) ?: @"this session can't hold it now"];
+}
+
+BOOL SwitchPressTurnsOn(Allowed *allowed, NSString *key, Row *row) {
+    return row && ![allowed isOn:key for:row] && ![allowed keptFolder:key for:row];
+}
+
+// What the session may do by itself, at the foot of its mode menu, each switch a module registers (Allowed, in the
+// core), with a line on what it does, or why it can't be turned on now. Nothing is typed into the session for them, so
+// they're there whatever the menu says above; turning one off always can be. These items are the only way a switch is
+// turned on: no message from the page reaches them. Above them, once Whozmove has restarted, one item turns back on
+// those the session had on (Allowed's waitingFor:), named in its own title, as it's the one check against a switch
+// that anything running as you added through ticked.json. A switch kept for the row's folder that's off for it now
+// shows a dash on every row in that folder, the lead's or not, with why, and a press there stops keeping it, so it can
+// always be taken away.
+- (void)addSwitchesTo:(NSMenu *)menu row:(Row *)row {
+    NSMutableArray<SessionSwitch *> *switches = [[self.core.allowed switchesFor:row] mutableCopy];
+    for (SessionSwitch *each in self.core.allowed.switches)
+        if (![switches containsObject:each] && [self.core.allowed keptFolder:each.key for:row]) [switches addObject:each];
+    if (!switches.count) return;
+    [menu addItem:NSMenuItem.separatorItem];
+    NSDictionary *turnBack = TurnBackOnItem(self.core.allowed, row);
+    if (turnBack) {
+        NSMenuItem *item = [menu addItemWithTitle:turnBack[@"title"] action:@selector(bringBackSwitches:)
+                                    keyEquivalent:@""];
+        item.target = self;
+        item.representedObject = row.sessionId ?: @"";
+        item.enabled = ![turnBack[@"greyed"] boolValue];
+        SayInMenu(menu, turnBack[@"line"]);
+    }
+    for (SessionSwitch *each in switches) {
+        BOOL on = [self.core.allowed isOn:each.key for:row];
+        NSString *kept = on ? nil : [self.core.allowed keptFolder:each.key for:row];
+        NSString *cause = on || !each.whyNot ? nil : each.whyNot(row);
+        NSMenuItem *item = [menu addItemWithTitle:each.title action:@selector(flipSwitch:) keyEquivalent:@""];
+        item.target = self;
+        item.representedObject = @{@"key": each.key, @"sessionId": row.sessionId ?: @""};
+        item.state = on ? NSControlStateValueOn : kept ? NSControlStateValueMixed : NSControlStateValueOff;
+        item.enabled = kept || !cause;
+        if (kept) SayInMenu(menu, KeptOffLine(self.core.allowed, each, row, kept));
+        else SayInMenu(menu, ThenTick(each, cause) ?: (on && each.says ? each.says(row) : nil) ?: each.line);
+        // A way past why it can't be on, when its module has one, right under the reason, so the menu never leaves you
+        // with only a reason: under a dash too.
+        NSString *wayTitle = cause ? WayTitle(each, row) : nil;
+        if (wayTitle) {
+            NSMenuItem *way = [menu addItemWithTitle:wayTitle action:@selector(takeSwitchWay:) keyEquivalent:@""];
+            way.target = self;
+            way.representedObject = @{@"key": each.key, @"sessionId": row.sessionId ?: @""};
+        }
+    }
+}
+
+- (void)takeSwitchWay:(NSMenuItem *)item {
+    NSDictionary *which = item.representedObject;
+    Row *row = self.core.rows.byId[which[@"sessionId"]];
+    SessionSwitch *each = [self.core.allowed switchWithKey:which[@"key"]];
+    if (row && each.way) each.way(row);
+}
+
+// Your press on the item that turns back on what was ticked before Whozmove restarted. Allowed checks again what
+// ticking checks; when nothing goes on, the row says why, as for a switch that can't be ticked.
+- (void)bringBackSwitches:(NSMenuItem *)item {
+    Row *row = self.core.rows.byId[item.representedObject];
+    NSString *why = nil;
+    NSArray<SessionSwitch *> *brought = row ? [self.core.allowed bringBack:row why:&why] : nil;
+    if (brought.count) return;
+    PanelLog(@"%@ -> %@ not changed", item.representedObject, item.title);
+    if (!row) {
+        NSBeep();
+        return;
+    }
+    [self cantPick:row.sessionId
+               why:why ?: [item.title stringByAppendingString:@" couldn't be changed: try again"]
+               way:@"Open the Menu" go:@"modeMenu"];
+}
+
+// Your press on a switch: on, or kept for the folder though off now (its dash), it goes off; else it goes on. Decided
+// from what Allowed holds as you press (SwitchPressTurnsOn), never from how the item was drawn, so a press on a dash
+// never ticks.
+- (void)flipSwitch:(NSMenuItem *)item {
+    NSDictionary *which = item.representedObject;
+    Row *row = self.core.rows.byId[which[@"sessionId"]];
+    BOOL on = SwitchPressTurnsOn(self.core.allowed, which[@"key"], row);
+    if (!row || ![self.core.allowed set:which[@"key"] for:row on:on]) {
+        PanelLog(@"%@ -> %@ not changed", which[@"sessionId"], item.title);
+        if (!row) {
+            NSBeep();
+            return;
+        }
+        // Why it can't be turned on now, as the menu said it, else what's left, the session's record not written or
+        // its process gone, which may pass. The button opens the menu again: to press it there, or for the way past
+        // its reason the menu offers right under it (a reason with none has nothing more in the menu either).
+        SessionSwitch *each = [self.core.allowed switchWithKey:which[@"key"]];
+        NSString *why = on && each.whyNot ? ThenTick(each, each.whyNot(row)) : nil;
+        BOOL menuHasMore = !why || WayTitle(each, row);
+        [self cantPick:row.sessionId
+                   why:why ?: [item.title stringByAppendingString:@" couldn't be changed: try again"]
+                   way:menuHasMore ? @"Open the Menu" : nil go:menuHasMore ? @"modeMenu" : nil];
+    }
 }
 
 // The menu's button past the terminal's reason: the core's, as the Compact card's and a step's note's are.
@@ -241,13 +406,12 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     id<AgentCommands, AgentPrompt> agent = [self agentOf:row];
     if (!agent) {
         PanelLog(@"%@ -> %@ %@ not sent: no agent runs this session", row.sessionId, field, value);
-        NSBeep();
+        [self cantPickThere:row.sessionId why:kNoCommands];
         return;
     }
     if ([self changesGoingInto:row.sessionId]) {  // since the menu opened: its row says so within a second
         PanelLog(@"%@ -> %@ %@ not sent: %@", row.sessionId, field, value, kStillChanging);
-        NSBeep();
-        [self.page stepNote:row.sessionId text:kStillChanging];
+        [self cantPick:row.sessionId why:kStillChanging way:nil];
         return;
     }
     id<ConversationHost> desktop = [self.core.send conversationHostOf:row];
@@ -255,7 +419,7 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
         Reason *why = WhyNotSendTo(agent, row);  // the menu may have been open a while
         if (why) {
             PanelLog(@"%@ -> %@ %@ not sent: %@", row.hostSessionId, field, value, why);
-            NSBeep();
+            [self cantPick:row.sessionId why:why.onButton way:nil];
             return;
         }
         Command *command = [[Command alloc] initWithText:[agent commandSetting:field to:value] field:field value:value
@@ -274,27 +438,41 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     }
     id<TypingHost> terminal = [self.core.send terminalOf:row];
     if (!terminal) {
-        NSBeep();
+        PanelLog(@"%@ -> %@ %@ not typed: no terminal to type into", row.sessionId, field, value);
+        [self cantPickThere:row.sessionId
+                        why:WhyNoTab([self.core.send reachOf:row], @"changed here", @"change it there")
+                                ?: @"Its terminal can't be typed into from here: change it there"];
         return;
     }
     // The menu may have been open a while: check again, right before any key goes in.
     Reason *why = WhyTerminalRefuses(terminal, tab) ?: [agent whyNotTypeInto:row.sessionId pid:row.pid];
     if (why) {
         PanelLog(@"%@ -> %@ %@ not typed: %@", row.sessionId, field, value, why);
-        NSBeep();
+        [self cantPick:row.sessionId why:why.onButton way:WayPast([self.core.send reachOf:row], why.onButton)];
         return;
     }
     if ([field isEqual:@"mode"]) {
         // Opened elsewhere since the menu came up: which mode this copy is in can't be told any more.
-        if ([self.core.send reachOf:row].openElsewhere) { NSBeep(); return; }
+        if ([self.core.send reachOf:row].openElsewhere) {
+            PanelLog(@"%@ -> mode %@ not pressed: open elsewhere too", row.sessionId, value);
+            [self cantPickThere:row.sessionId why:@"It's open elsewhere too: change its mode in the terminal"];
+            return;
+        }
         NSInteger presses = [agent shiftTabsFrom:row.agent[@"mode"] to:value cycles:[agent modeCyclesFor:row]];
-        if (presses <= 0) { NSBeep(); return; }
+        if (presses <= 0) {
+            PanelLog(@"%@ -> mode %@ not pressed: no sure Shift+Tab count from %@", row.sessionId, value,
+                     row.agent[@"mode"]);
+            [self cantPickThere:row.sessionId
+                            why:@"Can't tell how many Shift+Tabs that takes now: change its mode in the terminal"];
+            return;
+        }
         [terminal press:TerminalKeyShiftTab times:presses inTab:tab];
         // The terminal checks its own reason again as the presses go in, and refuses them all if it finds one.
         Reason *refused = WhyTerminalRefuses(terminal, tab);
         if (refused) {
             PanelLog(@"%@ -> mode %@ not pressed: %@", row.sessionId, value, refused);
-            NSBeep();
+            [self cantPick:row.sessionId why:refused.onButton
+                       way:WayPast([self.core.send reachOf:row], refused.onButton)];
             return;
         }
         [self remember:value as:@"mode" forSession:row.sessionId];
@@ -320,15 +498,17 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     id<AgentCommands, AgentPrompt> agent = command.agent;
     id mark = [agent markResultsOf:command.sessionId];
     if (!mark) {
-        PanelLog(@"%@ -> %@ not typed: no transcript found", command.sessionId, command.text);
+        PanelLog(@"%@ -> %@ not typed: no transcript found", command.sessionId,
+                 CommandLogged(command.field, command.value));
+        if (!command.stillMay) NSBeep();
+        command.why = @"Send this session a message first";
         [self abandon:command];
-        NSBeep();
         return;
     }
     command.resultsMark = mark;
     [self holdDefaultsFor:command];
-    PanelLog(@"%@ -> typing \"%@\" into %@ terminal %@", command.sessionId, command.text, command.terminal.name,
-             command.tab);
+    PanelLog(@"%@ -> typing %@ into %@ terminal %@", command.sessionId, CommandLogged(command.field, command.value),
+             command.terminal.name, command.tab);
     // A model switch is noted as the panel's first, so the agent's hook asks its "Switch model?" here (awaitResult:),
     // when the session's hooks can: then its answer is waited for longer before Claude is taken to ask in the terminal.
     if ([command.field isEqual:@"model"]) {
@@ -337,25 +517,28 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     }
     if (![command.field isEqual:@"compact"]) [self show:command going:YES inTerminal:NO];
     // Each keystroke goes in only while the session is still at its prompt (the agent's whyNotTypeInto:), and while
-    // its terminal hasn't refused one (WhyTerminalRefuses), which a Compact card then says.
+    // its terminal hasn't refused one (WhyTerminalRefuses), which a Compact card then says; one going in by itself, only
+    // while nobody has come to it either.
     [agent type:command.text into:command.terminal tab:command.tab
          whyNot:^{
         return WhyTerminalRefuses(command.terminal, command.tab)
-            ?: [agent whyNotTypeInto:command.sessionId pid:command.pid];
+            ?: [agent whyNotTypeInto:command.sessionId pid:command.pid]
+            ?: (command.stillMay && !command.stillMay() ? [Reason kind:ReasonYouCame] : nil);
     }
            done:^(Reason *why, NSUInteger typed, NSUInteger steps) {
         if (!why) {
             [self awaitResult:command tries:0];
             return;
         }
-        PanelLog(@"%@ -> stopped typing \"%@\" after %lu of %lu steps: %@", command.sessionId, command.text,
-                 (unsigned long)typed, (unsigned long)steps, why);
-        NSBeep();
-        if (why.kind == ReasonTerminal) {
-            command.why = why.onCard;
-            if ([command.terminal respondsToSelector:@selector(wayPastIn:)])
-                command.way = [command.terminal wayPastIn:command.tab];
-        }
+        PanelLog(@"%@ -> stopped typing %@ after %lu of %lu steps: %@", command.sessionId,
+                 CommandLogged(command.field, command.value), (unsigned long)typed, (unsigned long)steps, why);
+        command.partWay = typed > 0;
+        command.youCame = why.kind == ReasonYouCame;
+        if (!command.stillMay) NSBeep();
+        // Why it stopped, as the Compact card or the row's note says it (abandon:), with the way past a terminal's.
+        command.why = [command.field isEqual:@"compact"] ? why.onCard : why.onButton;
+        if (why.kind == ReasonTerminal && [command.terminal respondsToSelector:@selector(wayPastIn:)])
+            command.way = [command.terminal wayPastIn:command.tab];
         [self abandon:command];
     }];
 }
@@ -363,7 +546,10 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 - (void)sendToClaude:(Command *)command row:(Row *)row {
     id<ConversationHost> desktop = [self.core.send conversationHostOf:row];
     if (![desktop mayControl]) {
-        PanelLog(@"%@ -> %@: Accessibility permission needed", row.hostSessionId, command.text);
+        PanelLog(@"%@ -> %@: Accessibility permission needed", row.hostSessionId,
+                 CommandLogged(command.field, command.value));
+        NSBeep();
+        command.why = @"Allow Whozmove in Accessibility, then try again";
         [self abandon:command];
         return;
     }
@@ -507,19 +693,30 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
 
 #pragma mark Compacting
 
-// The Compact card's choice: `/compact`, with the focus picked or typed on the card, for that session. It goes in
-// the way a model pick does (typed into its terminal tab, or written in Claude Desktop's message box), and only
-// while the session sits idle. Claude's line says "Compacting" until the result; a refusal, or a compaction that
-// doesn't go through, is said on the card.
+// The Compact card's choice: `/compact`, with the focus picked or typed on the card, for that session.
 - (void)compact:(NSDictionary *)msg {
     Row *row = self.core.rows.byId[msg[@"sessionId"]];
     if (!row) return;
-    NSString *sid = row.sessionId;
     NSString *focus = [msg[@"focus"] isKindOfClass:NSString.class] ? msg[@"focus"] : @"";
-    focus = OneLine(focus, 600);
+    [self compactRow:row focus:OneLine(focus, 600) stillMay:nil whenOver:nil];
+}
+
+// `/compact`, with its focus, for a session. It goes in the way a model pick does (typed into its terminal tab, or
+// written in Claude Desktop's message box), and only while the session sits idle. Claude's line says "Compacting"
+// until the result; from the card, a refusal, or a compaction that doesn't go through, is said on the card. One going
+// in by itself (`stillMay`, Compact at Breaks) goes only into a terminal, never beeps or opens the card, and stops
+// before any key once `stillMay` says it may not; `whenOver` is told how it ended.
+- (void)compactRow:(Row *)row focus:(NSString *)focus stillMay:(BOOL (^)(void))stillMay
+          whenOver:(void (^)(CompactEnd end, NSString *why))whenOver {
+    NSString *sid = row.sessionId;
+    BOOL byItself = stillMay != nil;
     id<AgentCommands, AgentPrompt> agent = [self agentOf:row];
     if (!agent) {
         PanelLog(@"%@ -> /compact not sent: no agent runs this session", sid);
+        if (byItself) {
+            whenOver(CompactEndFailed, @"This conversation can't be compacted from here");
+            return;
+        }
         NSBeep();
         [self.page compactNote:sid text:@"This conversation can't be compacted from here" way:nil];
         return;
@@ -528,8 +725,15 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     SessionReach *reach = [self.core.send reachOf:row];
     NSString *why = WhyNoCompact(reach, self.compacting[sid] != nil || row.compacting != nil)
         ?: ([self changesGoingInto:sid] ? kStillChanging : nil);
+    if (!why && byItself) why = WhyNotByItself(reach);
     if (why) {
-        PanelLog(@"%@ -> %@ not sent: %@", sid, text, why);
+        // Why keys can't go in, as the log says it, beside the card's words, which say several reasons the same way.
+        PanelLog(@"%@ -> %@ not sent%@: %@%@", sid, CommandLogged(@"compact", focus), byItself ? @" by itself" : @"",
+                 why, reach.whyNotType ? [NSString stringWithFormat:@" (%@)", reach.whyNotType] : @"");
+        if (byItself) {
+            whenOver(CompactEndFailed, why);
+            return;
+        }
         NSBeep();
         [self.page compactNote:sid text:why way:WayPast(reach, why)];
         return;
@@ -537,6 +741,8 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     self.compacting[sid] = @(NSDate.date.timeIntervalSince1970 * 1000);
     Command *command = [[Command alloc] initWithText:text field:@"compact" value:focus forRow:row];
     command.agent = agent;
+    command.stillMay = stillMay;
+    command.whenOver = whenOver;
     if (reach.desktop) {
         [self sendToClaude:command row:row];
     } else {
@@ -547,17 +753,27 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     [self changed];
 }
 
-// A /compact sent from the card has run its course: Claude's line goes back to normal, and anything but
-// "Compacted" is said on the card.
+// A /compact from the panel has run its course: Claude's line goes back to normal, and anything but "Compacted" is
+// said on the card, or, for one that went in by itself, told to what sent it, and on the row when it stopped part-way,
+// as its keys may be left in the prompt.
 - (void)endCompact:(Command *)command result:(NSString *)result {
     if (![command.field isEqual:@"compact"] || !self.compacting[command.sessionId]) return;
-    [self.compacting removeObjectForKey:command.sessionId];
-    self.compactEnded[command.sessionId] = @(NSDate.date.timeIntervalSince1970 * 1000);
+    NSString *sid = command.sessionId;
+    [self.compacting removeObjectForKey:sid];
+    double now = NSDate.date.timeIntervalSince1970 * 1000;
+    self.compactEnded[sid] = @(now);
     NSString *note = [command.agent compactNote:result];
-    if (note)
-        [self.page compactNote:command.sessionId
-                          text:note.length ? note : command.why ?: @"The compaction didn't go through"
+    if (!note) self.compacted[sid] = @(now);
+    if (command.whenOver) {
+        NSString *why = !note ? nil : note.length ? note : command.why ?: @"The compaction didn't go through";
+        CompactEnd end = !note ? CompactEndCompacted : command.partWay ? CompactEndStoppedPartWay
+                       : command.youCame ? CompactEndLeftForYou : CompactEndFailed;
+        command.whenOver(end, why);
+        command.whenOver = nil;
+    } else if (note) {
+        [self.page compactNote:sid text:note.length ? note : command.why ?: @"The compaction didn't go through"
                            way:note.length ? nil : command.way];
+    }
     [self changed];
 }
 
@@ -609,8 +825,8 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     [command.agent releaseDefaults:command.field saved:saved];
 }
 
-// A command that didn't go through: the row goes back, the defaults it would have saved are let go, and a
-// /compact's card says so.
+// A command that didn't go through: the row goes back, the defaults it would have saved are let go, and why (`why`)
+// is said on a /compact's card, or on the row's note for a pick.
 - (void)abandon:(Command *)command {
     if (command.ended) return;
     command.stage = CommandAbandoned;
@@ -619,6 +835,24 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     [self takeBack:command];
     [self releaseDefaultsOf:command saved:NO];
     [self endCompact:command result:nil];
+    if (command.why && ![command.field isEqual:@"compact"])
+        [self.page stepNote:command.sessionId text:command.why way:command.way];
+}
+
+// A pick that can't go in beeps, and says why on its row, with the way past a terminal's reason when there is one, so
+// it's never a beep alone; or with a button that does something on the page instead (`go`, Page's stepNote).
+- (void)cantPick:(NSString *)sid why:(NSString *)why way:(NSString *)way {
+    [self cantPick:sid why:why way:way go:nil];
+}
+
+- (void)cantPick:(NSString *)sid why:(NSString *)why way:(NSString *)way go:(NSString *)go {
+    NSBeep();
+    [self.page stepNote:sid text:why way:way go:go];
+}
+
+// One whose reason sends you to the session itself ("change it there"): Take me there opens it.
+- (void)cantPickThere:(NSString *)sid why:(NSString *)why {
+    [self cantPick:sid why:why way:@"Take me there" go:@"open"];
 }
 
 // Watches for the command's result: every quarter second for a minute, then every 2s for ten more (the row goes
@@ -677,11 +911,12 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
             [self show:command going:YES inTerminal:YES];
         }
         if (tries == 240) {  // a minute: the row goes back, but a late answer still counts
-            PanelLog(@"%@ -> no result for %@ after a minute; still watching", command.sessionId, command.text);
+            PanelLog(@"%@ -> no result for %@ after a minute; still watching", command.sessionId,
+                     CommandLogged(command.field, command.value));
             [self takeBack:command];
         }
         if (tries >= 240 + 300) {
-            PanelLog(@"%@ -> stopped watching for %@", command.sessionId, command.text);
+            PanelLog(@"%@ -> stopped watching for %@", command.sessionId, CommandLogged(command.field, command.value));
             [self show:command going:NO inTerminal:NO];
             [self forgetSwitchOf:command];
             command.stage = CommandAbandoned;
@@ -698,13 +933,22 @@ static BOOL ShowsPick(NSString *now, NSString *field, NSString *value) {
     command.stage = CommandDone;
     [self show:command going:NO inTerminal:NO];
     [self forgetSwitchOf:command];
-    PanelLog(@"%@ -> %@", command.sessionId, result ?: [@"Claude shows " stringByAppendingString:shown]);
+    // Claude's reply to a pick is its own words about the menu's; to /compact it could quote the focus, so only its
+    // length is kept.
+    NSString *answer = result ?: [@"Claude shows " stringByAppendingString:shown];
+    PanelLog(@"%@ -> %@", command.sessionId, ![command.field isEqual:@"compact"] ? answer
+        : [NSString stringWithFormat:@"Claude answered /compact (%lu characters)", (unsigned long)answer.length]);
     [self endCompact:command result:result];
     // The draft (with its filler) is back in the prompt by now, so the filler is deleted, unless the session has
     // moved on to something a key could answer, or this came so late that someone may be typing there.
     if (!desktop)
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.15 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            id why = late ? @"the result came late" : [agent whyNotEditDraft:command.sessionId pid:command.pid];
+            // One that went in by itself takes it out however late, and only while nobody has come to the session
+            // since: you may be typing there.
+            BOOL byItself = command.stillMay != nil, nobodyCame = byItself && command.stillMay();
+            id why = byItself && !nobodyCame ? @"you came to it"
+                   : late && !byItself ? @"the result came late"
+                   : [agent whyNotEditDraft:command.sessionId pid:command.pid];
             if (why) PanelLog(@"%@ -> filler left in the prompt: %@", command.sessionId, why);
             else [agent deleteFillerIn:command.terminal tab:command.tab];
         });

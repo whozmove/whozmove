@@ -1,0 +1,8 @@
+with no terminal, naming the ones Whozmove opens: There's no terminal to sign in from: Whozmove opens Ghostty, iTerm2 or Terminal
+naming 0: There's no terminal to sign in from
+naming 1: There's no terminal to sign in from: Whozmove opens Ghostty
+naming 2: There's no terminal to sign in from: Whozmove opens Ghostty or iTerm2
+a terminal's reason, with the way: Ghostty didn't open a tab for it. Or run '/Applications/Sample Folder/claude' auth login in any terminal yourself.
+the same reason, with no command: Ghostty didn't open a tab for it
+a reason ending in a full stop: Terminal didn't open it. Or run '/Applications/Sample Folder/claude' auth login in any terminal yourself.
+with no terminal, with the way: There's no terminal to sign in from: Whozmove opens Ghostty or iTerm2. Or run '/Applications/Sample Folder/claude' auth login in any terminal yourself.

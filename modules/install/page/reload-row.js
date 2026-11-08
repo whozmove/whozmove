@@ -1,5 +1,6 @@
 // A session running since before Whozmove's hooks went in, which shows only part of what it does until it reloads them
-// (s.reload, the install module's): at its work line's start, that it shows in part, with Reload, which reloads it
+// (s.reload, the install module's): at its work line's start, that it started before Whozmove's update, with Reload to
+// see its steps, which reloads it
 // alone, its conversation kept as it is (`install`, {action: reload, sessionId}); once pressed, or the line's Reload
 // Them, its row says it's waiting for its turn, or reloading, in the work line's place, as a step's note does. One left
 // for you says what to type in it: one the panel couldn't type into (its tab isn't certain, say), with Try Again, and
@@ -18,12 +19,13 @@ function reloadHTML(row) {
     const tip = r.held ? `${sentence(r.why)} Typing ${r.command} there reloads it anyway, and its next message reads `
       + 'the whole conversation again.' : `${sentence(r.why)} Type ${r.command} in its tab to see it in full.`;
     return `<div class="nopr reload${r.held ? '' : '" data-reload="' + sid}" title="${esc(tip)}">`
-      + `<span class="pt">Shown in part: type ${esc(r.command)} in it</span>`
-      + (r.held ? '' : '<span class="create-pr">Try Again</span>') + '</div>';
+      + `<span class="pt">Started before Whozmove's update: type ${esc(r.command)} in it</span>`
+      + (r.held ? '' : '<span class="button quiet create-pr">Try Again</span>') + '</div>';
   }
   if (r?.state !== 'needed') return '';
   return `<div class="nopr reload" data-reload="${sid}" title="${esc(RELOAD_TIP)}">`
-    + '<span class="pt">Shown in part</span><span class="create-pr">Reload</span></div>';
+    + '<span class="pt">Started before Whozmove\'s update</span>'
+    + '<span class="button quiet create-pr">Reload to see its steps</span></div>';
 }
 
 // What its row says once it's on its way, or null.

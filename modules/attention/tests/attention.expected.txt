@@ -1,0 +1,17 @@
+== Made-up events, and what's kept of them
+2030-01-01.jsonl (600)
+2030-01-15.jsonl (600)
+  {"app":"other","at":1894698000,"kind":"front"}
+  {"at":1894698000,"kind":"back"}
+  {"app":"agent","at":1894698060,"kind":"front"}
+  {"app":"agent","at":1894698120,"kind":"front"}
+  {"at":1894698400,"kind":"away"}
+  {"at":1894698900,"kind":"back"}
+  {"at":1894698905,"kind":"seen","session":"0aaaaaaa-0000-4000-8000-000000000001"}
+  {"at":1894698940,"kind":"seen","session":"0aaaaaaa-0000-4000-8000-000000000001"}
+  {"at":1894699000,"kind":"seen","session":"0aaaaaaa-0000-4000-8000-000000000001"}
+  {"at":1894698950,"kind":"seen","session":"0bbbbbbb-0000-4000-8000-000000000002"}
+  {"at":1894699002,"kind":"seen","session":"0ccccccc-0000-4000-8000-000000000003"}
+2030-01-16.jsonl (600)
+  {"app":"agent","at":1894784400,"kind":"front"}
+the folder (700)

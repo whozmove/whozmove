@@ -8,6 +8,8 @@
 
 static const NSTimeInterval kLookEvery = 6 * 60 * 60;
 
+NSString *const kWhozmoveReleases = @"https://github.com/whozmove/whozmove/releases";
+
 static NSString *UpdatesFile(void) {
     return AppDir(@"updates.json");
 }

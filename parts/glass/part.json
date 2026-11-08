@@ -1,0 +1,5 @@
+{
+  "styles": ["page/glass.css"],
+  "talksTo": ["core", "bridge", "turn", "flick", "hover", "keyboard", "pane", "edge", "fold", "chats", "list"],
+  "provides": []
+}

@@ -1,10 +1,14 @@
 == The apps every module lists for the panel's back, in their order, with the switches other modules add
 [
   {
+    "card" : false,
     "does" : "Claude Code runs your sessions, in a terminal or in Claude Desktop. Whozmove's plugin in it says what each one is doing and last said, and brings its requests to the panel.",
     "for" : "Puts your words in its message box, and presses its buttons",
     "id" : "com.anthropic.claudefordesktop",
     "listed" : "always",
+    "lists" : [
+      "Sessions"
+    ],
     "name" : "Claude",
     "order" : 10,
     "permission" : "accessibility",
@@ -27,13 +31,18 @@
         "key" : "track",
         "title" : "Track Claude Desktop app sessions"
       }
-    ]
+    ],
+    "tool" : false
   },
   {
+    "card" : false,
     "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt, and starts new conversations in a new tab.",
     "for" : "Finds each session's tab, and types into it",
     "id" : "com.mitchellh.ghostty",
     "listed" : "when on this Mac",
+    "lists" : [
+      "Sessions"
+    ],
     "name" : "Ghostty",
     "order" : 20,
     "permission" : "automation",
@@ -47,13 +56,18 @@
         "key" : "startHere",
         "title" : "Open new conversations here"
       }
-    ]
+    ],
+    "tool" : false
   },
   {
+    "card" : false,
     "does" : "Lists the Claude Code sessions in its tabs and opens them, types the panel's commands while a session waits at its prompt (with its Python API off, only into a session alone in its window), and starts new conversations in a new tab.",
     "for" : "Finds each session's tab, types into it, and opens new ones",
     "id" : "com.googlecode.iterm2",
     "listed" : "when on this Mac",
+    "lists" : [
+      "Sessions"
+    ],
     "name" : "iTerm2",
     "order" : 30,
     "permission" : "automation",
@@ -73,13 +87,18 @@
         "key" : "startHere",
         "title" : "Open new conversations here"
       }
-    ]
+    ],
+    "tool" : false
   },
   {
+    "card" : false,
     "does" : "Brings a session that runs in it forward. On a Mac without Ghostty or iTerm2, it runs Sign in, and carries on a conversation that has ended, in a new window.",
     "for" : null,
     "id" : "com.apple.Terminal",
     "listed" : "when on this Mac",
+    "lists" : [
+      "Sessions"
+    ],
     "name" : "Terminal",
     "order" : 40,
     "permission" : null,
@@ -88,18 +107,27 @@
     ],
     "switches" : [
 
-    ]
+    ],
+    "tool" : false
   },
   {
-    "does" : "Shows the song playing under your sessions, with its buttons, and its lyrics line by line, once they're on.",
-    "for" : "Reads the song, and plays, pauses and skips",
+    "card" : false,
+    "does" : "Shows the song playing under your sessions, with its buttons, and its lyrics line by line, once they're on; and makes it quieter while you talk to Claude.",
+    "for" : "Reads the song, plays, pauses and skips, and lowers the music while you talk",
     "id" : "com.spotify.client",
     "listed" : "always",
+    "lists" : [
+
+    ],
     "name" : "Spotify",
     "order" : 50,
     "permission" : "automation",
     "statuses" : [
-
+      {
+        "key" : "quieterControl",
+        "section" : null,
+        "title" : "Quieter music"
+      }
     ],
     "switches" : [
       {
@@ -119,14 +147,43 @@
         "help" : "To play a song, or carry on a paused one, while none shows",
         "key" : "token",
         "title" : "Its icon at the panel's corner"
+      },
+      {
+        "group" : null,
+        "help" : "Lowers the music while you speak to Claude, and brings it back after",
+        "key" : "quieter",
+        "title" : "Quieter while you talk to Claude"
+      },
+      {
+        "group" : "spotifyQuieterLevel",
+        "help" : "To about two thirds of its volume",
+        "key" : "quieter-little",
+        "title" : "A little"
+      },
+      {
+        "group" : "spotifyQuieterLevel",
+        "help" : "To half its volume",
+        "key" : "quieter-half",
+        "title" : "Half"
+      },
+      {
+        "group" : "spotifyQuieterLevel",
+        "help" : "To a quarter of its volume",
+        "key" : "quieter-much",
+        "title" : "Much quieter"
       }
-    ]
+    ],
+    "tool" : false
   },
   {
+    "card" : false,
     "does" : "Reads each session's checkout: what's changed, committed and on GitHub, for the next steps on its row, the changes view and Deploy; and makes worktrees for new conversations.",
     "for" : null,
     "id" : "git",
     "listed" : "always",
+    "lists" : [
+
+    ],
     "name" : "Git",
     "order" : 60,
     "permission" : null,
@@ -150,6 +207,255 @@
         "key" : "deploy",
         "title" : "Show Deploy"
       }
-    ]
+    ],
+    "tool" : false
+  },
+  {
+    "card" : true,
+    "does" : "Gives a conversation a Jira ticket, and shows it on its row.",
+    "for" : null,
+    "id" : "jira",
+    "listed" : "always",
+    "lists" : [
+
+    ],
+    "name" : "Jira",
+    "order" : 150,
+    "permission" : null,
+    "statuses" : [
+
+    ],
+    "switches" : [
+
+    ],
+    "tool" : false
+  },
+  {
+    "card" : true,
+    "does" : "Shows what fills your disk, tells you before it's full, and finds keys left where they shouldn't be.",
+    "for" : "Lets the map look inside Desktop, Documents, Downloads and other apps' folders",
+    "id" : "storage",
+    "listed" : "always",
+    "lists" : [
+
+    ],
+    "name" : "Storage",
+    "order" : 200,
+    "permission" : "fullDiskAccess",
+    "statuses" : [
+
+    ],
+    "switches" : [
+      {
+        "group" : null,
+        "help" : "Keeps a map of what fills your disk. Turned off, the map is deleted.",
+        "key" : "on",
+        "title" : "Know your storage"
+      },
+      {
+        "group" : null,
+        "help" : "A line above your sessions, under 25 GB free, or under 50 GB and a week from full",
+        "key" : "warn",
+        "title" : "Tell me when space runs low"
+      }
+    ],
+    "tool" : true
+  },
+  {
+    "card" : false,
+    "does" : "Hands you the one thing your agents need from you most, beside your sessions: one at a time, with what to do and why. These are all set to work as they are.",
+    "for" : null,
+    "groups" : [
+      {
+        "enabled" : "always",
+        "foot" : null,
+        "order" : 10,
+        "rows" : [
+          {
+            "group" : null,
+            "help" : "The one thing that needs you most, beside the list. While it's off, a session that hands you a task is told so.",
+            "key" : "oneTask",
+            "kind" : "switch",
+            "title" : "One Task"
+          }
+        ],
+        "shown" : "always",
+        "title" : null
+      },
+      {
+        "enabled" : "sometimes",
+        "foot" : "A session that may not is told so when it asks, so its agent stops asking.",
+        "order" : 20,
+        "rows" : [
+          {
+            "choices" : [
+              {
+                "help" : "Every agent can hand you a task. Recommended.",
+                "id" : "any",
+                "name" : "Any session"
+              },
+              {
+                "help" : "Only a session leading a team, with its picks for you. Others are told why.",
+                "id" : "lead",
+                "name" : "Only a team's chief"
+              }
+            ],
+            "fixed" : null,
+            "key" : "oneTaskWho",
+            "kind" : "choice",
+            "title" : "Who may hand you tasks"
+          }
+        ],
+        "shown" : "sometimes",
+        "title" : "Who may hand you tasks"
+      },
+      {
+        "enabled" : "sometimes",
+        "foot" : null,
+        "order" : 30,
+        "rows" : [
+          {
+            "choices" : [
+              {
+                "help" : "What a team's chief picked for you comes next, in its order. Recommended.",
+                "id" : "picks",
+                "name" : "Then a chief's picks"
+              },
+              {
+                "help" : "Everything else by how long it has waited.",
+                "id" : "oldest",
+                "name" : "Then the oldest"
+              }
+            ],
+            "fixed" : {
+              "help" : "Always first, whatever else you choose.",
+              "name" : "Critical and P0 picks, then urgent tasks"
+            },
+            "key" : "oneTaskNext",
+            "kind" : "choice",
+            "title" : "What comes first"
+          },
+          {
+            "group" : null,
+            "help" : "A line on why the task in front is first, and each after it by name and why it's where it is. Off, the foot says only how many.",
+            "isNew" : true,
+            "key" : "oneTaskWhy",
+            "kind" : "switch",
+            "title" : "Say why each is here"
+          },
+          {
+            "group" : null,
+            "help" : "A task you've seen stays until you leave it; something urgent asks from the top, and you come back to where you were.",
+            "isNew" : true,
+            "key" : "oneTaskWaitForGo",
+            "kind" : "switch",
+            "title" : "Urgent tasks wait for your Go"
+          }
+        ],
+        "shown" : "always",
+        "title" : "What comes first"
+      },
+      {
+        "enabled" : "always",
+        "foot" : "For everything Whozmove says, not only tasks.",
+        "order" : 35,
+        "rows" : [
+          {
+            "group" : null,
+            "help" : "At night, only what's urgent is said: under the header, beside the folded panel and beside the panel at the screen's edge. The rest waits for the morning.",
+            "key" : "quietHours",
+            "kind" : "switch",
+            "title" : "Quiet hours"
+          },
+          {
+            "help" : "When quiet hours start and end.",
+            "key" : "quietHoursTimes",
+            "kind" : "time",
+            "title" : "Night"
+          }
+        ],
+        "shown" : "always",
+        "title" : "Quiet hours"
+      },
+      {
+        "enabled" : "sometimes",
+        "foot" : null,
+        "order" : 40,
+        "rows" : [
+          {
+            "group" : null,
+            "help" : "A box under the task asks its session what it's about.",
+            "key" : "oneTaskTalk",
+            "kind" : "switch",
+            "title" : "Talk under each task"
+          },
+          {
+            "choices" : [
+              {
+                "help" : "Written while it works, they go in by themselves when it's done, never into the tab you're in. Recommended.",
+                "id" : "self",
+                "name" : "Words go in once it's free"
+              },
+              {
+                "help" : "Nothing goes in until you press Send Now.",
+                "id" : "wait",
+                "name" : "Words wait for Send Now"
+              }
+            ],
+            "fixed" : null,
+            "key" : "oneTaskHeld",
+            "kind" : "choice",
+            "title" : "Words you write while it works"
+          }
+        ],
+        "shown" : "always",
+        "title" : "Talking with the agent"
+      },
+      {
+        "enabled" : "always",
+        "foot" : "A change applies to what comes next: the task you have open stays where it is.",
+        "order" : 90,
+        "rows" : [
+
+        ],
+        "shown" : "always",
+        "title" : null
+      }
+    ],
+    "id" : "one-task",
+    "listed" : "always",
+    "lists" : [
+
+    ],
+    "name" : "One Task",
+    "order" : 205,
+    "permission" : null,
+    "statuses" : [
+
+    ],
+    "switches" : [
+
+    ],
+    "tool" : true
+  },
+  {
+    "card" : true,
+    "does" : "Shows the work of a team a session leads: what's moving, who's on what, its goals and what's done.",
+    "for" : null,
+    "id" : "board",
+    "listed" : "always",
+    "lists" : [
+
+    ],
+    "name" : "Team Board",
+    "order" : 210,
+    "permission" : null,
+    "statuses" : [
+
+    ],
+    "switches" : [
+
+    ],
+    "tool" : true
   }
 ]

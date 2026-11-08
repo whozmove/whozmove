@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
 #import "Agent.h"
+#import "Module.h"
 
 @class Row;
 @protocol TypingHost, ConversationHost;
@@ -22,6 +23,11 @@ typedef NS_ENUM(NSInteger, SwitchAnswer) {
     SwitchYes,
     SwitchYesDontAskAgain,
 };
+
+// A command as panel.log says it, never its words, which for /compact hold the focus you wrote: "model
+// claude-opus-5-5", "effort high" or "mode plan" (the pick, in its menu's own word), or "/compact with a focus of 42
+// characters".
+NSString *CommandLogged(NSString *field, NSString *value);
 
 @interface Command : NSObject
 - (instancetype)initWithText:(NSString *)text field:(NSString *)field value:(NSString *)value
@@ -55,4 +61,10 @@ typedef NS_ENUM(NSInteger, SwitchAnswer) {
 // Why it didn't go through, as the panel says it.
 @property (copy) NSString *why;
 @property (copy) NSString *way;  // the words of a button past its terminal's refusal (TypingHost's wayPastIn:), if any
+// For a compaction going in by itself (Compact at Breaks, SessionCompacting), with nobody's press: whether it still may,
+// asked again before each key, and what's told how it ended. Nil for one sent from the Compact card.
+@property (copy) BOOL (^stillMay)(void);
+@property (copy) void (^whenOver)(CompactEnd end, NSString *why);
+@property (assign) BOOL partWay;   // it stopped after some of its keys were in
+@property (assign) BOOL youCame;   // what stopped it was `stillMay` saying no
 @end

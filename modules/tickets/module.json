@@ -1,0 +1,5 @@
+{
+  "order": 45,
+  "scripts": ["page/ticket-words.js", "page/tickets.js"],
+  "styles": ["page/tickets.css"]
+}

@@ -21,3 +21,9 @@
 // The link that opens a new conversation, with words for its message box when they fit (else none). It names no folder,
 // as Claude loses one that comes in a link (ClaudeDesktopFacts.h): that's chosen in Claude itself.
 NSURL *NewConversationLink(NSString *words);
+
+// What Claude's window shows round the message box, as panel.log says it: each element's role, with its name only when
+// it's one of Claude's own labels that ClaudeDesktopFacts knows (Prompt, Send, No folder…), and any other name, which
+// can be the conversation's words or what's in the box, as "a name of N characters". `named` is [{role, name}], as
+// found on screen, in order; at most 60 are said, and a name repeated straight after itself once.
+NSString *DesktopScreenLogged(NSArray<NSDictionary *> *named);

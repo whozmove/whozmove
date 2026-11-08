@@ -38,6 +38,8 @@ function nowPlayingView(song, now, noteSeen, askLyrics = false) {
     progress: song.durationMs > 0 ? at / song.durationMs : 0,
     clock: song.playing ? songClock(at) : 'Paused',
     note: song.allowed === false ? 'refused' : !noteSeen ? 'first' : askLyrics ? 'lyrics' : null,
+    // While the music is lowered as you talk to an agent: the strip's sign beside the time.
+    ...(song.quieter ? { quieter: true } : {}),
   };
 }
 

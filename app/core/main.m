@@ -1,15 +1,24 @@
 // main: starts Whozmove, or runs one of the print modes the tests check (PrintRun): --print-rows, --print-waits,
-// --print-browsing, --print-edges and --print-routes here, and the modules' own.
+// --print-browsing, --print-edges, --print-edit-keys, --print-talking, --print-on-top, --print-other-apps and
+// --print-routes here, and the modules' own.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "AppDelegate.h"
+#import "Processes.h"
+#import "Allowed.h"
 #import "Row.h"
 #import "Files.h"
+#import "AppleEvents.h"
+#import "AppleScript.h"
+#import "Accessibility.h"
 #import "Work.h"
 #import "Core.h"
 #import "Modules.h"
 #import "Printing.h"
 #import "Browser.h"
+#import "EditKeys.h"
+#import "Focus.h"
 #import "PanelWindow.h"
+#import "Talking.h"
 #import "EdgeIcon.h"
 #import "SideCat.h"
 
@@ -120,12 +129,17 @@ static int PrintBrowsing(NSArray<NSString *> *arguments) {
     return 0;
 }
 
-// `Whozmove --print-edges`: what the panel's edge does with sample panels and screens, then quit: the side the icons
-// at its edge are on (EdgeSideFor), where the panel folds round Whozmove beside it (SideCatFoldAt), whether a
-// two-finger swipe is the panel's and whether it flicks the panel (SwipeWay, SwipeFlicks), where a flicked panel goes
-// and how much of it shows on its way (ParkedOrigin, ParkedShows), and which way what comes out of the folded cat goes,
-// the room the window takes in for it, and where that takes a click (CatWayFor, CatRoomFrame, CatRoomTakes).
-// tests/edges.sh compares it with a recorded copy.
+// `Whozmove --print-edges`: what the panel's edge does with sample panels and screens, then quit: the side the icons at
+// its edge are on (EdgeSideFor), where the panel folds round Whozmove beside it (SideCatFoldAt), whether a two-finger
+// swipe is the panel's and whether it flicks the panel (SwipeWay, SwipeFlicks), where a flicked panel goes and how much
+// of it shows on its way (ParkedOrigin, ParkedShows), how far a swipe on Whozmove at the screen's edge pulls the panel
+// back out, whether it then comes back, and how far it pushes Whozmove in (SwipePulled, PullBrings, SideCatPushed),
+// which way what comes out of the folded cat goes, the room the window takes in for it, and where that takes a click
+// (CatWayFor, CatRoomFrame, CatRoomTakes), and the room the window asks for to turn over, where macOS keeps it at the
+// top of the screen and how far that moves it (TurnRoom, PageFrameIn), and how tall the header and the list may get on
+// a screen and the open panel where it is, with room kept for what hangs below it and for the lines under the header
+// (ListLimitFor, RoomFor), and how tall it opens out of the folded panel (OpenedHeight). tests/edges.sh compares it
+// with a recorded copy.
 static int PrintEdges(void) {
     NSRect screen = NSMakeRect(0, 0, 1440, 875), list = NSMakeRect(0, 0, 340, 600);
     printf("The side the icons are on, on a screen 1440 wide (its middle at 720, 40 either side before it changes):\n");
@@ -163,6 +177,20 @@ static int PrintEdges(void) {
     for (size_t i = 0; i < sizeof lefts / sizeof *lefts; i++)
         printf(" %.3f", ParkedShows(NSMakeRect(lefts[i], 200, 340, 600), room));
     printf("\n");
+    printf("Pulled back out, 300 from where it was, the fingers gone 0, 100, 300, 340, 600, 2000 toward the middle: "
+           "out");
+    CGFloat pulls[] = {0, 100, 300, 340, 600, 2000};
+    for (size_t i = 0; i < sizeof pulls / sizeof *pulls; i++) printf(" %.1f", SwipePulled(pulls[i], 300));
+    printf("\n");
+    printf("Fingers lifting, the panel 340 wide, so far out, at a speed toward the middle: whether it comes back:\n");
+    CGFloat lets[][2] = {{113, 200}, {114, 200}, {200, -799}, {200, -801}, {20, 801}, {20, 799}, {0, 1500}};
+    for (size_t i = 0; i < sizeof lets / sizeof *lets; i++)
+        printf("  %.0f out, at %.0f: %s\n", lets[i][0], lets[i][1],
+               PullBrings(lets[i][0], 340, lets[i][1]) ? "yes" : "no");
+    printf("Whozmove pushed into the edge, the fingers gone 0, 10, 30, 60, 150, 1000 toward it: in");
+    CGFloat pushes[] = {0, 10, 30, 60, 150, 1000};
+    for (size_t i = 0; i < sizeof pushes / sizeof *pushes; i++) printf(" %.1f", SideCatPushed(pushes[i]));
+    printf("\n");
     printf("Which way what comes out of the folded cat goes, its glass 76 across on a screen 1440 by 875:\n");
     struct { const char *what; CGFloat x, y; } ways[] = {
         {"at the top right", 1340, 780}, {"at the top left", 20, 780}, {"at the bottom right", 1340, 20},
@@ -189,6 +217,377 @@ static int PrintEdges(void) {
     for (size_t i = 0; i < sizeof presses / sizeof *presses; i++)
         printf("  %s: %s\n", presses[i].what,
                CatRoomTakes(NSMakePoint(presses[i].x, presses[i].y), chats, 6) ? "taken" : "goes through");
+    // macOS keeps the window it turns in under the menu bar, so near the top of the screen's room it's lower than the
+    // room asked for: the list stays where the panel is only when the page is placed by where the window is kept, and
+    // placed by the room asked for, it would be as much lower.
+    printf("Turning over, the panel 340 by 600 under the top of a screen whose room is 1440 by 875: the room the "
+           "window asks for, where macOS keeps it, and the list's top-left on the screen as the turn starts, the page "
+           "placed by where the window is kept, and by the room asked for:\n");
+    struct { const char *what; CGFloat top; } turns[] = {
+        {"16 under the top", 859}, {"at the very top", 875}, {"200 under the top", 675}};
+    for (size_t i = 0; i < sizeof turns / sizeof *turns; i++) {
+        NSRect panel = NSMakeRect(1084, turns[i].top - 600, 340, 600), room = TurnRoom(panel);
+        NSRect window = NSOffsetRect(room, 0, MIN(0, NSMaxY(screen) - NSMaxY(room)));
+        NSRect clip = NSOffsetRect(panel, -NSMinX(window), -NSMinY(window));
+        // The list's top-left on the screen, in the window where it's kept, with the page placed by `by`.
+        NSPoint (^listBy)(NSRect) = ^NSPoint(NSRect by) {
+            NSRect page = PageFrameIn(NSMakePoint(NSMinX(panel), NSMaxY(panel)), NSHeight(panel), by, clip);
+            return NSMakePoint(NSMinX(window) + NSMinX(clip) + NSMinX(page) + (NSWidth(page) - NSWidth(panel)) / 2,
+                               NSMinY(window) + NSMinY(clip) + NSMinY(page) + NSHeight(panel));
+        };
+        NSPoint kept = listBy(window), asked = listBy(room);
+        printf("  %s, the list at (%.0f, %.0f): (%.0f, %.0f) %.0f by %.0f, kept at (%.0f, %.0f); (%.0f, %.0f), "
+               "(%.0f, %.0f)\n", turns[i].what, NSMinX(panel), NSMaxY(panel), NSMinX(room), NSMinY(room),
+               NSWidth(room), NSHeight(room), NSMinX(window), NSMinY(window), kept.x, kept.y, asked.x, asked.y);
+    }
+    printf("The most the header and the list take, on screens whose room under the menu bar is so tall:\n");
+    CGFloat screens[] = {600, 775, 875, 923, 945, 1080, 1164, 1415};
+    for (size_t i = 0; i < sizeof screens / sizeof *screens; i++)
+        printf("  %.0f: %.0f\n", screens[i], ListLimitFor(screens[i]));
+    printf("How tall the open panel can grow, on a screen whose room starts 0 up, its top edge so high, with nothing "
+           "hanging below it, and with a card 200 below it:\n");
+    CGFloat tops[] = {929, 600, 470, 300, 200};
+    for (size_t i = 0; i < sizeof tops / sizeof *tops; i++)
+        printf("  %.0f: %.0f; %.0f\n", tops[i], RoomFor(tops[i], 0, 0, 0), RoomFor(tops[i], 0, 200, 0));
+    printf("…on a screen whose room starts 70 up, above a Dock along its foot, its top edge at 929: %.0f; %.0f\n",
+           RoomFor(929, 70, 0, 0), RoomFor(929, 70, 200, 0));
+    // Dragged so low that the card's room would cut into the lines under the header, the card gives way first.
+    printf("…with a card 200 below and a notice 101 tall under the header, its top edge so high (the notice whole, with "
+           "the header and a row, where the screen has that much):\n");
+    CGFloat lows[] = {600, 470, 300, 200};
+    for (size_t i = 0; i < sizeof lows / sizeof *lows; i++)
+        printf("  %.0f: %.0f\n", lows[i], RoomFor(lows[i], 0, 200, 101));
+    // Folded at 741 on a 1415pt display, the cat taken to a 945pt screen: the page, told that screen's limit, asks 741.
+    CGFloat there = RoomFor(929, 0, 200, 101);
+    printf("Opening out of the folded panel, kept 741 tall as it folded on a screen 1415 tall, then taken to one 945 "
+           "tall, its top at 929 with a card kept and a notice 101 tall: the page asking %.0f there, it opens at %.0f; "
+           "had it not asked, at %.0f; and with nothing known, at %.0f\n", ListLimitFor(945) + 101,
+           OpenedHeight(741, ListLimitFor(945) + 101, there), OpenedHeight(741, 0, there), OpenedHeight(0, 0, there));
+    return 0;
+}
+
+// `Whozmove --print-edit-keys`: the edit each sample key does in a web view that has the keyboard, and that it does
+// none in one that hasn't (EditFor), then quit. tests/keys.sh compares it with a recorded copy: a key left unmapped
+// does nothing at all. Whether a view has the keyboard is DoEditKey's to say, from its window, which this doesn't run.
+static int PrintEditKeys(void) {
+    const NSEventModifierFlags cmd = NSEventModifierFlagCommand, shift = NSEventModifierFlagShift;
+    // Each: the key's letter with what's held, and without it (bare) when that's another.
+    struct { const char *what; NSString *key, *bare; NSEventModifierFlags mods; NSEventType type; BOOL typing; }
+        keys[] = {
+        {"⌘V", @"v", nil, cmd, NSEventTypeKeyDown, YES}, {"⌘C", @"c", nil, cmd, NSEventTypeKeyDown, YES},
+        {"⌘X", @"x", nil, cmd, NSEventTypeKeyDown, YES}, {"⌘A", @"a", nil, cmd, NSEventTypeKeyDown, YES},
+        {"⌘Z", @"z", nil, cmd, NSEventTypeKeyDown, YES}, {"⇧⌘Z", @"Z", @"z", cmd | shift, NSEventTypeKeyDown, YES},
+        {"⌘V with Caps Lock on", @"V", nil, cmd | NSEventModifierFlagCapsLock, NSEventTypeKeyDown, YES},
+        {"⌘V with fn still held (a dictation app's key)", @"v", nil, cmd | NSEventModifierFlagFunction,
+         NSEventTypeKeyDown, YES},
+        {"⌘V on a Russian layout (м without ⌘)", @"v", @"м", cmd, NSEventTypeKeyDown, YES},
+        {"⌘V on Dvorak – QWERTY ⌘ (. without ⌘)", @"v", @".", cmd, NSEventTypeKeyDown, YES},
+        {"⌘. on Dvorak (V's key on QWERTY)", @".", @".", cmd, NSEventTypeKeyDown, YES},
+        {"⌘V let go", @"v", nil, cmd, NSEventTypeKeyUp, YES},
+        {"⌘V, in a view without the keyboard", @"v", nil, cmd, NSEventTypeKeyDown, NO},
+        {"⌘A, in a view without the keyboard", @"a", nil, cmd, NSEventTypeKeyDown, NO},
+        {"⇧⌘V", @"V", @"v", cmd | shift, NSEventTypeKeyDown, YES},
+        {"⌥⌘V", @"√", @"v", cmd | NSEventModifierFlagOption, NSEventTypeKeyDown, YES},
+        {"⌃V", @"\x16", @"v", NSEventModifierFlagControl, NSEventTypeKeyDown, YES},
+        {"v", @"v", nil, 0, NSEventTypeKeyDown, YES}, {"⌘W", @"w", nil, cmd, NSEventTypeKeyDown, YES},
+        {"⌘Return", @"\r", nil, cmd, NSEventTypeKeyDown, YES}};
+    printf("The edit each key does in a web view that has the keyboard:\n");
+    for (size_t i = 0; i < sizeof keys / sizeof *keys; i++) {
+        NSEvent *event = [NSEvent keyEventWithType:keys[i].type location:NSZeroPoint modifierFlags:keys[i].mods
+                                         timestamp:0 windowNumber:0 context:nil characters:keys[i].key
+                       charactersIgnoringModifiers:keys[i].bare ?: keys[i].key isARepeat:NO keyCode:0];
+        SEL edit = EditFor(event, keys[i].typing);
+        printf("  %s: %s\n", keys[i].what, edit ? NSStringFromSelector(edit).UTF8String : "none");
+    }
+    return 0;
+}
+
+// `Whozmove --print-talking <file>…`: for each JSON file, by its name, why a recording counts as talking to an agent
+// (Talking's whyCounts:then:rows:), or null when it doesn't, from {recording, then, rows}: the recording process, what
+// was in front as it began, and the sessions listed, each {sessionId, pid}. tests/rows.sh compares it with a recorded
+// copy.
+static int PrintTalking(Core *core, NSArray<NSString *> *files) {
+    NSMutableDictionary *found = [NSMutableDictionary dictionary];
+    for (NSString *file in files) {
+        NSData *data = [NSData dataWithContentsOfFile:file] ?: NSData.data;
+        NSDictionary *sample = AsRecord([NSJSONSerialization JSONObjectWithData:data options:0 error:nil]);
+        NSMutableArray<Row *> *rows = [NSMutableArray array];
+        for (id fields in AsList(sample[@"rows"]))
+            if (AsRecord(fields)) [rows addObject:[[Row alloc] initWithFields:fields]];
+        found[file.lastPathComponent.stringByDeletingPathExtension] =
+            [core.talking whyCounts:AsRecord(sample[@"recording"]) ?: @{} then:AsRecord(sample[@"then"]) ?: @{}
+                               rows:rows] ?: NSNull.null;
+    }
+    return PrintJSON(found);
+}
+
+// A window as CGWindowListCopyWindowInfo lists it, of process `pid`, at `layer`, with its alpha and its place.
+static NSDictionary *SampleWindow(pid_t pid, int layer, double alpha, CGRect bounds) {
+    return @{(__bridge NSString *)kCGWindowOwnerPID: @(pid), (__bridge NSString *)kCGWindowLayer: @(layer),
+             (__bridge NSString *)kCGWindowAlpha: @(alpha),
+             (__bridge NSString *)kCGWindowBounds: CFBridgingRelease(CGRectCreateDictionaryRepresentation(bounds))};
+}
+
+// `Whozmove --print-on-top`: for sample windows on the screen, whether a terminal's window is on top
+// (FrontWindowOnTop), then quit. A press on the row of the session its tab shows leaves it be only then; otherwise
+// the terminal is told to show the tab, which brings its window up. tests/rows.sh compares it with a recorded copy.
+static int PrintOnTop(void) {
+    const pid_t terminal = 100, other = 200, own = 300;
+    const CGRect front = CGRectMake(100, 100, 800, 600), beside = CGRectMake(1000, 100, 400, 400);
+    struct { const char *what; NSArray *windows; } cases[] = {
+        {"alone", @[SampleWindow(terminal, 0, 1, front)]},
+        {"under another app's window", @[SampleWindow(other, 0, 1, CGRectMake(200, 150, 400, 400)),
+                                         SampleWindow(terminal, 0, 1, front)]},
+        {"with another app's window above it, beside it", @[SampleWindow(other, 0, 1, beside),
+                                                           SampleWindow(terminal, 0, 1, front)]},
+        {"over another app's window", @[SampleWindow(terminal, 0, 1, front), SampleWindow(other, 0, 1, beside)]},
+        {"under Whozmove's own windows", @[SampleWindow(own, 3, 1, CGRectMake(150, 150, 300, 600)),
+                                           SampleWindow(own, 0, 1, CGRectMake(150, 150, 1, 1)),
+                                           SampleWindow(terminal, 0, 1, front)]},
+        {"under the menu bar and another app's window that floats over every app",
+         @[SampleWindow(other, 24, 1, CGRectMake(0, 0, 1440, 25)),
+           SampleWindow(other, 3, 1, CGRectMake(200, 150, 400, 400)), SampleWindow(terminal, 0, 1, front)]},
+        {"under a window that can't be seen", @[SampleWindow(other, 0, 0, CGRectMake(0, 0, 1440, 900)),
+                                                SampleWindow(terminal, 0, 1, front)]},
+        {"with its own window that floats over every app on top, over another app's window",
+         @[SampleWindow(terminal, 3, 1, CGRectMake(0, 25, 1440, 875)), SampleWindow(other, 0, 1, beside),
+           SampleWindow(terminal, 0, 1, front)]},
+        {"with only its window that floats over every app on the screen",
+         @[SampleWindow(terminal, 3, 1, CGRectMake(0, 25, 1440, 875)), SampleWindow(other, 0, 1, beside)]},
+        {"with no window on the screen", @[SampleWindow(other, 0, 1, beside)]},
+        {"in a list macOS couldn't give", @[]}};
+    for (size_t i = 0; i < sizeof cases / sizeof *cases; i++)
+        printf("%s: %s\n", cases[i].what, FrontWindowOnTop(cases[i].windows, terminal, own) ? "yes" : "no");
+    return 0;
+}
+
+// `Whozmove --print-other-apps`: what each way Whozmove acts on another app gives from a home that isn't your own (a
+// test's), and what panel.log says: nothing is pressed, typed or sent, so a test or a print run never drives your apps.
+// Each is aimed at Whozmove itself, or at no element, so nothing else would be touched even if one did act. It refuses
+// your own home, where they would act. tests/rows.sh compares it with a recorded copy.
+static int PrintOtherApps(void) {
+    if (HomeIsYourOwn()) {
+        fprintf(stderr, "--print-other-apps acts on other apps from your own home: give it a throwaway one\n");
+        return 2;
+    }
+    // The log starts empty, in a folder of its own: made with a plain write, which any sandbox a test runs in allows.
+    [NSFileManager.defaultManager createDirectoryAtPath:AppDir(nil) withIntermediateDirectories:YES attributes:nil
+                                                  error:nil];
+    FILE *log = fopen(AppDir(@"panel.log").fileSystemRepresentation, "w");
+    if (log) fclose(log);
+    pid_t own = getpid();
+    OSStatus status = noErr;
+    NSString *script = RunAppleScript(@"return 1");
+    NSAppleEventDescriptor *sent = SendAppleEvent(own, kAECoreSuite, kAEGetData, nil, nil, 2, &status);
+    printf("RunAppleScript: %s\n", script ? script.UTF8String : "nothing");
+    printf("SendAppleEvent: %s, status %d\n", sent ? "an answer" : "nothing", (int)status);
+    printf("AskQuietly: %s\n", AskQuietly(own, AppleEventProperty(pName, nil), 2) ? "an answer" : "nothing");
+    printf("AutomationPermission: %d\n", (int)AutomationPermission(own, NO));
+    // No element at all: one that acted would only be told its argument is wrong (-25201), not refused (-25211).
+    printf("PressElement: %d\n", (int)PressElement(NULL, kAXRaiseAction));
+    printf("SetElementAttribute: %d\n", (int)SetElementAttribute(NULL, kAXFrontmostAttribute, kCFBooleanTrue));
+    // An empty event (kCGEventNull), which needs no window server to make and does nothing if posted.
+    CGEventRef empty = CGEventCreate(NULL);
+    printf("PostEventTo: %s\n", PostEventTo(own, empty) ? "posted" : "nothing");
+    CFRelease(empty);
+    NSString *logged = [NSString stringWithContentsOfFile:AppDir(@"panel.log") encoding:NSUTF8StringEncoding error:nil];
+    NSString *said = @"Whozmove pressed, typed, opened and sent nothing in other apps: this run's home isn't your own";
+    NSUInteger times = 0;
+    for (NSString *line in [logged componentsSeparatedByString:@"\n"])
+        if ([line hasSuffix:said]) times++;
+    printf("panel.log says \"%s\": %lu time%s\n", said.UTF8String, (unsigned long)times, times == 1 ? "" : "s");
+    return 0;
+}
+
+// `Whozmove --print-file-reads`: a file read every second (ReadJSONKept, ReadTextKept), written, rewritten and read in
+// turn, so it's seen to be read again only once it has changed (its size, or only its date), never kept while it can't
+// be read (caught half-written) or once it's gone; and a file's date from stat (FileModifiedAt). In a folder of the
+// home in $HOME, so it refuses to run in your own. tests/rows.sh compares it with a recorded copy.
+static int PrintFileReads(void) {
+    if (HomeIsYourOwn()) {
+        fprintf(stderr, "--print-file-reads writes files in $HOME: run it with a throwaway HOME, as tests/rows.sh "
+                        "does\n");
+        return 2;
+    }
+    NSString *folder = [Home() stringByAppendingPathComponent:@"file-reads"];
+    [NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil
+                                                  error:nil];
+    NSString *path = [folder stringByAppendingPathComponent:@"record.json"];
+    __block double at = 1700000000;
+    void (^write)(NSString *) = ^(NSString *text) {
+        [text writeToFile:path atomically:NO encoding:NSUTF8StringEncoding error:nil];
+        struct timeval times[2] = {{(time_t)at, 0}, {(time_t)at, 0}};
+        utimes(path.fileSystemRepresentation, times);
+        at += 1;
+    };
+    void (^say)(NSString *, id) = ^(NSString *what, id read) {
+        id n = AsRecord(read)[@"n"];
+        printf("%s: %s\n", what.UTF8String, n ? [n description].UTF8String : "nothing");
+    };
+    write(@"{\"n\": 1}");
+    id first = ReadJSONKept(path);
+    say(@"written", first);
+    printf("read again, unchanged: %s\n", ReadJSONKept(path) == first ? "the same, not read again" : "read again");
+    write(@"{\"n\": 22}");
+    say(@"rewritten, a new size", ReadJSONKept(path));
+    write(@"{\"n\": 33}");
+    say(@"rewritten, the same size, a new date", ReadJSONKept(path));
+    write(@"{\"n\": 4");
+    say(@"caught half-written", ReadJSONKept(path));
+    write(@"{\"n\": 44}");
+    say(@"written whole", ReadJSONKept(path));
+    [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+    say(@"gone", ReadJSONKept(path));
+    write(@"ref: refs/heads/main\n");
+    printf("text: %s", ReadTextKept(path).UTF8String ?: "nothing\n");
+    write(@"ref: refs/heads/topic\n");
+    printf("text rewritten: %s", ReadTextKept(path).UTF8String ?: "nothing\n");
+    printf("its date: %.0f\n", FileModifiedAt(path));
+    printf("a missing file's date: %.0f\n", FileModifiedAt([folder stringByAppendingPathComponent:@"none"]));
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    return 0;
+}
+
+// `Whozmove --print-ticked <step>…` runs each step in turn, as one copy of the panel would, against the switches in
+// ticked.json in $HOME's Whozmove folder, and says what each did, with switches of its own (Allowed's
+// printingSwitches): three kept while Whozmove runs (runA, runB, runC) and two kept for a folder (keptOne, keptTwo). A
+// step is words: `row <session> <pid> [member] [twice] [in=<folder>]` (a sample session: its team's lead unless it's a
+// member, open in a second place if it's `twice`, working in that folder; a row named again is replaced), `block` and
+// `unblock <session>` (it may not hold a switch kept for its folder, or may again), `held <session>` (which session
+// each switch kept for its folder was ticked in), `askfrom <session> <key> <pid>` (why it's off for an ask from that
+// process), `start` (this copy begins, reading ticked.json into what waits), `on` and `off <session> <key>` (your press
+// on a switch), `count <session> <key>` (it answered for you), `list` (the rows are listed), `back <session>` (what
+// Turn Back On would bring back, and why not, before the press), `bring <session>` (your press on Turn Back On), `ask
+// <session> <key>` (why the switch is off), `show`, `file`, `lock` and `unlock` (Whozmove's folder can't be written, or
+// can again), `quit` and `restart` (the copy ends as a Quit or a restart ends it). Without `start` nothing is written,
+// as in any print run. It refuses your own home. tests/ticked.sh runs it.
+static int PrintTicked(Core *core, NSArray<NSString *> *arguments) {
+    if (HomeIsYourOwn()) {
+        fprintf(stderr, "--print-ticked acts on Whozmove's folder in $HOME: give it a throwaway home folder\n");
+        return 2;
+    }
+    NSFileManager *files = NSFileManager.defaultManager;
+    [files createDirectoryAtPath:AppDir(nil) withIntermediateDirectories:YES
+                      attributes:@{NSFilePosixPermissions: @0700} error:nil];
+    NSString *ticked = AppDir(@"ticked.json");
+    NSMutableArray<Row *> *rows = [NSMutableArray array];
+    // The switches it tries, its own, so these rules are tried apart from any module's checks: three kept while
+    // Whozmove runs and two kept for a folder, which a session `block`ed can't hold, each shown only on a lead's row.
+    NSMutableSet<NSString *> *blocked = [NSMutableSet set];
+    NSString *(^whyNot)(Row *) = ^NSString *(Row *row) {
+        if (row.pid <= 0) return @"The session isn't running";
+        if (row.alsoOpen.count) return @"Open in more than one place";
+        if ([blocked containsObject:row.sessionId ?: @""]) return @"Another session runs in its folder";
+        return nil;
+    };
+    NSMutableArray<SessionSwitch *> *standIns = [NSMutableArray array];
+    for (NSArray<NSString *> *one in @[@[@"runA", @"Switch A"], @[@"runB", @"Switch B"], @[@"runC", @"Switch C"],
+                                       @[@"keptOne", @"Kept One"], @[@"keptTwo", @"Kept Two"]]) {
+        BOOL kept = [one[0] hasPrefix:@"kept"];
+        SessionSwitch *each = [SessionSwitch switchWithKey:one[0] title:one[1] line:@"A stand-in"
+                                                     lasts:kept ? SwitchLastsWorkspace : SwitchLastsWhileRunning];
+        each.shown = ^BOOL(Row *row) { return [row.team[@"role"] isEqual:@"lead"]; };
+        each.hiddenSays = @"this session isn't its team's lead";
+        each.whyNot = whyNot;
+        if (kept) each.workspace = ^NSString *(Row *row) { return row.cwd.length ? row.cwd : nil; };
+        [standIns addObject:each];
+    }
+    core.allowed.printingSwitches = standIns;
+    Row *(^rowOf)(NSString *) = ^Row *(NSString *sessionId) {
+        for (Row *row in rows)
+            if ([row.sessionId isEqual:sessionId]) return row;
+        return nil;
+    };
+    for (NSString *step in arguments) {
+        NSArray<NSString *> *w = [step componentsSeparatedByString:@" "];
+        NSString *what = w[0], *sessionId = w.count > 1 ? w[1] : nil, *key = w.count > 2 ? w[2] : nil;
+        Row *row = rowOf(sessionId);
+        printf("> %s\n", step.UTF8String);
+        if ([what isEqual:@"row"] && w.count >= 3) {
+            Row *made = [[Row alloc] initWithFields:@{@"sessionId": sessionId, @"pid": @(w[2].intValue)}];
+            made.team = @{@"role": [w containsObject:@"member"] ? @"member" : @"lead"};
+            if ([w containsObject:@"twice"]) made.alsoOpen = @[@{@"entrypoint": @"cli"}];
+            for (NSString *word in w)
+                if ([word hasPrefix:@"in="]) made.cwd = [word substringFromIndex:3];
+            Row *was = rowOf(sessionId);
+            if (was) [rows removeObject:was];
+            [rows addObject:made];
+        } else if (([what isEqual:@"block"] || [what isEqual:@"unblock"]) && sessionId) {
+            if ([what isEqual:@"block"]) [blocked addObject:sessionId];
+            else [blocked removeObject:sessionId];
+        } else if ([what isEqual:@"held"] && row) {
+            for (SessionSwitch *each in core.allowed.switches) {
+                NSDictionary *ticked = [core.allowed tickedIn:each.key for:row];
+                if (ticked) printf("%s: ticked in %s\n", each.key.UTF8String, [ticked[@"session"] UTF8String]);
+            }
+        } else if ([what isEqual:@"start"]) {
+            printf("waiting: %ld\n", (long)[core.allowed keepTickedAt:ticked]);
+        } else if (([what isEqual:@"on"] || [what isEqual:@"off"]) && row && key) {
+            printf("%s\n", [core.allowed set:key for:row on:[what isEqual:@"on"]] ? what.UTF8String : "not changed");
+        } else if ([what isEqual:@"count"] && key) {
+            [core.allowed countUp:key session:sessionId];
+        } else if ([what isEqual:@"list"]) {
+            [core.allowed rowsListed:rows];
+        } else if ([what isEqual:@"bring"] && row) {
+            NSString *why = nil;
+            NSArray<SessionSwitch *> *brought = [core.allowed bringBack:row why:&why];
+            if (!brought.count) printf("refused: %s\n", why.UTF8String);
+            for (SessionSwitch *each in brought)
+                printf("on: %s, %ld\n", each.title.UTF8String, (long)[core.allowed count:each.key session:sessionId]);
+        } else if ([what isEqual:@"back"] && row) {
+            // What Turn Back On would say before the press: what waits, what one press brings back, and why not.
+            NSArray<SessionSwitch *> *waiting = [core.allowed waitingFor:row];
+            NSString *why = nil;
+            NSArray<SessionSwitch *> *able = [core.allowed bringableFor:row among:waiting why:&why];
+            NSMutableArray<NSString *> *keys = [NSMutableArray array];
+            for (SessionSwitch *each in able) [keys addObject:each.key];
+            printf("waiting %lu, brings back [%s], why: %s\n", (unsigned long)waiting.count,
+                   [keys componentsJoinedByString:@" "].UTF8String, (why ?: @"none").UTF8String);
+        } else if ([what isEqual:@"askfrom"] && row && key && w.count > 3) {
+            printf("%s\n", ([core.allowed whyOff:key for:row from:w[3].intValue] ?: @"on").UTF8String);
+        } else if ([what isEqual:@"ask"] && row && key) {
+            printf("%s\n", ([core.allowed whyOff:key for:row] ?: @"on").UTF8String);
+        } else if ([what isEqual:@"show"]) {
+            NSDictionary *written = AsRecord(ReadJSON(ticked)) ?: @{};
+            for (Row *each in rows) {
+                NSMutableArray *on = [NSMutableArray array], *waiting = [NSMutableArray array];
+                for (SessionSwitch *one in core.allowed.switches)
+                    if ([core.allowed isOn:one.key for:each])
+                        [on addObject:[NSString stringWithFormat:@"%@ %ld", one.key,
+                                       (long)[core.allowed count:one.key session:each.sessionId]]];
+                // A waiting switch's count is the file's: it is only in the file until it is brought back.
+                NSDictionary *records = AsRecord(written[each.sessionId]);
+                NSArray<SessionSwitch *> *offered = [core.allowed waitingFor:each];
+                for (SessionSwitch *one in offered)
+                    [waiting addObject:[NSString stringWithFormat:@"%@ %ld", one.key,
+                                        (long)AsNumber(AsRecord(records[one.key])[@"count"]).integerValue]];
+                NSString *item = offered.count ? [@", item: Turn Back On " stringByAppendingString:
+                                                  [Allowed namesOf:offered]] : @"";
+                // Kept for its folder but off for it now: the menu's dash, which stops keeping it.
+                NSMutableArray *keptOff = [NSMutableArray array];
+                for (SessionSwitch *one in core.allowed.switches)
+                    if ([core.allowed keptFolder:one.key for:each] && ![core.allowed isOn:one.key for:each])
+                        [keptOff addObject:one.key];
+                NSString *kept = keptOff.count ? [NSString stringWithFormat:@", kept but off [%@]",
+                                                  [keptOff componentsJoinedByString:@", "]] : @"";
+                printf("%s: on [%s], waiting [%s]%s%s\n", each.sessionId.UTF8String,
+                       [on componentsJoinedByString:@", "].UTF8String,
+                       [waiting componentsJoinedByString:@", "].UTF8String, item.UTF8String, kept.UTF8String);
+            }
+        } else if ([what isEqual:@"file"]) {
+            printf("ticked.json: %s\n", [files fileExistsAtPath:ticked] ? "there" : "gone");
+            NSDictionary *attributes = [files attributesOfItemAtPath:ticked error:nil];
+            if (attributes) printf("mode: %o\n", (unsigned)(attributes.filePosixPermissions & 0777));
+        } else if ([what isEqual:@"lock"] || [what isEqual:@"unlock"]) {
+            [files setAttributes:@{NSFilePosixPermissions: [what isEqual:@"lock"] ? @0500 : @0700}
+                    ofItemAtPath:AppDir(nil) error:nil];
+        } else if ([what isEqual:@"quit"] || [what isEqual:@"restart"]) {
+            [core.allowed endRun:[what isEqual:@"restart"]];
+        } else {
+            fprintf(stderr, "no such step: %s\n", step.UTF8String);
+            return 2;
+        }
+    }
     return 0;
 }
 
@@ -199,6 +598,12 @@ static NSDictionary<NSString *, PrintMode> *CorePrintModes(void) {
         @"--print-waits": ^(Core *core, NSArray *a) { return PrintWaits(core); },
         @"--print-browsing": ^(Core *core, NSArray *a) { return PrintBrowsing(a); },
         @"--print-edges": ^(Core *core, NSArray *a) { return PrintEdges(); },
+        @"--print-edit-keys": ^(Core *core, NSArray *a) { return PrintEditKeys(); },
+        @"--print-talking": ^(Core *core, NSArray *a) { return PrintTalking(core, a); },
+        @"--print-on-top": ^(Core *core, NSArray *a) { return PrintOnTop(); },
+        @"--print-file-reads": ^(Core *core, NSArray *a) { return PrintFileReads(); },
+        @"--print-other-apps": ^(Core *core, NSArray *a) { return PrintOtherApps(); },
+        @"--print-ticked": ^(Core *core, NSArray *a) { return PrintTicked(core, a); },
         @"--print-routes": ^(Core *core, NSArray *a) { return 0; },  // PrintRun runs it, before checking for clashes
     };
 }
@@ -240,10 +645,31 @@ static int PrintRun(NSString *flag, NSArray<NSString *> *arguments) {
     return 2;
 }
 
+// A helper run: one of the app's own one-file jobs, from the module that has it, given the arguments after the flag.
+// The app runs it as a process of its own; it's never for the tests (print runs are). Every module is made, as for a
+// print run, but none starts, and anything two claim fails it.
+static int HelperRunFor(NSString *flag, NSArray<NSString *> *arguments) {
+    Core *core = [Core forPrinting];
+    NSArray<NSString *> *clashes = Clashes(core);
+    for (NSString *clash in clashes) fprintf(stderr, "Claimed twice: %s\n", clash.UTF8String);
+    if (clashes.count) return 1;
+    HelperRun run = [core.modules helperRun:flag];
+    if (run) return run(core, arguments);
+    fprintf(stderr, "There's no helper run %s\n", flag.UTF8String);
+    return 2;
+}
+
 int main(int argc, const char *argv[]) {
     @autoreleasepool {
-        // A print run's flag is the first argument that starts with --print-; the ones after it are its own.
         NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
+        // A helper run's flag is the first argument that starts with --helper-, looked for first; a print run's, the
+        // first that starts with --print-. The ones after it are its own.
+        NSUInteger helper = [arguments indexOfObjectPassingTest:^BOOL(NSString *argument, NSUInteger i, BOOL *stop) {
+            return i > 0 && [argument hasPrefix:@"--helper-"];
+        }];
+        if (helper != NSNotFound)
+            return HelperRunFor(arguments[helper],
+                                [arguments subarrayWithRange:NSMakeRange(helper + 1, arguments.count - helper - 1)]);
         NSUInteger at = [arguments indexOfObjectPassingTest:^BOOL(NSString *argument, NSUInteger i, BOOL *stop) {
             return i > 0 && [argument hasPrefix:@"--print-"];
         }];

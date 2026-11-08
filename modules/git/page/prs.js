@@ -1,4 +1,4 @@
-// The pull requests a session raised or worked on, on its row's work line, and the card one pointed at shows.
+// The pull requests a session raised or worked on, on its row's work line, and the details one rested on shows.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 /* The pull-request icon is GitHub's Octicon git-pull-request, from https://github.com/primer/octicons, under this
@@ -51,7 +51,8 @@ function prsHTML(s) {
     return `<div class="${cls}" data-url="${esc(p.url)}">${PR_ICON}<span class="num">#${esc(p.number)}</span>`
       + `<span class="pt">${esc(p.title || p.repo)}</span></div>`;
   });
-  if (open.length > MAX_PRS) rows.push(`<div class="pr more">+${open.length - MAX_PRS} more open</div>`);
+  if (open.length > MAX_PRS)
+    rows.push(`<div class="pr more" data-more="${esc(s.sessionId)}">+${open.length - MAX_PRS} more open</div>`);
   return `<div class="prs">${rows.join('')}</div>`;
 }
 
@@ -60,21 +61,21 @@ function findPR(url) {
   return null;
 }
 
-// The card a PR pointed at shows: its state, where it is, how long ago it was opened, its title, its author and
-// its size.
+// A PR's details, as rested on: its state, where it is, how long ago it was opened, its title, its author and its
+// size.
 function prCardHTML(p) {
   const state = p.state === 'UNKNOWN' ? ['unknown', 'Unknown'] : p.isDraft ? ['draft', 'Draft'] : ['open', 'Open'];
   const opened = p.createdAt ? ago(Date.now() - Date.parse(p.createdAt)) : '';
   const login = p.author?.login;
   const stats = p.additions == null ? '' : `<span class="c-stats">
-        <span class="c-diff"><span class="add">+${p.additions}</span> <span class="del">−${p.deletions}</span></span>
-        <span class="c-files">${p.changedFiles} file${p.changedFiles === 1 ? '' : 's'}</span></span>`;
-  return `<div class="c-top">
+        ${diffHTML(p.additions, p.deletions)}
+        <span class="tag">${p.changedFiles} file${p.changedFiles === 1 ? '' : 's'}</span></span>`;
+  return `<div class="card-head">
         <span class="pill ${state[0]}">${PR_ICON}${state[1]}</span>
         <span class="c-ref">${esc(p.repo)} #${esc(p.number)}</span>
-        ${opened ? `<span class="c-time">${opened === 'now' ? 'just now' : opened + ' ago'}</span>` : ''}
+        ${opened ? `<span class="end">${opened === 'now' ? 'just now' : opened + ' ago'}</span>` : ''}
       </div>
-      <div class="c-title">${esc(p.title || p.url)}</div>
+      <div class="card-title c-title">${esc(p.title || p.url)}</div>
       <div class="c-foot">
         ${login ? `<img class="avatar" src="https://github.com/${encodeURIComponent(login)}.png?size=40">`
                   + `<span>${esc(login)}</span>` : ''}
@@ -94,9 +95,31 @@ core.cards.push({
     return p ? prCardHTML(p) : '';
   },
 });
-core.starts.push(() => {
-  // An author's picture that doesn't load leaves its place empty rather than showing a broken image.
-  document.getElementById('card').addEventListener('error', (e) => {
-    if (e.target.matches?.('.avatar')) e.target.style.visibility = 'hidden';
-  }, true);
+// The open PRs past the first three, as "+N more open" lists them in its details: each pressed, as a row's PR is.
+function morePRsHTML(s) {
+  const rest = shownPRs(s).slice(MAX_PRS);
+  return `<div class="card-head"><span>${rest.length} more open</span>`
+    + `<span class="end">${esc(rest[0].repo)}</span></div>`
+    + '<div class="st-steps">' + rest.map((p) => `<button class="option pr-item" data-act="${esc(p.url)}">${PR_ICON}`
+      + `<span class="num">#${esc(p.number)}</span><span class="pt">${esc(p.title || p.repo)}</span></button>`).join('')
+    + '</div>';
+}
+core.cards.push({
+  selector: '.pr.more[data-more]',
+  key: (more) => 'pr-more:' + more.dataset.more,
+  html(more) {
+    const s = state.last.sessions.find((x) => x.sessionId === more.dataset.more);
+    return s && shownPRs(s).length > MAX_PRS ? morePRsHTML(s) : '';
+  },
+  press(key, url) { native({ type: 'openPR', url }); },
 });
+core.pointerTargets.push('.pr.more[data-more]');
+// "+N more open" pressed: its details open at once, rather than the session (the row's own press).
+core.presses.push(['.pr.more[data-more]', (more, e) => {
+  e.preventDefault();
+  detailsOpen(more);
+}]);
+// An author's picture that doesn't load leaves its place empty rather than showing a broken image.
+addEventListener('error', (e) => {
+  if (e.target.matches?.('.avatar')) e.target.style.visibility = 'hidden';
+}, true);

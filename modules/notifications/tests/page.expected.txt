@@ -1,0 +1,133 @@
+
+== The line under the header
+nothing listed: no line: {"line":null,"more":0}
+an update, then the disk running low: the first to come shows, +1: {"line":"install/update","more":1}
+…the disk one showing: it stays, among equals: {"line":"storage/disk","more":1}
+couldn't connect comes: urgent, in front at once, +2: {"line":"install/connect","more":2}
+good to know waits behind soon: {"line":"install/update","more":1}
+typing: what shows stays, though something soon came first: {"line":"storage/disk","more":1}
+typing: nothing new comes in where nothing showed: {"line":null,"more":1}
+typing: something urgent comes in all the same: {"line":"install/connect","more":1}
+typing: the one showing gone, something soon waits: {"line":null,"more":1}
+
+== +N, stepping round what waits
+from the urgent one, each press: the next, urgent or not, then back to the first: ["install/connect","install/update","storage/disk","storage/map","install/connect"]
+the one stepped to stays as the others change: {"line":"storage/disk","more":2,"front":"storage/disk"}
+…until something urgent that wasn't there comes: the most urgent shows again: {"line":"install/connect","more":4}
+…or it goes: {"line":"install/connect","more":2}
++N with nothing listed: {"front":null,"frontWith":[]}
+typing: a step you pressed with +N comes in all the same: storage/disk
+
+== Quiet hours
+at night, only what's urgent is said, and the rest isn't counted: {"line":"install/connect","more":0}
+…with nothing urgent, nothing: {"line":null,"more":0}
+…but the one showing as they began stays, with nothing counted behind it: {"line":"install/update","more":0}
+…and +N steps only to what's urgent: storage/severe
+…but what answers something you just did is said all the same: {"line":"bring-forward/session-gone","more":0}
+in the morning, all of it again: {"line":"install/connect","more":2}
+the edge's count by day, and at night: [3,2]
+
+== Where each place is in sight
+open: {"line":true,"beside":false,"edge":false}
+turned over to its back: {"line":false,"beside":false,"edge":false}
+folded: {"line":false,"beside":true,"edge":false}
+folded, its list out on pointing: {"line":true,"beside":false,"edge":false}
+folded, opening round the cat: {"line":true,"beside":false,"edge":false}
+flicked off the screen's edge: {"line":false,"beside":false,"edge":true}
+hidden from the menu bar: {"line":false,"beside":false,"edge":false}
+
+== Sessions beside the folded panel
+as the page loads, what's already waiting doesn't come out: {"out":[],"queue":[],"came":[],"went":[]}
+restarted: drawn before the app's rows have come, nothing is decided: [false,{"out":[],"queue":[],"came":[],"went":[]}]
+…then the rows come: what was waiting before the restart isn't brought out again: {"out":[],"queue":[],"came":[],"went":[]}
+…and what comes after does: {"out":["n 45s"],"queue":[],"came":["n"],"went":[]}
+kept for a restart: what was seen, and what was out: {"d":"ask:3","c":"ask:2","b":"reply:5","a":"ask:1","n":"reply:20"}
+a request that came while Whozmove was down comes out; the reply from before it doesn't: {"out":["m 45s"],"queue":[],"came":["m"],"went":[]}
+a first launch, with nothing kept: nothing already there comes out: {"out":[],"queue":[],"came":[],"went":[]}
+three more come to need you (a's request was there as the page loaded): in the order they came, b's reply first, requests and replies alike: {"out":["b 45s","c 45s","d 45s"],"queue":[],"came":["b","c","d"],"went":[]}
+a reply newer than a request: the request, there first, comes out first: {"out":["q 45s","r 45s"],"queue":[],"came":["q","r"],"went":[]}
+…a fourth waits its turn, and none of the three goes back in for it: {"out":["b 45s","c 45s","d 45s"],"queue":["e"],"came":[],"went":[]}
+…but while you hold one (pointing at it, typing in it, or in its tab), the newer one waits, and nothing moves: {"out":["b 45s","c 45s","d 45s"],"queue":["e"],"came":[],"went":[]}
+…once one's time has run out, it goes back: ["d"]
+…counted as seen, so it doesn't come out again for the same request: {"out":["b 45s","c 45s"],"queue":[],"came":[],"went":[]}
+…but does for something new in its session, coming out again: {"out":["b 45s","c 45s","d 45s"],"queue":[],"came":["d"],"went":[]}
+one still out with 10 seconds left: something new in its session starts its time again: {"out":["b 45s","c 45s"],"queue":[],"came":[],"went":[]}
+…and without, it keeps what it had: {"out":["b 45s","c 10s"],"queue":[],"came":[],"went":[]}
+five come to need you at once: the first three to come out, in that order, the other two waiting in it: {"out":["a 45s","b 45s","c 45s"],"queue":["d","e"],"came":["a","b","c"],"went":[]}
+…the first one's × pressed: the others move up, and the first waiting comes out after them: {"out":["b 45s","c 45s","d 45s"],"queue":["e"],"came":["d"],"went":[]}
+…or another's time runs out: the same: {"out":["a 45s","b 45s","d 45s"],"queue":["e"],"came":["d"],"went":[]}
+…a sixth comes: it joins the end of the line, and comes out only after those waiting before it: [{"out":["a 45s","b 45s","c 45s"],"queue":["d","e","f"],"came":[],"went":[]},{"out":["b 45s","c 45s","d 45s"],"queue":["e","f"],"came":["d"],"went":[]}]
+…with room for two only, the last out goes back in, to wait at the head of the line: {"out":["a 45s","b 45s"],"queue":["c","d","e"],"came":[],"went":["c"]}
+sent back in for now (the cat moved): still new, so it comes out again: {"out":["b 45s","c 45s"],"queue":[],"came":["c"],"went":[]}
+pressed, its tab in front: it stays, held, though its reply has been read there: {"out":["b 45s","c 45s"],"queue":[],"came":[],"went":[]}
+…and goes once you've left the tab: {"out":["c 45s"],"queue":[],"came":[],"went":["b"]}
+one answered elsewhere goes: {"out":["b 45s"],"queue":[],"came":[],"went":["c"]}
+a reply that comes in the tab you're in is read there, and doesn't come out: {"out":["b 45s","c 45s"],"queue":[],"came":[],"went":[]}
+a request that comes in the tab you're in comes out all the same: {"out":["f 45s"],"queue":[],"came":["f"],"went":[]}
+…and stays out while it waits there: {"out":["f 45s"],"queue":[],"came":[],"went":[]}
+…answered, in its tab or on its card, it goes though you're still there: {"out":[],"queue":[],"came":[],"went":["f"]}
+…and the reply after it, read there, doesn't bring it out again: {"out":[],"queue":[],"came":[],"went":[]}
+…but another request in its place keeps it out, its time starting again: {"out":["f 45s"],"queue":[],"came":[],"went":[]}
+a wait without a request that comes in the tab you're in doesn't come out either: {"out":[],"queue":[],"came":[],"went":[]}
+a request out in the tab you're in whose time runs out goes back, and doesn't come out again for it: {"out":[],"queue":[],"came":[],"went":[]}
+its chat pressed to go to its tab: it holds them all: {"sid":"f","at":1}
+…while you stay there: {"sid":"f","at":1}
+…until you leave the tab: {"sid":null,"at":1}
+…and coming back to it without the panel doesn't hold again: {"sid":null,"at":1}
+…or until its chat goes: {"sid":null,"at":1}
+a row pressed with no chat out for it holds nothing: {"sid":null,"at":2}
+…nor a request that comes out later in that tab, while you work there: {"sid":null,"at":2}
+nothing opened from the panel: nothing held: {"sid":null,"at":null}
+pinned, the reply stays out; of two newer requests, the first to come takes the room left, and the other waits: {"out":["b 45s pinned","c 45s","e 45s"],"queue":["g"],"came":["e"],"went":[]}
+while the cat is moved, or its list is out, nothing more comes out: {"out":["b 45s","c 45s"],"queue":["e"],"came":[],"went":[]}
+with the panel open, all of it counts as seen, and what was out goes: {"out":[],"queue":[],"came":[],"went":["b","c"]}
+…folded again, nothing it showed comes out; only what's new since: {"out":["h 45s"],"queue":[],"came":["h"],"went":[]}
+quiet hours, beside the folded panel: a request and a wait, both urgent, come out; a reply doesn't, and isn't seen: [{"out":["q 45s","w 45s"],"queue":[],"came":["q","w"],"went":[]},{}]
+…in the morning, it comes out, after those that came out in the night: {"out":["q 45s","w 45s","r 45s"],"queue":[],"came":["r"],"went":[]}
+…and a reply out as night began stays out: {"out":["r 45s"],"queue":[],"came":[],"went":[]}
+…taking a newer reply without starting its time again: {"out":["r 10s"],"queue":[],"came":[],"went":[]}
+…but a request in its place starts it again: {"out":["r 45s"],"queue":[],"came":[],"went":[]}
+
+== What a module says is new in a session
+a side chat's reply comes out beside the folded panel as a reply does: {"out":["s 45s"],"queue":[],"came":["s"],"went":[]}
+…read once you've been in its session's tab: {"s":"side:40"}
+…and held at night, as a reply is: {"out":[],"queue":[],"came":[],"went":[]}
+what's been seen is kept by where each word came from, the part before its ':', each replacing its own: ["side:40 reply:9","side:40 reply:9 ask:q1","reply:9 side:41",true,false]
+a request answered on its chat goes, though a side reply already shown stands behind it: {"out":[],"queue":[],"came":[],"went":["s"]}
+…and a wait that came out and went doesn't make the reply new again: [{"s":"side:40 wait:7"},{"out":[],"queue":[],"came":[],"went":[]}]
+a chat out for a module's word carries its line and time: [{"line":"In your side chat: Yes.","at":40}]
+…and drops them once the row's own news takes over: [{"news":"ask:q9"}]
+…and once its word has gone, kept out only by its tab, the row as it is: [{"sid":"s"}]
+
+== What the page's own senders say
+listed after the app's, with its sender's name and a ×: ["sample/waits urgent ×: A task from shop waits: Passkeys"]
+its button runs its own press here, and tells the app nothing: {"pressed":1,"told":[]}
+put away as it was on the line (a#1), told to the app: what changed since (a#2) still shows: {"listed":["sample/waits urgent ×: A task from shop waits: Passkeys"],"told":["noticeAwayHere sample/waits a#1"]}
+…the app keeping it away as it's said now: gone: []
+…what makes it new changed: it's back: ["sample/waits urgent ×: A task from shop waits: Passkeys, its next step"]
+one that says what it folds to, put away: that alone, behind the rest, with no ×: ["sample/waits know folded: 3 waiting"]
+…on the line, when nothing else is: 3 waiting
+quiet words after its own are kept on the line: 3 waiting
+…folded, the chip has none: null
+one with a level there isn't, or no words, is left out: []
+the fields the app's notices have: no ×, all went well, a tag; its button waiting, and its word after a press: [{"id":"sample/all-set","closes":false,"done":true,"busy":false,"tag":"New"},{"id":"sample/copy","closes":true,"done":false,"busy":true,"pressedWord":"Copied"}]
+…a press while its button waits does nothing: 0
+…nor on its chip, once put away: 0
+a time away that isn't a number of seconds counts as none: 0
+one that answers something you just did says so: true
+one about what you're looking at now isn't said: []
+a sender is asked with the time alone; one that says a session it can't take goes neither on the line nor beside the folded panel: {"asked":["number"],"line":[],"beside":[]}
+one away for a day, put away: told to the app with its time: ["noticeAwayHere sample/waits k#1 for 86400s"]
+…away, as it's said the same way: []
+…back once the day has passed: ["sample/waits urgent ×: A task from shop waits: Passkeys"]
+away as the app keeps it: by what made it new, or that and a time: [true,false,true,false,false]
+one naming a session goes beside the folded panel, of two as urgent and as new the first, as its row (an id with '_' too, a since with a space being none), but not one that doesn't say how long it's out; the line has only the rest: {"beside":[{"id":"sample/f1","sid":"f1","news":"ask:9","level":"urgent","at":40,"on":true,"evenSeen":true,"outFor":45,"openedAt":7},{"id":"sample/f2","sid":"local_f2","news":null,"level":"urgent","line":"A line.","on":false,"evenSeen":false,"outFor":45}],"line":["sample/plain"]}
+two naming one session: the more urgent says it, in the senders' order while the place gives none: ["sample/k2","sample/m1","sample/z1"]
+…in the place's own order once it gives one, each session once, leaving out a session it can't show: ["sample/m1","sample/k2"]
+…of two as urgent, the first listed while their sinces came together, then the one whose since came last: [["sample/n1"],["sample/n2"]]
+…and of two as urgent, one with something new, though the other's since went empty after it came: ["sample/p2"]
+two on one session for three minutes: it comes out once, said by the same one: {"came":["sample/n1 a:1"],"saidBy":["sample/n1"]}
+what's been seen of one is forgotten a minute after it was last listed, or after the page loaded: ["x/listed","x/never"]
+a chat that comes out carries how long it's out: [{"outFor":45,"left":45000}]
+…something new in it by day takes its row's time again: [{"outFor":30,"left":30000}]
+…at night, something new that isn't urgent keeps what it had: [{"outFor":45,"left":10000}]

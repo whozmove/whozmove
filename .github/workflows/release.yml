@@ -25,6 +25,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # Betterleaks' download, which the build and Keys' tests fetch from GitHub (tools/betterleaks.sh), kept between
+      # runs for as long as tools/betterleaks.txt names the same versions. Its checksum is checked each time it's used,
+      # so a cached copy can't stand in for another one.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/Whozmove-build
+          key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
       - name: Build, check and zip
         id: zip
         run: |

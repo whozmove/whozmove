@@ -51,6 +51,16 @@ NSArray *DesktopSendButtons(id box) {
 @property (strong) DesktopLog *log;
 @end
 
+NSString *DesktopWordsLogged(NSString *text) {
+    NSString *first = [text componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
+        .firstObject;
+    // Only a word shaped like a command ("/compact", "/model") is kept: a path or a token that happens to start with a
+    // slash is words too.
+    BOOL command = [first rangeOfString:@"^/[a-z][a-z-]{0,30}$" options:NSRegularExpressionSearch].location
+        != NSNotFound;
+    return [NSString stringWithFormat:@"%@ (%lu characters)", command ? first : @"words", (unsigned long)text.length];
+}
+
 @implementation DesktopMessageBox
 
 - (instancetype)initWithLog:(DesktopLog *)log {
@@ -67,8 +77,7 @@ NSArray *DesktopSendButtons(id box) {
     [self.log catchUp];
     NSArray *boxes = [self.log.loggedFocusId isEqual:hostId] ? [self promptBoxes] : @[];
     if (boxes.count == 1) {
-        AXError error = AXUIElementSetAttributeValue((__bridge AXUIElementRef)boxes[0], kAXFocusedAttribute,
-                                                     kCFBooleanTrue);
+        AXError error = SetElementAttribute((__bridge AXUIElementRef)boxes[0], kAXFocusedAttribute, kCFBooleanTrue);
         PanelLog(@"open desktop session %@ -> message box focused (AX %d)", hostId, error);
         return;
     }
@@ -87,7 +96,7 @@ NSArray *DesktopSendButtons(id box) {
     pid_t pid = ClaudeDesktopPid();
     if (!pid) return @[];
     AXUIElementRef app = AXUIElementCreateApplication(pid);
-    AXUIElementSetAttributeValue(app, (__bridge CFStringRef)kElectronManualAccessibility, kCFBooleanTrue);
+    SetElementAttribute(app, (__bridge CFStringRef)kElectronManualAccessibility, kCFBooleanTrue);
     CFTypeRef windows = NULL;
     AXUIElementCopyAttributeValue(app, kAXWindowsAttribute, &windows);
     CFRelease(app);
@@ -116,7 +125,7 @@ NSArray *DesktopSendButtons(id box) {
             });
             return;
         }
-        PanelLog(@"%@ -> %@ not sent: %@ (Claude shows %@, %lu message boxes)", hostId, command,
+        PanelLog(@"%@ -> %@ not sent: %@ (Claude shows %@, %lu message boxes)", hostId, DesktopWordsLogged(command),
                  boxes.count > 1 ? @"several message boxes" : @"Claude never showed the conversation's message box",
                  self.log.loggedFocusId ?: @"no conversation", (unsigned long)[self promptBoxes].count);
         AXUIElementRef app = AXUIElementCreateApplication(ClaudeDesktopPid());
@@ -151,15 +160,14 @@ NSArray *DesktopSendButtons(id box) {
     NSString *draft = [ElementText((__bridge AXUIElementRef)box, kAXValueAttribute) ?: @""
                        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     if (draft.length) {
-        PanelLog(@"%@ -> %@ not sent: there's a message being written in Claude", hostId, command);
+        PanelLog(@"%@ -> %@ not sent: there's a message being written in Claude", hostId, DesktopWordsLogged(command));
         NSBeep();
         done(@"There's a message half-written in Claude: send or clear it first");
         return;
     }
-    AXUIElementSetAttributeValue((__bridge AXUIElementRef)box, kAXFocusedAttribute, kCFBooleanTrue);
-    AXError error = AXUIElementSetAttributeValue((__bridge AXUIElementRef)box, kAXValueAttribute,
-                                                 (__bridge CFStringRef)command);
-    PanelLog(@"%@ -> \"%@\" in Claude's message box (AX %d)", hostId, command, error);
+    SetElementAttribute((__bridge AXUIElementRef)box, kAXFocusedAttribute, kCFBooleanTrue);
+    AXError error = SetElementAttribute((__bridge AXUIElementRef)box, kAXValueAttribute, (__bridge CFStringRef)command);
+    PanelLog(@"%@ -> %@ in Claude's message box (AX %d)", hostId, DesktopWordsLogged(command), error);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self submit:command box:box inConversation:hostId done:done];
     });
@@ -177,18 +185,18 @@ NSArray *DesktopSendButtons(id box) {
     NSArray *buttons = DesktopSendButtons(box);
     BOOL front = [NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier isEqual:kClaudeDesktopAppId];
     if (buttons.count == 1) {
-        AXUIElementPerformAction((__bridge AXUIElementRef)buttons[0], kAXPressAction);
+        PressElement((__bridge AXUIElementRef)buttons[0], kAXPressAction);
         PanelLog(@"%@ -> submitted with Claude's Submit button", hostId);
     } else if (front) {
         // Return, pressed and let go.
         CGEventRef down = CGEventCreateKeyboardEvent(NULL, 36, true), up = CGEventCreateKeyboardEvent(NULL, 36, false);
-        CGEventPost(kCGHIDEventTap, down);
-        CGEventPost(kCGHIDEventTap, up);
+        PostEvent(kCGHIDEventTap, down);
+        PostEvent(kCGHIDEventTap, up);
         CFRelease(down);
         CFRelease(up);
         PanelLog(@"%@ -> submitted with Return (%lu Submit buttons found)", hostId, (unsigned long)buttons.count);
     } else {
-        AXUIElementSetAttributeValue(field, kAXValueAttribute, CFSTR(""));
+        SetElementAttribute(field, kAXValueAttribute, CFSTR(""));
         PanelLog(@"%@ -> no Submit button and Claude isn't in front; cleared the box, nothing sent", hostId);
         done(@"Couldn't press Send in Claude: try again with Claude in front");
         return;
@@ -200,8 +208,8 @@ NSArray *DesktopSendButtons(id box) {
         if ([[ElementText(later, kAXValueAttribute) ?: @""
                 stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]
                 isEqualToString:command]) {
-            AXUIElementSetAttributeValue(later, kAXValueAttribute, CFSTR(""));
-            PanelLog(@"%@ -> %@ was still in Claude's message box; cleared it", hostId, command);
+            SetElementAttribute(later, kAXValueAttribute, CFSTR(""));
+            PanelLog(@"%@ -> %@ was still in Claude's message box; cleared it", hostId, DesktopWordsLogged(command));
         }
     });
     done(nil);

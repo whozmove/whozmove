@@ -1,0 +1,18 @@
+# What crossed between the panel's parts when they were made, which tests/checks.sh lets through: an import of a
+# part's header it doesn't provide (or from a part that doesn't name it in talksTo), a class styled on its own by two
+# owners, and a call into a part's function it doesn't provide (or from a part it doesn't name). Each line is its
+# kind, where and what, two spaces apart:
+#   imports  <file>  <header>
+#   styles   .<class>  <its owners, joined by " and ">
+#   calls    <file>  <function>
+# And what decides and delivers in a service read that wasn't its own when tests/checks.sh began to check it (another's
+# state, a row's field, the body's classes, a part's constant), as a service knows no domain:
+#   reads    <file>  <what>
+# This list only gets shorter: tests/checks.sh --update takes off what no longer crosses.
+reads  modules/notifications/page/notices.js  document.body.classList
+reads  modules/notifications/page/notices.js  state.cat
+reads  modules/notifications/page/notices.js  state.peek
+styles  .opt-label  the core and the row part
+styles  .play-icon  the morph part and the row part
+styles  .r-in  the morph part and the pane part
+styles  .step-word  the morph part and the row part

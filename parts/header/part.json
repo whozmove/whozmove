@@ -1,0 +1,6 @@
+{
+  "scripts": ["page/builds.js", "page/header.js"],
+  "styles": ["page/header.css"],
+  "talksTo": ["core", "bridge", "list", "morph"],
+  "provides": ["headerInset", "headerOff", "headerAllThere", "headerLine", "headerGlideTo", "headerBuild"]
+}

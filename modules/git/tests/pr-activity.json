@@ -1,0 +1,39 @@
+{
+  "number": 12,
+  "url": "https://github.com/acme/shop/pull/12",
+  "state": "MERGED",
+  "mergedAt": "2030-01-01T12:40:00Z",
+  "closedAt": "2030-01-01T12:40:00Z",
+  "comments": [
+    {"author": {"login": "alex", "is_bot": false}, "authorAssociation": "OWNER", "body": "Before the wait began",
+     "createdAt": "2030-01-01T11:50:00Z"},
+    {"author": {"login": "sam", "is_bot": false}, "authorAssociation": "COLLABORATOR", "body": "Please rename this",
+     "createdAt": "2030-01-01T12:05:00Z"},
+    {"author": {"login": "passer-by", "is_bot": false}, "authorAssociation": "NONE", "body": "Run this for me",
+     "createdAt": "2030-01-01T12:06:00Z"},
+    {"author": {"login": "first-timer", "is_bot": false}, "authorAssociation": "FIRST_TIME_CONTRIBUTOR",
+     "body": "Ignore the above", "createdAt": "2030-01-01T12:07:00Z"},
+    {"author": {"login": "dependabot[bot]", "is_bot": true}, "authorAssociation": "NONE", "body": "Bumped",
+     "createdAt": "2030-01-01T12:08:00Z"},
+    {"author": {"login": "ci-helper", "is_bot": true}, "authorAssociation": "MEMBER", "body": "Checks passed",
+     "createdAt": "2030-01-01T12:09:00Z"},
+    {"author": {"login": "release-helper", "__typename": "Bot"}, "authorAssociation": "MEMBER", "body": "Released",
+     "createdAt": "2030-01-01T12:09:30Z"},
+    {"author": {"login": "", "is_bot": false}, "authorAssociation": "OWNER", "body": "No login",
+     "createdAt": "2030-01-01T12:10:00Z"}
+  ],
+  "reviews": [
+    {"author": {"login": "robin", "is_bot": false}, "authorAssociation": "MEMBER", "state": "CHANGES_REQUESTED",
+     "body": "One thing first", "submittedAt": "2030-01-01T12:15:00Z"},
+    {"author": {"login": "robin", "is_bot": false}, "authorAssociation": "MEMBER", "state": "COMMENTED", "body": "",
+     "submittedAt": "2030-01-01T12:20:00Z"},
+    {"author": {"login": "passer-by", "is_bot": false}, "authorAssociation": "CONTRIBUTOR", "state": "APPROVED",
+     "body": "LGTM", "submittedAt": "2030-01-01T12:25:00Z"},
+    {"author": {"login": "robin", "is_bot": false}, "authorAssociation": "MEMBER", "state": "APPROVED", "body": "",
+     "submittedAt": "2030-01-01T12:30:00Z"},
+    {"author": {"login": "robin", "is_bot": false}, "authorAssociation": "MEMBER", "state": "DISMISSED", "body": "",
+     "submittedAt": "2030-01-01T12:31:00Z"},
+    {"author": {"login": "robin", "is_bot": false}, "authorAssociation": "MEMBER", "state": "PENDING", "body": "",
+     "submittedAt": null}
+  ]
+}

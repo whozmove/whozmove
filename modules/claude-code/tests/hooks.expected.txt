@@ -8,6 +8,15 @@ exit=0
    permissionMode = "auto"
    stageAt = "ms"
    turnReached = []
+== 1a a session id that isn't one: nothing written, in Whozmove's folder or out of it
+exit=0
+exit=0
+exit=0
+exit=0
+   outside sessions: 0 · in it: 0
+== 1b input that isn't an event: nothing done, no error
+exit=0
+exit=0
 == 2 pre bash with description
 exit=0
    activity = "Run the tests"
@@ -248,6 +257,59 @@ exit=0
    noticeAt = "ms"
    noticeType = "idle_prompt"
    stageAt = "ms"
+== 20 background work: a job started is noted, each Stop's list is taken as it is, a background agent's end and
+   its steps; a sub-agent's own job, a foreground Agent call and a hand-back change nothing
+exit=0
+exit=0
+exit=0
+exit=0
+exit=0
+   a01: {"startedAt": "ms", "type": "subagent", "what": "Review the native side"}
+   b02: {"command": "npm run dev", "exact": true, "startedAt": "ms", "type": "shell", "what": "Start the dev server"}
+   b03: {"command": "sleep 30", "exact": true, "startedAt": "ms", "type": "shell", "what": "sleep 30"}
+   jobs: 3 · live line: null · transcript noted: False · the turn reached: null
+exit=0
+exit=0
+   a01: {"listedAt": "ms", "startedAt": "ms", "step": "Reading Storage.m", "stepAt": "ms", "type": "subagent", "what": "Review the native side"}
+   b02: {"command": "npm run dev", "exact": true, "listedAt": "ms", "startedAt": "ms", "type": "shell", "what": "npm run dev"}
+   t06: {"listedAt": "ms", "startedAt": "ms", "type": "teammate", "what": "Write the docs"}
+   jobs: 3 · live line: null · transcript noted: True · the turn reached: []
+exit=0
+exit=0
+   b02: {"command": "npm run dev", "exact": true, "listedAt": "ms", "startedAt": "ms", "type": "shell", "what": "npm run dev"}
+   t06: {"listedAt": "ms", "startedAt": "ms", "type": "teammate", "what": "Write the docs"}
+   jobs: 2 · live line: "Thinking" · transcript noted: True · the turn reached: []
+exit=0
+   b02: {"command": "npm run dev", "exact": true, "listedAt": "ms", "startedAt": "ms", "type": "shell", "what": "npm run dev"}
+   t06: {"listedAt": "ms", "startedAt": "ms", "type": "teammate", "what": "Write the docs"}
+   jobs: 2 · live line: null · transcript noted: True · the turn reached: []
+exit=0
+   jobs: 0 · live line: null · transcript noted: True · the turn reached: []
+exit=0
+exit=0
+exit=0
+exit=0
+exit=0
+   b91: {"command": "ask-panel.sh wait", "exact": true, "startedAt": "ms", "type": "shell", "what": "ask-panel.sh wait"}
+   b92: {"command": "ask-panel.sh ticket --wait", "exact": false, "startedAt": "ms", "type": "shell", "what": "ask-panel.sh ticket --wait"}
+   b93: {"command": "ask-panel.sh ticket --wait", "exact": false, "startedAt": "ms", "type": "shell", "what": "ask-panel.sh ticket --wait"}
+   b94: {"command": "ask-panel.sh wait", "exact": false, "startedAt": "ms", "type": "shell", "what": "ask-panel.sh wait"}
+   b95: {"command": "echo a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long wor\u2026", "exact": false, "startedAt": "ms", "type": "shell", "what": "echo a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long word a long wor\u2026"}
+   jobs: 5 · live line: null · transcript noted: False · the turn reached: null
+exit=0
+   b91: {"command": "ask-panel.sh wait", "exact": true, "listedAt": "ms", "startedAt": "ms", "type": "shell", "what": "ask-panel.sh wait"}
+   b92: {"command": "ask-panel.sh ticket --wait", "exact": false, "listedAt": "ms", "startedAt": "ms", "type": "shell", "what": "ask-panel.sh ticket --wait"}
+   jobs: 2 · live line: null · transcript noted: False · the turn reached: []
+exit=0
+   jobs: 0 · live line: null · transcript noted: True · the turn reached: []
+exit=0
+exit=0
+exit=0
+   b09: {"startedAt": "ms", "stepAt": "ms", "type": "shell", "what": "x"}
+   b10: {"command": "make test", "exact": true, "startedAt": "ms", "type": "shell", "what": "make test"}
+   jobs: 2 · live line: null · transcript noted: True · the turn reached: ["Researched"]
+exit=0
+   a sub-agent's, in the background: jobs 0 · the turn reached null
 == P1 panel not running
 exit=0
 0
@@ -264,6 +326,11 @@ exit=0
 == P0 stale panel.pid (another process)
 exit=0
 0
+== P1b the panel's program, with ctypes and without it
+   asked of macOS: True · by ps, without ctypes: True · the same program: True
+== P1a a session id that isn't one: left to Claude's own prompt, the panel never asked
+exit=0
+   asked: 0
 == P2 allow
    request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
    tool Bash session s1
@@ -277,7 +344,7 @@ exit=0
 exit=0
    left in asks: 0
 == P4 question answers
-   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   request keys ['at', 'canSayWhy', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
    tool AskUserQuestion session s1
 {"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {"questions": [{"question": "Q1?", "options": [{"label": "a"}, {"label": "b"}]}], "answers": {"Q1?": "a"}}}}}
 exit=0
@@ -289,7 +356,25 @@ exit=0
 exit=0
    left in asks: 0
 == P6 question dismissed
+   request keys ['at', 'canSayWhy', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool AskUserQuestion session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user chose not to answer these questions."}}}
+exit=0
+   left in asks: 0
+== P6a question turned down to chat about it: Claude Code's clarify words, with the answer picked so far
+   request keys ['at', 'canSayWhy', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool AskUserQuestion session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user wants to clarify these questions.\nThis means they may have additional information, context or questions for you.\nTake their response into account and then reformulate the questions if appropriate.\nStart by asking them what they would like to clarify.\n\nQuestions asked:\n- \"Where?\"\n  Answer: Under the total\n- \"Which?\"\n  (No answer provided)"}}}
+exit=0
+   left in asks: 0
+== P6b clarify for another tool: a plain deny
    request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}
+exit=0
+   left in asks: 0
+== P6c words with a question's deny, no clarify: dropped
+   request keys ['at', 'canSayWhy', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
    tool AskUserQuestion session s1
 {"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user chose not to answer these questions."}}}
 exit=0
@@ -333,9 +418,21 @@ exit=0
 {"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}
 exit=0
    left in asks: 0
-== P7d a plan is never allowed from the panel
+== P7d a bare allow for a plan is dropped
    request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
    tool ExitPlanMode session s1
+   still waiting
+exit=0
+   left in asks: 0
+== P7f a plan approved for you (approvePlan): an allow with an empty input, never the panel's
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool ExitPlanMode session s1
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {}}}}
+exit=0
+   left in asks: 0
+== P7g approvePlan on a request for your OK is dropped
+   request keys ['at', 'cwd', 'id', 'input', 'pid', 'sessionId', 'tool']
+   tool Bash session s1
    still waiting
 exit=0
    left in asks: 0
@@ -376,20 +473,104 @@ exit=0
    request shown: 1
    still waiting after 3s
    hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "The user chose not to answer these questions."}}}] exit=0, requests left: 0
-== S5 the session ends
+== S5 a plan changed since Claude wrote it, approved in Claude; an earlier plan, settled, doesn't count
    request shown: 1
    hook ended, printed: [] exit=0, requests left: 0
+== S6 a plan, approved, then the turn stopped: Claude Code says the session is idle since
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S7 idle since before the request: Claude's prompt may be up, so it waits
+   request shown: 1
+   still waiting after 6s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}] exit=0, requests left: 0
+== S8 open twice: the copy it asks in goes idle since, the other works on
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S9 a plan, approved, then the turn stopped with a command still running: at its prompt (shell) since
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S10 an earlier plan never answered, this one written late: this one's result counts
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== S11 the session ends
+   request shown: 1
+   hook ended, printed: [] exit=0, requests left: 0
+== E1 a question no one answers
+   goes by itself after: 2s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "No answer in 2 seconds: the user is away and hasn't seen these questions. Carry on with whatever doesn't need the answers, then ask them again later, not straight away. Don't guess the answers."}}}] exit=0, requests left: 0
+== E2 a request for your OK no one answers
+   goes by itself after: 2s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "No answer in 2 seconds: the user is away and hasn't turned this down. Carry on with whatever doesn't need it, then ask again later, not straight away. Don't try another way to do it."}}}] exit=0, requests left: 0
+== E3 a plan never goes by itself
+   goes by itself after: never
+   still waiting after 4s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}] exit=0, requests left: 0
+== E4 a session that waits on you
+   goes by itself after: never
+   still waiting after 4s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}] exit=0, requests left: 0
+== E5 held in the panel: it waits a while longer
+   goes by itself after: 3s
+   still waiting past when it would have gone
+   expiresAt moved on: True
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "No answer in 3 seconds: the user is away and hasn't turned this down. Carry on with whatever doesn't need it, then ask again later, not straight away. Don't try another way to do it."}}}] exit=0, requests left: 0
+== E6 held each second while its tab is in front, then not
+   goes by itself after: 3s
+   still waiting past when it would have gone
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "No answer in 3 seconds: the user is away and hasn't turned this down. Carry on with whatever doesn't need it, then ask again later, not straight away. Don't try another way to do it."}}}] exit=0, requests left: 0
+== W1 no words waiting: the flag isn't there, so it ends before Python starts
+   exit=0
+   asked the panel: nothing
+== W2 words waiting for the session: handed in as its tool calls finish
+{"hookSpecificOutput": {"hookEventName": "PostToolBatch", "additionalContext": "Do the smaller migration first."}}
+   exit=0
+   asked the panel: {"sessionId": "s1", "event": "PostToolBatch"}
+== W3 asked again: they went once
+   exit=0
+   asked the panel: {"sessionId": "s1", "event": "PostToolBatch"}
+== W4 as its turn ends: handed in as Stop's additional context
+{"hookSpecificOutput": {"hookEventName": "Stop", "additionalContext": "Keep the old table."}}
+   exit=0
+   asked the panel: {"sessionId": "s1", "event": "Stop"}
+== W5 a sub-agent's tool calls: nothing asked
+   exit=0
+   asked the panel: nothing
+== W6 another event: nothing asked
+   exit=0
+   asked the panel: nothing
+== W7 malformed input
+   exit=0
+   asked the panel: nothing
+== W8 no panel running: nothing asked, nothing said
+   exit=0
+   asked the panel: nothing
+== J1 an answer written in Whozmove's folder does nothing
+   goes by itself after: never
+   still waiting after 1.5s
+   hook ended, printed: [{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "deny", "message": "Denied in Whozmove."}}}] exit=0, requests left: 0
+== J2 a listener at the panel's socket that isn't the panel: the hook asks it nothing, and steps aside
+exit=0
+0
+   asked of it: 0
 == the plugin's hooks
-   Notification: python3 hooks/whozmove-claude.py async
-   PermissionRequest: python3 hooks/whozmove-claude-permission.py timeout 3600
-   PostCompact: python3 hooks/whozmove-claude.py async
-   PostToolUse: python3 hooks/whozmove-claude.py async
-   PostToolUseFailure: python3 hooks/whozmove-claude.py async
-   PreCompact: python3 hooks/whozmove-claude.py async
-   PreModelSwitch: python3 hooks/whozmove-claude-permission.py timeout 90
-   PreToolUse: python3 hooks/whozmove-claude.py async
-   Stop: python3 hooks/whozmove-claude.py async
-   UserPromptSubmit: python3 hooks/whozmove-claude.py async
+   Notification: python3 -I hooks/whozmove-claude.py async
+   PermissionRequest: python3 -I hooks/whozmove-claude-permission.py timeout 3600
+   PostCompact: python3 -I hooks/whozmove-claude.py async
+   PostToolBatch: /bin/sh hooks/whozmove-claude-words.sh timeout 10
+   PostToolUse: python3 -I hooks/whozmove-claude.py async
+   PostToolUseFailure: python3 -I hooks/whozmove-claude.py async
+   PreCompact: python3 -I hooks/whozmove-claude.py async
+   PreModelSwitch: python3 -I hooks/whozmove-claude-permission.py timeout 90
+   PreToolUse: python3 -I hooks/whozmove-claude.py async
+   Stop: python3 -I hooks/whozmove-claude.py async
+   Stop: /bin/sh hooks/whozmove-claude-words.sh timeout 10
+   SubagentStop: python3 -I hooks/whozmove-claude.py async
+   UserPromptSubmit: python3 -I hooks/whozmove-claude.py async
    the permission hook stops waiting first: True
    and for a model switch: True
+   and a request the app lets go by itself: True
    the plugin's version is the app's: True
+   the docs name the Claude Code the real run checks with: True
+== the real Claude Code run, on a Mac that isn't throwaway
+   without --throwaway-mac, refused: True
+   with it, refused wherever its check turns the Mac down: True

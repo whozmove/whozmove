@@ -4,6 +4,11 @@
 
 @class Row;
 
+// Whether a checkout's git status is due a read, `since` seconds after its last: every 20s, and 2s after a session's
+// activity there (`activeSince`), when it isn't `watched`; watched, on that schedule only once something in it has
+// `changed`, and every `quietEvery` seconds anyway. Plain, for the tests.
+BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery);
+
 @interface Checkouts : NSObject
 // Starts the git and gh reads that are due for the checkouts these sessions work in.
 - (void)refreshFor:(NSArray<Row *> *)sessions;

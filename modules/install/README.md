@@ -11,8 +11,9 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
 
 - `app/InstallModule.m`: its face for the core (contracts/Module.h). At launch it finds the agent that takes the hooks
   (`AgentInstall`, contracts/Agent.h) and starts the check; each tick, while the check waits for the agent or for the
-  developer tools, it looks again every 10 seconds, and once the agent has said how the hooks stand, every 5 minutes, so
-  hooks turned off or taken out there while Whozmove runs show on the line, and the next session waiting to reload goes
+  developer tools, it looks again every 10 seconds, and once the agent has said how the hooks stand, whenever the
+  agent's stamp changes (`hooksStamp`) and every hour (every 5 minutes for an agent without one), so hooks turned off or
+  taken out there while Whozmove runs show on the line, and the next session waiting to reload goes
   in (`Reloads`), whose rows it marks once the rows are whole; it tells the line how things stand (`setInstall`), takes
   its presses (`install`), and adds its cards to the panel's back (`appEntries`): Apple's command line developer tools
   to Git's page, and Whozmove's plugin to the page the agent's settings go on (the agent's `appId`: Claude's, for Claude
@@ -32,7 +33,7 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
      without it, and the developer tools are only needed for its sessions.
   5. Nothing more until Apple's developer tools are in: the agent may run git, which until then offers to install
      them each time it runs.
-  6. A build an agent made (build.json's `agent`, `BuiltByAgent` in the core's Builds) leaves the hooks as they are.
+  6. A build an agent made (build.json's `agent`, `BuiltByAgent` in parts/builds) leaves the hooks as they are.
   7. The agent puts the hooks in, or brings them up to date (`connect:before:from:`), from the copy this app carries
      (`Contents/Resources/plugin`), with your press on the line when it's the agent's (Add Back, Turn On, Try Again).
   It also has the words for its cards on the panel's back (`ToolsCard`, `PluginCard`).
@@ -43,8 +44,8 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
   is the very first open, which turns it on. It's never loaded into launchd from here; taken out, its job is unloaded
   (`launchctl bootout`) only when this copy isn't the one launchd runs for it, as `launchctl print` says. launchctl is
   asked only through Install's stand-in, so the print mode never reaches your real login item. The pawn menu's Open at
-  Login (`InstallModule`, `MenuSectionApp`, just above Quit) shows and sets it; on macOS 13 and later, one you turned
-  off in System Settings' Login Items (`SMAppService`) shows unticked, and a press opens Login Items.
+  Login (`InstallModule`, `MenuSectionApp`, just above Quit) shows and sets it; one you turned off in System Settings'
+  Login Items (`SMAppService`) shows unticked, and a press opens Login Items.
 - `app/Updates.h/.m`: a newer Whozmove out, for a copy Homebrew installed (its receipt in the Caskroom names the tap),
   read from that tap's cask, Homebrew's copy on this Mac and GitHub's raw file, the newer counting, against Info.plist's
   version, part by part; never for a build from a checkout (its build.json). Looked at as the app opens and every 6
@@ -53,7 +54,11 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
   brew), and its × keeps that version away in `updates.json`. `--print-updates <case>…` checks it with sample receipts
   and casks.
 - `app/HomebrewFacts.h/.m`: what it relies on about Homebrew: its folder, a cask's receipt, a tap's cask on this Mac
-  and on GitHub, the cask's version line, and the command that updates it.
+  and on GitHub, the cask's version line, and the commands that update it and install it again.
+- Getting this copy again (`WhozmoveAgain`, contracts/Module.h, in `InstallModule`): what the module offers the others
+  for a part of the app that's missing or won't run (Keys' Betterleaks). For a copy Homebrew installed (its receipt),
+  the button copies `brew reinstall --cask <tap>/whozmove`, as Copy Command copies the update's; else it opens the
+  page releases are downloaded from (`kWhozmoveReleases`, in Updates). It never runs brew.
 - `app/LaunchdFacts.h/.m`: what it relies on about launchd for the login item: the folder it goes in, launchctl, a
   job's name in your login session, and the line `launchctl print` names its process on.
 - `app/ToolsFacts.h/.m`: what it relies on about how macOS puts the developer tools in: the command that asks for
@@ -63,7 +68,7 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
   them until they reload them, as the agent tells (`runsWithoutHooks:`: started before then, and nothing recorded since
   it started), once their first message is sent. Each such row is marked (`reload`); a press on one, or Reload Them for
   all, puts them in a queue, and each goes in once it's idle, one at a time, as the agent's own command
-  (`reloadCommand`, `/reload-plugins` for Claude Code), typed through the core's `Send` with the panel's typing checks;
+  (`reloadCommand`, `/reload-plugins` for Claude Code), typed through parts/send with the panel's typing checks;
   its result says whether it took (`reloaded:`). One that started working meanwhile is let go, and its row offers Reload
   again once it's done; one the panel can't type into (its tab isn't certain, a terminal it can't type into), or one
   whose reload Claude Code held back, is left for you: its row says what to type in it, and why, and Reload Them doesn't
@@ -74,15 +79,14 @@ on the page the agent's settings go on for its hooks (Claude's, for Claude Code)
   doesn't reach: when the hooks were first found in the agent, so ones you take out aren't put back; and what the
   last check found and since when, so that time holds across launches while it stays so. Each outcome goes in the
   panel's log, once, until it changes.
-- `page/install.js`: what the line under the header says for each state, its button and what a press asks, and
-  whether it has a ×, and how a × holds (plain functions); `page/reload-row.js`: a session's mark at its work
-  line's start, Shown in part with Reload, and its note once it waits or reloads; `page/install-line.js`: drawing
-  the line in its place
-  under the header (`#install`, panel.html), where it takes the header's room from the list as a card there does,
-  growing in, changing its words and folding away with the strips' helpers, its button, which waits from a press
-  until the app says how it went (Copy Command doesn't wait: it says Copied a moment, its words cross-fading), and
-  its ×; `page/install.css`, for what isn't the core's: the line is the panel's
-  one-line message (controls.css) with the core's × (cards.css). `module.json` lists them for tools/page.sh.
+- `page/install.js`: what the line under the header says for each state, its button and what a press asks, and whether
+  it has a ×, and how a × holds (plain functions); `page/reload-row.js`: a session's mark at its work line's start, that
+  it started before Whozmove's update with Reload to see its steps, and its note once it waits or reloads;
+  `page/install-line.js`: drawing the line in its place under the header (`#install`, panel.html), where it takes the
+  header's room from the list as a card there does, growing in, changing its words and folding away with the strips'
+  helpers, its button, which waits from a press until the app says how it went (Copy Command doesn't wait: it says
+  Copied a moment, its words cross-fading), and its ×; `page/install.css`, for what isn't the core's: the line is the
+  panel's one-line message with the kit's × (controls.css). `module.json` lists them for tools/page.sh.
 
 `tests/test.sh` runs `--print-install`'s cases, each with stand-ins for where the app runs from, whether an agent
 made it, the agent, the developer tools and macOS's installer for them, and compares what each check found (and how
@@ -146,20 +150,51 @@ a new version's, as its version, kept in `updates.json`.
 
 ## Rules
 
-- Nothing is set up from anywhere but an Applications folder: a copy that may be gone tomorrow must never decide where
-  the hooks look for the app. Install on Git's page works wherever it runs from: it only has macOS open its installer.
+- Whozmove sets itself up only from an Applications folder (`InApplications`). A copy opened anywhere else (where it was
+  downloaded, a disk image, a build's folder, or the copy macOS runs one of those from) changes nothing: it may be gone
+  tomorrow, and the hooks record only while the app noted in Whozmove's folder (`app`) is there. Install on Git's page
+  works wherever it runs from: it only has macOS open its installer.
 - Hooks you took out of the agent are never put back unless you ask (Add Back; `before`, from its record).
 - An agent's build never puts its hooks in place: every session you start would run them.
-- Apple's developer tools are asked for only once the agent is on this Mac, and nothing of it runs the agent before
-  they're in. Their line has no ×, as your sessions can't be followed without them; it stays until they're in.
-- Presses go one at a time, on the check's queue, and only one that still fits how things stand (Copy Command and a
-  new version's × act at once: they change nothing of setting up).
+- Whozmove runs no git of its own before Apple's developer tools are there. Without them, `/usr/bin/git` (like
+  `python3` and the other tools macOS keeps there) offers to install them each time it's run. So the app's git goes
+  through `RunGit`, and everything else it runs that runs git waits for `DeveloperToolsReady()` too: `gh` (`GhPath`),
+  making a worktree, and Claude Code's usage check, as `claude` may. What you start yourself, a conversation or a
+  Deploy, runs as it would from your terminal.
+- Apple's developer tools are asked for only once the agent is on this Mac, as only its sessions need them, and
+  nothing of it runs the agent before they're in. Their line has no ×, as your sessions can't be followed without
+  them; it stays until they're in. Its Install (and Git's page's on the panel's back) has macOS show its own installer
+  (`xcode-select --install`), and while that's open, xcode-select is asked again at every look, every 10 seconds
+  (`DeveloperToolsLookNow`), rather than every 5 minutes.
+- Presses go one at a time, on the check's queue, and only one that still fits how things stand, and its button waits
+  until it's done (Copy Command and a new version's × act at once: they change nothing of setting up).
 - `--print-install` writes in Whozmove's folder and the login item's in `$HOME`, so it never runs in your own home
   folder; its launchctl is a stand-in.
-- The app never loads its own login item into launchd, and opens at login only from an Applications folder.
+- The app never loads its own login item into launchd. It writes the file (`LoginItem`, from an Applications folder
+  only), which the next login loads; loading it now would start a second copy, which bows out. Taken out, its job is
+  unloaded only by a copy launchd doesn't run for it, as unloading it would stop that copy. The login item restarts
+  the app only after a crash (`KeepAlive` `Crashed`), so one left behind with the app gone fails once at login, rather
+  than every few seconds.
 - A session reloads only after your press, its row's or Reload Them's, right then: Reload Them takes the ones idle at
   the press, and one at work is never queued to go in by itself later. Only while it's idle, with the typing checks
   the panel's commands have, and nothing else from the panel types into it meanwhile (Send's `typingInto:`). Never
   with `--force`: a reload Claude Code holds back, because its next message would read the whole conversation again,
   is left for you, its row naming `/reload-plugins --force`, and pointed at, saying what Claude Code said.
 - A new version is only said: nothing runs `brew` or installs anything, and a build from a checkout never looks.
+- At its first open there's nothing to answer: Open at Login goes on by itself, the hooks go in once Claude Code is
+  found, saying so in a line that puts itself away, and a line with a button shows only when something needs you. No
+  macOS permission is asked for while it sets itself up: each is asked for the first time Whozmove does what needs it.
+- Claude Code is never required. Without it, the rest of the panel works (Storage, Spotify, the apps on the panel's
+  back), the line saying how to get it has a ×, and Apple's developer tools aren't asked for.
+
+## Facts
+
+Checked with Homebrew 7.0.9, and its trust with 7.0.10:
+- Installed by its full name (`whozmove/tap/whozmove`), the cask's tap is added and that one cask trusted in the same
+  command, with no trust step of its own. A tap added but not trusted refuses the short name until then.
+- A cask's own steps run sandboxed: they can't register a login item, open an app or send Apple events. So everything
+  the install script did is the app's own work as it opens.
+- Homebrew installs a cask without Apple's command line developer tools, so the app looks for them itself: its git
+  and the hooks' Python come from them.
+- An upgrade runs a cask's uninstall steps too, all but its login item's and its signals, and quits and reopens only the
+  apps named to quit. So Whozmove's cask only quits it, and its login item goes only with `--zap`.

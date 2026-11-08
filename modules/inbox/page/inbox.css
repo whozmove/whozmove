@@ -1,0 +1,86 @@
+/* Messages (inbox.js), in the reader's place beside the list: its filters and the inbox strip held at the top, and the
+   channel under them, every message oldest first. Nothing here is your move, so nothing is in its amber: a kept
+   message's priority is a tag in the panel's greys (Urgent firm, Question and Report grey, Note an outline), what
+   didn't get there is in the colour of something gone wrong, an answer in done's green, a read one muted, and the rest
+   grey. Depth is by fill alone, never a shadow.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* No list down the side; the filters and the strip sit where a writing's source goes, above what scrolls. */
+.k-messages .r-shelf { display: none; }
+.k-messages .r-src { padding: 0; color: var(--text); font-size: var(--size-body); }
+
+.mx-top { display: flex; flex-direction: column; }
+.mx-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 7px 16px; }
+.mx-filters .tag.chip { font-size: var(--size-small); color: var(--muted); }
+.mx-filters .tag.chip[aria-pressed="true"] { background: var(--shelf-picked); color: var(--text); }
+.mx-filters .mx-n { font-variant-numeric: tabular-nums; }
+.mx-filters .mx-back { margin-left: auto; color: var(--text); }
+.mx-x { color: var(--muted); }
+
+/* The inbox strip: what each inbox's session hasn't read, in the order it reads them, one line each. */
+.mx-inbox { padding: 7px 16px 8px; border-top: 1px solid var(--rule); font-size: var(--size-small); }
+.mx-inbox-head { color: var(--muted); }
+.mx-inbox-head b { color: var(--text); font-weight: 600; }
+.mx-inbox ol { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.mx-inbox-item { display: flex; align-items: center; gap: 7px; width: 100%; padding: 1px 4px; border: none;
+                 border-radius: var(--radius-small); background: none; color: var(--text); font: inherit;
+                 text-align: left; }
+.mx-inbox-item.is-hover { background: var(--hover); }
+.mx-inbox-item .mx-what { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mx-inbox-item .mx-at { color: var(--faint); font-variant-numeric: tabular-nums; }
+
+/* The channel. */
+.mx-channel { display: flex; flex-direction: column; padding: 8px 10px 14px; border-top: 1px solid var(--rule); }
+.mx-day { align-self: center; margin: 6px 0 4px; font-size: var(--size-meta); color: var(--faint); }
+.mx-empty { padding: 18px 6px; font-size: var(--size-small); color: var(--muted); line-height: 1.45; }
+.mx-note { padding: 2px 6px 8px; font-size: var(--size-small); color: var(--muted); line-height: 1.45; }
+.mx { padding: 7px 8px 8px; border-radius: var(--radius-box); }
+.mx.lit { background: var(--shelf-picked); transition: background .6s ease; }
+/* A message that's just come in comes in the panel's way: fading in, lifting 3px. Under reduced motion it's simply
+   there (inbox.js marks none). */
+.mx.mx-new { animation: mxIn .3s ease both; }
+@keyframes mxIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+.mx-headline { display: flex; align-items: baseline; gap: 5px; min-width: 0; font-size: var(--size-body); }
+.mx-who { display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; padding: 0; border: none;
+          background: none; color: var(--text); font: inherit; font-weight: 600; white-space: nowrap; overflow: hidden;
+          text-overflow: ellipsis; }
+button.mx-who.is-hover { text-decoration: underline; }
+.mx-which { font-weight: 400; color: var(--muted); }
+.mx-to { flex: none; color: var(--faint); }
+.mx-headline .tag { align-self: center; margin-left: 3px; }
+.mx-about { flex: none; color: var(--faint); font-size: var(--size-meta); }
+.mx-headline .mx-at { flex: none; margin-left: auto; color: var(--faint); font-size: var(--size-meta);
+                      font-variant-numeric: tabular-nums; }
+
+/* A kept message's priority: Urgent a firm neutral, never the colour of something gone wrong; Question and Report grey;
+   Note an outline. */
+.tag.mx-tag.urgent { color: var(--text); background: var(--hover-strong); font-weight: 650; }
+.tag.mx-tag.question, .tag.mx-tag.report { color: var(--muted); background: var(--hover-strong); }
+.tag.mx-tag.note { color: var(--faint); background: none; box-shadow: inset 0 0 0 1px var(--edge); }
+
+.mx-re { display: block; max-width: 100%; margin: 1px 0 0; padding: 0; border: none; background: none;
+         color: var(--faint); font: inherit; font-size: var(--size-meta); text-align: left; white-space: nowrap;
+         overflow: hidden; text-overflow: ellipsis; }
+.mx-re.is-hover { color: var(--muted); }
+
+/* Its words, as the reader draws Markdown, at a message's size; three lines of a long one until Show All. */
+.md.mx-text { max-width: none; margin: 3px 0 0; padding: 0; font-size: var(--size-card); line-height: 1.45;
+              color: var(--text); }
+.md.mx-text p, .md.mx-text ul, .md.mx-text ol, .md.mx-text pre, .md.mx-text blockquote { margin: 0 0 4px; }
+.md.mx-text > :last-child { margin-bottom: 0; }
+.md.mx-text.clipped { max-height: 4.35em; overflow: hidden; }
+.mx-more { padding: 0; border: none; background: none; color: var(--link); font: inherit; font-size: var(--size-small); }
+.mx-cut { margin-top: 2px; font-size: var(--size-meta); color: var(--faint); }
+
+/* Where it stands: grey, muted once read, green once answered, and what never got there in the colour of something
+   gone wrong. Copy at its end. */
+.mx-state { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin-top: 4px;
+            font-size: var(--size-small); color: var(--faint); }
+.mx-state.read { color: var(--muted); }
+.mx-state.answered { color: var(--done-text); }
+.mx-state.gone { color: var(--needs-text); }
+.mx-go { padding: 0; border: none; background: none; color: inherit; font: inherit; text-align: left;
+         text-decoration: underline; text-underline-offset: 2px; }
+.mx-state .mx-copy { margin-left: auto; }
+.mx-empty .mx-go { color: var(--link); text-decoration: none; }

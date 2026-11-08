@@ -15,6 +15,8 @@ show('failed, with a sentence of its own', installLine(found('failed', { detail:
   + 'answer.' }), {}));
 show('failed, with nothing said', installLine(found('failed', { detail: '  ' }), {}));
 show('a press under way: its button waits', installLine(found('removed', { busy: true }), {}));
+show('drawn, with its button and its ×', installHTML(installLine(found('removed'), {})));
+show('…its button waiting', installHTML(installLine(found('removed', { busy: true }), {})));
 
 section('No line');
 for (const state of ['ready', 'updated', 'agentBuild', 'something new'])

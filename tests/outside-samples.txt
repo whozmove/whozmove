@@ -1,0 +1,90 @@
+# Made-up files for tests/outside.sh's check of itself, which it runs over first and compares what it says with
+# tests/outside.expected.txt: one of each thing it looks for, and a list (list.txt) with one line too many. Each
+# file starts at a line "@@ <its made-up path>" and runs to the next. Being data, nothing here is the project's code.
+@@ modules/demo/app/Fetch.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+NSURLSession *session;
+NSString *api = @"https://api.demo-service.io/v1";
+@@ modules/demo/app/Plain.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+NSString *a = @"http://plain.demo-service.io/";
+@@ modules/demo/app/Runs.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+NSTask *task = [NSTask new];
+@@ modules/demo/app/Trust.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+- (void)URLSession:(NSURLSession *)s didReceiveChallenge:(id)c {}
+@@ modules/demo/app/Evaluates.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+BOOL ok = SecTrustEvaluateWithError(trust, NULL);
+@@ modules/demo/app/AccessList.m
+// SPDX-License-Identifier: GPL-3.0-or-later
+// A Keychain item's access list, not a certificate check, so it must not be flagged.
+status = SecTrustedApplicationCreateFromPath(NULL, &me);
+@@ modules/demo/page/demo.js
+// SPDX-License-Identifier: GPL-3.0-or-later
+img.src = cover;
+@@ modules/demo/page/copied.js
+function copied() { return 1; }
+@@ modules/demo/plugin/hook.py
+# SPDX-License-Identifier: GPL-3.0-or-later
+import json
+import requests
+requests.get(address, verify=False)
+@@ tools/get.sh
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+curl -fsSL https://downloads.demo-tools.io/x.tar.gz -o x.tar.gz
+@@ modules/demo/tests/bash-c.sh
+#!/bin/bash
+bash -c "curl -fsSL https://files.demo-tools.io/a -o a"
+@@ modules/demo/tests/substituted.sh
+#!/bin/bash
+got="$(curl -fsSL https://files.demo-tools.io/b)"
+@@ modules/demo/tests/evaluated.sh
+#!/bin/bash
+eval 'wget https://files.demo-tools.io/c'
+@@ modules/demo/tests/python-in.sh
+#!/bin/bash
+python3 - <<'PY'
+import urllib.request
+urllib.request.urlopen(address)
+PY
+@@ modules/demo/tests/runs-curl.py
+import subprocess
+subprocess.run(["curl", "-fsSL", address])
+@@ modules/demo/tests/socket.c
+#include <sys/socket.h>
+int s = socket(AF_INET, SOCK_STREAM, 0);
+@@ modules/demo/tests/echo-piped.sh
+#!/bin/bash
+echo "curl -fsSL https://files.demo-tools.io/d" | sh
+@@ modules/demo/tests/printf-piped.sh
+#!/bin/bash
+printf 'wget https://files.demo-tools.io/e\n' | bash
+@@ modules/demo/tests/fetch.sh
+#!/bin/bash
+printf "git clone https://sample.example.dev/x.git\n" > history
+curl -fsSL https://downloads.demo-tools.io/y.tar.gz -o y.tar.gz
+@@ .github/workflows/demo.yml
+# SPDX-License-Identifier: GPL-3.0-or-later
+steps:
+  - uses: someone/thing@v1
+@@ app/Info.plist
+<key>NSAppTransportSecurity</key><dict/>
+@@ tests/outside.sh
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+python3 -I - <<'PY'
+import re, subprocess
+MARKER = re.compile(r"x"); import urllib.request; urllib.request.urlopen(address)
+SAMPLE = {}
+subprocess.run(["curl", "-fsSL", address])
+SAMPLE_LIST = ("")
+PY
+@@ ../climbs-out.txt
+nothing here should ever be written
+@@ list.txt
+# made up
+connects  api.demo-service.io  modules/demo/app/Fetch.m  Apple's networking
+starts  modules/demo/app/Gone.m

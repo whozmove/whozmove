@@ -28,7 +28,7 @@ static id Named(AXUIElementRef root, NSArray<NSString *> *roles, NSString *label
 }
 
 static BOOL Press(id element) {
-    return AXUIElementPerformAction((__bridge AXUIElementRef)element, kAXPressAction) == kAXErrorSuccess;
+    return PressElement((__bridge AXUIElementRef)element, kAXPressAction) == kAXErrorSuccess;
 }
 
 // What `find` finds, once it shows, kShowsWithin at most.
@@ -100,6 +100,6 @@ NSString *ITerm2SetAPI(pid_t pid, BOOL on, BOOL *already) {
     }
     // iTerm2 holds the press while it asks you, so the press may wait out its time: it has gone in all the same.
     AXUIElementSetMessagingTimeout((__bridge AXUIElementRef)box, kBoxWaits);
-    AXError pressed = AXUIElementPerformAction((__bridge AXUIElementRef)box, kAXPressAction);
+    AXError pressed = PressElement((__bridge AXUIElementRef)box, kAXPressAction);
     return pressed == kAXErrorSuccess || pressed == kAXErrorCannotComplete ? nil : @"a way to press Enable Python API";
 }

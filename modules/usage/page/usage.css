@@ -61,8 +61,9 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .uc-ink b { font-weight: 600; color: var(--on-gauge); }
 .uc-gap { flex: 1; }
 /* The card's shape, as the card is wherever it is (card.js moves it with the card as it opens and folds): its colour is
-   cut to it, so where the colour ends in one of the card's round corners it follows the corner. */
-.uc-face { position: absolute; left: 0; top: -197px; width: 100%; height: 200px;
+   cut to it, so where the colour ends in one of the card's round corners it follows the corner. It's only drawing, and
+   open it lies over the whole strip, so presses and the pointer go through it to what's on the strip. */
+.uc-face { position: absolute; left: 0; top: -197px; width: 100%; height: 200px; pointer-events: none;
            clip-path: inset(0 var(--uc-card-in) 0 var(--uc-card-in) round var(--radius-panel));
            transition: clip-path .3s cubic-bezier(.2, .8, .2, 1) .12s; }
 #uc.is-out .uc-face { transition: clip-path .34s cubic-bezier(.2, .8, .2, 1); }
@@ -81,6 +82,15 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .uc-fill::before { content: ''; position: absolute; inset: 0; background: var(--uc-colour, transparent);
                    transition: background-color .4s ease; }
 #uc.is-open:not(.is-moving) .uc-fill { visibility: hidden; }
+/* Where even use of the window it shows would be by now (--uc-even, from 0 to 1, as --uc-u): a notch up from the
+   card's bottom edge, below its words, while it's slid out; at rest the line is only its colour. In the card's shape,
+   so near an end it follows the round corner. card.js fades it as the card opens and folds. */
+.uc-even { position: absolute; top: 195px; height: 5px; width: 2px; margin-left: -1px; border-radius: var(--radius-bar);
+           left: calc(var(--uc-in) + (100% - 2 * var(--uc-in)) * var(--uc-even, 0)); background: var(--usage-even);
+           opacity: 0; visibility: hidden; transition: opacity .2s ease, left .34s cubic-bezier(.2, .8, .2, 1); }
+#uc.has-even.is-out:not(.is-open) .uc-even { opacity: 1; visibility: visible; transition: opacity .3s ease .1s,
+                                                    left .34s cubic-bezier(.2, .8, .2, 1); }
+#uc.has-even.is-moving .uc-even { visibility: visible; }
 /* While it opens or folds, the strip's handle keeps out of the way, as the band's words travel under it. */
 #uc.is-moving .u-strip .u-handle { opacity: 0; transition: opacity .12s ease; }
 /* Where the words travel as the card opens or folds (card.js): the light ones under the colour, the dark ones in it. */
@@ -89,17 +99,39 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .uc-traveler { position: absolute; top: 0; left: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 .u-strip { position: relative; padding: 8px 14px; overflow: hidden; }
-.u-row { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; }
+/* A row: its name, in a column as wide in both rows, so both bars start at the same point; its bar; and its words
+   together at its end, the percent in a column of its own and where it ends up and the time each as wide as its own
+   text, so the bar takes the rest of the row, never the room the other row's words need: the two bars can end at
+   different points, each still its window in full. */
+.u-row { position: relative; display: flex; align-items: center; gap: 5px; height: 22px; }
 .u-label { flex: none; width: 50px; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
-.u-track { flex: 1 1 auto; min-width: 0; height: 4px; border-radius: var(--radius-bar);
-           background: var(--usage-track); overflow: hidden; }
+.u-track { flex: 1 1 auto; min-width: 0; height: 4px; }
 .u-fill { display: block; height: 100%; width: 0; border-radius: var(--radius-bar);
           transition: width .6s cubic-bezier(.2, .8, .2, 1), background-color .4s ease; }
 .u-pct { flex: none; width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
-/* Time left, as wide as its text, or in the strip as the wider of its two rows' so they line up (--left-w, lineUpTimes
-   in strip.js). Pointed at, the column widens to the clock time's width (--clock-w) if that's wider, the bar beside it
-   giving way, and the bar's end pushes the clock time in from the left as the time left slides out to the right. It
-   comes in easing out and goes back quicker, with no overshoot either way. */
+/* Where it ends up by the reset at this pace, dotted on from the end of what's used (card.js sets `left` and
+   `width`): grey while even, amber fast, blue slow, as the words beside it. */
+.u-ends { position: absolute; top: 0; bottom: 0; color: var(--faint); opacity: .6;
+          background: repeating-linear-gradient(90deg, currentColor 0 3px, transparent 3px 5px);
+          transition: left .6s cubic-bezier(.2, .8, .2, 1), width .6s cubic-bezier(.2, .8, .2, 1); }
+.u-ends[hidden] { display: none; }
+.u-ends[data-kind="fast"] { color: var(--level-warning); }
+.u-ends[data-kind="slow"] { color: var(--usage-pace-slow); }
+/* Where it ends up, in words ("→ 30%", "out 1:41 PM"), as wide as its own (--x-w, ucSetEnds in card.js): grey while
+   even, amber fast, blue slow. As its words change it eases to their width as the time does, its words at its right
+   edge, so a longer one is pushed in from the left by the percent. With none (no reading, at 100%) it takes no room,
+   the row's gap before it given back, so the percent is as far from the time as from the bar. */
+.u-x { flex: none; display: flex; justify-content: flex-end; width: var(--x-w, 0px); overflow: hidden;
+       font-size: var(--size-small); font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums;
+       white-space: nowrap;
+       transition: width .22s cubic-bezier(.4, 0, .2, 1), margin-left .22s cubic-bezier(.4, 0, .2, 1); }
+.u-x:empty { margin-left: -5px; }
+.u-x[data-kind="fast"] { color: var(--level-warning); }
+.u-x[data-kind="slow"] { color: var(--usage-pace-slow); }
+/* Time left, as wide as its text (--left-w, ucSetTimes in card.js). Pointed at, the column widens to the clock time's
+   width (--clock-w) if that's wider, the bar beside it giving way, and the bar's end pushes the clock time in from the
+   left as the time left slides out to the right. It comes in easing out and goes back quicker, with no overshoot
+   either way. */
 .u-time { flex: none; position: relative; height: 15px; overflow: hidden; width: var(--left-w, 0px);
           font-size: var(--size-small); color: var(--faint); white-space: nowrap; font-variant-numeric: tabular-nums;
           transition: width .22s cubic-bezier(.4, 0, .2, 1); }
@@ -110,10 +142,46 @@ html, body { margin: 0; background: transparent; color: var(--text);
 .u-row.is-hover .u-time > span { transition: transform .34s cubic-bezier(.2, .8, .2, 1), opacity .3s ease; }
 .u-row.is-hover .u-left { transform: translateX(26px); opacity: 0; }
 .u-row.is-hover .u-clock { transform: none; opacity: 1; }
-/* Only when you're on course to run out before the reset, in "your move" amber. */
-.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--turn-words); text-align: center;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A row with no reading says why its bar is empty in "no reading", the only words for it, so in the grey text is read
+   in rather than the fainter one a reset time beside a percent is in. It has no clock time to swap in: pointed at,
+   "no reading" stays where it is. */
+.u-row.no-reading .u-left { color: var(--muted); }
+.u-row.no-reading.is-hover .u-time { width: var(--left-w, 0px); }
+.u-row.no-reading.is-hover .u-left { transform: none; opacity: 1; }
+.u-row.no-reading.is-hover .u-clock { transform: translateX(-26px); opacity: 0; }
+/* What the pace comes to, under the rows, and what to do about it on a line of its own (the "\n" in its text): in
+   "your move" amber when you're on course to run out before the reset. */
+.u-pace { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--muted); text-align: center;
+          text-wrap: balance; white-space: pre-line; }
+.u-pace.is-fast { color: var(--turn-words); }
 .u-pace[hidden], #usage.is-signin .u-pace { display: none; }
+/* While your gear shows, the line keeps the height of its two lines, one line centred in it, so the seats under it stay
+   where they are as a press changes the words, and a second press lands on them. */
+#usage.has-gear .u-pace:not([hidden]) { display: grid; align-content: center; min-height: 30px; }
+/* Your gear, under a faint rule: a line with what the seats don't show (no gear yet, how many over it), then the
+   seats (gear.css), each session working lighting one, and why none is recommended yet under them. A seat pointed at
+   says what a press there does in the line's place. */
+.u-gear { margin-top: 6px; padding-top: 7px; border-top: 1px solid var(--usage-track); }
+/* The line over the seats keeps its place with nothing to say, as a seat pointed at says what a press does there. */
+.u-gear-says { position: relative; display: block; min-height: 15px; font-size: var(--size-small); line-height: 15px;
+               color: var(--text); font-variant-numeric: tabular-nums; }
+.u-gear-over { color: var(--muted); }
+.u-gear-line, .u-gear-tip { transition: opacity .2s ease; }
+/* Only drawing over the line: it keeps its words after the pointer leaves, so a press or the pointer has to reach what's
+   under it. */
+.u-gear-tip { position: absolute; left: 0; right: 0; top: 0; opacity: 0; color: var(--muted); pointer-events: none; }
+.u-gear-says.is-tip .u-gear-line { opacity: 0; }
+.u-gear-says.is-tip .u-gear-tip { opacity: 1; }
+.u-gear-why { margin-top: 2px; font-size: var(--size-small); line-height: 15px; color: var(--muted); }
+.u-gear[hidden], .u-gear-why[hidden], #usage.is-signin .u-gear { display: none; }
+/* The session that has used the most today, at the foot of the open card under a faint rule. */
+.u-heavy { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--usage-track);
+           font-size: var(--size-small); line-height: 15px; color: var(--muted); text-align: center; }
+/* A long name gives way, never the numbers after it. */
+.u-heavy-says { display: flex; justify-content: center; white-space: nowrap; }
+.u-heavy-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.u-heavy-rest { flex: none; white-space: pre; }  /* keeps its leading space, as a flex item would drop it */
+.u-heavy[hidden], #usage.is-signin .u-heavy { display: none; }
 
 /* The handle that folds the strip, along its top edge while it's pointed at. */
 .u-handle { position: absolute; top: 0; left: 50%; z-index: 1; width: 48px; height: 10px; margin-left: -24px;
@@ -122,10 +190,18 @@ html, body { margin: 0; background: transparent; color: var(--text);
                    background: var(--handle); transition: background-color .15s ease; }
 .u-strip.is-hover .u-handle { opacity: 1; }
 .u-handle.is-hover::after { background: var(--handle-pointed); }
+/* What eases as the pointer comes and goes on the open card (the handle, a row's two times, the gear line and its tip)
+   is on a layer of its own from the start. Given one only while it eased, WebKit drew the whole card blank until it
+   had, so the card flickered as the pointer crossed it. */
+.u-handle, .u-gear-line, .u-gear-tip { will-change: opacity; }
+.u-time > span { will-change: transform, opacity; }
 
 /* Signed out: the panel's one-line message (controls.css), only while signed out. */
-.u-signin { display: none; }
+.u-signin { display: none; min-height: 26px; }
 #usage.is-signin .u-signin { display: flex; }
+/* The command it gives you to run yourself, when Sign in can't, is one long word (a path with no space or hyphen, as an
+   nvm install's is): it breaks anywhere, rather than running under Sign in or past the card's edge. */
+.u-signin .notice-text { overflow-wrap: anywhere; }
 #usage.is-signin .u-row, #usage.is-signin .u-handle { display: none; }
 
 /* Waiting for the session limit to reset: the session's line says when it's back, the week's figure at its right;
@@ -139,15 +215,16 @@ html, body { margin: 0; background: transparent; color: var(--text);
 #usage.is-wait .u-strip { height: 84px; }
 #usage.is-wait .u-session .u-track, #usage.is-wait .u-session .u-pct,
 #usage.is-wait .u-session .u-time { visibility: hidden; }
-#usage.is-wait .u-week, #usage.is-wait .u-pace, #usage.is-resetting .u-pace { display: none; }
+#usage.is-wait .u-week, #usage.is-wait .u-pace, #usage.is-resetting .u-pace, #usage.is-wait .u-heavy,
+#usage.is-resetting .u-heavy, #usage.is-wait .u-gear, #usage.is-resetting .u-gear { display: none; }
 .u-layer { position: absolute; left: 0; top: 0; display: none; overflow: visible; pointer-events: none; }
 #usage.is-wait .u-layer, #usage.is-resetting .u-layer { display: block; }
 .u-bud { animation: breathe 2.4s ease-in-out infinite; }
 .u-bud.still { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .uc-slide, .uc-shell, .uc-shade, .uc-band, .uc-face, .uc-fill, .uc-fill::before, .u-fill, .u-time,
-  .u-time > span, .u-handle {
+  .uc-slide, .uc-shell, .uc-shade, .uc-band, .uc-face, .uc-fill, .uc-fill::before, .uc-even, .u-fill, .u-ends,
+  .u-x, .u-time, .u-time > span, .u-handle, .u-gear-line, .u-gear-tip {
     transition: none !important; }
   .u-bud { animation: none; }
 }

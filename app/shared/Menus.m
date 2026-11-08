@@ -19,6 +19,5 @@ void SayInMenu(NSMenu *menu, NSString *text) {
 }
 
 void HeadingInMenu(NSMenu *menu, NSString *text) {
-    if (@available(macOS 14.0, *)) [menu addItem:[NSMenuItem sectionHeaderWithTitle:text]];
-    else SayInMenu(menu, text);
+    [menu addItem:[NSMenuItem sectionHeaderWithTitle:text]];
 }

@@ -1,0 +1,44 @@
+
+== The waiting note
+waiting on two: quiet, its words, and the same for VoiceOver: {"text":"Waits on #12 · PAY-142","html":"<span class=\"wait-says\" aria-label=\"Waits on pull request 12 and ticket PAY-142\">Waits on #12 · PAY-142</span>","quiet":true}
+waiting on one that can't be read now: {"text":"Waits on PAY-142 · #12 can't be read now","html":"<span class=\"wait-says\" aria-label=\"Waits on ticket PAY-142\">Waits on PAY-142 · #12 can&#39;t be read now</span>","quiet":true}
+something came, and waits for a seat in the gear: {"text":"#12 approved · next free seat","html":"<span class=\"wait-says\" aria-label=\"#12 approved, waiting for a free seat in the gear\">#12 approved · next free seat</span>","quiet":true}
+…two came: {"text":"#12 approved +1 · next free seat","html":"<span class=\"wait-says\" aria-label=\"#12 approved +1, waiting for a free seat in the gear\">#12 approved +1 · next free seat</span>","quiet":true}
+something came, not held: still its waiting words, until it wakes: {"text":"Waits on #12 · PAY-142","html":"<span class=\"wait-says\" aria-label=\"Waits on pull request 12 and ticket PAY-142\">Waits on #12 · PAY-142</span>","quiet":true}
+words from outside made safe: {"text":"Waits on <b>PAY-1</b> & \"x\"","html":"<span class=\"wait-says\" aria-label=\"Waits on &lt;i&gt;PAY-1&lt;/i&gt;\">Waits on &lt;b&gt;PAY-1&lt;/b&gt; &amp; &quot;x&quot;</span>","quiet":true}
+no VoiceOver words given: its words: {"text":"Waits on #12","html":"<span class=\"wait-says\" aria-label=\"Waits on #12\">Waits on #12</span>","quiet":true}
+closed: no note of this module's: null
+no words, nor what came: none: null
+not waiting: none: null
+held for a seat, with the gear: where it's changed, in the gear's words: {"text":"#12 approved · next free seat. Change your gear on the usage card, under the panel: press a seat.","html":"<span class=\"wait-says\" aria-label=\"#12 approved, waiting for a free seat in the gear. Change your gear on the usage card, under the panel: press a seat.\">#12 approved · next free seat. Change your gear on the usage card, under the panel: press a seat.</span>","quiet":true}
+…the gear not known yet: no words of where: #12 approved · next free seat
+
+== Drawn on a full row
+the work line says its words: true
+…and none of it is lost to an empty note: true
+
+== Closed while it waits
+not woken yet: a quiet ask line, its words, ending in Resume: {"text":"Stopped, waiting on #12 · PAY-142","quiet":true,"look":"low","cls":"ask-note","line":true,"want":"resume"}
+…Resume takes no press of its own, so a press on it is its row's: true
+…its button says what it does: true
+woken: your move, what came first, and +1: {"text":"#12 approved","tone":"turn","quiet":false,"look":"normal","more":true}
+…for VoiceOver: #12 approved, and 1 more. Resume: carry on the conversation
+…its waiting note gives way to it: null
+not closed: none of this: null
+words from outside made safe: true
+
+== Run again, and not asking
+nothing came: a quiet ask line, its words, ending in Resume: {"text":"Not waiting on #12 · PAY-142 any more","quiet":true,"look":"low","want":"resume"}
+…its Resume has a press of its own, for this session: true
+…for VoiceOver: Not waiting on pull request 12 and ticket PAY-142 any more. Resume: carry on the conversation
+…and its button's: Resume: carry on the conversation
+something came: your move, and what came in its words: {"text":"#12 approved · not waiting any more","tone":"turn","quiet":false,"look":"normal"}
+…for VoiceOver: #12 approved, not waiting any more. Resume: tell it to hear what came
+…and its button's: Resume: tell it to hear what came
+…two came: the first, and +1: {"text":"#12 approved · not waiting any more","more":true}
+…its waiting note gives way to it: null
+not missed: none of this: null
+
+== Under any other note
+alone on the row: its note: {"text":"Waits on #12 · PAY-142","html":"<span class=\"wait-says\" aria-label=\"Waits on pull request 12 and ticket PAY-142\">Waits on #12 · PAY-142</span>","quiet":true}
+with an ask of One Task's on the same row: the ask: Try the checkout

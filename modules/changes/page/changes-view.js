@@ -1,5 +1,5 @@
-// What isn't committed in a row's checkout: its numbers at the end of the row's details, their card, and the changes
-// view, beside the list in the reader's place (reader.js, its "changes" mode).
+// What isn't committed in a row's checkout: its numbers at the end of the row's work line, their details, and the
+// changes view, beside the list in the reader's place (reader.js, its "changes" mode).
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // Pressing a row's numbers grows the panel as the reader does, and shows what isn't committed in its checkout as git
@@ -34,9 +34,7 @@ function countsHTML(s, owner) {
   if (!owner || !all?.files) return '';
   const r = state.reading;
   const on = r?.mode === 'changes' && r.sessionId === s.sessionId && !r.closing ? ' on' : '';
-  return `<span class="counts${on}" data-changes="${esc(s.sessionId)}">`
-    + `<span class="add">+${thousands(all.added)}</span> `
-    + `<span class="del">−${thousands(all.removed)}</span></span>`;
+  return `<span class="counts${on}" data-changes="${esc(s.sessionId)}">${diffHTML(all.added, all.removed)}</span>`;
 }
 
 // A press on a row's numbers: the changes view, open on Changes, or turned to it from another tab; pressed again on
@@ -216,7 +214,7 @@ function prefetchChanges(sid, scope) {
 function changesHeadHTML(s, c) {
   return `<span class="r-title">${esc(s.name || base(s.cwd))}</span>
     <span class="r-sub">${esc(changesSub(c.scope, s.changes?.all, c.views.outgoing))}</span>
-    <button class="r-close" title="Close">${CLOSE_ICON}</button>`;
+    <button class="icon-button r-close" title="Close">${CLOSE_ICON}</button>`;
 }
 
 // The bar under the head: the tabs, each with its count (lines put in and taken out, or the commits waiting); the tab's
@@ -225,9 +223,8 @@ function changesHeadHTML(s, c) {
 function changesBarHTML(s, c) {
   const all = s.changes?.all, ahead = unpushedCommits(s.checkout);
   const pressed = (on) => on ? ' aria-pressed="true"' : '';
-  const pick = (attr, value, label, on) => `<button class="c-opt" data-${attr}="${value}"${pressed(on)}>${label}</button>`;
-  const nums = (side) => side?.files ? `<span class="c-nums"><span class="add">+${thousands(side.added)}</span>`
-    + `<span class="del">−${thousands(side.removed)}</span></span>` : '';
+  const pick = (attr, value, label, on) => `<button class="c-layout" data-${attr}="${value}"${pressed(on)}>${label}</button>`;
+  const nums = (side) => side?.files ? diffHTML(side.added, side.removed, 'c-nums') : '';
   const tabs = CHANGE_TABS.map(([scope, name]) => {
     const count = scope === 'outgoing' ? (ahead ? `<span class="c-nums c-ahead">↑${thousands(ahead)}</span>` : '')
       : nums(all?.[scope]);
@@ -237,20 +234,22 @@ function changesBarHTML(s, c) {
   let step = '';
   if (state.switches.nextSteps && c.scope === 'outgoing') {
     step = s.checkout?.upstream
-      ? `<button class="c-step" data-step="push" title="Asks Claude to push the commits"${off(ahead > 0)}>Push</button>`
-      : `<button class="c-step" data-step="publish" title="Asks Claude to publish this branch on GitHub"${
+      ? `<button class="button quiet c-step" data-step="push" title="Asks Claude to push the commits"${off(ahead > 0)}>`
+        + 'Push</button>'
+      : `<button class="button quiet c-step" data-step="publish" title="Asks Claude to publish this branch on GitHub"${
           off(ahead > 0)}>Publish</button>`;
   } else if (state.switches.nextSteps) {
     const staged = all?.staged?.files || 0, can = !!all?.files;
     const tip = staged ? `Asks Claude to commit what's staged (${filesWord(staged)})` : 'Asks Claude to commit the changes';
-    step = `<span class="c-commit"><button class="c-step" data-step="commit" title="${esc(tip)}"${off(can)}>Commit</button>`
-      + `<button class="c-step c-ways" title="Commit and Push, or Commit and Open a Pull Request"${off(can)}>`
+    step = '<span class="split-button">'
+      + `<button class="button quiet c-step" data-step="commit" title="${esc(tip)}"${off(can)}>Commit</button>`
+      + `<button class="button quiet c-ways" title="Commit and Push, or Commit and Open a Pull Request"${off(can)}>`
       + `${CHEVRON_ICON}</button></span>`;
   }
-  return `<span class="c-switch c-tabs">${tabs}</span>${step}<span class="c-grow"></span>
-    <span class="c-switch">${pick('layout', 'all', 'All files', c.layout === 'all')}${
+  return `<span class="tabs c-tabs">${tabs}</span>${step}<span class="c-grow"></span>
+    <span class="tabs">${pick('layout', 'all', 'All files', c.layout === 'all')}${
       pick('layout', 'one', 'One at a time', c.layout === 'one')}</span>
-    <span class="c-switch">${pick('split', '0', 'Inline', !c.split)}${pick('split', '1', 'Side by side', c.split)}</span>`;
+    <span class="tabs">${pick('split', '0', 'Inline', !c.split)}${pick('split', '1', 'Side by side', c.split)}</span>`;
 }
 
 // A commit, over its files: its subject, then its short id and how long ago, in the list and over its files.
@@ -270,13 +269,13 @@ function changesShelfHTML(s, c) {
   if (!list.some((f) => f.key === c.key)) c.key = list[0].key;
   let html = '', commit = null;
   for (const f of list) {
-    if (f.commit && f.commit !== commit) html += commitHeadHTML(commit = f.commit, 'r-group k-commit');
+    if (f.commit && f.commit !== commit) html += commitHeadHTML(commit = f.commit, 'k-commit');
     const [a, d] = fileCount(f), [mark, letter] = gitLetter(f), note = fileNote(f, c.scope);
     const dir = f.path.includes('/') ? f.path.slice(0, f.path.lastIndexOf('/')) : '';
     html += `<button class="r-item c-file${f.key === c.key ? ' on' : ''}" data-key="${esc(f.key)}" title="${esc(f.path)}">
-        <span class="c-mark ${mark}">${letter}</span>
+        <span class="tag mark ${mark} c-mark">${letter}</span>
         <span class="r-name">${esc(base(f.path))}${dir ? `<span class="c-dir">${esc(dir)}</span>` : ''}</span>
-        <span class="c-nums"><span class="add">+${a}</span><span class="del">−${d}</span></span>
+        ${diffHTML(a, d, 'c-nums')}
         ${note ? `<span class="r-meta">${esc(note)}</span>` : ''}
       </button>`;
   }
@@ -312,11 +311,12 @@ function changesBodyParts(c, view) {
 function fileHTML(c, f, fresh) {
   const [a, d] = fileCount(f), note = fileNote(f, c.scope);
   const slash = f.path.lastIndexOf('/');
-  const chips = [f.status === 'new' && !f.untracked && '<span class="c-chip new">New</span>',
-                 f.status === 'gone' && '<span class="c-chip gone">Deleted</span>',
-                 note && `<span class="c-chip">${esc(note)}</span>`].filter(Boolean).join('');
+  const chips = [f.status === 'new' && !f.untracked && '<span class="tag new">New</span>',
+                 f.status === 'gone' && '<span class="tag gone">Deleted</span>',
+                 note && `<span class="tag">${esc(note)}</span>`].filter(Boolean).join('');
   const editor = state.editors.apps.find((e) => e.id === state.editors.choice);
-  const open = f.status === 'gone' ? '' : `<span class="c-edwrap"><button class="c-open" data-key="${esc(f.key)}">`
+  const open = f.status === 'gone' ? ''
+    : `<span class="c-edwrap"><button class="button quiet c-open" data-key="${esc(f.key)}">`
     + `${editor ? 'Open in ' + esc(editor.name) : 'Open in Editor'}</button>`
     + `${c.picking === f.key ? pickerHTML(f) : ''}</span>`;
   let body;
@@ -336,7 +336,7 @@ function fileHTML(c, f, fresh) {
   }
   return `<section class="c-block" data-block="${esc(f.key)}"><div class="c-fhead">
       <span class="c-path">${slash > 0 ? `<i>${esc(f.path.slice(0, slash + 1))}</i>` : ''}${esc(f.path.slice(slash + 1))}</span>
-      <span class="c-nums"><span class="add">+${thousands(a)}</span><span class="del">−${thousands(d)}</span></span>${chips}
+      ${diffHTML(a, d, 'c-nums')}${chips}
       <span class="c-grow"></span>${open}</div>${body}</section>`;
 }
 
@@ -380,13 +380,20 @@ function codeHTML(text, path = '') {
     i % 2 ? `<span class="c-str">${esc(part)}</span>` : esc(part)).join('');
 }
 
-// The first "Open in Editor" asks which editor, once; the pawn menu's Open With changes it later.
+// The first "Open in Editor" asks which editor, once; Open Files With, in Settings, changes it later. With none on this
+// Mac, it offers the one to get instead.
 function pickerHTML(f) {
   const apps = state.editors.apps || [];
-  return `<div class="c-picker"><div class="c-pq">${apps.length ? 'Open files with' : 'No editor found on this Mac.'}</div>`
-    + apps.map((e) => `<button class="c-app" data-editor="${esc(e.id)}" data-key="${esc(f.key)}">`
+  if (!apps.length) {
+    return '<div class="c-picker"><div class="c-pq">No editor found on this Mac.</div>'
+      + (state.editors.get
+        ? `<button class="option c-app" data-get-editor="1">Get ${esc(state.editors.get)}</button>` : '')
+      + '</div>';
+  }
+  return '<div class="c-picker"><div class="c-pq">Open files with</div>'
+    + apps.map((e) => `<button class="option c-app" data-editor="${esc(e.id)}" data-key="${esc(f.key)}">`
       + `${esc(e.name)}</button>`).join('')
-    + `<div class="c-later">Kept for next time. Change it in the pawn menu, Open With.</div></div>`;
+    + '<div class="c-later">Kept for next time. Change it in Settings, Open Files With.</div></div>';
 }
 
 // ---- Presses ----
@@ -446,17 +453,22 @@ core.readerPresses.push(
     const r = b.getBoundingClientRect();
     native({ type: 'gitWays', sessionId: state.reading.sessionId, x: r.left - 4, y: r.bottom + 4 });
   }],
-  ['.c-opt[data-layout]', (b) => {
+  ['.c-layout[data-layout]', (b) => {
     const c = state.reading.changes;
     c.layout = b.dataset.layout;
     store.set('changesLayout', c.layout);
     redrawChanges();
     if (c.layout === 'all' && c.key) showFile(c.key);
   }],
-  ['.c-opt[data-split]', (b) => {
+  ['.c-layout[data-split]', (b) => {
     const c = state.reading.changes;
     c.split = b.dataset.split === '1';
     store.set('changesSplit', c.split);
+    redrawChanges();
+  }],
+  ['.c-app[data-get-editor]', () => {
+    state.reading.changes.picking = null;
+    native({ type: 'getEditor' });
     redrawChanges();
   }],
   ['.c-app[data-editor]', (b) => {
@@ -472,18 +484,20 @@ core.readerPresses.push(
   }],
 );
 
-// ---- The card ----
+// ---- Their details ----
 
-// What a row's numbers say when pointed at (core.cards): what isn't committed in the checkout, large; how many files,
-// and how many are staged and not (a file staged and changed again is in both, as git status lists it).
+// What a row's numbers say in their details (core.cards), as every row's details are: what isn't committed in the
+// checkout, its numbers as their title; how many files, and how many are staged and not (a file staged and changed
+// again is in both, as git status lists it); and what a press does.
 function changesCardHTML(s) {
   const all = s.changes.all;
   const split = [all.staged?.files && `${thousands(all.staged.files)} staged`,
                  all.unstaged?.files && `${thousands(all.unstaged.files)} not staged`].filter(Boolean).join(', ');
-  return `<div class="cc-big"><b class="add">+${thousands(all.added)}</b><b class="del">−${thousands(all.removed)}</b>
-      <span>not committed</span></div>
-    <div class="cc-lede">${filesWord(all.files)}${split ? ': ' + split : ''}</div>
-    <div class="cc-hint">Press to see Changes, Staged and Outgoing.</div>`;
+  const checkout = base((s.workGit || s.git)?.root || s.cwd);
+  return `<div class="card-head"><span>Not committed</span><span class="end">${esc(checkout)}</span></div>
+    <div class="card-title cc-title">${diffHTML(all.added, all.removed)}</div>
+    <div class="card-lead">${filesWord(all.files)}${split ? ': ' + split : ''}</div>
+    <div class="card-help cc-help">Press to see Changes, Staged and Outgoing.</div>`;
 }
 
 // ---- What it plugs into ----
@@ -498,8 +512,8 @@ core.readerModes.changes = {
   cls: 'k-changes',
 };
 
-// The checkout's numbers, at the end of the work line of the row that speaks for it; pressed, the view. Pointed at,
-// their card (not while the reader shows a session: a mode about none of them leaves it); and what pressing them
+// The checkout's numbers, at the end of the work line of the row that speaks for it; pressed, the view. Rested on,
+// their details (not while the reader shows a session: a mode about none of them leaves them); and what pressing them
 // would open is asked for now, so it's there by the press.
 core.slots.numbers.push((row) => countsHTML(row.s, state.owners.has(row.s.sessionId)));
 core.presses.push(['.counts[data-changes]', (counts, e) => { e.preventDefault(); pressCounts(counts.dataset.changes); }]);

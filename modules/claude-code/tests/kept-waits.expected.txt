@@ -1,0 +1,33 @@
+{
+  "gone" : [
+    "b, 4 days, not waiting",
+    "e, 31 days, waiting",
+    "f, 1 day, waiting, its transcript gone"
+  ],
+  "keep" : {
+    "1, the rows not listed yet: every note stays" : {
+      "e-1" : "waits",
+      "e-2" : "(no note)",
+      "r-1" : "(no note)"
+    },
+    "2, e-2 and r-1 waiting, e-1 not" : {
+      "e-1" : "(no note)",
+      "e-2" : "waits",
+      "r-1" : "waits"
+    },
+    "3, none waiting" : {
+      "e-1" : "(no note)",
+      "e-2" : "(no note)",
+      "r-1" : "(no note)"
+    }
+  },
+  "kept for (days)" : {
+    "not" : 3,
+    "waiting" : 30
+  },
+  "noted" : {
+    "…a note already there, unchanged" : 1,
+    "…and once it no longer waits" : "(no note)",
+    "a record whose row waits" : true
+  }
+}

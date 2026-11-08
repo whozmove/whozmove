@@ -8,30 +8,17 @@
 /* The bar over the changes (in the reader's .r-src): the tabs, the tab's step, and how files and lines are laid out. */
 .r-in.k-changes .r-src { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 18px;
                          border-bottom: 1px solid var(--rule); }
-.c-switch { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-box);
-            background: var(--surface); }
-.c-switch button { display: flex; gap: 6px; align-items: baseline; padding: 3px 9px; border: none;
-                   border-radius: var(--radius-button); background: none; font: inherit; font-size: var(--size-card);
-                   color: var(--muted); white-space: nowrap; }
-.c-switch button.is-hover { color: var(--text); }
-.c-switch button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
-.c-nums { display: inline-flex; gap: 4px; font-size: var(--size-meta); font-variant-numeric: tabular-nums; }
-.c-nums .add { color: var(--added); }
-.c-nums .del { color: var(--removed); }
-.c-nums.c-ahead { color: var(--muted); }
-/* The tab's step (Commit, with its other ways under ⌄; Push; Publish), which asks the session's agent. */
-.c-commit { flex: none; display: inline-flex; gap: 1px; }
-.c-step { flex: none; display: inline-flex; align-items: center; font: inherit; font-size: var(--size-small);
-          color: var(--text); padding: 3px 10px; border: none; border-radius: var(--radius-button);
-          background: var(--button); white-space: nowrap; }
-.c-step.is-hover { background: var(--hover-strong); }
-.c-step:disabled { color: var(--faint); }
-.c-commit .c-step:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.c-commit .c-ways { padding: 3px 6px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+/* The lines in and out (the kit's diff count) at the bar's and the list's size, and the commits waiting, beside
+   them. */
+.c-nums { font-size: var(--size-meta); }
+.c-nums.c-ahead { color: var(--muted); font-variant-numeric: tabular-nums; }
+/* The tab's step (Commit, with its other ways under ⌄; Push; Publish), which asks the session's agent: the kit's quiet
+   buttons, Commit's a split button. */
+.c-step { flex: none; }
 
 /* The files, as git lists them; in Outgoing, under the commit each is from. */
-.r-group.k-commit { display: flex; flex-direction: column; gap: 2px; padding: 12px 8px 5px; text-transform: none;
-                    letter-spacing: 0; font-size: var(--size-small); font-weight: 500; color: var(--muted); }
+.k-commit { display: flex; flex-direction: column; gap: 2px; padding: 12px 8px 5px; font-size: var(--size-small);
+             font-weight: 500; color: var(--muted); }
 .k-subject { color: var(--text); font-weight: 600; }
 .k-meta { font-size: var(--size-meta); font-weight: 400; color: var(--faint); font-variant-numeric: tabular-nums; }
 .k-head { display: flex; flex-direction: column; gap: 2px; padding: 12px 18px 10px; border-bottom: 1px solid var(--rule); }
@@ -39,11 +26,8 @@
 .k-head ~ .k-head { margin-top: 16px; }
 .c-file { grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; }
 .c-file .r-meta { grid-column: 2 / 4; }
-.c-mark { grid-row: span 2; align-self: start; margin-top: 2px; width: 14px; height: 14px;
-          border-radius: var(--radius-tag); display: grid; place-items: center; font-size: 9px; font-weight: 600; }
-.c-mark.changed { color: var(--changed-text); background: var(--changed-fill); }
-.c-mark.new { color: var(--added); background: var(--added-fill); }
-.c-mark.gone { color: var(--removed); background: var(--removed-fill); }
+/* Git's letter for a file (the kit's tag, as a mark), beside both its lines. */
+.c-mark { grid-row: span 2; align-self: start; margin-top: 2px; }
 .c-dir { margin-left: 5px; font: 400 var(--size-meta) ui-monospace, SFMono-Regular, Menlo, monospace;
          color: var(--faint); }
 
@@ -55,23 +39,13 @@
 .c-path { min-width: 0; font: var(--size-body) ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap;
           overflow: hidden; text-overflow: ellipsis; -webkit-user-select: text; cursor: text; }
 .c-path i { font-style: normal; color: var(--faint); }
-.c-chip { flex: none; font-size: var(--size-tag); font-weight: 600; padding: 1px 6px; border-radius: var(--radius-tag);
-          color: var(--muted); background: var(--tag); }
-.c-chip.new { color: var(--added); background: var(--added-fill); }
-.c-chip.gone { color: var(--removed); background: var(--removed-fill); }
 .c-grow { flex: 1; }
 .c-edwrap { position: relative; flex: none; }
-.c-open { font: inherit; font-size: var(--size-small); color: var(--muted); padding: 3px 9px; border: none;
-          border-radius: var(--radius-button); background: var(--button); white-space: nowrap; }
-.c-open.is-hover { color: var(--text); background: var(--hover-strong); }
+.c-open { white-space: nowrap; }
 .c-picker { position: absolute; right: 0; top: calc(100% + 6px); z-index: 5; width: 240px; padding: 6px;
             border-radius: var(--radius-menu); background: var(--menu);
             border: 1px solid var(--menu-edge); box-shadow: var(--menu-shadow); }
 .c-pq { padding: 4px 8px 6px; font-size: var(--size-small); color: var(--muted); }
-.c-app { display: block; width: 100%; text-align: left; padding: 5px 8px; border: none;
-         border-radius: var(--radius-button); background: none; font: inherit; font-size: var(--size-body);
-         color: var(--text); }
-.c-app.is-hover { background: var(--menu-pointed); }
 .c-later { margin-top: 4px; padding: 6px 8px 3px; font-size: var(--size-meta); color: var(--faint);
            border-top: 1px solid var(--rule); }
 .c-aside { padding: 14px 18px; font-size: var(--size-body); color: var(--muted); }
@@ -102,14 +76,10 @@
 @keyframes justWritten { 0%, 35% { background: var(--added-flash); } 100% { background: var(--added-fill); } }
 .c-lines tr.live td, .c-lines td.live { animation: justWritten 2s ease; }
 
-/* The card a row's numbers show when pointed at (changesCardHTML), in the PR card's place (#card). */
-.cc-big { display: flex; align-items: baseline; gap: 8px; }
-.cc-big b { font-size: var(--size-heading); font-weight: 600; font-variant-numeric: tabular-nums; }
-.cc-big .add { color: var(--added); }
-.cc-big .del { color: var(--removed); }
-.cc-big span { color: var(--muted); font-size: var(--size-card); }
-.cc-lede { margin: 2px 0 2px; font-size: var(--size-card); color: var(--faint); }
-.cc-hint { margin-top: 6px; font-size: var(--size-meta); color: var(--faint); }
+/* What a row's numbers say in their details (changesCardHTML), as every row's details are, from the kit's card pieces:
+   its numbers as its title, under its head line. */
+.cc-title { margin: 5px 0 1px; }
+.cc-help { margin-top: 5px; }
 
 @media (prefers-reduced-motion: reduce) {
   .c-lines tr.live td, .c-lines td.live { animation: none !important; transition: none !important; }

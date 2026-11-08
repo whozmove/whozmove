@@ -33,6 +33,12 @@ NSDictionary *ShellNews(NSData *chunk, NSUInteger end, NSString *mode, NSString 
 // `gitCalls` (the newest 500) and where the modes left off (`shellMode`, `shellBase`). On the main thread.
 void AddShellNews(NSMutableDictionary *state, NSDictionary *news);
 
+// How this part of a session's transcript state is kept across restarts (Transcripts' kept reads): the edits, their
+// ids and lines, and the shell commands' parts, as plain JSON, each line set as its keys packed in Base64; and taken
+// back into `state`, every value checked for its kind and limits. NO, with `state` as it was, for any that doesn't fit.
+NSDictionary *KeptEdits(NSDictionary *state);
+BOOL TakeBackEdits(NSDictionary *kept, NSMutableDictionary *state);
+
 // Whether what a session changed is all known, from its transcript state and the setting that turns Claude Code's
 // records of shell commands on or off for it (ShellDiffSetting).
 BOOL SessionKnown(NSDictionary *transcript, id setting);

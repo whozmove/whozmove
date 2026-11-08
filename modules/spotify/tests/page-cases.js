@@ -18,6 +18,9 @@ show('paused just now: the time stands still, and says so',
 show('paused 14 minutes: still in the strip', nowPlayingView(song({ playing: false, pausedSince: NOW }), NOW + 14 * 60000, true).state);
 show('paused 15 minutes: folded into the token', nowPlayingView(song({ playing: false, pausedSince: NOW }), NOW + 15 * 60000, true).state);
 show('found paused (Whozmove just started): in the token', nowPlayingView(song({ playing: false, pausedSince: 0 }), NOW, true).state);
+show('the music lowered as you talk: the sign beside the time',
+     nowPlayingView(song({ quieter: true }), NOW, true).quieter);
+show('not lowered: no sign', nowPlayingView(song(), NOW, true).quieter);
 show('nothing playing', nowPlayingView(null, NOW, true).state);
 show('with a cover', nowPlayingView(song({ artUrl: 'https://i.scdn.co/image/ab67' }), NOW, true).art);
 show('no title or length', nowPlayingView(song({ title: '', durationMs: 0 }), NOW, true));

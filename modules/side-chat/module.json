@@ -1,0 +1,5 @@
+{
+  "order": 15,
+  "scripts": ["page/side-chat-words.js", "page/side-chat-view.js", "page/side-chat.js"],
+  "styles": ["page/side-chat.css"]
+}

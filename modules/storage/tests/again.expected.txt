@@ -1,0 +1,7 @@
+not from Homebrew: stopped: This copy of Whozmove doesn't have Betterleaks, which Keys looks with · again: {'says': 'Download Whozmove opens the page it comes from', 'title': 'Download Whozmove'}
+from Homebrew: stopped: This copy of Whozmove doesn't have Betterleaks, which Keys looks with · again: {'says': 'Copy Command puts brew reinstall --cask whozmove/tap/whozmove on the clipboard, for your terminal', 'title': 'Copy Command'}
+one macOS stops: stopped: Betterleaks, which Keys looks with, didn't run · again: {'says': 'Copy Command puts brew reinstall --cask whozmove/tap/whozmove on the clipboard, for your terminal', 'title': 'Copy Command'}
+panel.log:
+Keys couldn't look: This copy of Whozmove doesn't have Betterleaks, which Keys looks with
+Keys couldn't look: This copy of Whozmove doesn't have Betterleaks, which Keys looks with
+Keys couldn't look: Betterleaks, which Keys looks with, didn't run: it was stopped (Killed: 9), saying “dyld[1]: Library not loaded: @rpath/libsample.dylib”

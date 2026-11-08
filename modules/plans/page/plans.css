@@ -1,0 +1,102 @@
+/* A plan at a glance (glance-view.js): how to read it, Skimmed or as written; the card a plan opens on, its choices,
+   the whole plan folded by section, and the plan card's few lines. The kit gives the labels (.caps), the
+   choices (.options, .option, .tickbox), the tags and the buttons; the reader gives the Markdown (.md).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+.gl-view { max-width: 70ch; margin: 0 auto; padding: 14px 28px 24px; display: flex; flex-direction: column; gap: 14px; }
+.gl-view > .md.gl-top { max-width: none; margin: 0; padding: 0; }
+.gl-view > .md.gl-top:empty { display: none; }
+.gl-view > .md.gl-top h1 { margin-bottom: 4px; }
+/* How to read the plan (the kit's tabs), on its title's line at its right, under the title where the line has no
+   room. In Full the plan is drawn as the reader draws any writing (.md, with its own width and room), and the toggle
+   sits on a line of its own above it, in the very box and place it has in Skimmed (.gl-view's width and room, the
+   same drop), so switching never moves it from under the pointer. */
+.gl-view.gl-asis { display: block; max-width: none; padding: 0; }
+.gl-lookline { display: flex; justify-content: flex-end; max-width: 70ch; margin: 0 auto; padding: 14px 28px 0; }
+.gl-lookline > .tabs { margin-top: 3px; }
+.gl-titleline { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 6px 14px; }
+.gl-titleline > .md.gl-top { flex: 1 1 26ch; min-width: 0; max-width: none; margin: 0; padding: 0; }
+.gl-titleline > .md.gl-top:empty { display: none; }
+.gl-titleline > .tabs { margin-left: auto; margin-top: 3px; }
+
+/* The card: its slots, each a label over a few lines. */
+.gl-card { display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 14px; border-radius: var(--radius-box);
+           background: var(--surface); box-shadow: 0 0 0 0.5px var(--edge); }
+.gl-card.bare { padding: 0; background: none; box-shadow: none; gap: 10px; }
+.gl-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.gl-title { font-size: var(--size-title); font-weight: 600; color: var(--text); }
+.gl-from { margin-left: auto; font-size: var(--size-small); color: var(--muted); }
+.gl-unit { display: flex; flex-direction: column; gap: 4px; }
+.gl-unit > .caps { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.gl-src { font-size: var(--size-small); font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.gl-line { margin: 0; font-size: var(--size-card); line-height: 1.45; color: var(--text); overflow-wrap: anywhere; }
+/* The plan's flow, small: pressed, its section opens. The ground under its edges' words is the card's, and the
+   press's while it's pointed at (diagrams.css). */
+.gl-card { --dg-over: var(--surface); }
+.gl-flow.is-hover { --dg-over-press: var(--hover); }
+.gl-flow { display: block; width: calc(100% + 12px); margin: 2px 0 0 -6px; padding: 6px; border: 0;
+           border-radius: var(--radius-box); background: none; color: inherit; font: inherit; text-align: left; }
+.gl-flow.is-hover { background: var(--hover); }
+.gl-none { color: var(--muted); font-style: italic; }
+/* Before and After, side by side; stacked where there's no room for two. */
+.gl-bas { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin-top: 2px; }
+.gl-ba { display: flex; flex-direction: column; gap: 2px; padding: 7px 10px; border-radius: var(--radius-box);
+         background: var(--surface); }
+.gl-ba-label { font-size: var(--size-small); color: var(--muted); }
+.gl-line code, .gl-dline code, .gl-otext code, .gl-mini code {
+  font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--code); }
+
+/* A choice, one line that opens to its options and why. */
+.gl-choices { display: flex; flex-direction: column; gap: 2px; }
+.gl-dline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; width: 100%; margin: 0 -6px;
+            padding: 4px 6px; border: 0; border-radius: var(--radius-small); background: none; font: inherit;
+            font-size: var(--size-card); line-height: 1.45; color: var(--text); text-align: left; }
+.gl-dline.is-hover { background: var(--hover); }
+.gl-chev { flex: none; display: inline-block; width: 10px; color: var(--muted); transition: transform .15s ease; }
+[aria-expanded="true"] > .gl-chev { transform: rotate(90deg); }
+.gl-q { color: var(--muted); }
+.gl-pick { font-weight: 500; }
+.gl-pick.gl-none { font-weight: 400; }
+/* What a choice or a section opens to, grown in and folded away as one; flow-root keeps its margins inside it, so its
+   height is the same while it eases (overflow hidden) as after. */
+.gl-open { display: flow-root; }
+.gl-options { margin: 2px 0 2px 16px; }
+.gl-option { align-items: flex-start; gap: 8px; padding: 6px 8px; font-size: var(--size-card); }
+.gl-option .tickbox { margin-top: 1px; }
+.gl-option .gl-tag { margin-left: auto; }
+.gl-otext { min-width: 0; }
+.gl-why { margin: 2px 0 4px 16px; font-size: var(--size-small); line-height: 1.4; color: var(--muted);
+          overflow-wrap: anywhere; }
+.gl-choices > .button.gl-more { align-self: flex-start; margin-top: 2px; }
+/* A choice as lines, in a view with nothing to press (One Task's): Recommended after the pick, and why under it,
+   with no chevron to line up with. */
+.gl-line > .gl-tag { margin-left: 6px; vertical-align: 1px; }
+.gl-card.bare .gl-choice > .gl-why { margin-left: 0; }
+
+/* The whole plan, folded by section. */
+.gl-folds { display: flex; flex-direction: column; }
+.gl-folds-head { display: flex; align-items: center; justify-content: space-between; padding: 2px 0 6px; }
+.gl-fold { border-top: 1px solid var(--rule); }
+.gl-fbtn { display: grid; grid-template-columns: 12px fit-content(60%) minmax(0, 1fr); align-items: baseline; gap: 8px;
+           width: 100%; padding: 8px 6px; border: 0; border-radius: var(--radius-small); background: none;
+           font: inherit; color: var(--text); text-align: left; }
+.gl-fbtn.is-hover { background: var(--hover); }
+/* A section with no first sentence to show (only code, say): its title has the line. */
+.gl-fbtn.alone { grid-template-columns: 12px minmax(0, 1fr); }
+/* A fold's first sentence wraps whole, never cut with "…"; a long title wraps within its 60%, so the sentence keeps
+   room beside it. */
+.gl-ft { font-size: var(--size-title); font-weight: 600; }
+.gl-fl { min-width: 0; font-size: var(--size-card); line-height: 1.45; color: var(--muted); overflow-wrap: anywhere; }
+.md.gl-fbody { max-width: none; margin: 0; padding: 0 6px 12px 26px; }
+.md.gl-whole { max-width: none; margin: 0; padding: 0; }
+
+/* The plan card's few lines on a row, a label beside each. */
+.gl-minis { display: flex; flex-direction: column; gap: 3px; margin-top: 5px; }
+.gl-mini { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 6px; font-size: var(--size-small);
+           line-height: 1.45; color: var(--text); overflow-wrap: anywhere; }
+.gl-ml { color: var(--muted); }
+/* Each line at most three lines high, ending in "…", so the card stays shorter than the steps it stands in for; the
+   whole of it is in the reader, behind Read the plan. */
+.gl-mt { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) { .gl-chev { transition: none; } }

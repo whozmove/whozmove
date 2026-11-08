@@ -1,0 +1,919 @@
+## given, asked and kept
+== row s1
+== row s2
+== ended s3
+== ask s1 ticket
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== start s1 ABC-1
+== ask s1 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== rows
+s1: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+s2: none
+s3: none
+== kept
+s1.json: Sample ABC-1, for this process, only you can read it: yes
+== ask s2 ticket-use ABC-2
+shown on your row: “Work on ABC-2 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== ask s2 ticket
+waiting: for the user to answer “Work on ABC-2 here?” on this session's row
+== rows
+s1: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+s2: {"offer":{"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+== press s2 notNow
+== ask s2 ticket
+not used: the user chose Not Now for ABC-2, so carry on without it
+== ask s2 ticket
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== ask s2 ticket-link https://one.example/t/ABC-2
+shown on your row: “Work on ABC-2 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== press s2 use
+== ask s2 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+== ask s2 ticket-use ABC-2
+working on it already: ABC-2
+== ask s1 ticket-use ABC-2
+shown on your row: “Work on ABC-2 instead?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== rows
+s1: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"},"offer":{"instead":"ABC-1","key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s2: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-2","link":"https://one.example/t/ABC-2","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+== press s1 notNow
+== ask s1 ticket
+not used: the user chose Not Now for ABC-2, so carry on with ABC-1
+== ask s1 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== ask s1 ticket-use not-a-key
+refused: that isn't a ticket Whozmove knows: give its key (PAY-142) or its link
+== ask s1 ticket-link https://elsewhere.test/t/ABC-1
+refused: that isn't a ticket Whozmove knows: give its key (PAY-142) or its link
+== start s3 not a key
+== start s3 ABC-9
+== ask s3 ticket
+can't now: couldn't read ABC-9: No such ticket
+== fails slow
+== start s3 ABC-2
+== ask s3 ticket
+waiting: Sample's sign-in asked Whozmove to slow down, so ABC-2 is read again in a while
+== ask s3 ticket-use ABC-1
+shown on your row: “Work on ABC-1 instead?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== rows
+s1: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+s2: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-2","link":"https://one.example/t/ABC-2","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: {"bound":{"key":"ABC-2","link":"https://one.example/t/ABC-2","problem":{"kind":"slow","retryAt":"(in ten minutes)","why":"Asked to slow down"},"site":"one.example","tracker":"Sample"}}
+== fails signIn
+== start s3 ABC-1
+== ask s3 ticket
+can't now: ABC-1 can't be read until the user signs in with Sample's sign-in again, on Whozmove's panel
+== fails failed
+== start s3 ABC-1
+== ask s3 ticket
+can't now: couldn't read ABC-1: Couldn't reach it
+== hand-kept s4 ABC-1
+== row s4
+== ask s4 ticket
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== relaunch
+== rows
+s1: {"offer":{"again":true,"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+s2: {"offer":{"again":true,"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+s4: {"offer":{"again":true,"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== ask s4 ticket
+waiting: for the user to answer “Work on ABC-1 here?” on this session's row
+== press s4 use
+== rows
+s1: {"offer":{"again":true,"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+s2: {"offer":{"again":true,"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+s4: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== fails failed
+== ask s1 ticket-use ABC-2
+shown on your row: “Work on ABC-2 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== rows
+s1: {"offer":{"key":"ABC-2","link":"https://one.example/t/ABC-2","problem":{"kind":"failed","why":"Couldn't reach it"},"site":"one.example","tracker":"Sample"}}
+s2: {"offer":{"again":true,"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+s4: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== ask s1 ticket-use ABC-2
+shown on your row: “Work on ABC-2 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== rows
+s1: {"offer":{"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s2: {"offer":{"again":true,"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+s4: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== ask s1 ticket-use ABC-9
+shown on your row: “Work on ABC-9 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== rows
+s1: {"offer":{"key":"ABC-9","link":"https://one.example/t/ABC-9","problem":{"kind":"failed","why":"No such ticket"},"site":"one.example","tracker":"Sample"}}
+s2: {"offer":{"again":true,"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+s3: none
+s4: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+== press s2 notNow
+== kept
+s1.json: Sample ABC-1, for this process, only you can read it: yes
+s4.json: Sample ABC-1, for this process, only you can read it: yes
+== log
+panel.log has none of a ticket's words
+panel.log has none of a note's, a field's or a why's words
+panel.log has none of a new ticket's words
+## moves
+== row s5
+== row s6
+== menu s5
+not in its menu
+May Move Its Ticket is off: this session has no ticket, or isn't running
+== move s5 8
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== stop s5 6 Only QA signs off
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== fails failed
+== start s6 ABC-3
+== move s6 8
+refused: ABC-3 hasn't been read yet, so its next steps aren't known: ask again once ask-panel.sh ticket --wait has it
+== stop s6 6 Only QA signs off
+refused: ABC-3 hasn't been read yet, so its next steps aren't known: ask again once ask-panel.sh ticket --wait has it
+== start s5 ABC-3
+== menu s5
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time
+May Move Its Ticket is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
+== move s5 99
+refused: that isn't one of ABC-3's next steps now: ask-panel.sh ticket lists them
+== move s5 8 [1]
+refused: what's on stdin isn't a JSON object: give {"note": "…", "fields": {…}}, or nothing
+== move s5 8 {"note": 5}
+refused: the note is to be text
+== move s5 8 {"fields": [1]}
+refused: fields are to be a JSON object, each field's id with its value
+== move s5 8 {"note": "Ready", "extra": 2}
+refused: only a note and fields go with a move, not extra
+== move s5 8 {"fields": {"resolution": "Fixed"}}
+refused: moving it to In Review sets no fields, so leave out resolution
+== move s5 5 {"note": "Done in pull request 57"}
+refused: moving it to Done needs Resolution (resolution) too, in fields
+== move s5 5 {"fields": {"resolution": "Fixed", "odd": 1}}
+refused: moving it to Done doesn't set odd: it sets Resolution (resolution) and Fix version (fixVersion)
+== move s5 8 too-long
+refused: a note may be 2000 characters at most
+== move s5 5 {"fields": {"resolution": "Done"}}
+refused: Resolution (resolution) takes Fixed and Won't Fix, not Done
+== move s5 5 {"fields": {"resolution": ["Fixed"]}}
+refused: Resolution (resolution) takes one value, not a list
+== move s5 5 {"fields": {"resolution": true}}
+refused: Resolution (resolution) takes one of its options, by name
+== move s5 5 {"fields": {"resolution": "Fixed", "fixVersion": []}}
+refused: give Fix version (fixVersion) at least one value, or leave it out
+== move s5 5 {"fields": {"resolution": "Fixed", "fixVersion": {"name": "2.1"}}}
+refused: Fix version (fixVersion) takes one of its options, by name
+== move s5 5 {"fields": {"resolution": {"name": "Fixed", "id": "10009"}}}
+refused: Resolution (resolution) takes one of its options, by name
+== move s5 8 {"note": "Ready: pull request 57"}
+shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
+== ask s5 ticket
+{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[],"key":"ABC-3","name":"Send to review","note":"Ready: pull request 57","stepId":"8","to":{"kind":"doing","name":"In Review"}},"state":"Doing"}
+s6: {"key":"ABC-3"}
+== move s5 5 {"note": "The fix is in pull request 57", "fields": {"resolution": "Fixed", "fixVersion": ["2.1"]}}
+shown on your row: “Move ABC-3 to Done?” Carry on; ask-panel.sh ticket says once the user has answered
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[{"name":"Resolution","value":"Fixed"},{"name":"Fix version","value":"2.1"}],"instead":"In Review","key":"ABC-3","name":"Finish","note":"The fix is in pull request 57","stepId":"5","to":{"kind":"done","name":"Done"}},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== move s5 5 {"fields": {"resolution": "Fixed", "fixVersion": null}}
+refused: Fix version (fixVersion) can't be set to null: give its value, or leave it out
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[{"name":"Resolution","value":"Fixed"},{"name":"Fix version","value":"2.1"}],"instead":"In Review","key":"ABC-3","name":"Finish","note":"The fix is in pull request 57","stepId":"5","to":{"kind":"done","name":"Done"}},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== press-move s5 move ABC-3 8
+== press-move s5 move ABC-4 5
+== press-move s5 move ABC-3 5 stale
+== took
+nothing taken
+== fails failed
+== press-move s5 move ABC-3 5
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[{"name":"Resolution","value":"Fixed"},{"name":"Fix version","value":"2.1"}],"instead":"In Review","key":"ABC-3","name":"Finish","note":"The fix is in pull request 57","problem":{"kind":"failed","why":"Couldn't reach it"},"stepId":"5","to":{"kind":"done","name":"Done"}},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket
+{"move":{"waiting":"Done"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== press-move s5 move ABC-3 5
+== took
+ABC-3 to Done, with the note “The fix is in pull request 57” and fields {"fixVersion":["2.1"],"resolution":"Fixed"}
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"you","to":"Done"},"state":"Done"}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket
+{"move":{"moved":"Done"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== ask s5 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== afresh ABC-3
+== read s5
+== move s5 8
+shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
+== press-move s5 notNow ABC-3 8
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"you","to":"Done"},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== took
+nothing taken
+== ask s5 ticket
+{"move":{"notMoved":"the user said Not Now"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== ask s5 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== move s5 8 {"note": "Ready: pull request 57"}
+shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
+== elsewhere ABC-3 5
+== press-move s5 move ABC-3 8
+== took
+nothing taken
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","gone":"ABC-3 is Done already"},"state":"Done"}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket
+{"move":{"notMoved":"ABC-3 is Done already"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== read s5
+== moves
+s5: {"key":"ABC-3","state":"Done"}
+s6: {"key":"ABC-3","state":"Doing"}
+== afresh ABC-3
+== read s6
+== move s6 8 {"note": "Ready: pull request 57"}
+shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
+== ended s6
+== moves
+s5: {"key":"ABC-3","state":"Done"}
+s6: {"key":"ABC-3","state":"Doing"}
+== press-move s6 move ABC-3 8
+== took
+nothing taken
+== afresh ABC-3
+== read s5
+== stop s5 99 Only QA
+refused: that isn't one of ABC-3's next steps now: ask-panel.sh ticket lists them
+== stop s5 6
+refused: say on stdin whose step it is, and why it's theirs
+== stop s5 6 too-long
+refused: a why may be 2000 characters at most
+== stop s5 6 Only QA signs off on payment changes
+marked: QA sign-off is a person's step: say so in your reply and stop
+== moves
+s5: {"key":"ABC-3","state":"Doing","stopped":{"6":"Only QA signs off on payment changes"}}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"stopped":{"6":"Only QA signs off on payment changes"},"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== elsewhere ABC-3 8
+== read s5
+== moves
+s5: {"key":"ABC-3","state":"In Review"}
+s6: {"key":"ABC-3","state":"Doing"}
+== afresh ABC-3
+== read s5
+== stop s5 6 Only QA signs off on payment changes
+marked: QA sign-off is a person's step: say so in your reply and stop
+== move s5 8 {"note": "Ready: pull request 57"}
+shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
+== switch s5 on
+on
+== menu s5
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time
+on
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[],"key":"ABC-3","name":"Send to review","note":"Ready: pull request 57","stepId":"8","to":{"kind":"doing","name":"In Review"}},"state":"Doing","stopped":{"6":"Only QA signs off on payment changes"}}
+s6: {"key":"ABC-3","state":"Doing"}
+== move s5 8 {"note": "Ready: pull request 57"}
+moving ABC-3 to In Review: ask-panel.sh ticket says once it has
+== took
+ABC-3 to In Review, with the note “Ready: pull request 57” and fields {}
+== ask s5 ticket
+{"move":{"moved":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"In Review"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== menu s5
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time · moved it once
+on
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"In Review"}
+s6: {"key":"ABC-3","state":"Doing"}
+== afresh ABC-3
+== read s5
+== fails failed
+== move s5 8
+moving ABC-3 to In Review: ask-panel.sh ticket says once it has
+== took
+nothing taken
+== ask s5 ticket
+{"move":{"notMoved":"Couldn't reach it"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== afresh ABC-3
+== read s5
+== fails signIn
+== move s5 8
+moving ABC-3 to In Review: ask-panel.sh ticket says once it has
+== took
+nothing taken
+== ask s5 ticket
+{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[],"key":"ABC-3","name":"Send to review","problem":{"kind":"signIn","why":"Sign in first"},"stepId":"8","to":{"kind":"doing","name":"In Review"}},"moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== press-move s5 move ABC-3 8
+== took
+ABC-3 to In Review, with no note and fields {}
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"you","to":"In Review"},"state":"In Review"}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket-use ABC-1
+shown on your row: “Work on ABC-1 instead?” Carry on; ask-panel.sh ticket --wait says once the user has answered
+== press s5 use
+== menu s5
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time · moved it once
+May Move Its Ticket ended: this session works on another ticket since it was turned on
+== moves
+s5: {"key":"ABC-1","state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== menu s5
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time
+May Move Its Ticket is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
+== signout
+== menu s5
+May Move Its Ticket, greyed: Sign in with Sample's sign-in first, on Sample's page on the panel's back
+May Move Its Ticket is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
+== switch s5 on
+not changed
+== log
+panel.log has none of a ticket's words
+panel.log has none of a note's, a field's or a why's words
+panel.log has none of a new ticket's words
+== logged
+s5 asked ticket-move: no ticket
+s5 asked ticket-stop: no ticket
+s6 works on Sample ABC-3 now (started with it)
+Sample ABC-3: couldn't read it (7)
+s6 asked ticket-move: ABC-3, not read yet
+s6 asked ticket-stop: ABC-3, not read yet
+s5 works on Sample ABC-3 now (started with it)
+s5 asked ticket-move: ABC-3 step 99, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 8, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 5, refused
+s5 asked ticket-move: ABC-3 step 8, shown on its row
+s5 asked ticket-move: ABC-3 step 5, shown on its row
+s5 asked ticket-move: ABC-3 step 5, refused
+s5: Move It for ABC-3 step 5
+Sample ABC-3: step 5 not taken (7)
+s5: Move It for ABC-3 step 5
+Sample ABC-3: step 5 taken (Move It)
+s5 asked ticket-move: ABC-3 step 8, shown on its row
+s5: Not Now for moving ABC-3 (step 8)
+s5 asked ticket-move: ABC-3 step 8, shown on its row
+s5: Move It for ABC-3 step 8
+Sample ABC-3: step 8 not taken (6)
+s6 asked ticket-move: ABC-3 step 8, shown on its row
+s5 asked ticket-stop: ABC-3 step 99, refused
+s5 asked ticket-stop: ABC-3 step 6, refused
+s5 asked ticket-stop: ABC-3 step 6, refused
+s5 asked ticket-stop: ABC-3 step 6, marked a person's
+s5 asked ticket-stop: ABC-3 step 6, marked a person's
+s5 asked ticket-move: ABC-3 step 8, shown on its row
+s5 -> May Move Its Ticket on
+s5 asked ticket-move: ABC-3 step 8, moving it by itself
+Sample ABC-3: step 8 taken (by itself)
+s5 asked ticket-move: ABC-3 step 8, moving it by itself
+Sample ABC-3: step 8 not taken (7)
+s5 asked ticket-move: ABC-3 step 8, moving it by itself
+Sample ABC-3: step 8 not taken (1)
+s5: Move It for ABC-3 step 8
+Sample ABC-3: step 8 taken (Move It)
+s5 asked ticket-use: ABC-1, shown on its row
+s5 works on Sample ABC-1 now (Use It)
+s5 -> May Move Its Ticket ended
+## new tickets
+== row s7
+== row s8
+== row s9
+== create s7
+== drafts
+s7: {"creating":{"tracker":"Sample"}}
+s8: none
+s9: none
+== ask s7 ticket
+refused: this session has no ticket yet: it's to make a new one. Talk it through with the user, then draft it with ask-panel.sh ticket-draft, which they answer on its row
+== draft s7
+refused: give the new ticket on stdin as a JSON object: {"title": …, "group": …, "type": …, "description": …}, with a "priority" and a "parent" if it has them
+== draft s7 [1]
+refused: give the new ticket on stdin as a JSON object: {"title": …, "group": …, "type": …, "description": …}, with a "priority" and a "parent" if it has them
+== draft s7 {"title": ""}
+refused: give the new ticket a title
+== draft s7 {"title": "A", "group": "ABC"}
+refused: say its type, as its tracker names it (a Bug, a Task)
+== draft s7 {"title": "A", "group": "A B", "type": "Task"}
+refused: say where it goes, by its group's id as its tracker writes it, as the ticket you work on lists in `groups`
+== draft s7 too-long
+refused: a title may be 255 characters at most
+== draft s7 {"title": "A", "group": "ABC", "type": "Task", "labels": [1]}
+refused: a new ticket has a title, description, group, type, priority, parent and site, not labels
+== draft s7 {"title": "A", "group": "ABC", "type": "Task", "priority": 1}
+refused: the priority is to be text
+== draft s7 {"title": "A", "group": "ABC", "type": "Task", "parent": "nope"}
+refused: the parent is to be a Sample ticket's key
+== draft s7 {"title": "A", "group": "ABC", "type": "Task", "site": "two.example"}
+refused: two.example isn't a site the user is signed in to: it's one of one.example
+== draft s7 {"title": "A", "group": "XYZ", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said XYZ takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"creating":{"tracker":"Sample"}}
+s8: none
+s9: none
+== ask s7 ticket
+not yet: there's no XYZ on one.example that the user can make tickets in: ask them where it goes, then draft it again
+== ask s7 ticket
+refused: this session has no ticket yet: it's to make a new one. Talk it through with the user, then draft it with ask-panel.sh ticket-draft, which they answer on its row
+== draft s7 {"title": "A", "group": "AB_C", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said AB_C takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== ask s7 ticket
+not yet: there's no AB_C on one.example that the user can make tickets in: ask them where it goes, then draft it again
+== draft s7 {"title": "A", "group": "A\tB", "type": "Task"}
+refused: say where it goes, by its group's id as its tracker writes it, as the ticket you work on lists in `groups`
+== draft s7 {"title": "A", "group": "ABC", "type": "Epic"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== ask s7 ticket
+not yet: ABC takes Task and Bug, not Epic: draft it again with one of them
+== draft s7 {"title": "Saved cards vanish after an update", "group": "ABC", "type": "bug", "priority": "Highest", "parent": "ABC-1", "description": "Since 3.2, every saved card is gone.\nThe website keeps them."}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"creating":{"tracker":"Sample"},"draft":{"at":"(when)","checked":true,"description":"Since 3.2, every saved card is gone.\nThe website keeps them.","group":"ABC","groupKind":"board","parent":"ABC-1","priority":"Highest","site":"one.example","title":"Saved cards vanish after an update","tracker":"Sample","type":"Bug"}}
+s8: none
+s9: none
+== ask s7 ticket
+waiting: for the user to answer “Create this ticket?” on this session's row
+== press-draft s7 notYet
+== drafts
+s7: none
+s8: none
+s9: none
+== ask s7 ticket
+not yet: the user chose Not Yet: ask what to change, then draft it again
+== ask s7 ticket
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== draft s7 {"title": "Saved cards vanish after an update", "group": "ABC", "type": "bug", "priority": "Highest", "parent": "ABC-1", "description": "Since 3.2, every saved card is gone.\nThe website keeps them."}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== draft s7 {"title": "Saved cards vanish after an update", "group": "ABC", "type": "bug", "priority": "Highest", "parent": "ABC-1", "description": "Since 3.2, every saved card is gone.\nThe website keeps them."}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"draft":{"again":true,"at":"(when)","checked":true,"description":"Since 3.2, every saved card is gone.\nThe website keeps them.","group":"ABC","groupKind":"board","parent":"ABC-1","priority":"Highest","site":"one.example","title":"Saved cards vanish after an update","tracker":"Sample","type":"Bug"}}
+s8: none
+s9: none
+== press-draft s7 create stale
+== took
+nothing taken
+== fails failed
+== press-draft s7 create
+== drafts
+s7: {"draft":{"again":true,"at":"(when)","checked":true,"description":"Since 3.2, every saved card is gone.\nThe website keeps them.","group":"ABC","groupKind":"board","mayBeMade":true,"parent":"ABC-1","priority":"Highest","problem":{"kind":"failed","why":"Couldn't reach it"},"site":"one.example","title":"Saved cards vanish after an update","tracker":"Sample","type":"Bug"}}
+s8: none
+s9: none
+== ask s7 ticket
+can't now: Whozmove couldn't tell whether the new ticket was made (Couldn't reach it), so it may be in ABC already: the user looks there first, and presses Create Again on the row if it isn't. Tell the user; ask-panel.sh ticket --wait then waits for them
+== ask s7 ticket
+waiting: for the user to look in ABC and press Create Again, or Not Yet
+== took
+nothing taken
+== press-draft s7 create
+== took
+made ABC-4 on one.example, from {"description":"Since 3.2, every saved card is gone.\nThe website keeps them.","group":"ABC","parent":"ABC-1","priority":"Highest","title":"Saved cards vanish after an update","type":"Bug"}
+== drafts
+s7: {"key":"ABC-4"}
+s8: none
+s9: none
+== ask s7 ticket
+created: ABC-4: https://one.example/t/ABC-4. It's this session's ticket now: ask-panel.sh ticket --wait reads it
+== ask s7 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
+== read s7
+== ask s7 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
+== menu s7
+May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time
+May Move Its Ticket is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
+== start s8 ABC-1
+== fails failed
+== draft s8 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","group":"ABC","instead":"ABC-1","problem":{"kind":"failed","why":"Couldn't reach it"},"site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-1"}
+s9: none
+== ask s8 ticket
+can't now: the new ticket couldn't be checked: Couldn't reach it. It waits on the row for the user's Try Again. Tell the user; ask-panel.sh ticket --wait then waits for them
+== press-draft s8 create
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","group":"ABC","instead":"ABC-1","problem":{"kind":"failed","why":"Couldn't reach it"},"site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-1"}
+s9: none
+== press-draft s8 check
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","instead":"ABC-1","site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-1"}
+s9: none
+== press-draft s8 create
+== took
+made ABC-5 on one.example, from {"group":"ABC","title":"Saved cards: a test for the update","type":"Task"}
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+== ask s8 ticket
+created: ABC-5: https://one.example/t/ABC-5. It's this session's ticket now: ask-panel.sh ticket --wait reads it
+== draft s9 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: {"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"}}
+== ended s9
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+== ask s9 ticket
+refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
+== row s11
+== create s11
+== draft s11 {"title": "A", "group": "ABC", "type": "Task", "priority": ""}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+s11: {"creating":{"tracker":"Sample"},"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","site":"one.example","title":"A","tracker":"Sample","type":"Task"}}
+== fails refused
+== press-draft s11 create
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+s11: {"creating":{"tracker":"Sample"}}
+== ask s11 ticket
+not yet: Turned away as it is. Ask the user what to change, then draft it again
+== draft s11 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== press-draft s11 check
+== took
+nothing taken
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+s11: {"creating":{"tracker":"Sample"},"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"}}
+== press-draft s11 notYet
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+s11: none
+== draft s11 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== fails unread
+== press-draft s11 create
+== took
+made ABC-6 on one.example, from {"group":"ABC","title":"Saved cards: a test for the update","type":"Task"}
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"key":"ABC-5"}
+s9: none
+s11: {"key":"ABC-6"}
+== ask s11 ticket
+created: ABC-6: https://one.example/t/ABC-6. It's this session's ticket now: ask-panel.sh ticket --wait reads it
+== ask s11 ticket
+{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-6","link":"https://one.example/t/ABC-6","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-6","tracker":"Sample","type":"Task"}}
+== signout
+== draft s8 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","group":"ABC","instead":"ABC-5","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-5"}
+s9: none
+s11: {"key":"ABC-6"}
+== ask s8 ticket
+can't now: the new ticket waits until the user signs in with Sample's sign-in again, on Whozmove's panel. Tell the user; ask-panel.sh ticket --wait then waits for them
+== ask s8 ticket
+waiting: for the user to sign in with Sample's sign-in again, on Whozmove's panel
+== row s10
+== draft s10 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","group":"ABC","instead":"ABC-5","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-5"}
+s9: none
+s11: {"key":"ABC-6"}
+s10: {"draft":{"at":"(when)","group":"ABC","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"}}
+== ask s10 ticket
+can't now: the new ticket waits until the user signs in with Sample's sign-in again, on Whozmove's panel. Tell the user; ask-panel.sh ticket --wait then waits for them
+== row s12
+== draft s12 {"title": "A", "group": "ABC", "type": "Task", "site": "two.example"}
+shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
+== signin
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","group":"ABC","instead":"ABC-5","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-5"}
+s9: none
+s11: {"key":"ABC-6"}
+s10: {"draft":{"at":"(when)","group":"ABC","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"}}
+s12: {"draft":{"at":"(when)","group":"ABC","problem":{"kind":"signIn","why":"You aren't signed in"},"site":"two.example","title":"A","tracker":"Sample","type":"Task"}}
+== ask s10 ticket
+waiting: for the user to answer “Create this ticket?” on this session's row
+== ask s12 ticket
+not yet: two.example isn't a site the user is signed in to (they're on one.example): draft it again with one of theirs
+== drafts
+s7: {"key":"ABC-4"}
+s8: {"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","instead":"ABC-5","site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"},"key":"ABC-5"}
+s9: none
+s11: {"key":"ABC-6"}
+s10: {"draft":{"at":"(when)","checked":true,"group":"ABC","groupKind":"board","site":"one.example","title":"Saved cards: a test for the update","tracker":"Sample","type":"Task"}}
+s12: none
+== draft-cases
+checked, its type, spelled as the tracker does: type Bug, checked, a board
+checked, a type it doesn't take: not yet: ABC takes Task, not bug: draft it again with one of them
+checked, no types said: any: type bug, checked
+checked, no such group: not yet: there's no ABC on one.example that the user can make tickets in: ask them where it goes, then draft it again
+checked, couldn't ask: type bug, unchecked, waits on 7 (Couldn't reach it)
+checked, the sign-in ran out: type bug, unchecked, waits on 1 (Run out)
+made, made: made
+made, turned away: sent back: not yet: Turned away. Ask the user what to change, then draft it again
+made, no answer after it was sent: waits: type bug, checked, waits on 7 (Couldn't reach it), may have been made
+made, answered with no key: waits: type bug, checked, waits on 7 (It didn't say the new ticket's key), may have been made
+made, the sign-in ran out first: waits: type bug, checked, waits on 1 (Run out)
+made, asked to slow down first: waits: type bug, checked, waits on 4 (Slow down)
+made, an end it doesn't name: waits: type bug, checked, waits on 99 (Something new), may have been made
+== log
+panel.log has none of a ticket's words
+panel.log has none of a note's, a field's or a why's words
+panel.log has none of a new ticket's words
+== logged
+s7 starts a new Sample ticket
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: a new Sample ticket in XYZ, shown on its row
+Sample one.example: a new ticket in XYZ sent back to draft again
+s7 asked ticket-draft: a new Sample ticket in AB_C, shown on its row
+Sample one.example: a new ticket in AB_C sent back to draft again
+s7 asked ticket-draft: refused
+s7 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+Sample one.example: a new ticket in ABC sent back to draft again
+s7 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s7: Not Yet for a new ticket in ABC
+s7 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s7 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s7: Create Ticket for a new ticket in ABC
+Sample one.example: a new ticket in ABC not created (7), and may have been all the same
+s7: Create Again for a new ticket in ABC
+Sample one.example: ABC-4 created
+s7 works on Sample ABC-4 now (Create Ticket)
+s8 works on Sample ABC-1 now (started with it)
+s8 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+Sample one.example: couldn't check a new ticket in ABC (7)
+s8: Try Again for checking a new ticket in ABC
+s8: Create Ticket for a new ticket in ABC
+Sample one.example: ABC-5 created
+s8 works on Sample ABC-5 now (Create Ticket)
+s9 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s11 starts a new Sample ticket
+s11 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s11: Create Ticket for a new ticket in ABC
+Sample one.example: a new ticket in ABC turned away, sent back to draft again
+s11 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s11: Not Yet for a new ticket in ABC
+s11 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s11: Create Ticket for a new ticket in ABC
+Sample one.example: ABC-6 created
+s11 works on Sample ABC-6 now (Create Ticket)
+s8 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s10 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+s12 asked ticket-draft: a new Sample ticket in ABC, shown on its row
+## ask-panel.sh, before it asks
+PAY-142: Whozmove isn't running, so there's no panel to ask
+pay-142: Name the ticket by its key (PAY-142) or its https:// link
+PAY-142 and more: Name the ticket by its key (PAY-142) or its https:// link
+PAY-1|PAY-2: Name the ticket by its key (PAY-142) or its https:// link, on one line
+https://acme.atlassian.net/browse/PAY-1: Whozmove isn't running, so there's no panel to ask
+http://acme.atlassian.net/browse/PAY-1: Name the ticket by its key (PAY-142) or its https:// link
+https://acme.atlassian.net/browse/PAY 1: Name the ticket by its key (PAY-142) or its https:// link
+: Name the ticket by its key (PAY-142) or its https:// link
+ticket : Whozmove isn't running, so there's no panel to ask
+ticket --wait: Whozmove isn't running, so there's no panel to ask
+ticket --now: Only --wait may follow ticket
+ticket-move 31: Whozmove isn't running, so there's no panel to ask
+ticket-move a.b_c-9: Whozmove isn't running, so there's no panel to ask
+ticket-move : Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move 31 41: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move 31;x: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move 31": Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move 31|41: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: Whozmove isn't running, so there's no panel to ask
+ticket-move xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop 31: Whozmove isn't running, so there's no panel to ask
+ticket-stop a.b_c-9: Whozmove isn't running, so there's no panel to ask
+ticket-stop : Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop 31 41: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop 31;x: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop 31": Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop 31|41: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-stop xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: Whozmove isn't running, so there's no panel to ask
+ticket-stop xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx: Name the step by its id, as ask-panel.sh ticket lists it
+ticket-move, nothing on stdin: Whozmove isn't running, so there's no panel to ask
+ticket-move, 12 KB: Whozmove isn't running, so there's no panel to ask
+ticket-move, more than 12 KB: A move's note and fields may be 12 KB at most: send them with less in them
+ticket-stop, nothing on stdin: Give the why on stdin: whose step it is, and why it's theirs
+ticket-stop, only spaces: Give the why on stdin: whose step it is, and why it's theirs
+ticket-draft, nothing on stdin: Give the new ticket on stdin, as JSON: its title, group, type and description
+ticket-draft, 12 KB: Whozmove isn't running, so there's no panel to ask
+ticket-draft, more than 12 KB: A new ticket may be 12 KB at most: send it with less in it
+ticket-stop, 12 KB: Whozmove isn't running, so there's no panel to ask
+ticket-stop, more than 12 KB: A why may be 12 KB at most: say whose step it is more briefly
+## the page
+
+== The card: the Ticket chip
+no ticket yet: <span class="tag chip outline st-chip tk-chip" data-k="t" title="Give it a ticket: find one, paste its key or link, or create one"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg>Ticket</span>
+one picked: <span class="tag chip st-chip tk-chip on" data-k="t" title="Login button does nothing on Safari"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg>PAY-142<b class="tk-x" title="No ticket" aria-label="No ticket">×</b></span>
+its words <escaped>: <span class="tag chip st-chip tk-chip on" data-k="t" title="A &lt;b&gt;bold&lt;/b&gt; &quot;title&quot;"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg>PAY-1<b class="tk-x" title="No ticket" aria-label="No ticket">×</b></span>
+what the box says then: Anything to add about PAY-142? Or just Start
+the line a start adds: Work on Jira ticket PAY-142: https://acme.atlassian.net/browse/PAY-142 (the whozmove:working-a-ticket skill says how).
+…for one with no link: Work on Jira ticket PAY-142 (the whozmove:working-a-ticket skill says how).
+Create a ticket picked: <span class="tag chip st-chip tk-chip on" data-k="t" title="It talks the ticket through with you, then shows it on its row for your yes"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg>New ticket<b class="tk-x" title="No ticket" aria-label="No ticket">×</b></span>
+…what the box says then: What’s the ticket about? A line is enough: Claude asks the rest
+…the line a start adds: Create a Jira ticket from this, on acme.atlassian.net (the whozmove:working-a-ticket skill says how).
+…signed in to two sites, so it names none: Create a Jira ticket from this (the whozmove:working-a-ticket skill says how).
+
+== The card: a link in your words
+a ticket's link: https://acme.atlassian.net/browse/PAY-142
+…in brackets: https://acme.atlassian.net/browse/PAY-142
+…plain http is no link: null
+…none: null
+
+== The card: the list
+closed: 
+signed out: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>Sign in with Atlassian once to find tickets here</span><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In with Atlassian</button></div></div>
+…a sign-in that wasn't finished: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>Sign in with Atlassian once to find tickets here</span><span class="tk-why">Sign-in wasn’t finished</span><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Try Again</button></div></div>
+signing in: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>Waiting for Atlassian’s page in your browser…</span><button class="button quiet small tk-act" data-tk-act="cancel" data-tracker="Jira">Cancel</button></div></div>
+blocked by an admin: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>acme’s Jira admin hasn’t let apps sign in from this Mac yet. They can allow it once, for everyone.</span><div class="tk-buttons"><button class="button main small tk-act" data-tk-act="copyAsk" data-tracker="Jira">Copy What to Ask</button><button class="button quiet small tk-act" data-tk-act="signIn" data-tracker="Jira">Try Again</button></div></div></div>
+…what to ask, copied: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>Your Jira admin hasn’t let apps sign in from this Mac yet. They can allow it once, for everyone.</span><div class="tk-buttons"><button class="button main small tk-act" data-tk-act="copyAsk" data-tracker="Jira">Copied</button><button class="button quiet small tk-act" data-tk-act="signIn" data-tracker="Jira">Try Again</button></div></div></div>
+run out: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>The sign-in with Atlassian has run out.</span><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In Again</button></div></div>
+…kept where other apps can read it: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>The sign-in kept on this Mac could be read by other apps, so Whozmove won’t use it: sign in again.</span><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In Again</button></div></div>
+a new build, which macOS asks about first: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-signin"><span>Whozmove was updated, so macOS asks once before it hands over your Atlassian sign-in.</span><span class="tk-why">Press Allow, then Always Allow in macOS’s box.</span><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Allow</button></div></div>
+no tracker at all: <div class="options under-box st-plist tk-list" data-k="tickets"><div class="c-lhead">Tickets</div><div class="tk-none">There’s no ticket tracker here.</div></div>
+looking: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Looking…</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+found: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="option tk-res" data-i="0"><span class="tk-key">PAY-142</span><span class="tk-main"><span class="tk-title">Login button does nothing on Safari</span><span class="tk-meta"><span class="tk-dot tk-doing"></span>In Progress · Payments board</span></span></div><div class="option tk-res current" data-i="1"><span class="tk-key">PAY-131</span><span class="tk-main"><span class="tk-title">Login page is slow</span><span class="tk-meta"><span class="tk-dot tk-todo"></span>To Do</span></span></div><div class="option tk-res tk-create" data-i="2"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+found, signed in to two sites: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="" spellcheck="false" aria-label="Find a ticket"><div class="option tk-res current" data-i="0"><span class="tk-key">PAY-142</span><span class="tk-main"><span class="tk-title">Login button does nothing on Safari</span><span class="tk-meta"><span class="tk-dot tk-doing"></span>In Progress · Payments board · beta.atlassian.net</span></span></div><div class="option tk-res tk-create" data-i="1"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · searching acme.atlassian.net, beta.atlassian.net</div></div>
+a long title, words to escape: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="" spellcheck="false" aria-label="Find a ticket"><div class="option tk-res current" data-i="0"><span class="tk-key">PAY-142</span><span class="tk-main"><span class="tk-title">A very long title A very long title A very long title A very long title A very long title A very long title A very long title A very long title &lt;script&gt;x&lt;/script&gt;</span><span class="tk-meta"><span class="tk-dot tk-doing"></span>In Progress · Payments board</span></span></div><div class="option tk-res tk-create" data-i="1"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+none found: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="nothing like it" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">No tickets match “nothing like it”. Type a key such as PAY-142, or paste its link.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+…a long search, cut: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="a search far longer than the list has room to say" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">No tickets match “a search far longer than the…”. Type a key such as PAY-142, or paste its link.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+nothing of yours open: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Nothing of yours is open. Type words, a key or a link.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+Create a ticket picked with the keys: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="option tk-res" data-i="0"><span class="tk-key">PAY-142</span><span class="tk-main"><span class="tk-title">Login button does nothing on Safari</span><span class="tk-meta"><span class="tk-dot tk-doing"></span>In Progress · Payments board</span></span></div><div class="option tk-res tk-create current" data-i="1"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+can't reach it: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Couldn’t reach Atlassian just now.</div><div class="tk-signin"><button class="button quiet small tk-act" data-tk-act="search" data-tracker="Jira">Try Again</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+asked to slow down: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Atlassian asked Whozmove to slow down: try again in a moment.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a link from a site you aren't signed in to: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="https://beta.atlassian.net/browse/X-1" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">That’s a ticket on beta.atlassian.net, which you haven’t signed in to.</div><div class="tk-signin"><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In with Atlassian</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a key, with two sites: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="X-1" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Paste X-1’s link, so it’s clear which site it’s on.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a link that couldn't be read: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="https://acme.atlassian.net/browse/PAY-1" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Couldn’t reach Atlassian just now.</div><div class="tk-signin"><button class="button quiet small tk-act" data-tk-act="find" data-tracker="Jira">Try Again</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+…a sign-in that ran out as it was read: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="PAY-1" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">The sign-in with Atlassian has run out.</div><div class="tk-signin"><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In Again</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+…macOS asks first: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="PAY-1" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Whozmove was updated, so macOS asks once before it hands over your Atlassian sign-in.</div><div class="tk-signin"><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Allow</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a search with a sign-in that ran out: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">The sign-in with Atlassian has run out.</div><div class="tk-signin"><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In Again</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+…one kept where other apps can read it: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">The sign-in kept on this Mac could be read by other apps, so Whozmove won’t use it: sign in again.</div><div class="tk-signin"><button class="button main small tk-act" data-tk-act="signIn" data-tracker="Jira">Sign In Again</button></div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a search that reaches no site: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="login" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">Your Atlassian account reaches no Jira site.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+a key there's no ticket for: <div class="options under-box st-plist tk-list" data-k="tickets"><input class="field small st-field tk-q" data-part="tickets" placeholder="Find a ticket: words, its key, or a link" value="PAY-999" spellcheck="false" aria-label="Find a ticket"><div class="tk-none">There’s no PAY-999 you can see.</div><div class="option tk-res tk-create current" data-i="0"><span class="tk-key tk-plus" aria-hidden="true">+</span><span class="tk-main"><span class="tk-title">Create a ticket</span><span class="tk-meta">Claude talks it through with you, then shows it for your yes</span></span></div><div class="c-lfoot"><b>↑↓</b> and <b>Return</b> to pick · <b>Esc</b> closes · signed in to acme.atlassian.net</div></div>
+
+== The row: its tag
+none: 
+started from Create a ticket, none yet: <span class="tag tk-row tk-new" data-tknew="s1" aria-label="New ticket"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">New ticket</span></span>
+…and once it has one: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, In Progress, under way" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-doing">In Progress</span></span>
+reading: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span></span>
+read: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, In Progress, under way" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-doing">In Progress</span></span>
+done: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Done, done" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-done">Done</span></span>
+dropped: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Won’t Do, dropped" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-dropped">Won’t Do</span></span>
+a kind it doesn't know counts as to do: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Odd, to do" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-todo">Odd</span></span>
+couldn't read it: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, couldn’t read it now" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">couldn’t read it now</span></span>
+…read before, so it says where it stood: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, In Progress, under way" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-doing">In Progress</span></span>
+sign in again: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, sign in again" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">sign in again</span></span>
+allow its sign-in: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, allow its sign-in" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">allow its sign-in</span></span>
+asked to slow down: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span></span>
+
+== The row: its card
+read: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+one project, no parent, no steps: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Project</span><span>Web</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+several boards, a team: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Boards</span><span>Payments board<br>Web board · Sprint 2</span></div><div class="tk-cl"><span class="tk-lab">Team</span><span>Checkout</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+a group of a kind it has no word for: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Group</span><span>Odd</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+no groups: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+reading: <div class="card-head"><span class="c-ref">PAY-142</span></div><div class="tk-cl">Reading it…</div>
+couldn't read it: <div class="card-head"><span class="c-ref">PAY-142</span></div><div class="tk-cl tk-warn">Couldn’t read it now: couldn’t reach it.</div><div class="perm-actions"><button data-act="again">Try Again</button></div>
+sign in again: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl tk-warn">PAY-142 can’t be read until you sign in again.</div><div class="perm-actions"><button data-act="signIn">Sign In Again</button></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+allow its sign-in: <div class="card-head"><span class="c-ref">PAY-142</span></div><div class="tk-cl tk-warn">Whozmove was updated, so macOS asks once before it hands over the sign-in.</div><div class="perm-actions"><button data-act="signIn">Allow</button></div>
+asked to slow down: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl tk-warn">Atlassian asked Whozmove to slow down: reading again at 10:42.</div><div class="perm-actions"><button data-act="now">Try Now</button></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+moved by this conversation: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl"><span class="tk-lab">Last move</span><span>Moved to In Review by this conversation · 5m</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+…when you pressed Move It, just now: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl"><span class="tk-lab">Last move</span><span>Moved to In Review when you pressed Move It · now</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+…nothing to move, the step gone: <div class="card-head"><span class="pill tk-pill tk-doing">In Review</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl"><span class="tk-lab">Last move</span><span>PAY-142 is In Review already, so there’s nothing to move · 1m</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+…words to escape: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl"><span class="tk-lab">Last move</span><span>Moved to &lt;b&gt;Done&lt;/b&gt; by this conversation · 1h</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+a step the session stopped at: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-doing">In Review</span><span class="tag tk-step tk-todo">To Do</span><span class="tag tk-step tk-theirs">Signed Off · a person’s</span></span></div><div class="tk-cl"><span class="tk-lab"></span><span class="tk-theirs-why">Signed Off: Only QA signs off on payment changes, in the weekly release meeting with the whole team there</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+…its why with words to escape: <div class="card-head"><span class="pill tk-pill tk-doing">In Progress</span><span class="c-ref">PAY-142 · Bug</span><span class="end">High</span></div><div class="card-title c-title">Login button does nothing on Safari</div><div class="tk-cl"><span class="tk-lab">Part of</span><span>PAY-120 Checkout works in every browser</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span>Payments · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Board</span><span>Payments board · Sprint 14</span></div><div class="tk-cl"><span class="tk-lab">Next</span><span class="tk-steps"><span class="tag tk-step tk-theirs">In Review · a person’s</span><span class="tag tk-step tk-todo">To Do</span></span></div><div class="tk-cl"><span class="tk-lab"></span><span class="tk-theirs-why">In Review: Review is &lt;the release lead&gt;’s &amp; no one else’s</span></div><div class="c-foot tk-foot">Press to open it in your browser, on acme.atlassian.net</div>
+
+== The row: a new ticket's card
+pointed at: <div class="card-head"><span class="c-ref">New ticket</span></div><div class="tk-cl">Claude is talking it through with you. Before anything is made in Jira, the ticket shows on this row for your yes.</div>
+none: 
+
+== A reason after a colon
+its first letter small: the sign-in has run out
+…a name kept: Atlassian turned Whozmove away
+…Whozmove kept: Whozmove was updated
+…a key kept: PAY-142 is In Review already
+…macOS kept: macOS asks first
+…one word: failed
+
+== The row: Work on it here?
+asked: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here?</span></div><div class="q-help">Reading it…</div><div class="q-help">This conversation asks to work on this ticket, on acme.atlassian.net.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+instead of its own: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-150"><div class="q-top"><span class="card-title">Work on PAY-150 instead?</span></div><div class="q-help">Reading it…</div><div class="q-help">It works on PAY-142 now, and asks to change to this ticket.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+its own before Whozmove started again: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-142"><div class="q-top"><span class="card-title">Work on PAY-142 here again?</span></div><div class="q-help">Reading it…</div><div class="q-help">It worked on this ticket before Whozmove started again.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+asked, read: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here?</span></div><div class="q-help">PAY-148 · To Do: Login button does nothing on &lt;Safari&gt;</div><div class="q-help">This conversation asks to work on this ticket, on acme.atlassian.net.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…with no title: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here?</span></div><div class="q-help">PAY-148 · To Do</div><div class="q-help">This conversation asks to work on this ticket.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…instead of its own, read: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-150"><div class="q-top"><span class="card-title">Work on PAY-150 instead?</span></div><div class="q-help">PAY-150 · Done: Retire the old checkout</div><div class="q-help">It works on PAY-142 now, and asks to change to this ticket, on acme.atlassian.net.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…its own again, read: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-142"><div class="q-top"><span class="card-title">Work on PAY-142 here again?</span></div><div class="q-help">PAY-142 · In Progress: Login button does nothing on Safari</div><div class="q-help">It worked on this ticket before Whozmove started again, on acme.atlassian.net.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…couldn't be read: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here?</span></div><div class="q-help">Couldn’t read the ticket: couldn’t reach Atlassian just now.</div><div class="q-help">This conversation asks to work on this ticket, on acme.atlassian.net.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…couldn't be read, no reason given: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here?</span></div><div class="q-help">Couldn’t read the ticket just now.</div><div class="q-help">This conversation asks to work on this ticket.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+…couldn't be read, its sign-in ran out: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div class="q-top"><span class="card-title">Work on PAY-148 here again?</span></div><div class="q-help">Couldn’t read the ticket: you aren&#39;t signed in with Atlassian.</div><div class="q-help">It worked on this ticket before Whozmove started again.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="use">Use It</button></div></div>
+none: 
+
+== The row: Move it?
+asked: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+with no note: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+with the fields it sets: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Done?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="tk-cl"><span class="tk-lab">Resolution</span><span class="tk-val">Fixed</span></div><div class="tk-cl"><span class="tk-lab">Fix versions</span><span class="tk-val">2.1, 2.2</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+asked again, in place of another: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+moving: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="q-help tk-moving">Moving it…</div></div>
+couldn't move it: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: couldn’t reach Atlassian just now.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Try Again</button></div></div>
+…no reason given: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it just now.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Try Again</button></div></div>
+…its sign-in ran out: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: the sign-in has run out.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
+…its sign-in can only read: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: this sign-in may only read tickets.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
+…macOS asks first: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Whozmove was updated, so macOS asks once before it hands over the sign-in.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Allow</button></div></div>
+long words, words to escape: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Ready for &lt;b&gt;release&lt;/b&gt;?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done &amp; &lt;dusted&gt;.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note &lt;script&gt;x&lt;/script&gt; &amp; https://example.com/a/very/long/path/that/goes/on/and/on</div><div class="tk-cl"><span class="tk-lab">A field with a &lt;long&gt; name</span><span class="tk-val">A value A value A value A value A value A value A value A value A value A value A value A value &amp; more</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+no step named, nothing drawn: 
+none: 
+
+== The row: Create this ticket?
+asked: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+with only what it needs: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+a group of a kind it has no word for: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Group</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+signed in to two sites, so it names the one: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">On</span><span class="tk-val">acme.atlassian.net</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+drafted again, beside the ticket it has: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="q-help">Drafted again. This conversation works on PAY-142 now: once it’s created, the new ticket takes its place.</div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+being checked: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="unchecked:checking"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="q-help tk-moving">Checking it with Jira…</div><div class="perm-actions"><button data-act="notYet">Not Yet</button></div></div>
+couldn't be checked: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="unchecked:failed"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t check it: couldn’t reach Jira just now.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="check">Try Again</button></div></div>
+being created: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:creating"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help tk-moving">Creating it…</div></div>
+couldn't be created: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:failed"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t create it: priority is invalid.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Try Again</button></div></div>
+…no reason given: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:failed"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t create it just now.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Try Again</button></div></div>
+it may have been made all the same: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:failed"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t tell whether it was made (couldn’t reach Jira just now): look in PAY first, and create it again only if it isn’t there.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Again</button></div></div>
+…signed in to two sites, so it names the one to look on: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:failed"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">On</span><span class="tk-val">acme.atlassian.net</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t tell whether it was made: look in PAY on acme.atlassian.net first, and create it again only if it isn’t there.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Again</button></div></div>
+…then the sign-in ran out, before it was asked again: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:signIn"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t create it: the sign-in has run out.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
+what each state is, for the wait to be seen: checked:ready, unchecked:checking, unchecked:failed, checked:creating, checked:signIn
+…its sign-in ran out: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:signIn"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Couldn’t create it: the sign-in has run out.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
+…macOS asks first: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:allow"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">Saved cards vanish after an update</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">Bug</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">Since 3.2, every saved card is gone from the iOS app.
+The website keeps them.</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-why tk-warn">Whozmove was updated, so macOS asks once before it hands over the sign-in.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="signIn">Allow</button></div></div>
+long words, words to escape: <div class="perm tk-draft" data-tkdraft="s1" data-tracker="Jira" data-at="1999999940000" data-state="checked:ready"><div class="q-top"><span class="card-title">Create this ticket?</span></div><div class="tk-cl"><span class="tk-lab">Title</span><span class="tk-val">A very long title A very long title A very long title A very long title A very long title A very long title A very long title A very long title A very long title A very long title &lt;b&gt;x&lt;/b&gt;</span></div><div class="tk-cl"><span class="tk-lab">Project</span><span class="tk-val">PAY &amp; &lt;co&gt;</span></div><div class="tk-cl"><span class="tk-lab">Type</span><span class="tk-val">&lt;Bug&gt;</span></div><div class="tk-cl"><span class="tk-lab">Priority</span><span class="tk-val">High</span></div><div class="tk-cl"><span class="tk-lab">Part of</span><span class="tk-val">PAY-120</span></div><div class="q-help">Its description:</div><div class="tk-note">A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description A very long description &lt;script&gt;x&lt;/script&gt;</div><div class="q-help">To change anything, say so in the conversation, and it shows here again.</div><div class="perm-actions"><button data-act="notYet">Not Yet</button><button class="perm-allow" data-act="create">Create Ticket</button></div></div>
+no title, nothing drawn: 
+none: 

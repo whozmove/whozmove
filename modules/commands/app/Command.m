@@ -3,6 +3,13 @@
 #import "Command.h"
 #import "Row.h"
 
+NSString *CommandLogged(NSString *field, NSString *value) {
+    if ([field isEqual:@"compact"])
+        return value.length ? [NSString stringWithFormat:@"/compact with a focus of %lu characters",
+                                                         (unsigned long)value.length] : @"/compact";
+    return [NSString stringWithFormat:@"%@ %@", field ?: @"a command", value ?: @""];
+}
+
 @implementation Command
 
 - (instancetype)initWithText:(NSString *)text field:(NSString *)field value:(NSString *)value

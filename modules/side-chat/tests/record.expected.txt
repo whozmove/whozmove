@@ -1,0 +1,87 @@
+== What a session's record keeps
+Said: held, for its process: {"pid":42,"processStart":7,"says":["Do the smaller migration first. held"]}
+Said again: in order: ["Do the smaller migration first. held","Keep the old table. held"]
+Typed in: {"at":1000,"doneAt":1500,"state":"typed","words":"Do the smaller migration first."}
+Read, as its record shows: {"at":1000,"doneAt":1600,"how":"typed","state":"read","words":"Do the smaller migration first."}
+Read stays read: {"at":1000,"doneAt":1600,"how":"typed","state":"read","words":"Do the smaller migration first."}
+Refused, with why: {"at":2000,"state":"refused","where":"Ghostty","why":"Couldn't find its tab","words":"Keep the old table."}
+Back in the box stays there: "refused"
+Held words copied with Copy and Go: {"at":2000,"doneAt":2500,"state":"copied","words":"Keep the old table."}
+…stay copied, whatever Send said before it let them go: "copied"
+Words already read aren't copied this way: "read"
+Put back by the page: gone: ["Do the smaller migration first. read"]
+Put back, but it wasn't back: kept: ["Do the smaller migration first. read","Keep the old table. refused"]
+Replied: {"at":1000,"doneAt":1600,"how":"typed","repliedAt":1900,"state":"replied","words":"Do the smaller migration first."}
+No reply: "noReply"
+A reply to words not read yet: nothing: ["Do the smaller migration first. held","Keep the old table. held"]
+Taken back in time: ["Do the smaller migration first. held","Keep the old table. takenBack"]
+Taken back too late: ["Do the smaller migration first. held","Keep the old table. held late handed"]
+After a restart: what hadn't gone in is back in the box: ["Do the smaller migration first. restarted","Keep the old table. restarted","And the docs. restarted"]
+After a restart: read words stay: ["Do the smaller migration first. read","Keep the old table. restarted"]
+
+== Who can open it once it's kept
+Its folder, left open to others from before: "755"
+Kept: true
+Kept: its folder: "700"
+Kept: its file: "600"
+A session id that's a path: not kept: false
+Its process ended: gone: false
+
+== What held words do now
+Sent while it's idle: in now, as pressed: "type, still pressed"
+Sent while it's idle, but it turned to work first: its turn's end, the press gone: "turnEnd"
+Pressed, behind words still going in: later, the press gone: "later"
+At work: "turnEnd"
+Its turn ended, safe to go by themselves: "type"
+Its turn ended, its terminal in front: your press: "press"
+Its turn ended, another change still going in: later: "later"
+Send Now pressed: in now: "type, still pressed"
+
+== Whether held words go in by themselves
+Its terminal behind another app: true
+Its terminal in front: false
+The session you're on: false
+In Claude Desktop: false
+Its terminal unknown: false
+Nothing in front: true
+Asked again before each key: you've come to its terminal: false
+…or to its tab: false
+
+== Whether held words go in by themselves, from the session's reach
+In a terminal no app holds it in, behind another app: true
+…its terminal in front: false
+…the session you're on: false
+In Claude Desktop: false
+In a terminal the panel can't type into: false
+Its terminal named as in front, when it is: "Sample Terminal"
+…when it's behind another app: null
+…in Claude Desktop: null
+
+== Asked on the side, in memory only
+Asked: [{"at":1000,"question":"Why that file?","state":"asking"}]
+Asked again while it's being answered: not asked: null
+Answered: its words as read, and cut into prose and code: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"}]
+Told to the page: without its words as read: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered"}]
+Answered again: kept as it was: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"}]
+Asked again once it's answered: 2
+Answered with no words: didn't answer: [{"at":1000,"question":"Why that file?","state":"noAnswer"}]
+A state it doesn't know: didn't answer: [{"at":1000,"question":"Why that file?","state":"noAnswer"}]
+Your plan's limit, with when it resets: [{"at":1000,"question":"Why that file?","resetsAt":9000,"state":"limit"}]
+Signed out, with the command that signs it in: [{"at":1000,"question":"Why that file?","signIn":"claude auth login","state":"signedOut"}]
+…which the page isn't told: [{"at":1000,"question":"Why that file?","state":"signedOut"}]
+No command found to run: [{"at":1000,"question":"Why that file?","state":"noCommand"}]
+An error its provider sent back: [{"at":1000,"question":"Why that file?","state":"apiError"}]
+…then sent the normal way (Wait for Its Turn): [{"at":1000,"question":"Why that file?","sentAt":2000,"state":"apiError"}]
+…but never one still being asked: [{"at":1000,"question":"Why that file?","state":"asking"}]
+…nor one already sent: [{"at":1000,"question":"Why that file?","sentAt":2000,"state":"apiError"}]
+Two presses for one question: the first may send it, the second finds it sent, so its words go in once: [1,0]
+Its words taken back: back to its failed line, to send again: [{"at":1000,"question":"Why that file?","state":"apiError"}]
+…and sendable again: 1
+One not sent: unsent, kept as it was: [{"at":1000,"question":"Why that file?","state":"apiError"}]
+Couldn't be asked once pressed: kept, not asked: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"},{"at":2000,"question":"And the tests?","state":"notAsked"}]
+The question asked at a time not asked: none: null
+
+== A reply, cut into prose and code
+Prose, a command, prose: [{"prose":"Okay: the smaller migration first."},{"code":"npm run migrate -- --dry-run","lang":"sh"},{"prose":"Then I carry on."}]
+A fence left open runs to the end: [{"prose":"Try:"},{"code":"ls -la","lang":""}]
+Nothing: []

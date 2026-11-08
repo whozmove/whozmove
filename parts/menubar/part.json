@@ -1,0 +1,4 @@
+{
+  "talksTo": ["core", "bridge", "builds", "glass", "cat"],
+  "provides": ["MenuBar.h"]
+}

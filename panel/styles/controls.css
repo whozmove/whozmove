@@ -1,6 +1,7 @@
 /* Controls that more than one part of the panel draws, each styled once here: the switch, which Spotify's lyrics and
-   the apps' settings on the panel's back show, a button (the back's page loads this file too), and a one-line message
-   with the one thing it asks of you (the usage card's page loads it too). Their colours and corners are tokens.css's.
+   the apps' settings on the panel's back show, a box to tick, tabs, a button, the shine on words while something is at
+   work (the back's page loads this file too), and a one-line message with the one thing it asks of you (the usage
+   card's page loads it too). Their colours and corners are tokens.css's.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* A switch: its track, blue while it's on, and its knob, which slides across (SWITCH, in scripts/util.js). It's on
@@ -12,28 +13,237 @@
 [aria-checked="true"] > .switch { background: var(--tick); }
 [aria-checked="true"] > .switch i { transform: translateX(11px); }
 
+/* Words while something is at work (what Claude's doing on its row, a folder the storage map is opening): a soft band
+   of light crosses them, left to right, every 3s (shineHTML). The words stay where they are, in their own colour; a
+   copy of them adds the band's light to them (in light, its shade), seen through a window with soft edges that slides
+   across while the copy inside it slides back as far, so the words stay put and only the light moves. Added, not laid
+   over, so each letter's soft edge takes the light as a single letter would, rather than drawn twice and thicker:
+   --work-glint is what the band adds at its middle, over --work-text. They only move and add, which the graphics chip
+   does by itself: nothing is painted again as the band goes. The window is the first 48% of a layer as wide as the
+   words (its mask), and its middle goes from half their width before them to half after. The copy is exactly the
+   words' box, so it's cut short with a "…" just where they are, and nowhere else. Both are drawn as a fill clipped to
+   the letters, as the band always was, which WebKit smooths more lightly than letters in a plain colour on a dark
+   panel; it's painted once, never as the band goes. */
+.shining { position: relative; display: inline-block; max-width: 100%; vertical-align: top; overflow: hidden;
+           white-space: nowrap; text-overflow: ellipsis; color: var(--work-text); }
+.glint { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+         -webkit-mask: linear-gradient(90deg, transparent, black 50%, transparent) 0 0 / 48% 100% no-repeat;
+         mask: linear-gradient(90deg, transparent, black 50%, transparent) 0 0 / 48% 100% no-repeat;
+         mix-blend-mode: plus-lighter; animation: glint-window 3s linear infinite; }
+.glint > span { position: absolute; top: 0; left: 0; width: 100%; overflow: hidden; white-space: nowrap;
+                text-overflow: ellipsis; animation: glint-words 3s linear infinite; animation-delay: inherit; }
+.shining > .shine, .glint > span { color: transparent; -webkit-text-fill-color: transparent;
+                                   -webkit-background-clip: text; background-clip: text; }
+.shining > .shine { background-image: linear-gradient(var(--work-text), var(--work-text)); }
+.glint > span { background-image: linear-gradient(var(--work-glint), var(--work-glint)); }
+@media (prefers-color-scheme: light) { .glint { mix-blend-mode: plus-darker; } }
+
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch i { transition: none; }
+  .glint { display: none; }
 }
 
-/* A button, as a card's are: a soft fill with an edge (the apps' Open and Open System Settings on the panel's back). */
-.button { font: inherit; font-size: var(--size-body); padding: 4px 12px; border-radius: var(--radius-control);
-          color: var(--text); border: 1px solid var(--button-edge); background: var(--button); }
-.button.is-hover { background: var(--button-hover); }
+/* A box to tick, as macOS draws one: Clean up's rows (.tickbox), Don't ask again, a plan's task, and a question's pick
+   of several (cards.css lays it out beside its words). Ticked while what holds it says so (aria-checked="true"), when
+   it's ticked by itself (.on, a plan's finished task), or the pick is picked. Round (.round) for one choice of several:
+   a question's pick of one, and Settings' pick under each look, with a dot once picked. */
+.tickbox, .opt-label::before { flex: none; box-sizing: border-box; width: 13px; height: 13px;
+                               border: 1.5px solid var(--box-edge); border-radius: var(--radius-tag); }
+.tickbox.round, .q-opts:not(.multi) .opt-label::before { border-radius: var(--radius-circle); }
+[aria-checked="true"] > .tickbox.round, .tickbox.round.on, .q-opts:not(.multi) .opt.on .opt-label::before {
+  border-color: var(--tick); background: radial-gradient(circle, var(--on-colour) 0 2.4px, var(--tick) 2.9px); }
+[aria-checked="true"] > .tickbox:not(.round), .tickbox.on:not(.round), .multi .opt.on .opt-label::before {
+  border-color: var(--tick);
+  background: var(--tick) no-repeat center / 11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' \
+viewBox='0 0 12 12'%3E%3Cpath d='M2.6 6.3 5 8.6 9.5 3.7' fill='none' stroke='white' stroke-width='1.9' \
+stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 
-/* A one-line message with its button for the one thing it asks of you: the line under the header while Whozmove sets
-   itself up (the install module's), and the usage card's Sign in. Its words take the room its button and a × (cards.css's
-   .q-close) leave. */
-.notice { display: flex; align-items: center; gap: 10px; min-height: 26px; }
+/* Tabs, as one control with the one you're on raised (aria-pressed="true"): the changes view's, and the map's. */
+.tabs { flex: none; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-box); background: var(--surface); }
+.tabs button { display: flex; gap: 6px; align-items: baseline; padding: 3px 9px; border: none;
+               border-radius: var(--radius-button); background: none; font: inherit; font-size: var(--size-card);
+               color: var(--muted); white-space: nowrap; }
+.tabs button.is-hover { color: var(--text); }
+.tabs button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
+
+/* A button, as a card's are: a soft fill with an edge (a request's, the apps' Open and Open System Settings on the
+   panel's back, a tray's). */
+.button, .perm button { font: inherit; font-size: var(--size-body); padding: 4px 12px;
+                        border-radius: var(--radius-control); color: var(--text); border: 1px solid var(--button-edge);
+                        background: var(--button); }
+.button.is-hover, .perm button.is-hover { background: var(--button-hover); }
+/* The mark for what takes you out of the panel (icons.js's OUT_ICON), after a button's words (Take Me There). */
+.button > .out-icon { margin-left: 5px; vertical-align: -1px; }
+/* While it can't be pressed yet, it waits, faded. */
+.button:disabled { opacity: .4; }
+/* The main one, the panel's opposite: light on the dark panel, with dark words (a request's Allow, Open the Map, Move
+   to Trash). */
+.button.main, .perm button.perm-allow { background: var(--main-button); border-color: transparent;
+                                        color: var(--on-main-button); font-weight: 600; }
+.button.main.is-hover, .perm button.perm-allow.is-hover { background: var(--main-button-hover); }
+
+/* A one-line message with its button for the one thing it asks of you (a small main one, or a small one): the line
+   under the header while Whozmove sets itself up (the install module's), the usage card's Sign in, Spotify's note and
+   the storage map's. Its words take the room its button and a × (the kit's small icon button) leave. */
+.notice { display: flex; align-items: center; gap: 10px; }
 .notice-text { flex: 1; min-width: 0; font-size: var(--size-small); line-height: 15px; color: var(--muted); }
-.notice-button { flex: none; font: inherit; font-size: var(--size-small); font-weight: 600; padding: 3px 10px;
-                 border: none; border-radius: var(--radius-button); background: var(--main-button);
-                 color: var(--on-main-button); cursor: default; }
-.notice-button.is-hover { background: var(--main-button-hover); }
-/* While what its press set going is under way, it waits. */
-.notice-button:disabled { opacity: .45; }
+.notice > .button { flex: none; }
+/* On a box of its own, in a view with room around it (the storage map's). */
+.notice.boxed { padding: 7px 8px 7px 12px; border-radius: var(--radius-box); background: var(--surface); }
+/* Something urgent that needs you, in one line, with its button (One Task's strip under its head): on a pill of the
+   needs-you colour's fill, its words in that colour, what it is in bold, cut short with "…". */
+.notice.urgent { gap: 8px; padding: 4px 4px 4px 10px; border-radius: var(--radius-pill); background: var(--needs-fill); }
+.notice.urgent .notice-text { color: var(--needs-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notice.urgent .notice-text b { font-weight: 600; }
+
+/* The line at the foot of a view of things to move to the Trash (Clean up's, the map's, Keys'): what's ticked or
+   collected and its total, with the main button; that button's question with its answers; or what the last press did,
+   green once all of it went. Its words take the room its buttons leave. */
+.tray { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.tray-said { flex: 1; font-size: var(--size-small); color: var(--muted); }
+.tray-said.done { color: var(--done-text); }
+.tray-ask { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tray-ask b { font-size: var(--size-body); font-weight: 600; color: var(--text); }
+.tray-ask i { font-style: normal; font-size: var(--size-small); color: var(--muted); }
+.tray-total { flex: none; font-size: var(--size-small); color: var(--muted); white-space: nowrap;
+              font-variant-numeric: tabular-nums; }
+.tray-total b { font-weight: 600; color: var(--text); }
+.tray .button { flex: none; font-size: var(--size-small); white-space: nowrap; }
 
 /* A tick in a ring (icons.js's DONE_ICON), green, as what's finished is: a code review with nothing left to fix, and
    the one-line message saying all went well, where it sits a little closer to its words. */
 .done-tick { flex: none; color: var(--done-text); }
 .notice .done-tick { margin-right: -4px; }
+
+/* ---- The kit: one of each piece the panel draws in more than one place. Each part puts a piece where it goes (its
+   margins, its place in a line) on a class of its own, and never restyles the piece. */
+
+/* The button, smaller (a note's way past it), and quiet: with its fill but no edge, on a line or a bar (Create PR). */
+.button.small { font-size: var(--size-small); padding: 2px 9px; }
+.button.quiet { font-size: var(--size-small); padding: 3px 10px; border: 0; border-radius: var(--radius-button); }
+.button.quiet.is-hover { background: var(--hover-strong); }
+
+/* A button with only a mark in it, 24pt; small, 20pt (a card's ×). Pointed at, a fill behind it. Named with its element
+   too, so a card's rule for its buttons (.perm button, above) doesn't give it their edge. */
+.icon-button, button.icon-button { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0;
+               border: none; border-radius: var(--radius-button); background: none; color: var(--muted);
+               font: inherit; font-size: var(--size-close); line-height: 1; }
+.icon-button.is-hover, button.icon-button.is-hover { background: var(--hover); color: var(--text); }
+.icon-button.small, button.icon-button.small { width: 20px; height: 20px; border-radius: var(--radius-small); line-height: 19px; }
+.icon-button.small.is-hover, button.icon-button.small.is-hover { background: var(--hover-strong); }
+.icon-button:disabled { opacity: .4; }
+/* The small ×, round, with the time left drawn round it (icons.js's TIMED_CLOSE_ICON): a ring 16pt across in one
+   stroke on the context ring's track, full when the time starts. As it runs out, the ring's start sweeps round
+   clockwise from the top until none is left. It reads the time left, from 1 to 0, from --left on any box round it,
+   and eases between updates; its colour is --time-ring's, the turn's colour unless that box says otherwise. Firmer
+   while the time is held (.held on that box). */
+.icon-button.timed, button.icon-button.timed { position: relative; border-radius: var(--radius-circle); }
+.time-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform: rotate(-90deg);
+             pointer-events: none; transition: opacity .2s linear; }
+.time-ring circle { fill: none; stroke-width: 1.5; }
+.time-ring .track { stroke: var(--ring-track); }
+.time-ring .left { stroke: var(--time-ring, var(--turn)); stroke-linecap: round; opacity: .7;
+                   stroke-dasharray: 100 100; stroke-dashoffset: calc((var(--left, 1) - 1) * 100);
+                   transition: stroke-dashoffset .1s linear, opacity .2s linear; }
+.held .time-ring .left { opacity: 1; }
+/* Two answers across a card's foot, each saying what it does, the main one wider (a big change's Deny and Allow once,
+   "Switch model?"'s Keep and Switch, in the card's answers' place), with the key that presses it, where one does
+   (.key). */
+.answer-bar { display: grid; grid-template-columns: 1fr 1.4fr; gap: 6px; margin-top: 8px; }
+.answer-bar > button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.answer-bar .key { font-size: var(--size-tag); font-weight: 600; opacity: .55; }
+/* The ring by itself, with nothing inside it: the time left before a request goes by itself if no one answers. */
+.time-left { position: relative; flex: none; width: 14px; height: 14px; }
+
+/* A small label on a fill: what a session wrote, a question's topic, where else git lists a file; in the plan's colour,
+   a count in your move's colour on a pill, new, gone or changed in git's colours, what could do harm in the colour
+   of something that needs you, and a choice you picked yourself in a picked choice's blue. */
+.tag { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 1px 6px; border-radius: var(--radius-tag);
+       font-size: var(--size-tag); font-weight: 600; line-height: 1.35; font-variant-numeric: tabular-nums;
+       white-space: nowrap; color: var(--muted); background: var(--tag); }
+.tag.plan { color: var(--plan-text); background: var(--plan-fill); }
+.tag.count { border-radius: var(--radius-pill); color: var(--turn-words); background: var(--turn-fill); }
+.tag.needs { color: var(--needs-text); background: var(--needs-fill); }
+.tag.new { color: var(--added); background: var(--added-fill); }
+.tag.gone { color: var(--removed); background: var(--removed-fill); }
+.tag.changed { color: var(--changed-text); background: var(--changed-fill); }
+.tag.pick { color: var(--pick-text); background: var(--pick-fill); }
+/* A letter on a square (git's letter for a file). */
+.tag.mark { justify-content: center; width: 14px; height: 14px; padding: 0; }
+/* One to press, at the size of the words it sits with (where a new conversation starts), or outlined with no fill
+   (the branch a new worktree starts from). Pointed at, a firmer fill. */
+.tag.chip { height: 20px; padding: 0 7px; box-sizing: border-box; border: none; border-radius: var(--radius-small);
+            font: inherit; }
+.tag.chip.outline { background: none; box-shadow: inset 0 0 0 1px var(--edge); }
+.tag.chip.is-hover { background: var(--hover-strong); color: var(--text); }
+
+/* A one-line message said in a line of its own (a row's note, a card's): its words in the small type, muted; in
+   the colour of something to put right (warn), or of your move (turn). */
+.notice.inline { display: block; font-size: var(--size-small); line-height: 15px; color: var(--muted); }
+.notice.warn, .notice.warn .notice-text { color: var(--needs-text); }
+.notice.turn, .notice.turn .notice-text { color: var(--turn-text); }
+
+/* Lines put in and taken out, as code review tools show them: green and red, in tabular figures (diffHTML). */
+.diff { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.diff .add { color: var(--added); }
+.diff .del { color: var(--removed); }
+
+/* A box to type in: an answer, a command, your notes; small, for a new conversation's words. */
+.field { font: inherit; font-size: var(--size-body); padding: 5px 8px; border-radius: var(--radius-control);
+         outline: none; color: var(--text); border: 1px solid var(--field-edge); background: var(--field); }
+.field:focus { border-color: var(--field-focus); }
+.field::placeholder { color: var(--faint); }
+.field.small { font-size: var(--size-small); line-height: 15px; padding: 6px 8px; }
+
+/* A card's own words: a head line over it (what it's about, with where or when at its end), its title, a lead under the
+   title (in the colour of something to put right, or of your move), and the help under that. */
+.card-head { display: flex; align-items: center; gap: 8px; font-size: var(--size-small); color: var(--muted); }
+.card-head > :first-child { flex: none; }
+.card-head .end { flex: 0 1 auto; min-width: 0; margin-left: auto; overflow: hidden; white-space: nowrap;
+                  text-overflow: ellipsis; color: var(--faint); }
+.card-title { font-size: var(--size-body); font-weight: 600; color: var(--text); }
+.card-lead { font-size: var(--size-card); color: var(--muted); }
+.card-lead.warn { color: var(--needs-text); }
+.card-lead.turn { color: var(--turn-text); }
+.card-lead b { font-weight: 500; color: var(--text); }
+.card-help { font-size: var(--size-small); color: var(--muted); }
+
+/* A label over a list, in capitals: the reader's list (PLANS, NOTES), the panel's back's cards. */
+.caps { font-size: var(--size-tag); font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+        color: var(--label); }
+
+/* A short list to pick from (Create PR's branches, what @ and # offer under a new conversation's box), on a fill of
+   its own, the field's under a box; and its choices, which a card's steps and Open With's editors are too: pointed at,
+   the soft fill; the one Return takes, a firmer one; the one picked, a tick before it. */
+.options { display: flex; flex-direction: column; padding: 4px; border-radius: var(--radius-box);
+           background: var(--surface); }
+.options.under-box { background: var(--field); }
+.option { display: flex; align-items: center; gap: 6px; width: 100%; margin: 0; padding: 4px 8px; border: 0;
+          border-radius: var(--radius-small); background: none; font: inherit; font-size: var(--size-body);
+          color: var(--text); text-align: left; cursor: default; }
+.option.is-hover { background: var(--hover); }
+.option.current { background: var(--hover-strong); }
+.option:disabled { opacity: .4; }
+.option .tick { display: inline-flex; width: 10px; visibility: hidden; }
+.option.on .tick { visibility: visible; }
+.option i { margin-left: auto; font-style: normal; color: var(--faint); }
+
+/* A main action with a ⌄ beside it for its other ways, as one button cut in two: on a bar, quiet ones with the bar
+   showing between them; as the main one, a line in the field's colour between them. */
+.split-button { flex: none; display: inline-flex; gap: 1px; }
+.split-button > .button { display: inline-flex; align-items: center; white-space: nowrap; }
+.split-button > .button:first-child:not(:only-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split-button > .button + .button { padding-left: 6px; padding-right: 6px; border-top-left-radius: 0;
+                                    border-bottom-left-radius: 0; }
+.split-button.main { gap: 0; }
+.split-button.main > .button + .button { box-shadow: inset 1px 0 0 var(--field); }
+
+/* How much of something is used or full: a track, its fill from the start (an <i>) in a gauge's level, or faint for a
+   share that isn't a warning. Its height is its place's; on the usage card, its track is firmer. */
+.bar { position: relative; display: block; overflow: hidden; border-radius: var(--radius-pill);
+       background: var(--track); }
+.bar.firm { background: var(--usage-track); }
+.bar > i { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); background: var(--faint); }
+.bar.normal > i { background: var(--level-normal); }
+.bar.warning > i { background: var(--level-warning); }
+.bar.limit > i { background: var(--level-limit); }

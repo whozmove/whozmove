@@ -1,0 +1,5 @@
+{
+  "scripts": ["page/landing.js"],
+  "talksTo": ["core", "bridge", "chats", "held", "row", "morph"],
+  "provides": ["chatsLand", "chatsLeave"]
+}

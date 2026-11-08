@@ -1,0 +1,30 @@
+tests/outside-samples.txt names a made-up file outside its folder, ../climbs-out.txt: refused
+.github/workflows/demo.yml:3 uses someone/thing: only GitHub's own actions run here
+.github/workflows/demo.yml:3 uses someone/thing at v1: pin it to a release's full commit, as the others are
+app/Info.plist:1 loosens App Transport Security: every certificate check is macOS's, so take it out
+modules/demo/app/Evaluates.m:2 answers a certificate check itself: every certificate check is macOS's, so take it out
+modules/demo/app/Plain.m:2 names a plain http:// address on plain.demo-service.io: only https:// may leave this Mac
+modules/demo/app/Runs.m:2 starts a program or loads code itself: the app's code starts programs only through app/shared/Processes.m, and loads only Apple's frameworks
+modules/demo/app/Trust.m:2 answers a certificate check itself: every certificate check is macOS's, so take it out
+modules/demo/plugin/hook.py:4 turns a certificate check off: every certificate check is macOS's, so take it out
+modules/demo/plugin/hook.py:3 imports requests, which isn't in Python's own library
+tests/outside.txt lists "starts  modules/demo/app/Gone.m", which the code no longer has: tests/outside.sh --update takes it off
+.github/workflows/demo.yml:3 uses the action someone/thing, which tests/outside.txt doesn't list: add "action  someone/thing  .github/workflows/demo.yml"
+tools/get.sh:3 names downloads.demo-tools.io, which tests/outside.txt doesn't list: add "connects  downloads.demo-tools.io  tools/get.sh  <what checks its certificate>" if the app reaches it from there, "link  downloads.demo-tools.io  tools/get.sh" if it's only opened in your browser, or "names  downloads.demo-tools.io  tools/get.sh" if it's only written out
+modules/demo/app/Plain.m:2 names plain.demo-service.io, which tests/outside.txt doesn't list: add "connects  plain.demo-service.io  modules/demo/app/Plain.m  <what checks its certificate>" if the app reaches it from there, "link  plain.demo-service.io  modules/demo/app/Plain.m" if it's only opened in your browser, or "names  plain.demo-service.io  modules/demo/app/Plain.m" if it's only written out
+modules/demo/tests/bash-c.sh:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/bash-c.sh", with a note of what it is
+modules/demo/tests/echo-piped.sh:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/echo-piped.sh", with a note of what it is
+modules/demo/tests/evaluated.sh:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/evaluated.sh", with a note of what it is
+modules/demo/tests/fetch.sh:3 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/fetch.sh", with a note of what it is
+modules/demo/tests/printf-piped.sh:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/printf-piped.sh", with a note of what it is
+modules/demo/tests/runs-curl.py:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/runs-curl.py", with a note of what it is
+modules/demo/tests/substituted.sh:2 downloads something, which tests/outside.txt doesn't list: add "downloads  modules/demo/tests/substituted.sh", with a note of what it is
+tests/outside.sh:7 downloads something, which tests/outside.txt doesn't list: add "downloads  tests/outside.sh", with a note of what it is
+tools/get.sh:3 downloads something, which tests/outside.txt doesn't list: add "downloads  tools/get.sh", with a note of what it is
+modules/demo/app/Trust.m:2 reaches the network, which tests/outside.txt doesn't list: add "connects  <its host, or * for any a page asks for>  modules/demo/app/Trust.m  <what checks its certificate>", and a line in README's Privacy if it sends or gets something new
+modules/demo/page/demo.js:2 reaches the network, which tests/outside.txt doesn't list: add "connects  <its host, or * for any a page asks for>  modules/demo/page/demo.js  <what checks its certificate>", and a line in README's Privacy if it sends or gets something new
+modules/demo/tests/python-in.sh:3 reaches the network, which tests/outside.txt doesn't list: add "connects  <its host, or * for any a page asks for>  modules/demo/tests/python-in.sh  <what checks its certificate>", and a line in README's Privacy if it sends or gets something new
+modules/demo/tests/socket.c:2 reaches the network, which tests/outside.txt doesn't list: add "connects  <its host, or * for any a page asks for>  modules/demo/tests/socket.c  <what checks its certificate>", and a line in README's Privacy if it sends or gets something new
+tests/outside.sh:5 reaches the network, which tests/outside.txt doesn't list: add "connects  <its host, or * for any a page asks for>  tests/outside.sh  <what checks its certificate>", and a line in README's Privacy if it sends or gets something new
+modules/demo/app/Runs.m:2 starts programs, which tests/outside.txt doesn't list: add "starts  modules/demo/app/Runs.m", with a note of what it is
+modules/demo/page/copied.js doesn't carry the project's licence line: add "SPDX-License-Identifier: GPL-3.0-or-later", or if it isn't the project's own, add "not-ours  modules/demo/page/copied.js" to tests/outside.txt with where it's from and its licence

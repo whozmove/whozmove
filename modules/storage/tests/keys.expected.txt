@@ -1,0 +1,275 @@
+problem: None · skipped: None
+commit · Anthropic sk-ant-…fcAA · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Anthropic ↗ · menu: Open shop/pay.ts at Line 1 / Mark Replaced / Not a Key
+    commit: shop · pay.ts:1 · commit af2648e · project shop, main · named {"as": "pay"} · open · keeps it: In a commit not pushed yet: change that commit (amend or rebase it) before you push
+    claude: Whozmove's record of your last message (now masked) · keeps it: Masked in Whozmove's record already
+commit · Generic api key …bHk9 · replaced ignore · sample, sample
+    fix: Not a Key · menu: Open shop/tests/cli.expected.txt at Line 2 / Mark Replaced
+    commit: shop-fix · tests/cli.expected.txt:2 · commit 4804ddd · project shop, shop-fix · named {"as": "token"} · open · keeps it: In a commit not pushed yet: change that commit (amend or rebase it) before you push
+pushed · Generic api key …Yo9M · replaced ignore · it has left the Mac · sample, sample
+    fix: Not a Key · menu: Open shop/tests/api.expected.txt at Line 2 / Mark Replaced
+    pushed: shop · tests/api.expected.txt:2 · pushed in 05eca8e · project shop, main · named {"as": "api_key"} · open · keeps it: Git has it, and it's pushed: replace the key
+    pushed: shop-fix · tests/api.expected.txt:2 · pushed in 05eca8e · project shop, shop-fix · named {"as": "api_key"} · open · keeps it: Git has it, and it's pushed: replace the key
+pushed · GitHub ghp_…1Q1J · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open shop/app.ts at Line 3 / Open history.jsonl at Line 1 / Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    pushed: shop · app.ts:3 · pushed in 05eca8e · project shop, main · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+    pushed: shop-fix · app.ts:3 · pushed in 05eca8e · project shop, shop-fix · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+    claude: A reply in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+    ai: Codex · ~/.codex/history.jsonl:1 · open · keeps it: Codex keeps it: replace the key
+pushed · GitHub ghp_…yWPc · replace replaced ignore · it has left the Mac · now, test
+    fix: Replace at GitHub ↗ · menu: Open shop/tests/client.test.ts at Line 1 / Mark Replaced / Not a Key
+    pushed: shop · tests/client.test.ts:1 · pushed in 05eca8e · project shop, main · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+    pushed: shop-fix · tests/client.test.ts:1 · pushed in 05eca8e · project shop, shop-fix · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+pushed · Linear api key …qkhb · replaced ignore · it has left the Mac · now, test
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    pushed: shop · tests/fixtures/linear.json:1 · pushed in 05eca8e · project shop, main · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+    pushed: shop-fix · tests/fixtures/linear.json:1 · pushed in 05eca8e · project shop, shop-fix · named {"as": "token"} · open · keeps it: Git has it, and it's pushed: replace the key
+claude · Anthropic sk-ant-…RkAA · replace replaced ignore · it has left the Mac · sample, made
+    fix: Not a Key · menu: Replace at Anthropic ↗ / Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Anthropic sk-ant-…xyAA · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Anthropic ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    claude: Claude Code's history of your messages, for ~/code/shop · named {"as": "key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    claude: Something said in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+claude · Brave search api key …bApe · replaced ignore · it has left the Mac · now, shape
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · Generic api key …0133 · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "billing_api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …0ab5 · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "MAILER_API_KEY"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …4998 · replaced ignore · it has left the Mac · sample, id
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · Generic api key …5usU · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "SPOTIFY_SECRET"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+claude · Generic api key …6pUl · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+    claude: Something said in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+claude · Generic api key …766d · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "API_KEY"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · Generic api key …76d5 · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "PAYMENTS_API_KEY"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1a1b1c1d · claude purge '~/code/shop'
+claude · Generic api key …BwBY · replaced ignore · it has left the Mac · sample, said
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: A reply in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …JBl2 · replaced ignore · it has left the Mac · now, file
+    fix: Open at the Line · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "SERVICE_SECRET"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: ~/.claude/CLAUDE.md:4 · what Claude Code reads as its instructions · named {"as": "SERVICE_SECRET"} · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+    files: .claude · CLAUDE.md:4 · git would add it · project .claude, main · named {"as": "SERVICE_SECRET"} · open · keeps it: Not in git yet: take the key out before it's committed
+claude · Generic api key …NTD2 · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …PSIA · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …QAL5 · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "api_token"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: Your message in a Claude Code conversation in ~/code/shop · named {"as": "api_token"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Generic api key …S0wg · replaced ignore · it has left the Mac · sample, id
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Generic api key …UkAU · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Something said in a Claude Code conversation in ~/code/shop · named {"as": "api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 5a5b5c5d · claude purge '~/code/shop'
+claude · Generic api key …Uukq · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic api key …Y0mG · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "DEPLOY_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "DEPLOY_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+claude · Generic api key …aSGc · replaced ignore · it has left the Mac · sample, made
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "API_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "API_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Generic api key …b807 · replaced ignore · it has left the Mac · sample, id
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1a1b1c1d · claude purge '~/code/shop'
+claude · Generic api key …cqhk · replaced ignore · it has left the Mac · sample, made
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: A task given to one of its agents in a Claude Code conversation in ~/code/shop · named {"as": "api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 5a5b5c5d · claude purge '~/code/shop'
+claude · Generic api key …fygq · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "token"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+    claude: Your message in a Claude Code conversation in ~/code/shop · named {"as": "token"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 7a7b7c7d · claude purge '~/code/shop'
+claude · Generic api key …wPkc · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "secret_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "secret_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Generic api key …y7o8 · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "client_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 8a8b8c8d · claude purge '~/code/shop'
+claude · Generic api key …yX4C · replaced ignore · it has left the Mac · sample, made
+    fix: Not a Key · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "api_key"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 6a6b6c6d · claude purge '~/code/shop'
+claude · Generic password …479. · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1a1b1c1d · claude purge '~/code/shop'
+claude · Generic password …6001 · replaced ignore · it has left the Mac · now, sent
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · Generic password …Kagk · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · Generic password …ator · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · Generic password …n2!7 · replaced ignore · it has left the Mac · now, file
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitHub gho_…fa5K · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GH_OAUTH"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitHub ghp_…5JpH · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open .claude/CLAUDE.md at Line 3 / Mark Replaced / Not a Key
+    claude: ~/.claude/CLAUDE.md:3 · what Claude Code reads as its instructions · named {"as": "GITHUB_TOKEN"} · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+    files: .claude · CLAUDE.md:3 · git would add it · project .claude, main · named {"as": "GITHUB_TOKEN"} · open · keeps it: Not in git yet: take the key out before it's committed
+claude · GitHub ghp_…BOdO · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open notes.txt at Line 3 / Mark Replaced / Not a Key
+    claude: A long paste Claude Code keeps · keeps it: Claude Code keeps it: replace the key
+    files: ~/Downloads/notes.txt:3 · open · keeps it: It holds more than the key: take the key out of it
+claude · GitHub ghp_…Ttzo · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: A reply in a Claude Code conversation in ~/code/shop · named {"as": "test"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitHub ghp_…dEZ9 · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 1f1e1d1c · claude purge '~/code/shop'
+claude · GitHub ghp_…vsDW · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GITHUB_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 5a5b5c5d · claude purge '~/code/shop'
+claude · GitHub ghr_…JwSf · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GH_REFRESH"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitHub …x8Su · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GH_SERVER"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitHub …yyWq · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GH_USER"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 2f2e2d2c · claude purge '~/code/shop'
+claude · GitLab glpat-…HUtu · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitLab ↗ · menu: Open notes.md at Line 1 / Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "GITLAB_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    claude: ~/.claude/projects/(shop)/memory/notes.md:1 · what Claude Code reads as its instructions · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+claude · GitLab glpat-…cRuB · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitLab ↗ · menu: Open shop/CLAUDE.local.md at Line 4 / Mark Replaced / Not a Key
+    claude: ~/code/shop/CLAUDE.local.md:4 · what Claude Code reads as its instructions · named {"as": "GITLAB_TOKEN"} · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+    files: shop · CLAUDE.local.md:4 · git would add it · project shop, main · named {"as": "GITLAB_TOKEN"} · open · keeps it: Not in git yet: take the key out before it's committed
+claude · Hugging Face hf_…elgL · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Hugging Face ↗ · menu: Open MEMORY.md at Line 2 / Mark Replaced / Not a Key
+    claude: ~/.claude/projects/(shop)/memory/MEMORY.md:2 · what Claude Code reads as its instructions · named {"as": "HF_TOKEN"} · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+claude · Hugging Face hf_…tUGA · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Hugging Face ↗ · menu: Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Claude Code's earlier copy of ~/code/shop/notes/hf.env · named {"as": "HF_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+claude · Linear api key …k19a · replaced ignore · it has left the Mac · now, shape
+    fix: Open the Conversation · menu: Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Your message in a Claude Code conversation in ~/code/shop · named {"as": "LINEAR_API_KEY"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 5a5b5c5d · claude purge '~/code/shop'
+claude · npm npm_…j37H · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at npm ↗ · menu: Open shop/.env at Line 1 / Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: What a tool read in a Claude Code conversation in ~/code/shop · named {"as": "NPM_TOKEN"} · conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    files: shop · .env:1 · git would add it · project shop, main · named {"as": "NPM_TOKEN"} · open · keeps it: Not in git yet: take the key out before it's committed
+claude · npm npm_…rMRb · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at npm ↗ · menu: Open keys.md at Line 2 / Mark Replaced / Not a Key
+    claude: ~/notes/keys.md:2 · what Claude Code reads as its instructions · named {"as": "NPM_TOKEN"} · open · keeps it: Claude Code reads it into its sessions: take the key out of this file
+claude · npm npm_…wXFf · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at npm ↗ · menu: Open shop/config/app.env at Line 3 / Open the Conversation in shop / Copy Clear-Up Command for shop / Mark Replaced / Not a Key
+    claude: Claude Code's copy of ~/code/shop/config/app.env · named {"as": "NPM_TOKEN"} · open conversation clear · keeps it: Claude Code keeps it: its clear-up command takes it out · session 0f0e0d0c · claude purge '~/code/shop'
+    files: shop · config/app.env:3 · git would add it · project shop, main · named {"as": "NPM_TOKEN"} · open · keeps it: Not in git yet: take the key out before it's committed
+ai · Anthropic sk-ant-…BCAA · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Anthropic ↗ · menu: Open rollout-1.jsonl at Line 2 / Mark Replaced / Not a Key
+    ai: Codex · ~/.codex/sessions/2030/01/01/rollout-1.jsonl:2 · open · keeps it: Codex keeps it: replace the key
+ai · GitHub ghp_…Qnu3 · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at GitHub ↗ · menu: Open shop/.aider.chat.history.md at Line 1 / Mark Replaced / Not a Key
+    ai: Aider · shop · .aider.chat.history.md:1 · project shop, main · open · keeps it: Aider keeps it: replace the key
+ai · Hugging Face hf_…qDlR · replace replaced ignore · it has left the Mac · now, shape
+    fix: Replace at Hugging Face ↗ · menu: Open service.json at Line 1 / Move service.json to the Trash… / Mark Replaced / Not a Key
+    ai: Gemini CLI · ~/.gemini/tmp/abc/logs.json · reveal · keeps it: Gemini CLI keeps it: replace the key
+    files: ~/Downloads/service.json:1 · named {"as": "token"} · trash open
+ai · Sign-in token (JWT) eyJ…rr-n · replaced ignore · it has left the Mac · soon, ended · its end date kept
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    ai: Codex · ~/.codex/sessions/2030/01/01/rollout-1.jsonl:3 · named {"as": "SESSION"} · open · keeps it: Codex keeps it: replace the key
+readable · AWS credentials ~/.aws/credentials · ignore · soon, kept
+    fix: Make It Yours Only · menu: Not a Key
+    readable: Other accounts on this Mac can read it · private reveal
+readable · SSH private key ~/.ssh/id_ed25519 · ignore · soon, kept
+    fix: Make It Yours Only · menu: Not a Key
+    readable: Other accounts on this Mac can read it · private reveal
+files · Anthropic sk-ant-…lFAA · replace replaced ignore · soon, shape
+    fix: Make It Yours Only · menu: Open .zshrc at Line 7 / Replace at Anthropic ↗ / Mark Replaced / Not a Key
+    files: ~/.zshrc:7 · your shell's settings · named {"as": "ANTHROPIC_API_KEY"} · open private · keeps it: Every terminal you open gets it from here: put the new key in its place once you've replaced it
+files · Curl auth user …2ELt · replaced ignore · soon, typed
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    files: ~/.zsh_history:4 · your shell history · named {"to": "api.example.dev"} · open · keeps it: Your shell history: take the line out
+files · Generic api key …kdxo · replaced ignore · soon, file
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    files: ~/.bashrc:1 · your shell's settings · named {"as": "SERVICE_TOKEN"} · open · keeps it: Every terminal you open gets it from here: put the new key in its place once you've replaced it
+files · GitHub ghp_…2ELt · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitHub ↗ / Mark Replaced / Not a Key
+    files: ~/.zsh_history:4 · your shell history · named {"to": "api.example.dev"} · open · keeps it: Your shell history: take the line out
+files · GitHub ghp_…4xXH · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitHub ↗ / Mark Replaced / Not a Key
+    files: shop · the address of its remote origin · project shop, main · named {"for": "github.com"} · open · keeps it: In the remote's address: take the token out of it
+    files: shop-fix · the address of its remote origin · project shop, shop-fix · named {"for": "github.com"} · open · keeps it: In the remote's address: take the token out of it
+files · GitHub ghp_…LB7R · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitHub ↗ / Mark Replaced / Not a Key
+    files: ~/.zsh_history:5 · your shell history · named {"for": "git.example.dev"} · open · keeps it: Your shell history: take the line out
+files · GitHub ghp_…jn6r · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitHub ↗ / Mark Replaced / Not a Key
+    files: ~/.zsh_history:2 · your shell history · named {"as": "GITHUB_TOKEN"} · open · keeps it: Your shell history: take the line out
+files · GitHub github_pat_…LDUL · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitHub ↗ / Mark Replaced / Not a Key
+    files: shop · README.md:3 · not committed yet · project shop, main · named {"as": "TOKEN"} · open · keeps it: Git has this file: take the key out of it
+files · GitLab glpat-…0JxX · replace replaced ignore · soon, shape
+    fix: Open at the Line · menu: Replace at GitLab ↗ / Mark Replaced / Not a Key
+    files: shop · .mcp.json:1 · MCP settings, git would add it · project shop, main · named {"as": "GITLAB_TOKEN"} · open · keeps it: Not in git yet: take the key out before it's committed
+files · Sign-in token (JWT) eyJ…9s-u · replaced ignore · soon, ended · its end date kept
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    files: ~/.zsh_history:3 · your shell history · named {"as": "SESSION"} · open · keeps it: Your shell history: take the line out
+files · Sign-in token (JWT) eyJ…UWlm · replaced ignore · soon, ended · its end date kept
+    fix: Open at the Line · menu: Mark Replaced / Not a Key
+    files: ~/Downloads/diagnostics.txt:1 · open · keeps it: It holds more than the key: take the key out of it
+as it read: 1 of 5, 15 found, 13 counted · 2 of 5, 17 found, 15 counted · 3 of 5, 27 found, 25 counted · 4 of 5, 71 found, 61 counted
+
+Whozmove's record: pay with sk-ant-…fcAA please
+panel.log: Keys looked for (its time), with Betterleaks (its version): 71 keys, 61 counted, 0 put away
+how Betterleaks ran: GOMAXPROCS=1, in the background
+records kept in an older shape: read again, 0 of its old finds listed
+
+private: why None · 70 left · 600
+trash, an agent at work: why An agent is at work in Downloads: try again once it's done. · 70 left
+trash, another file now: why The file isn't there any more, or it's another file now: look again. · 70 left
+trash, a file that holds more: why Only a file that's nothing but the key goes to the Trash: open this one at the line instead. · 70 left
+trash, a file that can't go: why Only a file that's nothing but the key goes to the Trash: open this one at the line instead. · 70 left
+ignore: why None · 69 left
+ignore again: why It's no longer listed: look again. · 69 left
+replaced: why None · 68 left
+undo: why None · 69 left
+replaced again: why None · 68 left
+looked again: 67 keys · AWS credentials gone · the ignored key gone · still sent to Claude: sk-ant-…fcAA sk-ant-…RkAA sk-ant-…xyAA …bApe …0133 …0ab5 …4998 …5usU …6pUl …766d …76d5 …BwBY …JBl2 …NTD2 …PSIA …QAL5 …S0wg …UkAU …Uukq …Y0mG …aSGc …b807 …cqhk …fygq …wPkc …y7o8 …yX4C …479. …6001 …Kagk …ator …n2!7 gho_…fa5K ghp_…5JpH ghp_…BOdO ghp_…Ttzo ghp_…dEZ9 ghp_…vsDW ghr_…JwSf …x8Su …yyWq glpat-…HUtu glpat-…cRuB hf_…elgL hf_…tUGA …k19a npm_…j37H npm_…rMRb npm_…wXFf
+the token in Codex’s record, not read again: its end date kept, named {"as": "SESSION"}
+put away: GitHub ghp_…1Q1J (replaced), Curl auth user …2ELt (ignored)
+copies, not read again: Claude Code's copy of ~/code/shop/config/app.env / Claude Code's earlier copy of ~/code/shop/notes/hf.env
+a look an older build kept: why It's no longer listed: look again. · 0 left
+without Full Disk Access: 66 keys · skipped {'downloads': True, 'protected': 1} · access False
+a look stopped after 2 records, then another: 23 read in all, of 23: each once
+a look keeping after every record, and one keeping at its end: the same keys
+
+records in a run that stopped · problem: Couldn't finish looking in Claude Code · keys: GitHub ghp_…8xpZ in record 1, GitHub ghp_…Ex3o in record 4, GitHub ghp_…Ixq4 in record 2
+its runs: record-four,record-one,record-three,record-two (stopped);record-one,record-two;record-four,record-three (stopped);record-three (stopped);record-four
+looked again · problem: Couldn't finish looking in Claude Code · keys: GitHub ghp_…8xpZ in record 1, GitHub ghp_…Ex3o in record 4, GitHub ghp_…Ixq4 in record 2
+its runs: record-three (stopped)
+keys across records · problem: None · keys: Private key  in record 4, Private key  in record 5, Private key  in record 6
+its runs: record-five,record-four,record-one,record-six,record-three,record-two;record-five,record-four,record-six,record-two;record-six;record-six;record-six;record-six;record-six;record-six;record-six;;;;record-six
+looked again: no runs

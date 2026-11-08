@@ -1,0 +1,9 @@
+at the Mac, nothing at work, the card folded: 7, at 0:00 10:00 20:00 30:00 40:00 50:00 60:00
+a session at work, or the card out or open: 21, at 0:00 3:00 6:00 9:00 12:00 15:00 18:00 21:00 24:00 27:00 30:00 33:00 36:00 39:00 42:00 45:00 48:00 51:00 54:00 57:00 60:00
+away from minute 10 to 70, nothing at work: 5, at 0:00 10:00 70:00 80:00 90:00
+away from minute 10 to 80, a session at work throughout: 9, at 0:00 3:00 6:00 9:00 12:00 80:00 83:00 86:00 89:00
+a window resets at minute 25: 6, at 0:00 10:00 20:00 25:20 35:20 45:20
+asking fails until minute 20: 9, at 0:00 0:30 1:30 3:30 7:30 15:30 30:30 40:30 50:30
+away while asking fails, back at minute 40: 6, at 0:00 0:30 1:30 3:30 40:00 48:00
+Sign in pressed at minute 5: 6, at 0:00 5:15 5:30 5:45 6:00 16:00
+A card, and room kept for it, after an answer: ok yes signedOut yes other no none no

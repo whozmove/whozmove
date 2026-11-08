@@ -1,0 +1,16 @@
+/* The line under the header where notifications says what needs you (notice-line.js): the kit's one-line message, its
+   New tag, its button, the +N chip and its × (controls.css), in the header's room, its words lined up with the name's.
+   Where it goes, and how it fades with the list as the panel folds, are the core's (base.css).
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+
+#notices { flex: none; position: relative; }
+body.collapsed #notices { display: none; }
+.nl-line { min-height: 26px; padding: 0 8px 10px 14px; }
+.nl-line .tag.new { margin-right: -4px; }
+/* A few quiet words after its own ("· 3 waiting"), kept together. */
+.nl-after { color: var(--muted); font-size: var(--size-meta); white-space: nowrap; }
+.nl-line .nl-close { margin: 0 -2px 0 -4px; }
+/* Folded by its ×: its chip alone, at the line's end, where its × was. */
+.nl-line.nl-folded { min-height: 20px; padding-bottom: 6px; justify-content: flex-end; gap: 6px; }
+/* What VoiceOver says, out of sight. */
+#notice-say { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

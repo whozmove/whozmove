@@ -11,11 +11,23 @@
 // most every 5 minutes (DeveloperToolsGit), unless its installer for them is open.
 static const NSTimeInterval kLookAgain = 10;
 // How often it looks again once the agent has said how its hooks stand: you may turn them off or take them out there,
-// or back on, while Whozmove runs, and the line says so within minutes. Each look runs the agent's own command, so not
-// often.
-static const NSTimeInterval kLookAgainSettled = 5 * 60;
+// or back on, while Whozmove runs. Each look runs the agent's own command, a large program, so it looks when the
+// agent's stamp says something may have changed, and otherwise hourly, for what only the command tells. A change the
+// stamp covers shows on the line within seconds; anything else waits for the hourly look. An agent with no stamp is
+// looked at every 5 minutes.
+static const NSTimeInterval kLookAgainSettled = 5 * 60, kLookAgainStamped = 60 * 60;
 // How long Install waits for macOS's installer to show, after asking for it, and how often it looks meanwhile.
 static const NSTimeInterval kInstallerWait = 5, kInstallerLook = 0.25;
+
+// Whether to look again, `since` seconds after the last check ended: every kLookAgain while it waits for the agent or
+// the developer tools; once settled, when the agent's stamp has changed from the one the last check went by (no
+// sooner than kLookAgain, so a check that keeps changing it starts the agent's command only now and then) and every
+// kLookAgainStamped anyway, or every kLookAgainSettled for an agent with no stamp.
+static BOOL LookAgainDue(BOOL waiting, NSTimeInterval since, NSString *stamp, NSString *checkedStamp) {
+    if (waiting) return since >= kLookAgain;
+    if (!stamp) return since >= kLookAgainSettled;
+    return (since >= kLookAgain && ![stamp isEqualToString:checkedStamp ?: @""]) || since >= kLookAgainStamped;
+}
 
 BOOL InApplications(NSString *app) {
     NSString *path = app.stringByStandardizingPath;
@@ -57,6 +69,10 @@ static void KeepRecord(NSDictionary *record) {
 @property (assign) NSInteger queued;  // checks queued or under way, counted on the main thread
 @property (strong) NSDictionary *found;
 @property (assign) NSTimeInterval checkedAt;
+// The agent's stamp the last check goes by, on the main thread: as it started, so a change meanwhile is looked at
+// again; or as it ended, when the check itself wrote to the agent (your press, or the hooks put in or brought up to
+// date there, or trying to), which would otherwise look like a change.
+@property (copy) NSString *checkedStamp;
 @property (copy) NSString *said;  // the outcome last said in the log, on the queue
 @property (assign) BOOL wasInstalling;  // on the queue: macOS's installer was open at the last look, the tools not in
 @end
@@ -78,12 +94,15 @@ static void KeepRecord(NSDictionary *record) {
 
 - (void)check:(NSString *)answer {
     self.queued++;
+    self.checkedStamp = self.stamp ? self.stamp() : nil;
     dispatch_async(self.queue, ^{
         NSDictionary *found = [self go:answer];
         dispatch_async(dispatch_get_main_queue(), ^{
             self.queued--;
             self.found = found;
             self.checkedAt = NSDate.date.timeIntervalSince1970;
+            if (answer || [@[@"added", @"updated", @"failed"] containsObject:AsText(found[@"state"]) ?: @""])
+                self.checkedStamp = self.stamp ? self.stamp() : nil;
             if (self.onFound) self.onFound(found);
         });
     });
@@ -95,8 +114,9 @@ static void KeepRecord(NSDictionary *record) {
                 || [self.found[@"tools"] isEqualToString:@"installing"];
     BOOL settled = [@[@"ready", @"added", @"updated", @"turnedOff", @"removed", @"failed"] containsObject:state ?: @""];
     if (self.queued || !(waiting || settled)) return;
-    if (NSDate.date.timeIntervalSince1970 - self.checkedAt < (waiting ? kLookAgain : kLookAgainSettled)) return;
-    [self check:nil];
+    NSString *stamp = !waiting && self.stamp ? self.stamp() : nil;
+    if (LookAgainDue(waiting, NSDate.date.timeIntervalSince1970 - self.checkedAt, stamp, self.checkedStamp))
+        [self check:nil];
 }
 
 // On the queue: each step in turn, as the module's README lays them out, each one's outcome said in the log. How
@@ -350,6 +370,13 @@ static NSDictionary<NSString *, NSDictionary *> *InstallCases(void) {
         @"taken-out": @{@"app": @"~/Applications/Whozmove.app", @"before": @YES, @"agent": @[@"removed"]},
         @"turned-off": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"turnedOff"]},
         @"turned-off-again": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"turnedOff"], @"again": @YES},
+        // The agent's stamp: written by the check itself (the hooks put in), changed after it (turned off there), or
+        // none; then when the next look would come.
+        @"stamp-written": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"added"],
+                            @"stamps": @[@"as it started", @"as it ended"]},
+        @"stamp-changed": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"ready"],
+                            @"stamps": @[@"as it started", @"changed since"]},
+        @"no-stamp": @{@"app": @"~/Applications/Whozmove.app", @"agent": @[@"ready"]},
         @"presses": @{@"app": @"~/Applications/Whozmove.app", @"before": @YES,
                       @"agent": @[@"removed", @"added", @"ready"], @"presses": @[@"addBack", @"retry"]},
         @"install-pressed": @{@"app": @"~/Applications/Whozmove.app", @"tools": @[@NO, @NO, @NO, @NO, @YES],
@@ -430,6 +457,7 @@ int PrintInstall(NSArray<NSString *> *cases) {
         NSMutableArray *tools = [setup[@"tools"] ?: @[@YES] mutableCopy];
         NSMutableArray *installer = [setup[@"installer"] ?: @[@NO] mutableCopy];
         NSMutableArray *answers = [setup[@"agent"] ?: @[] mutableCopy];
+        NSMutableArray *stamps = [setup[@"stamps"] mutableCopy];
         NSMutableArray *asked = [NSMutableArray array], *toolsAsked = [NSMutableArray array];
         NSMutableArray *looks = [NSMutableArray array], *since = [NSMutableArray array];
         NSMutableArray *toolsFound = [NSMutableArray array];
@@ -459,6 +487,7 @@ int PrintInstall(NSArray<NSString *> *cases) {
                 return [Next(tools, lock) boolValue];
             };
             install.installer = ^BOOL { return [Next(installer, lock) boolValue]; };
+            if (stamps) install.stamp = ^NSString * { return Next(stamps, lock); };
             install.askTools = ^{
                 @synchronized (lock) { [toolsAsked addObject:@"asked to install them"]; }
             };
@@ -521,6 +550,14 @@ int PrintInstall(NSArray<NSString *> *cases) {
                                          @"tools asked": toolsAsked, @"asked": asked, @"noted": noted ?: NSNull.null,
                                          @"connected": record[@"connectedAt"] ? @"recorded" : @"not recorded",
                                          @"went in": record[@"addedAt"] ? @"recorded" : @"not recorded"} mutableCopy];
+        if ([name hasSuffix:@"stamp"] || setup[@"stamps"]) {
+            NSString *now = stamps ? Next(stamps, lock) : nil;
+            NSMutableDictionary *next = [NSMutableDictionary dictionary];
+            for (NSNumber *after in @[@5, @11, @301, @3601])
+                next[[NSString stringWithFormat:@"%@ s after", after]] =
+                    LookAgainDue(NO, after.doubleValue, now, install.checkedStamp) ? @"looks again" : @"waits";
+            result[@"next look"] = next;
+        }
         if (login) {
             NSDictionary *file = [NSDictionary dictionaryWithContentsOfFile:LoginItemPath(label)];
             NSString *opens = [AsText(AsList(file[@"ProgramArguments"]).firstObject)

@@ -1,10 +1,11 @@
 {
   "order": 50,
+  "scripts": ["page/usage.js", "page/gear.js", "page/over.js"],
   "pages": {
     "card": {
       "page": "page/card.html",
-      "scripts": ["page/usage.js", "page/waits.js", "page/wait-vine.js", "page/card.js"],
-      "styles": ["page/usage.css"]
+      "scripts": ["page/usage.js", "page/gear.js", "page/waits.js", "page/wait-vine.js", "page/card.js"],
+      "styles": ["page/gear.css", "page/usage.css"]
     }
   }
 }

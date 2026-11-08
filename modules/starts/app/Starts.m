@@ -17,6 +17,7 @@
 #import "Links.h"
 #import "Text.h"
 #import "Menus.h"
+#import "Modules.h"
 #import "Log.h"
 #import "Worktrees.h"
 
@@ -35,10 +36,22 @@ static const NSUInteger kWordsMax = 50000;
 @property (copy) NSString *conversation;  // the Claude Desktop conversation Claude's log says it became
 @property (assign) NSTimeInterval at, until;  // when it was started, and when it's given up on
 @property (copy) NSSet<NSString *> *known;
+// What the card's other parts gave it, by module name, handed to each module once it's a session (Module's started:with:).
+@property (copy) NSDictionary<NSString *, id> *with;
 @end
 
 @implementation Start
 @end
+
+// What a start carries for other modules, as the page sent it: by a module's name, each a record, a few at most. Only
+// what's well formed is kept; what each holds is its module's to check.
+static NSDictionary *With(id value) {
+    NSMutableDictionary *with = [NSMutableDictionary dictionary];
+    NSDictionary *given = AsRecord(value);
+    for (NSString *name in given)
+        if (with.count < 4 && IsPlainId(AsText(name), 32) && AsRecord(given[name])) with[name] = given[name];
+    return with.count ? with : nil;
+}
 
 // An id the page made up for a start: plain, and short.
 static NSString *StartId(id value) {
@@ -317,6 +330,7 @@ static NSString *Folder(id value) {
             if (AsText(copy[@"hostSessionId"])) [known addObject:copy[@"hostSessionId"]];
     }
     start.known = known;
+    start.with = With(msg[@"with"]);
     self.waiting[startId] = start;
     PanelLog(@"start %@: %@ in %@%@%@", startId, app, folder, trust ? @", trusting it" : @"",
              kind ? [NSString stringWithFormat:@", in a worktree (%@ %@)", kind, AsText(target[@"name"]) ?: AsText(target[@"path"]) ?: @""] : @"");
@@ -449,6 +463,7 @@ static NSString *Folder(id value) {
             [self.waiting removeObjectForKey:start.startId];
             [self dropWords:start];
             PanelLog(@"start %@: started as %@", start.startId, found.sessionId);
+            [self handOver:start.with to:found.sessionId];
             [self.core.page call:@"startUpdate" with:@[start.startId ?: @"", @{@"sessionId": found.sessionId}]];
             NSString *elsewhere = [self whereElse:found for:start];
             if (elsewhere) [self.core.page stepNote:found.sessionId text:elsewhere];
@@ -461,6 +476,15 @@ static NSString *Folder(id value) {
                 : [NSString stringWithFormat:@"%@ didn't open a tab for it", terminal]];
         }
     }
+}
+
+// What the card's other parts gave a start, each to the module it's for, now it's a session: never to a module it
+// doesn't name.
+- (void)handOver:(NSDictionary *)with to:(NSString *)sessionId {
+    for (NSString *name in with)
+        for (id<Module> module in self.core.modules.all)
+            if ([[module.class moduleName] isEqual:name] && [module respondsToSelector:@selector(started:with:)])
+                [module started:sessionId with:with[name]];
 }
 
 // Where Claude started a conversation, when it isn't the folder it was opened in: in words for under its row, which has

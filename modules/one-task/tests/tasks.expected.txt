@@ -1,0 +1,212 @@
+== The shape, as it comes in
+A try with its steps and a link: {"attach":[{"kind":"link","label":"Preview","url":"https://preview.example"}],"id":"passkeys","kind":"try","step":{"n":1,"name":"Sign up","of":3},"title":"Passkey sign-in","todo":["Open the preview","Make an account"],"why":"On the preview now."}
+A run with its folder: {"command":{"run":"cargo publish","where":"~/code/rq"},"id":"publish-1.4","kind":"run","title":"Publish 1.4.0","why":"It needs your login."}
+A question with several picks, one recommended: {"choices":[{"id":"ios","label":"iPhone","recommended":true},{"id":"android","label":"Android"}],"id":"q","kind":"answer","several":true,"title":"Who gets it?","why":"Build 213 is ready."}
+No id: refused: give it an id: letters, digits, '.', '_' or '-', 64 at most, the same for each of its steps
+An id that's a path: refused: give it an id: letters, digits, '.', '_' or '-', 64 at most, the same for each of its steps
+An id too long: refused: give it an id: letters, digits, '.', '_' or '-', 64 at most, the same for each of its steps
+A kind there isn't: refused: its kind is one of try, pick, approve, answer, run, do, seen
+Allow (a session's own request is never a task): refused: its kind is one of try, pick, approve, answer, run, do, seen
+A hire, which isn't a kind (a proposal to say yes to is an approve): refused: its kind is one of try, pick, approve, answer, run, do, seen
+A title too long: refused: a title may be 80 characters at most
+An invisible character in its title: refused: a title has a control or invisible character in it: send plain text
+Why on two lines: refused: why has a control or invisible character in it: send plain text
+A command on two lines: refused: command.run has a control or invisible character in it: send plain text
+A command that turns its text round: refused: command.run has a control or invisible character in it: send plain text
+A command in a folder that isn't a full path: refused: command.where is the folder to run it in, as a full path
+A run with no command: refused: a run needs its command
+A link that isn't the web's, a file that isn't a full path, and the changes: {"attach":[{"kind":"page","label":"The page"},{"kind":"file","label":"Notes"},{"added":14,"kind":"diff","label":"2 files","removed":3}],"id":"a","kind":"seen","title":"Look","why":"See."}
+A pick with one choice: refused: choices is a list of 2 to 6
+A pick whose choices are words (yes, no): a question, sent as an answer: refused: a pick's choices are named by a letter, A to Z, as its looks are: yes isn't one. For a question with words for its choices, such as yes or no, send it as an answer
+…a pick named by a small letter: refused: a pick's choices are named by a letter, A to Z, as its looks are: a isn't one. For a question with words for its choices, such as yes or no, send it as an answer
+…the same choices as an answer: {"choices":[{"id":"yes","label":"Yes, both"},{"id":"no","label":"Not like that"}],"id":"q","kind":"answer","title":"Both?","why":"W."}
+Two choices with one id: refused: each choice needs an id of its own: letters, digits, '.', '_' or '-', 16 at most
+Step 3 of 2: refused: step is {n, of}: step n of `of`, from 1 to 20
+A priority, which Whozmove leaves out (it orders tasks itself): {"id":"a","kind":"seen","title":"Live","why":"Done."}
+Not an object: refused: send the task as one JSON object
+An approve with its points, one greyed: {"id":"p","kind":"approve","points":["Behind a flag","One new endpoint","Not in it: Google Pay"],"title":"Apple Pay","why":"The plan."}
+13 points: refused: points is a list of 2 to 12 lines
+One point: refused: points is a list of 2 to 12 lines
+An approve with its phases: {"id":"p","kind":"approve","phases":[{"lines":["Prints a script","Built from the command list"],"name":"Generate"},{"lines":["Puts it where your shell looks"],"name":"Install"}],"title":"Apple Pay","why":"The plan."}
+A phase of 4 lines: refused: each phase's lines are 1 to 3
+Both points and phases: refused: give it points or phases, not both
+A try with what changed, what to look for, and a screenshot: {"attach":[{"kind":"image","label":"After","path":"/tmp/after.png"}],"changed":"Saved maps open with no signal.","id":"t","kind":"try","lookFor":"The map stays sharp.","title":"Offline maps","why":"Build 212."}
+An image that isn't a full path: refused: an image is a picture's file, as a full path: .png, .jpg, .gif or .heic
+An image that isn't a picture's file: refused: an image is a picture's file, as a full path: .png, .jpg, .gif or .heic
+5 images: refused: 4 images at most
+A phase's line of 61 characters: refused: each line of a phase may be 60 characters at most
+Designs, each with its picture: {"attach":[{"choice":"A","kind":"image","label":"A","path":"/tmp/a.png"},{"choice":"B","kind":"image","label":"B","path":"/tmp/b.png"}],"choices":[{"id":"A","label":"Itemised"},{"id":"B","label":"Total first"}],"id":"r","kind":"pick","title":"Receipt email","why":"Three looks."}
+A picture of a choice the task hasn't: refused: an image's choice, C, isn't one of the task's choices
+An approve with its plan's glance, its lines kept: {"glance":"## At a glance\n\n- **What changes for you:** one list, by aisle.\n- **You decide:**\n  1. Where it lives: on your account (recommended), or this browser. Why: phones.","id":"p","kind":"approve","title":"Apple Pay","why":"The plan."}
+A glance of 2001 characters: refused: glance may be 2000 characters at most
+A glance with its points: refused: give it a glance, or points or phases, not both
+A glance hiding a character: refused: glance has a control or invisible character in it: send plain text
+A glance with tabs and Windows line endings, as a file has them: kept, as spaces and line breaks: {"glance":"## At a glance\n\n- **You decide:**\n    1. Where: here (recommended), or there.","id":"p","kind":"approve","title":"Apple Pay","why":"The plan."}
+A glance on a try: refused: only an approve takes a glance: the At a glance block of the plan it asks you to approve
+The largest task every field allows, in plain letters: fits one ask as sent
+…with its plan's glance in place of phases: fits one ask as sent
+A do about another session: {"about":"3f2a9c1e-5b7d-4e8a-9c0f-1a2b3c4d5e6f","id":"yes","kind":"do","title":"Say yes in its tab","why":"It waits for you there."}
+About a session named by a path: refused: name the session it's about by its id: letters, digits, '.', '_' or '-', 64 at most
+A link over http: {"attach":[{"kind":"link","label":"Sign in"}],"id":"a","kind":"seen","title":"Look","why":"See."}
+A token in its command: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A private key in its words: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Stripe live key: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Stripe restricted key: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Stripe test key: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Google API key: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Google client secret: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Slack app token: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A GitLab token: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+An npm token: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A Hugging Face token: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A SendGrid key: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A bearer token: refused: it holds something shaped like a key, token or password: never put one in a task, as the panel shows it
+A bearer of news, in words: kept
+npm's folder, in words: kept
+Where a password is, in words: kept
+Why of 161 characters: refused: why may be 160 characters at most
+What changed, on two lines: refused: changed has a control or invisible character in it: send plain text
+== One session's record
+The first: sent: passkeys, step 1 of 3. Ask for the answer with ask-panel.sh task-answer passkeys --wait
+…what task-answer says: waiting: passkeys hasn't been answered yet
+Task 2: sent: t2. Ask for the answer with ask-panel.sh task-answer t2 --wait
+Task 3: sent: t3. Ask for the answer with ask-panel.sh task-answer t3 --wait
+Task 4: sent: t4. Ask for the answer with ask-panel.sh task-answer t4 --wait
+Task 5: sent: t5. Ask for the answer with ask-panel.sh task-answer t5 --wait
+A sixth: sent: t6. Ask for the answer with ask-panel.sh task-answer t6 --wait
+Waiting: passkeys, t2, t3, t4, t5, t6
+…sent until 100 wait: 100
+The 101st: refused: 100 of this session's tasks wait already: wait for an answer (ask-panel.sh task-answer <id> --wait), or send one of them again under its id with what's new
+…the first of them still waiting: passkeys
+…one of them sent again, its next step, at the ceiling: sent: t50, step 2 of 3, in place of the step before
+…still 100 waiting: 100
+Answered Works: answered: {"answer":"Works","at":2000,"id":"passkeys","step":1}
+…waiting then: t2, t3, t4, t5, t6
+Its step 2, under the same id: sent: passkeys, step 2 of 3. Ask for the answer with ask-panel.sh task-answer passkeys --wait
+…what task-answer says then: waiting: passkeys hasn't been answered yet
+Answered with a note: answered: {"answer":"Works","at":2200,"id":"passkeys","note":"The sheet came up.\n\"Twice\".","step":2}
+Can't Now on t2: can't now: t2 is at the back of the user's line
+…waiting then: t3, t4, t5, t6, t2 (back)
+t2's next step, after Can't Now: sent: t2, step 2 of 3, in place of the step before
+…what task-answer says then: waiting: t2 hasn't been answered yet
+An id never sent: gone: no task nope from this session waits (it was never sent, or went with the session's process or conversation): send it again with ask-panel.sh task if it's still needed
+t3's step 2: sent: t3, step 2 of 3, in place of the step before
+A comment on t3: an answer like the others: answered: {"answer":"Comment","at":2460,"id":"t3","note":"The second screen is blank.","step":2}
+…it no longer waits: t4, t5, t6, t2
+t3 sent again after the comment, as its next step: sent: t3, step 3 of 3. Ask for the answer with ask-panel.sh task-answer t3 --wait
+…what task-answer says then: waiting: t3 hasn't been answered yet
+…and its answer then: answered: {"answer":"Works","at":2480,"id":"t3","step":3}
+…and the time each step was sent: t4 sent at 1005
+An answer to an id that doesn't wait changes nothing: yes
+The record keeps the process: 4100, started 77
+== The lead's pick, in the lead's record
+A pick comes: j12 (pick, for s-wren) sent 5000
+…the same pick, sent again: j12 (pick, for s-wren) sent 5000
+…with five of the lead's own: the pick doesn't count toward them: j12 (pick, for s-wren) sent 5000, own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105
+…answered: answered: {"answer":"Approve","at":5200,"id":"j12","step":1}
+…sent again unchanged: it stays answered: answered: {"answer":"Approve","at":5200,"id":"j12","step":1}
+Its next step, under the same id: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400; task-answer says waiting: j12 hasn't been answered yet
+Another pick, the one before unanswered: both wait, the one before never lost: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400, j14 (pick, for s-moss) sent 5500
+The queue names none for a moment: both still wait: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400, j14 (pick, for s-moss) sent 5500
+…the one before sent again, unchanged: it stays as it was, no new step: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400, j14 (pick, for s-moss) sent 5500
+…one answered: it goes, the other still waits: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400; j14 answered: {"answer":"Approve","at":5660,"id":"j14","step":1}
+…the answered one sent again, unchanged: still answered, not back: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105, j12 (pick, for s-wren) sent 5400; answered: {"answer":"Approve","at":5660,"id":"j14","step":1}
+No pick waiting, all answered: own1 sent 5101, own2 sent 5102, own3 sent 5103, own4 sent 5104, own5 sent 5105
+The lead's own task with the id of the pick waiting: refused: the lead's pick waiting has the id j18: send yours under another
+Answered, gone from the queue for a read, then sent again unchanged: still answered: answered: {"answer":"Approve","at":6300,"id":"j18","step":1}
+A pick taken back: what the lead hears, what's kept until the page lets it go, what task-answer says: taken back: j40 leaves the user's line; j40 (pick, for s-wren) sent 6550, j41 (pick, for s-wren) sent 6551; gone: you took j40 back (answered)
+…taken back again: gone: no task j40 from this session waits
+…sent again unchanged while the page holds it: still taken back: answered
+…let go by the page: gone, the next pick waits: j41 (pick, for s-wren) sent 6551
+…sent again unchanged after: it stays gone: j41 (pick, for s-wren) sent 6551; gone: you took j40 back (answered)
+…sent again with something new: it's back, as its next step: j41 (pick, for s-wren) sent 6551, j40 (pick, for s-wren) sent 6580
+…a task that doesn't wait: gone: no task nope from this session waits
+…let go when it wasn't taken back: it stays: j41 (pick, for s-wren) sent 6551, j40 (pick, for s-wren) sent 6580
+== The lead's own picks, and its queue
+A pick the lead sent itself: sent: p1. It shows the user once your team file's queue names it; ask for the answer with ask-panel.sh task-answer p1 --wait; p1 unshown; waiting: p1 isn't in your team file's queue yet, so the user doesn't see it
+Its queue names two of three, and one it never sent: p1 shown at 1 p1, p2 unshown, p3 shown at 0 critical; p9 gone: your team file's queue names p9, a pick you haven't sent: send it with ask-panel.sh task --pick-for
+…a new order, its priorities, and one off the queue: it keeps waiting, shown, after those named, with no priority of the queue's: p1 shown at 0 p0, p2 shown at 1, p3 shown
+…one sent again unchanged: sent: p1 waits as it was; as it was
+…sent again with its next step: in its place, sent anew: sent: p1, in place of the step before; p1 (pick, for s-wren) sent 7011, p2 (pick, for s-moss) sent 7001, p3 (pick, for s-wren) sent 7002
+…answered, then sent again unchanged: sent: p1 was answered already: ask for it with ask-panel.sh task-answer p1
+…a pick with the id of the lead's own task waiting: one of your own tasks waiting has the id own1: give the pick another
+…the 101st pick: 100 of your picks wait already: wait for an answer, or take one back with ask-panel.sh task-withdraw
+Taken back from any place in the line: in front: taken back: front leaves the user's line; then front (taken back), middle, last, unqueued
+…in the middle: taken back: middle leaves the user's line; then front, middle (taken back), last, unqueued
+…at the back, put there with Can't Now: taken back: last leaves the user's line; then front, middle, last (taken back), unqueued
+…a pick its queue never named, never shown: gone at once: taken back: unqueued leaves the user's line; then front, middle, last
+Put back, then sent again unchanged: still at the back: can't now: j19 is at the back of the user's line
+…sent for another member: a new send, in front again: waiting: j19 hasn't been answered yet
+== Read once, kept read
+A task sent: unread: unread
+…read: 9610
+…its next step: still read: 9610
+…read again later: when you were last on it: 9630
+…told of an earlier read after a later one: the newest kept: 9630
+…put back with Can't Now: still read: 9610
+…answered, then its next step: a new send, unread: unread
+An id that doesn't wait changes nothing: yes
+The lead's pick, read, then reworded: still read: 9710
+…taken back: read again changes nothing: yes
+…then sent again changed: new to you, unread: unread
+A session's own task, read, taken back, then sent again: new to you, unread: unread
+A pick the lead queued, read, then sent again changed: still read: 9810
+== What an answer may be, by its task's kind
+A try: Works: fits
+A try: Approve: doesn't fit
+A try: Comment: fits
+A try, its old Not Working: Not Working: doesn't fit
+A pick: B: fits
+A pick, mixing two: A+C: fits
+A pick, three: A+B+C: doesn't fit
+A pick, one twice: A+A: doesn't fit
+A pick, a choice it hasn't: D: doesn't fit
+A pick: More Options: fits
+A question: b: fits
+A question, two: a,b: doesn't fit
+A question that takes several, two: a,b: fits
+Seen: Seen: fits
+Seen: Comment: fits
+A try: : doesn't fit
+== The talk about a task
+The line, to the session that sent it: About your task “Search as you type” (step 2 of 3, On a phone): Where's the search box?
+…a task with no step: About your task “Release notes”: Which version?
+…to the member the lead's pick is for, none of the lead's words: About the task Atlas gave me on your work (step 2 of 3): Where's the search box?
+…a lead with a long name: About the task your lead gave me on your work (step 2 of 3): Where?
+…a lead named with a sentence: About the task your lead gave me on your work (step 2 of 3): Where?
+…a lead's name with a quote in it: About the task your lead gave me on your work (step 2 of 3): Where?
+…a lead's name of 24 plain characters: About the task Atlas-2 North West Board gave me on your work (step 2 of 3): Where?
+…on three lines: About your task “Search as you type” (step 2 of 3, On a phone): Where is it? I see a menu. No box.
+…starting with a command: About your task “Search as you type” (step 2 of 3, On a phone): /clear
+…ending with a backslash: About your task “Search as you type” (step 2 of 3, On a phone): See C:
+…with a control character and a turning one: About your task “Search as you type” (step 2 of 3, On a phone): Look[2J here now
+…only spaces: (null)
+…words that fill it to 600: 600
+…one more: (null)
+A reply with no code: [{"prose":"It's behind the magnifier.\n\nPress it once."}]
+…a fenced command between prose: [{"prose":"Paste it into a terminal:"},{"code":"npm run build -- --watch","lang":"bash"},{"prose":"Then reload."}]
+…a heredoc, its lines and quotes as written: [{"prose":"Run:"},{"code":"python3 - <<'EOF'\nimport json\nprint(\"ok\")\nEOF","lang":""}]
+…two blocks, one with ~~~: [{"prose":"First:"},{"code":"make","lang":"sh"},{"prose":"then:"},{"code":"make test","lang":""}]
+…inline code stays prose: [{"prose":"Use `make test` there."}]
+…a fence left open runs to the end: [{"prose":"Try:"},{"code":"ls -la\ncd x","lang":""}]
+…one its agent cut at the most it gives, and one just as long that ends on its own: cut, whole
+…a closing fence of four, and ``` inside another fence: [{"code":"```js\nx\n```","lang":"md"},{"prose":"Done."}]
+…nothing: []
+Held words, its terminal behind another app: goes by itself
+…its terminal in front, on another tab as far as it last said: waits for your press
+…the session you're on: waits for your press
+…in Claude Desktop: waits for your press
+…its terminal unknown: waits for your press
+…nothing in front: goes by itself
+Words held: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"}],"to":"s-wren","toLead":false}
+…words for another session, once the talk is with one: the talk is with another session
+…two at the same moment, kept apart: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+…the second taken back: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"}],"to":"s-wren","toLead":false}
+…the first going in, taken back: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"typing","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+…stopped, with why: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"stopped","why":"it's working","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+…held again, its why gone: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+…none of it could go in, with why and where: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"refused","where":"Ghostty","why":"It's open twice","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+…taken back: {"says":[{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+Its next step: the talk stays: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
+Twelve more: the last ten kept: {"says":[{"at":9402,"line":"l","state":"held","words":"Q2"},{"at":9403,"line":"l","state":"held","words":"Q3"},{"at":9404,"line":"l","state":"held","words":"Q4"},{"at":9405,"line":"l","state":"held","words":"Q5"},{"at":9406,"line":"l","state":"held","words":"Q6"},{"at":9407,"line":"l","state":"held","words":"Q7"},{"at":9408,"line":"l","state":"held","words":"Q8"},{"at":9409,"line":"l","state":"held","words":"Q9"},{"at":9410,"line":"l","state":"held","words":"Q10"},{"at":9411,"line":"l","state":"held","words":"Q11"}],"to":"s-wren","toLead":false}
+Answered: the talk goes with the task: (no task)

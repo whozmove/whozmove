@@ -1,0 +1,12 @@
+# The ways to the account's own home folder, past HOME, still in the code, and how often each file uses one. Files.m's
+# tell whether HOME is your own and stand in when it isn't set, Processes.m's finds your login shell, swap-in.sh's keep
+# a build for a throwaway home from restarting yours and start the app with your name, and Deploys.m's NSUserName gives
+# a deploy your name: those stay. The rest go once their file takes it from HOME.
+# tests/checks.sh fails on one this doesn't list; tests/checks.sh --update takes off the ones gone, and never adds one.
+app/shared/Files.m  NSHomeDirectory  1
+app/shared/Files.m  getpwuid  1
+app/shared/Processes.m  getpwuid  1
+app/swap-in.sh  /Users/  1
+app/swap-in.sh  NFSHomeDirectory  2
+app/swap-in.sh  id -un  3
+modules/deploy/app/Deploys.m  NSUserName  2
