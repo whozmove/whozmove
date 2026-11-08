@@ -18,6 +18,7 @@ connects  *  parts/pane/app/Browser.m  Apple's networking  # pages a session wro
 connects  127.0.0.1  app/shared/OAuth.m  nothing goes out  # a sign-in's one-time return address, on this Mac alone
 connects  127.0.0.1  modules/claude-code/tests/stand-in-claude.py  nothing goes out  # the stand-in server
 connects  127.0.0.1  modules/jira/tests/stand-in.py  nothing goes out  # the stand-in for Atlassian
+connects  api.github.com  tools/betterleaks.sh  macOS's curl, and its SHA-256  # Betterleaks, when its download address fails
 connects  auth.atlassian.com  app/shared/OAuth.h  Apple's networking  # signing in, at the service a server names
 connects  auth.atlassian.com  app/shared/OAuth.m  Apple's networking  # signing in, at the service a server names
 connects  auth.atlassian.com  modules/jira/app/JiraAccount.h  Apple's networking  # signing in with Atlassian

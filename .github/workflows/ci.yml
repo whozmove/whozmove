@@ -41,6 +41,10 @@ jobs:
       # tools/betterleaks.txt names (a build's, a release's and the one being readied) is put in it here first, for
       # this Mac, checked against its SHA-256 as every build checks it. One already there is only checked.
       - name: Betterleaks, for the build's and Keys' tests
+        # For GitHub's API, which the script turns to when a release download keeps failing: the run's own read-only
+        # token, so the runners' shared address doesn't run out of unsigned requests.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           tools/betterleaks.sh "$RUNNER_TEMP/betterleaks/build"
           tools/betterleaks.sh --release "$RUNNER_TEMP/betterleaks/release"
