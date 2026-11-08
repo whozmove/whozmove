@@ -29,8 +29,11 @@ jobs:
           persist-credentials: false
       # Betterleaks' download, which the build and Keys' tests fetch from GitHub (tools/betterleaks.sh), kept between
       # runs for as long as tools/betterleaks.txt names the same versions. Its checksum is checked each time it's used,
-      # so a cached copy can't stand in for another one.
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # so a cached copy can't stand in for another one. It's kept as soon as it's fetched, not only once every test
+      # has passed, so a run whose tests fail still spares the next one the download, and a run while GitHub's
+      # downloads are failing goes on from the copy kept.
+      - id: betterleaks-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/Library/Caches/Whozmove-build
           key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
@@ -42,6 +45,11 @@ jobs:
           tools/betterleaks.sh "$RUNNER_TEMP/betterleaks/build"
           tools/betterleaks.sh --release "$RUNNER_TEMP/betterleaks/release"
           tools/betterleaks.sh --next "$RUNNER_TEMP/betterleaks/next"
+      - if: steps.betterleaks-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/Library/Caches/Whozmove-build
+          key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
       - name: Build, with warnings as errors
         run: tools/compile.sh "$RUNNER_TEMP/Whozmove" -Werror
       - name: Tests, on that build
