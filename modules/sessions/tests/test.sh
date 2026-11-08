@@ -96,10 +96,12 @@ register() {
          \"cwd\": \"$H/$folder\", \"status\": \"$status\", \"startedAt\": $now, \"statusUpdatedAt\": $now}" \
     > "$H/.claude/sessions/$pid.json"
 }
+# Started detached, so their parent is launchd and no app is above them: otherwise they would inherit whatever terminal
+# this test runs in, and Sessions would say "Running in Ghostty" here and "Running in a terminal" on a runner with none.
+# Every Mac then says the same.
+detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
 for which in OPEN BUSY PAUSED STALE; do
-  sleep 600 >/dev/null 2>&1 &
-  pid=$!; echo $pid >> "$T/pids"; disown $pid
-  eval "${which}_PID=$pid"
+  eval "${which}_PID=$(detached sleep 600)"
 done
 register "$OPEN_PID" "$OPEN" idle code/shop
 register "$BUSY_PID" "$BUSY" busy code/shop
