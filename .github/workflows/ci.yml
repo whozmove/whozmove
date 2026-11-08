@@ -34,6 +34,14 @@ jobs:
         with:
           path: ~/Library/Caches/Whozmove-build
           key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
+      # The tests run in sandboxes that may neither make that folder nor download, so each version
+      # tools/betterleaks.txt names (a build's, a release's and the one being readied) is put in it here first, for
+      # this Mac, checked against its SHA-256 as every build checks it. One already there is only checked.
+      - name: Betterleaks, for the build's and Keys' tests
+        run: |
+          tools/betterleaks.sh "$RUNNER_TEMP/betterleaks/build"
+          tools/betterleaks.sh --release "$RUNNER_TEMP/betterleaks/release"
+          tools/betterleaks.sh --next "$RUNNER_TEMP/betterleaks/next"
       - name: Build, with warnings as errors
         run: tools/compile.sh "$RUNNER_TEMP/Whozmove" -Werror
       - name: Tests, on that build
