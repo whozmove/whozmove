@@ -41,7 +41,10 @@ if [ ! -f "$download" ]; then
   # Into a file of this run's own, then moved into place whole, so two builds at once never write into one download.
   url="https://github.com/betterleaks/betterleaks/releases/download/v$version/betterleaks_${version}_darwin_$asset.tar.gz"
   part=$(mktemp "$download.XXXXXX")
-  curl -fsSL --retry 2 -o "$part" "$url" || { rm -f "$part"; echo "Couldn't download $url" >&2; exit 1; }
+  # Tried up to four times, whatever went wrong: GitHub sometimes answers a release download with an error once (a
+  # 504), which curl alone wouldn't try again. The SHA-256 below checks whatever arrives.
+  curl -fsSL --retry 3 --retry-all-errors --retry-delay 3 -o "$part" "$url" \
+    || { rm -f "$part"; echo "Couldn't download $url" >&2; exit 1; }
   mv "$part" "$download"
 fi
 got=$(shasum -a 256 "$download" | awk '{ print $1 }')
