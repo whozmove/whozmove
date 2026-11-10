@@ -1,10 +1,12 @@
 #!/bin/bash
-# The git module's tests: which checkouts each kind of change is told for (Whozmove --print-watched, compared with
-# watched.expected.txt), so git runs only for the checkouts that changed. A throwaway repo, shop, with a worktree its
-# repo lists (shop-try), a submodule inside it (parts), and shop listed by a link to it (shop-link), as a session's
-# folder can be; each change is made in turn, and what macOS tells of it is noted. Then whether sample branches are on
-# a remote, loose and packed, and when a checkout's git status is due a read. Then what wakes a session waiting on a
-# pull request (Whozmove --print-pr-wakes, from a made-up answer of gh's, compared with pr-wakes.expected.txt).
+# The git module's tests: whether a checkout's branch keeps a pull request of its own, and when it's due its look-up,
+# never on the repo's base branch (Whozmove --print-pr-due, compared with pr-due.expected.txt). Which checkouts each
+# kind of change is told for (Whozmove --print-watched, compared with watched.expected.txt), so git runs only for the
+# checkouts that changed. A throwaway repo, shop, with a worktree its repo lists (shop-try), a submodule inside it
+# (parts), and shop listed by a link to it (shop-link), as a session's folder can be; each change is made in turn, and
+# what macOS tells of it is noted. Then whether sample branches are on a remote, loose and packed, and when a
+# checkout's git status is due a read. Then what wakes a session waiting on a pull request (Whozmove --print-pr-wakes,
+# from a made-up answer of gh's, compared with pr-wakes.expected.txt).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -20,6 +22,12 @@ trap 'rm -rf "$T"' EXIT
 . tests/lib.sh
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
+
+# When a branch's pull request is looked up: every 60s, at once after a switch, and never on the base branch, which
+# pull requests go into. It needs no file events, so it's compared first.
+due=$(HOME="$T" "$APP" --print-pr-due 2>&1)
+compare "When a branch's pull request is looked up" "$HERE/pr-due.expected.txt" "$due" "${1:-}"
+prdue=$?
 
 # git here ignores your personal git settings, and records with a made-up name.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
@@ -78,4 +86,4 @@ watched=$?
 # comments only when the wait asked for them, and the merge.
 pr=$(HOME="$T" "$APP" --print-pr-wakes "$HERE/pr-activity.json" 2030-01-01T12:00:00Z 2>&1)
 compare "What wakes a session waiting on a pull request" "$HERE/pr-wakes.expected.txt" "$pr" "${1:-}"
-exit $((watched | $?))
+exit $((prdue | watched | $?))

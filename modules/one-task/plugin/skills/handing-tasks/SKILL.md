@@ -32,6 +32,8 @@ Run `${CLAUDE_PLUGIN_ROOT}/scripts/ask-panel.sh task` with the task as JSON on s
   follows. One Task then offers Take Me There to it, so one press takes the user to that session's tab.
 - It says `sent: <id>`, or `refused:` and why. Put that right and send it again.
 - Send it again under the same `id` with something new, and it's that task's next step, in the same place.
+- Your task's place in One Task is Whozmove's: by the priority of the ticket your session works on, in your tracker's
+  own order, first come first served. Don't put a priority in the task: it's left out.
 - The whole shape, and every field, is in Whozmove's docs/reference/task.md.
 
 ## Reading the answer

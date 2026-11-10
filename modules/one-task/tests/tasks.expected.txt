@@ -124,8 +124,8 @@ A pick taken back: what the lead hears, what's kept until the page lets it go, w
 …let go when it wasn't taken back: it stays: j41 (pick, for s-wren) sent 6551, j40 (pick, for s-wren) sent 6580
 == The lead's own picks, and its queue
 A pick the lead sent itself: sent: p1. It shows the user once your team file's queue names it; ask for the answer with ask-panel.sh task-answer p1 --wait; p1 unshown; waiting: p1 isn't in your team file's queue yet, so the user doesn't see it
-Its queue names two of three, and one it never sent: p1 shown at 1 p1, p2 unshown, p3 shown at 0 critical; p9 gone: your team file's queue names p9, a pick you haven't sent: send it with ask-panel.sh task --pick-for
-…a new order, its priorities, and one off the queue: it keeps waiting, shown, after those named, with no priority of the queue's: p1 shown at 0 p0, p2 shown at 1, p3 shown
+Its queue names two of three, and one it never sent: p1 shown at 1 p1 from 7005, p2 unshown, p3 shown at 0 critical from 7005; p9 gone: your team file's queue names p9, a pick you haven't sent: send it with ask-panel.sh task --pick-for
+…a new order, its priorities, and one off the queue: it keeps waiting, shown, with no priority of the queue's, each still counted from when the queue first named it: p1 shown at 0 p0 from 7005, p2 shown at 1 from 7008, p3 shown from 7005
 …one sent again unchanged: sent: p1 waits as it was; as it was
 …sent again with its next step: in its place, sent anew: sent: p1, in place of the step before; p1 (pick, for s-wren) sent 7011, p2 (pick, for s-moss) sent 7001, p3 (pick, for s-wren) sent 7002
 …answered, then sent again unchanged: sent: p1 was answered already: ask for it with ask-panel.sh task-answer p1

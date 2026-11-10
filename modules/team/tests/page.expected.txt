@@ -1,47 +1,41 @@
 
 == The groups (teamGroups)
-no one of the team listed: none, so the list shows newest first: null
-the lead on top, then the team and yours: ["null: lead","Team: wren, bea, moss","Yours: plain, dark, visitor"]
-a group with no rows is left out: ["Team","Yours"]
-an ended session in a member's folder isn't shown; one running there, and an ended one of yours, are: ["Team: wren","Yours: gone-own,visitor"]
-…nor is one with a reply you haven't read, as that reply isn't yours to read; one that asks you something is: ["Team: wren (turn)","Yours: gone-asks (needs)"]
-…and so is one you've pressed, held where it was, or are on: ["Team: wren","Yours: gone,gone-focused"]
-…and so is one that speaks for its checkout, with its next steps and Deploy, with no dot for its reply: ["Team: wren (turn)","Yours: gone-unread (seen),gone (idle)"]
+no one of the team listed: none, so the list is its projects alone: null
+the lead on top, then the team, and yours left for the projects: ["null: lead","Team: bea, wren, moss","(the projects): plain, dark, visitor"]
+a group with no rows is left out: ["Team","(the projects)"]
+an ended session in a member's folder isn't shown; one running there, and an ended one of yours, are: ["Team: wren","(the projects): gone-own,visitor"]
+…nor is one with a reply you haven't read, as that reply isn't yours to read; one that asks you something is: ["Team: wren (turn)","(the projects): gone-asks (needs)"]
+…and so is one you've pressed, held where it was, or are on: ["Team: wren","(the projects): gone,gone-focused"]
+…and so is one that speaks for its checkout, with its next steps and Deploy, with no dot for its reply: ["Team: wren (turn)","(the projects): gone-unread (seen),gone (idle)"]
 a reply you haven't read, as whose move it is: ended in a member's folder, running there, ended of yours, and ended where no team file says whose folder it is: ["gone-unread seen","here-unread turn","own-unread turn","no-file turn"]
 a reply kept to read, under a later one to another session: whose move it is, and whether it's still kept: ["kept-gone seen kept","kept-here turn kept","kept-no-file turn kept"]
 …and once the ended one is resumed, its reply to you waits on you again: turn
-an own conversation ended in the project's folder, where the session you talk to runs: whose move it is, and its group: ["turn",["Team: wren (turn)","Yours: own-in-project (turn)"]]
-groups the file names, in its order, after the lead, before the team: ["null (team:lead): lead","Designers (team:group:Designers): bea","Reviewers (team:group:Reviewers): wren, moss","Archive (team:group:Archive): later","Yours (team:yours): dark"]
-a group's name in markup, and a long one, drawn as text in its header: ["team:group:&lt;b&gt;x&lt;/b&gt; | &lt;b&gt;x&lt;/b&gt;","team:group:A group whose name runs on to fifty characters, ok | A group whose name runs on to fifty characters, ok"]
-tagged members stay where they'd be untagged: in their group, or in Team: ["null: lead","Designers: bea","Team: wren, moss","Yours: plain, dark"]
-the session you talk to on top, then the one running the team, and a tagged member in Team: ["null: front, lead","Team: wren","Yours: plain"]
-…the session you talk to not listed: the one running the team on top: ["null: lead","Team: wren","Yours: plain"]
-two teams, each with a session you talk to: both on top, then each one running a team: ["null: front, front-2, lead, lead-2","Yours: plain"]
-the one running the team in its group, the session you talk to alone on top: ["null: front","Reviewers: lead, wren","Team: bea","Writers: moss","Yours: plain"]
-…Team after the groups when the file doesn't place it: ["null: front","Reviewers: lead, wren","Writers: moss","Team: bea"]
+an own conversation ended in the project's folder, where the session you talk to runs: whose move it is, and its group: ["turn",["Team: wren (turn)","(the projects): own-in-project (turn)"]]
+groups the file names, in its order, after the lead, before the team: ["null (team:lead): lead","Designers (team:group:Designers): bea","Reviewers (team:group:Reviewers): wren, moss","Archive (team:group:Archive): later","(the projects) (rest): dark"]
+a group's name in markup, and a long one, drawn as text in its header: ["team:group:&lt;b&gt;x&lt;/b&gt; | &lt;b&gt;x&lt;/b&gt;","team:group:A group whose name runs on to fifty characters, ok | A group whose name runs on to fifty characters, ok","rest | (the projects)"]
+tagged members stay where they'd be untagged: in their group, or in Team: ["null: lead","Designers: bea","Team: wren, moss","(the projects): plain, dark"]
+the session you talk to on top, then the one running the team, and a tagged member in Team: ["null: front, lead","Team: wren","(the projects): plain"]
+…the session you talk to not listed: the one running the team on top: ["null: lead","Team: wren","(the projects): plain"]
+two teams, each with a session you talk to: both on top, then each one running a team: ["null: front, front-2, lead, lead-2","(the projects): plain"]
+the one running the team in its group, the session you talk to alone on top: ["null: front","Reviewers: lead, wren","Team: bea","Writers: moss","(the projects): plain"]
+…Team after the groups when the file doesn't place it: ["null: front","Reviewers: lead, wren","Writers: moss","Team: bea","(the projects): "]
 
-== Whether the list is grouped by team (teamInUse)
-chosen, and one of the team listed: true
-chosen, but none of the team listed: newest first: false
-another grouping chosen: false
-drawn: the lead with no header, the team folded, hiding all it has: lead [team:team ›] wren bea moss [team:yours] plain dark visitor
+== The list with a team (listGroups)
+drawn: the lead with no header, the team folded, hiding all it has, then the projects: lead [team:team ›] bea wren moss [/work/app] plain dark visitor
 …nothing pinned below them, not even a job waiting on you: false
-…each folded header says how many wait on you: ["team:team: 1 waits on you (pneeds)","team:yours: -"]
+…each folded header says how many wait on you: ["team:team: 1 waits on you (pneeds)","/work/app: -"]
 …and as VoiceOver reads it: ["Team, folded, 1 waits on you, 3 sessions"]
-a project's folded group still keeps an idle row whose job waits on you: <div class="pinned">[moss]</div>
-…a group that hides all keeps none: false
+a project's folded group hides an idle row whose job waits on you too, its header counting it: [false,"1 waits on you"]
 …the lead keeps a group header's room above it: true
-…each header with how many it has: ["3","3"]
+…no header says how many it has, a project's ending in its ＋ slot: false
 
-== What needs you first, in each group (needsYouFirst)
+== In each group, the order the list placed them
 as the list places them: newest message first, the idle ones last: ["read-today","unread","asking","idle-one","old-ask"]
-under Group by Team: a request, an unread reply and an ask read days ago first, then the rest: ["unread (turn)","asking (needs)","old-ask (idle, waits)","read-today (seen)","idle-one (idle)"]
-a row you've pressed stays in the part it was in, while its job moves on: ["old-ask (idle)","read-today (seen)","idle-one (idle)"]
-…and goes to its place once you've moved on: ["read-today (seen)","idle-one (idle)","old-ask (idle)"]
-a row with news from another module (a side chat's reply) comes up with them: ["unread (turn)","asking (needs)","idle-one (idle)","old-ask (idle, waits)","read-today (seen)"]
+left for the projects in that order: nothing lifted, a job waiting on you marked so its folded project keeps it: ["read-today (seen)","unread (turn)","asking (needs)","idle-one (idle)","old-ask (idle, waits)"]
+the team in that order too, a job waiting on you included: ["Team: bea,wren-old"]
 
 == What the lead says (teamCountsHTML)
-some of each: (urgent)2 (normal)2 (low)3 need you (busy)4 moving
+some of each: (urgent)7 need you (busy)4 moving
 a count of none is left out, Critical or not: (normal)2 need you (busy)1 moving
 nothing waiting: only what's at work: (busy)3 moving
 nothing at work: only what waits: (low)1 needs you
@@ -61,20 +55,21 @@ the lead with nothing to count: no line: null
 
 == The second line (teamNote)
 the lead: its counts: tsum
-…as its note, with the counts: <div class="step-note notice inline tsum"><span class="tcount"><i class="tmini urgent"></i>2</span><span class="tcount"><i class="tmini normal"></i>2</span><span class="tcount"><i class="tmini low"></i>3</span><span class="tcount-of">need you</span><span class="tcount"><i class="tmini busy"></i>4 moving</span></div>
-a job waiting on your try: its short, and what it holds up: {"html":"<span class=\"ask-line-says\" title=\"P1, passed on: Try the search box\" aria-label=\"P1, passed on: Try the search box\"><b class=\"ask-line-priority\">P1</b><span class=\"ask-line-words\">Try the search box</span><span class=\"tag ask-line-more\" title=\"Holds up 2 more\">+2</span></span>","cls":"ask-note task","look":"normal","act":{"want":"try","html":""},"line":true,"quiet":false,"tone":"turn"}
-…said with the row's Deploy at its end: <div class="step-note notice inline turn ask-note task ask-normal ends"><span class="ask-line-says" title="P1, passed on: Try the search box" aria-label="P1, passed on: Try the search box"><b class="ask-line-priority">P1</b><span class="ask-line-words">Try the search box</span><span class="tag ask-line-more" title="Holds up 2 more">+2</span></span>[Deploy]</div>
+…as its note, with the counts: <div class="step-note notice inline tsum"><span class="tcount"><i class="tmini urgent"></i>7 need you</span><span class="tcount"><i class="tmini busy"></i>4 moving</span></div>
+a job waiting on your try: its short, and what it holds up: {"html":"<span class=\"ask-line-says\" aria-label=\"P1: Try the search box\"><b class=\"ask-line-priority\">P1</b><span class=\"ask-line-words\">Try the search box</span><span class=\"tag ask-line-more\" title=\"Holds up 2 more\">+2</span></span>","cls":"ask-note task","look":"normal","act":{"want":"try","html":""},"line":true,"quiet":false,"tone":"turn"}
+…said with the row's Deploy at its end: <div class="step-note notice inline turn ask-note task ask-normal ends"><span class="ask-line-says" aria-label="P1: Try the search box"><b class="ask-line-priority">P1</b><span class="ask-line-words">Try the search box</span><span class="tag ask-line-more" title="Holds up 2 more">+2</span></span>[Deploy]</div>
 another module's note keeps the Deploy too: <div class="step-note notice inline warn ends">Deploying: building[Deploy]</div>
 …its whole ask isn't on the row: false
-…its tip and VoiceOver: passed on by the session leading the team, by name: P1, passed on by Atlas: Try the search box
-…without a short: its step's word, never the long ask: {"html":"<span class=\"ask-line-says\" title=\"P1, passed on: Your try\" aria-label=\"P1, passed on: Your try\"><b class=\"ask-line-priority\">P1</b><span class=\"ask-line-words\">Your try</span></span>","cls":"ask-note task","look":"normal","act":{"want":"try","html":""},"line":true,"quiet":false,"tone":"turn"}
+…VoiceOver says its own ask, never passed on by the session leading the team, and it has no tip: ["P1: Try the search box",false]
+…without a short: its step's word, never the long ask: {"html":"<span class=\"ask-line-says\" aria-label=\"P1: Your try\"><b class=\"ask-line-priority\">P1</b><span class=\"ask-line-words\">Your try</span></span>","cls":"ask-note task","look":"normal","act":{"want":"try","html":""},"line":true,"quiet":false,"tone":"turn"}
 a P0 one: urgent: P0
 a Critical one: urgent: Critical
 a P2 one: low: P2
 one with a word the ladder doesn't have: plain: normal: P1
 …its action: a try's: {"want":"try","html":"<span class=\"play ask-act\" role=\"button\" title=\"Take Me There: Wren\" aria-label=\"Take Me There: Wren\" data-team-go=\"wren\">[icon]</span>"}
-…a plan's: {"html":"<span class=\"play ask-act\" role=\"button\" title=\"Read the plan, in Wren&#39;s session\" aria-label=\"Read the plan, in Wren&#39;s session\" data-team-go=\"wren\">[icon]</span>"}
+…a plan's: {"want":"plan","html":"<span class=\"play ask-act\" role=\"button\" title=\"Read the plan, in Wren&#39;s session\" aria-label=\"Read the plan, in Wren&#39;s session\" data-team-go=\"wren\">[icon]</span>"}
 …a step with no kind: to its session: {"html":"<span class=\"play ask-act\" role=\"button\" title=\"Take Me There: Wren\" aria-label=\"Take Me There: Wren\" data-team-go=\"wren\">[icon]</span>"}
+…a look's: the prototype, for a module that shows it beside the list to answer: {"want":"look","html":"<span class=\"play ask-act\" role=\"button\" title=\"See the looks, in Wren&#39;s session\" aria-label=\"See the looks, in Wren&#39;s session\" data-team-go=\"wren\">[icon]</span>"}
 …the lead's next, for a member: to the member's session, by its name: {"html":"<span class=\"play ask-act\" role=\"button\" title=\"Take Me There: Wren\" aria-label=\"Take Me There: Wren\" data-team-go=\"wren\">[icon]</span>"}
 …for a member not listed: the lead's own session: {"html":"<span class=\"play ask-act\" role=\"button\" title=\"Take Me There: Atlas\" aria-label=\"Take Me There: Atlas\" data-team-go=\"lead\">[icon]</span>"}
 a job at work: none: null
@@ -96,15 +91,18 @@ waiting its turn: its step's own word, quietly: {"html":"<span class=\"tstatus-w
 …the board says it in the same words: ["Waiting","Up next"]
 …and a priority in the same words and colours, one it doesn't know as P1: ["Critical true","P0 true","P1 false","P2 false","P1 false"]
 a job waiting on you keeps its ask's line: ask-note task
-a short that is markup is shown as text: <span class="ask-line-says" title="P1, passed on: &lt;b&gt;now&lt;/b&gt;" aria-label="P1, passed on: &lt;b&gt;now&lt;/b&gt;"><b class="ask-line-priority">P1</b><span class="ask-line-words">&lt;b&gt;now&lt;/b&gt;</span></span>
+a short that is markup is shown as text: <span class="ask-line-says" aria-label="P1: &lt;b&gt;now&lt;/b&gt;"><b class="ask-line-priority">P1</b><span class="ask-line-words">&lt;b&gt;now&lt;/b&gt;</span></span>
 the lead, naming what's next for you: that, as a member's ask: {"html":"<span class=\"ask-line-says\" aria-label=\"P1: Try the dark theme\"><b class=\"ask-line-priority\">P1</b><span class=\"ask-line-words\">Try the dark theme</span></span>","cls":"ask-note task","look":"normal","act":null,"line":true,"quiet":false,"tone":"turn"}
 …P0: {"html":"<span class=\"ask-line-says\" aria-label=\"P0: Try the dark theme\"><b class=\"ask-line-priority\">P0</b><span class=\"ask-line-words\">Try the dark theme</span></span>","cls":"ask-note task","look":"urgent","act":null,"line":true,"quiet":false,"tone":"warn"}
 …said with an end given to it: <div class="step-note notice inline turn ask-note task ask-normal ends"><span class="ask-line-says" aria-label="P1: Try the dark theme"><b class="ask-line-priority">P1</b><span class="ask-line-words">Try the dark theme</span></span>[Deploy]</div>
 
 == A job's track (trackHTML)
-at the start, waiting on you: <span class="step-track"><i class="step-tick now normal"></i><i class="step-tick"></i><i class="step-tick"></i><i class="step-tick"></i><i class="step-tick"></i><i class="step-tick"></i></span>
-waiting on your try, urgent: <span class="step-track"><i class="step-tick done"></i><i class="step-tick done"></i><i class="step-tick done"></i><i class="step-tick now urgent"></i><i class="step-tick"></i><i class="step-tick"></i></span>
-at work: <span class="step-track"><i class="step-tick done"></i><i class="step-tick now busy"></i><i class="step-tick"></i><i class="step-tick"></i><i class="step-tick"></i><i class="step-tick"></i></span>
+at the start, waiting on you: <span class="step-track" role="img" aria-label="Step 1 of 6, Plan" style="--n:6;--at:0"><i class="step-done"></i><i class="step-now normal"></i></span>
+waiting on your try, urgent: <span class="step-track" role="img" aria-label="Step 4 of 6, Your try" style="--n:6;--at:3"><i class="step-done"></i><i class="step-now urgent"></i></span>
+at work: <span class="step-track" role="img" aria-label="Step 2 of 6, Build" style="--n:6;--at:1"><i class="step-done"></i><i class="step-now busy"></i></span>
+a board of twelve, at its last step: the same one bar, where it stands said in words: <span class="step-track" role="img" aria-label="Step 12 of 12, Done" style="--n:12;--at:11"><i class="step-done"></i><i class="step-now idle"></i></span>
+a track of one step from the row part itself: nothing, wherever it's drawn: 
+a job of one step: no track, as a track of one says nothing: 
 at work, its session idle: idle
 waiting its turn: idle, even while its session works on something else: ["idle","idle"]
 
@@ -121,68 +119,75 @@ a member whose job is parked: where it stands and for how long, the job, and its
 …with an ask over 120 characters: its short as the title, the whole ask under it, never cut: <div class="card-head"><span>Next for you</span></div><div class="card-title">Try the grouped list</div><div class="card-lead">Try the grouped list with a dozen members on a short screen, fold and unfold each group a few times, and say whether the headers stay where they were while you read</div><div class="card-lead">1 Critical, 1 P0, 2 P1 and 3 P2 need you · 4 moving</div>
 …with no ask: its short: <div class="card-head"><span>Next for you</span></div><div class="card-title">Look at the list</div><div class="card-lead">1 Critical, 1 P0, 2 P1 and 3 P2 need you · 4 moving</div>
 
-== A row under Group by Team (rowHTML)
-the lead: Chief, its counts in its reply's place: row turn brief tbrief | line1 | name | tag ttag | time | step-note notice inline tsum
-…naming what's next for you: that on its second line, and only Chief beside its name: row turn brief tbrief tjob | line1 | name | tag ttag | time | step-note notice inline turn ask-note task ask-normal ends
+== A team's row (rowHTML)
+the lead: Chief, its reply not read yet, and its counts: row turn brief | line1 | name | tag ttag | time | claude reply | step-note notice inline tsum
+…its reply read: its counts alone: row seen brief | line1 | name | tag ttag | time | step-note notice inline tsum
+…naming what's next for you: that on its second line, and only Chief beside its name: row turn brief tjob | line1 | name | tag ttag | time | step-note notice inline turn ask-note task ask-normal ends
 …in the colour of your move, and with a card: true
 …P0: in the colour of something to put right: step-note notice inline warn ask-note task ask-urgent ends
 …without it: no card: false
-the session you talk to: the name it shows, Chief beside it, and no second line of the team's: The desk · row idle brief tbrief | line1 | name | tag ttag | time
-…the one running the team behind it: no mark, its counts as ever: row turn brief tbrief | line1 | name | time | step-note notice inline tsum
-…with a tag from the file: that, in the same look: row turn brief tbrief | line1 | name | tag ttag | time | step-note notice inline tsum
-a member with a tag and a shown name: that name, and its tag where its part would be: Juniper · row turn brief tbrief tjob | line1 | name | tag ttag | step-track | time | step-note notice inline turn ask-note task ask-normal ends
+the session you talk to: the name it shows, Chief beside it, and no second line of the team's: The desk · row idle brief | line1 | name | tag ttag | time
+…the one running the team behind it: no mark, its reply not read yet, and its counts: row turn brief | line1 | name | time | claude reply | step-note notice inline tsum
+…with a tag from the file: that, in the same look: row turn brief | line1 | name | tag ttag | time | claude reply | step-note notice inline tsum
+a member with a tag and a shown name: that name, and its tag where its part would be: Juniper · row turn brief tjob | line1 | name | tag ttag | step-track | time | step-note notice inline turn ask-note task ask-normal ends
 …a tag and no shown name: its name in the team: Bea · <span class="tag ttag">Design</span>
 …a shown name and no tag: that name, and its part: Bea Billing · <span class="tpart">billing</span>
 …a tag and a shown name in markup: drawn as text: &lt;i&gt;y&lt;/i&gt; · <span class="tag ttag">&lt;b&gt;x&lt;/b&gt;</span>
 …what's next changing counts as just shown: true
-…but asking you something itself: Claude's line says what: row needs brief tbrief | line1 | name | tag ttag | time | claude wait | step-note notice inline tsum
-dots: the lead, jobs waiting on you, its reply not read: turn brief tbrief
-dots: …its reply read, jobs still waiting: seen brief tbrief
-dots: a member whose job waits on you, its reply not read: turn brief tbrief tjob
-dots: …its reply read, the job still on its line: seen brief tbrief tjob
-dots: a member at work keeps its own: busy brief tbrief tjob
-dots: one of yours whose P0 job waits on you, with no reply: idle brief tbrief tjob
-dots: a member with nothing waiting: idle brief tbrief
-a member whose job is queued: its line, quiet: row idle brief tbrief tjob | line1 | name | tpart | time | step-note notice inline tstatus
+…but asking you something itself: Claude's line says what: row needs brief | line1 | name | tag ttag | time | claude wait | step-note notice inline tsum
+dots: the lead, jobs waiting on you, its reply not read: turn brief
+dots: …its reply read, jobs still waiting: seen brief
+dots: a member whose job waits on you, its reply not read: turn brief tjob
+dots: …its reply read, the job still on its line: seen brief tjob
+dots: a member at work keeps its own: busy brief tjob
+dots: one of yours whose P0 job waits on you, with no reply: idle brief tjob
+dots: a member with nothing waiting: idle brief
+a member whose job is queued: its line, quiet: row idle brief tjob | line1 | name | tpart | time | step-note notice inline tstatus
 …without the row's Deploy: false
 …where a job waiting on your try has Deploy as its one action, and no other: ["[Try Deploy]"]
-a member at work with another job waiting on your try: its ask's bubble: row busy brief tbrief tjob | line1 | name | tpart | step-track | time | step-note notice inline warn ask-note talso ask-urgent ends
+a member's plan waiting in its tab: the reader's plan button, and no plan card [button, card]: [true,false]
+…its yes to a merge, no plan waiting: the team's own button, to its session: true
+a member at work with another job waiting on your try: its ask's bubble: row busy brief tjob | line1 | name | tpart | step-track | time | step-note notice inline warn ask-note talso ask-urgent ends
 …its priority's name and its words, never "Also waiting on you": ["urgent: P0","<span class=\"ask-line-says\" aria-label=\"P0: Try the sync\"><b class=\"ask-line-priority\">P0</b><span class=\"ask-line-words\">Try the sync</span></span>",false]
-…Deploy as its one action, and its track at work: [["[Try Deploy]"],"step-tick now busy"]
+…Deploy as its one action, and its track at work: [["[Try Deploy]"],"step-now busy"]
 …its details from the track, never the bubble: [true,"step-note notice inline warn ask-note talso ask-urgent ends",false]
-…a plan's: the plan's button, to its session: [{"html":"<span class=\"play ask-act\" role=\"button\" title=\"Read the plan, in Wren&#39;s session\" aria-label=\"Read the plan, in Wren&#39;s session\" data-team-go=\"busy-wren\">[icon]</span>"},true]
+…a plan's: the reader's want, and the plan's button, to its session, where nothing answers it: [{"want":"plan","html":"<span class=\"play ask-act\" role=\"button\" title=\"Read the plan, in Wren&#39;s session\" aria-label=\"Read the plan, in Wren&#39;s session\" data-team-go=\"busy-wren\">[icon]</span>"},true]
+…a plan's or looks': the want for the reader [plan, look]: ["plan","look"]
+…its plan left waiting, at its own prompt, idle, in its shell, and working: [reader, reader, reader, reader]: ["the reader's plan button","the reader's plan button","the reader's plan button","the reader's plan button"]
+…working, its newest plan sent back, and approved (the work it's doing): [reader, session]: ["the reader's plan button","to its session"]
+…its turn ended, its agents at work in the background, its newest plan sent back: [kind, nothing to read here]: ["background",true]
 …a step with no kind: ↗ to its session: [{"html":"<span class=\"play ask-act\" role=\"button\" title=\"Take Me There: Wren\" aria-label=\"Take Me There: Wren\" data-team-go=\"busy-wren\">[icon]</span>"},true]
 …its own job waiting on you too: its own job's ask: ["ask-note task","normal: P1","Try the search box","try"]
-…among what waits on you first: lead [team:team] busy-wren moss
-…where without it, it's newest first: lead [team:team] moss busy-wren
+…newest first among the team all the same, nothing lifted: lead [team:team] moss busy-wren
+…as without it: lead [team:team] moss busy-wren
 …a try with no words: where its job stands: {"html":"<span class=\"tstatus-words\">Build</span>","cls":"tstatus","quiet":true,"end":false}
 …while the session asks you something itself: its ask still, as its own job's would be: ask-note talso
 …another note on the row comes first: Deploying: building
-a member whose job is queued, with a task of its own: the task's line in place of its status: row idle brief tbrief tjob | line1 | name | tpart | time | step-note notice inline turn ask-note ask-normal ends
+a member whose job is queued, with a task of its own: the task's line in place of its status: row idle brief tjob | line1 | name | tpart | time | step-note notice inline turn ask-note ask-normal ends
 …with Deploy at its end as its one action, outside the line's press: true
 …its job's details don't open from it: step-note notice inline turn ask-note ask-normal ends
-a member whose job waits on you, with a task too: the team's ask: row turn brief tbrief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends
-the lead with its counts, and a task of its own: its counts: row turn brief tbrief | line1 | name | tag ttag | time | step-note notice inline tsum
-a member: its name in the team, its part, its track, its time, and its ask, no chat: row turn brief tbrief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends
+a member whose job waits on you, with a task too: the team's ask: row turn brief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends
+the lead with its counts, and a task of its own: its counts, under its reply not read yet: row turn brief | line1 | name | tag ttag | time | claude reply | step-note notice inline tsum
+a member: its name in the team, its part, its track, its time, and its ask, no chat: row turn brief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends
 …named as the team names it, not its tab: Wren
-a member at work: one line, with its time: row busy brief tbrief tjob | line1 | name | tpart | step-track | time
+a member at work: one line, with its time: row busy brief tjob | line1 | name | tpart | step-track | time
 …with another module's part after its words: words, that part, the gap, the track, the time: name | tpart | title-end | title-gap | step-track | time
 the lead's row: Lead and Team Board on its title line, Side Chat in its room, off its lines: line1 | name | ttag | bd-open | time | step-note | sc-edge
 …with no second line: the same, nothing between its title's words and the time: line1 | name | ttag | bd-open | time | sc-edge
-the row you're on: the same: row turn focused brief tbrief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends
-a session asking you itself: what it asks, and its card: row needs brief tbrief tjob | line1 | name | tpart | step-track | time | claude wait | perm ask-command | card-title | perm-actions
-a writing's tag isn't on it: row idle brief tbrief | line1 | name | tpart | time
-one of yours with a job: its track and its ask: row idle brief tbrief tjob | line1 | name | step-track | time | step-note notice inline warn ask-note task ask-urgent ends
-one of yours with a reply: one line: row turn brief tbrief | line1 | name | time
-another session in a member's folder: saying whose: row idle brief tbrief | line1 | name | tpart | time
+the row you're on: the same, and its bottom line under it: row turn focused brief tjob | line1 | name | tpart | step-track | time | step-note notice inline turn ask-note task ask-normal ends | where
+a session asking you itself: its card, which says what it asks: row needs brief tjob | line1 | name | tpart | step-track | time | perm ask-command | card-title | perm-actions
+a writing's tag after its part, as on any row: row idle brief | line1 | name | tpart | tag wtag | time
+one of yours with a job: its track and its ask: row idle brief tjob | line1 | name | step-track | time | step-note notice inline warn ask-note task ask-urgent ends
+one of yours with a reply not read yet: Claude's line: row turn brief | line1 | name | time | claude reply
+another session in a member's folder: saying whose: row idle brief | line1 | name | tpart | time
 …in words: <span class="tpart">In Wren&#39;s folder</span>
-a duplicate in a member's workspace: under yours, its mark and its line: row idle brief tbrief | line1 | name | tpart | time | step-note notice inline tdup
+a duplicate in a member's workspace: under yours, its mark and its line: row idle brief | line1 | name | tpart | time | step-note notice inline tdup
 …its mark and its tip: <span class="tpart" title="“search-box-tab” is on Wren&#39;s row, opened before this one: close that one, and one of the others carries on as Wren">Duplicate of Wren</span>
-…the earlier of the two: close this one: row idle brief tbrief | line1 | name | tpart | time | step-note notice inline tdup / title="“search-box-tab” is on Wren&#39;s row, opened after this one: close this one, and one of the others carries on as Wren"
+…the earlier of the two: close this one: row idle brief | line1 | name | tpart | time | step-note notice inline tdup / title="“search-box-tab” is on Wren&#39;s row, opened after this one: close this one, and one of the others carries on as Wren"
 …the session on the member's row not known by name: title="Another session is on Wren&#39;s row, opened before this one: close that one, and one of the others carries on as Wren"
 …its line, a class of its own, quiet, with no Deploy: {"html":"<span class=\"tdup-words\">Close the previous session</span>","cls":"tdup","quiet":true,"end":false}
 …another module's note on the row comes first: Deploying: building
-…grouped: under yours: ["Team: wren","Yours: twin,twin-first"]
+…grouped: left for its project: ["Team: wren","(the projects): twin,twin-first"]
 a chat: the lead, its reply, not its counts: row turn | line1 | name | time | claude reply | where
 a chat: one of yours with a reply, the reply: row turn | line1 | name | time | claude reply | where
 a chat: a member, under its name in the team, with no track or ask line: row turn | line1 | name | time | you | claude reply | where
@@ -193,9 +198,7 @@ a chat: a member, under its name in the team, with no track or ask line: row tur
 …its ask's button for another step: [seen while it stays, just shown once it moves on]: [true,true]
 …the other job's button for another job: [seen while it stays, just shown once it changes]: [true,true]
 a second line coming: what is on the row counts as just shown: true
-another grouping chosen: what a row held back counts as just shown: true
 a note coming with a part at its end: what is on the row counts as just shown: true
 …drawn again with it: not any more: false
-chosen, but none of the team listed: none of it: row idle | line1 | name | time | where / row idle | line1 | name | time | where
-newest first: none of it: row turn | line1 | name | time | you | claude reply | where
-by project: none of it: row turn | line1 | name | time | claude reply | where
+a session the team follows, and one in a member's folder: short rows, with what of the team they have: row idle brief tjob | line1 | name | step-track | time | step-note notice inline warn ask-note task ask-urgent ends / row idle brief | line1 | name | tpart | time
+a session of no team: a short row too, nothing of the team on it: row turn brief | line1 | name | time | claude reply

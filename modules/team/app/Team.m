@@ -289,14 +289,13 @@ static NSDictionary *JobFactsOf(NSString *jobId, NSDictionary *job, NSDictionary
 }
 
 // The group a member is in, in the words of the one keeping the file, or nil for none: a name of its own, trimmed and
-// clipped, never one that hides what it says, nor one of the groups Group by Team has anyway (Team, Yours), so a name
+// clipped, never one that hides what it says, nor Team, the name of the group the rest of the team is in, so a name
 // never stands for two groups.
 static NSString *const TeamGroup = @"Team";
 static NSString *GroupOf(NSDictionary *member) {
     NSString *group = WordsOf(member[@"group"], 40);
     if (!group) return nil;
-    for (NSString *own in @[TeamGroup, @"Yours"])
-        if ([group caseInsensitiveCompare:own] == NSOrderedSame) return nil;
+    if ([group caseInsensitiveCompare:TeamGroup] == NSOrderedSame) return nil;
     return group;
 }
 

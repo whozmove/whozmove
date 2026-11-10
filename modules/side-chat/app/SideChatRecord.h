@@ -32,15 +32,21 @@ NSDictionary *SideChatRecordPutBack(NSDictionary *record, double at);
 NSDictionary *SideChatRecordAt(NSDictionary *record, double at);
 
 // What you asked a session on the side, kept in memory only: its asides, oldest first, each {at, question, state,
-// text, answer, answeredAt, resetsAt, signIn, sentAt}, `state` asking until its agent answers (AgentAside's states),
-// `text` the answer as the app read it, `answer` the same cut into prose and code, `sentAt` when one it couldn't answer
-// was sent to the session the normal way. One question at a time.
+// text, answer, answeredAt, remembered, resetsAt, signIn, sentAt, step}, `state` asking until its agent answers
+// (AgentAside's states), `step` what its agent last said the answer is doing while it's asked (AgentAside's `step`),
+// `text` the answer as the app read it, `answer` the same cut into prose and code,
+// `remembered` how many of the answered ones before it the side conversation knew, `sentAt` when one it couldn't
+// answer was sent to the session the normal way. One question at a time.
 // The asides with a question asked at `at`, or nil while one is still being answered.
 NSArray<NSDictionary *> *SideChatAsideAsked(NSArray<NSDictionary *> *asides, NSString *question, double at);
+// The asides with the one asked at `at`, while it's still being asked, on its new step (`step`, kept to one line of
+// SideChatStepMost characters); as they were for any other, or for no words.
+extern const NSUInteger SideChatStepMost;
+NSArray<NSDictionary *> *SideChatAsideToStep(NSArray<NSDictionary *> *asides, double at, NSString *step);
 // The asides with a question that couldn't be asked once you'd pressed (notAsked), so it isn't lost.
 NSArray<NSDictionary *> *SideChatAsideNotAsked(NSArray<NSDictionary *> *asides, NSString *question, double at);
 // The asides with the one asked at `at` answered, as its agent's `answer` says, at `now`; a state it doesn't know is
-// noAnswer, and so is answered with no words. Only a question still being asked takes an answer. Its words are as
+// noAnswer, and so is answered with no words. Only a question still being asked takes an answer, and its step goes. Its words are as
 // the agent cut them (AgentAside: 16,384 characters at most).
 NSArray<NSDictionary *> *SideChatAsideAnswered(NSArray<NSDictionary *> *asides, double at, NSDictionary *answer,
                                                double now);
@@ -54,5 +60,8 @@ NSArray<NSDictionary *> *SideChatAsideUnsent(NSArray<NSDictionary *> *asides, do
 // The asides as the page is told them: without the answer's text as read and the sign-in command, which only the app
 // copies.
 NSArray<NSDictionary *> *SideChatAsidesShown(NSArray<NSDictionary *> *asides);
+// The side questions answered before the one asked at `at`, as the agent is told them (AgentAside's `earlier`):
+// oldest first, each {question, text, at}, only those answered with words.
+NSArray<NSDictionary *> *SideChatAsidesEarlier(NSArray<NSDictionary *> *asides, double at);
 // The aside asked at `at`, or nil.
 NSDictionary *SideChatAsideAt(NSArray<NSDictionary *> *asides, double at);

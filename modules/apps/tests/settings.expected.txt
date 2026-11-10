@@ -21,16 +21,6 @@
     "title" : "Light or Dark"
   },
   {
-    "glyph" : "list",
-    "group" : 10,
-    "key" : "groupBy",
-    "kind" : "choice",
-    "order" : 20,
-    "page" : null,
-    "style" : null,
-    "title" : "Session List"
-  },
-  {
     "glyph" : "chat",
     "group" : 10,
     "key" : "showConversationText",

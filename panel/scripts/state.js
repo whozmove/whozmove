@@ -10,14 +10,11 @@ const state = {
   // what it shows, with what its mode keeps there; null while the list is on its own.
   reading: null,
 
-  // How the list is grouped: newest first (`status`, its old name kept), by project, or a module's way (core.groupings).
-  // The app keeps the choice from Settings and sets it (setGroupBy) before the first update. Which groups are folded (a
-  // module's by keys of its own), and how many are sliding open or shut right now (slideGroup). Kept across launches:
-  // closedProjects.
-  groupBy: 'status',
   // Whether rows show the conversation: Settings' Show Conversation Text, on until the app says otherwise
   // (setConversationShown, the bridge's app-calls.js).
   conversationShown: true,
+  // Which groups are folded (a module's by keys of its own), and how many are sliding open or shut right now
+  // (slideGroup). Kept across launches: closedProjects.
   closedProjects: store.get('closedProjects', {}),  // project folder (or a module's group key) -> true while folded
   sliding: 0,
 

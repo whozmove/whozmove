@@ -20,6 +20,9 @@
 #import "Focus.h"
 #import "Links.h"
 #import "SwitchHolder.h"
+#import "DontWait.h"
+#import "Send.h"
+#import "Reason.h"
 #import <CommonCrypto/CommonDigest.h>
 
 NSString *const kSendBackKey = @"sendBack";
@@ -31,6 +34,8 @@ NSString *const kApprovePlansKey = @"approvePlans";
 static const double kHeldWithinMs = 60 * 1000, kShownForMs = 30 * 60 * 1000;
 // How long after an approval its plan's result may take to show in the transcript before the row says it wasn't taken.
 static const double kTakenWithinMs = 15 * 1000;
+// How recently the Mac must have had keyboard or mouse input for an Approve pressed beside the list to count as yours.
+static const NSTimeInterval kPressedWithin = 5;
 static const NSUInteger kLongestNote = 4000;
 
 // A session as the answers name it: its name in the team, else its own, else its folder's.
@@ -181,6 +186,10 @@ static NSString *JSONLine(id object) {
 // Each new session that has held the switches kept for its folder, by its id and process, as its line says it
 // (`handoverOf:`), kept a day while Whozmove runs.
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *handovers;
+// How your last press on Approve beside the list went, by the request it was for, while Claude waits on it: {why, at},
+// with `again` where a second press may yet approve it. The page reads it on the row's ask (approvalOf:row:); an
+// approval is said on the row instead (`answeredFor`, yours), as the request goes.
+@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *pressed;
 @end
 
 @implementation AnswerFor
@@ -194,13 +203,14 @@ static NSString *JSONLine(id object) {
     self.answered = [NSMutableDictionary dictionary];
     self.bypassChecked = [NSMutableDictionary dictionary];
     self.handovers = [NSMutableDictionary dictionary];
+    self.pressed = [NSMutableDictionary dictionary];
     self.startedAt = NSDate.date.timeIntervalSince1970;
     return self;
 }
 
 #pragma mark The switches
 
-// One of the switches, shown only on the row of the session leading the team (Group by Team's team file), as it's the
+// One of the switches, shown only on the row of the session leading the team (its team file), as it's the
 // one that answers for the team; it's kept for that session's folder while Whozmove runs, so a new session there holds
 // it too, once it may (SwitchHolder). Its `whyNot` gives only the cause, as where it's said (the tick, the dash, Turn
 // Back On) adds what to do next; a cause the panel can help with has a way past it (`wayTitleFor`). Its line counts
@@ -209,7 +219,7 @@ static NSString *JSONLine(id object) {
     __weak typeof(self) weakSelf = self;
     SessionSwitch *each = [SessionSwitch switchWithKey:key title:title line:line lasts:SwitchLastsWorkspace];
     each.shown = ^BOOL(Row *row) { return [row.team[@"role"] isEqual:@"lead"]; };
-    each.hiddenSays = @"this session isn't the one leading the team in the team file (Group by Team), whose row "
+    each.hiddenSays = @"this session isn't the one leading the team in the team file, whose row "
                       @"offers it";
     each.workspace = ^NSString *(Row *row) { return KeptFolderOf(row); };
     // Any program can write Claude Code's registry to make itself a second copy of a session, which the row may follow:
@@ -508,11 +518,13 @@ static NSString *WhyGone(NSString *askId, BOOL listed) {
         if (target && [role isEqual:@"member"])
             [onlyTheUser addObject:@{@"sessionId": sessionId, @"name": NameOf(target), @"tool": ask[@"tool"] ?: @""}];
     }];
-    // Approvals Claude Code didn't take, so the session allowed tells the user.
+    // Approvals Claude Code didn't take, so the session allowed tells the user; never the user's own, which its row
+    // tells them.
     NSMutableArray *notTaken = [NSMutableArray array];
     for (NSString *sessionId in self.answered) {
         NSDictionary *answered = self.answered[sessionId];
-        if ([answered[@"what"] isEqual:@"approved"] && [answered[@"state"] isEqual:@"notTaken"])
+        if ([answered[@"what"] isEqual:@"approved"] && [answered[@"state"] isEqual:@"notTaken"]
+            && ![answered[@"yours"] boolValue])
             [notTaken addObject:@{@"sessionId": sessionId, @"name": NameOf(self.core.rows.byId[sessionId]),
                                   @"title": answered[@"title"] ?: @""}];
     }
@@ -599,23 +611,85 @@ static NSString *WhyGone(NSString *askId, BOOL listed) {
                                       questions.count > 1 ? @"questions" : @"question"];
 }
 
-// Why a member's plan can't be approved from here, though it may be sent back, or nil when it can: its hooks must take
-// an approval (sessions started after Whozmove's update), and its mode menu mustn't reach bypassed permissions, as an
-// approved plan goes back to the mode it was planned from.
-- (NSString *)whyNotApprove:(Row *)target request:(NSDictionary *)request {
+// Why a plan's session can't have it approved from here, though it may be sent back, or nil when it can: its hooks must
+// take an approval (sessions started after Whozmove's update), and its mode menu mustn't reach bypassed permissions,
+// as an approved plan goes back to the mode it was planned from. In words for whoever asked (`you`, the user beside the
+// list; else a session you allow); `fresh` checks bypassing again, else as last checked (bypassOf:), for what a row
+// says before a press.
+- (NSString *)whyNotApprove:(Row *)target request:(NSDictionary *)request you:(BOOL)you fresh:(BOOL)fresh {
     // The copy of the conversation whose hook asked, which may not be the one the row follows.
     pid_t session = 0;
     if (![SessionAbove(AsNumber(request[@"pid"]).intValue, &session) isEqual:target.sessionId] || session <= 0)
-        return @"its session's process can't be found, so it can't be approved from here: only the user can, in its tab";
+        return you ? @"its session's process can't be found, so approve it in its tab"
+                   : @"its session's process can't be found, so it can't be approved from here: only the user can, in "
+                     @"its tab";
     if (!SessionHasHookPart(session, HookPartApprovePlan, !self.core.printing))
-        return @"its session started before Whozmove's update: only the user can approve it, in its tab";
-    NSString *bypass = self.bypassWhy ? self.bypassWhy(target, session) : @"bypassing permissions can't be ruled out";
-    if (bypass) return [bypass stringByAppendingString:@": only the user can approve its plans, in its tab"];
+        return you ? @"its session started before Whozmove's update, so approve it in its tab"
+                   : @"its session started before Whozmove's update: only the user can approve it, in its tab";
+    NSString *bypass = !fresh && session == target.pid ? [self bypassOf:target]
+        : self.bypassWhy ? self.bypassWhy(target, session) : @"bypassing permissions can't be ruled out";
+    if (bypass) return [bypass stringByAppendingString:you ? @", so approve it in its tab"
+                                                           : @": only the user can approve its plans, in its tab"];
+    return nil;
+}
+- (NSString *)whyNotApprove:(Row *)target request:(NSDictionary *)request {
+    return [self whyNotApprove:target request:request you:NO fresh:YES];
+}
+
+// Why a plan Claude waits on can't be approved now, by a session you allow or by your press beside the list, or nil
+// when it can: the one check both go through. It's a plan, its session may have it approved from here
+// (whyNotApprove:), it's the text that was read (by its digest), and its file holds that text still: one edited since
+// isn't approved for what was read. In words for whoever asked (`you`).
+- (NSString *)whyNotApprovePlan:(NSDictionary *)request digest:(NSString *)digest you:(BOOL)you {
+    if (![request[@"tool"] isEqual:@"ExitPlanMode"])
+        return you ? @"it isn't a plan" : @"it isn't a plan: May Approve Plans approves only plans";
+    Row *target = self.core.rows.byId[AsText(request[@"sessionId"]) ?: @""];
+    if (!target) return @"its session isn't listed";
+    NSString *why = [self whyNotApprove:target request:request you:you fresh:YES];
+    if (why) return why;
+    if (!digest.length)
+        return you ? @"the plan shown wasn't named"
+                   : @"name the plan's digest too, as ask-panel.sh waiting lists it with its text";
+    if (![digest isEqual:PlanDigest(request)])
+        return you ? @"Claude asked again with a new version since this one was shown: read that one"
+                   : @"that digest isn't this plan's: read the plan's text in ask-panel.sh waiting, and use its digest";
+    NSDictionary *input = AsRecord(request[@"input"]);
+    NSString *file = AsText(input[@"planFilePath"]);
+    if (file) {
+        NSString *now = [NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil];
+        if (![now isEqual:AsText(input[@"plan"])])
+            return you ? @"its plan file has changed since Claude asked, so read it and approve it in its tab"
+                       : @"its plan file has changed since Claude asked: only the user can approve it now, in its tab";
+    }
     return nil;
 }
 
 // A plan approved, as Claude's own prompt approves it: down its line, an allow the hook passes on with an empty input,
-// marked `approvePlan`, which only this adds (never the page's answers, AskReply). Only the plan read: by its digest.
+// marked `approvePlan`, which only this adds (never the page's answers, AskReply). Kept to say on the target's row how
+// it went: pending until its transcript says approved, else not taken (markRows:); `yours` for your own press, which
+// isn't another session's answer for you. NO if its line is gone.
+- (BOOL)sendApproval:(NSDictionary *)request by:(NSString *)by yours:(BOOL)yours {
+    NSMutableDictionary *reply = [AskReply(@{@"allow": @YES}) mutableCopy];
+    reply[@"approvePlan"] = @YES;
+    if (!SendAnswer(AsText(request[@"id"]), reply)) return NO;
+    Row *target = self.core.rows.byId[request[@"sessionId"]];
+    NSMutableArray *settledBefore = [NSMutableArray array];
+    for (NSDictionary *writing in target.writings)
+        if ([writing[@"kind"] isEqual:@"plan"] && ![writing[@"status"] isEqual:@"waiting"] && writing[@"id"])
+            [settledBefore addObject:writing[@"id"]];
+    NSMutableDictionary *answered = [@{@"by": by, @"what": @"approved", @"title": PlanTitle(request),
+                                       @"state": @"pending", @"settledBefore": settledBefore,
+                                       @"at": @(floor(NSDate.date.timeIntervalSince1970 * 1000))} mutableCopy];
+    if (yours) {
+        answered[@"yours"] = @YES;
+        answered[@"askId"] = AsText(request[@"id"]) ?: @"";
+    }
+    self.answered[target.sessionId] = answered;
+    target.answeredFor = answered;
+    return YES;
+}
+
+// A plan approved by a session you allow (May Approve Plans): only the plan it read, by its digest.
 - (NSString *)approve:(NSDictionary *)asked from:(Row *)asker {
     NSString *why = nil;
     NSDictionary *request = [self request:asked why:&why];
@@ -623,38 +697,151 @@ static NSString *WhyGone(NSString *askId, BOOL listed) {
     if (![request[@"tool"] isEqual:@"ExitPlanMode"])
         return @"refused: it isn't a plan: May Approve Plans approves only plans";
     if ((why = [self whyNot:asker answer:request])) return [@"refused: " stringByAppendingString:why];
-    Row *target = self.core.rows.byId[request[@"sessionId"]];
-    if ((why = [self whyNotApprove:target request:request])) return [@"refused: " stringByAppendingString:why];
-    NSString *digest = AsText(asked[@"digest"]);
-    if (!digest.length) return @"refused: name the plan's digest too, as ask-panel.sh waiting lists it with its text";
-    if (![digest isEqual:PlanDigest(request)])
-        return @"refused: that digest isn't this plan's: read the plan's text in ask-panel.sh waiting, and use its digest";
-    // The plan Claude asked about is the one its file holds still: one edited since isn't approved for what was read.
-    NSDictionary *input = AsRecord(request[@"input"]);
-    NSString *file = AsText(input[@"planFilePath"]);
-    if (file) {
-        NSString *now = [NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil];
-        if (![now isEqual:AsText(input[@"plan"])])
-            return @"refused: its plan file has changed since Claude asked: only the user can approve it now, in its tab";
-    }
-    NSMutableDictionary *reply = [AskReply(@{@"allow": @YES}) mutableCopy];
-    reply[@"approvePlan"] = @YES;
+    if ((why = [self whyNotApprovePlan:request digest:AsText(asked[@"digest"]) you:NO]))
+        return [@"refused: " stringByAppendingString:why];
     NSString *askId = AsText(request[@"id"]);
-    if (!SendAnswer(askId, reply))
+    if (![self sendApproval:request by:NameOf(asker) yours:NO])
         return [@"refused: " stringByAppendingString:WhyGone(askId, [HookLine shared].requests[askId] != nil)];
-    NSString *by = NameOf(asker), *title = PlanTitle(request);
-    NSMutableArray *settledBefore = [NSMutableArray array];
-    for (NSDictionary *writing in target.writings)
-        if ([writing[@"kind"] isEqual:@"plan"] && ![writing[@"status"] isEqual:@"waiting"] && writing[@"id"])
-            [settledBefore addObject:writing[@"id"]];
-    self.answered[target.sessionId] = @{@"by": by, @"what": @"approved", @"title": title, @"state": @"pending",
-                                        @"settledBefore": settledBefore,
-                                        @"at": @(floor(NSDate.date.timeIntervalSince1970 * 1000))};
+    Row *target = self.core.rows.byId[request[@"sessionId"]];
     [self.core.allowed countUp:kApprovePlansKey session:asker.sessionId];
-    target.answeredFor = self.answered[target.sessionId];
     PanelLog(@"%@ approved %@'s plan %@", asker.sessionId, target.sessionId, askId);
     return [NSString stringWithFormat:@"approved: %@'s plan “%@”; once Claude Code has taken it, its row says so, and "
-                                      @"ask-panel.sh waiting lists one it didn't", NameOf(target), title];
+                                      @"ask-panel.sh waiting lists one it didn't", NameOf(target), PlanTitle(request)];
+}
+
+// What the page needs with a plan Claude waits on, before your press: the digest of the whole plan, which Approve
+// carries back, and why it can't be approved from here if that's known already (what whyNotApprove: knows of its
+// session, bypassing as last checked); after it, why your press didn't approve it (`approval`). Nil for any other request, and for one from a session started before
+// Whozmove's update, which isn't on the line.
+- (NSDictionary *)approvalOf:(NSDictionary *)ask row:(Row *)row {
+    NSString *askId = AskId(ask[@"id"]);
+    NSDictionary *request = askId ? [HookLine shared].requests[askId] : nil;
+    if (![request[@"tool"] isEqual:@"ExitPlanMode"] || ![request[@"sessionId"] isEqual:row.sessionId]) return nil;
+    NSMutableDictionary *facts = [@{@"digest": PlanDigest(request)} mutableCopy];
+    NSString *why = [self whyNotApprove:row request:request you:YES fresh:NO];
+    if (why) facts[@"approveWhyNot"] = why;
+    if (self.pressed[askId]) facts[@"approval"] = self.pressed[askId];
+    return facts;
+}
+
+// Your press on Approve under a plan beside the list ({sessionId, id, digest}: the request and the digest of the text
+// drawn with it): the same check as a session's approval, that it's the request its row shows and wasn't cut short for
+// the page, and that the Mac had input from you just before, so a message no press made isn't taken as yours. Never
+// counted to May Approve Plans, nor listed to a session you allow. {approved} or {why}, in words for the page, with
+// `again` where a second press may yet approve it.
+- (NSDictionary *)approveShown:(NSDictionary *)msg {
+    NSString *askId = AskId(msg[@"id"]), *sid = AsText(msg[@"sessionId"]);
+    NSDictionary *request = askId ? [HookLine shared].requests[askId] : nil;
+    NSString *why = nil;
+    if (!request || ![[HookLine shared] stillAsking:askId])
+        why = request || [[[HookLine shared] whyGone:askId] isEqual:@"answered"]
+            ? @"it has been answered already" : @"Claude isn't waiting on it any more";
+    else if (![request[@"sessionId"] isEqual:sid]) why = @"it isn't this session's";
+    else why = [self whyNotApprovePlan:request digest:AsText(msg[@"digest"]) you:YES];
+    // The plan the page drew is its row's request, the oldest its session has waiting (PendingAsks); one behind another
+    // was never drawn with Approve. Cut short or not is this request's own, never that row's request's.
+    if (!why && ![AsText(PendingAsks()[sid][@"id"]) isEqual:askId])
+        why = @"Claude asks something else of this session first: answer that, then this plan";
+    if (!why && AskShownCut(request))
+        why = @"it's too long for the panel to show whole, so approve it in its tab";
+    // The one refusal a second press can get past, so the page keeps Approve under it (`again`).
+    BOOL again = NO;
+    if (!why && (self.secondsIdle ? self.secondsIdle() : SecondsIdle()) > kPressedWithin) {
+        why = @"the Mac had no keyboard or mouse use just before the press, so it wasn't taken as yours: press Approve "
+              @"again";
+        again = YES;
+    }
+    if (!why && ![self sendApproval:request by:@"You" yours:YES]) why = @"it has been answered already";
+    // How it went, for the row's ask while Claude still waits on it; what's kept for requests gone goes.
+    for (NSString *kept in self.pressed.allKeys)
+        if (![[HookLine shared] stillAsking:kept]) [self.pressed removeObjectForKey:kept];
+    if (why && askId && [[HookLine shared] stillAsking:askId]) {
+        NSMutableDictionary *went = [@{@"why": why, @"at": @(floor(NSDate.date.timeIntervalSince1970 * 1000))}
+                                     mutableCopy];
+        if (again) went[@"again"] = @YES;
+        self.pressed[askId] = went;
+    }
+    PanelLog(@"%@'s plan %@ %@", sid, askId ?: @"?",
+             why ? [@"not approved from the panel: " stringByAppendingString:why] : @"approved from the panel");
+    if (!why) return @{@"approved": @YES};
+    return again ? @{@"why": why, @"again": @YES} : @{@"why": why};
+}
+
+NSDictionary *PlanLeftWaiting(Row *row) {
+    for (NSDictionary *writing in row.writings) {
+        if (![writing[@"kind"] isEqual:@"plan"]) continue;
+        return [writing[@"status"] isEqual:@"waiting"] ? writing : nil;
+    }
+    return nil;
+}
+
+NSString *WhyNotTypePlanNotes(Row *row, NSString *planId, NSDictionary *pending) {
+    if (!row) return @"its session isn't listed any more";
+    if (row.ask || pending) return @"Claude asks something else of this session first: answer that, then this plan";
+    if ([row.status isEqual:@"waiting"])
+        return @"Claude Code's own prompt for this plan is still up in its session, and a key typed there would answer "
+               @"it: answer it there";
+    if (![row.status isEqual:@"idle"] && ![row.status isEqual:@"shell"])
+        return @"Claude is at work in this session: send your notes once it's idle";
+    NSDictionary *plan = PlanLeftWaiting(row);
+    if (!plan || ![AsText(plan[@"id"]) isEqual:planId]) return @"Claude isn't waiting on this plan any more";
+    if (row.lastPromptAt.doubleValue > AsNumber(plan[@"at"]).doubleValue)
+        return @"something has been typed into its session since this plan, so it may be answered already";
+    return nil;
+}
+
+// Your notes, typed in on your press: the checks first, and again before each key (`also`), as the session may have
+// moved on meanwhile; then how it went, on the row. The words leave no trace in panel.log.
+- (NSString *)typePlanNotes:(NSDictionary *)msg {
+    NSString *sid = AsText(msg[@"sessionId"]), *planId = AsText(msg[@"planId"]);
+    NSString *notes = [AsText(msg[@"words"]) stringByTrimmingCharactersInSet:
+                       NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    Row *row = sid ? self.core.rows.byId[sid] : nil;
+    NSString *line = notes.length ? [kClaudeCodePlanChangesWords stringByAppendingString:OneLine(notes, 600)] : nil;
+    NSString *why = !notes.length ? @"say what should change, in your notes"
+        : line.length > 600 ? [NSString stringWithFormat:@"notes typed in as a message may be %lu characters at most",
+                                                         (unsigned long)(600 - kClaudeCodePlanChangesWords.length)]
+        : WhyNotTypePlanNotes(row, planId ?: @"", PendingAsks()[sid ?: @""]);
+    if (!why && [self.core.send typingInto:sid]) why = @"something else from the panel is still going into it";
+    if (!why && (self.secondsIdle ? self.secondsIdle() : SecondsIdle()) > kPressedWithin)
+        why = @"the Mac had no keyboard or mouse use just before the press, so it wasn't taken as yours: press Send "
+              @"again";
+    NSDictionary *plan = PlanLeftWaiting(row);
+    NSDictionary *typing = @{@"by": @"You", @"what": @"sentBack", @"title": AsText(plan[@"title"]) ?: @"",
+                             @"note": OneLine(notes, 300), @"yours": @YES, @"askId": planId ?: @"", @"planId": planId ?: @"",
+                             @"state": @"typing", @"at": @(floor(NSDate.date.timeIntervalSince1970 * 1000))};
+    if (why) {
+        PanelLog(@"%@'s plan %@: notes not typed in: %@", sid ?: @"?", planId ?: @"?", why);
+        // Said on the row as the press's, so the page shows why; only for a session listed.
+        if (row && planId) {
+            NSMutableDictionary *refused = [typing mutableCopy];
+            refused[@"state"] = @"notTyped";
+            refused[@"why"] = why;
+            self.answered[sid] = refused;
+            row.answeredFor = refused;
+        }
+        return why;
+    }
+    self.answered[sid] = typing;
+    row.answeredFor = typing;
+    __weak typeof(self) weakSelf = self;
+    Core *core = self.core;
+    Reason *(^still)(void) = ^Reason *{
+        NSString *now = WhyNotTypePlanNotes(core.rows.byId[sid], planId, PendingAsks()[sid]);
+        return now ? [Reason terminal:now] : nil;
+    };
+    [self.core.send say:line row:row reach:[self.core.send reachOf:row] here:@"sent back from here"
+                  there:@"send it back there" also:still done:^(NSString *stopped, NSString *way) {
+        NSMutableDictionary *went = [typing mutableCopy];
+        went[@"state"] = stopped ? @"notTyped" : @"typed";
+        if (stopped) went[@"why"] = stopped;
+        if (way) went[@"way"] = way;
+        weakSelf.answered[sid] = went;
+        PanelLog(@"%@'s plan %@: notes %@", sid, planId, stopped ? [@"not typed in: " stringByAppendingString:stopped]
+                                                                 : @"typed in");
+        [weakSelf.core.rows refresh];
+    }];
+    return nil;
 }
 
 #pragma mark The rows
@@ -694,7 +881,8 @@ static NSString *WhyGone(NSString *askId, BOOL listed) {
                 settled[@"state"] = state;
                 if (planId) settled[@"planId"] = planId;
                 self.answered[row.sessionId] = answered = settled;
-                PanelLog(@"%@'s plan approved for the user: %@", row.sessionId,
+                PanelLog(@"%@'s plan approved %@: %@", row.sessionId,
+                         [answered[@"yours"] boolValue] ? @"by the user" : @"for the user",
                          [state isEqual:@"approved"] ? @"taken" : @"not taken");
             }
         }

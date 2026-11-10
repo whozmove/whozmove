@@ -173,9 +173,9 @@ function askSubject(ask) {
 }
 
 // The words of the line that takes a card's place once you've answered it, by how (answered's): allowed once or denied,
-// a question answered, skipped or dismissed, a plan sent back or stopped.
+// a question answered, skipped or dismissed, a plan approved, sent back or stopped.
 const RECEIPT_WORDS = { allow: 'Allowed once', deny: 'Denied', answered: 'Answered', skipped: 'Skipped',
-                        dismissed: 'Dismissed', sentBack: 'Sent back', stopped: 'Stopped' };
+                        dismissed: 'Dismissed', approved: 'Approved', sentBack: 'Sent back', stopped: 'Stopped' };
 const receiptWords = (how) => RECEIPT_WORDS[how] || 'Answered';
 
 // When a request goes by itself if no one answers it (Don't Wait on Me, turned on for its session: the hook says when,
@@ -203,6 +203,17 @@ function goesRing(ask, now) {
 // waits for.
 function answeredForWords(a) {
   if (!a || (a.what === 'approved' && a.state === 'pending')) return null;
+  // Your own Approve beside the list (`yours`): nothing once it's taken, as the request's own line said Approved;
+  // where it wasn't, said the same way, with the way to its tab. Your notes typed into a session for a plan that
+  // stopped asking here: nothing while they go in or once they're in, as the reader says so; where they weren't, why.
+  if (a.yours) {
+    if (a.what === 'sentBack') {
+      return a.state === 'notTyped' ? { head: 'Your notes', what: `Your notes on the plan weren't typed in: ${a.why}`,
+                                        warn: true, plan: true } : null;
+    }
+    return a.what === 'approved' && a.state === 'notTaken' ? { head: 'Your approval', what: 'Your approval wasn\'t '
+      + 'taken: approve the plan in its tab', warn: true, plan: true } : null;
+  }
   const head = `${a.by} answered for you`;
   if (a.what === 'sentBack') return { head, what: `Sent the plan back: “${a.note}”` };
   if (a.what === 'answered') return { head, what: `Answered: ${a.note}` };

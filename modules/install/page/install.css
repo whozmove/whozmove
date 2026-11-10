@@ -7,3 +7,9 @@
 body.collapsed #install { display: none; }
 .in-line { min-height: 26px; padding: 0 8px 10px 14px; }
 .in-line .q-close { margin: 0 -2px 0 -4px; }
+
+/* Reload on a row shown briefly, as its note (reload-row.js): on one line, its words cut with "…" before its button
+   gives way, so it never runs past the row, whatever ends the note after it. */
+.row.brief .reload-note { display: flex; align-items: center; min-width: 0; }
+.reload-note .nopr { flex: 0 1 auto; min-width: 0; margin-left: 0; padding: 0; }
+.reload-note .nopr .pt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

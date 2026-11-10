@@ -109,6 +109,7 @@
   --ask-edge: transparent;  /* its ring, which shows only on the light panel, where the card is white */
   --ask-risk-fill: rgba(255, 107, 74, 0.11);  /* the fill of a request that could do harm (outside the sandbox) */
   --track: rgba(255, 255, 255, 0.06);    /* the empty part of a line or a bar */
+  --track-done: rgba(255, 255, 255, 0.14);  /* what's done of a track, between its empty part and its step */
   --usage-track: rgba(255, 255, 255, 0.1);  /* the usage card's bars' */
   --usage-even: rgba(255, 255, 255, 0.75);  /* where even use would be, on the usage card's bars */
   --usage-pace-slow: #7fa7d9;  /* a pace slow enough that some of the window would go unused */
@@ -188,6 +189,7 @@
   --tile-editor: #2a9fb8;
   --tile-conversation: #30a46c;
   --tile-usage: #e8833a;                 /* Usage Gear, the usage card's gear */
+  --tile-tickets: #c2410c;               /* Tickets, where each project's tickets open */
   --tile-settings-from: #e9e9ee;
   --tile-settings-to: #b4b4bb;
   --tile-settings-mark: #3c3c43;
@@ -256,6 +258,12 @@
   --radius-icon: 22.5%;                  /* an app's tile on the panel's back, rounded as macOS's app icons are */
   --radius-circle: 50%;
   --radius-pill: 999px;
+
+  /* A track's sizes (stepTrackHTML): one bar of one length whatever its steps' count, and the step it's on never
+     thinner than a dot. A wider bar where it's drawn whole sets its own length (and height). */
+  --track-length: 48px;
+  --track-dot: 6px;
+  --track-height: 4px;                   /* its thickness; a wider bar where it's drawn whole may set it */
 
   /* The layout. */
   --header: 46px;  /* must match kHeaderHeight in PanelWindow+Private.h, and HEADER_TALL (and its line) in header.js */
@@ -365,6 +373,7 @@
     --ask-edge: rgba(0, 0, 0, 0.07);
     --ask-risk-fill: rgba(201, 52, 18, 0.07);
     --track: rgba(0, 0, 0, 0.06);
+    --track-done: rgba(0, 0, 0, 0.14);
     --usage-track: rgba(0, 0, 0, 0.08);
     --usage-even: rgba(0, 0, 0, 0.6);
     --usage-pace-slow: #2f6db3;
@@ -420,6 +429,7 @@
     --tile-editor: #2a9fb8;
     --tile-conversation: #2b9a63;
     --tile-usage: #e07a2f;
+    --tile-tickets: #b4410f;
     --tile-settings-from: #e9e9ee;
     --tile-settings-to: #b4b4bb;
     --tile-settings-mark: #3c3c43;

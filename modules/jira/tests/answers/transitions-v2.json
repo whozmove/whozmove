@@ -1,0 +1,3 @@
+{"data": {"transitions": [
+  {"fields": {}, "hasScreen": false, "id": "11", "isAvailable": true, "name": "Mark ready", "to": {"name": "Ready", "statusCategory": {"key": "new"}}},
+  {"fields": {}, "hasScreen": false, "id": "18", "isAvailable": true, "name": "Block", "to": {"name": "Blocked", "statusCategory": {"key": "indeterminate"}}}]}}

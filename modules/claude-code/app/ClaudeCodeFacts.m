@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "ClaudeCodeFacts.h"
 #import "Files.h"
+#import "Git.h"
 #import "Task.h"
 
 NSString *const kClaudeCodeFolder = @".claude";
@@ -17,6 +18,7 @@ NSString *const kClaudeCodeRegistry = @"sessions";
 NSString *const kClaudeCodeTranscripts = @"projects";
 NSString *const kClaudeCodeSettings = @"settings.json";
 NSString *const kClaudeCodeLocalSettings = @"settings.local.json";
+NSString *const kClaudeCodeCredentials = @".credentials.json";
 NSString *const kClaudeCodeManagedSettings = @"/Library/Application Support/ClaudeCode/managed-settings.json";
 NSString *const kClaudeCodeShellDiffSetting = @"bashEditDiffEnabled";
 NSString *const kClaudeCodeShellFailure = @"Error: Exit code";
@@ -32,6 +34,7 @@ NSArray<NSString *> *const kClaudeCodePictureParts = @[@"image", @"document"];
 NSString *const kClaudeCodeSnapshotLine = @"file-history-snapshot";
 NSArray<NSString *> *const kClaudeCodeInstructions = @[@"CLAUDE.md", @"CLAUDE.local.md", @".claude/CLAUDE.md"];
 NSArray<NSString *> *const kClaudeCodeAgentsInstructions = @[@"AGENTS.md", @".claude/AGENTS.md"];
+NSString *const kClaudeCodePlanChangesWords = @"The user wants changes to the plan: ";
 NSArray<NSString *> *const kClaudeCodeInstructionFolders = @[@"rules", @"skills", @"agents", @"commands",
                                                             @"output-styles"];
 NSString *const kClaudeCodeUserInstructions = @"CLAUDE.md";
@@ -113,22 +116,89 @@ BOOL ClaudeAsideResumable(NSString *sessionId) {
     return [sessionId isKindOfClass:NSString.class] && [[NSUUID alloc] initWithUUIDString:sessionId] != nil;
 }
 
-NSArray<NSString *> *ClaudeAsideArguments(NSString *sessionId, NSString *model, NSString *effort) {
+NSArray<NSString *> *ClaudeAsideArguments(NSString *sessionId, NSString *model, NSString *effort, BOOL git) {
     if (!ClaudeAsideResumable(sessionId)) return nil;
-    NSString *refuse = @"{\"env\":{\"DISABLE_AUTO_COMPACT\":\"1\"},\"hooks\":{\"PreToolUse\":[{\"matcher\":\"*\","
-        "\"hooks\":[{\"type\":\"command\",\"command\":\"/bin/sh -c 'echo A side question uses no tools >&2; "
-        "exit 2'\"}]}]}}";
+    NSDictionary *hook = @{@"type": @"command", @"command": kClaudeAsideHook, @"timeout": @(kClaudeAsideHookTimeout)};
+    NSDictionary *settings = @{@"env": @{@"DISABLE_AUTO_COMPACT": @"1"},
+                               @"hooks": @{@"PreToolUse": @[@{@"matcher": @"*", @"hooks": @[hook]}]}};
+    NSData *json = [NSJSONSerialization dataWithJSONObject:settings
+                                                   options:NSJSONWritingSortedKeys | NSJSONWritingWithoutEscapingSlashes
+                                                     error:nil];
+    NSMutableArray<NSString *> *tools = [@[kClaudeToolRead, kClaudeToolGrep, kClaudeToolGlob] mutableCopy];
+    if (git)
+        for (NSString *command in GitReadOnlyCommands())
+            [tools addObject:[NSString stringWithFormat:@"%@(git %@:*)", kClaudeToolBash, command]];
     NSMutableArray *arguments = [@[@"-p", kClaudeCodeResumeFlag, sessionId, @"--fork-session",
                                    @"--no-session-persistence", @"--input-format", @"stream-json", @"--output-format",
-                                   @"stream-json", @"--verbose", @"--max-turns", @"1", @"--permission-mode", @"dontAsk",
-                                   @"--setting-sources", @"", @"--settings", refuse] mutableCopy];
+                                   @"stream-json", @"--verbose", @"--max-turns", @(kClaudeAsideTurns).stringValue,
+                                   @"--permission-mode", @"dontAsk", @"--setting-sources", @"",
+                                   @"--allowedTools", [tools componentsJoinedByString:@","],
+                                   @"--settings", [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding]]
+                                 mutableCopy];
     if (model.length) [arguments addObjectsFromArray:@[@"--model", model]];
     if (effort.length) [arguments addObjectsFromArray:@[@"--effort", effort]];
     return arguments;
 }
-NSString *const kClaudeAsideLine = @"Whozmove: the user asks this on the side, and you're a copy of this session "
-    "answering it alone. Use no tools; answer from what you already know, in a few short paragraphs, and don't carry "
-    "on the task.";
+const NSInteger kClaudeAsideTurns = 12;
+NSArray<NSString *> *ClaudeAsideThinkingArguments(void) { return @[@"--thinking-display", @"summarized"]; }
+NSArray<NSString *> *ClaudeAsideThinkingVersions(void) { return @[@"2.1.319"]; }
+NSString *ClaudeCodeVersionAt(NSString *program) {
+    NSString *real = program.length ? RealPath(program) ?: program : nil;
+    BOOL (^version)(NSString *) = ^BOOL(NSString *name) {
+        return [name rangeOfString:kClaudeCodeVersionName options:NSRegularExpressionSearch].location != NSNotFound;
+    };
+    NSString *file = real.lastPathComponent, *folder = real.stringByDeletingLastPathComponent.lastPathComponent;
+    if (version(file)) return file;
+    if ([file isEqual:kClaudeCodeProgram] && version(folder)) return folder;
+    return nil;
+}
+NSString *const kClaudeAsideHook = @"/bin/sh -c '\"$WHOZMOVE_ASIDE_CHECK\" --helper-aside-check "
+    "\"$WHOZMOVE_ASIDE_FOLDER\" || exit 2'";
+const NSInteger kClaudeAsideHookTimeout = 600;
+NSString *const kClaudeAsideCheckVariable = @"WHOZMOVE_ASIDE_CHECK";
+NSString *const kClaudeAsideFolderVariable = @"WHOZMOVE_ASIDE_FOLDER";
+NSString *const kClaudeAsideCheckFlag = @"--helper-aside-check";
+NSString *const kClaudeHookToolName = @"tool_name", *const kClaudeHookToolInput = @"tool_input";
+NSString *const kClaudeToolRead = @"Read", *const kClaudeToolGrep = @"Grep", *const kClaudeToolGlob = @"Glob",
+    *const kClaudeToolBash = @"Bash";
+NSString *const kClaudeToolFilePath = @"file_path", *const kClaudeToolPath = @"path",
+    *const kClaudeToolPattern = @"pattern", *const kClaudeToolCommand = @"command",
+    *const kClaudeToolInBackground = @"run_in_background", *const kClaudeToolGrepFilter = @"glob";
+NSString *const kClaudeToolGrepMode = @"output_mode", *const kClaudeGrepContent = @"content",
+    *const kClaudeGrepFiles = @"files_with_matches", *const kClaudeGrepCount = @"count";
+NSArray<NSString *> *ClaudeGrepSkips(void) { return @[@".git", @".svn", @".hg", @".bzr", @".jj", @".sl"]; }
+// Words in a list: "a", "a and b", "a, b and c".
+static NSString *Listed(NSArray<NSString *> *words) {
+    if (words.count < 2) return words.firstObject ?: @"";
+    return [NSString stringWithFormat:@"%@ and %@",
+            [[words subarrayWithRange:NSMakeRange(0, words.count - 1)] componentsJoinedByString:@", "],
+            words.lastObject];
+}
+
+NSString *ClaudeAsideLine(void) {
+    // The commands and what each needs are git's own (GitReadOnlyCommands), so these words and the checker never
+    // disagree: those that need options, and the options, said once for each set.
+    NSMutableArray<NSString *> *needing = [NSMutableArray array];
+    NSMutableDictionary<NSString *, NSMutableArray<NSString *> *> *byNeeds = [NSMutableDictionary dictionary];
+    for (NSString *command in GitReadOnlyCommands()) {
+        NSString *needs = [GitReadOnlyNeeds(command) componentsJoinedByString:@" "];
+        if (!needs.length) continue;
+        if (!byNeeds[needs]) {
+            byNeeds[needs] = [NSMutableArray array];
+            [needing addObject:needs];
+        }
+        [byNeeds[needs] addObject:command];
+    }
+    NSMutableArray<NSString *> *withOptions = [NSMutableArray array];
+    for (NSString *needs in needing)
+        [withOptions addObject:[NSString stringWithFormat:@"%@ with %@", Listed(byNeeds[needs]), needs]];
+    NSString *options = withOptions.count
+        ? [NSString stringWithFormat:@" (%@)", [withOptions componentsJoinedByString:@"; "]] : @"";
+    return [NSString stringWithFormat:@"Whozmove: the user asks this on the side, and you're a copy of this session "
+            "answering it alone. You may read the project's files and run git %@ in its folder%@; change nothing, "
+            "message no one, and don't carry on the task. Answer in a few short paragraphs.",
+            Listed(GitReadOnlyCommands()), options];
+}
 
 NSArray<NSString *> *ClaudeAuthStatusArguments(void) {
     return @[@"auth", @"status"];

@@ -4,11 +4,13 @@
 // on its row in the list.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
-// The head: what it is, who it's from as Whozmove found it asking, where it's for, and how long it has waited.
+// The head: what it is, who it's from as Whozmove found it asking, where it's for, and how long it has waited, counted
+// as its place in the line is (`came`: a lead's pick from when its queue first named it).
 function taskHeadHTML(item, now) {
   const from = item ? taskFrom(item) : '';
+  const waited = item ? ago(now - (item.came || item.at)) : '';
   return `<span class="r-title">One Task</span>`
-    + `<span class="r-sub">${item ? `${esc(from)} ${taskWhereHTML(item)} · ${esc(ago(now - item.at))}` : ''}</span>`
+    + `<span class="r-sub">${item ? `${esc(from)} ${taskWhereHTML(item)} · ${esc(waited)}` : ''}</span>`
     + `<button class="icon-button r-close" title="Close">${CLOSE_ICON}</button>`;
 }
 
@@ -46,18 +48,18 @@ function taskAfterHTML(item, items, now) {
     `<li>${esc(one.task.title)} <i>· ${esc(taskWhyHere(one, items, now))}</i></li>`).join('') + '</ol></div>';
 }
 
-// The strip under One Task's head: what's urgent while you're on another task, as the kit's urgent notice, with Go;
-// or, while you're on the urgent one, ‹ Back to the task you set aside. Nothing when neither.
+// The strip under One Task's head: the tasks to do now ahead of the one you're on, as the kit's urgent notice, with
+// Go; or, while you're on one of them, ‹ Back to the task you set aside. Nothing when neither.
 function taskStripHTML(urgent, aside) {
   if (aside) return '<div class="ot-strip" data-stays>'
     + `<button type="button" class="ot-back" data-urgent="back">‹ Back to ${esc(aside.title)}</button></div>`;
-  if (!urgent.length) return '';
-  const words = taskUrgentWords(urgent), cut = words.indexOf(': ');
+  const parts = taskUrgentParts(urgent);
+  if (!parts) return '';
   return '<div class="ot-strip" data-stays><div class="notice urgent" role="status"><span class="notice-text">'
-    + `<b>${esc(words.slice(0, cut + 1))}</b> ${esc(words.slice(cut + 2))}</span>`
+    + `<b>${esc(parts.head)}:</b> ${esc(parts.title)}${esc(parts.more)}</span>`
     + '<button type="button" class="button small main" data-urgent="go">Go</button></div></div>';
 }
-const taskMoreWords = (more, any, urgent = 0) => (more > 0 ? `${more} more after this${urgent ? `, ${urgent} urgent`
+const taskMoreWords = (more, any, doNow = 0) => (more > 0 ? `${more} more after this${doNow ? `, ${doNow} to do now`
   : ''}` : any ? 'Nothing after this' : '');
 // What VoiceOver says as a task comes in: its kind and title, and whom it's from.
 const taskSayWords = (item) => (!item ? 'Nothing needs you'
@@ -68,12 +70,12 @@ const TASK_NOTHING = '<div class="ot-body ot-none"><div class="card-title">Nothi
 const TASK_OFF = '<div class="ot-body ot-none"><div class="card-title">One Task is off</div>'
   + '<div class="card-lead">Turn it on in Settings ▸ One Task.</div></div>';
 
-// The step's track, the kit's (stepTrackHTML): a tick for each step, those done, the one now in the colour of whose
-// move it is, an urgent task's in the urgent one. One Task only places it, at the end of the step's line.
-function taskTrackHTML(step, priority) {
-  if (!step || step.of < 2) return '';
-  return `<span class="ot-track" aria-hidden="true">${stepTrackHTML(step.of, step.n - 1,
-    priority === 'urgent' ? 'urgent' : 'normal')}</span>`;
+// The step's track, the kit's (stepTrackHTML): one bar, what's done, the one now in the task's look (taskLook: to do
+// now in the colour of something to put right, the lowest priority as low). One Task only places it, at the end of the
+// step's line, and draws none where the kit draws none (a task of one step).
+function taskTrackHTML(step, look) {
+  const track = step ? stepTrackHTML(step.of, step.n - 1, look) : '';
+  return track ? `<span class="ot-track" aria-hidden="true">${track}</span>` : '';
 }
 
 // What it attached, each on a line, with what a press there does (taskAttachOpens): a file from another session than
@@ -159,7 +161,7 @@ function taskBodyHTML(item, ui, to) {
     + `<div class="ot-title"><span class="tag count">${taskKindWords[task.kind] || ''}</span>`
     + `<span class="card-title big">${esc(task.title)}</span></div>`
     + '<div class="ot-steps">'
-    + (step ? `<div class="ot-step"><span class="ot-word">${esc(step)}</span>${taskTrackHTML(task.step, task.priority)}</div>` : '')
+    + (step ? `<div class="ot-step"><span class="ot-word">${esc(step)}</span>${taskTrackHTML(task.step, taskLook(item))}</div>` : '')
     + `<p class="ot-why">${esc(task.why)}</p>`
     + taskDoHTML(task, ui, asks)
     + (task.attach?.length ? '<div class="ot-part"><span class="caps">Attached</span><div class="ot-atts">'

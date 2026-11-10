@@ -37,8 +37,10 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
   modules fill in (`Module.h`, `Host.h`, `Agent.h`; and what one module offers the others, which the core finds with
   `moduleThat:`: `WhozmoveAgain`, getting this copy of Whozmove again, the install module's; `FilesAtLines`, opening
   a file at a line in the editor you chose, the changes module's; `TeamFacts`, each team in the team file as a
-  whole, the team module's; `BuildsInPlace`, what Deploy last put in place for a project, the deploy module's; and
+  whole, the team module's; `BuildsInPlace`, what Deploy last put in place for a project, the deploy module's;
   `GearFacts`, your gear, how many sessions are working and the gear your plan can carry, the usage module's;
+  `ProjectWay`, how a project works (its own pages, and the note you kept for it), the process-notes module's;
+  `KeyPlaces`, where keys are kept, as Keys knows it, the storage module's, which a side question's copy never reads;
   `BackgroundWaits`, the ask-panel.sh commands a module's asks wait with in a session's background, which the agent's
   module leaves off the row's jobs, the waits and tickets modules'; and
   what any number of modules may offer, which the core lists with `modulesThat:`: `Tracker`, a ticket tracker,
@@ -116,8 +118,8 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
   core runs them; a module never calls another's functions or reads its state. Its own state goes on the page's state
   with `moduleState`, which refuses a key another has. What it can plug in:
   - its start-up, and its part of each update, each fold to the header and each rebuild of the list (rows the app
-    hasn't listed yet, what it works out before the list is drawn, and after), and a way to group the list
-    (`core.groupings`, offered in Settings ▸ Session List by the app's `addGrouping:`), and which sessions' replies
+    hasn't listed yet, what it works out before the list is drawn, and after), and groups of its own above the
+    projects (`core.topGroups`, handing back the rows it leaves for them), and which sessions' replies
     went to another session rather than to you, so they never wait on you (`core.repliesElsewhere`), and which
     conversations have nothing in them for you to read at all (`core.notYoursToRead`);
   - a row's parts: its first look at the row, its parts in the row's places (`core.slots`: after the name, or on a
@@ -127,19 +129,27 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
     end of its lines, whose bar swells as the pointer comes onto it, kept lit by what's in it marked `.keep` and in
     your move's colour by what's marked `.lit`; with whether the row has Claude's line, `row.claudeLine`, and
     whether it asks something of you, `row.asking`, and for what, `row.askWant` (an ask's one action, at its end, is
-    the first module's that answers it, `core.slots.askAct`: Deploy's for 'try', else the note's own `act.html`),
+    the first module's that answers it, `core.slots.askAct`: Deploy's for 'try', the reader's for 'plan', a plan Claude
+    waits on there, and 'look', the session's newest prototype, each opened beside the list, else the note's own
+    `act.html`),
     whether its bottom line's end is drawn, `row.placeEnd` (never while it asks: one ask, one action, so a module that
     puts an action elsewhere on the row, as the context ring, leaves it off while `row.asking`), and whether that end is drawn at its note's end (`row.endAtNote`: a row shown briefly) rather than on the
     bottom line, all known before
     the title line's are asked, so a part with one place to go goes in one; and just before that end, what stays on
     the bottom line whatever the end does, `placeStays`, asked only there, as Deploy's address), its card under the chat (`core.rowCards`, the most pressing showing, each the others' place
-    when they want it), and the row's note, said in its work line's place (`core.rowNotes`), or on a line of its own with `line` (an ask line, `askLineHTML`), one in your move's colour giving way to any other; and a row shown briefly
-    (`row.brief`: its title line, Claude's line without yours, its card and its note, under a name of the module's,
-    `row.name`, and without Claude's line, `row.chatless`);
+    when they want it), and the row's note, said in its work line's place (`core.rowNotes`), or on a line of its own
+    with `line` (an ask line, `askLineHTML`), one in your move's colour giving way to any other; and, as every row in
+    the list is shown briefly (the row part's `row.brief`: its title line, Claude's line only where nothing else says
+    it, its card and its note), a name of the module's for it, `row.name`;
   - its part of the new conversation card (`core.startCardParts`, the starts module's card): a chip after where it
     starts, a list under the box with a field of its own that stays put as the list comes in afresh, the box's words,
     a line it adds to your words, and what the start carries for its module, handed to it natively once the start is a
-    session (Module's `started:with:`);
+    session (Module's `started:with:`); and where it starts: where the part would have it start (`where`, followed
+    while you haven't picked where yourself), the line under the box in the card's own line's place (`under`), a
+    warning in the busy notice's place (`warn`), Start held while it finds out where (`waits`), and keys in the box
+    (`boxKeys`), with the card's `api.place()`,
+    `useHere()` and `start()`. The ticket on the card, for its other parts, is `core.cardTicket()`, the tickets
+    module's;
   - presses, typing and Return in its boxes, the boxes that take the keyboard, the cards that take it once pressed and
     their keys, what the pointer can point at, what it does with what the pointer is on, and the card something pointed
     at shows (with buttons, `press`, it stays while the pointer moves onto it);
@@ -149,8 +159,9 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
   - what an agent's details mean, what Claude's line says while a request waits, and on a chat beside the folded
     panel once you've answered it there (`core.agent`, its `askLine` and `answeredLine`), for the parts that show them;
   - a team's job as the team module draws it, for what draws its jobs elsewhere (the team board): its track for the
-    row's parts' `stepTrackHTML`, its stage in the list's words, and its priority's word and whether it's to do now
-    (`core.teamJob`, its `track`, `stageWord`, `priorityWord` and `doNow`), for the team board and One Task;
+    row's parts' `stepTrackHTML`, its stage in the list's words, its priority's word, its place in the ladder and
+    whether it's to do now (`core.teamJob`, its `track`, `stageWord`, `priorityWord`, `priorityPlace` and `doNow`), for
+    the team board and One Task;
   - each kind of task as One Task does it, for what shows an ask of that kind elsewhere (a team's step): its icon, its
     verb and what a press does with the task in hand (`core.taskKinds.act(kind)`: `icon`, `verb`, `does`), for the
     team;
@@ -158,9 +169,15 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
     after each time it does, its lines, its words for what lists the sessions beside it and where it's changed, as
     the seats are only on the usage card, and whether Usage Gear is off (`core.gear`: `facts`, `off`, `changed`,
     `line`, `whyLine` and `words`, with `words.where`);
-  - a plan at a glance as the plans module draws it, for the places that show a plan (the reader, the plan card on a
-    row, One Task), each passing the text it has (`core.plans`: `readerHTML`, `cardLines`, `taskHTML`, and `picks`
-    for what a send-back carries);
+  - a plan at a glance as the plans module draws it, for the places that show a plan (the reader, One Task), each
+    passing the text it has (`core.plans`: `readerHTML`, `cardLines`, `taskHTML`, `picks` for what a send-back
+    carries, and `folded`, whether a plan is shown folded beside the list);
+  - the plan a session's agent waits for your OK on, in the panel's own words, and how to answer it, for the module
+    that shows it beside the list, so only the agent's own module reads its request and sends its messages
+    (`core.planAsks`, one from each agent's module: `of`, with its text, whether the panel can answer it and why
+    Approve can't be offered; `yours`, how your Approve of it went; and `approve`, `sendBack`, `stop` and `hold`; and
+    for a plan its session still waits on once its request has gone, `left`, `typeBack`, your notes typed in as a
+    message, and `typed`, how that went);
   - the code blocks a module draws, by their language, told whether it's the reader or the list (`core.fences`); what's
     drawn at the width it has as the reader is fitted (`core.readerDrawn`); and diagrams as the diagrams module draws
     them, for the places that show Markdown (`core.diagrams`: `smallHTML`, `words`, `says`, `firstFlow` and `draw`);

@@ -20,6 +20,7 @@ NSString *JiraResource(void) {
     return JiraServer().absoluteString;
 }
 NSString *const kJiraWriteScope = @"write:jira:agent-interface";
+NSString *const kJiraProductId = @"jira", *const kJiraScopeWord = @"jira";
 NSArray<NSString *> *JiraScopes(void) {
     // Writing too, as a session moves its ticket and adds its note there; never deleting or managing.
     return @[@"read:jira:agent-interface", @"search:jira:agent-interface", kJiraWriteScope, @"offline_access",
@@ -35,6 +36,9 @@ NSString *const kJiraToolComment = @"addOrEditJiraIssueComment";
 NSString *const kJiraToolCreate = @"createJiraIssue";
 NSString *const kJiraToolIssueTypes = @"listJiraProjectIssueTypesMetadata";
 NSString *const kJiraToolBoards = @"listJiraBoards";
+NSString *const kJiraToolTypeFields = @"getJiraIssueTypeMetaWithFields";
+NSString *const kJiraPriorityType = @"Task";
+const NSInteger kJiraFieldsMost = 200;
 NSString *const kJiraExecuteRead = @"executeRead";
 NSString *const kJiraExecuteWrite = @"executeWrite";
 
@@ -47,14 +51,9 @@ NSString *JiraCloudId(NSString *site) {
 }
 const NSInteger kJiraSearchMost = 5;
 
-NSArray<NSString *> *JiraIssueFields(void) {
-    // *navigable brings the sprint, which lives in a custom field whose id differs from site to site.
-    return @[@"summary", @"status", @"issuetype", @"priority", @"assignee", @"parent", @"project", @"resolution",
-             @"*navigable", @"-description", @"-comment"];
-}
-NSArray<NSString *> *JiraSearchFields(void) {
-    return @[@"summary", @"status", @"issuetype", @"project", @"resolution"];
-}
+NSString *const kJiraReadView = @"full";
+const NSInteger kJiraAboutMost = 20000;
+NSString *const kJiraAboutCut = @"(Cut short here: the rest is on the ticket's own page.)";
 
 NSURLSession *JiraSession(NSTimeInterval timeout) {
     NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
@@ -109,6 +108,15 @@ NSString *JiraLinkFor(NSString *key, NSString *site) {
     return [NSString stringWithFormat:@"https://%@/browse/%@", site.lowercaseString, key];
 }
 
+NSString *JiraCategoryKey(id category) {
+    NSDictionary *record = AsRecord(category);
+    NSString *key = AsText(record[@"key"]);
+    if (key.length) return key;
+    // Jira's own three categories, as an issue read through v2 names them, with no key.
+    return @{@"to do": @"new", @"in progress": @"indeterminate", @"done": @"done"}
+        [AsText(record[@"name"]).lowercaseString ?: @""];
+}
+
 TicketKind JiraKindOf(NSString *categoryKey, NSString *resolution) {
     if ([categoryKey isEqualToString:@"indeterminate"]) return TicketKindUnderWay;
     if (![categoryKey isEqualToString:@"done"]) return TicketKindToDo;
@@ -127,7 +135,8 @@ static NSString *Quoted(NSString *text) {
 NSString *JiraSearchFor(NSString *words) {
     NSString *trimmed = [words stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     NSString *key = JiraKeyIn(trimmed, NULL);
-    if (key) return [NSString stringWithFormat:@"key = %@", key];
+    // Quoted, as a project's key can be a word JQL keeps for itself (GO, IN, OR).
+    if (key) return [NSString stringWithFormat:@"key = %@", Quoted(key)];
     if (!trimmed.length) return @"assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC";
     return [NSString stringWithFormat:@"text ~ %@ ORDER BY statusCategory ASC, updated DESC",
             Quoted(Clip(trimmed, 200))];

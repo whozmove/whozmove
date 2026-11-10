@@ -1,7 +1,7 @@
 // The chats beside the folded cat, the place notifications fills beside the folded panel (core.places.besideFold).
 // While the panel is folded, a session that comes to need you (a request, a question, a plan, or a reply you haven't
 // read) comes out beside the cat by itself, as its row, the list's own (rowHTML), so it's answered or opened there as
-// it would be in the list; whole, saying what's new, where a grouping shows the list's rows briefly (row.chat), and
+// it would be in the list; whole, saying what's new, where the list shows its rows briefly (row.chat), and
 // saying a module's line in Claude's place where that's what's new, a reply in its side chat (`said`). Which
 // come out and when is notifications' (its decider, besideStep): in the order they came, the first nearest the cat,
 // three at most: a new one comes out after the others, or, with three out, waits its turn, never taking the place of

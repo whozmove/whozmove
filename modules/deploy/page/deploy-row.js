@@ -257,7 +257,7 @@ core.rowLooks.push((row) => {
       || deployRunCard(row.deploy, row.clock, seen, state.deployShut[row.deploy.folder]);
   }
   // The address, while it shows: a press is taken once it's been shown a moment.
-  if (row.offer?.look === 'up' && !row.brief) state.shownAt['addr:' + row.s.sessionId] ??= row.clock;
+  if (row.offer?.look === 'up' && (!row.brief || row.tools)) state.shownAt['addr:' + row.s.sessionId] ??= row.clock;
   else delete state.shownAt['addr:' + row.s.sessionId];
 });
 // When the page first saw the row's build up (0 for one up before it loaded).
@@ -265,9 +265,9 @@ const upSeenOf = (row) => state.deployUpSeen[row.deploy.folder]?.seen || 0;
 // At the end of the bottom line, after where the session runs: Deploy goes with the folder it puts in place, and a
 // build that's up has its address between them. The button goes wherever the row's end does (a row shown briefly's
 // note's end), and while the row asks something of you, only at the end of an ask to try, as its one action (askAct);
-// the address stays on the bottom line, where it can still be pressed (a row shown briefly has it in the button's
-// tip).
-core.slots.placeStays.push((row) => (row.offer?.look === 'up' && !row.brief
+// the address stays on the bottom line, where it can still be pressed (a row shown briefly, but the row you're on, has
+// it in the button's tip).
+core.slots.placeStays.push((row) => (row.offer?.look === 'up' && (!row.brief || row.tools)
   ? deployAddressHTML(row.s, row.deploy, row.clock, upSeenOf(row)) : ''));
 core.slots.placeEnd.push((row) => (row.offer
   ? deployHTML(row.s, row.deploy, row.offer, row.clock, upSeenOf(row)) : ''));

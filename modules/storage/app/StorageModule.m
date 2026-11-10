@@ -2,7 +2,8 @@
 // the page what the line above the list says (setDisk), puts the line away when its × is pressed, and has Storage among
 // the tools on the panel's back: what the disk holds, Map My Disk (which turns the map on and opens Clean up), and its
 // switches. Once Storage is on, it measures the disk for the map (Scanner), tells it the folders agents are at work in,
-// answers the map's presses, and has the print modes the tests check.
+// answers the map's presses, and has the print modes the tests check. It offers where keys are kept (KeyPlaces) to a
+// module that must never read one.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Module.h"
 #import "Core.h"
@@ -160,7 +161,7 @@ static int PrintKeysAct(NSArray<NSString *> *arguments) {
     return PrintJSON(@{@"why": why ?: NSNull.null, @"ids": [AsList(scan.found[@"keys"]) valueForKey:@"id"] ?: @[]});
 }
 
-@interface StorageModule : NSObject <Module>
+@interface StorageModule : NSObject <Module, KeyPlaces>
 @property (weak) Core *core;
 @property (strong) Disk *disk;
 @property (strong) Scanner *scanner;
@@ -274,6 +275,15 @@ static int PrintKeysAct(NSArray<NSString *> *arguments) {
 }
 
 #pragma mark Keys
+
+// Where keys are kept, from KeyFacts, the one list Keys looks in by.
+- (NSArray<NSString *> *)keyPlacesInHome {
+    return KeyPlacesInHome();
+}
+
+- (BOOL)isKeyFile:(NSString *)path {
+    return KeyFileByName(path);
+}
 
 // The ⌄ beside a key's fix: the rest of what can be done about it, in a menu under it, as its ways name them, each
 // done at once, and the page told how it went (keysActed); but moving a file to the Trash, which is asked first.

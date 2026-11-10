@@ -603,8 +603,11 @@ static NSString *Decoded64(id value) {
             // (Sign In Again, or Allow), which only you can take.
             BOOL signIn = answer.end == TrackerEndSignIn || answer.end == TrackerEndAsksMac, byItself = move.itself;
             if (byItself && signIn) move.itself = NO;
+            // With what the tracker said of a move it turned away, which only the session's JSON and the page carry.
             if (answer.end == TrackerEndStepGone || byItself)
-                binding.told = @{@"notMoved": answer.why ?: @"it couldn't be moved"};
+                binding.told = answer.trackerSays.length
+                    ? @{@"notMoved": answer.why ?: @"it couldn't be moved", @"trackerSays": answer.trackerSays}
+                    : @{@"notMoved": answer.why ?: @"it couldn't be moved"};
             if (answer.end != TrackerEndStepGone && !move.itself) move.problem = answer;
             PanelLog(@"%@ %@: step %@ not taken (%ld)", binding.tracker, binding.key, move.stepId, (long)answer.end);
         }

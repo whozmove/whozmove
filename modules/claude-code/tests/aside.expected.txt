@@ -1,7 +1,7 @@
 == What it runs
-Its arguments: ["-p","--resume","0b6c1d2e-3f40-4a51-8b62-7c83d94ea5f6","--fork-session","--no-session-persistence","--input-format","stream-json","--output-format","stream-json","--verbose","--max-turns","1","--permission-mode","dontAsk","--setting-sources","","--settings","{\"env\":{\"DISABLE_AUTO_COMPACT\":\"1\"},\"hooks\":{\"PreToolUse\":[{\"matcher\":\"*\",\"hooks\":[{\"type\":\"command\",\"command\":\"\/bin\/sh -c 'echo A side question uses no tools >&2; exit 2'\"}]}]}}","--model","claude-opus-5-5[1m]","--effort","high"]
+Its arguments: ["-p","--resume","0b6c1d2e-3f40-4a51-8b62-7c83d94ea5f6","--fork-session","--no-session-persistence","--input-format","stream-json","--output-format","stream-json","--verbose","--max-turns","12","--permission-mode","dontAsk","--setting-sources","","--allowedTools","Read,Grep,Glob,Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*)","--settings","{\"env\":{\"DISABLE_AUTO_COMPACT\":\"1\"},\"hooks\":{\"PreToolUse\":[{\"hooks\":[{\"command\":\"\/bin\/sh -c '\\\"$WHOZMOVE_ASIDE_CHECK\\\" --helper-aside-check \\\"$WHOZMOVE_ASIDE_FOLDER\\\" || exit 2'\",\"timeout\":600,\"type\":\"command\"}],\"matcher\":\"*\"}]}}","--model","claude-opus-5-5[1m]","--effort","high"]
 No model or effort known: neither passed, so Claude Code's own: 0
-The words that open the question: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. Use no tools; answer from what you already know, in a few short paragraphs, and don't carry on the task."
+The words that open the question: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. You may read the project's files and run git status, log, diff and show in its folder (log, diff and show with --no-ext-diff --no-textconv); change nothing, message no one, and don't carry on the task. Answer in a few short paragraphs."
 A session whose id is a UUID: asked: true
 …one whose id looks like a flag: never asked, as Claude Code would read it as one: false
 …one whose id is any other word: never asked: false
@@ -40,6 +40,159 @@ Nothing, and it ended: no answer: {"state":"noAnswer"}
 Stopped, whatever it said: {"state":"stopped"}
 A line that isn't JSON is passed over: "answered"
 A long answer: 16,384 characters kept: 16384
+
+== The steps it says as it answers
+Thinking, its words not passed on: "Thinking"
+…its summary's first line, without its markdown: "Looking at how the cart totals"
+…a long one, cut: "Weighing the totals the totals the totals the totals the totals the totals the t…"
+…one that names a path, or holds a key's shape: just Thinking: ["Thinking","Thinking","Thinking"]
+…hidden from it: "Thinking"
+Reading a file in the session's folder: its name: ["Reading cart.ts","Reading cart.ts"]
+…one outside it, by any way: no name: ["Reading a file","Reading a file","Reading a file","Reading a file"]
+Searching: its words, cut: ["Searching for “total”","Searching for “function (add|remove)LineFromT…”"]
+…words that name a path, or hold a key's shape: no words: ["Searching","Searching"]
+Finding files: a pattern in the folder: "Finding files src\/**\/*.ts"
+…one that reaches outside it: no pattern: ["Finding files","Finding files","Finding files"]
+git: its own command, never Claude's words for it: ["Running git log","Running git","Running a command"]
+Any other tool: "Working"
+Several blocks in one line: the last's: "Searching for “total”"
+Its words, a tool's result, the result, a line of anything else: no step: [null,null,null,null]
+
+== Its thinking's summaries, by the version of Claude Code
+Asked for with: ["--thinking-display","summarized"]
+Its version: its installer's file, Homebrew's folder, a link to one, npm's: ["2.1.319","2.1.319","2.1.319",null]
+Asked for: a version they were checked with; not a later one, one that turned them down, or none known: [true,false,false,false]
+Asked again without them: it ended with an error, having said nothing: true
+…not once it said something, was stopped, ran out of time, ended well or didn't start: [false,false,false,false,false]
+
+== What it may read, as its checker decides (nothing: it may)
+Read, a file in the folder: null
+…the same, from the folder: null
+…a file outside it: "HOME\/outside\/notes.txt is outside the project's folder"
+…a link in the folder that leads out: "HOME\/shop\/notes.txt is outside the project's folder"
+…through a linked folder: "HOME\/shop\/out\/notes.txt is outside the project's folder"
+…a path that climbs out: "HOME\/shop\/src\/..\/..\/outside\/notes.txt is outside the project's folder"
+…one that isn't there: "HOME\/shop\/gone.txt isn't there, or isn't a path in the project's folder"
+…from the home folder by ~: "~\/.netrc isn't there, or isn't a path in the project's folder"
+…a .env in the folder: "HOME\/shop\/.env is where keys are kept"
+…a .env.local: "HOME\/shop\/.env.local is where keys are kept"
+…a .pem: "HOME\/shop\/site.pem is where keys are kept"
+…a .key: "HOME\/shop\/deploy.key is where keys are kept"
+…one ending .env, direnv's .envrc, one in capitals: ["prod.env is where keys are kept",".envrc is where keys are kept","SITE.PEM is where keys are kept"]
+…git's own config: ".git\/config is git's own, read only through git"
+…the project's own .npmrc, an ssh key in it: [".npmrc is where keys are kept","src\/id_rsa is where keys are kept"]
+…MCP settings, which often hold a server's key: the project's, Cursor's, VS Code's, one in a folder of it: [".mcp.json is where keys are kept",".cursor\/mcp.json is where keys are kept",".vscode\/mcp.json is where keys are kept","src\/.mcp.json is where keys are kept"]
+…an AI tool's history in the project: ".aider.chat.history.md is where keys are kept"
+…a JSON file, as most aren't a key's: null
+…one git ignores, whatever its name: "deploy_token is one git ignores, where a project keeps its own secrets"
+…a file git doesn't ignore, beside it: null
+…no file given: "Read was given no file"
+Grep, over the folder, which holds key files the project keeps: "that folder holds .aider.chat.history.md, where keys are kept: search one file at a time, or a folder without one"
+…in a folder of it with key files in it: "that folder holds src\/.mcp.json, where keys are kept: search one file at a time, or a folder without one"
+…in a folder with no key file in it: null
+…in a folder whose only key file git ignores, which Grep leaves out too: null
+…in a folder holding another checkout, untracked, with a key file in it: "that folder holds vendor\/lib\/sub\/.env, where keys are kept: search one file at a time, or a folder without one"
+…in a folder of that other checkout, with a key file in it, which this one's git lists nothing of: "that folder holds vendor\/lib\/sub\/.env, where keys are kept: search one file at a time, or a folder without one"
+…in a folder whose .env a line in capitals hides from git told to match either case, not from ripgrep: "that folder holds site\/.env, where keys are kept: search one file at a time, or a folder without one"
+…in a folder whose .env only an ignore file the checkout's config names hides, which ripgrep never reads: "that folder holds api\/.env, where keys are kept: search one file at a time, or a folder without one"
+…in no checkout: over a folder with a key file further down, in a folder of it with one, and one without: ["that folder holds c\/.env, where keys are kept: search one file at a time, or a folder without one","that folder holds c\/.env, where keys are kept: search one file at a time, or a folder without one",null]
+…in no checkout, a folder whose only key file is in version control's own folder, which Grep leaves out: null
+…in a linked folder that leads out: "out is outside the project's folder"
+…in the home folder: "HOME is outside the project's folder"
+…in a file git ignores: "deploy_token is one git ignores, where a project keeps its own secrets"
+…with a file-name filter, which searches what git ignores: "a Grep may not filter by file name here, as that searches the files git ignores"
+…its matching lines over the folder, or a folder of it, which can hold a key file the project keeps: ["a Grep shows matching lines only from one file here, as a folder can hold one where keys are kept: find the files first, then search or read each","a Grep shows matching lines only from one file here, as a folder can hold one where keys are kept: find the files first, then search or read each"]
+…its matching lines from one file, and the files that match, or how many lines, over a folder without a key: [null,null,null]
+…the files that match, or how many lines, over the folder, which holds a key file: ["that folder holds .aider.chat.history.md, where keys are kept: search one file at a time, or a folder without one","that folder holds .aider.chat.history.md, where keys are kept: search one file at a time, or a folder without one"]
+…its matching lines from MCP settings, and a way of printing it has no name for: [".mcp.json is where keys are kept","a Grep may only find files, count or show lines"]
+Glob, a pattern from the folder down: null
+…a whole path, searched whatever its path says: "a Glob pattern may only name files from the project's folder down"
+…from the home folder: "a Glob pattern may only name files from the project's folder down"
+…climbing out: "a Glob pattern may only name files from the project's folder down"
+Write: never: "Write isn't for a side question, which only reads, with Read, Grep, Glob and git"
+Edit, WebFetch, an MCP tool: never: ["Edit isn't for a side question, which only reads, with Read, Grep, Glob and git","WebFetch isn't for a side question, which only reads, with Read, Grep, Glob and git","mcp__kit__ping isn't for a side question, which only reads, with Read, Grep, Glob and git"]
+git status: null
+git status --short --branch: null
+git log, with --no-ext-diff --no-textconv: null
+git diff, with them, of a file: null
+git show, with them, a format and a quoted search: null
+git log, a single-quoted word: null
+git diff without --no-ext-diff --no-textconv: "git diff needs --no-ext-diff --no-textconv, before any --"
+…with them only after --: "git log needs --no-ext-diff --no-textconv, before any --"
+git diff --output: "git diff may not take --output=..\/written.txt here"
+…--output in single quotes: "git diff may not take --output=written.txt here"
+…--ext-diff: "git diff may not take --ext-diff here"
+…--textconv: "git log may not take --textconv here"
+…--show-signature: "git log may not take --show-signature here"
+…a format asking for the signature: "git log may not take --format=%GS here"
+…--no-index: "git diff may not take --no-index here"
+…a file from the top of the disk: "\/dev\/null names something outside the project's folder"
+…from the home folder: "~\/.netrc names something outside the project's folder"
+…above the folder: "..\/outside\/notes.txt names something outside the project's folder"
+…a file above it at a commit: "HEAD:..\/outside\/notes.txt names something outside the project's folder"
+…a file named as keys are, at a commit or as a path: ["HEAD:.env is where keys are kept","prod.env is where keys are kept"]
+…MCP settings, at a commit or as a path: ["HEAD:.mcp.json is where keys are kept",".cursor\/mcp.json is where keys are kept"]
+…a commit whose patch holds the MCP settings the project keeps, and the history that holds it: ["it would show what's in .mcp.json, where keys are kept: name the files to show after --","it would show what's in .mcp.json, where keys are kept: name the files to show after --"]
+…the commit after it, that history for one file, the history's names, and the first commit's: [null,null,null,null]
+…a pattern, which git takes as the one file it names: null
+…a file's contents by its id, as a patch's index line gives it, and a folder by its: ["d64a3d962e787834f9b43312cdcdb96ef357709a isn't a commit, and git would show the file or folder it names whole","HEAD^{tree} isn't a commit, and git would show the file or folder it names whole"]
+…a folder at a commit, which git diff prints whole: between two commits, beside the working files, and shown: ["HEAD~1: isn't a commit, and git would show the file or folder it names whole","HEAD: isn't a commit, and git would show the file or folder it names whole","HEAD:src isn't a commit, and git would show the file or folder it names whole"]
+…a file at a commit: MCP settings, shown or compared; and one that isn't a key's, shown and compared: ["HEAD:.mcp.json is where keys are kept","HEAD~1:.mcp.json is where keys are kept",null,null]
+…braces the shell would turn into options: "{--output=x,--stat} would be changed by the shell"
+…a ~ the shell would turn into the home folder: "--author=~ would be changed by the shell"
+git -C, an option before the command: "only git status, log, diff and show may run, with nothing between git and the command"
+git -c: "only git status, log, diff and show may run, with nothing between git and the command"
+another git command: "only git status, log, diff and show may run, with nothing between git and the command"
+a second command after it: "only git status, log, diff and show may run, as one command of plain words"
+…on a line of its own: "only git status, log, diff and show may run, as one command of plain words"
+…piped: "only git status, log, diff and show may run, as one command of plain words"
+a variable: "only git status, log, diff and show may run, as one command of plain words"
+a setting before git: "only git status, log, diff and show may run, with nothing between git and the command"
+another program: "only git status, log, diff and show may run, with nothing between git and the command"
+git status, in the background: "nothing may run in the background"
+A session started in the home folder: reads nothing: "this session works in the home folder, or above it, so a side question reads nothing"
+…nor git there: "this session works in the home folder, or above it, so a side question reads nothing"
+A session in a folder inside a checkout, or in none: no git, as it would read the whole checkout or any file: "git runs only for a session at the top of a checkout, and this one isn't"
+…but the checkout's .gitignore holds there: a file it ignores, and one beside it: ["deploy_token is one git ignores, where a project keeps its own secrets",null]
+…a folder in no checkout, where nothing is ignored: null
+A folder that isn't there: "the session's folder can't be found"
+Where keys are kept, wherever the folder is: [true,true,true,false,false]
+…and every other place in the home folder Keys knows: Docker's sign-ins, Kubernetes', Codex's, GnuPG's, a shell's settings: [true,true,true,true,true]
+Without Keys' list: every file counts, and nothing is read or run: [true,"Whozmove couldn't find where keys are kept","Whozmove couldn't find where keys are kept"]
+The checker's answer to the hook: a read it may make: null
+…one it may not: "A side question can't do this: HOME\/outside\/notes.txt is outside the project's folder. Answer from what you have."
+…a call it can't read: "A side question can't do this: Whozmove couldn't read what this tool was given. Answer from what you have."
+…none: "A side question can't do this: Whozmove couldn't read what this tool was given. Answer from what you have."
+
+== Kept for follow-ups
+The session as it was when the copy opened: asked in it: false
+…a step since (its transcript grew): a fresh copy: true
+…a newer message: a fresh copy: true
+…not known as it opened, or now: a fresh copy: [true,true]
+A follow-up into the open copy: waiting, its own process, the same model and effort, the session still: true
+…a fresh copy when it's still answering, its process ended or replaced, the model or effort changed, or the session moved: [false,false,false,false,false,false]
+…a copy whose process was never told: a fresh copy: false
+The earlier side questions a fresh copy is told: all, the session never compacted: ["Why the cart?","And the queue?","Which file?"]
+…only those since it compacted: ["And the queue?","Which file?"]
+…none, once it compacted after them all: []
+…the newest that fit in a few thousand words: ["Second?","Third?"]
+A fresh copy's first message: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. You may read the project's files and run git status, log, diff and show in its folder (log, diff and show with --no-ext-diff --no-textconv); change nothing, message no one, and don't carry on the task. Answer in a few short paragraphs.\n\nEarlier, on the side, the user asked you these, and you answered:\n\nQuestion: Why the cart?\n\nYour answer: Because it holds the order.\n\nQuestion: And the queue?\n\nYour answer: It waits for the cart.\n\nQuestion: Which file?\n\nYour answer: src\/cart.js.\n\nNow they ask:\n\nIs the cart saved?"
+…with nothing earlier: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. You may read the project's files and run git status, log, diff and show in its folder (log, diff and show with --no-ext-diff --no-textconv); change nothing, message no one, and don't carry on the task. Answer in a few short paragraphs.\n\nIs the cart saved?"
+A follow-up into the open copy: "Whozmove: the user asks this on the side, and you're a copy of this session answering it alone. You may read the project's files and run git status, log, diff and show in its folder (log, diff and show with --no-ext-diff --no-textconv); change nothing, message no one, and don't carry on the task. Answer in a few short paragraphs.\n\nIs the cart saved?"
+Its environment: {"GIT_CONFIG_COUNT":"9","GIT_CONFIG_KEY_0":"core.fsmonitor","GIT_CONFIG_KEY_1":"core.hooksPath","GIT_CONFIG_KEY_2":"core.pager","GIT_CONFIG_KEY_3":"diff.external","GIT_CONFIG_KEY_4":"log.showSignature","GIT_CONFIG_KEY_5":"gpg.program","GIT_CONFIG_KEY_6":"gpg.ssh.program","GIT_CONFIG_KEY_7":"gpg.x509.program","GIT_CONFIG_KEY_8":"protocol.allow","GIT_CONFIG_VALUE_0":"false","GIT_CONFIG_VALUE_1":"\/dev\/null","GIT_CONFIG_VALUE_2":"cat","GIT_CONFIG_VALUE_3":"","GIT_CONFIG_VALUE_4":"false","GIT_CONFIG_VALUE_5":"\/usr\/bin\/false","GIT_CONFIG_VALUE_6":"\/usr\/bin\/false","GIT_CONFIG_VALUE_7":"\/usr\/bin\/false","GIT_CONFIG_VALUE_8":"never","GIT_LITERAL_PATHSPECS":"1","GIT_NO_LAZY_FETCH":"1","GIT_OPTIONAL_LOCKS":"0","GIT_PAGER":"cat","GIT_TERMINAL_PROMPT":"0","HOME":"HOME","PATH":"\/usr\/bin:\/bin","WHOZMOVE_ASIDE_CHECK":"\/Applications\/Whozmove.app\/Contents\/MacOS\/Whozmove","WHOZMOVE_ASIDE_FOLDER":"HOME\/shop"}
+Without Apple's developer tools: no git: ["-p","--resume","0b6c1d2e-3f40-4a51-8b62-7c83d94ea5f6","--fork-session","--no-session-persistence","--input-format","stream-json","--output-format","stream-json","--verbose","--max-turns","12","--permission-mode","dontAsk","--setting-sources","","--allowedTools","Read,Grep,Glob","--settings","{\"env\":{\"DISABLE_AUTO_COMPACT\":\"1\"},\"hooks\":{\"PreToolUse\":[{\"hooks\":[{\"command\":\"\/bin\/sh -c '\\\"$WHOZMOVE_ASIDE_CHECK\\\" --helper-aside-check \\\"$WHOZMOVE_ASIDE_FOLDER\\\" || exit 2'\",\"timeout\":600,\"type\":\"command\"}],\"matcher\":\"*\"}]}}"]
+
+== A kept conversation, with a stand-in that answers each line it's sent
+Three lines sent, one after each answer: its answers, all from one process: [[1,2,3],1]
+…then its input closed, and it ended by itself: [0,false]
+
+== Asked, with stand-ins for Claude Code that take or turn down its thinking's summaries
+A checked version that turns the flag down: its steps, and its answer, asked again without it: [["Thinking","Reading cart.ts"],"answered","It holds the cart."]
+…its runs: ["turned it down","without"]
+…the next question, from then on: without it, at once: ["turned it down","without","without"]
+A checked version that takes it: its thinking's summary, as a step: [["Looking at the cart","Reading cart.ts"],"answered","It holds the cart."]
+…its runs: ["with the flag"]
+A version not checked: never given it: ["without"]
 
 == Its process, kept out of Claude Code's registry while it runs
 Registered, not a side question: its session, listed, a copy in another terminal: ["s-copy",1,true]

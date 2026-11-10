@@ -8,6 +8,9 @@
 // `legacy`, but never answers, as anything running as you could answer it that way too. One that goes by itself if no
 // one answers (`expiresAt`) carries its session's whole wait (`waits`, ms: Don't Wait on Me's).
 NSDictionary<NSString *, NSDictionary *> *PendingAsks(void);
+// Whether a request's card is given its input cut short (`truncated`, as PendingAsks marks it), for that request
+// itself, whichever of its session's is the oldest.
+BOOL AskShownCut(NSDictionary *request);
 // Passes an answer given in the panel down its request's line, for the hook to pass on.
 void AnswerAsk(NSDictionary *msg);
 // A request's id as the hook makes them (hex), or nil for anything else.

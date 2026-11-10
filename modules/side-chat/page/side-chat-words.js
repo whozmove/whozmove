@@ -234,6 +234,17 @@ const sideChatWorking = (s) => !sideChatEnded(s) && !s.ask && (s.status === 'bus
 const sideChatWorkKey = (s, name) => (sideChatWorking(s)
   ? workLineHTML(s, 0, { label: name }).replace(/ style="[^"]*"/g, '') : '');
 
+// Who answers a side question, over its answer: a copy of the session, never the session itself.
+const sideChatCopyName = (name) => `A copy of ${name}`;
+// While a side question is being asked, its answer's place has the same line under the copy's name, at the chat's
+// full width (its own label left out: side-chat.css), one line, a long step ending in "…": "Thinking" until its agent
+// says its first step, then each step (its `step`), its time from your press. Drawn again only when what it says
+// changes, as the session's own is (sideChatWorkKey).
+const sideChatAsideWorkHTML = (aside, name, now) => workLineHTML({ activity: aside.step || '', lastPromptAt: aside.at },
+                                                                 now, { label: sideChatCopyName(name) });
+const sideChatAsideWorkKey = (aside, name) => (aside?.state === 'asking'
+  ? sideChatAsideWorkHTML(aside, name, 0).replace(/ style="[^"]*"/g, '') : '');
+
 // What an empty chat says, over the box: idle, your words go straight in, unless nothing can go in from here, which the
 // line under the box says, with the way forward.
 function sideChatEmpty(s, chat, name) {
@@ -309,8 +320,10 @@ const sideChatAsideLabel = (name) => `Asked without interrupting: ${name} didn�
 const sideChatClock = (at, locale, timeZone) => (at > 0
   ? new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone }).format(at) : '');
 
-// What's said under a side question by how far it got, with its presses ({ words, acts }, each act { act, word }).
-// Answered, its answer is drawn under it, with Add to Message and Copy. None is red: red is for your words to the
+// What's said in a side question's answer's place by how far it got, with its presses ({ words, acts }, each act
+// { act, word }): under the copy's name, but for one sent the normal way, said under the question itself, as the
+// copy didn't send it. Being asked, nothing: the line its agent's steps go on is there instead
+// (sideChatAsideWorkHTML). Answered, its answer is drawn there, with Add to Message and Copy. None is red: red is for your words to the
 // session that didn't go in, and a side question never goes to it. `busy`, another is being asked now: one at a time,
 // so no Ask Again until it's answered. The agent it was asked through is the chat's (sideChatAgent). One the copy
 // couldn't answer offers Send's own words for the session now (sideChatSendWord, the act `waitTurn`), which sends the
@@ -321,7 +334,7 @@ function sideChatAsideSaid(aside, s, chat, name, busy) {
   const again = busy ? [] : [{ act: 'askAgain', word: 'Ask Again' }], failed = [...again, turn];
   if (aside?.sentAt) return { words: `Sent to ${name}`, acts: [] };
   switch (aside?.state) {
-    case 'asking': return { words: `Asking a copy of ${name}…`, acts: [] };
+    case 'asking': return { words: '', acts: [] };
     case 'answered': return { words: '', acts: [{ act: 'addAnswer', word: 'Add to Message' },
                                                 { act: 'asideCopy', word: 'Copy' }] };
     case 'tooSlow': return { words: 'Took too long', acts: failed };
@@ -330,17 +343,29 @@ function sideChatAsideSaid(aside, s, chat, name, busy) {
     case 'notAsked': return { words: 'Couldn’t be asked just then', acts: failed };
     case 'noCommand': return { words: `${sideChatCapital(agent)}’s own command wasn’t found`,
                                acts: [{ act: 'getAgent', word: `Get ${agent}` }] };
-    case 'wantedTool': return { words: 'It wanted to look at files, which a copy can’t', acts: [turn] };
+    case 'wantedTool': return { words: 'Wanted to read more than a side question may', acts: failed };
     case 'limit': return { words: `Your plan’s limit is reached${aside.resetsAt
       ? ` until ${sideChatClock(aside.resetsAt)}` : ''}`,
                            acts: [{ act: 'asideCopyQuestion', word: 'Copy the Question' }] };
     case 'signedOut': return { words: `${sideChatCapital(agent)} is signed out`,
                                acts: [{ act: 'copySignIn', word: 'Copy the Sign-In Command' }] };
-    case 'tooLong': return { words: `Too long for a copy of ${name} to read again`, acts: [turn] };
+    case 'tooLong': return { words: 'Too long to read again', acts: [turn] };
     case 'stopped': return { words: 'Stopped', acts: again };
     default: return { words: '', acts: [] };
   }
 }
+
+// Where the side conversation's memory starts, worked out from the newest answered side question alone: of the n
+// answered before it, it knew the newest `remembered` (r), so a quiet line goes above the first of those it knew,
+// answered one n − r, or above the newest itself when it knew none; drawn once at most, so a later compaction moves
+// it. The `at` of the side question the line goes above, or null for none (it knew them all, or doesn't say).
+function sideChatForgotAbove(asides) {
+  const answered = (asides || []).filter((aside) => aside.state === 'answered');
+  const newest = answered[answered.length - 1], n = answered.length - 1, r = newest?.remembered;
+  if (!newest || typeof r !== 'number' || r >= n) return null;
+  return answered[n - Math.max(0, r)].at;
+}
+const sideChatForgotLine = 'A copy no longer knows the questions above';
 
 // A side question's answer as words in your box (Add to Message): "I asked a copy of you “…” and it said: " with its
 // first SIDE_CHAT_QUESTION_MOST characters, then the answer as plain text on one line, after what's in the box

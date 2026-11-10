@@ -78,6 +78,20 @@ function openedNow(s) {
   return it === !!s.focused ? s : { ...s, focused: it };
 }
 
+// A conversation you've just started (a row still `pending`) opens its group if it's folded, once, so the start you made
+// shows, as a folded group hides all its rows; fold it again and it stays folded.
+const openedForStart = new Set();
+function openForStarts(groups) {
+  for (const g of groups) {
+    const starts = g.rows.filter((p) => p.s.pending && !openedForStart.has(p.s.sessionId));
+    if (!starts.length) continue;
+    starts.forEach((p) => openedForStart.add(p.s.sessionId));
+    if (!state.closedProjects[g.key]) continue;
+    delete state.closedProjects[g.key];
+    store.set('closedProjects', state.closedProjects);
+  }
+}
+
 // The list, rebuilt from the newest update, with the folded cat's counts (cat.js) and the count beside the pawn in the
 // menu bar, the sessions that need your input.
 function render() {
@@ -107,14 +121,14 @@ function render() {
             working: placed.filter((p) => p.kind === 'busy' || p.kind === 'background').length });
   // And beside it, while folded, what needs you comes out as its row, by itself (chats.js).
   drawChats(placed, now);
-  // Grouped by project, by a module's grouping while it has something to group by, or newest first; drawn as
+  // One view for everyone: a module's own groups on top while it has some (listGroups), then every project; drawn as
   // listDrawing says.
   const list = document.getElementById('list');
   let html = '', drawing = null;
   if (state.shown) {
-    const grouped = state.groupBy !== 'project' && core.groupings[state.groupBy]?.groups(placed);
-    html = state.groupBy === 'project' ? projectsHTML(placed, now) : grouped ? groupsHTML(grouped, now)
-      : rowsHTML(placed, now);
+    const groups = listGroups(placed);
+    openForStarts(groups);
+    html = groupsHTML(groups, now);
     if (!sessions.length) html = '<div class="empty">No Claude Code sessions running</div>';
     drawing = drawingOf(html);
   }

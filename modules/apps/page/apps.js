@@ -37,13 +37,20 @@ function statusView(s) {
            note: s.note || '', ok: !!s.ok, button: s.button || null, waits: !!(s.button && s.busy) };
 }
 
-// An app's groups as its page draws them, from what the app sends: each its heading, its line, and its rows, each a
+// An app's groups as its page draws them, from what the app sends: each its heading (marked Important, for one that
+// matters more than most), its line, and its rows, each a
 // switch, a choice of one among a few (its choices, each with its line and New where it's new, the one picked, and a
-// row above them that can't be pressed), or a part of the day (its two ends, as the app words them), with `off` while
-// it can't be pressed now, its own say or its group's. A row of another kind, or with no key, is left out.
+// row above them that can't be pressed, and what picking each would change, for one that says so first; or, drawn as
+// one row, the picked one on a button opening the Mac's menu of them, `menu`), a part of the day (its two ends, as the
+// app words them), or a row opening a page of its own (`page`: its title, what it's set to, and its page's groups, as
+// the app sends them), with `off` while it can't be pressed now, its own say or its group's. A row of another kind, or
+// with no key, is left out.
 function groupsView(app) {
+  return groupsFrom(app?.groups);
+}
+function groupsFrom(groups) {
   const words = (v) => (typeof v === 'string' ? v : '');
-  return (Array.isArray(app?.groups) ? app.groups : []).filter((g) => g && typeof g === 'object').map((g) => {
+  return (Array.isArray(groups) ? groups : []).filter((g) => g && typeof g === 'object').map((g) => {
     const dimmed = g.enabled === false;
     const rows = (Array.isArray(g.rows) ? g.rows : []).filter((r) => r && typeof r.key === 'string' && r.key)
       .map((r) => {
@@ -55,15 +62,32 @@ function groupsView(app) {
             .map((c) => ({ id: c.id, name: words(c.name), help: words(c.help), isNew: !!c.isNew,
                            enabled: c.enabled !== false }));
           const fixed = r.fixed && words(r.fixed.name) ? { name: r.fixed.name, help: words(r.fixed.help) } : null;
-          return { kind: 'choice', key: r.key, title: words(r.title), choices, value: r.value ?? null, fixed, off };
+          // What picking each would change, for those that say so before they're picked: lines only, kept to the
+          // choices it has.
+          const confirms = {};
+          for (const c of choices) {
+            const said = r.confirms?.[c.id];
+            if (said && words(said.before) && words(said.after))
+              confirms[c.id] = { before: said.before, after: said.after, warn: words(said.warn), keep: words(said.keep) };
+          }
+          return { kind: 'choice', key: r.key, title: words(r.title), choices, value: r.value ?? null, fixed, off,
+                   confirms, menu: r.menu === true };
         }
+        if (r.kind === 'page') return { kind: 'page', key: r.key, title: words(r.title), said: words(r.said),
+                                        groups: Array.isArray(r.groups) ? r.groups : [], off };
         if (r.kind === 'time') return { kind: 'time', key: r.key, title: words(r.title), help: words(r.help),
                                         from: words(r.fromSaid), to: words(r.toSaid), off };
         return null;
       }).filter(Boolean);
-    return { title: words(g.title), foot: words(g.foot), rows };
+    return { title: words(g.title), foot: words(g.foot), important: g.important === true, rows };
   });
 }
+
+// Every row in these groups (as groupsFrom has them), and on the pages their rows open, each page's row before its own.
+const rowsIn = (groups) => groupsFrom(groups).flatMap((g) => g.rows.flatMap((r) => (r.kind === 'page'
+  ? [r, ...rowsIn(r.groups).map((inner) => (r.off ? { ...inner, off: true } : inner))] : [r])));
+// The row opening a page of its own, by its key, anywhere on an app's page, or null.
+const pageRowOf = (app, key) => rowsIn(app?.groups).find((r) => r.kind === 'page' && r.key === key) || null;
 
 // Every switch on an app's page: its own, then those in its groups, each with whether it can be pressed now.
 const switchesOf = (app) => [...(app?.switches || []),
@@ -93,13 +117,14 @@ function afterPress(apps, appId, key) {
 // the one already picked.
 function afterChoice(apps, appId, key, value) {
   const app = apps.find((a) => a.id === appId);
-  const row = groupsView(app).flatMap((g) => g.rows).find((r) => r.kind === 'choice' && r.key === key);
+  const row = rowsIn(app?.groups).find((r) => r.kind === 'choice' && r.key === key);
   const choice = row?.choices.find((c) => c.id === value);
   if (!row || row.off || !choice || !choice.enabled || row.value === value) return null;
-  return apps.map((a) => a !== app ? a : {
-    ...a, groups: a.groups.map((g) => ({ ...g, rows: (g.rows || [])
-      .map((r) => r?.kind === 'choice' && r.key === key ? { ...r, value } : r) })),
-  });
+  // Ticked wherever it is: in the app's own groups, or on a page one of their rows opens.
+  const ticked = (groups) => groups.map((g) => ({ ...g, rows: (g.rows || []).map((r) => (r?.kind === 'choice'
+    && r.key === key ? { ...r, value } : r?.kind === 'page' && Array.isArray(r.groups) ? { ...r, groups: ticked(r.groups) }
+    : r)) }));
+  return apps.map((a) => a !== app ? a : { ...a, groups: ticked(a.groups) });
 }
 
 // What a tool's card shows (Storage's free space), from what its module sends: its figure, what it's out of, how full

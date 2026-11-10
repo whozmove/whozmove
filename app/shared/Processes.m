@@ -505,6 +505,17 @@ NSDictionary *RunBriefly(NSString *path, NSArray<NSString *> *arguments, NSDicti
 NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
                               BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid)) {
+    return RunConversationOn(path, arguments, environment, folder, send, line, seconds, told, nil);
+}
+
+// As RunConversation, but kept for more: after each answer `next` is asked for what to send it now, and may wait for
+// it as long as it likes (the tool waits too). What it gives goes to the tool's input, and its answer is read the same
+// way, with `seconds` again; nil closes its input as RunConversation does. `answered` and `timedOut` are the last
+// request's.
+NSDictionary *RunConversationOn(NSString *path, NSArray<NSString *> *arguments,
+                                NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
+                                BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid),
+                                NSData *(^next)(void)) {
     int input[2], output[2];
     if (pipe(input) != 0) return nil;
     if (pipe(output) != 0) {
@@ -541,18 +552,30 @@ NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
         return nil;
     }
     if (told) told(pid);
-    const uint8_t *bytes = send.bytes;
-    for (NSUInteger sent = 0; sent < send.length;) {
-        ssize_t wrote = write(input[1], bytes + sent, send.length - sent);
-        if (wrote < 0 && errno == EINTR) continue;
-        if (wrote <= 0) break;  // it has ended: what it said, if anything, is read below
-        sent += (NSUInteger)wrote;
-    }
+    int toIt = input[1];
+    void (^writeAll)(NSData *) = ^(NSData *data) {
+        const uint8_t *bytes = data.bytes;
+        for (NSUInteger sent = 0; sent < data.length;) {
+            ssize_t wrote = write(toIt, bytes + sent, data.length - sent);
+            if (wrote < 0 && errno == EINTR) continue;
+            if (wrote <= 0) break;  // it has ended: what it said, if anything, is read below
+            sent += (NSUInteger)wrote;
+        }
+    };
+    writeAll(send);
     NSMutableData *pending = [NSMutableData data];
     BOOL answered = NO, timedOut = NO, ended = NO;
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:seconds];
     char buffer[16384];
-    while (!answered) {
+    for (;;) {
+        // Once it has answered, the next request, if there is one: sent, and read for as the first was.
+        if (answered) {
+            NSData *more = next ? next() : nil;
+            if (!more) break;
+            writeAll(more);
+            answered = NO;
+            deadline = [NSDate dateWithTimeIntervalSinceNow:seconds];
+        }
         struct pollfd ready = {output[0], POLLIN, 0};
         int waited = poll(&ready, 1, (int)MAX(0, deadline.timeIntervalSinceNow * 1000));
         if (waited < 0 && errno == EINTR) continue;

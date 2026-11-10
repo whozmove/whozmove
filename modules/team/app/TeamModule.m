@@ -5,7 +5,6 @@
 #import "Module.h"
 #import "Core.h"
 #import "Row.h"
-#import "Settings.h"
 #import "Team.h"
 #import "Printing.h"
 
@@ -22,9 +21,6 @@ static BOOL ShowTeams(void) {
 @property (strong) Team *team;
 // Set by the print run for the off state (`--switch-off`), so the tests never depend on this Mac's own settings.
 @property (assign) BOOL printSwitchedOff;
-// Whether one of the rows listed now is the session you talk to, the lead, or one of its team: Group by Team is
-// offered in Settings only then.
-@property (assign) BOOL listed;
 @end
 
 @implementation TeamModule
@@ -37,12 +33,6 @@ static BOOL ShowTeams(void) {
     if (!(self = [super init])) return nil;
     self.core = core;
     self.team = [Team new];
-    // Group by Team in Settings ▸ Session List, beside Newest First and Group by Project, while there's a team to group
-    // by.
-    __weak typeof(self) weakSelf = self;
-    [core.settings addGrouping:@"team" name:@"Group by Team"
-                          foot:@"By team: its chief on top, then its team, then your own sessions."
-                         shown:^{ return weakSelf.listed; }];
     return self;
 }
 
@@ -51,18 +41,14 @@ static BOOL ShowTeams(void) {
     if (phase != RowPhaseWork) return;
     if (![self reading]) {
         for (Row *row in rows) row.team = nil;
-        self.listed = NO;
         return;
     }
     [self.team refresh];
-    BOOL listed = NO;
     NSArray *places = [self.team placesOf:rows];
     for (NSUInteger i = 0; i < rows.count; i++) {
         Row *row = rows[i];
         row.team = places[i] == NSNull.null ? nil : places[i];
-        if (row.team[@"role"] && ![row.team[@"role"] isEqual:@"followed"]) listed = YES;
     }
-    self.listed = listed;
 }
 
 // Whether the file is read: while Show Teams is ticked, and in a print run whatever it says, unless the run asks for
@@ -110,13 +96,11 @@ static BOOL ShowTeams(void) {
             module.printSwitchedOff = off;
             NSArray<Row *> *rows = SettledRows(core);
             if (!off) return PrintJSON(module.teams ?: @[]);
-            // Off: the teams, the rows that have a team, and whether Group by Team is offered, none of which there
-            // should be.
+            // Off: the teams and the rows that have a team, neither of which there should be.
             NSMutableArray *withTeam = [NSMutableArray array];
             for (Row *row in rows)
                 if (row.team) [withTeam addObject:row.sessionId ?: @""];
-            return PrintJSON(@{@"teams": module.teams ?: @[], @"rowsWithATeam": withTeam,
-                               @"groupByTeamOffered": @(module.listed)});
+            return PrintJSON(@{@"teams": module.teams ?: @[], @"rowsWithATeam": withTeam});
         },
         // Who holds a member's seat in its workspace (SeatOf), for sample cases.
         @"--print-seats": ^int(Core *core, NSArray<NSString *> *arguments) { return PrintSeats(arguments); },

@@ -104,15 +104,25 @@ Like the hooks, it reaches sessions started after Whozmove's update.
 
 ## Plans
 
-While Claude waits on a plan, its row asks for your OK, its card showing the plan's title and, for a plan that starts
-with its own short view, a few lines from it: what changes for you, how many choices there are, and what could go
-wrong ([Plans at a glance](plans.md)). Otherwise it shows the plan's first four steps, each with all its words, as the
-plan numbers them. **Read all 10 steps** (or **Read the plan**, for a short one or one with its short view) opens the
-whole plan beside the list (see [What a session wrote](reader.md)), where it can be sent back or stopped too.
-**Send back…** opens a box for your notes (**Cancel** closes it), which go to Claude with the plan (Claude stays in
-plan mode and writes a new version); once you've changed one of Claude's picks beside the list, it opens the plan
-there instead, with the box open under your picks and what you typed on the row in it. You approve it in the session,
-where **Take me there** brings you, unless you've let a session approve plans for you (below).
+While Claude waits on a plan, its row asks for your OK in a bubble: **Plan** and the plan's title, ending in the
+plan button. Press it, and the whole plan opens beside the list (see [What a session wrote](reader.md)), with
+**Approve**, **Send back…**, **Stop** and **Take me there** under it. **Approve** approves the plan as it's shown there,
+and only by your press: Return never presses it, and a press the panel can't tell came from you at the Mac isn't
+taken (the bar says so, and **Approve** stays to press again). A press approves only the version you read: if Claude
+has asked again with a new one, that one shows in its place, to read first; and if the plan's file has changed since,
+it isn't approved, and the bar says why. A plan too long for the panel to show whole, or from a session that might bypass permissions once its
+plan is approved, can't be approved there: the bar says why, with **Take me there**. Once approved, the row says
+"✓ Approved" until Claude goes on, and the bar says it's waiting for Claude to take it; if Claude doesn't, both say
+your approval wasn't taken, and the bar offers **Take me there**, where only its tab can answer it now. A plan asks in
+the panel for an hour at most, and not past a restart of Whozmove; after that, the plan button still opens it beside
+the list. While Claude Code's own prompt for it is up in its session, it's answered there, and the bar says so, with
+**Take me there**. Once the session is idle at its prompt with nothing typed in since, **Send back…** types your notes
+into it as a message, on your press, and the bar says how that went: typed in, or why not, with the way past it where
+there's one. Approve and Stop are its session's then. A team member's plan shows
+the same way, in its job's bubble ([A team member's row](the-list.md#a-team-members-row)).
+
+Where another ask has the row's line (a task One Task gives that session, say), it keeps it: the plan's tag after
+the session's name, in the plan's colour, opens the plan beside the list. A plan never has a card on its row.
 
 A session started before Whozmove's update asks the old way, which the panel no longer answers, as anything running
 as you could answer it that way too: its row says to answer it in the session, with **Take me there**. Start the
@@ -135,12 +145,12 @@ you, and the turn isn't stopped.
 
 ## Plans sent back for you
 
-When a session leads a team of other sessions for you, with a team file (see [Group by Team](group-by-team.md)), you
-can let the session leading it send back a team member's plan for you, so you needn't go to the member's tab. Tick
-**May Send Back Plans** at the foot of that session's mode menu. When you tell it to send back a plan, it can, for
-that plan: one a member of the team waits on, in the same project, with a note that says what should change. The
-switch lets it act on your word; it isn't meant to act without it. Claude gets it as your "keep planning" answer would
-come, marked as sent back by that session for you, and writes a new version.
+When a session leads a team of other sessions for you, with a team file (see [With a team](the-list.md#with-a-team)),
+you can let the session leading it send back a team member's plan for you, so you needn't go to the member's tab. Tick
+**May Send Back Plans** at the foot of that session's mode menu. When you tell it to send back a plan, it can, for that
+plan: one a member of the team waits on, in the same project, with a note that says what should change. The switch lets
+it act on your word; it isn't meant to act without it. Claude gets it as your "keep planning" answer would come, marked
+as sent back by that session for you, and writes a new version.
 
 - This switch never approves a plan, and answers nothing else: no request for your OK, question or model switch
   (questions and approving plans have switches of their own, below).
@@ -148,7 +158,7 @@ come, marked as sent back by that session for you, and writes a new version.
   the session's own plan.
 - The member's row says so for 30 minutes, in a card under its chat while nothing else waits there: "Atlas answered
   for you · 1m", then "Sent the plan back: “Split step 2 first.”".
-- You can always answer first: on the plan's card, in the reader or in its tab. While you're answering it there, the
+- You can always answer first: beside the list, or in its tab. While you're answering it there, the
   session is told to leave it to you, and once it's answered, a send-back that comes later does nothing.
 - The switch is kept for the lead's folder while Whozmove runs, and nothing written on your Mac can turn it on: a new
   session leading the team there has it with nothing to press (see [A new session in the same

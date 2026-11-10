@@ -1,0 +1,7 @@
+{"startAt": 0, "maxResults": 50, "total": 3, "fields": [
+  {"fieldId": "summary", "key": "summary", "name": "Summary", "required": true, "schema": {"type": "string", "system": "summary"}},
+  {"fieldId": "customfield_10001", "key": "customfield_10001", "name": "Team", "required": false,
+   "schema": {"type": "team", "custom": "com.atlassian.jira.plugin.system.customfieldtypes:atlassian-team", "customId": 10001},
+   "autoCompleteUrl": "https://ignored.example/gateway/api/v1/teams/find?query="},
+  {"fieldId": "customfield_10300", "key": "customfield_10300", "name": "Region", "required": false, "schema": {"type": "option", "custom": "select"},
+   "allowedValues": [{"id": "10400", "value": "North"}, {"id": "10401", "value": "South"}]}]}

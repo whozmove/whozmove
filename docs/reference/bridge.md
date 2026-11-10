@@ -6,8 +6,13 @@ fit](../how-it-works/architecture.md) describes them.
 
 Bridge, page → native (`type`): `height` (`{value, under}`: the height the panel asks for, and how tall the lines under the header are, which it always keeps room for), `open` (with `carryOn` on a row's own press, when a module's words for a conversation opened again go in; never on Take me there or another press only to look), `pick`, `compact`, `wayPast` (the button past a terminal's reason, on
 the Compact card or a step's note, `{sessionId}`: `Send` asks the session's host to take it), `switchAnswer`,
-`answerAsk`, `holdAsk` (a request being answered on its card, a plan's notes typed there included, or in the reader
-for a plan, `{id}`: no session you allow answers it meanwhile, and one that goes by itself if no one answers gets at
+`answerAsk`, `approveShownPlan` (`{sessionId, id, digest}`: your press on Approve under a plan beside the list, for
+the request and the digest of the text drawn with it, never the request as it is at the press; the app checks it
+again, and the rows say how it went: the ask's `approval`, or the row's `answeredFor`, yours), `typePlanNotes`
+(`{sessionId, planId, words}`: your press on Send to Claude under a plan beside the list that has stopped asking in
+the panel, its session idle at its prompt; the app checks it again, and before each key, types your notes in as a
+message led by Claude Code's words for them, and the row's `answeredFor`, yours, says how it went), `holdAsk` (a request being answered on its card,
+or in the reader for a plan, `{id}`: no session you allow answers it meanwhile, and one that goes by itself if no one answers gets at
 least another minute from its hook),
 `openPR`, `keyboard`, `pointer` (`{shape}`: `hand`, `text` or `arrow`, what the pointer looks like where it is, which
 the app shows, as WebKit's own shapes don't show in a window you don't type in), `log` (`{text}`: a line the page keeps
@@ -53,7 +58,10 @@ sessionId, trust, target, with}`: `sessionId` is the one the page chose for a te
 where in the folder's repo when not its own folder, `{kind: open, path}`, `{kind: branch, name}` or `{kind: new, name,
 base}`, `with` what the card's other parts gave it, by module name, each handed to that module once the start is a
 session, as `{tickets: {tracker, site, key}}`, or `{tickets: {tracker, site, create: true}}` from Create a ticket), `checkFolder` (whether Claude may work there), `listBranches` (what a folder's repo has, for the card's #),
-`checkWorktreeName` (whether a new worktree can be made, `{folder, name, base}`), the tickets module's: `ticketSearch` (`{words, asked}`: the card's search, as you pause typing), `ticketFind`
+`checkWorktreeName` (whether a new worktree can be made, `{folder, name, base}`), the ticket routing module's:
+`ticketRoute` (`{asked, folder, tracker, site, key}`: where the card's ticket starts in its project) and
+`ticketRouteSet` (`{folder, way: {kind, field}}`: the guide's Start, the project's way kept) and `ticketRouteSignIn`
+(`{tracker}`: Sign In on the card's line), the tickets module's: `ticketSearch` (`{words, asked}`: the card's search, as you pause typing), `ticketFind`
 (`{text, asked}`: a key or link written or pasted, read for the card's chip), `ticketSignIn`, `ticketCancelSignIn` and
 `ticketCopyAsk` (`{tracker}`: signing in with its page in your browser, or Allow while macOS asks first; ending that;
 what to ask an admin, copied), `ticketAnswer` (`{sessionId, act}`: Use It or Not Now, `use` or `notNow`, on a row's
@@ -63,7 +71,9 @@ Now, `notNow`, on a row's "Move PAY-142 to In Review?", taken only for the move 
 step and when it was asked), `ticketDraft` (`{sessionId, at, act}`: Create Ticket, or Try Again, `create`, or Not Yet,
 `notYet`, on a row's "Create this ticket?", taken only for the draft that card showed, by when it was drafted) and
 `openTicket` (`{sessionId}`: the ticket in your browser, at the address made from its site
-and key), the waits module's `waitSay` (`{sessionId}`: Resume on a row whose conversation runs again and hasn't asked,
+and key), the process-notes module's `processAnswer` (`{sessionId, at, act}`: Keep It, or Try Again, `keep`, or Not
+Now, `notNow`, on a row's "Keep this as how acme-web works?", taken only for the draft that card showed, by when it was
+drafted), the waits module's `waitSay` (`{sessionId}`: Resume on a row whose conversation runs again and hasn't asked,
 which has the app type Resume's words in, by your press), `startMenu` (the card's small menus,
 `{kind}`: `app`, `places` with `repo`, or `choose`), `startWay` (the card's way past having nowhere to start it,
 `{kind}`: `track`, Claude Desktop's sessions tracked again, or `getDesktop`, its download page), `spotify` (the now-playing strip's presses, `{action}`:
@@ -74,7 +84,8 @@ which has the app type Resume's words in, by your press), `startMenu` (the card'
 `reloadAll`, the line's Reload Them, and `reload` with
 `sessionId`, a row's Reload, for the sessions running since before the hooks went in; the app holds the commands and
 the address, and does nothing for one that no longer fits), `storageNoteClosed` (the low-disk line's ×, or with
-`ready` the map-ready line's), `appsShow` (`{app}`: the page asks the apps module to show that app's page on the back,
+`ready` the map-ready line's), `appsShow` (`{app, page}`: the page asks the apps module to show that app's page on the back, or the page one of its
+rows opens when `page` names its key,
 then asks to turn), and the map's `storageFolder` (`{id}`, 0 for the disk), `storageMeasure`, `storageTrash` (`{ids,
 keep, measuredAt}`, the map's own, the parts taken back out of a folder collected whole, and the map they're on),
 `storageReveal` (`{id}`), `storageAllow` (Allow Access, on a row the map couldn't look inside, or Keys' Allow Full Disk
@@ -118,7 +129,7 @@ without having moved there: the panel's edge went past it, or one of its menus c
 once it moves; and `held` while it's on what the panel holds over or under itself, Spotify's token or the usage card),
 `keyboardGone` (the panel no longer has the keyboard), `turned` (the panel is turning over to its back, or back on its
 list side), `turnToApps` (Settings… in the pawn menu: the panel turns over, an open reader folding back first),
-`setGroupBy`, `setConversationShown(on)` (Settings' Show Conversation Text: off, rows show no one's words),
+`setConversationShown(on)` (Settings' Show Conversation Text: off, rows show no one's words),
 `toggleCollapsed`, `stepNote` (with `quiet` when
 it says how something went that worked, and `way`, the button past a terminal's reason, when there is one, or with
 `go`, a button that does something on the page instead: `open`, Take me there, opening the session, or a module's own
@@ -146,7 +157,10 @@ sign-in, `[{name, signInName, signIn, sites, why}]`, `signIn` one of `out`, `sig
 `allow`), `ticketsFound(asked, {tickets, end, why})` (what the card's search found, each ticket as a row's
 `ticket.bound` has it, or why not: `end` one of `signIn`, `slow` or `failed`) and `ticketPicked(asked, said)` (`{ticket}`,
 `{none}` for no tracker's key or link, or `{key, end, site}`, `end` one of `signIn`, `site`, `elsewhere`, `notFound` or
-`failed`) (`tickets.js`), `setPRBranches(sid, {base, branches})` (`git-steps.js`),
+`failed`) (`tickets.js`), `ticketRouted({asked, key, git, project, name, way, place, guide, problem})` (where the
+card's ticket starts by its project's way, or the guide's choices, told again once its fields are read) and
+`ticketRouteAgain()` (signed in: the card asks afresh) (`routing.js`),
+`setPRBranches(sid, {base, branches})` (`git-steps.js`),
 `openStart`
 (⌃⌥N, New Conversation), `folderChecked` (`{trusted}` or `{gone}`), `startUpdate` (how a start went: `{sessionId}`
 once it's listed, `{note}` while it waits on you, `{why}` if it didn't start), `startProject` (a folder picked from the
@@ -163,13 +177,14 @@ since}` once a press has reloaded the last of them, and `update`, `{version, com
 through Homebrew) (`install-line.js`), `setBesideSeen` (what came out beside the folded panel before, by notice id, as the page loads, or null on a first launch, or when the record keeps nothing that's a notice's) (`notices.js`), `setNotices` (what every module has to tell you now, `[{id, level, text,
 button, pressedWord, busy, closes, done, tag, answersYou, session, outFor}]`, `level` being `urgent`, `soon` or `know` and `id` the
 sender and its key, where the panel is, `{shown, parked, quiet}`: not hidden from the menu bar, flicked off the
-screen's edge, and quiet hours (only what's urgent said), and the page senders' notices put away, `{id: since}` or `{id: {since, at, awayFor}}`) (`notices.js`), `setTasks` (the tasks sessions sent that wait, `[{sessionId, task, at, sent, back, pick, for, talk, takenBack, pickAt, pickPriority, seenAt}]`,
+screen's edge, and quiet hours (only what's urgent said), and the page senders' notices put away, `{id: since}` or `{id: {since, at, awayFor}}`) (`notices.js`), `setTasks` (the tasks sessions sent that wait, `[{sessionId, task, at, sent, back, pick, for, talk, takenBack, pickAt, pickPriority, shownAt, seenAt}]`,
 whether One Task is on, the kinds' words by kind, from the task's contract (TaskKindWords), and how it works, as
-its page under Tools sets it: `{next, why, waitForGo, talk, held, turnedAway}`, what comes after anything urgent
-(`picks` or `oldest`), whether each task says why it's where it is, whether something urgent waits for your Go,
+its page under Tools sets it: `{why, waitForGo, talk, held, turnedAway}`, whether each task says why it's where it
+is, whether a task to do now waits for your Go,
 whether the talk is under each task, whether words written while a session works go in by themselves (`self`) or
 wait for Send Now (`wait`), and the sessions that may not hand you tasks now, what they sent waiting unseen, `pickAt` a pick's place in its lead's
-queue, `pickPriority` how pressing its job is there (`critical`, `p0`, `p1` or `p2`), `takenBack` why its session took it back
+queue, `pickPriority` how pressing its job is there (`critical`, `p0`, `p1` or `p2`), `shownAt` when the queue
+first named it, `takenBack` why its session took it back
 (`answered`, `parked` or `dropped`), shown without its buttons until you move on, `talk` being
 what you asked the session about it: `{to, toLead, says, lead, leadForMember, terminals}`, each of `says` `{at, words,
 state, why, way, permission, where, reply}` (`permission` when `way` is Accessibility's, `where` the terminal or Claude
@@ -182,8 +197,8 @@ and whether One Task is on) and `openOneTask` (the pawn menu's One Task, once th
 `{state}`, and for a song's `track`, with `lrc` or `plain` once found, or `none` or `failed` when there are none to be
 had) (`spotify.js`), `setGear(facts, pressed, off)` (your gear, as on the usage card's page below, sent to both at once)
 (`gear.js`),
-`showWriting(sid, id, {text} or {missing})` and `prototypeState(sid, id, {loading, problem, asked, keyboard})`
-(`writings.js`), and `showChanges(sid, scope, {scope, v, files} or {missing} or {counting})` (each file `{path,
+`showWriting(sid, id, {text} or {missing})` and `prototypeState(sid, id, {loading, problem,
+asked, keyboard})` (`writings.js`), and `showChanges(sid, scope, {scope, v, files} or {missing} or {counting})` (each file `{path,
 status, binary, untracked, alsoStaged or alsoUnstaged, hunks: [{oldStart, newStart, lines: [[sign, text]]}]}`, with
 `cut` past 30,000 lines; Outgoing's `{scope, v, upstream, commits: [{hash, short, subject, at, files}], more}`) and `setEditors({choice,
 apps: [{id, name}], get})` (`get`, the editor to get, by name, while none is on this Mac) (`changes-view.js`),
@@ -252,7 +267,9 @@ The panel's back (modules/apps/page/back.html) has a bridge of its own too, in i
 `appsSetting` (`{key, value}`: a setting's switch on or off, or a choice's id),
 `appsSettingButton` (`{key}`: the button under a setting's line, its way forward), `appsSwitch` (`{app, key, on}`),
 `appsChoice` (`{app, key, value}`: one of a choice's choices on an app's page), `appsTime` (`{app, key, end, x, y}`:
-one end of a part of the day, for the app to open its menu of times where it is), `appsUseRecommended` (`{app}`),
+one end of a part of the day, for the app to open its menu of times where it is), `appsChoiceMenu` (`{app, key, x,
+y}`: a choice drawn as one row, for the app to open the Mac's menu of its choices at its button), `appsUseRecommended`
+(`{app}`),
 `appsOpen` and `appsPrivacy` (`{app}`), which the apps module answers, and `appsAction` (`{app, key}`, a card's
 button, or one on a tool's card) and `appsList` (`{app, list, key, ids}`, a press on a list's page: its tray's action,
 a row's way or button, or what was said's, with the ids it's for), which the module whose card or list it is answers;
@@ -262,6 +279,6 @@ of the day) and a line, a status being one of its cards, a list `{key, title, co
 tray, said}` as contracts/Module.h's AppList has it, each setting `{key, kind, title, glyph, group, page, style, foot,
 button, on or value, choices, or app and said}`), `showSettings` (Settings… in the pawn menu: Settings, from
 whichever page shows, as the panel starts
-turning over or while it's turned), `showApp(id)` (the page to be on as the panel turns over to it), `turned(false)`
+turning over or while it's turned), `showApp(id, page)` (the page to be on as the panel turns over to it, a page one of its rows opens when `page` names it), `turned(false)`
 and `backPointer` (`{x, y}` from its top-left corner while the panel is turned over and the pointer is on it, or null)
 (`back.js`). modules/apps/README.md has each one's shape.

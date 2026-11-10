@@ -8,6 +8,11 @@
    the row you just pressed): a warm tint. */
 .row.focused { background: var(--focused); }
 .row.focused.is-hover { background: var(--focused-hover); }
+/* A row shown briefly, as every row in the list is: a little shorter, its title line's parts (a tag, a track) centred
+   on the name, and its dot kept at the name's first line. */
+.row.brief { padding-top: 7px; padding-bottom: 7px; }
+.row.brief .line1 { align-items: center; }
+.row.brief .dot { align-self: flex-start; margin-top: 3px; }
 .dot { position: relative; flex: none; width: 8px; height: 8px; border-radius: var(--radius-circle); margin-top: 4px;
        background: var(--idle); }
 /* Asking: a red-orange dot sending out a ring of its glow, 7px past it, fading as it goes. The ring is a layer of its
@@ -348,11 +353,21 @@
   .row > .edge-room::before, .row.edge-pointed > .edge-room::before { transition: none; }
 }
 
-/* A track's step (stepTrackHTML): to come, faint; done, grey; the one it's on, in the colour of whose move it is. */
-.step-track { flex: none; display: inline-flex; align-items: center; gap: 2px; }
-.step-tick { display: block; width: 8px; height: 4px; border-radius: var(--radius-bar); background: var(--hover-strong); }
-.step-tick.done { background: var(--faint); }
-.step-tick.now.urgent { background: var(--needs); }
-.step-tick.now.normal, .step-tick.now.low { background: var(--turn); }
-.step-tick.now.busy { background: var(--working-dot); }
-.step-tick.now.idle { background: var(--idle); }
+/* A track (stepTrackHTML): one bar, its length the same for any number of steps; what's to come faint, what's done
+   grey, the one it's on in the colour of whose move it is. */
+.step-track { position: relative; flex: none; display: block; align-self: center;
+               width: var(--track-length); height: var(--track-height); border-radius: var(--radius-bar);
+               background: var(--track); overflow: hidden;
+               /* The step it's on: a step's share of the bar, never thinner than a dot; and where it starts, spread over
+                  the length the dot leaves free, so the first is at the start, the last flush at the end, and every
+                  step in between apart from its neighbours, however many there are (twenty stay distinct). */
+               --step: max(var(--track-dot), calc(100% / var(--n)));
+               --from: calc((100% - var(--step)) * var(--at) / (var(--n) - 1)); }
+.step-track > i { position: absolute; top: 0; bottom: 0; }
+.step-done { left: 0; width: var(--from); background: var(--track-done); }
+.step-now { left: var(--from); width: var(--step); border-radius: var(--radius-bar); }
+.step-now.urgent { background: var(--needs); }
+.step-now.normal, .step-now.low { background: var(--turn); }
+.step-now.busy { background: var(--working-dot); }
+/* An idle job's step a notch stronger than the idle dot, so it stands apart from what's done, as a busy one does. */
+.step-now.idle { background: var(--faint); }

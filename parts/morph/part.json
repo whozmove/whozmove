@@ -3,6 +3,6 @@
   "styles": ["page/motion.css"],
   "talksTo": ["core", "bridge", "list"],
   "provides": ["morph", "MORPH_MS", "MORPH_EASE", "calm", "morphOvershoot", "tween", "place", "partText", "rewriteLine",
-               "rewriteText", "rollLine", "settleLine", "slideGroup", "followHeight", "keepInStep", "atListEnd", "atMorphEnd",
-               "pullScroll"]
+               "rewriteText", "swapIn", "rollLine", "settleLine", "slideGroup", "followHeight", "keepInStep", "atListEnd",
+               "atMorphEnd", "pullScroll"]
 }

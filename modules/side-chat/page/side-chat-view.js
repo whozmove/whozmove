@@ -34,8 +34,10 @@ function sideChatLinesHTML(chat, s, name, asks, now, copied = {}) {
   // Your words and your side questions, in the order you sent them.
   const lines = says.map((said) => ({ at: said.at, said })).concat(asides.map((aside) => ({ at: aside.at, aside })))
     .sort((a, b) => a.at - b.at);
+  const forgot = sideChatForgotAbove(asides);
   return '<div class="sc-lines">' + lines.map(({ said, aside }) => {
-    if (aside) return sideChatAsideHTML(aside, s, chat, name, copied, asides.some((one) => one.state === 'asking'));
+    if (aside) return (aside.at === forgot ? `<p class="sc-forgot">${esc(sideChatForgotLine)}</p>` : '')
+      + sideChatAsideHTML(aside, s, chat, name, copied, asides.some((one) => one.state === 'asking'));
     const st = sideChatSaid(said, s, chat, name, asks, now);
     const you = `<div class="sc-you${st.held ? ' held' : ''}"><p>${esc(said.words)}</p>`
       + (st.words || st.acts.length ? `<span class="sc-said${st.tone ? ` ${st.tone}` : ''}">${esc(st.words)}`
@@ -51,20 +53,27 @@ function sideChatLinesHTML(chat, s, name, asks, now, copied = {}) {
   }).join('') + '</div>';
 }
 
-// A side question, filled as your words are but quieter, "Without interrupting" first, and how far it got; answered,
-// its answer under "A copy of <name>", with Add to Message and Copy. Each is one group, which VoiceOver names as
-// unseen by the session.
+// A side question, filled as your words are but quieter, "Without interrupting" first; then, in its answer's place
+// under "A copy of <name>", how far it got: being asked, the line its agent's steps go on (filled by drawSideChat, so
+// the rest isn't drawn again each second); answered, its answer, with Add to Message and Copy; else what stopped it,
+// with its presses, in the quieter words of how far your words got, so it never reads as the copy's answer. One sent
+// the normal way says so under the question itself, with no copy's name over it: the copy didn't send it. Each is one
+// group, which VoiceOver names as unseen by the session.
 function sideChatAsideHTML(aside, s, chat, name, copied = {}, busy = false) {
   const st = sideChatAsideSaid(aside, s, chat, name, busy), label = esc(sideChatAsideLabel(name));
   const acts = st.acts.map((act) => sideChatActHTML(act, aside.at)).join('');
-  const answered = aside.state === 'answered';
-  const you = `<div class="sc-you sc-aside" role="group" aria-label="${label}"><p><span class="sc-mark">Without `
-    + `interrupting</span> ${esc(aside.question)}</p>`
-    + (!answered && (st.words || acts) ? `<span class="sc-said">${esc(st.words)}${acts}</span>` : '') + '</div>';
-  if (!answered) return you;
-  return you + `<div class="sc-reply sc-aside" role="group" aria-label="${label}"><b>A copy of ${esc(name)}</b>`
-    + `<div class="sc-reply-text">${sideChatPartsHTML(aside.answer, aside.at, copied, 'asideCopyCode')}</div>`
-    + `<span class="sc-said">${acts}</span></div>`;
+  const said = (look = '') => (st.words || acts ? `<span class="sc-said${look}">${esc(st.words)}${acts}</span>` : '');
+  const you = (under = '') => `<div class="sc-you sc-aside" role="group" aria-label="${label}"><p><span `
+    + `class="sc-mark">Without interrupting</span> ${esc(aside.question)}</p>${under}</div>`;
+  const reply = (inner) => `${you()}<div class="sc-reply sc-aside" role="group" aria-label="${label}"><b>`
+    + `${esc(sideChatCopyName(name))}</b>${inner}</div>`;
+  if (aside.sentAt) return you(said());
+  if (aside.state === 'asking') return reply(`<div class="sc-aside-work" data-at="${esc(String(aside.at))}"></div>`);
+  if (aside.state === 'answered') {
+    return reply(`<div class="sc-reply-text">${sideChatPartsHTML(aside.answer, aside.at, copied, 'asideCopyCode')}`
+      + `</div>${said()}`);
+  }
+  return st.words || acts ? reply(said(' ended')) : you();
 }
 
 // The box at the foot: the field, Ask Without Interrupting, and Send, each with the way forward in its own place when

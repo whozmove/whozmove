@@ -1,7 +1,8 @@
 // AnswerFor: what a session you allow may answer for you in a team member's session, each with a switch at the foot of
 // its own mode menu: May Send Back Plans sends a plan back with a note; May Answer Questions answers Claude's
 // questions, never a request for your OK; May Approve Plans approves a plan, as listed, as Claude's own prompt would,
-// so the session goes back to the mode it planned from. It asks with ask-panel.sh (`waiting`, `send-back <id>`, `answer
+// so the session goes back to the mode it planned from. Your own press on Approve under a plan beside the list goes
+// through the same check (approveShown:). It asks with ask-panel.sh (`waiting`, `send-back <id>`, `answer
 // <id>`, `approve <id> <digest>`), which the core takes from the process that connects, never from what's sent
 // (SessionAsks); the answer goes down the request's own line (HookLine), as your own would.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
@@ -33,6 +34,9 @@ extern NSString *const kSendBackKey, *const kAnswerQuestionsKey, *const kApprove
 // Why a session's process might bypass permissions, or nil once that's ruled out (its agent's strict check): a plan of
 // one that might is never approved from here.
 @property (copy) NSString *(^bypassWhy)(Row *row, pid_t process);
+// How long since the Mac last had keyboard or mouse input, for whether an Approve pressed beside the list is yours: the
+// system's (SecondsIdle) unless a print run gives its own.
+@property (copy) NSTimeInterval (^secondsIdle)(void);
 // Forgets what the system last said of each session's process, so the next ask checks again at once: for a print run
 // whose stand-in processes change between its steps.
 - (void)forgetHolds;
@@ -47,4 +51,27 @@ extern NSString *const kSendBackKey, *const kAnswerQuestionsKey, *const kApprove
 // What was last answered for you on each row's session, for 30 minutes, or until it asks something new
 // (Row.answeredFor).
 - (void)markRows:(NSArray<Row *> *)rows;
+// What the page needs with a plan Claude waits on in `row` (its ask as the row shows it), before your press on Approve
+// beside the list: {digest} of the whole plan, and `approveWhyNot` when it's known already that it can't be approved
+// from here; after your press, `approval` when it didn't approve it ({why, at}, `again` where a second press may yet);
+// nil for any other request.
+- (NSDictionary *)approvalOf:(NSDictionary *)ask row:(Row *)row;
+// Your press on Approve beside the list, {sessionId, id, digest}: checked as a session's approval is (the one check
+// both go through), and that you were at the Mac, then sent as Claude's own prompt sends it, kept on the row as yours.
+// {approved} or {why}, in words for the page, with `again` where a second press may yet approve it.
+- (NSDictionary *)approveShown:(NSDictionary *)msg;
+// Your press on Send under a plan beside the list that has stopped asking in the panel, {sessionId, planId, words}:
+// your notes typed into its session as a message, led by Claude Code's words for them (kClaudeCodePlanChangesWords),
+// through the send part's say:, only while WhyNotTypePlanNotes finds nothing in the way, as it's asked again before
+// each key. How it went is on the row as yours (`answeredFor`: sent back, `state` typing, typed or notTyped, with `why`
+// and `way` past it). Nil once the words are on their way, else why not, in words for the page.
+- (NSString *)typePlanNotes:(NSDictionary *)msg;
 @end
+
+// The plan a session's Claude still waits on with no request for it in the panel: its newest plan, as the transcript
+// lists it, while that plan has no answer there; or nil.
+NSDictionary *PlanLeftWaiting(Row *row);
+// Why notes can't be typed into a session for its plan `planId` now, or nil: a request waits in it, it isn't idle at
+// its prompt (held at the plan's own prompt among them, which a key would answer), the plan isn't its newest left
+// waiting, or something has been typed into it since the plan was asked.
+NSString *WhyNotTypePlanNotes(Row *row, NSString *planId, NSDictionary *pending);

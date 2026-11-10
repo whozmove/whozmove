@@ -35,7 +35,7 @@ the box are dots you can press. A session counts as working while it's busy and 
 agents at work in the background; one waiting on you doesn't, as it changes nothing until you answer. With more
 working than your gear, the line over the seats says so, `2 over the gear`, those sessions are lit just past the box,
 and nothing is stopped. Each session working beyond your gear, the ones whose turn began last, says **Over the gear**
-at the end of its title line in the list, outlined in grey, in any grouping. The gear holds back only queued jobs
+at the end of its title line in the list, outlined in grey. The gear holds back only queued jobs
 waiting to start: a session already working carries on, a session you open yourself is never held, and one waiting on
 you holds no seat.
 

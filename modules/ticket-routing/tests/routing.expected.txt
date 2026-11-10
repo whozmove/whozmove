@@ -1,0 +1,229 @@
+== A project with no way yet: the guide, offering the Team field, whose options match two folders by name
+## team PAY-142 checkout
+## ask PAY-142
+  → {"asked":1,"git":true,"guide":{"reading":true},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+  → {"asked":1,"git":true,"guide":{"field":{"folder":"<repos>/acme-shop-checkout","here":false,"id":"customfield_10001","name":"Team","path":"<repos>/acme-shop-checkout","value":"checkout"}},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+## match
+{"10":{"folder":"<repos>/acme-shop-checkout","name":"Checkout"},"11":{"folder":"<repos>/billing","name":"billing"},"12":{"folder":null,"name":"Web Team"}}
+{"<repos>/acme-shop":"main","<repos>/acme-shop-checkout":"checkout","<repos>/billing":"team-billing"}
+## kept
+routes.json (none): none
+== A Team field that lists no options (looked up as you type): the guide offers no field
+## lookup
+## team PAY-142 checkout
+## ask PAY-142
+  → {"asked":1,"git":true,"guide":{"reading":true},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+  → {"asked":1,"git":true,"guide":{},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+== Outside git: nothing to choose
+## ask PAY-142 <repos>/elsewhere
+  → {"asked":1,"git":false,"key":"PAY-142"}
+== Its own worktree, set from the guide's Start; asked again from one of its worktrees, the same project
+## set own
+## ask PAY-142
+  → {"asked":1,"git":true,"key":"PAY-142","name":"acme-shop","place":{"kind":"own"},"project":"<repos>/acme-shop","way":{"kind":"own"}}
+## ask PAY-150 <repos>/billing
+  → {"asked":2,"git":true,"key":"PAY-150","name":"acme-shop","place":{"kind":"own"},"project":"<repos>/acme-shop","way":{"kind":"own"}}
+## kept
+routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"kind":"own"}}}
+## logged
+Ticket routing: acme-shop's way changed
+== By the Team field: a ticket's option's folder; no option; an option with no folder; not read; a restart
+## team PAY-142 checkout
+## ask PAY-142
+  → {"asked":1,"git":true,"guide":{"reading":true},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+  → {"asked":1,"git":true,"guide":{"field":{"folder":"<repos>/acme-shop-checkout","here":false,"id":"customfield_10001","name":"Team","path":"<repos>/acme-shop-checkout","value":"checkout"}},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+## set field
+## team PAY-150 web
+## team PAY-151 none
+## team PAY-152 unread
+## ask PAY-142
+  → {"asked":2,"git":true,"key":"PAY-142","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":2,"git":true,"key":"PAY-142","name":"acme-shop","place":{"folder":"<repos>/acme-shop-checkout","kind":"folder","value":{"id":"10","name":"checkout"},"where":"<repos>/acme-shop-checkout"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## ask PAY-150
+  → {"asked":3,"git":true,"key":"PAY-150","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":3,"git":true,"key":"PAY-150","name":"acme-shop","place":{"kind":"own","value":{"id":"12","name":"web"},"why":"noFolder"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## ask PAY-151
+  → {"asked":4,"git":true,"key":"PAY-151","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":4,"git":true,"key":"PAY-151","name":"acme-shop","place":{"kind":"own","why":"noValue"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## ask PAY-152
+  → {"asked":5,"git":true,"key":"PAY-152","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":5,"git":true,"key":"PAY-152","name":"acme-shop","place":{"kind":"own","why":"unread"},"problem":{"kind":"signIn","why":"Sign in with Sample first"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## relaunch
+## ask PAY-142
+  → {"asked":6,"git":true,"key":"PAY-142","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":6,"git":true,"key":"PAY-142","name":"acme-shop","place":{"folder":"<repos>/acme-shop-checkout","kind":"folder","value":{"id":"10","name":"checkout"},"where":"<repos>/acme-shop-checkout"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## kept
+routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"field":{"id":"customfield_10001","name":"Team"},"folders":{"10":{"folder":"<repos>/acme-shop-checkout","name":"checkout"},"11":{"folder":"<repos>/billing","name":"billing"},"12":{"folder":null,"name":"web"}},"kind":"field","site":"acme.example","tracker":"Sample"}}}
+== Changed by hand: billing's folder outside the project is let go; billing's own worktree in its place again
+## team PAY-142 checkout
+## ask PAY-142
+  → {"asked":1,"git":true,"guide":{"reading":true},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+  → {"asked":1,"git":true,"guide":{"field":{"folder":"<repos>/acme-shop-checkout","here":false,"id":"customfield_10001","name":"Team","path":"<repos>/acme-shop-checkout","value":"checkout"}},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+## set field
+## hand <repos>/elsewhere
+## relaunch
+## team PAY-160 billing
+## ask PAY-160
+  → {"asked":2,"git":true,"key":"PAY-160","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":2,"git":true,"key":"PAY-160","name":"acme-shop","place":{"kind":"own","value":{"id":"11","name":"billing"},"why":"noFolder"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+## logged
+Ticket routing: acme-shop's way changed
+Ticket routing: acme-shop: a folder that isn't one of the project's own was let go
+== The project's own folder; then Settings: its page, each way's before and after, an option's folder, and the
+   warning a way into the project's folder gives while another ticket's conversation works there
+## settings
+Settings' row: Tickets, 0 projects, shown no
+its page: Tickets (shown no): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+## team PAY-142 checkout
+## ask PAY-142
+  → {"asked":1,"git":true,"guide":{"reading":true},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+  → {"asked":1,"git":true,"guide":{"field":{"folder":"<repos>/acme-shop-checkout","here":false,"id":"customfield_10001","name":"Team","path":"<repos>/acme-shop-checkout","value":"checkout"}},"key":"PAY-142","name":"acme-shop","project":"<repos>/acme-shop","way":null}
+## set folder
+## ask PAY-142
+  → {"asked":2,"git":true,"key":"PAY-142","name":"acme-shop","place":{"kind":"here"},"project":"<repos>/acme-shop","way":{"kind":"folder"}}
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · In acme-shop itself ›
+      Its tickets open
+        way:<repos>/acme-shop
+          · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
+          ✓ In acme-shop itself (Every ticket in the project's folder, with your other work)
+          · By its Team field (Each option's own folder, as its name matches) → {"after":"A new ticket → its Team's folder","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
+## pick way field
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · By its Team field ›
+      Its tickets open
+        way:<repos>/acme-shop
+          · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          ✓ By its Team field (Each option's own folder, as its name matches)
+      Each Team's folder: Matched by name as the way was set. An option with no folder gives each of its tickets its own worktree.
+        option:<repos>/acme-shop:11 (a menu) (billing: <repos>/billing)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          ✓ billing (<repos>/billing)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:10 (a menu) (checkout: <repos>/acme-shop-checkout)
+          · acme-shop (<repos>/acme-shop)
+          ✓ acme-shop-checkout (<repos>/acme-shop-checkout)
+          · billing (<repos>/billing)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:12 (a menu) (web: Its own worktree for each ticket)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          · billing (<repos>/billing)
+          ✓ Its own worktree (Until it has a folder)
+## pick option 12 <repos>/billing
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · By its Team field ›
+      Its tickets open
+        way:<repos>/acme-shop
+          · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          ✓ By its Team field (Each option's own folder, as its name matches)
+      Each Team's folder: Matched by name as the way was set. An option with no folder gives each of its tickets its own worktree.
+        option:<repos>/acme-shop:11 (a menu) (billing: <repos>/billing)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          ✓ billing (<repos>/billing)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:10 (a menu) (checkout: <repos>/acme-shop-checkout)
+          · acme-shop (<repos>/acme-shop)
+          ✓ acme-shop-checkout (<repos>/acme-shop-checkout)
+          · billing (<repos>/billing)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:12 (a menu) (web: <repos>/billing)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          ✓ billing (<repos>/billing)
+          · Its own worktree (Until it has a folder)
+## pick option 12 own
+## pick way own
+## busy PAY-150
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · Its own worktree ›
+      Its tickets open
+        way:<repos>/acme-shop
+          ✓ Its own worktree (A new worktree for each ticket, named after its key)
+          · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop, beside PAY-150","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":"Two tickets in one folder can clash."}
+          · By its Team field (Each option's own folder, as its name matches) → {"after":"A new ticket → its Team's folder","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":null}
+## logged
+Ticket routing: acme-shop's way changed
+Ticket routing: acme-shop's way changed
+Ticket routing: acme-shop's way changed
+Ticket routing: acme-shop's way changed
+Ticket routing: acme-shop's way changed
+== A project whose folder has gone: Settings says so, its way written back as it was, until Forget It
+## set own
+## elsewhere <repos>/elsewhere
+## relaunch
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  [elsewhere] elsewhere isn't there any more · Not there · Forget It
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · Its own worktree ›
+      Its tickets open
+        way:<repos>/acme-shop
+          ✓ Its own worktree (A new worktree for each ticket, named after its key)
+          · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":null}
+## set folder
+## kept
+routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"kind":"folder"}},"<repos>/elsewhere":{"at":"(when)","runs":{"kind":"own"}}}
+## forget
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · In acme-shop itself ›
+      Its tickets open
+        way:<repos>/acme-shop
+          · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
+          ✓ In acme-shop itself (Every ticket in the project's folder, with your other work)
+## kept
+routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"kind":"folder"}}}
+## logged
+Ticket routing: acme-shop's way changed
+Ticket routing: elsewhere: not a project's main folder now
+Ticket routing: acme-shop's way changed
+Ticket routing: elsewhere's way forgotten
+== An option's folder moved away: Settings says it has gone, and its tickets get their own worktree
+## settings
+Settings' row: Tickets, 1 project, shown yes
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+  How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
+    acme-shop · By its Team field ›
+      Its tickets open
+        way:<repos>/acme-shop
+          · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop","before":"A new ticket → its Team's folder","keep":"Tickets started already keep their folders.","warn":null}
+          ✓ By its Team field (Each option's own folder, as its name matches)
+      Each Team's folder: Matched by name as the way was set. An option with no folder gives each of its tickets its own worktree.
+        option:<repos>/acme-shop:11 (a menu) (billing: <repos>/billing has gone: its tickets get their own worktree until you pick another)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:10 (a menu) (checkout: <repos>/acme-shop-checkout)
+          · acme-shop (<repos>/acme-shop)
+          ✓ acme-shop-checkout (<repos>/acme-shop-checkout)
+          · Its own worktree (Until it has a folder)
+        option:<repos>/acme-shop:12 (a menu) (web: Its own worktree for each ticket)
+          · acme-shop (<repos>/acme-shop)
+          · acme-shop-checkout (<repos>/acme-shop-checkout)
+          ✓ Its own worktree (Until it has a folder)
+## team PAY-160 billing
+## ask PAY-160
+  → {"asked":1,"git":true,"key":"PAY-160","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}
+  → {"asked":1,"git":true,"key":"PAY-160","name":"acme-shop","place":{"folder":"<repos>/billing","kind":"own","value":{"id":"11","name":"billing"},"where":"<repos>/billing","why":"gone"},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}

@@ -9,6 +9,16 @@
 // `changed`, and every `quietEvery` seconds anyway. Plain, for the tests.
 BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery);
 
+// Whether a checkout's branch can have a pull request of its own, to look up and keep: a branch, and not the repo's
+// base branch (`base`, its default, as last read), which pull requests go into rather than come from, and the next
+// steps never offer Create PR there. Plain, for the tests.
+BOOL BranchHasOwnPR(NSString *branch, NSString *base);
+
+// Whether a checkout's branch is due its pull request's look-up, `since` seconds after the last: every 60s, or at once
+// for a branch other than the one last looked up (`lookedUp`); never for one that can't have a PR of its own
+// (BranchHasOwnPR). Plain, for the tests.
+BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInterval since);
+
 @interface Checkouts : NSObject
 // Starts the git and gh reads that are due for the checkouts these sessions work in.
 - (void)refreshFor:(NSArray<Row *> *)sessions;

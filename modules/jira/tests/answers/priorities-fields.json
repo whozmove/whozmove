@@ -1,0 +1,10 @@
+{"startAt": 0, "maxResults": 50, "total": 3, "fields": [
+  {"fieldId": "summary", "key": "summary", "name": "Summary", "required": true, "schema": {"type": "string", "system": "summary"}},
+  {"fieldId": "priority", "key": "priority", "name": "Priority", "required": false, "schema": {"type": "priority", "system": "priority"},
+   "allowedValues": [{"self": "https://ignored.example/rest/api/3/priority/1", "iconUrl": "https://ignored.example/1.svg", "name": "Highest", "id": "1"},
+                     {"self": "https://ignored.example/rest/api/3/priority/2", "iconUrl": "https://ignored.example/2.svg", "name": "High", "id": "2"},
+                     {"self": "https://ignored.example/rest/api/3/priority/3", "iconUrl": "https://ignored.example/3.svg", "name": "Medium", "id": "3"},
+                     {"self": "https://ignored.example/rest/api/3/priority/4", "iconUrl": "https://ignored.example/4.svg", "name": "Low", "id": "4"},
+                     {"self": "https://ignored.example/rest/api/3/priority/5", "iconUrl": "https://ignored.example/5.svg", "name": "Lowest", "id": "5"}]},
+  {"fieldId": "customfield_10300", "key": "customfield_10300", "name": "Team", "required": false, "schema": {"type": "option", "custom": "select"},
+   "allowedValues": [{"id": "10400", "value": "Web"}]}]}

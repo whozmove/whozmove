@@ -253,8 +253,8 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments);
 - (NSArray<AppEntry *> *)appEntries {
     __weak typeof(self) weakSelf = self;
     AppSwitch *deploy = [AppSwitch switchWithKey:@"deploy" title:@"Show Deploy"
-                                            help:@"The round button on a row, among its next steps, that puts your "
-                                                 @"project's build in place"
+                                            help:@"The round button that puts your project's build in place: on the row "
+                                                 @"you're on, among its next steps, and at the end of another row's line"
                                               on:^BOOL {
                                                   return weakSelf.core.menuBar.showsDeploy
                                                       && weakSelf.core.menuBar.showsNextSteps;

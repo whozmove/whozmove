@@ -79,22 +79,10 @@
 .ask-goes { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: var(--size-small);
             color: var(--turn-text); font-variant-numeric: tabular-nums; }
 
-/* A plan's steps, and the box for your notes to send it back with. */
-.ask-steps { margin: 5px 0 0 18px; padding: 0; font-size: var(--size-small); color: var(--muted); line-height: 1.5; }
-.ask-steps li::marker { color: var(--faint); font-variant-numeric: tabular-nums; }
-/* A step's words and a plan's first lines are its markdown, drawn as the reader draws it, without the reader's room
-   between paragraphs; so are a question's and its options' words. */
-.ask-steps p { margin: 0; }
-.ask-lead-lines > * { margin: 0; }
-.ask-lead-lines > :is(ul, ol) { padding-left: 18px; }
-:is(.ask-steps, .ask-lead-lines, .quiz, .ask-prose, .ask-fields .prose) strong { color: var(--text); }
-:is(.ask-steps, .ask-lead-lines, .quiz, .ask-prose, .ask-fields .prose) code { font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace;
-                                        color: var(--code); }
-.perm.plan-ask .perm-read { margin-top: 3px; }
-.ask-lead-lines { margin-top: 4px; font-size: var(--size-small); color: var(--muted); }
-.ask-say { display: flex; gap: 6px; margin-top: 6px; }
-.ask-say .q-type { flex: 1; min-width: 0; margin-top: 0; }
-.ask-say-waits { margin-top: 6px; font-size: var(--size-small); color: var(--muted); }
+/* A question's and its options' words, and a request's prose, are their markdown, drawn as the reader draws it. */
+:is(.quiz, .ask-prose, .ask-fields .prose) strong { color: var(--text); }
+:is(.quiz, .ask-prose, .ask-fields .prose) code { font: var(--size-small) ui-monospace, SFMono-Regular, Menlo, monospace;
+                                                  color: var(--code); }
 
 /* What a question is about (its header, "Pick any"), a small label above it. */
 .ask-label { margin-bottom: 2px; font-size: var(--size-small); font-weight: 600; color: var(--muted); }

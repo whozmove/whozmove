@@ -42,9 +42,9 @@ one changed: <div class="r-ask"><div class="r-q"><span class="dot"></span>You ch
         <button class="button r-claude-picks">Use Claude's Picks</button></div></div>
 two changed: You changed 2 picks.
 Send Back with My Picks: the box, under your picks in words: <div class="r-ask"><label class="r-q" for="r-notes">Your picks go back in these words, and Claude writes a new version. Add anything else:</label><p class="r-picked">Decision 1 (&quot;Where it lives&quot;): option 2, &quot;This browser&quot;, in place of your recommended option 1, &quot;On your account&quot;. Decision 2 (&quot;Units&quot;): option 2, &quot;Grams&quot;, in place of your recommended option 1, &quot;Side by side&quot;.</p>
-      <textarea id="r-notes" class="field q-type r-notes" placeholder="Your notes for Claude"></textarea>
-      <div class="r-buttons"><button class="button main r-send">Send to Claude</button>
-        <button class="button r-cancel">Cancel</button></div></div>
+    <textarea id="r-notes" class="field q-type r-notes" placeholder="Your notes for Claude"></textarea>
+    <div class="r-buttons"><button class="button main r-send">Send to Claude</button>
+      <button class="button r-cancel">Cancel</button></div></div>
 …what goes back: your picks' words, then your own: Decision 1 ("Where it lives"): option 2, "This browser", in place of your recommended option 1, "On your account". Decision 2 ("Units"): option 2, "Grams", in place of your recommended option 1, "Side by side".
 
 Also rename the button.
@@ -57,26 +57,131 @@ Use Claude's Picks, the box open: only your own words go back: Split step 2.
 Use Claude's Picks: as ever again: true
 nothing written and no picks: nothing to send: 
 
-== What you typed on the row goes with your picks (core.planNotes, core.planRowNotes)
-the row's Send back…: the plan, its box open: ["box open"]
-a session the panel can't answer: no box, only the plan: []
-the bar's Send Back with My Picks: the box takes what you typed on the row, which leaves it: ["Keep it short.",null]
-…under what you wrote there before: Split step 2.
+== Approve under the plan Claude waits on (planApproveHow, answerHTML)
+drawn whole, nothing in its way: Approve, for the request and digest drawn: {"approve":true,"id":"q1","digest":"d1"}
+its text not drawn yet: not yet: {"drawing":true}
+drawn for another text of the request: not yet: {"drawing":true}
+no digest from the app: not yet: {"drawing":true}
+cut short: why, and no Approve: {"why":"It's too long for the panel to show whole, so approve it in its tab."}
+what the app knows already: in its words, as a sentence: {"why":"It may run with permissions bypassed once approved, so approve it in its tab."}
+a session the panel can't answer: none (its own bar says so): null
+sent back from here: none: null
+not the plan Claude waits on: none: null
+your Approve, with the app: {"going":true}
+…not approved, as its ask says: why, and no Approve: {"why":"Its plan was written again.","refused":true}
+…of an earlier request: not this one's: {"approve":true,"id":"q1","digest":"d1"}
+…not, where a second press may yet approve it: Approve, with why: {"approve":true,"id":"q1","digest":"d1","why":"Press Approve again.","refused":true}
+the bar: Approve, carrying the request and digest drawn, then Send back…, Stop and Take me there: <div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan.
+      </div><div class="r-whole">Approves the whole plan, folded parts too</div><div class="r-buttons"><button class="button main r-approve" data-ask="q1"
+        data-digest="d1">Approve</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button>
+        <button class="button r-go">Take me there</button></div></div>
+…Return never presses it: it isn't a card's main answer (.perm-allow), and the reader takes only a mousedown: false
+…read folded at a glance, then in full: [the line above Approve, none]: ["Approves the whole plan, folded parts too",null]
+…pressed: Approving…: <div class="r-ask"><div class="r-q">Approving…</div></div>
+…not approved: why, with Take me there: <div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan. Not approved: Its plan file has changed since Claude asked.
+    </div>
+    <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button></div></div>
+…not approved, where a second press may yet: why, with Approve still: <div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan. Not approved: Press Approve again.
+      </div><div class="r-whole">Approves the whole plan, folded parts too</div><div class="r-buttons"><button class="button main r-approve" data-ask="q1"
+        data-digest="d1">Approve</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button>
+        <button class="button r-go">Take me there</button></div></div>
+…approved, until Claude takes it: <div class="r-done">Approved, waiting for Claude to take it.</div>
+…taken: <div class="r-done">Approved. Claude carries out the plan.</div>
+…its transcript saying approved: <div class="r-done">Approved. Claude carries out the plan.</div>
+…not taken: why, with the way to its tab, as only it can answer it now: <div class="r-ask"><div class="r-q"><span class="dot"></span>Not approved: your approval wasn't taken, so
+        approve it in its tab.</div>
+      <div class="r-buttons"><button class="button main r-go">Take me there</button></div></div>
+…not taken, for another request of its session's: still waiting for Claude to take it: <div class="r-done">Approved, waiting for Claude to take it.</div>
+the app knows why not: why, with Take me there, Send back… and Stop: <div class="r-ask"><div class="r-q"><span class="dot"></span>Claude is waiting for your OK on this plan. It may run with permissions bypassed once approved, so approve it in its tab.
+    </div>
+    <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-revise">Send back…</button><button class="button r-stop">Stop</button></div></div>
+not drawn yet: no Approve: false
+the text drawn for the waiting plan: the request's own: # Shopping list
 
-Keep it short.
-…and it goes back with your picks: Decision 1 ("Where it lives"): option 2, "This browser", in place of your recommended option 1, "On your account".
+## At a glance
+
+- **What changes for you:** one list, by aisle.
+- **You decide:**
+  1. Where it lives: on your account (recommended), or this browser. Why: phones.
+  2. Units: side by side (recommended); or grams. Why: cups aren't grams.
+
+## Context
+
+Today by hand.
+
+…a plan cut short: the transcript's: null
+…a writing that isn't the waiting plan: its own: null
+the app's words as a sentence: ["Its file changed.","Done.",""]
+
+== Approve waits to be seen from when it comes into the bar (drawAnswer)
+drawn: its wait starts: true
+…drawn again as it was: no new wait: false
+the box for your notes in its place: no wait for what isn't there: false
+…cancelled, Approve back: its wait starts again: true
+
+== Your Approve, and how the rows say it went (approvePressed, planApprovalsFrom)
+only just drawn: not taken: []
+pressed: the request and digest it was drawn with, never the request as it is now: [{"type":"approveShownPlan","sessionId":"s1","id":"q1","digest":"d1"}]
+…pressed again while the app has it: nothing more: []
+rows with the ask as it was: still with the app: [[],{"id":"q1","after":0}]
+…its ask saying it wasn't approved: the press ends, the bar shows why from the ask: [["s1"],null,[]]
+pressed again: sent again, kept with what the ask said of the last press: [[{"type":"approveShownPlan","sessionId":"s1","id":"q1","digest":"d1"}],{"id":"q1","after":5}]
+…rows still saying the last press: still with the app: [[],{"id":"q1","after":5}]
+…the request gone, approved by you for it: the row says so, and the bar: [["s1"],[{"answered":"q1","how":"approved"}],{"ask:q1":"approve"}]
+…gone some other way (answered in its tab): the press ends, nothing said: [["s1"],[],{}]
+
+== The button at the end of a row's ask for a plan or a look (askActOf)
+a plan Claude waits on: opened at it: ["ask:q1","Read the plan, beside the list"]
+…in a session the panel can't answer: opened at it, to read, answered in its session: ["ask:q1","Read the plan, beside the list: answer it in its session"]
+…no plan waiting (a merge to approve, say): none: null
+a look: the newest prototype: ["p2","See the looks, beside the list"]
+…none written: none: null
+a try: not this module's: null
+a plan waiting in the transcript only: opened at it, to read: ["w9","Read the plan, beside the list: answer it in its session"]
+…its session idle at its prompt: opened at it, to send back from here: ["w9","Read the plan, beside the list"]
+…its session at work: none: null
+…in the list: waiting for you: ["Waiting for you","wait"]
+…while a request is up for one the panel can't answer: its request's plan, as that request's words say: ["ask:q1","Read the plan, beside the list: answer it in its session"]
+…under it, beside the list: why, and the way to its session, with nothing to answer here: <div class="r-ask"><div class="r-q" title="A plan stops asking here after an hour, or when Whozmove restarts. Claude&#39;s own prompt in its session still has it."><span class="dot"></span>Claude is waiting for
+          your OK on this plan. Answer it in its session: it stopped asking here.</div>
+        <div class="r-buttons"><button class="button main r-go">Take me there</button></div></div>
+…an older plan of its own: nothing under it: 
+its session idle at its prompt: Send back… types your notes in, and Take me there; Approve and Stop are its session's: <div class="r-ask"><div class="r-q" title="A plan stops asking here after an hour, or when Whozmove restarts. Claude&#39;s own prompt in its session still has it."><span class="dot"></span>Claude is waiting for your
+        OK on this plan, but it stopped asking here: approve or stop it in its session. Send back… types your notes in
+        as a message.</div>
+      <div class="r-buttons"><button class="button main r-revise">Send back…</button>
+        <button class="button r-go">Take me there</button></div></div>
+…your notes go to it: w:w9
+…Send back…: the box, saying they're typed in as a message: <div class="r-ask"><label class="r-q" for="r-notes">Your notes are typed into its session as a message, and Claude writes a new version. What should change?</label>
+    <textarea id="r-notes" class="field q-type r-notes" placeholder="Your notes for Claude"></textarea>
+    <div class="r-buttons"><button class="button main r-send" disabled>Send to Claude</button>
+      <button class="button r-cancel">Cancel</button></div></div>
+…Send to Claude: typed in by its agent's module, and kept meanwhile: [[{"type":"typePlanNotes","sessionId":"s1","planId":"w9","words":"Split step 2."}],{"id":"w:w9","text":"Split step 2."},"typed"]
+…before the row says anything: typing: <div class="r-ask"><div class="r-q">Typing your notes into its session…</div></div>
+…not typed in: why, the way past, Take me there and Send back… again: <div class="r-ask"><div class="r-q"><span class="dot"></span>Your notes weren't typed in: Ghostty is in front. They're kept: Send back… opens them.</div>
+    <div class="r-buttons"><button class="button main r-go">Take me there</button><button class="button r-way">Bring It Here</button>
+      <button class="button r-revise">Send back…</button></div></div>
+…a refusal said before this press: still typing: <div class="r-ask"><div class="r-q">Typing your notes into its session…</div></div>
+…typed in: <div class="r-done">Typed into its session as a message, with your notes. Claude writes a new version, which shows up here.</div>
+…and the notes it kept for it go: null
+held at its own prompt: nothing to send your notes to: null
+
+== Your notes, kept for the plan they were written for (planNotesBack, planKeptWords)
+the reader closed unsent: your words kept for that plan, lines and all, and leave the reader: [{"id":"q1","text":"Split step 2.\n\nKeep it short."},""]
+…the bar under it says they wait: true
+…closed unsent again: after what was kept: {"id":"q1","text":"Split step 2.\n\nKeep it short.\n\nRename the button."}
+Send back… on that plan: its box has them, and they leave the keeping: ["Split step 2.\n\nKeep it short.\n\nRename the button.",null]
+…and they go back with your picks: Decision 1 ("Where it lives"): option 2, "This browser", in place of your recommended option 1, "On your account".
 
 Split step 2.
 
 Keep it short.
-…opened again, nothing new on the row: the box as you left it: Split step 2.
 
-Keep it short.
-the reader closed unsent: your words wait on the row again, lines and all, and leave the reader: [{"text":"Split step 2.\n\nKeep it short."},""]
-…after what the row had typed in it since: {"text":"Rename the button.\n\nSplit step 2.\n\nKeep it short."}
-…the row's box, a line, shows the lines as spaces: Rename the button. Split step 2. Keep it short.
-notes for a plan answered elsewhere: never onto the plan that asks next, and gone from the reader: [null,""]
-…nor onto a session the panel can't answer: null
+Rename the button.
+notes kept for another version: never put in this one's box: ["",{"id":"q0","text":"For the version before."}]
+…and, drawn, moved to those to copy, with nothing left kept: ["For the version before.",null]
+notes for a plan answered elsewhere: never kept for the plan that asks next, and gone from the reader: [null,""]
+…nor for a session the panel can't answer: null
 
 == Notes written for a version Claude no longer waits on: never sent to another, never dropped
 (a) a new version since: they're for the one before: true
@@ -93,5 +198,5 @@ Keep it short.</p>
 …but not on a version Claude isn't waiting on: ["class=\"button main r-go\">Take me there","class=\"button r-unsent-done\">Done with These"]
 …its Send back… opens the box for the new version, your notes for the one before still above it, kept: [true,"q2",1,true]
 (b) answered elsewhere, the box open: the bar says so, the notes to copy: ["<div class=\"r-q\">Claude isn't waiting on the version your notes were for any more: it was\n        answered elsewhere, so they weren't sent. Here they are, to copy into what you send next:</div>","r-unsent\">Decision 1 (&quot;Where it lives&quot;): option 2, &quot;This browser&quot;, in place of your recommended option 1, &quot;On your account&quot;.\n\nSplit step 2."]
-…closed after Cancel instead: kept to copy, not dropped, and not on the new version's row: ["Decision 1 (\"Where it lives\"): option 2, \"This browser\", in place of your recommended option 1, \"On your account\".\n\nSplit step 2.",null]
+…closed after Cancel instead: kept to copy, not dropped, and not kept for the new version: ["Decision 1 (\"Where it lives\"): option 2, \"This browser\", in place of your recommended option 1, \"On your account\".\n\nSplit step 2.",null]
 …until Done with These: null

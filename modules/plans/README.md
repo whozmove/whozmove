@@ -28,19 +28,19 @@ One Task's task about a plan) pass it the text they already have, through `core.
   Full version of the plan, the toggle above the plan exactly as written, drawn as the reader draws any writing), the
   plan card's lines (`planCardLinesHTML`) and a task's view (`planTaskHTML`: the card bare, every choice as lines,
   `planChoiceLinesHTML`); the card's Flow (`planFlowHTML`: the flow small, `core.diagrams`); its presses in the reader
-  (`core.readerPresses`): the card's Flow opens its section and brings it into view; Skimmed or Full version of the plan
-  draws
-  the view again, read that way; a choice, a fold or Open All opens or folds in place, growing in and folding away as
-  the panel's lines do (`planTurn`, with the list part's `growIn` and `foldAway`; a fade under reduced motion; a
-  section's diagrams drawn before it's measured to grow, `core.diagrams.draw`), while an
-  option picked or more choices draws its view again from what it was last drawn from, then the reader (`drawReader`,
-  the pane part's) for the answer bar; and `core.plans`, what the places call (the reader's `writingBodyHTML` and answer
-  bar, the plan card's `planAskHTML`). A view drawn held shows your picks but takes none, while the notes they go back
-  in are open. The plan card's lines come only from the plan's own block. Its state: your picks by the request's id
-  (`planPicks`), what's open (`planOpen`, a section that starts open kept as folded by you, `planFoldOpen`) and what
-  each view was drawn from (`planDrawn`) by session, each forgotten with its session (`core.forgotten`); and how you
-  read a plan (`planReadAs`), one choice for every plan, kept across launches (`store`, the page's own). The plan
-  card's lines say how many picks you've changed on the request it's given.
+  (`core.readerPresses`): the card's Flow opens its section and brings it into view; Skimmed or Full version of the
+  plan draws the view again, read that way; a choice, a fold or Open All opens or folds in place, growing in and
+  folding away as the panel's lines do (`planTurn`, with the list part's `growIn` and `foldAway`; a fade under reduced
+  motion; a section's diagrams drawn before it's measured to grow, `core.diagrams.draw`), while an option picked or
+  more choices draws its view again from what it was last drawn from, then the reader (`drawReader`, the pane part's)
+  for the answer bar; and `core.plans`, what the places call (the reader's `writingBodyHTML` and answer bar, which
+  asks `folded` whether the plan it's under is shown folded, the plan card's `planAskHTML`). A view drawn held shows
+  your picks but takes none, while the notes they go back in are open. The plan card's lines come only from the plan's
+  own block. Its state: your picks by the request's id (`planPicks`), what's open (`planOpen`, a section that starts
+  open kept as folded by you, `planFoldOpen`) and what each view was drawn from (`planDrawn`) by session, each
+  forgotten with its session (`core.forgotten`); and how you read a plan (`planReadAs`), one choice for every plan,
+  kept across launches (`store`, the page's own). The plan card's lines say how many picks you've changed on the
+  request it's given.
 - `page/plans.css`: how to read the plan (on the title's line, or on a line of its own above the plan as written, in the
   same place), the card, the choices, the folds and the plan card's lines. The labels, choices, tabs, tags and buttons
   are the kit's (panel/styles/controls.css); a section opened is the reader's Markdown (parts/pane/page/reader.css).

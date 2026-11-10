@@ -1,43 +1,41 @@
 # Team
 
-Group by Team. A session leading a team of other sessions for you can keep a team file in Whozmove's folder
-(`team/team.json`, laid out in docs/reference/team.md). With it, Settings ▸ Session List offers Group by Team, which
-shows the list with a short row for each session:
+A team's groups and rows in the list. A session leading a team of other sessions for you can keep a team file in
+Whozmove's folder (`team/team.json`, laid out in docs/reference/team.md). With it, the list (one view for everyone,
+grouped by project) has the team's groups above the projects, in the same short rows as every other:
 - **the session you talk to**, when the file names one apart from the lead (`front`), on top, marked Chief, with Up
   next at its end, and nothing else of the lead's; the lead right under it, unmarked, or in the group the file gives
   it, as a member is, with the tag the file gives it;
-- **the lead** on top otherwise, marked Chief, saying how many jobs wait on you, by priority, and how many are at work;
-  when it names the next thing for you to look at, that is its second line, as a member's ask is, and the counts are
-  on the team board;
-- the groups the file names, **its team** (among them when the file's order names Team, else after them) and **your
-  own sessions**, each group folding as a project does, with how many rows it has;
+- **the lead** on top otherwise, marked Chief, saying how many jobs wait on you in one number, its dot as pressing as
+  the most pressing, and how many are at work; when it names the next thing for you to look at, that is its line under
+  its name, as a member's ask is, and the counts are on the team board;
+- the groups the file names and **its team** (among them when the file's order names Team, else after them), each
+  group folding as a project does, its header saying only its name; your own sessions stay under their projects;
 - on each row its name (a member's as the team names it), the tag the file gives it, marked with it as Chief is
-  ("Design"), else what it looks after, its job's steps as a short track and its
-  time;
-- a second line: when the job waits on you, what's wanted in a few words (the whole ask is in the job's details,
-  which open from its track or this line), marked as passed on, with how many jobs it holds up and the row's Deploy;
-  else, while it's at work on one job and another of its jobs waits on you, that one's, the same way, but that the
-  details open from its track only, as they're the job at work's; else, quietly and with no
-  Deploy, where its job stands ("Up next: after the search box", or the stage's word alone), or what the file says it's
-  busy with apart from its jobs ("Reviewing: Wren's search box"), unless the session asks you something itself.
+  ("Design"), else what it looks after, its job's steps as a short track and its time;
+- a line under it: when the job waits on you, what's wanted in a few words (the whole ask is in the job's details,
+  which open from its track or this line), in the session's own words, never marked as passed on, with how many jobs
+  it holds up and the row's Deploy; else, while it's at work on one job and another of its jobs waits on you, that
+  one's, the same way, but that the details open from its track only, as they're the job at work's; else, quietly and
+  with no Deploy, where its job stands ("Up next: after the search box", or the stage's word alone), or what the file
+  says it's busy with apart from its jobs ("Reviewing: Wren's search box"), unless the session asks you something
+  itself.
 
 Pointed at, a row with a job under way says who, the job, its step and since when; one whose job is queued or parked,
 or under way without steps, who, the job, where it stands and since when; the lead, what's next for you in full, its
-job and the counts in words. Only while the list is grouped by team does any of this show, but that a member's reply
-to the lead counts as read in any way of showing the list. Without the file, the menu doesn't offer it.
+job and the counts in words. In each group the rows keep the list's order, newest first: nothing is lifted. A member's
+reply to the lead counts as read. Without the file, the list is its projects alone.
 
 ## Its pieces
 
 - `app/TeamModule.m`: its face for the core (contracts/Module.h).
   - It gives each row its place in the team (`team`, docs/reference/rows.md) in the work phase.
-  - It adds Group by Team to Settings ▸ Session List (parts/settings, `addGrouping:`), offered while one of the
-    team is listed.
   - Working on Whozmove ▸ Show Teams (`readTeamFiles`, off until pressed): teams are for people working on Whozmove
-    until anyone can make one, so every team surface (Group by Team, the Chief tag, Up next, Team Board, a lead's picks
-    in One Task, the answering switches on a lead's row) comes from this module reading the file only while it's ticked.
-    Unticked, the file isn't read: no row has a `team`, `teams` is empty and Group by Team isn't offered. A print run
-    reads the file whatever the switch says, except `--print-teams --switch-off`, which prints what there is with it
-    off. Another module asks whether teams show through `teamsShown` in `TeamFacts`, never by reading the switch.
+    until anyone can make one, so every team surface (a team's groups in the list, the Chief tag, Up next, Team Board,
+    a lead's picks in One Task, the answering switches on a lead's row) comes from this module reading the file only
+    while it's ticked. Unticked, the file isn't read: no row has a `team` and `teams` is empty. A print run reads the
+    file whatever the switch says, except `--print-teams --switch-off`, which prints what there is with it off.
+    Another module asks whether teams show through `teamsShown` in `TeamFacts`, never by reading the switch.
 - `app/Team.m` (`Team`): reading the file and matching each session to its place.
   - It looks at whether the file has changed no more than twice a second, and reads it again off the main thread when
     it has.
@@ -82,60 +80,60 @@ to the lead counts as read in any way of showing the list. Without the file, the
     what's next for you, on a copy of the lead's place made each pass.
   - It reads a time the file gives in seconds or ms.
   - It finds the group the file puts each member in (`group`), in the file's own words but never one that hides what
-    it says or one Group by Team has anyway, the lead's too while it isn't the chief, and the groups' order
+    it says or Team, the group the rest of the team is in, the lead's too while it isn't the chief, and the groups' order
     (`groups`, then A to Z), where Team may be named to place the rest of the team: then each member in no group
     carries Team's place (`groupAt`).
   - It reads each member's `tag` (3 words and 30 characters at most, else none), and the lead's while it isn't the
     chief, and the name a member shows (`shown`). A tag is only a mark: it moves no row.
-- `page/team.js`: what Group by Team adds to the page.
+- `page/team.js`: what the team adds to the list.
   - What it offers the other modules through the core (`core.teamJob`): a job's track (`track`, as `jobTrack` gives it)
     and the words for where a job is at each stage (`stageWord`: Moving and Waiting, said by the step's own word when the
     file gives one, Up next, On hold), which the team
     board draws and says too; and a priority's word (`priorityWord`: Critical, P0, P1 or P2) and whether it's to do now
     (`doNow`: Critical and P0, in the colour of something to put right), which the team board and One Task say as the
-    list does.
+    list does; and its place in that ladder (`priorityPlace`: `{at, of, look}`, 0 the most pressing, one it doesn't
+    know as P1's, with its look), which One Task orders and colours a pick by when its member has no ticket.
   - Plain functions:
-    - whether the list is grouped by team now (`teamInUse`: chosen, and one of the team listed);
-    - its groups (`core.groupings.team`, `teamGroups`: the session you talk to, the lead unless the file puts it in a
-      group, the file's own groups and Team in the file's order, and yours), each with what needs you first
-      (`needsYouFirst`: a request, a reply you haven't read, a job waiting on you or what another module says is new
-      in it, as a side chat's reply (`core.sessionNews`), then the rest, each part in the list's order, a row you've
-      pressed staying in its part);
-    - the counts (`teamCountsHTML`, where Critical and P0 add up into one dot of something to do now, and in words
-      `teamCountsWords`, which names each priority), the second line (`teamNote`, `teamAskHTML`,
+    - its groups above the projects (`core.topGroups`, `teamGroups`: the session you talk to, the lead unless the file
+      puts it in a group, and the file's own groups and Team in the file's order, each in the list's order, newest
+      first, with what's yours handed back as `rest` for its project, and an ended session in a member's folder in
+      neither, so it isn't shown);
+    - the counts (`teamCountsHTML`, how many wait in one number, its dot the most pressing look among them, and in
+      words `teamCountsWords`, which names each priority), the second line (`teamNote`, `teamAskHTML`,
       drawn with the row part's `askLineHTML` as `teamAskLineHTML`, and where a job stands, `teamStatusNote` and
       `teamStatusText`), a job's track (`trackHTML`, `trackNow`, `jobTrack`, drawn with the row's parts' `stepTrackHTML`) and the job's details, from its track and
       its second line, never the whole row (`teamCardHTML`, `teamStatusCardHTML` for a job not under way, and
       `teamNextCardHTML` for what's next on the lead, each title in the details' own shape, `detailsTitleHTML`; see
       [parts/details](../../parts/details/README.md)).
-  - Every row in the list is shown briefly (`row.brief`), but one still starting from the panel. That means its title line, the
-    team's words after the name in the brief slot and its job's track at the line's end (`core.slots.titleTrail`, past
-    the row's own gap), no chat (`row.chatless`) but Claude's line while the session asks you
-    something itself, its card (a request) and its note: the ask's line, a bubble in its priority's colour
+  - Every row in the list is shown briefly (the row part's `row.brief`), but one still starting from the panel. On it,
+    the team's words after the name in the brief slot, its job's track at the line's end (`core.slots.titleTrail`,
+    past the row's own gap), and its note: the ask's line, a bubble in its priority's colour
     (`waitLook`, given the row as the note's `look`) named first by it, ending in its one action for what its step
     asks of you (`teamAct`, with the kind's icon and verb as One Task offers them, `core.taskKinds`: Deploy for a try,
-    through `askAct`, else its session, `[data-team-go]`, once seen, `team-act:<session>`, again for each job, step or
+    and the plan or the looks beside the list for an approve or a pick, each through `askAct` on the member's own row,
+    else its session, `[data-team-go]`, once seen, `team-act:<session>`, again for each job, step or
     button, `teamActs`), but that an ask in your move's colour gives way to a note that puts
     something right (Compact at Breaks' "Compacting stopped part-way") or a quiet one, and comes back once it's gone;
     else any other module's note; else where its job stands (`core.rowNotesLast`), which has no Deploy (`end: false`).
     While a member at work on one job has another waiting on you (`alsoAsks`), that one's ask is the note, of class
     `talso` rather than `task`, so the job at work's details don't open from it; its action is seen afresh when it
-    turns to another job (`teamActs`).
+    turns to another job (`teamActs`). It ends in the plan or the looks beside the list as its own job's ask does,
+    whatever the session is doing, so a plan's ask has one shape and one press; what opens says when it's only to
+    read (a session at work takes no answer).
   - A duplicate in a member's own workspace says so in the brief slot ("Duplicate of Wren"), pointed at saying which
     session is on the member's row (`duplicateTip`), and, when nothing else is said on its row, a quiet line of its
     own class, with no Deploy, to close the previous session (`duplicateNote`, in `core.rowNotesLast`).
   - A conversation that has ended in a member's folder, the lead's or the front's (`endedInMembersFolder`) is wholly
-    not yours to read (`core.notYoursToRead`), under any grouping, so its replies never wait on you, nor count beside
+    not yours to read (`core.notYoursToRead`), so its replies never wait on you, nor count beside
     the pawn, at the edge or beside the folded panel; one kept to read from before stays kept for if it's resumed.
-  - A chat beside the folded panel (`row.chat`) is never brief: it's the row whole, as in any other way of showing the
-    list, so it says what's new (the reply, or what it asks), under a member's name in the team. Drawing it leaves what
-    the list's row last showed as it was.
-  - A row's dot is the list's, saying whose move it is (classify), as in any other way of showing the list. A job
+  - A chat beside the folded panel (`row.chat`) is never brief: it's the row whole, so it says what's new (the reply, or
+    what it asks), under a member's name in the team. Drawing it leaves what the list's row last showed as it was.
+  - A row's dot is the list's, saying whose move it is (classify). A job
     that waits on you shows on its line, its track and the counts, never on the dot, and counts on its folded group's
-    header (`waits`). Folded, a group hides all its rows (`hidesAll`), and its header says how many wait on you.
+    header (`waits`). Folded, a group hides all its rows, as every group does, and its header says how many wait on you.
   - What a row shows for the first time counts as just shown (`showAgain`), so its Deploy waits before it takes a
-    press: an ask's line that's new, and what a row held back once another grouping is chosen.
-- `page/team.css`: the one-line row, the tag, the part, the track, the second line, a duplicate's line and the
+    press: an ask's line that's new.
+- `page/team.css`: the tag, the part, the track, the second line, a duplicate's line and the
   counts, in the panel's tokens.
 - `module.json` lists them for tools/page.sh.
 
@@ -156,7 +154,7 @@ app reads from a sample team file, and the seats it gives the sample sessions, a
   of the team share, the lead's and the front's seat nobody: another session there says whose folder it's in, and so
   does a session the file records for anyone, wherever it runs. Any other that has ended there is the member's earlier
   conversation (in the lead's or the front's folder only when that isn't the project's own, where your own conversations
-  are too: Team.m's `history`): nothing in it is yours to read, and it isn't shown under Group by Team unless it asks
+  are too: Team.m's `history`): nothing in it is yours to read, and it isn't shown unless it asks
   you something, you're on it or have just pressed it, or it edited that checkout after the member did, as the member's
   own row stands for that folder.
 - **No flows of its own.** The panel draws a job's steps as the file gives them. A job without them shows no track.
@@ -165,6 +163,8 @@ app reads from a sample team file, and the seats it gives the sample sessions, a
   them in a member's own workspace.
 - **The session you talk to gets no power.** Marked Chief, it is never among the sessions the lead leads, nor answered
   for, nor what Take Me There opens: everything that runs the team stays the lead's.
-- **Nothing outside Group by Team,** but that a member's reply to the lead isn't yours to read, nor a reply in an
-  earlier conversation that has ended in a member's folder. Newest First and Group by Project look the same with the
-  file as without it otherwise.
+- **A team adds groups, never changes a row.** Every row is the list's short row with or without the file; the team
+  adds its groups above the projects, its words on its own rows, and that a member's reply to the lead isn't yours to
+  read, nor a reply in an earlier conversation that has ended in a member's folder.
+- **Newest first in every group.** The team's groups keep the list's order (placeRows), nothing lifted for waiting on
+  you: its bubble, its dot and the count beside the pawn say so.

@@ -47,6 +47,7 @@
 .b-glyph.g-file { background: var(--tile-editor); }
 .b-glyph.g-chat { background: var(--tile-conversation); }
 .b-glyph.g-gauge { background: var(--tile-usage); }
+.b-glyph.g-ticket { background: var(--tile-tickets); }
 /* Settings' own tile among the apps, as big as an app's icon is within its square: a dark gear on silver, as a Mac's
    Settings app is. */
 .b-glyph.g-settings { background: linear-gradient(var(--tile-settings-from), var(--tile-settings-to));
@@ -107,6 +108,8 @@
 .b-mark i { width: 82%; height: 82%; display: grid; place-items: center; border-radius: var(--radius-icon);
             background: var(--app-tile); color: var(--app-tile-mark); font-style: normal; font-weight: 600; }
 .b-mark svg { width: 50%; height: 50%; }
+/* A tool's tile with a mark of Settings' (its glyph): that tile's colour, and its mark in white, as Settings' are. */
+.b-mark i.b-glyph { color: var(--on-colour); }
 
 /* An app's page: what Whozmove does with it, beside its icon (its name is the header's), its switches, its cards, what
    macOS lets Whozmove do with it, and Open. A card says how it stands as Privacy & Security's does. */
@@ -117,6 +120,16 @@
 .b-words i { font-style: normal; font-size: var(--size-small); line-height: 1.4; color: var(--muted); }
 /* A label over a card (the kit's capitals). */
 .b-sec { padding: 14px 4px 6px; }
+/* A heading's Important, in your move's colour, as letters a heading's own size don't need. */
+.b-sec .b-imp { margin-left: 6px; letter-spacing: 0; text-transform: none; color: var(--turn-text);
+                background: var(--turn-fill); }
+/* What picking a choice would change, under its choices, before Change picks it. */
+.b-ba { padding: 8px 12px 10px; border-top: 1px solid var(--rule); }
+.b-ba-line { display: flex; gap: 10px; padding: 2px 0; color: var(--text); }
+.b-ba-k { flex: none; width: 44px; color: var(--muted); font-size: var(--size-small); padding-top: 1px; }
+.b-ba-warn { padding: 2px 0 0 54px; font-size: var(--size-small); color: var(--needs-text); }
+.b-ba-keep { padding: 4px 0 0 54px; font-size: var(--size-small); color: var(--muted); }
+.b-ba-btns { display: flex; justify-content: flex-end; gap: 6px; padding-top: 8px; }
 .b-card { overflow: hidden; border-radius: var(--radius-box); background: var(--surface); }
 .b-switch, .b-perm { display: flex; align-items: center; gap: 12px; padding: 9px 12px; }
 .b-switch + .b-switch { border-top: 1px solid var(--rule); }
@@ -163,6 +176,10 @@
 /* A part of the day: its name and line, then its two ends, each a button with its time, opening its menu. */
 .b-span { display: flex; align-items: center; gap: 12px; padding: 9px 12px; }
 .b-span.off > .b-words { opacity: .4; }
+/* A choice drawn as one row: the one picked on its button, with the caret of the Mac's menu it opens. */
+.b-menu { flex: none; display: inline-flex; align-items: center; gap: 4px; min-width: 0; max-width: 55%; }
+.b-menu-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.b-menu .caret { display: inline-grid; flex: none; }
 .b-ends { flex: none; display: flex; align-items: center; gap: 6px; font-size: var(--size-small); color: var(--muted); }
 .b-time { font-variant-numeric: tabular-nums; }
 /* A list's page (Sessions): on its cards, rows with a box to tick, their title over a line, the box greyed on one that

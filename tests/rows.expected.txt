@@ -6016,9 +6016,8 @@ its figures are the board's counts: true
 == A team file reads the same whatever its version: 5, 1 or none
 version 5: the same
 version none: the same
-== With Show Teams off, the file isn't read: no teams, no row has a team, and Group by Team isn't offered
+== With Show Teams off, the file isn't read: no teams, and no row has a team
 {
-  "groupByTeamOffered" : false,
   "rowsWithATeam" : [
 
   ],

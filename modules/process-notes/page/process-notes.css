@@ -1,0 +1,20 @@
+/* The Keep It card's note: text to read, set apart by a line down its left as a quote is, never boxed or filled, so it
+   never looks like a question's options (each a bordered, filled box with a round mark: parts/row's cards.css .opt).
+   Each step is a numbered line with a hanging number; a step new or taken out says so in words, in its colour. Only
+   Not Now and Keep It look pressable.
+   Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
+.pn-note { list-style: none; margin: 8px 0 2px; padding: 0 0 0 10px; border-left: 2px solid var(--edge);
+           font-size: var(--size-small); line-height: 1.45; color: var(--text); max-height: 340px; overflow-y: auto;
+           display: flex; flex-direction: column; gap: 6px; cursor: default; }
+.pn-step { display: grid; grid-template-columns: max-content 1fr; column-gap: 6px; }
+.pn-n { min-width: 1.2em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pn-body { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.pn-says b { font-weight: 600; }
+.pn-from { font-size: var(--size-meta); color: var(--muted); }
+.pn-mark { font-weight: 600; }
+.pn-added .pn-n, .pn-added .pn-mark { color: var(--added); }
+.pn-removed .pn-n, .pn-removed .pn-mark { color: var(--removed); }
+.pn-removed .pn-says { color: var(--muted); text-decoration: line-through; }
+.pn-note + .q-help { margin-top: 8px; }
+.pn-busy { margin-top: 8px; }
+.pn-warn { margin-top: 6px; color: var(--turn-words); }

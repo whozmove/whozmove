@@ -197,18 +197,50 @@
     "switches" : [
       {
         "group" : null,
-        "help" : "On each row: what's changed, committed and on GitHub, and the step that's next",
+        "help" : "On the row you're on: what's changed, committed and on GitHub, and the step that's next",
         "key" : "nextSteps",
         "title" : "Show Next Steps"
       },
       {
         "group" : null,
-        "help" : "The round button on a row, among its next steps, that puts your project's build in place",
+        "help" : "The round button that puts your project's build in place: on the row you're on, among its next steps, and at the end of another row's line",
         "key" : "deploy",
         "title" : "Show Deploy"
       }
     ],
     "tool" : false
+  },
+  {
+    "card" : false,
+    "does" : "Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.",
+    "for" : null,
+    "groups" : [
+      {
+        "enabled" : "always",
+        "foot" : "A change counts for new tickets: tickets started already keep their folders.",
+        "order" : 0,
+        "rows" : [
+
+        ],
+        "shown" : "always",
+        "title" : "How tickets open"
+      }
+    ],
+    "id" : "ticket-routing",
+    "listed" : "always",
+    "lists" : [
+
+    ],
+    "name" : "Tickets",
+    "order" : 80,
+    "permission" : null,
+    "statuses" : [
+
+    ],
+    "switches" : [
+
+    ],
+    "tool" : true
   },
   {
     "card" : true,
@@ -303,6 +335,7 @@
             "fixed" : null,
             "key" : "oneTaskWho",
             "kind" : "choice",
+            "menu" : false,
             "title" : "Who may hand you tasks"
           }
         ],
@@ -316,23 +349,15 @@
         "rows" : [
           {
             "choices" : [
-              {
-                "help" : "What a team's chief picked for you comes next, in its order. Recommended.",
-                "id" : "picks",
-                "name" : "Then a chief's picks"
-              },
-              {
-                "help" : "Everything else by how long it has waited.",
-                "id" : "oldest",
-                "name" : "Then the oldest"
-              }
+
             ],
             "fixed" : {
-              "help" : "Always first, whatever else you choose.",
-              "name" : "Critical and P0 picks, then urgent tasks"
+              "help" : "From each session's ticket, in its tracker's own order. Always.",
+              "name" : "Each ticket's own priority, first come first served within it"
             },
-            "key" : "oneTaskNext",
+            "key" : "oneTaskOrder",
             "kind" : "choice",
+            "menu" : false,
             "title" : "What comes first"
           },
           {
@@ -345,11 +370,11 @@
           },
           {
             "group" : null,
-            "help" : "A task you've seen stays until you leave it; something urgent asks from the top, and you come back to where you were.",
+            "help" : "A task you've read stays until you leave it; one to do now asks from the top, and you come back to where you were.",
             "isNew" : true,
             "key" : "oneTaskWaitForGo",
             "kind" : "switch",
-            "title" : "Urgent tasks wait for your Go"
+            "title" : "To-do-now tasks wait for your Go"
           }
         ],
         "shown" : "always",
@@ -405,6 +430,7 @@
             "fixed" : null,
             "key" : "oneTaskHeld",
             "kind" : "choice",
+            "menu" : false,
             "title" : "Words you write while it works"
           }
         ],

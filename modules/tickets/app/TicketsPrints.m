@@ -3,7 +3,7 @@
 // never by an ask or a file; what each ask answers; moves, by Move It or by May Move Its Ticket, and the steps marked
 // as a person's; new tickets, drafted and made only by Create Ticket; the rows' `ticket`; what's kept for a later copy,
 // and offered back only to the same process; and panel.log, which carries no ticket's words, no note, no field's
-// value, no why and nothing of a new ticket's.
+// value, no why and nothing of a new ticket's, and Whozmove's folder, where no file holds a ticket's description.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "TicketsModule.h"
 #import "Allowed.h"
@@ -86,6 +86,8 @@ static TicketField *Field(NSString *fieldId, NSString *name, BOOL required, NSAr
     ticket.site = site;
     ticket.key = key;
     ticket.title = [@"Made-up words of " stringByAppendingString:key];
+    ticket.about = [NSString stringWithFormat:@"Made-up description of %@: what it asks, with <b>markup</b> & "
+                    @"\"quotes\" to stay as text.", key];
     ticket.type = @"Task";
     ticket.state = [TicketState named:@"Doing" kind:TicketKindUnderWay];
     TicketGroup *group = [TicketGroup new];
@@ -137,6 +139,12 @@ static TicketField *Field(NSString *fieldId, NSString *name, BOOL required, NSAr
     TrackerEnd end = self.nextEnd;
     self.nextEnd = TrackerEndDone;
     if (self.signInState != TrackerSignedIn) end = TrackerEndSignIn;
+    // One turned away as it is says why in the tracker's own words, made up here, with some to escape.
+    if (end == TrackerEndRefused) {
+        TrackerAnswer *answer = [TrackerAnswer end:end why:@"It turned it away"];
+        answer.trackerSays = @"Fill in <Reviewer> first";
+        return done([self ticket:key site:site], answer);
+    }
     if (end != TrackerEndDone)
         return done(nil, [TrackerAnswer end:end why:end == TrackerEndSignIn ? @"Sign in first" : @"Couldn't reach it"]);
     Ticket *now = [self ticket:key site:site];
@@ -206,7 +214,7 @@ static NSString *Line(id json) {
 // create|check|notYet [stale]`, your answer on the new ticket's card, and `draft-cases`, the plain functions deciding
 // how a draft's check and its making end, over made-up answers; `switch <id> on|off`, May Move Its Ticket ticked or unticked in the mode menu, and
 // `menu <id>`, what the menu says of it and whether it's on; `rows`, each row's ticket, the rows whole for the switches
-// too, `moves`, the same with only what moves show of each, and `drafts`, with only what new tickets show; `read <id>`, its ticket read again, as Try Again does; `fails <slow|signIn|failed>`, the next read or move;
+// too, `moves`, the same with only what moves show of each, and `drafts`, with only what new tickets show; `read <id>`, its ticket read again, as Try Again does; `fails <slow|signIn|failed|refused|unread>`, the next read or move;
 // `elsewhere <key> <step>`, someone else taking that step, and `afresh <key>`, the ticket put back where it started;
 // `took`, what the tracker was given for each move since; `signout` and `signin`, which the next `rows` (or `moves`,
 // `drafts`) tells the module of; `kept`, the files kept; `hand-kept <id> <key>`, a
@@ -431,9 +439,22 @@ static int PrintTickets(Core *core, NSArray<NSString *> *steps) {
         } else if ([verb isEqual:@"log"]) {
             NSString *log = [NSString stringWithContentsOfFile:AppDir(@"panel.log") encoding:NSUTF8StringEncoding error:nil];
             printf("panel.log %s a ticket's words\n", [log containsString:@"Made-up words"] ? "HAS" : "has none of");
-            // The words the moves' tests give as a note, a field's value and a person's step's why.
+            printf("panel.log %s a ticket's description\n",
+                   [log containsString:@"Made-up description"] ? "HAS" : "has none of");
+            // Nor does any file Whozmove keeps: its description goes only to the session, in its answer.
+            BOOL kept = NO;
+            NSDirectoryEnumerator *files = [NSFileManager.defaultManager enumeratorAtPath:AppDir(@"")];
+            for (NSString *name in files) {
+                NSString *words = [NSString stringWithContentsOfFile:[AppDir(@"") stringByAppendingPathComponent:name]
+                                                            encoding:NSUTF8StringEncoding error:nil];
+                kept = kept || [words containsString:@"Made-up description"];
+            }
+            printf("Whozmove's folder %s a ticket's description in any file\n", kept ? "HAS" : "has none of");
+            // The words the moves' tests give as a note, a field's value and a person's step's why, and the tracker's
+            // own words for a move it turned away.
             BOOL said = NO;
-            for (NSString *words in @[@"pull request", @"Fixed", @"Only QA"]) said = said || [log containsString:words];
+            for (NSString *words in @[@"pull request", @"Fixed", @"Only QA", @"Reviewer"])
+                said = said || [log containsString:words];
             printf("panel.log %s a note's, a field's or a why's words\n", said ? "HAS" : "has none of");
             // The words the new tickets' tests give as a title, a description and a priority.
             BOOL drafted = NO;

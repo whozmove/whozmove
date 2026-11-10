@@ -166,7 +166,10 @@ counted, which holds them), with **Allow Access**.
   version 2's (Keys asks the one the app carries which it is, and turns either's findings into one shape), each kind
   of key's provider, how its keys start and the page where one is replaced, GitHub's tokens' checksum, the credential
   files, shell histories and
-  AI tools' records it knows, MCP settings files, and the kinds of file it looks in in Downloads. Betterleaks itself
+  AI tools' records it knows, MCP settings files, and the kinds of file it looks in in Downloads; and, from those,
+  every place in the home folder where keys are kept (`KeyPlacesInHome`) and whether a file holds keys by what it's
+  called (`KeyFileByName`), which the module offers as `KeyPlaces` (contracts/Module.h) to a module that must never
+  read one (a side question's copy), so there's one list of where keys are. Betterleaks itself
   comes from `tools/betterleaks.sh`, which `make_bundle` (tools/bundle.sh) runs: the version `tools/betterleaks.txt`
   names, checked against its SHA-256; builds and releases carry the same finished version (1.9.0 until 2.0.0 is), and
   the tests run the one being readied (`next`) too.

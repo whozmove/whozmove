@@ -11,8 +11,8 @@
 .k-one-task .r-sub .ot-branch svg { vertical-align: -1px; margin-right: 3px; }
 
 .ot-body { display: flex; flex-direction: column; gap: 12px; padding: 14px 18px; }
-/* The strip under the head: what's urgent (the kit's .notice.urgent) or ‹ Back, held at the top as the task scrolls
-   under it, on the panel's own colour. */
+/* The strip under the head: what's to do now (the kit's .notice.urgent) or ‹ Back, held at the top as the task
+   scrolls under it, on the panel's own colour. */
 .ot-strip { position: sticky; top: 0; z-index: 2; flex: none; display: flex; padding: 8px 12px 8px 14px;
             background: var(--sticky-head); }
 .ot-strip .notice { flex: 1; min-width: 0; }
@@ -49,8 +49,6 @@
 .ot-step { position: relative; display: flex; align-items: center; gap: 10px; }
 .ot-word { font-size: var(--size-small); font-weight: 600; color: var(--turn-text); }
 .ot-track { margin-left: auto; display: inline-flex; flex: none; }
-/* A next step's dashes ease to their new fill, as its words are rewritten (rewriteText). */
-.ot-track i { transition: background .3s ease; }
 
 /* Each part of the shape: its label in capitals over a few short lines. */
 .ot-part { display: flex; flex-direction: column; gap: 6px; }

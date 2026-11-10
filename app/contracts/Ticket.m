@@ -51,6 +51,10 @@ static void Put(NSMutableDictionary *into, NSString *key, id value) {
     Put(json, @"type", self.type);
     Put(json, @"state", [self.state json]);
     Put(json, @"priority", self.priority);
+    if (self.priorityAt && self.priorities) {
+        json[@"priorityAt"] = self.priorityAt;
+        json[@"priorities"] = self.priorities;
+    }
     Put(json, @"assignee", self.assignee);
     if (self.parent.key) {
         NSMutableDictionary *parent = [NSMutableDictionary dictionary];

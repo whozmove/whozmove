@@ -1,0 +1,16 @@
+== Shown
+   asked: {"ask": "process-draft"}, its note: "Staging link: QA wants it in each pull request. (you, on PAY-142)\nScreenshots: before and after. (the review on #57)"
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It.
+exit=0
+== Refused by the panel
+   asked: {"ask": "process-draft"}, its note: "Deploys: with the key in it"
+refused: line 1 holds something shaped like a key or a token, which never goes in a note: draft it again
+exit=1
+== Turned away before it asks: nothing, too long
+Give the note on stdin: what the project's own pages don't say, a line each
+exit=2
+A note may be 4000 characters at most: keep only what the project's own pages don't say
+exit=2
+== 3990 letters that each take two bytes: within 4000 characters and one ask
+Whozmove isn't running, so there's no panel to ask
+exit=1

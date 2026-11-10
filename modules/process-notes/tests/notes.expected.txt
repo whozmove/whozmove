@@ -1,0 +1,398 @@
+## a first note: drafted, shown, kept with Keep It, and handed to a session on a worktree of the same project
+== row s1 repo
+== row s2 tree
+== way s1
+{"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== draft s1 listed
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== rows
+s1: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"project":"acme-web"}
+s2: no card
+== way s1
+{"draft":"waiting","pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== later 30
+== keep s1
+   (the card: Keeping it…)
+== rows
+s1: no card
+s2: no card
+== kept
+1 file
+   only you can read it, named for its project: {"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"project":"~/code/acme-web"}
+== way s1
+{"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== way s2
+{"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"pages":["CONTRIBUTING.md","CLAUDE.md","CLAUDE.local.md",".claude/CLAUDE.md","AGENTS.md",".claude/AGENTS.md"],"project":"acme-web"}
+== draft s2 first
+nothing new: it's acme-web's note as kept already
+== logged
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s1: Keep It for how acme-web works: kept, 2 lines
+s2 asked process-draft for acme-web: the same as kept
+## drafted again: against the note as kept, each change marked; a second draft takes the first's place
+== row s1 repo
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== keep s1
+   (the card: Keeping it…)
+== later 60
+== draft s1 newline
+shown on your row: “Keep the change to how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages and its note as kept
+== rows
+s1: {"at":"+0s","keptAt":"-60s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"mark":"added","text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+== draft s1 again
+shown on your row: “Keep the change to how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages and its note as kept
+== rows
+s1: {"at":"+0s","keptAt":"-60s","lines":[{"mark":"removed","text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"mark":"added","text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+== later 5
+== stale s1
+== rows
+s1: {"at":"-5s","keptAt":"-65s","lines":[{"mark":"removed","text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"mark":"added","text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+== keep s1
+   (the card: Keeping it…)
+== kept
+1 file
+   only you can read it, named for its project: {"keptAt":"+0s","note":["Staging link: QA wants it in each pull request's description. (you, on PAY-142)","Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"],"project":"~/code/acme-web"}
+== way s1
+{"keptAt":"+0s","note":["Staging link: QA wants it in each pull request's description. (you, on PAY-142)","Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"],"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+## Not Now: the same lines aren't shown again on another row, fewer neither, a line that wasn't there is
+== row s1 repo
+== row s2 tree
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== later 10
+== notnow s1
+== rows
+s1: no card
+s2: no card
+== way s1
+{"draft":"notNow","pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== draft s2 first
+not shown: the user said Not Now to these same changes on another session's row. Work by acme-web's own pages, and draft again only once you learn something they don't say
+== way s2
+{"draft":"notNow","pages":["CONTRIBUTING.md","CLAUDE.md","CLAUDE.local.md",".claude/CLAUDE.md","AGENTS.md",".claude/AGENTS.md"],"project":"acme-web"}
+== draft s2 listed
+not shown: the user said Not Now to these same changes on another session's row. Work by acme-web's own pages, and draft again only once you learn something they don't say
+== draft s1 again
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== rows
+s1: {"at":"+0s","declinedAt":"+0s","lines":[{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+s2: no card
+== later 10
+== keep s1
+   (the card: Keeping it…)
+== draft s2 first
+shown on your row: “Keep the change to how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages and its note as kept
+== rows
+s1: no card
+s2: {"at":"+0s","keptAt":"+0s","lines":[{"mark":"added","text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"mark":"removed","text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+== logged
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s1: Not Now for how acme-web works
+s2 asked process-draft for acme-web: not shown, nothing new since Not Now
+s2 asked process-draft for acme-web: not shown, nothing new since Not Now
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s1: Keep It for how acme-web works: kept, 2 lines
+s2 asked process-draft for acme-web: 2 lines, shown on its row
+## Not Now, then the user changes their mind: the same session's draft shows again, saying nothing of Not Now
+== row s1 repo
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== notnow s1
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== rows
+s1: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"project":"acme-web"}
+== keep s1
+   (the card: Keeping it…)
+== kept
+1 file
+   only you can read it, named for its project: {"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"project":"~/code/acme-web"}
+## Not Now on one of two cards with the same lines: the other goes too
+== row s1 repo
+== row s2 tree
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== draft s2 listed
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== rows
+s1: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"project":"acme-web"}
+s2: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"project":"acme-web"}
+== notnow s1
+== rows
+s1: no card
+s2: no card
+== way s2
+{"draft":"notNow","pages":["CONTRIBUTING.md","CLAUDE.md","CLAUDE.local.md",".claude/CLAUDE.md","AGENTS.md",".claude/AGENTS.md"],"project":"acme-web"}
+== logged
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s2 asked process-draft for acme-web: 2 lines, shown on its row
+s1: Not Now for how acme-web works, 1 other draft of the same taken back
+## after Not Now on a change, a draft taking a kept line out is a change of its own, and shown
+== row s1 repo
+== row s2 tree
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== keep s1
+   (the card: Keeping it…)
+== draft s1 newline
+shown on your row: “Keep the change to how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages and its note as kept
+== notnow s1
+== draft s2 again
+shown on your row: “Keep the change to how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages and its note as kept
+== rows
+s1: no card
+s2: {"at":"+0s","declinedAt":"+0s","keptAt":"+0s","lines":[{"mark":"removed","text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"mark":"added","text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"acme-web"}
+## two sessions on one project draft at once: Keep It on one takes the other back
+== row s1 repo
+== row s2 tree
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== draft s2 cards
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== rows
+s1: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"project":"acme-web"}
+s2: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"text":"Saved cards: clear the test card store with npm run cards:reset first. (found on PAY-148)"}],"project":"acme-web"}
+== keep s2
+   (the card: Keeping it…)
+== rows
+s1: no card
+s2: no card
+== way s1
+{"draft":"keptElsewhere","keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)","Saved cards: clear the test card store with npm run cards:reset first. (found on PAY-148)"],"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== way s2
+{"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)","Saved cards: clear the test card store with npm run cards:reset first. (found on PAY-148)"],"pages":["CONTRIBUTING.md","CLAUDE.md","CLAUDE.local.md",".claude/CLAUDE.md","AGENTS.md",".claude/AGENTS.md"],"project":"acme-web"}
+== kept
+1 file
+   only you can read it, named for its project: {"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)","Saved cards: clear the test card store with npm run cards:reset first. (found on PAY-148)"],"project":"~/code/acme-web"}
+## its session ends: its draft goes with it, and nothing is kept
+== row s1 repo
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== ended s1
+== rows
+s1: no card
+== way s1
+{"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== kept
+0 files
+== logged
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s1: its draft of how acme-web works was taken back, as its session ended
+## Keep It can't write: the draft waits, saying why, and Try Again keeps it
+== row s1 repo
+== locked
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== keep s1
+   (the card: Keeping it…)
+== rows
+s1: {"at":"+0s","lines":[{"text":"Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)"},{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"}],"problem":"its folder for notes on this Mac may be full or locked","project":"acme-web"}
+== way s1
+{"draft":"waiting","pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== unlocked
+== keep s1
+   (the card: Keeping it…)
+== rows
+s1: no card
+== kept
+1 file
+   only you can read it, named for its project: {"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"project":"~/code/acme-web"}
+== logged
+s1 asked process-draft for acme-web: 2 lines, shown on its row
+s1: Keep It for how acme-web works: couldn't keep it
+s1: Keep It for how acme-web works: kept, 2 lines
+## a restart reads the notes back; a folder outside git is its own project; one with no folder has none
+== row s1 repo
+== draft s1 first
+shown on your row: “Keep this as how acme-web works?”, for the user's Keep It. Carry on meanwhile, by acme-web's own pages
+== keep s1
+   (the card: Keeping it…)
+== relaunch
+== row s3 plain
+== row s4 none
+== way s1
+{"keptAt":"+0s","note":["Start Docker before npm test: the tests need its database, and the pages don't say so. (found running the tests on PAY-142)","Staging link: QA wants it in each pull request's description. (you, on PAY-142)"],"pages":["CONTRIBUTING.md","AGENTS.md",".github/pull_request_template.md","docs/guides/releasing.md","docs/reviewing.md"],"project":"acme-web"}
+== way s3
+{"pages":[],"project":"scratch"}
+== draft s3 again
+shown on your row: “Keep this as how scratch works?”, for the user's Keep It. Carry on meanwhile, by scratch's own pages
+== rows
+s1: no card
+s3: {"at":"+0s","lines":[{"text":"Staging link: QA wants it in each pull request's description. (you, on PAY-142)"},{"text":"Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"}],"project":"scratch"}
+s4: no card
+== draft s4 first
+refused: this session has no folder, so it works on no project
+== way s4
+none
+## drafts turned away
+== row s1 repo
+== draft s1 empty
+refused: there's nothing in it: draft it again
+== draft s1 secret
+refused: line 2 holds something shaped like a key or a token, which never goes in a note: draft it again
+== draft s1 control
+refused: a note is plain text: it has a character that isn't: draft it again
+== draft s1 long
+refused: a note may be 40 lines at most: draft it again
+== draft s1 wide
+refused: a line may be 400 characters at most: draft it again
+== draft s1 huge
+refused: a note may be 4000 characters at most: draft it again
+== rows
+s1: no card
+== kept
+0 files
+== logged
+s1 asked process-draft for acme-web: refused
+s1 asked process-draft for acme-web: refused
+s1 asked process-draft for acme-web: refused
+s1 asked process-draft for acme-web: refused
+s1 asked process-draft for acme-web: refused
+s1 asked process-draft for acme-web: refused
+== log
+panel.log has none of a word of a note
+## the plain functions
+== cases
+== What changed, against the note as kept
+nothing kept: every line added: +A +B
+the same:  A  B
+one taken out, one added:  A -B  C +D
+one changed in place:  A -B +B2  C
+moved to the end: -A  B  C +A
+everything new: -A +B
+== Whether a draft after Not Now holds anything new
+the same lines: no
+fewer lines: no
+the same, in another order: no
+a line that wasn't there: yes
+against a note kept, a kept line taken out the declined one kept: yes
+against a note kept, the same line taken out as the declined one: no
+against a note kept, keeping a line the declined one took out, and nothing else: no
+== A draft checked
+listed: 2 lines, the first: Start Docker before npm test: the tests need its database, a
+empty: turned away: there's nothing in it
+secret: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+control: turned away: a note is plain text: it has a character that isn't
+long: turned away: a note may be 40 lines at most
+forty: 40 lines, the first: Step 1: as docs/part-1.md says.
+wide: turned away: a line may be 400 characters at most
+huge: turned away: a note may be 4000 characters at most
+== A key in a note, in the shapes a page or a person writes one: turned away
+a password exported: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a password in words: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+an API key set: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a secret key set, in words joined by hyphens and more: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a signing key, as YAML: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a client secret, with a colon: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a password given to a command: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a sign-in header: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Atlassian's token, on its own: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Atlassian's token, after an underscore: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a signed token: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a signed token, after an underscore: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+AWS's secret, after its name alone: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a password in a link: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+only a password in a link: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a provider's own shape, on its own: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a password with symbols, after a colon: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a password with symbols, after "is": turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+curl's user and password: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+MySQL's password, joined on: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+mysqldump's: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+mysqladmin's: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+sshpass's: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a token sent as a header, by its name: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a camel-cased account key: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a camel-cased master key, with a colon: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Slack's webhook: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Discord's webhook: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Stripe's webhook secret: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+a key after its name and a space: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+…in quotes: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+curl's, joined on: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+curl's, its user a variable: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+curl's proxy's: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+sshpass's, set for it: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Slack's workflow webhook: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+Discord's webhook, by its API's version: turned away: line 2 holds something shaped like a key or a token, which never goes in a note
+== Words about keys, with none in them: kept
+Token: regenerated each week by ops. (CO: kept
+API key: ask the user for one; it's neve: kept
+Secrets: never in the repo. (CONTRIBUTIN: kept
+Passwords: the staging password is in th: kept
+Checks: npm test with NODE_ENV=test. (CO: kept
+Links: the API docs at https://example.i: kept
+Staging: the API key is environment-spec: kept
+Staging password: 1Password, under Stagi: kept
+Auth: the token is OAuth2-based. (CONTRI: kept
+Uploads: the secret is base64-encoded in: kept
+API key: https://console.example.invalid: kept
+Token: ~/.config/acme/credentials.json, : kept
+Tests: export API_KEY=$STAGING_API_KEY f: kept
+CI: GITHUB_TOKEN=${GITHUB_TOKEN} is set : kept
+Setup: set API_KEY=your-key-here in .env: kept
+Deploys: aws_secret_access_key comes fro: kept
+Basic checks: lint and typecheck pass. (: kept
+Repos: clone with ssh://git@git.example.: kept
+Staging password: ask ops; it rotates we: kept
+Accounts: the admin password is changed : kept
+Tokens: the token is v2-style now? Ask o: kept
+API: curl -u $API_USER:$API_PASS https:/: kept
+API: curl -u admin, then type the passwo: kept
+Database: mysql -u root -p, then type th: kept
+Database: mysql -h db -P3306 -u app -p a: kept
+Backups: mysqldump -p --all-databases as: kept
+Deploys: sshpass -f with the file ops gi: kept
+API: send Authorization: Bearer ${API_TO: kept
+API: the Authorization: token header com: kept
+Storage: the AccountKey comes from the p: kept
+Search: the masterKey is set by ops, nev: kept
+Alerts: post to the team's Slack webhook: kept
+Alerts: Discord webhooks go in the team': kept
+Payments: whsec_ comes from Stripe's das: kept
+Setup: the API key rotation is quarterly: kept
+Setup: the API key generation_handled_by: kept
+Storage: the access key S3_BUCKET_ACCESS: kept
+CI: the token S3_UPLOAD_ACCESS_TOKEN com: kept
+Payments: the secret STRIPE_WEBHOOK_SECR: kept
+Deploys: the password DEPLOY_PASSWORD_20: kept
+Tokens: Token: S3_UPLOAD_TOKEN_2 is set : kept
+Deploys: sshpass -f ~/.pw ssh -p 2222 de: kept
+Deploys: sshpass -p with a password is b: kept
+Database: mysql runs in Docker: docker r: kept
+Database: mysql over the tunnel: ssh -p2: kept
+Backups: mysqldump for MySQL, pg_dump -p: kept
+Database: mysql dumps: find dumps -name : kept
+Docker: curl the compose file, then dock: kept
+API: curl -u user:password https://api.e: kept
+API: curl -u USER:PASS, with your own. (: kept
+Staging password: 1Password! (you, on PA: kept
+Staging password: 1Password? Ask ops. (y: kept
+Auth: the token is OAuth2-based! (CONTRI: kept
+Tokens: the token is v2-style? Ask ops. : kept
+Auth: the token is **OAuth2**. (CONTRIBU: kept
+Credentials: ops2@example.invalid has th: kept
+API key: console.example.invalid/keys?en: kept
+API: send Authorization: Basic base64(us: kept
+API: send Authorization: token YOUR_GITH: kept
+== A note kept with a key in it, read back: that line left out
+2 of 3 lines handed on, the key's not among them: yes
+== The project a folder is in, and the file its note is kept in
+a worktree: /work/acme-web
+its main checkout: /work/acme-web
+outside git: /work/scratch
+no folder: none
+a folder that isn't a full path: none
+the file names nothing of the path: yes
+one file for each project: yes
+a record read back only for its own project: yes
+## and every run's panel.log
+first: panel.log has none of a word of a note
+again: panel.log has none of a word of a note
+declined: panel.log has none of a word of a note
+both: panel.log has none of a word of a note
+ended: panel.log has none of a word of a note
+locked: panel.log has none of a word of a note
+restart: panel.log has none of a word of a note
+refused: panel.log has none of a word of a note

@@ -88,6 +88,24 @@ def answer(body):
         return "reply", text("No project folder was given to the stand-in, so it writes nothing.")
     if step == "bash":
         return step, tool("Bash", command="echo stand-in-check", description="Print a word")
+    # A side question's reads: a file outside the session's folder, git commands that would write or run something or
+    # read outside it, and a plain git status. The outside file is beside the project, never wherever the stand-in was
+    # started.
+    if step in ("readout", "gitout", "gitstatus") and not cwd:
+        return "reply", text("No project folder was given to the stand-in, so it reads nothing.")
+    outside = os.path.join(os.path.dirname(cwd or "/nowhere"), "outside-notes.txt")
+    if step == "readout":
+        return step, tool("Read", file_path=outside)
+    if step == "gitout":
+        written = os.path.join(os.path.dirname(cwd), "written-by-diff.txt")
+        return step, [call for command in (f"git diff --no-ext-diff --no-textconv --output={written}",
+                                           f"git diff --no-ext-diff --no-textconv --no-index /dev/null {outside}",
+                                           "git diff --ext-diff",
+                                           "git -C .. status",
+                                           "git status; echo ran")
+                      for call in tool("Bash", command=command, description="Look")]
+    if step == "gitstatus":
+        return step, tool("Bash", command="git status --short", description="Look")
     if step == "write":
         return step, tool("Write", file_path=os.path.join(cwd, "notes.txt"), content="one line\n")
     if step == "background":

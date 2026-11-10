@@ -21,11 +21,11 @@
 // The requests waiting, by id: each as its hook asked it, {id, sessionId, tool, input, cwd, at, pid, expiresAt}, with
 // `pid` the hook's process, as macOS names it. From any thread.
 - (NSDictionary<NSString *, NSDictionary *> *)requests;
-// Passes your answer down its request's connection ({behavior, answers, message, stop}, and `approvePlan` from a
-// session you allow to approve plans for you, AnswerFor), once, never waiting on it: NO
-// if the request has gone, was answered already, or its hook isn't reading (then it's let go, and Claude asks itself).
-// And a hold: you're answering it, so one that goes by itself waits at least a minute past `at` (ms), and no session you
-// allow answers it for you meanwhile.
+// Passes your answer down its request's connection ({behavior, answers, message, stop}, and `approvePlan` from
+// AnswerFor's one check, for a session you allow to approve plans for you or your press beside the list), once, never
+// waiting on it: NO if the request has gone, was answered already, or its hook isn't reading (then it's let go, and
+// Claude asks itself). And a hold: you're answering it, so one that goes by itself waits at least a minute past `at`
+// (ms), and no session you allow answers it for you meanwhile.
 - (BOOL)answer:(NSString *)askId with:(NSDictionary *)reply;
 - (BOOL)hold:(NSString *)askId at:(double)at;
 // When a request was last held, as you answered it (ms), whether it goes by itself or not; 0 for never, or gone.

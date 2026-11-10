@@ -3,7 +3,7 @@
 // bold figure, a strip of the stages its jobs are at, each opening its jobs, who's on what, the goals as tiles and
 // what's done this week; Up next, for all goals or one, with the goals down the reader's shelf: every session working
 // now, then what waits in the lead's order; and a job's card at the foot, with Take Me There. At the end of the chief's
-// title line under Group by Team, Up next opens Up next, or, while Show Team Board is ticked, Team Board opens Glance.
+// title line, Up next opens Up next, or, while Show Team Board is ticked, Team Board opens Glance.
 // What's decided is board.js's.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -155,8 +155,9 @@ function boardMemberHTML(m, team, numbers) {
   const step = job.steps?.find((st) => st.id === job.at);
   const track = step && core.teamJob ? core.teamJob.track(job, 'busy') : null;
   const n = numbers.get(job.goal);
+  // Its track says only where it stands ("Step 3 of 4"), as the step's word is beside it already, for VoiceOver too.
   // A step waiting on you is in your move's colour, or in the colour of something to do now for a Critical or P0 job,
-  // as its ask is under Group by Team.
+  // as its ask is on the team's rows.
   const doNow = where === 'you' && core.teamJob?.doNow(job.priority) ? ' urgent' : '';
   const counts = [m.you && `<span class="bd-m-you">${m.you} ${boardNeed(m.you)}</span>`, m.moving && `+${m.moving} moving`,
                   m.next && `${m.next} up next`].filter(Boolean).join(' · ');
@@ -307,7 +308,8 @@ function boardCardHTML(team) {
     + `${since ? ` for ${esc(ago(now - since))}` : ''}</span>${boardPrioHTML(job)}<span class="end">${esc([job.member || 'No one yet',
       job.part].filter(Boolean).join(' · '))}</span><button class="icon-button small bd-card-x" data-board-shut="1" `
     + `title="Close">${CLOSE_ICON}</button></div>${detailsTitleHTML(job.title)}`
-    + (track ? `<div class="bd-track">${stepTrackHTML(track.count, track.at, track.look)}</div>` : '')
+    + (track ? `<div class="bd-track">${stepTrackHTML(track.count, track.at, track.look,
+      job.steps.find((st) => st.id === job.at)?.word || '')}</div>` : '')
     + (where === 'you' && job.ask ? `<div class="card-lead ${core.teamJob?.doNow(job.priority) ? 'warn' : 'turn'}">`
       + `${esc(job.ask)}</div>` : '')
     + (holds.length ? `<div class="card-lead">Holds up ${esc(holds.join(', '))}</div>` : '')
@@ -619,7 +621,7 @@ window.openBoard = (project, view) => {
   toggleReader(null, null, 'board');
 };
 
-// At the end of the chief's title line, under Group by Team (its brief row), or the lead's while the chief isn't in
+// At the end of the chief's title line (its brief row, as every row is), or the lead's while the chief isn't in
 // the list (boardLineFor): Up next, or Team Board while Show Team Board is ticked.
 core.slots.brief.push((row) => {
   const team = (state.board?.teams || [])

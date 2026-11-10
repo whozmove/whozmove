@@ -99,20 +99,39 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   so the hook ends at once otherwise. Whether they've been read, and what Claude wrote after them, comes from the
   transcript (`AfterHandedWords`, Transcripts.m). Which sessions run the hook is `HookPartBetweenSteps`
   (PluginInstall.m). `--print-between-steps` is the print mode the tests check.
-- `app/ClaudeAside.m`: a question asked on a session's side (AgentAside, for a side chat): its own `claude`, where
-  that's where Claude Code is installed, run in its folder as a throwaway copy of its conversation with its model and
-  effort (`ClaudeAsideArguments`, ClaudeCodeFacts), three minutes at most, its process kept out of everything read
-  from the registry while it runs (`NoteAsideProcess`, ClaudeSessions.m) and ended by its checked pid on Stop, as its
-  session ends, or as Whozmove quits; its stream-json read for the answer and how it ended (`ClaudeAsideAnswer`).
+- `app/ClaudeAside.m`: questions asked on a session's side (AgentAside, for a side chat), one side conversation for
+  each session, owned here: its own `claude`, where that's where Claude Code is installed, run in its folder as a copy
+  of its conversation with its model and effort (`ClaudeAsideArguments`, ClaudeCodeFacts), five minutes at most for
+  each answer. The copy is kept for a follow-up (`RunConversationOn`, app/shared): one asked while the session hasn't
+  moved since it opened (its transcript's size and newest message, `ClaudeAsideMoved`) goes into it; otherwise a fresh
+  copy opens, told the earlier side questions since the session last compacted, the newest that fit
+  (`ClaudeAsideCarried`, `ClaudeAsideWords`), and its answer says how many it knew (`remembered`). Each step of an
+  answer is told as it starts (AgentAside's `step`), in the words the session's own hook gives its steps, naming no
+  path outside the session's folder and nothing shaped like a key (`ClaudeAsideStep`); a version of Claude Code its
+  thinking's summaries were checked with is asked for them (`ClaudeAsideThinks`), and one that turns the flag down is
+  asked again without it, and not asked for them again while Whozmove runs (`ClaudeAsideFlagRefused`). A copy not
+  asked again within five minutes ends; so does one whose
+  session ends, compacts (`compactedAt`, Transcripts.m) or stops running, once any answer under way is done
+  (`endAsidesOf:`, ClaudeCode.m), and every copy as Whozmove quits. Its process is kept out of everything read from
+  the registry while it runs (`NoteAsideProcess`, ClaudeSessions.m) and ended by its checked pid on Stop; its
+  stream-json read for each answer and how it ended (`ClaudeAsideAnswer`); its environment carries the checker and
+  git's settings (`ClaudeAsideEnvironment`).
+- `app/AsideReads.m`: what a side question's copy may read and run, decided before each tool it reaches for by
+  Whozmove's own checker (`--helper-aside-check`, a helper run of the app's own, which the copy's hook runs): Read,
+  Grep and Glob inside the session's folder, by real paths, never a file where keys are kept (Claude Code's own, and
+  the storage module's list, `KeyPlaces`, found with the core's `moduleThat:`; without it, nothing is read), and git's
+  status, log, diff and show with only options that read (`AsideToolWhyNot`, `AsideGitWhyNot`, `AsideKeyFile`,
+  `AsideCheck`).
   Whether it can be asked now is found without running anything, and kept a while (Claude Code on this Mac, looked
   for once a minute; the session's transcript there, every 10 seconds); whether it's signed in, by asking.
-  `--print-aside` is the print mode the tests check.
+  `--print-aside` is the print mode the tests check; with `--steps`, the tests hold its step words beside the
+  session's own hook's (`activity_for`) for the same tool calls, so they can't drift apart.
 - `app/Asks.m`: the requests waiting (those on the line, and, shown but never answered, those an old hook leaves in
   `asks/<id>.json`, for a session started before the hooks asked over their line), the answers given in the panel
   (`AskReply`, shared with AnswerFor), and every request held while it's being answered, so no session you allow
   answers it for you then (sent down its line too for one that goes by itself, as its hook holds it off).
 - `app/AnswerFor.m`: what a session you allow answers for you in a team member's session. May Send Back Plans, at the
-  foot of the mode menu of the session leading the team (Group by Team), kept only in the panel's memory for that
+  foot of the mode menu of the session leading the team (its team file), kept only in the panel's memory for that
   session's folder (`SwitchLastsWorkspace`), lets it ask with `ask-panel.sh`: `waiting` (the plans it may send back, as
   one line of JSON) and `send-back <id>` (the note on stdin, base64-encoded on the way). Each send-back is checked
   (another session, a member of the team, in the same project as `ProjectRoot` finds it, still waiting, not being
@@ -124,20 +143,31 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   anything that needs permission. May Approve Plans adds `approve <id> <digest>` (`waiting` then lists each plan with
   what may be done with it and its digest): the plan approved by an allow marked `approvePlan`, the row saying so in
   your move's colour once the plan's result in its transcript says approved, else that it wasn't taken. The member's row
-  says so for 30 minutes (`answeredFor`). Kept for the folder, the three are on for whichever session there may hold
-  them (SwitchHolder's `whyNot:`): the team file's lead, its process working in that folder as the system reports it
-  (`ProcessFolder`), Claude Code's own program signed by Anthropic (the agent's `programOf:`, npm's from 2.1.113 on
-  among them; an older one from npm, told only by its path or record, never holds them, and its cause is ClaudeProgram's
-  own, `ClaudeProgramCause`), not open as a second copy that's Claude Code's program, started inside no Claude Code
-  session (its parents as the system keeps them, each asked `programOf:`, never a record), and the only Claude Code
-  session in that folder (the team's members working in folders of their own inside it aside), with a way past the cause
-  when there is one (Take Me There, Get Claude Code); May Approve Plans also never for one that might bypass
-  permissions. So a new session there, or a cleared one once the team file names it, has them with no press, and
-  `notices` says so each time a session and process other than the one they were ticked in holds them, by its terminal
-  app and when its process started, kept until you close it, and logged. A restart or a Quit of Whozmove turns the three
-  off: the core offers them back by one press at the foot of the mode menu (Allowed's `waitingFor:`, from `ticked.json`,
-  which names only the folder and the switch, and only offers), and `notices` lists one notice for each session whose
-  switches wait, naming them, the session and its folder, with no button.
+  says so for 30 minutes (`answeredFor`). Your own press on Approve beside the list (`approveShown:`) goes through the
+  same check, only for the request its row shows and only when that wasn't cut short for the page, and is kept as yours
+  (`yours`): never said as answered for you, never listed in a lead's `waiting`, never counted to the switch; the row
+  says only where it wasn't taken. Each plan's ask on a row carries what the page needs before the press
+  (`approvalOf:row:`: its `digest`, and `approveWhyNot`), and after it how it went, one way, on the rows: the ask's
+  `approval` while Claude still waits, else the row's `answeredFor`, yours, naming the request (`askId`). Your notes on
+  a plan that has stopped asking in the panel (`typePlanNotes:`), on your press, are typed into its session as a message
+  through the send part's `say:`, led by Claude Code's words for them (kClaudeCodePlanChangesWords), only while
+  `WhyNotTypePlanNotes` finds nothing in the way (no request waiting, idle at its prompt, never held at the plan's own
+  prompt, the plan its newest left waiting, nothing typed in since), asked again before each key, and only when the Mac
+  had input from you just before; how it went is on the row, yours, and every refusal says why. Kept for the folder, the
+  three are on for whichever session there may hold them (SwitchHolder's `whyNot:`): the team file's lead, its process
+  working in that folder as the system reports it (`ProcessFolder`), Claude Code's own program signed by Anthropic (the
+  agent's `programOf:`, npm's from 2.1.113 on among them; an older one from npm, told only by its path or record, never
+  holds them, and its cause is ClaudeProgram's own, `ClaudeProgramCause`), not open as a second copy that's Claude
+  Code's program, started inside no Claude Code session (its parents as the system keeps them, each asked `programOf:`,
+  never a record), and the only Claude Code session in that folder (the team's members working in folders of their own
+  inside it aside), with a way past the cause when there is one (Take Me There, Get Claude Code); May Approve Plans also
+  never for one that might bypass permissions. So a new session there, or a cleared one once the team file names it, has
+  them with no press, and `notices` says so each time a session and process other than the one they were ticked in holds
+  them, by its terminal app and when its process started, kept until you close it, and logged. A restart or a Quit of
+  Whozmove turns the three off: the core offers them back by one press at the foot of the mode menu
+  (Allowed's `waitingFor:`, from `ticked.json`, which names only the folder and the switch, and only offers), and
+  `notices` lists one notice for each session whose switches wait, naming them, the session and its folder, with no
+  button.
 - `app/Records.m`: where Claude Code keeps what its sessions were told and read (the agent's AgentRecords, which Keys,
   in the storage module, looks in): the transcripts, its sub-agents' among them, and its tools' long outputs beside
   them, the history of your messages, long pastes, the copies of files its sessions edited, and what it reads into its
@@ -216,11 +246,14 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   `plugin_<plugin>_`), live here and in the cards below, nowhere else on the page; ClaudeCodeFacts.h says so, with the
   version they were checked with.
 - `page/agent.js`: what a session's model, mode and context mean (`core.agent`).
-- `page/requests.js`: a tool's request and a plan on a row, each kind in a look of its own (Show all, and a big
-  change's ‹ ›, kept by ask id; a plan's few lines at a glance through `core.plans`, else its first steps; a plan sent
-  back with your notes; while your picks differ, its box waits, saying so, and the reader's box takes and gives back
-  what's typed in it, `core.planRowNotes`), your answers to them, and its hooks: the card under
-  the chat, held while it's being answered there (`holdAsk`), and the keys on a pressed card.
+- `page/requests.js`: a plan Claude waits on as its row's ask, its one shape there, where no other module's note has the
+  row's line (a bubble named "Plan", its title, `core.rowNotesLast`, its want 'plan' answered by the reader's button,
+  else its own to the session, `plan-go:<session>`; from its request while one is up, else from the newest plan its
+  transcript lists as waiting while the session says it's asking, `planWaiting`; none once answered here), never a card;
+  a tool's request on a row, each kind in a look of its own (Show all, and a big change's ‹ ›, kept by ask id); and the
+  plan waiting, in the panel's own words, for the reader beside the list, with the messages that answer it,
+  `core.planAsks`, so no other module reads its request or sends them), your answers to them, and its hooks: the card
+  under the chat, held while it's being answered there (`holdAsk`), and the keys on a pressed card.
 - `page/questions.js`: Claude's questions, each kind in a look of its own (one pick answered with one press or its
   number key; several picks; several questions, one at a time; a number with − and +; a typed answer), and the answers
   as Claude's question box sends them.
@@ -319,10 +352,34 @@ own pieces anywhere, with a stand-in Claude Code (`tests/stand-in-claude.py`), c
   and what was kept before for that session goes. Whenever what a read finds changes (a part added to a session's state,
   or one found differently), `kReadsShape` in `Transcripts.m` goes up in the same change, so every copy kept the old way
   is read afresh: the module's test fails until it does.
-- **A side question runs nothing and saves nothing:** a copy of the session's conversation, only on your press, with no
-  settings files read and the one hook it's given refusing every tool, one turn at most, nothing kept by Claude Code,
-  and its process kept out of the rows and ended by its checked pid. Only the side chat's question goes in, after
-  `kClaudeAsideLine`; the folder and program are the row's own, never a path from the page.
+- **A side question reads only, in its session's folder, and saves nothing:** a copy of the session's conversation, only
+  on your press, with no settings files read, in dontAsk with only Read, Grep, Glob and the four git commands allowed,
+  and the one hook it's given running Whozmove's own checker (AsideReads) before every tool. The checker fails closed:
+  the hook is one constant line that turns any failure of it (a crash, or the app replaced by a Deploy while a copy is
+  open) into a refusal, its timeout is longer than the copy's own deadline, as Claude Code runs a tool whose hook is
+  still running at its timeout, and the checker refuses by itself after 5 seconds. It never says allow, only nothing, so
+  the allow rules still apply after it. A session started in the home folder, or above it, has a copy that reads
+  nothing. Git runs only for a session at the top of a checkout: outside one `git diff` compares any two files, and from
+  a folder inside one git reads the whole checkout. Git's settings ride in the copy's environment (no hooks, pager,
+  external diff, text conversion, signature check, file system monitor or going online, no index written, and each
+  pathspec the file it names, never a pattern), so no command is rewritten; a repository's own filter drivers still
+  run under `git status` and `git diff`, as they do under Whozmove's own status of every checkout. Read never opens
+  git's own folder, a file where keys are kept (Claude Code's own, and every one Keys knows, from the storage module,
+  so the two can't disagree; with nothing read when that list can't be found), or, in a checkout, a file git ignores
+  (asked of `git check-ignore`, and refused when git can't say), as a project keeps its own secrets there; a Grep may
+  not be given such a file, nor filter by file name (that searches what git ignores), and shows matching lines only
+  from one file, as over a folder it searches a key file the project keeps too. Over a folder it finds files or counts
+  lines only when no key file lies there that it would search, as a match would say what that file holds: in a
+  checkout, the files `git ls-files` lists as tracked or not ignored, with `core.ignorecase=false` as ripgrep matches
+  ignore patterns case by case, and `core.excludesFile=` as ripgrep reads only the home folder's (the checkout's
+  .gitignore files and info/exclude ripgrep keeps to too); a checkout inside it, and any folder in or under one, and
+  a folder in no checkout, walked whole, as ripgrep reads them; refused past 20,000 files.
+  Git never shows an object that isn't a commit, whether named by its id or as a folder at a commit (`HEAD:`,
+  `HEAD:src`), only a file at a commit whose name passes, nor a patch of a key file the project tracks or once did:
+  the checker asks git which files the same command's patch would show (`--name-only`), for the very words given.
+  Nothing is kept by Claude Code, and its process is kept out of the rows and ended by its checked pid. Only the side
+  chat's questions and earlier answers go in, after `ClaudeAsideLine()`; the folder and program are the row's own,
+  never a path from the page.
 - **Words from a side chat go into a working session only through its words hook,** handed only by the panel's own
   process, down the line the hook opened, to a process that runs in that session (`SessionAbove`) one level under the
   session's own process or under a shell it started (`BetweenStepsHookOf`), each once; otherwise nothing is handed,
@@ -337,10 +394,13 @@ own pieces anywhere, with a stand-in Claude Code (`tests/stand-in-claude.py`), c
   answered from the panel. A program written to pose as the panel isn't stopped this way: it would have to stop the
   panel, take its socket and run as Whozmove.
 - A request is only ever allowed once, never "always allow", and a plan is approved from the panel only by a session
-  you allow, with its own switch (May Approve Plans): the panel's answer then carries `approvePlan`, added only by
-  AnswerFor's approve (never `AskReply`, which builds the page's answers), and the hook passes on an allow with an empty
-  input, as Claude's own prompt does. Claude Code ignores a bare "allow" for a plan, and the hook drops one, and drops
-  `approvePlan` for anything but a plan.
+  you allow, with its own switch (May Approve Plans), or by your press on Approve under it beside the list
+  (`approveShownPlan`, for the request and the digest of the text drawn with it, and only with input from you at the
+  Mac just before), never by a message the page makes up: both go through AnswerFor's one check
+  (`whyNotApprovePlan:digest:you:`), and the panel's answer then carries `approvePlan`, added only by AnswerFor
+  (`sendApproval:`, never `AskReply`, which builds the page's answers; tests/checks.sh keeps it there), and the hook
+  passes on an allow with an empty input, as Claude's own prompt does. Claude Code ignores a bare "allow" for a plan,
+  and the hook drops one, and drops `approvePlan` for anything but a plan.
 - A card on the row takes no press until it has been up long enough to be seen (`justShown`), so one that comes up
   under the pointer isn't answered by it: one press answers a question with one pick. Allow once allows exactly what
   the request asks, all of it, whatever the card shows in part.
@@ -471,6 +531,25 @@ in `app/ClaudeCodeFacts.h` too.
   hook passed in `--settings` that exits 2 is the only hook, and refuses every tool, while the tool list stays the
   session's. Settings files' `env` isn't read then either, so a sign-in or gateway kept only there isn't found
   (2.1.304, against a stand-in API on a virtual Mac).
+- A side question's copy run with `--input-format stream-json` takes another message after each `result`, answers it in
+  the same conversation, and ends at once when its input closes; each message's `result` carries that message's own
+  usage, and `--max-turns` counts each message's rounds, not the process's. In dontAsk with `--allowedTools`, a tool
+  the rules don't name is refused, but `Bash(git diff:*)` lets `git diff --output=<file>` write that file and `Read`
+  reads anywhere: only the hook stops them. A PreToolUse hook's exit 2 refuses the tool, with its stderr given to the
+  copy, which answers on; exit 1, any other failure, and a hook still running at its `timeout` all let the tool run.
+  The hook and the Bash tool's git both see the copy's environment (`GIT_CONFIG_COUNT`, `GIT_OPTIONAL_LOCKS`), and
+  `git status` with `GIT_OPTIONAL_LOCKS=0` leaves the index as it was. Grep and Glob don't follow links while they
+  walk a folder, but follow a path given to them, and a Glob pattern that's a whole path searches its own folder,
+  whatever `path` says (2.1.304, against a stand-in API on a virtual Mac).
+- Grep runs ripgrep with `--hidden`, keeping to the ignore files (no `--no-ignore`), always leaving out version
+  control's folders (`.git`, `.svn`, `.hg`, `.bzr`, `.jj`, `.sl`, `ClaudeGrepSkips`), and turns the deny rules in
+  its permissions into `--iglob` exclusions (2.1.319, read from its program).
+- A side question's copy, without `--include-partial-messages`, writes an `assistant` line for each block of Claude's
+  message once that block is finished (a stretch of thinking, a tool it calls, its words), a `user` line with a tool's
+  result once it has run or been refused, and last the `result`. A thinking block's words come empty, as the API's
+  default display for Claude's newer models is "omitted", unless it's run with `--thinking-display summarized`, a flag
+  its help doesn't list; `showThinkingSummaries` in its settings counts only in a session you type in (2.1.319, read
+  from its program).
 - A session signed in with a Claude plan marks its cache for an hour (`ephemeral_1h_input_tokens` in a reply's
   usage), so a conversation stays cached while its session works on one long step (2.1.304).
 - While Claude works, its tab's title starts with ◐ and ◑ in turn, about once a second, and with ✳ the rest of the

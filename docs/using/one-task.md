@@ -8,13 +8,24 @@ Claude Code's own program, signed by Anthropic (as npm's is from 2.1.113 on; an 
 tasks), and only from the session's one copy of it, where that session works: another program that writes a session's
 record is refused, and told why.
 
-The head says who a task is from: the session's name, or for a team chief's pick, "Atlas's pick, for Wren", and the
-chief's name alone when the pick is about its own work. After it comes where the task is for, as the list's rows say
-where a session runs: a worktree on its chip, a checkout by its branch, or a folder by its name; for a chief's pick,
-where the member works. A chief's picks come in the order its queue gives them, and
-each waits until you answer it, even once the chief has named others. If one changes while you're on it, the foot says who updated it. When a session takes a task back, because you
+Tasks come in the order of the tickets their sessions work on, by each ticket's priority in its tracker's own order:
+Jira's Highest, then High, Medium, Low and Lowest, or Blocker first on a site that names its priorities that way. Within
+the same priority, first come first served. Tickets from two trackers are compared from the top, so each one's most
+pressing priority comes first. A task from a session with no ticket, or whose ticket has no priority, comes after
+every task with one, and a task put back with Can't Now after those. A priority a session writes into the task itself
+counts for nothing: the ticket's priority is whoever wrote the ticket's to set, and yours to change. A priority changed
+in the tracker reaches the line within five minutes; until a ticket is first read after Whozmove starts, its task waits
+with those that have none. A chief's pick for a member takes the member's ticket's place; when the member has none, the
+pick's place comes from its job's priority in the chief's queue, Critical, P0, P1 or P2, counted from when the queue
+first named it.
+
+The head says who a task is from: the session's name, with its ticket's priority in its tracker's word ("From Wren ·
+Highest"), or for a team chief's pick, "Atlas's pick, for Wren", and the chief's name alone when the pick is about its
+own work. After it comes where the task is for, as the list's rows say where a session runs: a worktree on its chip, a
+checkout by its branch, or a folder by its name; for a chief's pick, where the member works. Each of a chief's picks
+waits until you answer it, even once the chief has named others. If one changes while you're on it, the foot says who updated it. When a session takes a task back, because you
 answered it elsewhere or its job was parked or dropped, it leaves as soon as you aren't pointing at it or typing in it,
-and the foot says why ("Taken back: answered in Atlas's session"). Every task leads with its title, then the step it's at ("Step 2 of 3 · Build", with a bar for each step), then one line
+and the foot says why ("Taken back: answered in Atlas's session"). Every task leads with its title, then the step it's at ("Step 2 of 3 · Build", with one bar for where it stands), then one line
 on why. What it is follows in a few slim parts, each a label in capitals over short lines, and its buttons come right
 under them:
 
@@ -41,11 +52,13 @@ under them:
 
 ## On the session's row
 
-A session that has handed you a task says so on its row in the list too, however the list is shown: a short line in a
-bubble of your move's colour, under Claude's line, with a speech mark, the kind of task and its title ("Try: Passkey
-sign-in"), cut with "…" when it's long, and "+2" when two more of that session's tasks wait. It names the first of
-them in One Task's own order. Press its words, and One Task opens at that task; the rest of the row still takes you to
-the session. Just come, or now naming another task, it waits a moment to be seen before it takes a press.
+A session that has handed you a task says so on its row in the list too: a short line in a bubble, under its name, in
+Claude's line's place, with its ticket's priority in its tracker's word, the kind of task and its title ("Highest Try:
+Passkey sign-in"), cut with "…" when it's long, and "+2" when two more of that session's tasks wait. The bubble is red
+for a task to do now, grey for its tracker's lowest priority, and amber between; a task with no ticket, or no priority
+on it, has a speech mark in place of the word, its bubble amber. It names the first of them in One Task's own order.
+Press its words, and One Task opens at that task; the rest of the row still takes you to the session. Just come, or now
+naming another task, it waits a moment to be seen before it takes a press.
 
 At its end is one button, the one thing the task asks for. None of them answers it: you answer in One Task.
 
@@ -65,12 +78,12 @@ At its end is one button, the one thing the task asks for. None of them answers 
   with Can't Now isn't on the row: you said not now.
 - **It gives way** to anything else the row has to say (a plugin reloading, a deploy, Compact at Breaks' "Compacting
   stopped part-way"), and comes back once that's gone.
-- **Its own line:** it sits over the row's bottom line, under any pull requests and next steps, which stay. While it
-  waits, the row shows no Deploy or context ring, but for a try's own Deploy as its button. They come back
-  once the task is answered.
-- **Under Group by Team** a team row's own line comes first (a job waiting on you, the chief's next or its counts), and
+- **Its own line:** under the row's name. On the row you're on, and a chat beside the folded panel, it sits over the
+  row's bottom line, under any pull requests and next steps, which stay. While it waits, the row shows no Deploy or
+  context ring, but for a try's own Deploy as its button. They come back once the task is answered.
+- **On a team's rows** the team row's own line comes first (a job waiting on you, the chief's next or its counts), and
   the task's line takes the place of where a member's job stands, with its one button at its end, as a member's ask
-  has. A chief's picks stay on the team's rows: [Group by Team](group-by-team.md).
+  has. A chief's picks stay on the team's rows: [With a team](the-list.md#with-a-team).
 
 ## Its page under Tools
 
@@ -82,37 +95,40 @@ are:
   ticked. Once you've chosen only a team's chief, it stays in sight with Show Teams off too, as then no session may,
   each told it can tick Show Teams or choose Any session. A session that may not is told why when it asks, what it sent
   before waits unseen, and One Task says which sessions can't.
-- **What comes first:** a chief's Critical or P0 pick first of all, Critical before P0, then urgent tasks, then a
-  chief's other picks in its order, or simply the oldest: a choice offered while Show Teams is ticked too. **Say why
-  each is here** (New, off at first) adds a line on why the task in front is first, and lists what's after it by name,
-  each with why. **Urgent tasks wait for your Go** (New, on) keeps the task you've seen in front, as below; off,
-  something urgent takes the front at once.
+- **What comes first:** always each ticket's own priority, first come first served within it, from each session's
+  ticket in its tracker's own order. **Say why each is here** (New, off at first) adds a line on why the task in front
+  is first ("Highest on its ticket, waited longest, 5m"), and lists what's after it by name, each with why. **To-do-now
+  tasks wait for your Go** (New, on) keeps the task you've read in front, as below; off, one to do now takes the front
+  at once.
 - **Talking with the agent:** the talk under each task, on or off, and whether words written while the session works
   go in by themselves once it's free, or wait for **Send Now**.
-- **Quiet hours:** at night only what's urgent is said, for everything Whozmove says, not only tasks (see [What needs
-  you](notifications.md#quiet-hours)). It isn't dimmed while One Task is off.
+- **Quiet hours:** at night only what's urgent is said, for everything Whozmove says, not only tasks: of tasks, only
+  those to do now (see [What needs you](notifications.md#quiet-hours)). It isn't dimmed while One Task is off.
 
 A change applies to what comes next: the task you have open stays where it is. Use the Recommended Settings shows once
 anything differs from how it starts. While One Task is off, its own choices are dimmed.
 
-## Something urgent while you're on a task
+## Something to do now while you're on a task
 
 A task you've seen is yours until you leave it: seen once it has been in front for a moment with One Task open, or as
-soon as you press anything on it. Nothing takes its place then, not a newer task and not something urgent. It stays
+soon as you press anything on it. Nothing takes its place then, not a newer task and not one to do now. It stays
 yours when its session rewords it or sends its next step, when you close One Task and open it again, and when Whozmove
 restarts. Changed, the foot says who updated it, "just now" or "while you were away"; your comment stays, but a choice
 you'd picked, Approve among them, is let go, so nothing you chose on the old words goes with the new ones, and the
 foot says to pick again on what you see now. If it goes while you're on it, as when its session ends, the foot says
 "“…” no longer waits." rather than it slipping away.
 
-- **Something urgent** asks from a strip under One Task's head, in red: "Urgent from trailmap: Fix the login crash",
-  with **Go**, or "2 urgent: Fix the login crash and 1 more". With One Task closed, the line under the header says
-  the same, and **Open** goes straight to it.
+- **A task to do now** is one whose ticket's priority is in the top half of its tracker's list, the half rounded down:
+  Jira's Highest and High, or a chief's Critical and P0. One ahead of the task you're on asks from a strip under One
+  Task's head, in red: "Highest from trailmap: Fix the login crash", with **Go**, or "2 to do now: Fix the login crash
+  and 1 more". With One Task closed, the line under the header says the same, and **Open** goes straight to it. The foot
+  says how many of those after this one are to do now ("3 more after this, 1 to do now"), and a task's step bar is in
+  red for one to do now.
 - **Go** sets the task you're on aside, with everything you'd done on it: the choice you picked, what you ticked and
-  typed, the talk's words, where you'd scrolled. Your keys stay free until you click in the urgent one. While you're
+  typed, the talk's words, where you'd scrolled. Your keys stay free until you click in the one to do now. While you're
   on it, the strip says **‹ Back to** the task you left.
-- **Answer it**, and you're back on the task you left exactly as you left it, the next urgent one first if there are
-  two. The foot says "Back to …, as you left it", or, if its session updated it meanwhile, that it did, with your
+- **Answer it**, and you're back on the task you left exactly as you left it, the next one to do now first if there
+  are two. The foot says "Back to …, as you left it", or, if its session updated it meanwhile, that it did, with your
   comment kept and any choice you'd picked let go.
 - **Taken back meanwhile:** if the task you set aside was taken back by its session while you were away, you aren't
   brought back to it. The foot says so, with what you'd typed in its Comment box and its talk box, and

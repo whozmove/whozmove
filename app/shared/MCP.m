@@ -33,6 +33,31 @@ id MCPToolValue(NSDictionary *result) {
     return json ?: text;
 }
 
+NSString *MCPHowItFailed(NSError *error, NSInteger status, NSDictionary *answer, BOOL toolFailed, NSTimeInterval limit) {
+    if (error) {
+        if ([error.domain isEqualToString:NSURLErrorDomain]) switch (error.code) {
+            case NSURLErrorTimedOut: return [NSString stringWithFormat:@"no answer in %.0fs", limit];
+            case NSURLErrorNotConnectedToInternet: return @"no connection: this Mac is offline";
+            case NSURLErrorCannotFindHost:
+            case NSURLErrorDNSLookupFailed: return @"no connection: the server's name wasn't found";
+            case NSURLErrorCannotConnectToHost: return @"no connection: the server didn't take it";
+            case NSURLErrorNetworkConnectionLost: return @"no connection: it was lost on the way";
+            case NSURLErrorSecureConnectionFailed:
+            case NSURLErrorServerCertificateUntrusted:
+            case NSURLErrorServerCertificateHasBadDate:
+            case NSURLErrorServerCertificateHasUnknownRoot:
+            case NSURLErrorServerCertificateNotYetValid: return @"no connection: macOS didn't trust its certificate";
+            default: break;
+        }
+        return [NSString stringWithFormat:@"no connection (error %ld)", (long)error.code];
+    }
+    if (status != 200) return [NSString stringWithFormat:@"HTTP %ld", (long)status];
+    NSNumber *code = AsNumber(AsRecord(answer[@"error"])[@"code"]);
+    if (code) return [NSString stringWithFormat:@"the server's error %ld", code.longValue];
+    if (!AsRecord(answer[@"result"])) return @"an answer it couldn't read";
+    return toolFailed ? @"the tool said it failed" : nil;
+}
+
 @interface MCPClient ()
 @property (strong) NSURL *url;
 @property (strong) NSURLSession *session;
@@ -59,8 +84,9 @@ id MCPToolValue(NSDictionary *result) {
 }
 
 // One JSON-RPC message sent (a request when it has an id, else a notification), and its answer for that id: the
-// message, the HTTP status, and when to try again if the server said.
-- (void)send:(NSDictionary *)message done:(void (^)(NSDictionary *answer, NSInteger status, NSDate *retryAt))done {
+// message, the HTTP status, when to try again if the server said, and how it failed, if it did (MCPHowItFailed).
+- (void)send:(NSDictionary *)message
+        done:(void (^)(NSDictionary *answer, NSInteger status, NSDate *retryAt, NSString *how))done {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:self.url];
     request.HTTPMethod = @"POST";
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
@@ -83,9 +109,11 @@ id MCPToolValue(NSDictionary *result) {
         NSString *given = [http valueForHTTPHeaderField:@"Mcp-Session-Id"];
         double wait = [[http valueForHTTPHeaderField:@"Retry-After"] doubleValue];
         NSDate *retryAt = http.statusCode == 429 ? [NSDate dateWithTimeIntervalSinceNow:wait > 0 ? wait : 60] : nil;
+        NSString *how = messageId ? MCPHowItFailed(error, http.statusCode, answer, NO,
+                                                   self.session.configuration.timeoutIntervalForRequest) : nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             if (given.length) self.sessionId = given;
-            done(answer, error ? 0 : http.statusCode, retryAt);
+            done(answer, error ? 0 : http.statusCode, retryAt, how);
         });
     }] resume];
 }
@@ -94,57 +122,52 @@ id MCPToolValue(NSDictionary *result) {
 static MCPEnd EndFor(NSInteger status) {
     return status == 401 ? MCPEndSignIn : status == 403 ? MCPEndRefused : status == 429 ? MCPEndSlowDown : MCPEndFailed;
 }
-static NSString *WhyFor(MCPEnd end) {
-    return end == MCPEndSignIn ? @"The sign-in has run out: sign in again"
-        : end == MCPEndRefused ? @"The service turned Whozmove away"
-        : end == MCPEndSlowDown ? @"The service asked Whozmove to slow down"
-        : @"Couldn't reach the service just now";
-}
 
-- (void)start:(void (^)(MCPEnd end, NSDate *retryAt))done {
-    if (self.started) return done(MCPEndAnswered, nil);
+- (void)start:(void (^)(MCPEnd end, NSDate *retryAt, NSString *how))done {
+    if (self.started) return done(MCPEndAnswered, nil, nil);
     self.sessionId = nil;
     self.spoken = nil;
     NSDictionary *hello = @{@"jsonrpc": @"2.0", @"id": @(++self.lastId), @"method": @"initialize",
                             @"params": @{@"protocolVersion": kProtocolVersion, @"capabilities": @{},
                                          @"clientInfo": @{@"name": self.name, @"version": self.version}}};
-    [self send:hello done:^(NSDictionary *answer, NSInteger status, NSDate *retryAt) {
+    [self send:hello done:^(NSDictionary *answer, NSInteger status, NSDate *retryAt, NSString *how) {
         NSDictionary *result = AsRecord(answer[@"result"]);
-        if (status != 200 || !result) return done(status == 200 ? MCPEndFailed : EndFor(status), retryAt);
+        if (status != 200 || !result)
+            return done(status == 200 ? MCPEndFailed : EndFor(status), retryAt, [@"starting: " stringByAppendingString:how ?: @"an answer it couldn't read"]);
         self.spoken = AsText(result[@"protocolVersion"]) ?: kProtocolVersion;
         self.started = YES;
         [self send:@{@"jsonrpc": @"2.0", @"method": @"notifications/initialized"}
-              done:^(NSDictionary *a, NSInteger s, NSDate *r) {}];
-        done(MCPEndAnswered, nil);
+              done:^(NSDictionary *a, NSInteger s, NSDate *r, NSString *h) {}];
+        done(MCPEndAnswered, nil, nil);
     }];
 }
 
 // A request in the session, started first if need be, and once more if the server has ended the session (404).
 - (void)request:(NSString *)method params:(NSDictionary *)params again:(BOOL)again
-           done:(void (^)(NSDictionary *result, MCPEnd end, NSDate *retryAt))done {
-    [self start:^(MCPEnd started, NSDate *retryAt) {
-        if (started != MCPEndAnswered) return done(nil, started, retryAt);
+           done:(void (^)(NSDictionary *result, MCPEnd end, NSDate *retryAt, NSString *how))done {
+    [self start:^(MCPEnd started, NSDate *retryAt, NSString *how) {
+        if (started != MCPEndAnswered) return done(nil, started, retryAt, how);
         NSDictionary *message = @{@"jsonrpc": @"2.0", @"id": @(++self.lastId), @"method": method, @"params": params};
-        [self send:message done:^(NSDictionary *answer, NSInteger status, NSDate *retry) {
+        [self send:message done:^(NSDictionary *answer, NSInteger status, NSDate *retry, NSString *how) {
             if (status == 404 && self.sessionId && !again) {
                 [self reset];
                 return [self request:method params:params again:YES done:done];
             }
             if (status == 401) [self reset];
             NSDictionary *result = AsRecord(answer[@"result"]);
-            if (status == 200 && result) return done(result, MCPEndAnswered, nil);
-            done(nil, status == 200 ? MCPEndFailed : EndFor(status), retry);
+            if (status == 200 && result) return done(result, MCPEndAnswered, nil, nil);
+            done(nil, status == 200 ? MCPEndFailed : EndFor(status), retry, how);
         }];
     }];
 }
 
 - (void)call:(NSString *)tool arguments:(NSDictionary *)arguments done:(MCPDone)done {
     [self request:@"tools/call" params:@{@"name": tool, @"arguments": arguments ?: @{}} again:NO
-             done:^(NSDictionary *result, MCPEnd end, NSDate *retryAt) {
-        if (end != MCPEndAnswered) return done(nil, end, WhyFor(end), retryAt);
+             done:^(NSDictionary *result, MCPEnd end, NSDate *retryAt, NSString *how) {
+        if (end != MCPEndAnswered) return done(nil, end, how, retryAt);
         BOOL failed = [AsNumber(result[@"isError"]) boolValue];
         done(MCPToolValue(result), failed ? MCPEndToolFailed : MCPEndAnswered,
-             failed ? @"The service couldn't do that just now" : nil, nil);
+             failed ? MCPHowItFailed(nil, 200, @{@"result": result}, YES, 0) : nil, nil);
     }];
 }
 

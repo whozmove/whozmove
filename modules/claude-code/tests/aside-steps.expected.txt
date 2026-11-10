@@ -1,0 +1,11 @@
+Read, a file in the folder: both “Reading cart.ts”
+Grep, a word: both “Searching for “total””
+Grep, a long pattern, cut: both “Searching for “function (add|remove)LineFromT…””
+Glob, a pattern in the folder: both “Finding files src/**/*.ts”
+Glob, a long pattern, cut: both “Finding files src/components/checkout/**/*.t…”
+Bash, a command with no words for it: both “Running a command”
+Read, outside the folder: the hook “Reading hosts”, the copy “Reading a file” (a file outside the session's folder)
+Grep, a path: the hook “Searching for “/Users/you/””, the copy “Searching” (a search naming a path)
+Glob, a whole path: the hook “Finding files /etc/*”, the copy “Finding files” (a pattern naming a path)
+Bash, git with Claude's words for it: the hook “Show the last commits in /Users/you/shop”, the copy “Running git log” (git's own command, not Claude's words)
+Edit: the hook “Editing cart.ts”, the copy “Working” (a tool a side question may not use)

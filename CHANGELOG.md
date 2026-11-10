@@ -10,13 +10,36 @@
 
 ### The panel
 
-- **A job's priority reads Critical, P0, P1 or P2.** Under Group by Team, on Team Board and in One Task, a job's
+- **One view for everyone.** The list is always grouped by project, the projects A to Z, each with its conversations
+  newest first; nothing is lifted for waiting on you, as its bubble, its dot and the count beside the pawn say so. A
+  group's header says only its name. Settings has no Session List choice any more: Newest First and Group by
+  Project, which it offered, are this one view, and a team's groups come first in it (below). Folded, a project hides
+  all its rows, even those waiting on you, and its header says how many wait on you ("shop › 2 wait on you"), as a
+  team's group does; a request still comes out beside the folded panel, and a conversation you start there opens it.
+- **Every row says one thing under its name.** Rows are short: the name, the tag for what it wrote, the ticket it works
+  on or what it looks after, the job's track and the time, then the bubble when something waits on you, else a request's
+  card, else Claude's line only where nothing else says it (what it asks with no card, or a reply you haven't read). A
+  stopped session says "Stopped · press to carry on" there, and one started before Whozmove's update offers Reload. A
+  chat beside the folded panel shows its row whole.
+- **The row you're on keeps its tools.** The session in front in its app keeps, under its short lines, its pull
+  requests, what isn't committed and its next steps, then its model, effort and mode, its context ring, how compacting
+  at a break last went, where it runs and Deploy; as you move to another session, its row opens out and the one you left
+  goes short.
+- **A job's track is one bar.** However many steps a job or its board has, its track is the same short bar: what's
+  done, then the step it's on, never thinner than a dot, and as it moves on, the bar cross-fades; VoiceOver says "Step
+  4 of 6, Your try". A job of one step has none, here, on Team Board and in One Task, which draw the same bar.
+- **A chief's line says what waits in one number.** "● 3 need you · 2 moving", the dot as pressing as the most pressing
+  of them; the bubbles below say which. A team member's bubble is in its own words, never marked as passed on.
+- **A ticket starts in a worktree of its own.** A ticket picked on the new conversation card starts in a worktree
+  named after its key, or goes to the conversation already working it; the first ticket in a project asks how its
+  tickets should open, a warning shows where another ticket's conversation works, and Settings ▸ Tickets changes a
+  project's way, showing what changes first.
+- **A job's priority reads Critical, P0, P1 or P2.** On a team's rows, on Team Board and in One Task, a job's
   priority is one of the four, Critical and P0 in the colour of something to do now and P2
   drawn quieter, and Team Board shows it on every job it lists, a Critical or P0 job waiting on you in that colour
-  too. A chief's Critical or P0 pick comes first of all in
-  One Task, whichever way you've chosen what comes first.
-- **Every ask is a bubble, with one button.** What a row asks of you (a task for you in One Task, a team member's job,
-  the chief's next) sits in a bubble in the colour of how pressing it is, red for Critical and P0, amber for P1 and
+  too.
+- **Every ask is a bubble, with one button.** What a row asks of you (a team member's job, the chief's next) sits in a
+  bubble in the colour of how pressing it is, red for Critical and P0, amber for P1 and
   grey for P2, a team's job named by its priority first ("P1 Try the search box"). At its end is the one button that
   does what it asks: Deploy for a try, the plan's mark for a plan, the prototype's for looks to pick, Copy for a
   command to run, ? for a question, an eye for something to look at, ↗ for something to do elsewhere. While it waits,
@@ -25,6 +48,17 @@
 - **A team member's other job waiting on you is its ask.** While a member works on one job and another of its jobs
   waits on your try or your yes, that one is the bubble on its row, named by its priority, with its one button
   (Deploy for a try), rather than a quiet line under it; the track still shows the job it's working on.
+- **A plan waiting is its row's bubble, and Approve is beside the list.** A plan Claude waits on shows on its row as a
+  bubble, "Plan" and the plan's title (a team member's, its job's own bubble, or its other job's, only to read while
+  its session works), ending in the plan button, its one shape on the row: no plan card, and where another ask has the
+  row's line, the plan's tag opens it. Press it, and the plan opens beside the list with Approve, Send back…, Stop and
+  Take me there. Approve approves the plan as it's shown, only by your press, saying it approves the whole plan,
+  folded parts too, while it's read folded; a new version asked for shows in its place, and the bar says why where it
+  can't: its file changed since, too long to show whole, or a session that might bypass permissions. A plan Claude
+  still waits on in its session after it stopped asking in the panel (an hour on, or once Whozmove restarts) opens
+  beside the list too: while Claude Code's own prompt for it is up, it's answered there; with the session idle at its
+  prompt, Send back… types your notes in as a message, saying how it went. A look's prototype button opens the
+  prototype beside the list too.
 - **A session waiting on a review carries on by itself.** A session whose next step is someone else's (a review of its
   pull request, an approval, a merge) waits without holding a seat, its row saying what it waits on ("Waits on #12"),
   and carries on by itself when that comes, as your gear has room. Only someone who can change the repo wakes it.
@@ -39,22 +73,24 @@
   natural break while it sits at its prompt, never while Claude works or asks; its row says so until its next message.
 - **Compact now waits for a natural break.** The context ring says it when a session's work has just been saved, when
   it's nearly full, or when you've been away from it for an hour, and no longer for a long conversation alone.
-- **Side chat.** Talk with a session beside the list while it works: press the bar at its row's far edge, which swells a
-  little as you point at it, there too while it waits on your answer to a request, a question or a plan, and your words
-  reach it between its steps, with nothing typed, so it can change course; its replies
-  come back there. **Ask Without Interrupting** asks a question the session never sees: a copy of its
-  conversation, using no tools and saving nothing, answers it in the chat while the session works on, and **Add to
-  Message** passes the answer on in your own words. Send says when your words go in: **Send After This Step**,
-  **Send After Its Turn** or **Send After You Answer**. The one you pressed last is the dark button, and Return goes
-  that way until you press the other; ⌥Return goes the other way. While the session works, the chat ends with what
-  it's doing right now, as its row says it, until its reply takes that line's place.
+- **Side chat.** Talk with a session beside the list while it works: press the bar at its row's far edge, which swells
+  a little as you point at it, there too while it waits on your answer to a request, a question or a plan, and your
+  words reach it between its steps, with nothing typed, so it can change course; its replies come back there. **Ask
+  Without Interrupting** asks a question the session never sees: a copy of its conversation answers it in the chat while
+  the session works on, showing each step it takes as it goes, reading the project's files and git in its folder if it
+  needs to but never opening a file where keys are kept, changing nothing and saving nothing, and a follow-up remembers
+  your earlier side questions until the session compacts. **Add to Message** passes the answer on in your own words.
+  Send says when your words go in: **Send After This Step**, **Send After Its Turn** or **Send After You Answer**. The
+  one you pressed last is the dark button, and Return goes that way until you press the other; ⌥Return goes the other
+  way. While the session works, the chat ends with what it's doing right now, as its row says it, until its reply takes
+  that line's place.
 - **Up next beside the list, while a session is your team's chief:** every session working now and what waits behind
-  your gear, in the chief's order, by goal, from **Up next** at the end of the chief's line under Group by Team. It
-  needs **Show Teams** ticked in Working on Whozmove ▸.
+  your gear, in the chief's order, by goal, from **Up next** at the end of the chief's line. It needs **Show Teams**
+  ticked in Working on Whozmove ▸.
 - **Show Conversation Text.** Turn it off in Settings, and rows show no one's words: not yours, not what another
   session sent, not Claude's replies or what it's working on. Each row keeps its name, its dot, its time and its
   buttons, and what needs you stays: a request or a question with its card, what you just answered, a task's line
-  saying what to do, and compacting. In every order, and on the chats beside the folded panel.
+  saying what to do, and compacting. In the list, and on the chats beside the folded panel.
 - **The line under a head shows only while something scrolls under it.** Under the header, the folded panel's head,
   the panel's back and the page beside the list, the thin line is there only while what's under it is scrolled, and
   always under the lowest thing that stays put: the setup line, notifications' line or a new conversation's card when
@@ -68,13 +104,12 @@
   with Claude's pick and why, what could go wrong, what you'll try, what it keeps or sends, and what's left out, with
   the rest folded by section under it (the short view's own block too, open, when the card can't show every line of
   it: "At a glance, as written"),
-  or, with **Full version of the plan**, the plan exactly as written; its card on
-  the row shows a few of those lines and how many picks you've changed, and a task in One Task about a plan shows its
+  or, with **Full version of the plan**, the plan exactly as written; a task in One Task about a plan shows its
   card too. Pick another option and the plan goes back with your picks. Claude writes the short view
   itself, asked by Whozmove's skill; for a plan without one, Whozmove reads only the headings that match, and nothing is
   summarised by an AI.
 - **A row's details open inside the row.** Rest the pointer a moment on a pull request, a row's numbers, where it
-  runs, "Open twice", Create PR or a job's track under Group by Team, and its details open under the row's own lines,
+  runs, "Open twice", Create PR or a job's track, and its details open under the row's own lines,
   the rows below moving down to make room, instead of a card over the list. Near the panel's foot, the list scrolls
   just enough to show them. They fold away as you move on, and the rows under the pointer stay where they are. Pressing
   Create PR, or "+2 more open" under a row's pull requests, opens its details rather than the session; "+2 more open"
@@ -82,16 +117,22 @@
 - **One Task.** Beside the list, the one task a session has handed you that needs you most, in one shape whatever the
   project, its head saying whom it's from and where (a worktree on its chip, or the branch): its title, the step it's
   at, one line on why, then a few slim lines and its answers to pick from: Works, Approve, Done or a question's own
-  choices, and last of all Comment, its box on its line, for anything you'd say in words. Answer sends it. A plan
+  choices, and last of all Comment, its box on its line, for anything you'd say in words. Answer sends it. Tasks come
+  in the order of the tickets their sessions work on, by each ticket's priority in its tracker's own order (Jira's
+  Highest first, or Blocker on a site that names its priorities that way), first come first served within it, with
+  those that have no ticket after, and the head says each one's priority ("From Wren · Highest"); a chief's pick for a
+  member with no ticket takes its job's place in the chief's queue. A plan
   comes cut to its points ("Approve these 7 points") or its phases, a change to try says what changed, what to do and
   what to look for, a file it attached opens in the reader, Take Me There goes to the session a chief's task is about,
   and on a long task Answer stays at the foot while it'd be out of sight. A task you've seen stays until you leave it,
   even when its session rewords it, you close One Task or Whozmove restarts, and one that ends while you're on it says
-  so: something urgent asks from a strip under One Task's head, with Go, and answering it brings you back to the task
+  so: one to do now, in the top half of its tracker's list, asks from a strip under One Task's head, with Go
+  ("Highest from Wren: Fix the login crash"), and answering it brings you back to the task
   you were on exactly as you left it, or, if it was updated meanwhile, says so, keeping your words. Its own page under
-  Tools sets how it works: who may hand you tasks, what comes first, a line on why each is where it is, and the talk.
+  Tools sets how it works: who may hand you tasks, a line on why each is where it is, and the talk.
   A session's own request for your OK, its question or its plan stays on its row in the list only. A session's task
-  also shows on its row, as a short line in your move's colour; press it to open One Task at that task.
+  also shows on its row, as a short line in a bubble coloured by its ticket's priority, red for one to do now, amber,
+  and grey for its tracker's lowest; press it to open One Task at that task.
 - **Talk with the agent in One Task.** Under a task, ask the session that sent it what it's about or what to press:
   your words go into its prompt once it's free, and its reply shows under the task, all of it, with a command or code
   in it on a line of its own and a Copy button beside it. For a team chief's pick, your words go to the member it's
@@ -116,10 +157,10 @@
 - **Settings on the panel's back.** Turned over, the panel's back has a **Settings** app first among your apps, and
   **Settings…** in the pawn menu turns the panel over straight to it. It's laid out as a phone's: each row with its
   coloured tile, its name and what it's set to. **Appearance** shows Grey, Black (White on a light panel) and Glass as
-  small panels to pick from, then Match the Mac, Light or Dark, and the panel changes as you pick. **Session List** has
-  Newest First or Group by Project, **Open Files With** the editors on your Mac with their icons (or, with none of them
-  there, **Get Visual Studio Code**, as the changes view's Open in Editor offers too), and **New Conversation with ⌃⌥N**
-  its switch, and ‹ goes back a page. On your apps, ‹ turns the panel back to the list, the other way round
+  small panels to pick from, then Match the Mac, Light or Dark, and the panel changes as you pick. **Open Files With**
+  has the editors on your Mac with their icons (or, with none of them there, **Get Visual Studio Code**, as the changes
+  view's Open in Editor offers too), and **New Conversation with ⌃⌥N** its switch, and ‹ goes back a page. On your apps,
+  ‹ turns the panel back to the list, the other way round
   from rows, as if you'd pressed that edge in. The pawn menu now keeps what you need while the panel is hidden, folded
   or off the screen: New Conversation, Show / Hide Panel, Reset Position, Settings…, Open at Login and Quit. Look ▸,
   the list's order, Open With and Use ⌃⌥N in Any App have moved to Settings, each keeping what you'd picked.
@@ -128,33 +169,32 @@
   Ended**) and **Move to Trash**: each goes to the Trash on its own, ended first if it's still open, with **Undo**, and
   **Put Back** from **In the Trash** or Finder. One that's working or waiting on you says so, with **Take me there**,
   and one Claude Desktop keeps is deleted there, with **Open in Claude Desktop**.
-- **Group by Team.** When a session leading a team of other sessions for you keeps a team file
-  (docs/using/group-by-team.md), **Session List** in Settings offers Group by Team beside Newest First and Group by
-  Project. The team file is read only while **Show Teams** is ticked in Working on Whozmove ▸ (shown while ⌥ is
-  held as the pawn menu opens). Every row is short: a line with its name, what it looks after, its job's steps as a
-  short track and its time, and, when it has a job, a line under it saying what it needs you for, with the one button
-  for it at its end, or else, quietly, where its job stands: "Up next: after the search box", "On hold", "Moving", or
-  the step a job waits its turn at, with nobody working on it ("Ready to try"). Its dot says whose move it is, as in the
-  other ways of showing the list. The session leading it sits on top, marked Chief, with how many jobs wait on you and
-  how many are at work (never one waiting its turn), each only when there are some, and, when it names one, the next
-  thing for you to look at in a few words, the whole of it when you point at the row; under it a group for each name the
-  file gives its members (Reviewers, say), the team and your own sessions, each group folding to its header, which then
-  says how many of its rows wait on you; the file's order can name Team to put it among its groups. When the file names
-  the session you talk to apart from the one leading the team, that session sits on top, marked Chief, with Up next at
-  its end, and the one leading the team right under it, with no mark, or in a group the file gives it. A member shows
-  under the name the file gives it to show, marked with the tag the file gives it ("Design"), as the one leading the
-  team can be. In each group, what needs you comes first, a request, a reply you haven't read or a job waiting on you,
-  then the rest, newest first. What needs you comes out beside the folded panel as under any grouping, saying what's
-  new, the reply or what it asks, under a member's name in the team. A member's reply to a message from the chief went
-  to that session, not to you, so it never counts as waiting on you, under any grouping; a question it asks you itself,
-  or a reply to you you hadn't read yet, still does. Nor does any reply in a conversation once it has ended in a team
-  member's folder: the member's own row stands for it, and Sessions on the panel's back doesn't count it as a reply you
-  haven't read. A member is its workspace: a conversation you clear there, or a new one you open there, is that member,
-  by its name, with its job, and Take Me There on the Team Board opens it while it runs, never a duplicate; a second
-  session running there says it's a duplicate of the member ("Duplicate of Wren"), with a line to close the previous
-  session. Closing a member's tab keeps its row where it was, shown as ended, and pressing it, or Take Me There, carries
-  that conversation on. A member at work on one job shows that job and the step it's at, while another of its jobs
-  waiting on your try is said quietly under it ("Also waiting on you: Try the search box").
+- **A team's groups on top.** When a session leading a team of other sessions for you keeps a team file
+  (docs/using/the-list.md#with-a-team), the team's groups come first in the list, above the projects. The team file is
+  read only while **Show Teams** is ticked in Working on Whozmove ▸ (shown while ⌥ is held as the pawn menu opens). Its
+  rows are short, as every row is: a line with its name, what it looks after, its job's steps as a short track and its
+  time, and, when it has a job, a line under it saying what it needs you for, with the one button for it at its end, or
+  else, quietly, where its job stands: "Up next: after the search box", "On hold", "Moving", or the step a job waits its
+  turn at, with nobody working on it ("Ready to try"). Its dot says whose move it is, as on every row. The session
+  leading it sits on top, marked Chief, with how many jobs wait on you and how many are at work (never one waiting its
+  turn), each only when there are some, and, when it names one, the next thing for you to look at in a few words, the
+  whole of it when you point at the row; under it a group for each name the file gives its members (Reviewers, say) and
+  the team, each group folding to its header, which then says how many of its rows wait on you; the file's order can
+  name Team to put it among its groups. Your own sessions stay under their projects. When the file names the session you
+  talk to apart from the one leading the team, that session sits on top, marked Chief, with Up next at its end, and the
+  one leading the team right under it, with no mark, or in a group the file gives it. A member shows under the name the
+  file gives it to show, marked with the tag the file gives it ("Design"), as the one leading the team can be. In each
+  group, as in every project, the newest message comes first. What needs you comes out beside the folded panel, saying
+  what's new, the reply or what it asks, under a member's name in the team. A member's reply to a message from the chief
+  went to that session, not to you, so it never counts as waiting on you; a question it asks you itself, or a reply to
+  you you hadn't read yet, still does. Nor does any reply in a conversation once it has ended in a team member's folder:
+  the member's own row stands for it, and Sessions on the panel's back doesn't count it as a reply you haven't read. A
+  member is its workspace: a conversation you clear there, or a new one you open there, is that member, by its name,
+  with its job, and Take Me There on the Team Board opens it while it runs, never a duplicate; a second session running
+  there says it's a duplicate of the member ("Duplicate of Wren"), with a line to close the previous session. Closing a
+  member's tab keeps its row where it was, shown as ended, and pressing it, or Take Me There, carries that conversation
+  on. A member at work on one job shows that job and the step it's at, while another of its jobs waiting on your try is
+  said quietly under it ("Also waiting on you: Try the search box").
 - **One look for the panel's controls.** Buttons, the ×, tags, boxes to tick, short lists, labels in capitals and bars
   now look the same wherever they are, on the list, its cards, the reader, the panel's back, Storage, Spotify's strip
   and the new conversation card: a card's title is 12pt, something you can't press yet fades to the same 40%, and a
@@ -189,19 +229,28 @@
 
 ### Answering and steering sessions
 
+- **Keep how a project works, beside its own pages.** When a session learns something a project's CONTRIBUTING,
+  CLAUDE.md or AGENTS.md, pull request template or docs don't say (what you told it, or what it found the hard way), its
+  row asks **Keep this as how acme-web works?**, with the note whole as numbered steps, each saying where it came from.
+  Only **Keep It** keeps it, on this Mac, for the project and every worktree of it. A note drafted again is shown
+  against the one kept, each step new or taken out marked, so Keep It keeps exactly what you see; after **Not Now**, the
+  same lines don't ask again. Whozmove's plugin carries a skill that says what a note holds and what never goes in one.
 - **Give a conversation a Jira ticket.** Sign in with Atlassian once, on Atlassian's own page in your browser, from
   Jira's page on the panel's back or the new conversation card. The card's **Ticket** chip then finds a ticket as you
   type (words, its key or its link), or takes a ticket's link pasted into your words, and Start gives the new
-  conversation that ticket. Its row shows the ticket's key and where it stands after its name; pointing at it shows
-  what it's part of, its project and boards and where it can go next, and pressing it opens it in your browser. A
-  conversation that asks for another ticket gets it only once you press **Use It** on its row, which says what the
-  ticket is. Whozmove's plugin carries a skill that
-  says how to work a ticket by its own next steps, stopping at a step that's a person's.
+  conversation that ticket. Its row shows the ticket's key and where it stands after its name, in red with what to do
+  when it can't be read ("sign in again"); pointing at it shows what it's part of when Jira says, its project and boards
+  and where it can go next, and pressing it opens it in your browser. A conversation that asks for another ticket gets
+  it only once you press **Use It** on its row, which says what the ticket is. Whozmove's plugin carries a skill that
+  says how to work a ticket by its own next steps, stopping at a step that's a person's. The conversation reads the
+  ticket's description with it (a very long one cut short, the rest on the ticket's page), and only that conversation
+  does: it's never shown on the panel, kept or logged.
 
 - **A conversation moves its Jira ticket at its milestones.** Its row asks "Move PAY-142 to In Review?" with the note
   it adds and every field the step sets, for **Move It** or **Not Now**, and **May Move Its Ticket**, at the foot of its
-  mode menu, lets it move without asking. A step that's a person's, such as QA's sign-off, is marked on the ticket's
-  card, and the card says the ticket's last move.
+  mode menu, lets it move without asking. When Jira turns a move away, the row says what Jira said ("Fill in Blocked
+  by first"), with **Open in Jira** to put it right there. A step that's a person's, such as QA's sign-off, is marked
+  on the ticket's card, and the card says the ticket's last move.
 
 - **Create a Jira ticket, talked through first.** Pick **Create a ticket** on the new conversation card's Ticket chip,
   write a line and Start: Claude asks what it needs, then its row asks "Create this ticket?" with the title, project,
@@ -240,19 +289,17 @@
   more; a file read or a web search on one line; a page with what Claude wants to learn from it. A question with one
   pick is answered with one press, or its number key; several picks are boxes to tick; Type an answer becomes a box in
   its own row, and Esc keeps what you typed; several questions come one at a time, with ‹ ›, Skip and Next, ← and →
-  moving between them, and Submit on the last with your other answers above it; a number has − and +. A plan's card
-  lists its first steps (or, with its short view, a few of its lines), opens the whole plan beside the list, sends it
-  back with your notes, and takes you to its session. Every card that needs you, Compact, Deploy's set-up and "Switch
-  model?" (now Keep or Switch) among them, is raised a step from the panel with no red edge. Its title is never cut
-  short; a command shows wrapped, every line whole, its first 4 with Show all past them; other code sits on it a line at
-  a time, fading where it's cut, with Show all. Once you answer, a line says so where the card was; beside the folded
-  panel the card just goes, Claude's line saying what you answered and the dot turning to the working one, so the
-  conversation shrinks once, and the line comes there only if the answer hasn't landed after a few seconds. What a
-  session you allow answered for you shows as a card of its own.
+  moving between them, and Submit on the last with your other answers above it; a number has − and +. Every card that
+  needs you, Compact, Deploy's set-up and "Switch model?" (now Keep or Switch) among them, is raised a step from the
+  panel with no red edge. Its title is never cut short; a command shows wrapped, every line whole, its first 4 with Show
+  all past them; other code sits on it a line at a time, fading where it's cut, with Show all. Once you answer, a line
+  says so where the card was; beside the folded panel the card just goes, Claude's line saying what you answered and the
+  dot turning to the working one, so the conversation shrinks once, and the line comes there only if the answer hasn't
+  landed after a few seconds. What a session you allow answered for you shows as a card of its own.
 - **Questions that read at a glance.** Whozmove's Claude Code plugin gives every session a skill for asking you
   questions: one thing to decide in a short line, two to four options named in a few words, each with one line of what
   it means, and the one Claude would pick first.
-- **May Send Back Plans**, at the foot of the mode menu of the session leading a team (Group by Team): that session
+- **May Send Back Plans**, at the foot of the mode menu of the session leading a team (its team file): that session
   can send back a team member's plan for you, in the same project, with a note, using `ask-panel.sh waiting` and
   `send-back <id>`. It never approves one. The member's row says the plan was sent back, by whom and why; you can
   always answer first, and while you're answering, it's left to you. It's kept for that session's folder while Whozmove
@@ -406,14 +453,14 @@
   and the lead reads its inbox one message at a time, most pressing first.
 - **Team Board**, while **Show Team Board** and **Show Teams** are ticked (in Working on Whozmove ▸, shown while ⌥ is
   held as the pawn menu opens): the work of a team a session leads, beside the list, from **Team Board** at the end of
-  the chief's line under Group by Team, or under Tools on the panel's back. It answers nothing: what needs you is one
-  line, with each kind's mark, that opens One Task. Then what's moving, as one big number, with how many wait their turn
-  at a step nobody works on ("Ready to try"), counted apart from what's moving; a strip of the steps the jobs are at,
-  each with its count, which opens its jobs, the most pressing first, then the smallest, then the least work; who's on
-  what, a line for each member with the job it's on, its step and its other jobs; a tile for each goal, numbered, with a
-  bar of its jobs by where they stand, and a heading for how the team works after them; and what's done this week. A
-  goal's tile opens its Up next; a job opens its card, with its track, what it wants of you, what it holds up, and
-  **Take Me There**. Where a job stands has the colours its row in the list has.
+  the chief's line, or under Tools on the panel's back. It answers nothing: what needs you is one line, with each kind's
+  mark, that opens One Task. Then what's moving, as one big number, with how many wait their turn at a step nobody works
+  on ("Ready to try"), counted apart from what's moving; a strip of the steps the jobs are at, each with its count,
+  which opens its jobs, the most pressing first, then the smallest, then the least work; who's on what, a line for each
+  member with the job it's on, its step and its other jobs; a tile for each goal, numbered, with a bar of its jobs by
+  where they stand, and a heading for how the team works after them; and what's done this week. A goal's tile opens its
+  Up next; a job opens its card, with its track, what it wants of you, what it holds up, and **Take Me There**. Where a
+  job stands has the colours its row in the list has.
 
 ### Fixes
 
@@ -443,14 +490,15 @@
 - **Uses much less energy with many sessions open.** Whozmove runs git for a checkout only once something in it has
   changed, as macOS tells it, rather than every few seconds for every one; reads each commit waiting to go once,
   rather than again each time a branch moves; asks GitHub for a branch's pull request only once the branch is on
-  GitHub; reads each session's records again only once they've changed, rather than every second; looks at how its
-  plugin stands in Claude Code when Claude Code's own records of its plugins change, and hourly, rather than starting
-  Claude Code every 5 minutes, so the plugin turned off or taken out there shows on the line within seconds; moves the
-  band of light across what Claude is doing and the ring round a waiting dot as layers, so the panel isn't drawn again
-  on every frame for them, and holds the folded panel's eyes still while it's open; and sets just the times in its
-  list when nothing else in it has changed, rather than drawing the whole list again every second, and leaves the list
-  as it is while the panel is hidden or the screen is asleep or locked, drawing it as it is then the moment the panel
-  can be seen again. What each row says, and how soon it says it, stay as they were.
+  GitHub, and never for the default branch, which pull requests go into; reads each session's records again only once
+  they've changed, rather than every second; looks at how its plugin stands in Claude Code when Claude Code's own
+  records of its plugins change, and hourly, rather than starting Claude Code every 5 minutes, so the plugin turned off
+  or taken out there shows on the line within seconds; moves the band of light across what Claude is doing and the ring
+  round a waiting dot as layers, so the panel isn't drawn again on every frame for them, and holds the folded panel's
+  eyes still while it's open; and sets just the times in its list when nothing else in it has changed, rather than
+  drawing the whole list again every second, and leaves the list as it is while the panel is hidden or the screen is
+  asleep or locked, drawing it as it is then the moment the panel can be seen again. What each row says, and how soon it
+  says it, stay as they were.
 - A session's row brings its terminal tab forward, with the keyboard, when another app's window is above it, over it
   or beside it, without that app being in front, as Arc's single-page windows can be. Before, a press on the row of the
   session the tab showed did nothing.

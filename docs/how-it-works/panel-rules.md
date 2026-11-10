@@ -10,7 +10,8 @@ safe](../../CONTRIBUTING.md#rules-that-keep-it-safe) names each one.
   panel (a `Browser`) has been clicked
   into, until a click anywhere else in the panel, the panel folding or turning over, or the site going; and while a
   request or a question in the list, or in a place beside it where rows are drawn (`core.keyPlaces`: the chats beside
-  the folded panel, while the chat is out where it can be seen), has been pressed (`core.keyCards`, `heldCard` in the
+  the folded panel, while the chat is out where it can be seen), or a note to keep on how a project works (its Keep It
+  card, where Return is Keep It and a number key does nothing), has been pressed (`core.keyCards`, `heldCard` in the
   keyboard part), but where the press answers it, until it's answered or gone, Esc, or a press anywhere else, so
   Return answers it there and not Claude's own copy of it in the app in front. Only the copy pressed has the keys, in
   the place it was pressed in, and shows it. And while the view beside the list (the reader, One Task) has been
@@ -128,22 +129,22 @@ safe](../../CONTRIBUTING.md#rules-that-keep-it-safe) names each one.
 - **Sorting and grouping** (`classify`, `stillOnIt`, `placeRows` and `movedAt` in whose-move.js; `heldNow`, `noteOnIt`
   and `state.placed` in panel.js; `noteSeen:` in parts/focus/app/Focus.m): what a session is (a request, working, a
   reply you haven't read, however old, one you have, or idle a day after the last message or the last time you were on
-  it) is kept apart from where its row is shown. What it is shows on its dot; where it's shown is one list, newest
-  message first, as a chat app's (grouped by project, the projects A to Z, so they never move, each with its rows in
-  that order): a reply, a request coming or your message takes its row to the top, and a working row sorts by when its
+  it) is kept apart from where its row is shown. What it is shows on its dot; where it's shown is one view for everyone
+  (`listGroups` in whose-move.js): a module's groups on top (`core.topGroups`, a team's chief, its groups and
+  its team), then every project, A to Z, so they never move, each group's rows newest message first, as a chat app's: a
+  reply, a request coming or your message takes its row to the top of its group, and a working row sorts by when its
   turn began, so its steps never move it and two working agents don't trade places with every step. Only the idle rows
-  go below the rest (`quiet`), so a reply you haven't read never sits under one you were done with. Grouped by team,
-  each group puts what needs you first (a request, a reply you haven't read or a job waiting on you: `needsYouFirst` in
-  modules/team/page/team.js), then the rest, each part in this order. The page keeps when you were last on each session
-  while it's yours, across launches (`noteOnIt`): you opened it here, wrote to it, or were on it for 2 seconds in
-  Claude, Ghostty or iTerm2 in front while at the Mac (the app's `seenAt`); another session writing to it isn't you. A
-  reply from before then is read, and so is one a module says went to another session rather than to you
+  go below the rest (`quiet`), so a reply you haven't read never sits under one you were done with. Nothing is lifted
+  for waiting on you: its bubble, its dot and the count beside the pawn say so. The page keeps when you were last on
+  each session while it's yours, across launches (`noteOnIt`): you opened it here, wrote to it, or were on it for 2
+  seconds in Claude, Ghostty or iTerm2 in front while at the Mac (the app's `seenAt`); another session writing to it
+  isn't you. A reply from before then is read, and so is one a module says went to another session rather than to you
   (`core.repliesElsewhere`: any session's reply to a message another session sent it, known by that session or its
   address, never a name), but for a reply to you you hadn't read when that came, kept to read (`state.toRead`,
   `keepToRead`) until you have. A conversation a module says is wholly not yours (`core.notYoursToRead`: with a team
   file, one that has ended in a member's folder, or the lead's or the front's) has nothing to read meanwhile, kept or
-  not, and what's kept stays for if it's resumed: the member's own row stands for it, and only a module's word makes
-  a conversation so, never a default.
+  not, and what's kept stays for if it's resumed: the member's own row stands for it, and only a module's word makes a
+  conversation so, never a default.
   Only a row you've pressed (`keepInPlace`) keeps the place it was last shown in, showing what it is now there, until
   you've moved on from the panel: the pointer off it and moved (`hoverEnd`), no box with the keyboard. These are
   deliberate: read the comments in whose-move.js before changing them.

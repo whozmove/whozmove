@@ -29,10 +29,10 @@ const hasKeyboard = () => !!state.keyboardWanted;
 // `pressing`, whether a press on it counts. A place given as its element alone, as the list is, is always open.
 const keyPlaces = () => [list, ...core.keyPlaces].map((p) => (p.el ? p : { el: p, open: () => true }));
 
-// The card pressed last that answers to keys (core.keyCards: a request or a question on a row), while it waits for
-// you in the place it was pressed in: found again there by its id, as the list is rebuilt whenever what it shows
-// changes, so a copy of the same request drawn in another place is never it, nor the copy of the row held at the
-// list's edge. Once it's answered or gone, or its place is no longer one or says it can't have them, it's let go of.
+// The card pressed last that answers to keys (core.keyCards: a request, a question or a card like it on a row), while
+// it waits for you in the place it was pressed in: found again there by its id, as the list is rebuilt whenever what
+// it shows changes, so a copy of the same request drawn in another place is never it, nor the copy of the row held at
+// the list's edge. Once it's answered or gone, or its place is no longer one or says it can't have them, it's let go of.
 function heldCard() {
   const held = state.keyCard;
   if (!held) return null;

@@ -38,6 +38,37 @@ key or link, or create one, talked through with Claude and made only once you pr
 in with Atlassian first. A ticket's link pasted into your words becomes the chip by itself.
 [Tickets](tickets.md) has the rest.
 
+### Where a ticket starts
+
+With a ticket on the chip, the card starts it in a worktree of its own, named after its key (PAY-142 in
+**pay-142**), so two tickets never work in the same copy of your files, and starts it in your terminal, where
+worktrees start. The line under the box says so ("PAY-142's own folder: ~/code/shop-worktrees/pay-142"), and, with
+Claude Desktop picked on the card, that worktrees start in your terminal; **Use shop** starts it in the project's own
+folder instead, in Claude Desktop when that's the one picked. A ticket you've started before carries on in its
+worktree, and one with a branch of its name but no folder gets it in a new folder.
+
+The first time you give a ticket in a git project, a short guide takes the line's place and asks how that project's
+tickets should open: in **its own worktree** (recommended), **by** one of its tickets' **fields** (offered only when
+one's options match the project's folders by name: a Team field whose checkout option matches `shop-checkout`, say),
+or **in the project itself**. Each choice says where this ticket would open. **Start** starts it the lit way and keeps
+that way for the project; **Not Now** starts this one in the project's folder, and the guide comes back next time; in
+a folder Claude hasn't worked in, Not Now only puts the guide away, and Trust and Start is still yours to press.
+**Esc** only puts the guide away, starting nothing, and the card shows the project's folder. Settings ▸ Tickets
+changes a project's way later.
+
+- A ticket a conversation already works says "PAY-142 is being worked in pay-142", with **Go to It**, which opens that
+  conversation as pressing its row does, carrying an ended one on. Start stays, for a second conversation if you mean
+  one.
+- Where another ticket's conversation works where this one would start, one notice says so ("PAY-139 is being worked
+  here. Two tickets in one folder can clash."), with **Use a new worktree**, which gives this ticket its own.
+- With no terminal, the ticket starts in the project's folder, and the line says why. Outside git there's nothing to
+  choose, and the card starts it there as it would any conversation.
+- By a field, a ticket with no option there, an option with no folder yet, its folder gone, or a ticket Jira couldn't
+  read gets its own worktree for now, and the line says which, with **Set It**, **Sign In** or **Try Again** where
+  there's one. While its option is read, Start waits.
+- Your own pick of where (**@**, **#**, Use <project>) always wins over the ticket's, and taking the ticket off puts
+  where it starts back as it was.
+
 ## The app it starts in
 
 The Start button shows the app it starts in, its icon and, once you've written something, its name, saying **Start in

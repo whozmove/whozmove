@@ -1,7 +1,8 @@
 # Model, effort, mode and compacting
 
-A session's model, effort and permission mode, and how full its context is, at the start of its row's bottom line,
-each changed from there while the session sits idle.
+A session's model, effort and permission mode, and how full its context is, at the start of its row's bottom line
+while it's the row you're on (the session in front in its app), each changed from there while the session sits idle.
+On another row, the context ring sits at the end of the line under its name, when it has one.
 
 ## Model, effort and mode
 
@@ -25,7 +26,7 @@ stashed and comes back), or presses Shift+Tab for the mode.
 - At its foot, **Don't Wait on Me**: questions and requests no one answers in 5 minutes go, and Claude carries on (see
   [Requests, questions and plans](requests.md#dont-wait-on-me)); **Let It Deploy**, while Deploy shows: the session
   can ask for its project's Deploy itself (see [Deploy](deploy.md#let-it-deploy)); and, on the row of the session
-  leading a team ([Group by Team](group-by-team.md)), **May Send Back Plans**, **May Answer Questions** and **May
+  leading a team ([With a team](the-list.md#with-a-team)), **May Send Back Plans**, **May Answer Questions** and **May
   Approve Plans**: it can send back a team member's plan with a note, answer its questions, or approve its plan (see
   [plans sent back](requests.md#plans-sent-back-for-you), [questions answered](requests.md#questions-answered-for-you)
   and [plans approved](requests.md#plans-approved-for-you)). After Whozmove restarts those three are off, and **Turn Back

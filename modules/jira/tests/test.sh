@@ -4,8 +4,10 @@
 # shapes read into tickets (answers/, --print-jira answers), and a whole sign-in and every call against a stand-in for
 # Atlassian on 127.0.0.1 (stand-in.py, --print-jira talk): signed in and out, an admin's block, a request to slow down
 # and a sign-in that has run out, that other apps can read, that something changed since this build kept it, or that
-# reads only. Each in a throwaway home, so nothing reaches Atlassian or your Keychain, and nothing opens. Compared with
-# jira.expected.txt.
+# reads only; a ticket's place among its project's priorities, the list read once a project, again only for a priority
+# not among it, and not at all; a ticket's description as Markdown, as Atlassian's document format and cut when long,
+# never in panel.log; and a read failing each way, logged by how it failed, with no word of its answer. Each in a throwaway home, so nothing reaches Atlassian or your Keychain, and nothing
+# opens. Compared with jira.expected.txt.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -64,12 +66,33 @@ out=$(
   for step in write newbuild quietly read quietly write rewritten has quietly read write quietly; do
     HOME="$T/home-changed" "$APP" --print-jira keychain $step 2>&1
   done
-  talk "" "state" "search login" "signin" "kept" "search login" "search nothing like it" "read PAY-142" \
-    "take PAY-142 31 The fix is in pull request #57." "take PAY-142 31" "take PAY-142 51" \
+  # Block is turned away by Jira (a field to fill in first): its own words come back, and the ticket stays where it is.
+  talk "" "state" "search login" "signin" "kept" "search login" "search PAY-142" "search nothing like it" "read PAY-142" \
+    "take PAY-142 41" "take PAY-142 31 The fix is in pull request #57." "take PAY-142 31" "take PAY-142 51" \
     'take PAY-142 51 {"resolution":"Fixed"}' 'take PAY-142 51 {"resolution":"Done"} Signed off.' "read PAY-999" \
-    "types PAY" "types NOPE" "create" "create refused" "create unread" "signout" "kept" "state"
+    "types PAY" "types NOPE" "create" "read PAY-151" "create refused" "create unread" "fields Task" "fields Task" \
+    "fields Epic" "signout" "kept" "state" "log"
+  # A ticket's description in Atlassian's document format, read as its plain text; and one longer than a session is
+  # handed, cut with a line saying so. Neither reaches panel.log.
+  talk adf "signin" "read PAY-142" "log"
+  # A read failing each way: HTTP 502, the server's own error, an answer that isn't one, the tool saying it failed (in
+  # words, then with a status, then an error with none), and the connection dropped. Each log line says how, in
+  # Whozmove's own words, and none of the answer's reaches the log; then how a timeout and macOS's own errors read.
+  talk failreads "signin" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" \
+    "read PAY-142" "log" "hows"
+  talk longabout "signin" "read PAY-142" "log"
   talk blocked "signin" "state"
+  # A project's priorities that can't be read: its ticket reads all the same, with its priority's word and no place;
+  # and the fields its tickets take one option of can't be read either, which says so.
+  talk nolist "signin" "read PAY-142" "fields Task"
   talk slow "signin" "read PAY-142" "search login"
+  # Asked to slow down partway through a read (the search for its type): the read and a move both say so, and the move
+  # is never told its step has gone.
+  talk slowtype "signin" "read PAY-142" "take PAY-142 31"
+  # A move Jira turns away saying nothing is still turned away, which trying again as it is won't change; one Jira
+  # answers with a 500, reasons and all, is Jira not managing it just then, which trying again may mend.
+  talk silent "signin" "take PAY-142 41"
+  talk busy "signin" "take PAY-142 41"
   talk expired "signin" "read PAY-142" "state" "kept"
   # A new build: macOS asks before it gives it the sign-in kept, so nothing reads it until your press of Allow, which
   # keeps it afresh as this build's, so after a restart it's read quietly; then one changed since this build kept it,

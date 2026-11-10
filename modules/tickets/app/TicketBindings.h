@@ -26,7 +26,7 @@
 // with when, whether a read is under way, and why the last one didn't read it, with when to try again. Then what its
 // moves left: the one asked for (`move`), what the row's card says of the last (`moved`: {to, by, at}, by `itself` or
 // `you`, or {gone, at}, why there was nothing to move, until the next read), how it went, for the session to be told
-// once (`told`: {moved} or {notMoved}), and the steps it marked as a person's, each with why (`stopped`, by step id).
+// once (`told`: {moved} or {notMoved}, with what the tracker said of a move it turned away, `trackerSays`), and the steps it marked as a person's, each with why (`stopped`, by step id).
 @interface TicketBinding : NSObject
 @property (copy) NSString *tracker, *site, *key, *link;
 @property (strong) Ticket *ticket;
@@ -77,7 +77,7 @@ NSDictionary *TicketShown(TicketBinding *bound, TicketOffer *offer, TicketDraft 
 // while it's read or your answer is waited for (which --wait waits through); "not used: …" once you said Not Now;
 // "can't now: …" when it can't be read; "refused: …" with no ticket at all. `signIn` names whose sign-in the tracker
 // uses, for the words, and `declined` is the key you said Not Now to, if you did. With the ticket comes its move, if
-// one was asked for: {waiting: where to} until it's taken or not, then how it went ({moved} or {notMoved: why}), which
+// one was asked for: {waiting: where to} until it's taken or not, then how it went ({moved} or {notMoved: why}, with `trackerSays` when the tracker turned it away), which
 // the module tells once.
 NSString *TicketAnswer(TicketBinding *bound, TicketOffer *offer, NSString *declined, NSString *signIn);
 

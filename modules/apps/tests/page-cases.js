@@ -98,6 +98,9 @@ show('off: its own groups dimmed, the other module’s not', groupsView(tool(fal
 show('rows the page doesn’t know, or with no key, left out', groupsView({ groups: [{ title: 'Odd', rows: [
   { kind: 'slider', key: 'volume' }, { kind: 'switch', title: 'No key' }, null,
   { kind: 'choice', key: 'c', choices: [{ id: 'a', name: 'A' }, { name: 'No id' }], fixed: { help: 'No name' } }] }] }));
+show('a choice with nothing to pick, only the row above that can\'t be pressed: no radio group under it',
+     groupRowHTML({ kind: 'choice', key: 'order', title: 'What comes first', choices: [], value: null,
+                    fixed: { name: 'Each ticket\'s own priority', help: 'Always.' } }));
 show('no groups', [groupsView({}), groupsView(null), groupsView({ groups: 'groups' })]);
 const pages = (on) => [tool(on), { id: 'git', switches: [{ key: 'deploy', on: true, group: null, enabled: true }] }];
 const groupOf = (apps, key) => apps && groupsView(apps[0]).flatMap((g) => g.rows).find((r) => r.key === key);
@@ -113,6 +116,47 @@ show('one that isn’t among its choices', afterChoice(pages(true), 'sample-tool
 show('a choice in a dimmed group', afterChoice(pages(false), 'sample-tool', 'who', 'lead'));
 show('a choice that isn’t there', afterChoice(pages(true), 'sample-tool', 'colour', 'red'));
 show('the apps it was given are left as they were', groupOf(pages(true), 'who').value);
+// A group that matters more than most, and a choice whose change shows first.
+const weighed = { id: 'sample-tool', name: 'Sample Tool', switches: [], groups: [{ title: 'Who may send', important: true,
+  enabled: true, rows: [{ kind: 'choice', key: 'who', title: 'Who may send', value: 'any', enabled: true,
+  choices: [{ id: 'any', name: 'Any session' }, { id: 'lead', name: 'Only a team’s chief' }],
+  confirms: { lead: { before: 'Any session sends', after: 'Only a team’s <b>chief</b> sends', warn: 'The others are told why.',
+                      keep: null }, any: { before: 'x' }, gone: { before: 'a', after: 'b' } } }] }] };
+show('important, and what picking each would change: only the choices it has, whole', groupsView(weighed));
+bk.apps = [weighed];
+bk.stack = ['apps', 'app:sample-tool'];
+print(groupsHTML(weighed));
+bk.confirm = { app: 'sample-tool', key: 'who', value: 'lead' };
+print('-- Only a team’s chief pressed: its before and after, with Keep It and Change');
+print(groupsHTML(weighed));
+bk.confirm = { app: 'another', key: 'who', value: 'lead' };
+show('…not on another app’s page', /b-ba/.test(groupsHTML(weighed)));
+bk.confirm = null;
+// A row opening a page of its own, and a choice there drawn as one row with the Mac's menu of them.
+const paged = { id: 'sample-tool', name: 'Sample Tool', switches: [], glyph: 'ticket', groups: [{ title: 'Places',
+  enabled: true, rows: [{ kind: 'page', key: 'north', title: 'North', said: 'Here', groups: [{ title: 'North’s',
+  enabled: true, rows: [{ kind: 'choice', key: 'where', title: 'Where North’s go', value: 'here', enabled: true,
+  menu: true, fixed: { name: 'Where North’s go', help: 'Picked from a <b>menu</b>' },
+  choices: [{ id: 'here', name: 'Here' }, { id: 'there', name: 'There' }] }] }] }] }] };
+show('a row opening a page of its own, and its rows found within it', rowsIn(paged.groups).map((r) => `${r.kind} ${r.key}`));
+show('…the row by its key', pageRowOf(paged, 'north')?.title);
+bk.apps = [paged];
+bk.stack = ['apps', 'app:sample-tool'];
+print(groupsHTML(paged));
+bk.stack = ['apps', 'app:sample-tool', 'sub:sample-tool:north'];
+show('on its page: its app, and the row', { app: subHere()?.app.id, row: subHere()?.row.title });
+print(bodyHTML());
+show('a choice there, picked', groupOf(afterChoice([paged], 'sample-tool', 'where', 'there'), 'where')?.value
+  ?? rowsIn(afterChoice([paged], 'sample-tool', 'where', 'there')[0].groups).find((r) => r.key === 'where').value);
+show('a tool’s tile with a mark of Settings’', iconHTML(paged, 40));
+show('a menu choice whose pick has gone asks for one', /Choose…/.test(groupRowHTML({ ...rowsIn(paged.groups)[1],
+  value: '/gone' })));
+show('shown on the page a row opens', showingStack('sample-tool', 'north'));
+show('…or on the app’s own, when there’s no such row', showingStack('sample-tool', 'nowhere'));
+show('a row opening a page in a dimmed group: nothing to press', /data-go/.test(groupRowHTML({ kind: 'page', key: 'north',
+  title: 'North', said: '', groups: [], off: true })));
+bk.apps = [];
+bk.stack = ['apps'];
 
 section('A tile’s letter');
 show('a name', initialOf('git'));
@@ -126,8 +170,8 @@ const settings = [
   { key: 'appearance', kind: 'choice', title: 'Light or Dark', glyph: 'look', group: 10, page: 'Appearance',
     value: 'system', foot: 'Match the Mac follows System Settings ▸ Appearance.',
     choices: [{ id: 'system', name: 'Match the Mac' }, { id: 'light', name: 'Light' }, { id: 'dark', name: 'Dark' }] },
-  { key: 'groupBy', kind: 'choice', title: 'Session List', glyph: 'list', group: 10, page: null, value: 'status',
-    choices: [{ id: 'status', name: 'Newest First' }, { id: 'project', name: 'Group by Project' }] },
+  { key: 'ownChoice', kind: 'choice', title: 'A Choice of Its Own', glyph: 'list', group: 10, page: null, value: 'one',
+    choices: [{ id: 'one', name: 'One' }, { id: 'two', name: 'Two' }] },
   { key: 'openWith', kind: 'choice', title: 'Open Files With', glyph: 'file', group: 10, page: null, value: null,
     choices: [{ id: 'com.example.editor', name: 'Example Editor' }] },
   { key: 'shortcut', kind: 'switch', title: 'New Conversation with ⌃⌥N', glyph: 'keys', group: 20, on: true,
@@ -141,7 +185,7 @@ show('no settings', settingsCards(undefined));
 show('a choice with nothing to pick from', settingValue({ kind: 'choice', choices: [], value: null }));
 show('a choice not made yet', settingValue(settings[3]));
 show('Appearance’s page', settingsPage(settings, 'Appearance').map((e) => e.key));
-show('Session List’s page, its own', settingsPage(settings, 'Session List').map((e) => e.key));
+show('a choice with no page named: a page of its own', settingsPage(settings, 'A Choice of Its Own').map((e) => e.key));
 show('a switch has no page', settingsPage(settings, 'New Conversation with ⌃⌥N'));
 const set = (key, value) => afterSetting(settings, key, value)?.find((e) => e.key === key);
 show('Black picked', set('look', 'black')?.value);

@@ -831,6 +831,37 @@ for path, what in sorted(named):
     problems.append("%s names %s: the project is public, so a site and a key in it are made up (acme.atlassian.net, "
                     "PAY-142), and a ticket's steps are only ever its tracker's, by their ids" % (path, what))
 
+# A plan is approved from the panel only by an answer marked approvePlan, which the hook takes for a plan alone, and
+# which only AnswerFor adds (sendApproval:), after the one check a session you allow and your press beside the list
+# both go through. So no other file of the app sets it on an answer, and the page never names it: your press sends
+# approveShownPlan, a message apart, which the app checks before it answers. Its print run (ClaudeCodePrints.m) sends
+# one from the page on purpose, to show the hook drops it. The pattern is written so its own text doesn't match it.
+APPROVE_SET = {".m": re.compile(r"@\"approve(?:Plan)\"\]?\s*[:=]"), ".js": re.compile(r"\bapprove(?:Plan)\b")}
+APPROVE_SETTERS = {"modules/claude-code/app/AnswerFor.m", "modules/claude-code/app/ClaudeCodePrints.m"}
+for path in sorted(set(listed_files)):
+    kind = os.path.splitext(path)[1]
+    if kind not in (".m", ".js") or "tests" in path.split("/") or path in APPROVE_SETTERS or not os.path.isfile(path):
+        continue
+    for n, line in enumerate(open(path, encoding="utf-8", errors="replace"), 1):
+        text = line.split("//")[0]
+        if APPROVE_SET[kind].search(text):
+            problems.append("%s:%d sets or names approvePlan: only AnswerFor adds it to an answer, after its one check, "
+                            "and the page sends approveShownPlan instead" % (path, n))
+
+# Claude Code's plan request is its module's to read and answer: another module that shows a plan Claude waits on (the
+# reader) asks core.planAsks, which says it in the panel's own words and sends the messages that answer it, so its
+# tool's name, and those messages, are named in that module alone. The patterns are written so their own text doesn't
+# match them.
+PLAN_TOOL = re.compile(r"\bExit(?:PlanMode)\b|'(?:answer|hold)(?:Ask)'|'approve(?:Shown)Plan'")
+for path in sorted(set(listed_files)):
+    if os.path.splitext(path)[1] not in (".m", ".h", ".js") or "tests" in path.split("/") \
+            or path.startswith("modules/claude-code/") or not os.path.isfile(path):
+        continue
+    for n, line in enumerate(open(path, encoding="utf-8", errors="replace"), 1):
+        if PLAN_TOOL.search(line.split("//")[0]):
+            problems.append("%s:%d names Claude Code's plan tool or a message that answers it: only its module reads "
+                            "its requests and answers them, and the others ask core.planAsks" % (path, n))
+
 for problem in problems:
     print("Checks:", problem)
 sys.exit(1 if problems else 0)

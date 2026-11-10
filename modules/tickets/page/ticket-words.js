@@ -162,7 +162,9 @@ function ticketTagHTML(sid, t, creating) {
   const says = first ? `<span class="tk-rs tk-problem">${first}</span>`
     : t.state ? `<span class="tk-rs tk-${kind}">${esc(t.state.name)}</span>` : '';
   const label = `${t.key}${first ? `, ${first}` : t.state ? `, ${t.state.name}, ${TICKET_KINDS[kind]}` : ''}`;
-  return `<span class="tag tk-row" data-tk="${esc(sid)}" aria-label="${esc(label)}" title="Open ${esc(t.key)} in your browser">`
+  // A problem it says is one to put right, so the whole tag is in that colour, the key with it.
+  return `<span class="tag tk-row${first ? ' needs' : ''}" data-tk="${esc(sid)}" aria-label="${esc(label)}"`
+    + ` title="Open ${esc(t.key)} in your browser">`
     + `${TICKET_ICON}<span class="tk-rk">${esc(t.key)}</span>${says}</span>`;
 }
 
@@ -264,7 +266,8 @@ function ticketUseHTML(sid, o, who) {
 // The card on the row asking you to move its ticket by the step the session asked for (ticket-move), while May Move Its
 // Ticket is off: where it goes, the note it adds to the ticket, whole, and each field the step sets, with its value,
 // whole; and, asked again, the move it takes the place of. Move It or Not Now; while it moves, "Moving it…"; when it
-// couldn't, why, with Try Again or Not Now. Nothing moves until you press.
+// couldn't, why, with Try Again or Not Now; when its tracker turned it away, what the tracker said, with its own page
+// first, then Try Again or Not Now. Nothing moves until you press.
 function ticketMoveHTML(sid, m, tracker, who) {
   if (!m?.key || !m.stepId) return '';
   const to = m.to?.name || m.name;
@@ -274,20 +277,27 @@ function ticketMoveHTML(sid, m, tracker, who) {
     + `<div class="tk-note">${esc(m.note)}</div>` : '';
   const fields = (m.fields || []).map((f) => `<div class="tk-cl"><span class="tk-lab">${esc(f.name)}</span>`
     + `<span class="tk-val">${esc(f.value)}</span></div>`).join('');
-  const p = m.problem;
+  const p = m.problem, refused = p?.kind === 'refused';
+  // What the tracker itself said of a move it turned away, as it said it, under who said it.
+  const says = refused && p.says ? `<div class="q-help">${tracker ? esc(tracker) : 'It'} says:</div>`
+    + `<div class="tk-note">${esc(p.says)}</div>` : '';
   const foot = m.moving ? '<div class="q-help tk-moving">Moving it…</div>'
     : (p?.kind === 'allow' ? '<div class="perm-why tk-warn">Whozmove was updated, so macOS asks once before it hands '
       + 'over the sign-in.</div>'
       : p ? `<div class="perm-why tk-warn">Couldn’t move it${p.why ? `: ${esc(ticketReason(p.why, [tracker, who]))}`
         : ' just now'}.`
-      + '</div>' : '')
+      + `</div>${says}` : '')
       + '<div class="perm-actions"><button data-act="notNow">Not Now</button>'
-      // A move the sign-in stops is let through only by signing in again (or Allow), never by trying again as it is.
-      + (p?.kind === 'signIn' ? '<button class="perm-allow" data-act="signIn">Sign In Again</button>'
+      // One its tracker turned away needs something done on the ticket itself first (a field to fill in), or someone
+      // else to move it, which trying again as it is won't change: its own page leads, with Try Again beside it.
+      + (refused ? '<button data-act="move">Try Again</button><button class="perm-allow" data-act="open">'
+        + `${tracker ? `Open in ${esc(tracker)}` : 'Open the Ticket'}</button>`
+        // A move the sign-in stops is let through only by signing in again (or Allow), never by trying again as it is.
+        : p?.kind === 'signIn' ? '<button class="perm-allow" data-act="signIn">Sign In Again</button>'
         : p?.kind === 'allow' ? '<button class="perm-allow" data-act="signIn">Allow</button>'
         : `<button class="perm-allow" data-act="move">${p ? 'Try Again' : 'Move It'}</button>`) + '</div>';
   return `<div class="perm tk-move" data-tkmove="${esc(sid)}" data-tracker="${esc(tracker || '')}" `
-    + `data-key="${esc(m.key)}" data-step="${esc(m.stepId)}" `
+    + `data-key="${esc(m.key)}" data-step="${esc(m.stepId)}" data-state="${esc(ticketMoveState(m))}" `
     + `data-at="${esc(String(m.at || ''))}"><div class="q-top"><span class="card-title">`
     + `${esc(`Move ${m.key} to ${to}?`)}</span></div>${again}${note}${fields}${foot}</div>`;
 }
@@ -300,6 +310,9 @@ function ticketNewCardHTML(c) {
     + `<div class="tk-cl">Claude is talking it through with you. Before anything is made in ${esc(c.tracker)}, the ticket `
     + 'shows on this row for your yes.</div>';
 }
+
+// The state a move's card shows, for its press to wait until it has been seen: asked, being moved, or why it wasn't.
+const ticketMoveState = (m) => (m.moving ? 'moving' : m.problem?.kind || 'asked');
 
 // The state a new ticket's card shows, for its press to wait until it has been seen: checked or not, then being
 // checked, made, or why it couldn't be.

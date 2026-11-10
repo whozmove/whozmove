@@ -70,12 +70,21 @@ typedef NS_ENUM(NSInteger, AppPermission) {
 @property (readonly, copy) NSArray<NSDictionary *> *(^choices)(void);
 @property (readonly, copy) NSString *(^picked)(void);
 @property (readonly, copy) void (^pick)(NSString *choice);
-// A row above its choices that can't be pressed, for what holds whichever is picked: {name, help} ("Urgent tasks,
-// always"), or nil for none.
+// A row above its choices that can't be pressed, for what holds whichever is picked: {name, help} ("Saved every
+// minute", "Whichever way it's shown"), or nil for none. With no choices, it's the row alone, saying what always holds.
 @property (copy) NSDictionary *fixed;
 // Shown only while `shown` says so, and pressable only while `enabled` does; nil for always.
 @property (copy) BOOL (^shown)(void);
 @property (copy) BOOL (^enabled)(void);
+// What picking a choice would change, said before it's picked, for one whose change you'd want to see first: {before,
+// after, warn, keep}, each a line (`warn` for one to be careful of, `keep` for what stays as it is, either nil), shown
+// under the choices with Keep It and Change, and picked only on Change; nil, or nil for that choice, picks it at once.
+@property (copy) NSDictionary *(^confirm)(NSString *choice);
+// Drawn as one row, its title over its line (`fixed`'s help, if any) and the picked choice's name on a button that
+// opens the Mac's own menu of its choices, the picked one ticked, rather than a row for each: for a choice among
+// many, made for each of several things on one page (an option's folder). A pick from the menu is made at once: a
+// menu choice has no `confirm`.
+@property BOOL menu;
 @end
 
 // A part of the day, in one of the groups on an app's page (quiet hours, from 22:00 to 08:00): its name over a line on
@@ -96,7 +105,7 @@ typedef NS_ENUM(NSInteger, AppPermission) {
 @end
 
 // One of the groups on an app's page, under its plain switches (One Task's Who May Hand You Tasks): a heading over a
-// card of its rows, each an AppSwitch, an AppChoice or an AppTime, and a line under the card; a group with no rows is
+// card of its rows, each an AppSwitch, an AppChoice, an AppTime or an AppPage, and a line under the card; a group with no rows is
 // only its line. Its place among the page's groups is its order (lower first), with those other modules add to the
 // app among them. Shown only while `shown` says so; while `enabled` says NO, its rows are dimmed and can't be pressed
 // (One Task's own, while it's off). Each nil for always, as are the heading and the line for none.
@@ -107,6 +116,19 @@ typedef NS_ENUM(NSInteger, AppPermission) {
 @property (readonly) NSInteger order;
 @property (copy) BOOL (^shown)(void);
 @property (copy) BOOL (^enabled)(void);
+// A choice that matters more than most on its page, which its heading says, with Important after it.
+@property BOOL important;
+@end
+
+// A row in one of the groups on an app's page that opens a page of its own (a project's, on Tickets'): its title, what
+// it's set to in a word or two (`said`, nil for nothing), and ›; its page has its own groups, asked each time the back
+// is told, ‹ there coming back. Shown only while `shown` says so; nil for always.
+@interface AppPage : NSObject
++ (instancetype)pageWithKey:(NSString *)key title:(NSString *)title groups:(NSArray<AppGroup *> *(^)(void))groups;
+@property (readonly, copy) NSString *key, *title;
+@property (readonly, copy) NSArray<AppGroup *> *(^groups)(void);
+@property (copy) NSString *(^said)(void);
+@property (copy) BOOL (^shown)(void);
 @end
 
 // One of the cards on an app's page on the panel's back, under its switches: how something Whozmove needs there stands
@@ -176,6 +198,9 @@ typedef NS_ENUM(NSInteger, AppPermission) {
 // Whether it's listed, for a tool that isn't an app (git) or an app listed whether it's installed or not (Spotify,
 // whose token offers to get it); nil for an app listed while macOS finds it by its id.
 @property (copy) BOOL (^present)(void);
+// The mark on a tool's tile, by the name Settings' tiles use (SettingEntry's glyph), drawn on that glyph's colour, for a
+// tool with none of its own; nil for its first letter.
+@property (copy) NSString *glyph;
 // A tool of Whozmove's own rather than an app it works with (Storage): the back lists it under Tools, after the apps,
 // and its page leads with what it does. Its permission has no section there: its card can say when it needs it (need),
 // though no tool does now (Storage asks on its map's rows instead).
@@ -380,6 +405,19 @@ typedef NS_ENUM(NSInteger, CompactEnd) {
 - (NSDictionary *)buildInPlaceFor:(NSString *)project;
 @end
 
+// How a project works, which the process-notes module keeps: other modules hand it to a session as plain data (the
+// tickets module, with its ticket). The core finds it (moduleThat:).
+@protocol ProjectWay <NSObject>
+// For a session's row: {project, pages, note, keptAt, draft}. `project` is its project's short name (its repo's main
+// checkout's folder name, for a worktree too; a folder outside git is its own project); `pages` the project's own
+// pages on how work is done there, as paths inside the session's checkout, for the session to read itself; `note` what
+// you kept with Keep It of what those pages don't say, a line each, and `keptAt` when (ms since 1970), both missing
+// before anything is kept; and `draft`, how this session's last draft stands: `waiting` while its card waits on the
+// row, `notNow` after your Not Now, `keptElsewhere` once another session's draft for the project was kept, missing once
+// its own is kept or none was drafted. Nil for a row with no folder.
+- (NSDictionary *)wayFor:(Row *)row;
+@end
+
 // Your gear, which the usage module keeps: how many sessions are working on your plan, how many it can carry to the
 // week's end, and the gear you set, for what shows it or follows it beyond the card. Plain data, numbers only (ms since
 // 1970), or nil until the usage has first been found, and while Usage Gear is off in Settings: {gear (NSNull until your first press), atWork, counted (the ids
@@ -391,6 +429,17 @@ typedef NS_ENUM(NSInteger, CompactEnd) {
 // word for it is the usage module's (core.gear on the page). The core finds it (moduleThat:).
 @protocol GearFacts <NSObject>
 - (NSDictionary *)gear;
+@end
+
+// Where keys are kept, as the storage module's Keys knows it, for a module that must never read one (a side question's
+// copy), so there's one list of them, and a file Keys learns holds keys is kept from that module too. The core finds
+// it (moduleThat:); a module that can't find it reads nothing.
+@protocol KeyPlaces <NSObject>
+// The files and folders in the home folder where keys are kept, each from the home folder.
+- (NSArray<NSString *> *)keyPlacesInHome;
+// Whether a file holds keys by what it's called, wherever it is: by its name (.env, id_rsa) or its last parts
+// (.cursor/mcp.json). Only the path's end is looked at, so it can be any path, or one at a commit's (HEAD:.env).
+- (BOOL)isKeyFile:(NSString *)path;
 @end
 
 // The ask-panel.sh commands a module's asks wait with, which a session may leave running in the background while it

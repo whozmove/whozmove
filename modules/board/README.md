@@ -62,7 +62,7 @@ with what needs you as one line that opens One Task, which answers it
     (`detailsTitleHTML`) with the row's step track (`stepTrackHTML`, the job turned into it by the team module's
     `core.teamJob.track`); and every job it lists with its priority's chip (`boardPrioHTML`: on its line, the job a
     member is on, Up next's rows and its card);
-  - Up next, or Team Board while Show Team Board is ticked, at the end of the chief's line under Group by Team
+  - Up next, or Team Board while Show Team Board is ticked, at the end of the chief's line, a short row as every row is
     (`core.slots.brief`), after the team module's own parts (module order 30). The chief is the team module's to say
     (`chief` in TeamFacts): the session you talk to when the file names one apart from the lead, else the lead. Its
     name is in the heads (`boardChiefSays`) and "Chief" on its working row in Up next; the lead keeps its name
@@ -77,7 +77,7 @@ with what needs you as one line that opens One Task, which answers it
   nor sends the lead
   anything.
 - **Neutral words.** A job is where it is in the board's own plain words (Needs you, Moving, Waiting, Up next, On hold,
-  Done), which Group by Team uses too, and a kind in One Task's words; never the file's own stage names or role words.
+  Done), which the team's rows use too, and a kind in One Task's words; never the file's own stage names or role words.
   A step's word is the file's, as its track and the strip of stages show it.
 - **No flows of its own.** The stages are the steps the file gives, in their order; nothing here knows a step by its
   id or word.

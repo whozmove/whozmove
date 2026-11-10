@@ -23,11 +23,12 @@ can (`canSayWhy`).
 
 A plan waiting for your OK (the ExitPlanMode tool) comes the same way too. The panel sends it back with your notes,
 which Claude gets as it would from its own prompt and so stays in plan mode to rewrite the plan, or stops it, which
-stops Claude's turn. Only a session you allow to approve plans for you (May Approve Plans, in the panel) can have one
-approved from the panel: the panel's answer then carries `approvePlan`, and the hook passes on an allow with an empty
-input, as Claude's own prompt does. Claude Code takes that as your approval, and leaves plan mode for the mode the
-session planned from; it ignores a bare allow for a plan (Claude Code 2.1.304). So an "allow" for a plan without
-`approvePlan` is never passed on, and `approvePlan` for any other tool is never either: the hook keeps waiting.
+stops Claude's turn. Only a session you allow to approve plans for you (May Approve Plans, in the panel), or your own
+press on Approve beside the panel's list, can have one approved from the panel: the panel's answer then carries
+`approvePlan`, and the hook passes on an allow with an empty input, as Claude's own prompt does. Claude Code takes that
+as your approval, and leaves plan mode for the mode the session planned from; it ignores a bare allow for a plan
+(Claude Code 2.1.304). So an "allow" for a plan without `approvePlan` is never passed on, and `approvePlan` for any
+other tool is never either: the hook keeps waiting.
 
 If the panel isn't running, the hook steps aside at once and the prompt is answered as usual. So it does
 wherever Claude Code wouldn't show its own prompt alongside: for a sub-agent (some wait for the hook before

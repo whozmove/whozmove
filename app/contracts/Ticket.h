@@ -42,6 +42,9 @@ NSString *TicketKindWord(TicketKind kind);
 @property (copy) NSString *fieldId, *name, *kind;
 @property BOOL required, many;
 @property (copy) NSArray<NSString *> *options;
+// Each option's id as the tracker reads it, in the order of `options`, when it gives them (a ticket's value names its
+// option by that id, which stays when the option is renamed): empty when it doesn't.
+@property (copy) NSArray<NSString *> *optionIds;
 @end
 
 // One of a ticket's next steps, as its tracker gives it for that ticket now: an id only the tracker reads, the step's
@@ -60,9 +63,20 @@ NSString *TicketKindWord(TicketKind kind);
 @property (strong) TicketRef *parent;
 @property (copy) NSArray<TicketGroup *> *groups;
 @property (copy) NSString *priority, *assignee;
+// Where its priority stands in its tracker's own list of priorities, the most pressing first (0 the top), and how many
+// that list has, so tickets from trackers that name their priorities differently can be put in one order: each nil when
+// its tracker gives no order, or hasn't read it yet.
+@property (copy) NSNumber *priorityAt, *priorities;
 @property (copy) NSArray<TicketStep *> *steps;
+// The option it has, in each field of its own that takes one from a list (a team, a component of its project), by the
+// field's id: {id, name}, the option's id and its name as people see it. Only for whoever asks: never in its JSON.
+@property (copy) NSDictionary<NSString *, NSDictionary *> *values;
+// Its description, as text (Markdown, or whatever its tracker writes it in), for the session working it to understand
+// what's asked: only for whoever asks, never in its JSON, so no row, page, kept file or log line carries it. Nil when
+// it has none, or its tracker gave none.
+@property (copy) NSString *about;
 // The ticket as JSON (for the page and for a session's ask): every word the tracker gave, as it gave it, for whoever
-// shows it to escape.
+// shows it to escape. Never its description (`about`).
 - (NSDictionary *)json;
 @end
 
@@ -70,8 +84,10 @@ NSString *TicketKindWord(TicketKind kind);
 // before it gives this build the sign-in it kept (your press of Allow, through signIn:), the tracker's
 // admin turned Whozmove away, it asked to slow down (until `retryAt`), the ticket isn't there (or isn't yours to see),
 // a step that's no longer one of the ticket's, it couldn't be done now, or the tracker turned away what it was given
-// (a new ticket with a priority, a parent or a field that project doesn't take), which trying again as it is won't
-// change; each with its why in plain words, never the tracker's own text.
+// (a new ticket with a priority, a parent or a field that project doesn't take; a move with a field to fill in on the
+// ticket first, or that isn't yours to make), which trying again as it is won't change; each with its why in plain
+// words, never the tracker's own text. What the tracker itself said of one it turned away, when it said, is apart
+// (`trackerSays`): for whoever shows it to escape, and given to a session only as JSON, never logged.
 typedef NS_ENUM(NSInteger, TrackerEnd) {
     TrackerEndDone,
     TrackerEndSignIn,
@@ -90,5 +106,6 @@ typedef NS_ENUM(NSInteger, TrackerEnd) {
 @property (readonly) TrackerEnd end;
 @property (readonly, copy) NSString *why;
 @property (strong) NSDate *retryAt;
+@property (copy) NSString *trackerSays;
 @property (readonly) BOOL ok;
 @end

@@ -1,0 +1,3 @@
+{"data": {"startAt": 0, "maxResults": 50, "total": 1, "results": [
+  {"fieldId": "priority", "key": "priority", "name": "Priority", "required": true, "schema": {"type": "priority", "system": "priority"},
+   "allowedValues": [{"name": "Blocker", "id": 10000}, {"name": "Major", "id": 10001}, {"name": "Minor", "id": 10002}]}]}}

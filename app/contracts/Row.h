@@ -95,6 +95,10 @@
 // rows were last listed (noteWaitsAsListed), to keep a closed row listed while it waits, and, on the page, whether it's
 // `closed` (ended.js), to say it stopped only once.
 @property (copy) NSDictionary *wait;
+// A note on how its project works the session drafted, waiting on its row for your Keep It, the process-notes
+// module's alone (docs/reference/rows.md): {at, project, lines, keptAt, declinedAt, keeping, problem}. Missing while
+// none waits.
+@property (copy) NSDictionary *processDraft;
 // What a session you allow last answered for you on this session's behalf, for a while after (its agent's module):
 // {by, what, title, note, at}, `what` sentBack.
 @property (copy) NSDictionary *answeredFor;

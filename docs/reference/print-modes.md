@@ -13,8 +13,8 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
 - `Whozmove --print-teams` prints each team as a whole, as the team module offers it to the others
   ([team.md](team.md#each-team-as-a-whole)), once the rows have been read for the home folder in `$HOME`: what
   `tests/rows.sh` checks. It reads the team file whatever Working on Whozmove ▸ Show Teams says; with `--switch-off` it
-  prints what the team module gives with that switch off instead: no teams, no row with a team, and Group by Team not
-  offered, which `tests/rows.sh` checks too.
+  prints what the team module gives with that switch off instead: no teams and no row with a team, which
+  `tests/rows.sh` checks too.
 - `Whozmove --print-rows` prints the rows the panel would get for the home folder in `$HOME`, as JSON, and
   quits: what `tests/rows.sh` compares. It never asks GitHub, so PRs show as UNKNOWN there.
   `Whozmove --print-mode-moves` prints, for each terminal session, why keys can't go into it now (or that they
@@ -90,6 +90,9 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   from gh's answer as the file gives it, for a wait begun at `since` (ISO 8601): the events kept from it, the wakes
   without comments and with them, and what its row says it waits on; the git module's tests run it on a made-up
   answer.
+- `Whozmove --print-pr-due` prints, for sample states, whether a checkout's branch can have a pull request of its own
+  (the branch and the repo's base branch), and whether it's due its look-up (those, the branch last looked up, and how
+  long ago); the git module's tests run it.
 - `Whozmove --print-deploys <folder>…` prints the command Deploy would suggest for each folder, the port a deploy
   there gets in $PORT, how its last run went as the page would be told, what a deploy from it would note it starts from now (its commit, and how many files
   aren't committed), and its project's build in place as Deploy keeps it, keeping nothing itself; `Whozmove
@@ -130,7 +133,8 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   keys and links read, links made from a site and key, the search each set of words makes, the kind each status
   category counts as, the scopes, the sign-in service's published pages, PKCE's challenge, which sign-in services it
   can use, and its page on the panel's back in each state; `--print-jira answers <folder> <site>` each recorded answer
-  in that folder read as a ticket, steps, boards, sites or an error; `--print-jira talk <site> <steps…>` a whole
+  in that folder read as a ticket (with its description apart, as only a session is given it), steps, boards, sites, a project's types, its priorities in order with each one's
+  place, or an error; `--print-jira talk <site> <steps…>` a whole
   sign-in and each call against a stand-in for Atlassian whose address `WHOZMOVE_JIRA_SERVER` gives (only 127.0.0.1,
   and only in a throwaway home), the run itself following Atlassian's page as your browser would; and
   `--print-jira keychain write|open|update|newbuild|rewritten|has|quietly|read|forget` a made-up Keychain entry under
@@ -151,6 +155,20 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   its notices (`notices`), its words for a conversation opened again (`reopen`), its background waits (`words`), what's
   kept (`kept`), a new copy reading it (`relaunch`), the plain functions (`cases`), and whether panel.log says any word
   of what came (`log`, `logged`).
+- `Whozmove --print-process <steps…>` drives the process-notes module as the core and the page would, with made-up
+  projects (acme-web, a worktree of it, a folder outside git) and a clock of its own, in a throwaway home only: sample
+  sessions (`row`, `ended`), a session's `process-draft` with one of its made-up notes (`draft`), your Keep It or Not
+  Now on its card (`keep`, `notnow`, and `stale` for a card drawn for a draft gone since), Keep It unable to write
+  (`locked`, `unlocked`), time passing (`later`), the rows' `processDraft` (`rows`), a session's way (`way`), what's
+  kept (`kept`), a new copy reading it (`relaunch`), the plain functions (`cases`), and whether panel.log says any word
+  of a note (`log`, `logged`).
+- `Whozmove --print-ticket-routing <repo> <steps…>` drives the ticket routing module as the card and Settings would,
+  with a made-up tracker whose tickets have a Team field, in a throwaway home only, against a made-up repo: each
+  ticket's Team (`team`), that field given with no options, as one looked up as you type (`lookup`), a way kept for a
+  folder that's no project now (`elsewhere`) and Forget It on it (`forget`), the card's ask (`ask`, from a folder given), the guide's Start (`set`), Settings' picks
+  (`pick way`, `pick option`) and its page (`settings`), a conversation working a ticket there (`busy`), what's kept
+  (`kept`), a new copy reading it (`relaunch`), a file changed by hand (`hand`), the plain match by name (`match`),
+  and what panel.log says (`logged`). The ticket routing module's tests.
 - `Whozmove --print-tickets <steps…>` drives the tickets module as the core and the page would, with a made-up
   tracker: sample sessions (`row`, `ended`), a start from the card with a ticket (`start`), each ask (`ask`), your Use
   It or Not Now (`press`), the rows' `ticket` (`rows`), a read that ends otherwise (`fails`), what's kept (`kept`), a
@@ -228,10 +246,15 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
 - `Whozmove --print-program <pid>…` prints what each process runs, as the asks take it: Claude Code's own build
   signed by Anthropic, an older Claude Code from npm, run by Node, or neither. The real Claude Code run checks it
   (real.sh).
-- `Whozmove --print-aside` prints a question asked on a session's side, running nothing: the command and the words it
-  runs, the sessions it may be asked of (only one whose id is a UUID), the model and program it's asked with, how
-  each ending of its output is read, and its process kept out of what's read from Claude Code's registry while it
-  runs. It writes in the home folder, so it refuses to run in your own; the Claude Code module's tests check it.
+- `Whozmove --print-aside` prints a question asked on a session's side, running nothing of Claude Code's: the command
+  and the words it runs, the sessions it may be asked of (only one whose id is a UUID), the model and program it's asked
+  with, how each ending of its output is read, the steps it says as it answers, which versions of Claude Code are asked
+  for its thinking's summaries, what its checker (`--helper-aside-check`) lets it read and run in a sample folder, when
+  a follow-up goes into the open copy and what a fresh copy is told, a kept conversation with a stand-in that answers
+  each line it's sent, a question asked of stand-ins for Claude Code that take or turn down the summaries' flag, and its
+  process kept out of what's read from Claude Code's registry while it runs. It writes in the home folder, so it refuses
+  to run in your own; the Claude Code module's tests check it. With `--steps <file> <folder>`, it prints only the step
+  each tool call in the file says, which the same tests hold beside the session's own hook's words.
 - `Whozmove --print-usage <file>…` prints what the usage card would take from each file as Claude Code's answer to
   the usage request, or as `claude auth status`'s, what an answer with no plan's numbers becomes beside that auth
   status (`noPlan`, without and with a key in your shell), and where `claude` is looked for (`$USAGE_PATH` as the PATH);
@@ -287,7 +310,7 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   says, its permission, its switches and its groups (those other modules add among them), and `Whozmove
   --print-settings` Settings' rows, the panel's own and each module's, in their order. `Whozmove --print-app-page` prints
   what the back is sent for a made-up tool's page with groups (one of them another module's) and a row in Settings
-  opening it, then what each press makes of it: a choice picked, ones that can't be, the tool turned off, a time picked
+  opening it, then what each press makes of it: a choice picked, one on a page a row opens, ones that can't be, the tool turned off, a time picked
   from each end's menu, and Use the Recommended Settings; what each end's menu of times offers; and a time as two
   places write it. The apps module's tests check all three.
 - `Whozmove --print-sessions <stand-in Trash> [--helper <program>] [trash|undo|putback <id>…|tick]` prints Sessions

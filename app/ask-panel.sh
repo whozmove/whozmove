@@ -75,6 +75,11 @@
 #                                        the user's Create Ticket there makes it; ticket --wait then says "created:
 #                                        PAY-151…" or "not yet: …", or "can't now: …" once when it couldn't be
 #                                        checked or made, which a --wait again waits through
+#   ask-panel.sh process-draft < note   how this session's project works, beside its own pages: what those pages
+#                                        don't say, a line each, on stdin, 4000 characters at most: "Keep this as how
+#                                        acme-web works?" shows on this session's row, against the note as kept, and
+#                                        only the user's Keep It there keeps it; after their Not Now, the same lines
+#                                        aren't shown again
 #
 # It exits 1 when the panel refuses, can't be reached or is starting up, when a task's gone, and when a wait stops
 # for want of the panel.
@@ -312,6 +317,26 @@ elif [ "$1" = ticket-draft ]; then
     exit 2
   fi
   asked=$(printf '{"ask": "ticket-draft", "draft64": "%s"}' "$draft64")
+elif [ "$1" = process-draft ]; then
+  # The note, from stdin, base64-encoded as a note is.
+  note=
+  [ -t 0 ] || note=$(cat)
+  if [ -z "$(printf '%s' "$note" | tr -d ' \t\n')" ]; then
+    echo "Give the note on stdin: what the project's own pages don't say, a line each" >&2
+    exit 2
+  fi
+  if [ "$(printf '%s' "$note" | wc -m)" -gt 4000 ]; then
+    echo "A note may be 4000 characters at most: keep only what the project's own pages don't say" >&2
+    exit 2
+  fi
+  note64=$(printf '%s' "$note" | /usr/bin/base64 | tr -d '\n')
+  # One ask is 16 KB at most, as the panel reads it: a note of letters that each take several bytes can pass 4000
+  # characters' worth of it.
+  if [ "${#note64}" -gt 16000 ]; then
+    echo "A note may be 12 KB at most: keep only what the project's own pages don't say" >&2
+    exit 2
+  fi
+  asked=$(printf '{"ask": "process-draft", "note64": "%s"}' "$note64")
 elif [ "$1" = send-back ]; then
   # The request, by the hook's own id, and the note, from stdin, base64-encoded so nothing in it can break the line.
   case "${2:-}" in

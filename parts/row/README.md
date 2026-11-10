@@ -25,7 +25,8 @@ pick going in), with when a press on what's only just appeared counts.
   (`isAsk`, the note's `look`), ending in its one action (the note's `act`, its button drawn by `askActHTML`), its
   cards in their order (`rowCard`, `openingCard`), its details at the end of its lines
   (`detailsHTML`, parts/details), what where it runs and open twice say in theirs (`placeCardHTML`, `twiceCardHTML`), the app it runs in (`hostOf`, `worktreeChip`), the modules' places on it (`slot`, `core.slots`, with whether Claude's line is there for theirs at its end, `row.claudeLine`, whether the row asks something of you and for what, `row.asking` and `row.askWant`, whose one action another module may give, `askAct`, whether the bottom line's end is drawn, `row.placeEnd` (never while the row asks), and whether it is drawn at the end of the row's note, `row.endAtNote`: on a row shown briefly, with what stays on the bottom line whatever its end does before it, `placeStays`; the title line's gap before what goes at its end, and the time's width after it),
-  the list's HTML (`rowsHTML`, `groupsHTML`, `projectsHTML`), whether a row is in view (`rowInView`), its times kept
+  the list's groups' HTML (`groupsHTML`), whether a row is in view
+  (`rowInView`), its times kept
   ticking without the list being drawn again (`tickTimes`), and the strip at its far edge: whose strip the pointer is
   on, marked in place as hover looks and drawn so from `state.edgePointed` (state.js), on the side the app says the
   reader would open to (`readerSide`, as `far-left`), there whatever card is open on the row; and what a row keeps
@@ -46,8 +47,9 @@ the list's HTML and what the cards go by, as part.json lists:
 - **The bridge's hooks** are where the modules plug into a row (`core.slots`, `core.rowCards`, `core.hosts`,
   parts/bridge). A module that puts something of its own after the context ring for a while marks the row
   `place-gives-way` (through `core.slots.rowClass`), and where the session runs makes way for it first (rows.css).
-- **The list** draws it (`rowsHTML`, `groupsHTML`, `projectsHTML`, `tickTimes`, parts/list), and it reads from the list
-  whose move it is (`waitsOnYou`, `isRead`, `view`, `lastActive`, `projectOf`, `ago`, `elapsed`, `minutesLeft`).
+- **The list** draws it (`groupsHTML`, `tickTimes`, parts/list, in the groups its `listGroups` gives), and it reads from
+  the list whose move it is (`waitsOnYou`, `isRead`, `view`, `lastActive`, `projectOf`, `ago`, `elapsed`,
+  `minutesLeft`).
 - **A row's details** (parts/details) are drawn at the end of its lines (`detailsHTML`), from what the row has as it's
   drawn.
 - **A row's details, the keyboard and the modules** go by `justShown`, and the held row's hand-off has what's on a row
@@ -73,12 +75,12 @@ the list's HTML and what the cards go by, as part.json lists:
   tip for "+N", its label and what a press on it does; the row draws the name or the mark, the words and the bubble
   (`.ask-note`, `.ask-urgent`, `.ask-normal`, `.ask-low`), the same for every module, and keeps its action outside its
   press. **One ask, one action:** an ask ends in the one button for what it asks (`act`): another module's for what it
-  wants (`askAct`: Deploy for 'try'), else the module's own; and while a row asks, the row draws the bottom line's
-  end (`placeEnd`, Deploy) nowhere, and each module with an action elsewhere on the row decides for itself, from
-  `row.asking`, to leave it off (the commands module's context ring on the bottom line). A swap at the ask's end (Copy
-  for Deploy) waits to be seen, as a move does (`state.briefEnds`). Why: an ask shows the one thing to press for it,
-  never its plan, the context ring and Deploy at once. Deploy's address stays on the bottom line (`placeStays`), where
-  it can be pressed.
+  wants (`askAct`: Deploy for 'try', the reader's button for 'plan' and 'look'), else the module's own; and while a row
+  asks, the row draws the bottom line's end (`placeEnd`, Deploy) nowhere, and each module with an action elsewhere on
+  the row decides for itself, from `row.asking`, to leave it off (the commands module's context ring on the bottom
+  line). A swap at the ask's end (Copy for Deploy) waits to be seen, as a move does (`state.briefEnds`). Why: an ask
+  shows the one thing to press for it, never its plan, the context ring and Deploy at once. Deploy's address stays on
+  the bottom line (`placeStays`), where it can be pressed.
 - **A press on what has only just appeared doesn't count:** it may have taken the place of what was being pressed, and
   it hasn't been seen yet (`justShown`).
 - **The cards use the kit's pieces** (controls.css): its buttons, its box to tick, its box to type in and its notice.
@@ -94,6 +96,15 @@ the list's HTML and what the cards go by, as part.json lists:
   or step, nor a module's line in Claude's place beside the folded panel. Claude's line stays only while it says what
   the panel knows (`conversationLine`: a request or a question, what you just answered, compacting, a conversation
   still starting); the cards, the notes (an ask line among them), what runs in the background and the bottom line stay.
-  `row.chatless` stays the modules' own: the row keeps its own hiding beside it.
+- **A row in the list is shown briefly, and says each thing once** (`row.brief`, set by the row part for every row but
+  a chat beside the folded panel and a start still under way; `briefLine`): Claude's line only where nothing else says
+  it (what it asks with no card, or its finished line on a reply you haven't read), never under an ask's bubble or a
+  request's card, nor while it works or once its reply is read. No module hides it; Show Conversation Text off hides
+  it as on any row.
+- **The row you're on keeps its tools** (`row.tools`: a short row whose session is the one in front in its app,
+  `s.focused`): its work line and bottom line, as a whole row has, so the session you're working in can be steered from
+  the list. A module that puts something elsewhere on a short row for want of a bottom line (the context ring, Deploy's
+  address) leaves it there on this one. A row that gains or loses its work line and bottom line (the row you're on
+  changing, or a start from the panel landing) counts what's on it as only just shown, as when its end moves.
 - **The work line goes while the session's agent works,** asks along the way or compacts, but for a note, which it
   keeps saying in its place (`workHTML`).

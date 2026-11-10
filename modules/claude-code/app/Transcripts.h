@@ -82,9 +82,10 @@ double LatestMessageAt(NSData *chunk, NSUInteger end);
 @property (copy) void (^onPRLinks)(void);
 // Starts reading what's new in each listed session's transcript, and forgets the sessions no longer listed.
 - (void)readNew;
-// What's been read for a session so far: {path, offset, prs, usage, spent, mode, modeAt, messageAt, title, writings,
-// waiting, edits (its sub-agents' included, and what their shell commands changed), editIds, subOffsets, and the
-// shell commands' modes (AddShellNews)}, or nil. `spent` is what its replies and its sub-agents' used, SpentToday's.
+// What's been read for a session so far: {path, offset, prs, usage, spent, mode, modeAt, messageAt, compactedAt (when
+// it last compacted, ms since 1970), title, writings, waiting, edits (its sub-agents' included, and what their shell
+// commands changed), editIds, subOffsets, and the shell commands' modes (AddShellNews)}, or nil. `spent` is what its
+// replies and its sub-agents' used, SpentToday's.
 - (NSDictionary *)stateOf:(NSString *)sessionId;
 // One of a session's writings, read off the main thread; `done` gets ReadWriting's answer on the main thread.
 - (void)readWriting:(NSString *)writingId of:(NSString *)sessionId done:(void (^)(NSDictionary *read))done;

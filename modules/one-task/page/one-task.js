@@ -21,8 +21,8 @@ moduleState({
                     // not a step's, so a reword or its next step leaves it read; and those the app keeps as read
   tasksLastOn: null, // the task you were last on in One Task ({key, step, ui, title, task, sid}), kept while it's
                      // closed
-  tasksGoUrgent: false, // One Task opened from the urgent line under the header: straight to the first urgent one
-  tasksRules: { next: 'picks', why: false, waitForGo: true, talk: true, held: 'self', turnedAway: [] },
+  tasksGoUrgent: false, // One Task opened from the to-do-now line under the header: straight to the first of them
+  tasksRules: { why: false, waitForGo: true, talk: true, held: 'self', turnedAway: [] },
                     // how One Task works, as its page on the back sets it (setTasks)
   talkDrafts: {},   // what you've written in the talk's box, by task, kept through its next steps
   talkLead: {},     // the lead's picks whose talk you chose to have with the lead, by task, before it begins
@@ -52,7 +52,7 @@ function oneTaskItems() {
   const sent = state.tasks.filter((one) => !state.tasksSent[oneTaskStepOf(one)])
     .map((one) => (state.tasksBack[oneTaskStepOf(one)] && !one.back ? { ...one, back: true, at: Date.now() } : one));
   const ot = oneTaskReading() ? state.reading.ot : null;
-  return taskLine(sent, state.last.sessions || [], state.tasksRules).filter((item) => {
+  return taskLine(sent, state.last.sessions || []).filter((item) => {
     if (!item.takenBack || (ot && item.key === ot.key && oneTaskHolding())) return true;
     oneTaskLetGo(item, ot && item.key === ot.key ? ot : null);
     return false;
@@ -148,15 +148,17 @@ function drawOneTask() {
   oneTaskStuck();
 }
 
-// A fresh view of One Task, as it opens: from the urgent line under the header, straight to the first urgent one, the
-// task you were last on set aside; else, opened at a task that still waits (state.tasksWant), that one, nothing put
-// back; else back on the task order.js opens on (taskOpensOn): the one you were last on, as you left it, or as much as
-// it keeps of it when it changed meanwhile; after Whozmove restarts, the one the app says you read last, as it is.
+// A fresh view of One Task, as it opens: from the to-do-now line under the header, straight to the first it names but
+// the task you were last on, that one set aside; else, opened at a task that still waits (state.tasksWant), that one,
+// nothing put back; else back on the task order.js opens on (taskOpensOn): the one you were last on, as you left it,
+// or as much as it keeps of it when it changed meanwhile; after Whozmove restarts, the one the app says you read last,
+// as it is.
 function oneTaskOpening(items) {
   const ot = { key: undefined, step: null, ui: oneTaskUi(), said: '', saidAt: 0, shownAt: 0, sliding: false };
   const last = state.tasksLastOn, still = taskOpensOn(items, last, (key) => !!state.tasksSeen[key]);
   const seenLast = !!still && !!last;
-  const urgent = state.tasksGoUrgent && taskUrgentOthers(items, still?.key ?? last?.key)[0];
+  // The first the line under the header named, but the one you were on: the line names every task to do now.
+  const urgent = state.tasksGoUrgent && items.find((item) => taskDoNow(item) && item.key !== (still?.key ?? last?.key));
   state.tasksGoUrgent = false;
   if (!urgent && items.some((item) => item.key === state.tasksWant)) return ot;
   // After a restart, the task you read last is set aside all the same, with nothing of what you'd done on it.
@@ -168,19 +170,18 @@ function oneTaskOpening(items) {
   return ot;
 }
 
-// The task in front: one a press has just brought in (Go, ‹ Back, Open from the urgent line); else the one you're on,
-// if you've seen it or are pointing at it or typing in it, as a task you've seen is yours until you leave it; else
-// the one a reply's notice opened at; while you're on the urgent ones with a task set aside, the next urgent one, and
-// then the one you set aside; else the line's first.
+// The task in front: one a press has just brought in (Go, ‹ Back, Open from the to-do-now line); else the one you're
+// on, if you've seen it or are pointing at it or typing in it, as a task you've seen is yours until you leave it; else
+// the one a reply's notice opened at; while you're on those to do now with a task set aside, the next of them ahead of
+// it, and then the one you set aside; else the line's first.
 // Back on the task you set aside: as you left it, or with as much as taskKeptUi keeps when it changed meanwhile; or,
 // when it no longer waits (taken back by its session, say), the foot says so, with what you'd typed in its Comment
 // box and talk box to copy (taskKeptWords), until you move on.
 function oneTaskChoose(items, ot, wanted) {
   const aside = ot.aside;
-  // With urgent tasks not waiting for your Go (One Task's page), only pointing or typing holds the one you're on.
-  const waitForGo = state.tasksRules.waitForGo !== false;
   const { front, gone } = taskChooseFront(items, { next: ot.next, key: ot.key, held: oneTaskHolding(),
-    seen: (key) => waitForGo && !!state.tasksSeen[key], wanted, aside, gone: aside && state.tasksGone[aside.key] });
+    seen: (key) => !!state.tasksSeen[key], waitForGo: state.tasksRules.waitForGo !== false, wanted, aside,
+    gone: aside && state.tasksGone[aside.key] });
   ot.next = null;
   if (aside && front?.key === aside.key) {
     ot.aside = null;
@@ -218,8 +219,9 @@ function oneTaskSeenTold(item) {
   native({ type: 'taskSeen', sessionId: item.sid, id: item.task.id, sent: item.sent });
 }
 
-// A press on the strip: Go sets the task you're on aside, with everything you'd done on it, and brings the first urgent
-// one in, leaving the keyboard free; ‹ Back goes back to it, the urgent ones waiting first, their strip back on.
+// A press on the strip: Go sets the task you're on aside, with everything you'd done on it, and brings the first one
+// to do now ahead of it in, leaving the keyboard free; ‹ Back goes back to it, those to do now waiting first, their
+// strip back on.
 function oneTaskUrgent(act) {
   const ot = state.reading?.ot;
   if (!ot || ot.sliding) return;
@@ -254,8 +256,7 @@ function oneTaskFrame(front, items, now) {
   sent.classList.toggle('shown', !!ot.said);
   // Your move's colour for where an answer went; a copy's line stays quiet, as nothing is asked of you by it.
   sent.classList.toggle('turn', ot.quietAt !== ot.saidAt);
-  setText(foot.querySelector('.ot-more'), taskMoreWords(items.length - 1, !!front,
-                                                       taskUrgentOthers(items, front?.key).length));
+  setText(foot.querySelector('.ot-more'), oneTaskMoreWords(items, front));
   const kept = foot.querySelector('.ot-kept-row');
   kept.hidden = !ot.kept;
   if (ot.kept) setText(kept.querySelector('.ot-kept'), ot.kept);
@@ -386,12 +387,16 @@ function oneTaskSwap(body, how) {
   }, stop);
 }
 
+// How many more wait after the one in front, and how many of them are to do now, as the foot says it.
+const oneTaskMoreWords = (items, front) => taskMoreWords(items.length - 1, !!front,
+  items.filter((item) => item !== front && taskDoNow(item)).length);
+
 // The head's and foot's words for the one that has just come in: those that change fade out, then the new fade in.
 function oneTaskFrameIn(front, items) {
   const changing = () => [reader.querySelector('.r-head .r-sub'), reader.querySelector('.ot-more')].filter(Boolean);
   const head = reader.querySelector('.r-head');
   if (head.dataset.drawn === taskHeadHTML(front, Date.now())
-      && reader.querySelector('.ot-more')?.textContent === taskMoreWords(items.length - 1, !!front)) return;
+      && reader.querySelector('.ot-more')?.textContent === oneTaskMoreWords(items, front)) return;
   Promise.all(changing().map((el) => el.animate([{ opacity: 1 }, { opacity: 0 }],
                                                 { duration: 120, easing: 'ease', fill: 'forwards' }).finished))
     .then(() => {
@@ -406,12 +411,13 @@ function oneTaskFrameIn(front, items) {
 
 // A task's next step: its title stays. The rest under it (why, what to do, what's attached, its buttons) fades first;
 // then the step's words past what they share are erased and the new written in, as a chat line's are (rewriteText),
-// its dashes easing to their new fill as the new words start; and only then does the rest come in, lifting, the
-// buttons with it, so nothing can be pressed under the step before's words. Until it's in, no press counts.
+// its track cross-fading to where it now stands as the new words start, as a row's track does (core.swaps); and only
+// then does the rest come in, lifting, the buttons with it, so nothing can be pressed under the step before's words.
+// Until it's in, no press counts.
 function oneTaskStep(body, fill) {
   const r = state.reading, ot = r.ot, page = body.firstElementChild;
   const word = page?.querySelector('.ot-word')?.textContent || '';
-  const dashes = [...(page?.querySelectorAll('.ot-track i') || [])].map((i) => i.className);
+  const track = page?.querySelector('.ot-track')?.innerHTML ?? null;
   const rest = (el) => [...(el?.querySelectorAll('.ot-steps > :not(.ot-step), .ot-buttons') || [])];
   const here = () => state.reading === r && oneTaskReading();
   const stop = () => { ot.sliding = false; };
@@ -423,21 +429,18 @@ function oneTaskStep(body, fill) {
       fill(true);
       const next = body.firstElementChild, coming = rest(next);
       for (const el of coming) el.style.opacity = '0';
-      const now = [...next.querySelectorAll('.ot-track i')], to = now.map((i) => i.className);
-      const fillDashes = () => now.forEach((i, k) => { i.className = to[k]; });
-      // The dashes show the step before's fill until the new words start: put back at once, with no easing, as the
-      // new page has already been measured with its own.
-      if (now.length === dashes.length) {
-        now.forEach((i, k) => {
-          i.style.transition = 'none';
-          i.className = dashes[k];
-        });
-        void next.offsetWidth;
-        for (const i of now) i.style.removeProperty('transition');
-      }
+      // The track shows where the step before stood until the new words start, then cross-fades to where it stands
+      // now (morph's swapIn); the new page was measured with its own, which is the same size.
+      const nowTrack = next.querySelector('.ot-track'), to = nowTrack?.innerHTML;
+      const fillTrack = () => {
+        if (!nowTrack || nowTrack.innerHTML === to) return;
+        nowTrack.innerHTML = to;
+        swapIn(nowTrack);
+      };
+      if (nowTrack && track !== null && track !== to) nowTrack.innerHTML = track;
       const line = next.querySelector('.ot-word');
-      const written = line && word ? rewriteText(line, word, { writing: fillDashes })
-        : (fillDashes(), Promise.resolve());
+      const written = line && word ? rewriteText(line, word, { writing: fillTrack })
+        : (fillTrack(), Promise.resolve());
       return written.then(() => {
         if (!here()) return stop();
         for (const el of coming) {
@@ -781,9 +784,9 @@ core.noticeSenders.push({
     const items = oneTaskItems();
     state.tasksNewest = taskNewest(items, state.tasksNewest);
     if (oneTaskReading()) return [];
-    const notice = taskNotice(items, state.tasksNewest);
-    // Something urgent has its own line, first: Open goes straight to it, the task you were on set aside.
-    const urgent = taskUrgentNotice(items);
+    const notice = taskNotice(items, state.tasksNewest, state.tasksLastOn?.key);
+    // What's to do now has its own line, first: Open goes straight to it, the task you were on set aside.
+    const urgent = taskUrgentNotice(items, state.tasksLastOn?.key);
     // A session's reply to your words about a task, until you've seen it there: Open opens One Task at that task.
     const reply = talkNotice(items, state.last.sessions || [], state.talkSeen);
     return [...(urgent ? [{ ...urgent, press: () => {
@@ -801,9 +804,9 @@ core.updates.push(() => oneTaskTell(oneTaskItems()));
 
 // ---- On the session's row ----
 
-// A session's task also shows on its row, in any way of showing the list: a line in your move's colour, its kind's word
+// A session's task also shows on its row in the list: a line in your move's colour, its kind's word
 // and its title, and "+N" when more of its own wait (taskAsks); pressed, One Task opens at that task. It's the row's
-// note, on a line of its own, so the work line stays; it gives way to any other note (a team's own line, a deploy, a
+// note, on a line of its own, so the work line stays where there is one; it gives way to any other note (a team's own line, a deploy, a
 // warning), and stands in for where a team member's job stands. Worked out once each time the list is drawn.
 let oneTaskAsks = new Map();
 // The step a row's line says: the task, and which time it was sent.
@@ -832,9 +835,12 @@ function oneTaskLinesBack(list) {
 core.drawn.push(oneTaskLinesBack);
 core.forgotten.keys.push('taskAskKeys', 'taskCopied');
 core.forgotten.prefixes.push('ot-row');
-// It's a bubble in your move's colour, with no priority of its own (a lead's picks, which have one, are said on the
-// lead's row by the team), ending in its one action (taskRowAct), the kit's icon for what it does. A command copied
-// shows a tick for a moment (state.taskCopied), so the press is seen to have done something.
+// It's a bubble coloured by how pressing its ticket's priority is (taskLook: to do now, the tracker's lowest, or
+// between), the tracker's own word for it in the mark's place; a task with no ticket, or no priority on it, is in your
+// move's colour, with the mark. It's never more than your move: it gives way to a note that puts something right, as
+// it always has. A lead's picks are said on the lead's row by the team. It ends in its one action (taskRowAct), the
+// kit's icon for what it does. A command copied shows a tick for a moment (state.taskCopied), so the press is seen to
+// have done something.
 const TASK_ROW_ICONS = { out: OUT_ICON, plan: PLAN_ICON, prototype: PROTOTYPE_ICON, answer: ANSWER_ICON,
                          copy: COPY_ICON, seen: SEEN_ICON };
 // Another module (the team, for a member's step of a kind) shows the same button for a kind of ask through the core,
@@ -845,7 +851,8 @@ core.taskKinds = { act: (kind) => (TASK_KIND_ACTS[kind]
 core.rowNotes.push((row) => {
   const ask = oneTaskAsks.get(row.s.sessionId);
   if (!ask) return null;
-  const task = ask.item.task, words = `${taskKindWords[task.kind]}: ${task.title}`, label = `Open in One Task: ${words}`;
+  const task = ask.item.task, words = `${taskKindWords[task.kind]}: ${task.title}`, word = ask.item.place?.word || '';
+  const label = `Open in One Task: ${word ? `${word}, ` : ''}${words}`;
   const name = row.name || row.s.name || base(row.s.cwd);
   const moreTip = `${ask.more} more from ${name} ${ask.more === 1 ? 'waits' : 'wait'}`;
   const attrs = ` data-one-task="${esc(ask.item.key)}" role="button" title="${esc(label)}"`;
@@ -854,8 +861,8 @@ core.rowNotes.push((row) => {
   const html = how.act === 'there' && !how.to?.sessionId ? ''
     : askActHTML(copied ? COPIED_ICON : TASK_ROW_ICONS[how.icon], copied ? 'Copied' : how.tip,
                  ` data-ot-act="${esc(oneTaskRowStep(ask.item))}"`);
-  return { text: words, html: askLineHTML(words, ask.more, moreTip, attrs, label), tone: 'turn', quiet: false,
-           cls: 'ask-note', line: true, look: 'normal', act: { want: how.want, html } };
+  return { text: words, html: askLineHTML(words, ask.more, moreTip, attrs, label, word), tone: 'turn', quiet: false,
+           cls: 'ask-note', line: true, look: taskLook(ask.item), act: { want: how.want, html } };
 });
 core.presses.push(['[data-one-task]', (el, e) => {
   e.preventDefault();

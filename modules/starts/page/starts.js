@@ -96,8 +96,9 @@ const appLabel = (app) => (app === 'terminal' ? state.startOptions.terminal || '
 
 // What the card says, and whether it can start (`go`, '' while it can't): that there's nowhere to start it, with no
 // terminal, and Claude Desktop's sessions not tracked (with Track Them) or Claude Desktop not on this Mac (with Get
-// Claude Desktop), each `way` a press the app takes (startWay); about its folder (startState); else about a new
-// worktree, which starts once git has said it can be made there (worktreeNameChecked).
+// Claude Desktop), each `way` a press the app takes (startWay); about its folder (startState); that a part is still
+// finding out where it starts; else about a new worktree, which starts once git has said it can be made there
+// (worktreeNameChecked).
 function cardState(card) {
   if (!state.startOptions.terminal && !desktopTracked())
     return state.startOptions.installed
@@ -106,6 +107,8 @@ function cardState(card) {
       : { help: 'There’s no terminal to start it in here, and Claude Desktop isn’t on this Mac.', warn: true, go: '',
           way: 'getDesktop', wayLabel: 'Get Claude Desktop' };
   const said = startState(card, state.folders), t = card.target;
+  // A part still finding out where it starts (`waits`): Start waits with it, the part's own line saying why.
+  if (!said.help && partsSay('waits', card).length) return { ...said, go: '' };
   if (said.help || t?.kind !== 'new') return said;
   if (!t.name) return { help: 'Name the new worktree: #name.', warn: true, go: '' };
   const c = t.check;
@@ -131,8 +134,56 @@ function busyHint(card, sessions) {
 
 // What each gives the card as it's drawn, the parts that answer, in their order; and what they're handed to say what
 // changed.
-const partsSay = (what, card) => core.startCardParts.map((p) => p[what]?.(card) || '').filter(Boolean);
-const partApi = { refresh: () => refreshStartCard(), focusBox: () => focusStart() };
+const partsSay = (what, card) => core.startCardParts.map((p) => p[what]?.(card, partApi) || '').filter(Boolean);
+const partApi = { refresh: () => refreshStartCard(), focusBox: () => focusStart(), place: () => cardPlace(state.dock),
+                  useHere: () => useHere(), start: () => sendStart() };
+
+// Where a part would have the card start (`where`): the first part's { name } (a worktree by its branch's name, one
+// that's there, a branch with no folder yet, or a new one), { path } (one of the repo's folders) or { here } (its own
+// folder). It's followed only while you haven't picked where in it yourself (`chosen`), and a worktree only in a repo,
+// with a terminal to start it in; once the part's proposal goes, where it was before comes back.
+function partWhere(card) {
+  for (const p of core.startCardParts) {
+    const w = p.where?.(card);
+    if (w) return w;
+  }
+  return null;
+}
+function followWhere(card) {
+  const repo = card && state.repos[card.folder];
+  if (!repo || card.chosen) return;
+  let w = repo.none ? null : partWhere(card);
+  if (w && !w.here && !state.startOptions.terminal) w = { here: true };
+  const key = !w ? null : w.here ? 'here' : w.path ? `path:${w.path}` : `name:${w.name}`;
+  if (key === (card.followed?.key ?? null)) return;
+  const was = card.followed ? card.followed.was : card.target;
+  card.target = !w ? was : w.here ? null : namedTarget(repo, w);
+  card.followed = w ? { key, was } : null;
+  askWorktreeName();
+}
+// Where the card would start now, for its parts: the kind of place ('here', 'open', 'branch' or 'new'), its branch or
+// name, the folder as the card shows it (a new worktree's once git has said where) and, for one that's there, its
+// path, whether Start would also trust the folder, the app it would start in in the project's own folder (a worktree's
+// start goes to the terminal whatever was picked), whether that's a part's proposal
+// being followed or your own pick, and whether a worktree can start here at all (a repo, and the terminal's name).
+function cardPlace(card) {
+  const repo = card && state.repos[card.folder], t = card?.target;
+  if (!card || !repo) return null;
+  const where = repo.none ? repo.where : !t ? repo.here?.where : t.kind === 'open' ? t.where
+    : t.check?.name === t.name && t.check.where ? t.check.where : `${repo.folder}/${(t.name || '').replace(/\//g, '-')}`;
+  const path = repo.none ? null : !t ? repo.here?.path || null : t.kind === 'open' ? t.path : null;
+  return { kind: t ? t.kind : 'here', name: t ? t.name || t.branch : repo.here?.branch || null, where, path,
+           trust: !!cardState(card).trust, app: startApp({ ...card, target: null }),
+           followed: !!card.followed, chosen: !!card.chosen, git: !repo.none, terminal: state.startOptions.terminal || null };
+}
+// One press back to the project's own folder, from a part's line: your pick, so no proposal moves it again.
+function useHere() {
+  const card = state.dock;
+  if (!card) return;
+  Object.assign(card, { target: null, chosen: true, followed: null, list: null });
+  refreshStartCard();
+  focusStart();
+}
 // Whether there's something to start with: your words, or a line a part adds (a ticket, say).
 const hasWords = (card) => !!card.text.trim() || partsSay('words', card).length > 0;
 
@@ -229,6 +280,7 @@ function pickChoice(i) {
     else setStartFolder(it.folder, it.name);
   } else {
     card.target = it.kind === 'here' ? null : { ...it, named: it.kind === 'new' && !!l.token?.query };
+    Object.assign(card, { chosen: true, followed: null });
     askWorktreeName();
   }
   refreshStartCard();
@@ -269,12 +321,14 @@ function listBranches() {
   if (state.dock?.folder) native({ type: 'listBranches', folder: state.dock.folder });
 }
 
-// One press for a busy folder: a new worktree, named from your words, from the repo's base branch.
-function useNewWorktree() {
+// One press for a busy folder: a new worktree, named from your words, from the repo's base branch; or, for a part's
+// warning, the worktree it names (one that's there, its branch, or a new one).
+function useNewWorktree(name) {
   const card = state.dock, repo = card && state.repos[card.folder];
   if (!repo || repo.none) return;
-  card.target = { kind: 'new', name: worktreeName(card.text), base: repo.base, named: false };
-  card.list = null;
+  card.target = (name && namedTarget(repo, { name }))
+    || { kind: 'new', name: worktreeName(card.text), base: repo.base, named: false };
+  Object.assign(card, { list: null, chosen: true, followed: null });
   askWorktreeName();
   refreshStartCard();
   focusStart();
@@ -319,7 +373,16 @@ function holdCommand(held) {
 // place the row's details line takes, what `@` and `#` offer as you write them, the line saying where it runs, and
 // Start, naming the app, with the app's menu beside it.
 function startCardHTML(card, sessions) {
-  const { help, warn, go, way, wayLabel } = cardState(card), busy = help ? '' : busyHint(card, sessions);
+  const { help, warn, go, way, wayLabel } = cardState(card);
+  // A part's warning about where it starts takes the busy notice's place, its button giving the worktree it names
+  // (only where a worktree can start).
+  const said = help ? null : partsSay('warn', card)[0], place = said && cardPlace(card);
+  const busy = help ? '' : said ? said.text : busyHint(card, sessions);
+  const named = said?.name && place?.git && place.terminal ? ` data-name="${esc(said.name)}"` : '';
+  const useNew = !said || named ? `<button class="button quiet c-usewt"${named}>Use a new worktree</button>` : '';
+  // The line under the box: a part's own while it has one and you haven't picked where yourself (a guide, or why it
+  // starts where it does), else the card's.
+  const under = (!card.list && !card.chosen && partsSay('under', card)[0]) || underHTML(card);
   const app = startApp(card), empty = !hasWords(card);
   const placeholder = partsSay('placeholder', card)[0] || 'What should Claude do? @ for a project, # for a worktree';
   const button = '<span class="split-button main">'
@@ -335,9 +398,9 @@ function startCardHTML(card, sessions) {
         <div class="you"><span class="who">You</span><textarea class="field small c-box" id="${esc(card.id)}-words"
           rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="${esc(placeholder)}">${esc(card.text)}</textarea></div>
-        ${chipsHTML(card)}${listHTML(card)}${card.list ? '' : partsSay('list', card).join('')}${underHTML(card)}
+        ${chipsHTML(card)}${listHTML(card)}${card.list ? '' : partsSay('list', card).join('')}${under}
         ${busy ? `<div class="notice warn c-busy" data-k="busy"><span class="notice-text">${esc(busy)}</span>`
-          + '<button class="button quiet c-usewt">Use a new worktree</button></div>' : ''}
+          + `${useNew}</div>` : ''}
         ${help && way ? `<div class="notice warn c-busy" data-k="help"><span class="notice-text">${esc(help)}</span>`
           + `<button class="button quiet c-usewt" data-way="${esc(way)}">${esc(wayLabel)}</button></div>`
           : help ? `<div class="c-help${warn ? ' warn' : ''}" data-k="help">${esc(help)}</div>` : ''}
@@ -405,7 +468,7 @@ function openCard(folder, app) {
     app: app === 'terminal' && state.startOptions.terminal ? 'terminal' : app === 'desktop' ? 'desktop'
       : was?.app || (same && draft.app) || state.startApp,
     text: was?.text || draft?.text || '', problem: null, target: (same && draft.target) || null, list: null,
-    picked: was?.picked || (same && draft.picked) || false,
+    picked: was?.picked || (same && draft.picked) || false, chosen: !!(was ? was.chosen : same && draft.chosen),
   };
   markNewButton(true);
   if (was && dockCard()) refreshStartCard();
@@ -460,11 +523,13 @@ function dockCard() { return dockBox.querySelector(':scope > .row.compose:not(.l
 // What the card holds, kept for the next one, until it's sent: only once there's something of yours in it (words, where
 // in its project, or a project you chose), so a card opened and closed again leaves the next one to start where you are.
 function keepDraft() {
-  const card = state.dock, t = card?.target;
+  // Where a part proposed isn't yours: it goes with the part's own state (a ticket), so where it was before is kept,
+  // and whether you picked where yourself, so your pick still wins when the card opens again.
+  const card = state.dock, t = card?.followed ? card.followed.was : card?.target;
   if (!card) return;
   const draft = card.text.trim() || t || card.picked
     ? { folder: card.folder, name: card.name, app: card.app, text: card.text, picked: !!card.picked,
-        target: t ? { ...t, check: null } : null }
+        chosen: !!card.chosen, target: t ? { ...t, check: null } : null }
     : null;
   state.startDraft = draft;
   store.set('startDraft', draft);
@@ -486,6 +551,7 @@ const CARD_PARTS = ['.c-list', '.st-plist', '.c-under', '.c-busy', '.c-help', '.
 function refreshStartCard() {
   const el = dockCard(), card = state.dock;
   if (!el || !card) return;
+  followWhere(card);
   keepDraft();
   const fresh = rowFrom(startCardHTML(card, state.last.sessions));
   const main = el.querySelector(':scope > .main'), mine = fresh.querySelector(':scope > .main');
@@ -573,7 +639,7 @@ function setStartFolder(folder, name) {
   if (!card) return openCard(folder);
   const project = startProjects(state.last.sessions).find((p) => p.folder === folder);
   Object.assign(card, { folder, name: name || project?.name || base(folder), problem: null, target: null, list: null,
-                        picked: true });
+                        picked: true, chosen: false, followed: null });
   checkStartFolder();
   listBranches();
 }
@@ -601,6 +667,7 @@ function sendStart() {
   const card = state.dock, el = dockCard();
   if (!card || !el || el.matches('.waiting, .unseen')) return;
   if (card.list) return pickChoice(card.list.sel);
+  followWhere(card);
   const { go, trust } = cardState(card);
   if (!go) return focusStart();
   // Your words, then each line a part adds (a ticket's), and what each part's module is handed once it's a session.
@@ -999,7 +1066,7 @@ dockBox.addEventListener('mousedown', (e) => {
   if (t.closest('.c-in, .c-base')) return openList('#');
   const way = t.closest('.c-usewt[data-way]');
   if (way) return native({ type: 'startWay', kind: way.dataset.way });
-  if (t.closest('.c-usewt')) return useNewWorktree();
+  if (t.closest('.c-usewt')) return useNewWorktree(t.closest('.c-usewt').dataset.name);
   if (t.closest('.c-place') && card) return placesMenu(t.closest('.c-place'));
   focusStart();
 });
@@ -1070,6 +1137,8 @@ dockBox.addEventListener('keydown', (e) => {
     e.preventDefault();
     return pickChoice(list.sel);
   }
+  // A key in the box a part takes first, while its own list isn't open (a guide's Esc).
+  if (!list && card && core.startCardParts.some((p) => p.boxKeys?.(card, e, partApi))) return e.preventDefault();
   if (e.key === 'Escape') {
     e.preventDefault();
     if (!list) return closeCard();

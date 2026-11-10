@@ -138,7 +138,8 @@ print(askHTML(goes({ expiresAt: NOW + 4 * 60000, input: { command: 'make', descr
 print(askHTML({ ...SAMPLES.qOne, expiresAt: NOW + 90000 }, NOW));
 
 section('Each kind\'s card');
-for (const [name, a] of Object.entries(SAMPLES)) print(`-- ${name}\n${askHTML(a, NOW, ROOT)}`);
+// A plan has no card: it's its row's bubble, read beside the list (the section on a plan waiting, below).
+for (const [name, a] of Object.entries(SAMPLES)) if (a.tool !== 'ExitPlanMode') print(`-- ${name}\n${askHTML(a, NOW, ROOT)}`);
 print('-- a request from a session started before the update, which the panel doesn\'t answer: answered in Claude');
 print(askHTML({ ...SAMPLES.command, legacy: true }, NOW, ROOT));
 print('-- a command with a long reason, and a long first line: the reason whole as the title, the command whole, ' +
@@ -154,15 +155,7 @@ print(askHTML(SAMPLES.big, NOW, ROOT));
 show('…past its last edit, the last', /ask-of">([^<]*)</.exec(askHTML({ ...SAMPLES.big, id: 'big-2' }, NOW, ROOT))[1]);
 state.askChange['big-2'] = 9;
 show('…', /ask-of">([^<]*)</.exec(askHTML({ ...SAMPLES.big, id: 'big-2' }, NOW, ROOT))[1]);
-print('-- a plan being sent back, its notes typed, and a single pick\'s box to type in');
-state.sendBack[SAMPLES.plan.id] = { text: 'Keep <codes> on the server' };
-print(askHTML(SAMPLES.plan, NOW, ROOT));
-print('-- a plan that starts at a glance: its few lines (the plans module\'s) in place of its steps');
-print(askHTML(ask('ExitPlanMode', { plan: '# Coupon field\n\n## At a glance\n\n'
-  + '- **What changes for you:** the coupon field sits above the total, where it\'s seen.\n'
-  + '- **You decide:**\n  1. When it\'s checked: as you leave it (recommended), or on Apply. Why: fewer presses.\n'
-  + '- **Could go wrong:** a code typed with spaces reads as wrong.\n\n## Steps\n\n1. Move the field\n'
-  + '2. Check the code on blur\n3. Show the saving\n4. Test it\n5. Tidy up\n' }), NOW, ROOT));
+print('-- a single pick\'s box to type in');
 quizState(SAMPLES.qOne.id).typing = 0;
 print(askHTML(SAMPLES.qOne, NOW, ROOT));
 show('…"Type an answer" became the box in its own row, with no second box under it',
@@ -345,64 +338,6 @@ state.answering = {};
 show('Show less on a command shown in full: nothing sent, and it\'s cut short again',
      [press(SAMPLES.long, fake(['button', 'quiet', 'small', 'ask-more'], { part: '' })),
       JSON.stringify(state.askOpen[SAMPLES.long.id])]);
-show('Send back… opens the box for notes, and Cancel closes it', ['ask-send', 'ask-say-cancel'].map((cls) => {
-  press(SAMPLES.plan, fake(['button', cls])); return JSON.stringify(state.sendBack[SAMPLES.plan.id] ?? null); }));
-show('a plan sent back with its notes', (() => {
-  state.sendBack[SAMPLES.plan.id] = { text: 'Keep <codes> on the server' };
-  sendBack(SAMPLES.plan.id); return `${JSON.stringify(sent.at(-1))} · ${state.answering[SAMPLES.plan.id]}`; })());
-state.answering = {};
-show('…with no notes, nothing', (() => { sent = []; state.sendBack[SAMPLES.plan.id] = { text: '  ' };
-                                         sendBack(SAMPLES.plan.id); return sent.length; })());
-print('-- a long plan: its first list\'s 3 steps, as its numbers start again after them, drawn from their markdown, ' +
-      'then Read all 7 steps, Send back… and Take me there');
-delete state.sendBack[SAMPLES.plan.id];
-print(askHTML(LONG_PLAN, NOW, ROOT));
-state.last.sessions.push(session({ sessionId: 'sLong', ask: LONG_PLAN }));
-state.shownAt[LONG_PLAN.id] = Date.now() - 2000;
-show('Read all its steps opens the whole plan in the reader, and Take me there its session: nothing sent', (() => {
-  const [realReader, realSession] = [openReader, openSession], went = [];
-  openReader = (sid, id, view) => went.push(`reader: ${sid}, ${view}`);
-  openSession = (s) => went.push(`session: ${s.sessionId}`);
-  const pressed = ['perm-read', 'perm-go'].map((cls) => press(LONG_PLAN, fake(['button', cls])));
-  [openReader, openSession] = [realReader, realSession];
-  return [...went, ...pressed];
-})());
-show('a plan of 4 steps or fewer: Read the plan', /perm-read">([^<]*)</.exec(askHTML(ask('ExitPlanMode',
-  { plan: '# Short\n\n1. One\n2. Two' }), NOW, ROOT))[1]);
-{
-  // A plan at a glance whose pick you've changed in the reader (the plans module keeps it, by the request's id).
-  const COUPON = ask('ExitPlanMode', { plan: '# Coupon field\n\n## At a glance\n\n- **What changes for you:** the '
-    + 'field sits above the total.\n- **You decide:**\n  1. When it\'s checked: as you leave it (recommended), or on '
-    + 'Apply.\n\n## Steps\n\n1. Move the field\n' }, { id: 'coupon' });
-  state.last.sessions.push(session({ sessionId: 'sCoupon', ask: COUPON }));
-  state.shownAt.coupon = Date.now() - 2000;
-  core.plans.readerHTML(COUPON.input.plan, { sessionId: 'sCoupon', id: 'coupon', waiting: true });
-  state.planPicks.coupon = { 0: 1 };
-  state.sendBack.coupon = { text: 'Keep it short' };  // its box opened on the row before the pick changed
-  show('a plan whose pick you changed: its row says so, and that your note waits, in place of its box',
-       [/You decide<\/span><span class="gl-mt">([^<]*)/.exec(askHTML(COUPON, NOW, ROOT))[1],
-        askHTML(COUPON, NOW, ROOT).includes('ask-say-box'),
-        /<p class="ask-say-waits">[^<]*<\/p>/.exec(askHTML(COUPON, NOW, ROOT))?.[0],
-        /ask-send">Send back…/.test(askHTML(COUPON, NOW, ROOT))]);
-  show('…its Return or Send back, from a box drawn before: nothing sent without your picks',
-       (sent = [], sendBack('coupon'), sent.length));
-  const realNotes = core.planNotes, went = [];
-  core.planNotes = (sid) => went.push(`the plan in ${sid}, its box open`);
-  show('…and Send back… opens the plan beside the list, its box open, which takes your note from here',
-       [press(COUPON, fake(['button', 'ask-send'])), ...went]);
-  show('the box beside the list takes your note, and the row no longer has it',
-       [core.planRowNotes.take('coupon'), state.sendBack.coupon ?? null,
-        /ask-say-waits/.test(askHTML(COUPON, NOW, ROOT))]);
-  core.planRowNotes.keep('coupon', 'Keep it short');
-  show('…given back as the reader closes unsent: it waits on the row again',
-       /<p class="ask-say-waits">[^<]*<\/p>/.test(askHTML(COUPON, NOW, ROOT)));
-  delete state.sendBack.coupon;
-  core.planNotes = realNotes;
-  delete state.planPicks.coupon;
-}
-print('-- a plan with no steps: its first lines drawn from their markdown');
-print(askHTML(ask('ExitPlanMode', { plan: '# Tidy\n\nMove **the coupon** into `basket.ts`.\n- and keep *the* route' }),
-              NOW, ROOT));
 show('which presses answer (and so leave the keyboard where it was)', [['perm-allow'], ['q-close'], ['opt', 'ask-num'],
   ['opt', 'ask-num', 'ask-type-opt'], ['opt'], ['ask-inc'], ['button', 'ask-more'], ['perm-allow', 'q-next'],
   ['q-pass']].map((classes) => `${classes.at(-1)}: ${pressAnswers({}, { closest: () => fake(classes) })}`));
@@ -473,13 +408,14 @@ show('answered just now: in the list, then as a chat beside the folded panel', [
 state.answeredAt[SAMPLES.command.id] = Date.now() - 6000;
 show('answered a while ago and still there: in the list, then as a chat', [lineIn(false), lineIn(true)]);
 // Its row as a chat says the answer is going in, Claude's line saying what you answered and its dot the working one,
-// till the app's rows say the request has gone; the list's row still asks, its card's line saying it was answered.
+// till the app's rows say the request has gone; the list's row (shown briefly, as every row there is) still asks, its
+// card saying it was answered, with no Claude's line over it.
 const drawnAs = (chat) => {
   const html = rowHTML(session({ ask: SAMPLES.command }), 'needs', NOW, { chat });
   const line = /<div class="claude ([\w ]*)" data-mode="\w+"><span class="who">Claude<\/span><span class="what">([^<]*)/
     .exec(html);
   const dot = /class="row needs[^"]* answered/.test(html) ? 'working dot' : 'asking dot';
-  return `${dot} · ${line?.[1]}: ${line?.[2]}`;
+  return line ? `${dot} · ${line[1]}: ${line[2]}` : `${dot} · its card, no line over it`;
 };
 answered(SAMPLES.command.id, 'allow');
 show('answered just now, Claude\'s line and dot: in the list, then as a chat', [drawnAs(false), drawnAs(true)]);
@@ -543,3 +479,67 @@ show('…nor once it closed while it waits on someone else, whose own line says 
      endedLineHTML({ s: session({ status: 'closed', wait: { closed: true, says: 'Stopped, waiting on #12' } }) }));
 show('…but it does for one whose wait isn\'t shown as closed (run again a moment ago)',
      endedLineHTML({ s: session({ status: 'closed', wait: { says: 'Waits on #12' } }) }).includes('Stopped'));
+
+section('A plan waiting, as its row\'s ask (requests.js)');
+{
+  // What a row shows of a plan Claude waits on: its bubble (the note), its card, and the button at the bubble's end.
+  const planRow = (ask, more = {}) => {
+    const html = rowHTML(session({ sessionId: 'p1', status: 'waiting', ask, ...more }), 'needs', NOW);
+    return { bubble: /ask-line-says[^>]*aria-label="([^"]*)"/.exec(html)?.[1] ?? null,
+             card: /class="perm (?!ask-receipt)/.test(html),
+             button: /data-(wr-act|plan-go)=/.exec(html)?.[1] ?? null };
+  };
+  show('a plan: a bubble named Plan with its title, the plan button, no card', planRow(SAMPLES.plan));
+  show('…a plan with no heading', planRow(ask('ExitPlanMode', { plan: 'Just do it' })).bubble);
+  show('…from a session started before the update: the bubble too, no card', planRow({ ...SAMPLES.plan, legacy: true }));
+  state.answering[SAMPLES.plan.id] = 'approved';
+  show('…answered here: the line saying so, no bubble', [planRow(SAMPLES.plan),
+    /ask-receipt-words">([^<]*)</.exec(rowHTML(session({ sessionId: 'p1', status: 'waiting', ask: SAMPLES.plan }),
+                                                'needs', NOW))?.[1]]);
+  delete state.answering[SAMPLES.plan.id];
+  // A plan Claude still waits on in its session though no request is up here (it stopped asking after an hour, or
+  // when the panel restarted): the bubble, from the transcript's plan, while the session says it's asking.
+  const listed = [{ id: 'tc1', kind: 'plan', title: 'Coupon field', at: min(2900), status: 'waiting' },
+                  { id: 'tc0', kind: 'plan', title: 'Older', at: min(4000), status: 'declined' }];
+  show('a plan waiting in the transcript only: its bubble, the plan button, no card',
+       planRow(undefined, { writings: listed }));
+  show('…its session idle at its prompt, nothing typed since: the bubble too',
+       planRow(undefined, { writings: listed, status: 'idle', lastPromptAt: min(3000) }));
+  show('…something typed into it since: none, as it may be answered already',
+       planRow(undefined, { writings: listed, status: 'idle', lastPromptAt: min(10) }));
+  show('…its session at work: none', planRow(undefined, { writings: listed, status: 'busy' }));
+  show('…nor for a plan answered there', planRow(undefined, { writings: [{ ...listed[0], status: 'approved' }] }));
+  show('…nor for an older one, a newer plan answered since', planRow(undefined, {
+    writings: [{ id: 'tc2', kind: 'plan', title: 'Newer', at: min(5), status: 'declined' }, ...listed] }));
+  // What the reader asks of this module for it (core.planAsks): held at Claude Code's own prompt, or not; and your
+  // notes typed in, as the app keeps how that went on the row.
+  const by = core.planAsks[0];
+  show('left: held at its own prompt, or idle at its prompt', [by.left(session({ writings: listed, status: 'waiting' })),
+    by.left(session({ writings: listed, status: 'idle' }))]);
+  sent = [];
+  by.typeBack(session({ sessionId: 'p1' }), 'tc1', 'Split step 2.');
+  show('typeBack: the press, for the app to check and type in', sent);
+  const typedFor = (state, more = {}) => ({ by: 'You', what: 'sentBack', yours: true, askId: 'tc1', planId: 'tc1',
+                                            title: 'Coupon field', note: 'Split step 2.', state, at: min(1), ...more });
+  show('typed: how it went, as the row says', ['typing', 'typed', 'notTyped'].map((st) => by.typed(session({
+    answeredFor: typedFor(st, st === 'notTyped' ? { why: 'Ghostty is in front', way: 'Bring It Here' } : {}) }),
+                                                                         'tc1')));
+  show('…for another plan, or an Approve of yours: none', [by.typed(session({ answeredFor: typedFor('typed') }), 'tc0'),
+    by.typed(session({ answeredFor: { ...typedFor('pending'), what: 'approved' } }), 'tc1'),
+    by.yours(session({ answeredFor: typedFor('typed') }), 'tc1')]);
+  show('the row: nothing while they go in or once they\'re in; why, where they weren\'t',
+       ['typing', 'typed', 'notTyped'].map((st) => answeredForWords(typedFor(st, { why: 'Ghostty is in front' }))));
+  const reader = core.slots.askAct.splice(0);
+  show('…nothing to open it beside the list: the bubble\'s own button, to its session, and still no card',
+       planRow(SAMPLES.plan));
+  core.slots.askAct.push(...reader);
+  show('a question keeps its card, and asks no plan', /class="perm [^"]*"/.exec(rowHTML(session({ sessionId: 'q1',
+    status: 'waiting', ask: SAMPLES.qOne }), 'needs', NOW))?.[0]);
+  show('a command keeps its card', rowHTML(session({ sessionId: 'c1', status: 'waiting', ask: SAMPLES.command }),
+                                           'needs', NOW).includes('data-ask='));
+  // Your own Approve beside the list, as the app keeps it on the row (`yours`): nothing once taken, as the request's
+  // own line said Approved; said, with the way to its tab, only where it wasn't.
+  const yours = (state) => answeredForWords({ by: 'You', what: 'approved', title: 'Coupon field', state, yours: true,
+                                              at: min(1) });
+  show('your approval: pending, taken, not taken', [yours('pending'), yours('approved'), yours('notTaken')]);
+}

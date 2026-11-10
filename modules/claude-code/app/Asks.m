@@ -85,6 +85,12 @@ NSDictionary<NSString *, NSDictionary *> *PendingAsks(void) {
     return bySession;
 }
 
+BOOL AskShownCut(NSDictionary *request) {
+    BOOL cut = NO;
+    if ([request[@"input"] isKindOfClass:NSDictionary.class]) ShownInput(request[@"input"], &cut);
+    return cut;
+}
+
 NSString *AskId(id value) {
     NSCharacterSet *notHex = [[NSCharacterSet characterSetWithCharactersInString:@"0123456789abcdef"] invertedSet];
     if (![value isKindOfClass:NSString.class] || ![value length] || [value length] > 64

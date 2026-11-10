@@ -169,7 +169,7 @@ NSDictionary *TaskRecordPick(NSDictionary *record, NSDictionary *task, NSString 
 }
 
 NSDictionary *TaskRecordQueue(NSDictionary *record, NSArray<NSString *> *ids,
-                              NSDictionary<NSString *, NSString *> *priorities) {
+                              NSDictionary<NSString *, NSString *> *priorities, double now) {
     NSMutableDictionary *next = [AsRecord(record) mutableCopy] ?: [NSMutableDictionary dictionary];
     NSMutableArray *tasks = [Waiting(record) mutableCopy];
     for (NSUInteger i = 0; i < tasks.count; i++) {
@@ -178,6 +178,7 @@ NSDictionary *TaskRecordQueue(NSDictionary *record, NSArray<NSString *> *ids,
         NSUInteger place = [ids indexOfObject:entry[@"task"][@"id"]];
         if (place != NSNotFound) {
             entry[@"pickAt"] = @(place);
+            if (!entry[@"shownAt"]) entry[@"shownAt"] = @(now);
             entry[@"shown"] = @YES;
             NSString *priority = AsText(priorities[entry[@"task"][@"id"]]);
             if (priority) entry[@"pickPriority"] = priority;
@@ -720,7 +721,7 @@ int PrintTasks(NSArray<NSString *> *arguments) {
                                                       : @"", one[@"sent"]]];
         return each.count ? [each componentsJoinedByString:@", "] : @"(none)";
     };
-    NSDictionary *lead = TaskRecordQueue(sendPick(nil, pick(@"j12", 1), @"s-wren", 5000), @[@"j12"], @{});
+    NSDictionary *lead = TaskRecordQueue(sendPick(nil, pick(@"j12", 1), @"s-wren", 5000), @[@"j12"], @{}, 5005);
     say(@"A pick comes", list(lead));
     say(@"…the same pick, sent again", list(sendPick(lead, pick(@"j12", 1), @"s-wren", 5100)));
     NSString *ignore = nil, *alsoIgnore = nil;
@@ -732,12 +733,12 @@ int PrintTasks(NSArray<NSString *> *arguments) {
     say(@"…answered", TaskRecordSays(lead, @"j12"));
     say(@"…sent again unchanged: it stays answered",
         TaskRecordSays(sendPick(lead, pick(@"j12", 1), @"s-wren", 5300), @"j12"));
-    lead = TaskRecordQueue(sendPick(lead, pick(@"j12", 2), @"s-wren", 5400), @[@"j12"], @{});
+    lead = TaskRecordQueue(sendPick(lead, pick(@"j12", 2), @"s-wren", 5400), @[@"j12"], @{}, 5405);
     say(@"Its next step, under the same id", [NSString stringWithFormat:@"%@; task-answer says %@", list(lead),
                                                                         TaskRecordSays(lead, @"j12")]);
-    lead = TaskRecordQueue(sendPick(lead, pick(@"j14", 1), @"s-moss", 5500), @[@"j12", @"j14"], @{});
+    lead = TaskRecordQueue(sendPick(lead, pick(@"j14", 1), @"s-moss", 5500), @[@"j12", @"j14"], @{}, 5505);
     say(@"Another pick, the one before unanswered: both wait, the one before never lost", list(lead));
-    lead = TaskRecordQueue(lead, @[], @{});
+    lead = TaskRecordQueue(lead, @[], @{}, 5600);
     say(@"The queue names none for a moment: both still wait", list(lead));
     lead = sendPick(lead, pick(@"j12", 2), @"s-wren", 5650);
     say(@"…the one before sent again, unchanged: it stays as it was, no new step", list(lead));
@@ -748,20 +749,20 @@ int PrintTasks(NSArray<NSString *> *arguments) {
     say(@"…the answered one sent again, unchanged: still answered, not back", [NSString stringWithFormat:@"%@; %@",
                                                                         list(lead), TaskRecordSays(lead, @"j14")]);
     lead = TaskRecordAnswer(lead, @"j12", @"Approve", nil, 5680);
-    lead = TaskRecordQueue(lead, @[], @{});
+    lead = TaskRecordQueue(lead, @[], @{}, 5690);
     say(@"No pick waiting, all answered", list(lead));
     NSDictionary *picked = sendPick(nil, pick(@"j18", 1), @"s-wren", 6100);
     NSString *refusal = nil;
     say(@"The lead's own task with the id of the pick waiting: refused",
         TaskRecordSend(picked, task(@"j18", 0), 4200, 88, 6200, &ignore, &refusal) ? @"taken" : refusal);
     NSDictionary *answered = TaskRecordAnswer(picked, @"j18", @"Approve", nil, 6300);
-    answered = TaskRecordQueue(answered, @[], @{});
+    answered = TaskRecordQueue(answered, @[], @{}, 6400);
     answered = sendPick(answered, pick(@"j18", 1), @"s-wren", 6500);
     say(@"Answered, gone from the queue for a read, then sent again unchanged: still answered",
         TaskRecordSays(answered, @"j18"));
     NSDictionary *taken = sendPick(nil, pick(@"j40", 1), @"s-wren", 6550);
     taken = sendPick(taken, pick(@"j41", 1), @"s-wren", 6551);
-    taken = TaskRecordQueue(taken, @[@"j40", @"j41"], @{});
+    taken = TaskRecordQueue(taken, @[@"j40", @"j41"], @{}, 6555);
     NSString *tookSaid = nil;
     taken = TaskRecordTakeBackTask(taken, @"j40", @"answered", 6560, &tookSaid);
     say(@"A pick taken back: what the lead hears, what's kept until the page lets it go, what task-answer says",
@@ -784,10 +785,11 @@ int PrintTasks(NSArray<NSString *> *arguments) {
     NSString *(^shown)(NSDictionary *) = ^NSString *(NSDictionary *kept) {
         NSMutableArray *each = [NSMutableArray array];
         for (NSDictionary *one in TaskRecordWaiting(kept))
-            [each addObject:[NSString stringWithFormat:@"%@%@%@%@", one[@"task"][@"id"],
+            [each addObject:[NSString stringWithFormat:@"%@%@%@%@%@", one[@"task"][@"id"],
                              [one[@"shown"] boolValue] ? @" shown" : @" unshown",
                              one[@"pickAt"] ? [NSString stringWithFormat:@" at %@", one[@"pickAt"]] : @"",
-                             one[@"pickPriority"] ? [NSString stringWithFormat:@" %@", one[@"pickPriority"]] : @""]];
+                             one[@"pickPriority"] ? [NSString stringWithFormat:@" %@", one[@"pickPriority"]] : @"",
+                             one[@"shownAt"] ? [NSString stringWithFormat:@" from %@", one[@"shownAt"]] : @""]];
         return each.count ? [each componentsJoinedByString:@", "] : @"(none)";
     };
     NSDictionary *picks = sendPick(nil, pick(@"p1", 1), @"s-wren", 7000);
@@ -795,12 +797,12 @@ int PrintTasks(NSArray<NSString *> *arguments) {
                                                                    TaskRecordSays(picks, @"p1")]);
     picks = sendPick(picks, pick(@"p2", 1), @"s-moss", 7001);
     picks = sendPick(picks, pick(@"p3", 1), @"s-wren", 7002);
-    picks = TaskRecordQueue(picks, @[@"p3", @"p1", @"p9"], @{@"p3": @"critical", @"p1": @"p1"});
+    picks = TaskRecordQueue(picks, @[@"p3", @"p1", @"p9"], @{@"p3": @"critical", @"p1": @"p1"}, 7005);
     say(@"Its queue names two of three, and one it never sent", [NSString stringWithFormat:@"%@; p9 %@", shown(picks),
                                                                          TaskRecordSays(picks, @"p9")]);
-    picks = TaskRecordQueue(picks, @[@"p1", @"p2"], @{@"p1": @"p0"});
-    say(@"…a new order, its priorities, and one off the queue: it keeps waiting, shown, after those named, with no "
-        "priority of the queue's", shown(picks));
+    picks = TaskRecordQueue(picks, @[@"p1", @"p2"], @{@"p1": @"p0"}, 7008);
+    say(@"…a new order, its priorities, and one off the queue: it keeps waiting, shown, with no priority of the "
+        "queue's, each still counted from when the queue first named it", shown(picks));
     NSDictionary *again = sendPick(picks, pick(@"p1", 1), @"s-wren", 7010);
     say(@"…one sent again unchanged", [NSString stringWithFormat:@"%@; %@", pickSaid, again == picks ? @"as it was"
                                                                                                 : @"changed"]);
@@ -838,7 +840,7 @@ int PrintTasks(NSArray<NSString *> *arguments) {
     say(@"…at the back, put there with Can't Now", takeBack(@"last"));
     say(@"…a pick its queue never named, never shown: gone at once", takeBack(@"unqueued"));
     NSDictionary *back = TaskRecordPutBack(TaskRecordQueue(sendPick(nil, pick(@"j19", 1), @"s-wren", 6600), @[@"j19"],
-                                                           @{}), @"j19", 6700);
+                                                           @{}, 6605), @"j19", 6700);
     say(@"Put back, then sent again unchanged: still at the back",
         TaskRecordSays(sendPick(back, pick(@"j19", 1), @"s-wren", 6800), @"j19"));
     say(@"…sent for another member: a new send, in front again",
@@ -866,7 +868,7 @@ int PrintTasks(NSArray<NSString *> *arguments) {
         [Line(TaskRecordSeen(read, @"nope", 9670)) isEqual:Line(read)] ? @"yes" : @"no");
     NSDictionary *reworded = TaskRecordSeen(sendPick(nil, pick(@"j30", 1), @"s-wren", 9700), @"j30", 9710);
     reworded = sendPick(reworded, pick(@"j30", 2), @"s-wren", 9720);
-    reworded = TaskRecordQueue(reworded, @[@"j30"], @{});
+    reworded = TaskRecordQueue(reworded, @[@"j30"], @{}, 9725);
     say(@"The lead's pick, read, then reworded: still read", seenAt(reworded, @"j30"));
     NSDictionary *gone = TaskRecordTakeBackTask(reworded, @"j30", @"parked", 9730, &ignore);
     say(@"…taken back: read again changes nothing",
@@ -879,7 +881,7 @@ int PrintTasks(NSArray<NSString *> *arguments) {
     say(@"A session's own task, read, taken back, then sent again: new to you, unread",
         seenAt(TaskRecordSend(own, task(@"own", 2), 4200, 88, 9790, &ignore, &alsoIgnore), @"own"));
     NSDictionary *queued = TaskRecordSeen(
-        TaskRecordQueue(sendPick(nil, pick(@"p9", 1), @"s-wren", 9800), @[@"p9"], @{}), @"p9", 9810);
+        TaskRecordQueue(sendPick(nil, pick(@"p9", 1), @"s-wren", 9800), @[@"p9"], @{}, 9805), @"p9", 9810);
     say(@"A pick the lead queued, read, then sent again changed: still read",
         seenAt(sendPick(queued, pick(@"p9", 2), @"s-wren", 9820), @"p9"));
 

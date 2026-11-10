@@ -182,10 +182,6 @@ static NSString *JSONText(id value) {
     [self call:@"catLanded" arguments:nil];
 }
 
-- (void)setGroupBy:(NSString *)mode {  // one of the words Settings knows: its own, and the modules' groupings
-    [self call:@"setGroupBy" with:@[mode]];
-}
-
 - (void)toggleCollapsed {
     [self call:@"toggleCollapsed" arguments:nil];
 }

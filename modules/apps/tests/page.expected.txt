@@ -49,9 +49,10 @@ a need that isn’t words:
 its buttons: [{"id":"map","title":"Open the Map","main":true}]
 
 == An app’s groups
-on: each group, its rows and whether they can be pressed: [{"title":"","foot":"Settings ▸ Sample Tool opens this page.","rows":[{"kind":"switch","key":"on","title":"Sample Tool","help":"The one thing.","on":true,"isNew":false,"off":false}]},{"title":"Who may send","foot":"A session that may not is told so.","rows":[{"kind":"choice","key":"who","title":"Who may send","choices":[{"id":"any","name":"Any session","help":"Every agent can.","isNew":false,"enabled":true},{"id":"lead","name":"Only a team’s chief","help":"The others are told why.","isNew":true,"enabled":true},{"id":"allowed","name":"Only those you’ve allowed","help":"","isNew":false,"enabled":false}],"value":"any","fixed":null,"off":false}]},{"title":"Quiet hours","foot":"","rows":[{"kind":"switch","key":"quiet","title":"Quiet hours","help":"","on":false,"isNew":true,"off":false},{"kind":"time","key":"quietHours","title":"Hours","help":"Only what’s urgent.","from":"22:00","to":"08:00","off":true}]},{"title":"What comes first","foot":"","rows":[{"kind":"choice","key":"next","title":"What comes first","choices":[{"id":"picks","name":"Then a chief’s picks","help":"","isNew":false,"enabled":true},{"id":"oldest","name":"Then the oldest","help":"","isNew":false,"enabled":true}],"value":"picks","fixed":{"name":"Urgent ones, always","help":"First, whatever else you choose."},"off":false}]},{"title":"","foot":"A change applies to what comes next.","rows":[]}]
+on: each group, its rows and whether they can be pressed: [{"title":"","foot":"Settings ▸ Sample Tool opens this page.","important":false,"rows":[{"kind":"switch","key":"on","title":"Sample Tool","help":"The one thing.","on":true,"isNew":false,"off":false}]},{"title":"Who may send","foot":"A session that may not is told so.","important":false,"rows":[{"kind":"choice","key":"who","title":"Who may send","choices":[{"id":"any","name":"Any session","help":"Every agent can.","isNew":false,"enabled":true},{"id":"lead","name":"Only a team’s chief","help":"The others are told why.","isNew":true,"enabled":true},{"id":"allowed","name":"Only those you’ve allowed","help":"","isNew":false,"enabled":false}],"value":"any","fixed":null,"off":false,"confirms":{},"menu":false}]},{"title":"Quiet hours","foot":"","important":false,"rows":[{"kind":"switch","key":"quiet","title":"Quiet hours","help":"","on":false,"isNew":true,"off":false},{"kind":"time","key":"quietHours","title":"Hours","help":"Only what’s urgent.","from":"22:00","to":"08:00","off":true}]},{"title":"What comes first","foot":"","important":false,"rows":[{"kind":"choice","key":"next","title":"What comes first","choices":[{"id":"picks","name":"Then a chief’s picks","help":"","isNew":false,"enabled":true},{"id":"oldest","name":"Then the oldest","help":"","isNew":false,"enabled":true}],"value":"picks","fixed":{"name":"Urgent ones, always","help":"First, whatever else you choose."},"off":false,"confirms":{},"menu":false}]},{"title":"","foot":"A change applies to what comes next.","important":false,"rows":[]}]
 off: its own groups dimmed, the other module’s not: ["(none): on","Who may send: who off","Quiet hours: quiet, quietHours off","What comes first: next off","(none): "]
-rows the page doesn’t know, or with no key, left out: [{"title":"Odd","foot":"","rows":[{"kind":"choice","key":"c","title":"","choices":[{"id":"a","name":"A","help":"","isNew":false,"enabled":true}],"value":null,"fixed":null,"off":false}]}]
+rows the page doesn’t know, or with no key, left out: [{"title":"Odd","foot":"","important":false,"rows":[{"kind":"choice","key":"c","title":"","choices":[{"id":"a","name":"A","help":"","isNew":false,"enabled":true}],"value":null,"fixed":null,"off":false,"confirms":{},"menu":false}]}]
+a choice with nothing to pick, only the row above that can't be pressed: no radio group under it: <div class="b-row b-choice b-fixed" aria-disabled="true"><span class="b-words"><b>Each ticket&#39;s own priority</b><i>Always.</i></span></div>
 no groups: [[],[],[]]
 a switch in a group turned on: true
 turning the tool off: false
@@ -64,18 +65,34 @@ one that isn’t among its choices: null
 a choice in a dimmed group: null
 a choice that isn’t there: null
 the apps it was given are left as they were: any
+important, and what picking each would change: only the choices it has, whole: [{"title":"Who may send","foot":"","important":true,"rows":[{"kind":"choice","key":"who","title":"Who may send","choices":[{"id":"any","name":"Any session","help":"","isNew":false,"enabled":true},{"id":"lead","name":"Only a team’s chief","help":"","isNew":false,"enabled":true}],"value":"any","fixed":null,"off":false,"confirms":{"lead":{"before":"Any session sends","after":"Only a team’s <b>chief</b> sends","warn":"The others are told why.","keep":""}},"menu":false}]}]
+<div class="caps b-sec">Who may send <span class="tag b-imp">Important</span></div><div class="b-card b-group"><div class="b-picks" role="radiogroup" aria-label="Who may send"><div class="b-row b-choice" data-choice="who" data-id="any" role="radio" aria-checked="true"><span class="b-name">Any session</span><span class="b-tick"><svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div><div class="b-row b-choice" data-choice="who" data-id="lead" role="radio" aria-checked="false"><span class="b-name">Only a team’s chief</span><span class="b-tick"><svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div></div></div>
+-- Only a team’s chief pressed: its before and after, with Keep It and Change
+<div class="caps b-sec">Who may send <span class="tag b-imp">Important</span></div><div class="b-card b-group"><div class="b-picks" role="radiogroup" aria-label="Who may send"><div class="b-row b-choice" data-choice="who" data-id="any" role="radio" aria-checked="true"><span class="b-name">Any session</span><span class="b-tick"><svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div><div class="b-row b-choice" data-choice="who" data-id="lead" role="radio" aria-checked="false"><span class="b-name">Only a team’s chief</span><span class="b-tick"><svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.4 12 13 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div></div><div class="b-ba" role="group" aria-label="Who may send: before and after"><div class="b-ba-line"><span class="b-ba-k">Before</span><span>Any session sends</span></div><div class="b-ba-line"><span class="b-ba-k">After</span><span>Only a team’s &lt;b&gt;chief&lt;/b&gt; sends</span></div><div class="b-ba-warn">The others are told why.</div><div class="b-ba-btns"><button class="button small quiet" data-confirm="keep">Keep It</button><button class="button small main" data-confirm="change">Change</button></div></div></div>
+…not on another app’s page: false
+a row opening a page of its own, and its rows found within it: ["page north","choice where"]
+…the row by its key: North
+<div class="caps b-sec">Places</div><div class="b-card b-group"><div class="b-row" data-go="sub:sample-tool:north" role="button"><span class="b-name">North</span><span class="b-value">Here</span><span class="b-chev"><svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1.5 6.5 6 2 10.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></div></div>
+on its page: its app, and the row: {"app":"sample-tool","row":"North"}
+<div class="caps b-sec">North’s</div><div class="b-card b-group"><div class="b-span"><span class="b-words"><b>Where North’s go</b><i>Picked from a &lt;b&gt;menu&lt;/b&gt;</i></span><button class="button small b-menu" data-menu="where" aria-label="Where North’s go: Here"><span class="b-menu-name">Here</span><span class="caret"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button></div></div>
+a choice there, picked: there
+a tool’s tile with a mark of Settings’: <span class="b-mark" style="width: 40px; height: 40px"><i class="b-glyph g-ticket"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"></path></svg></i></span>
+a menu choice whose pick has gone asks for one: true
+shown on the page a row opens: ["apps","app:sample-tool","sub:sample-tool:north"]
+…or on the app’s own, when there’s no such row: ["apps","app:sample-tool"]
+a row opening a page in a dimmed group: nothing to press: false
 
 == A tile’s letter
 a name: G
 no name: ?
 
 == Settings
-the cards: a page’s choices on one row, the cards by their order: [{"group":5,"rows":[{"key":"later","title":"A setting on an earlier card","glyph":"none","on":false}],"foot":[]},{"group":10,"rows":[{"page":"Appearance","title":"Appearance","glyph":"look","value":"Grey · Match the Mac"},{"page":"Session List","title":"Session List","glyph":"list","value":"Newest First"},{"page":"Open Files With","title":"Open Files With","glyph":"file","value":"Not chosen yet"}],"foot":[]},{"group":20,"rows":[{"key":"shortcut","title":"New Conversation with ⌃⌥N","glyph":"keys","on":true},{"app":"sample-tool","title":"Sample Tool","value":"On"}],"foot":["⌃⌥N opens the new conversation card from any app."]}]
+the cards: a page’s choices on one row, the cards by their order: [{"group":5,"rows":[{"key":"later","title":"A setting on an earlier card","glyph":"none","on":false}],"foot":[]},{"group":10,"rows":[{"page":"Appearance","title":"Appearance","glyph":"look","value":"Grey · Match the Mac"},{"page":"A Choice of Its Own","title":"A Choice of Its Own","glyph":"list","value":"One"},{"page":"Open Files With","title":"Open Files With","glyph":"file","value":"Not chosen yet"}],"foot":[]},{"group":20,"rows":[{"key":"shortcut","title":"New Conversation with ⌃⌥N","glyph":"keys","on":true},{"app":"sample-tool","title":"Sample Tool","value":"On"}],"foot":["⌃⌥N opens the new conversation card from any app."]}]
 no settings: []
 a choice with nothing to pick from: None found
 a choice not made yet: Not chosen yet
 Appearance’s page: ["look","appearance"]
-Session List’s page, its own: ["groupBy"]
+a choice with no page named: a page of its own: ["ownChoice"]
 a switch has no page: []
 Black picked: black
 Glass, which can’t be picked now: undefined
@@ -85,7 +102,7 @@ the switch turned off: false
 the switch turned on again, though it’s on: undefined
 a switch given a choice: undefined
 a setting that isn’t there: undefined
-the settings it was given are left as they were: ["grey","system","status",null,true,false,null,null]
+the settings it was given are left as they were: ["grey","system","one",null,true,false,null,null]
 
 == A list (Sessions)
 found on its app: Sessions

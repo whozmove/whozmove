@@ -27,6 +27,10 @@ NSDictionary *RunBriefly(NSString *path, NSArray<NSString *> *arguments, NSDicti
 NSDictionary *RunConversation(NSString *path, NSArray<NSString *> *arguments,
                               NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
                               BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid));
+NSDictionary *RunConversationOn(NSString *path, NSArray<NSString *> *arguments,
+                                NSDictionary<NSString *, NSString *> *environment, NSString *folder, NSData *send,
+                                BOOL (^line)(NSData *line), NSTimeInterval seconds, void (^told)(pid_t pid),
+                                NSData *(^next)(void));
 NSDictionary *RunFeeding(NSString *path, NSArray<NSString *> *arguments, NSDictionary<NSString *, NSString *> *environment,
                          NSData *(^more)(void), void (^line)(NSData *line), NSTimeInterval seconds,
                          BOOL background);

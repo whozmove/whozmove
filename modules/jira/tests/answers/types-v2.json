@@ -1,0 +1,5 @@
+{"data": {"issueTypes": [{"description": "A piece of work.", "id": "10001", "name": "Task", "subtask": false},
+  {"description": "A problem.", "id": "10004", "name": "Bug", "subtask": false},
+  {"description": "Part of a task.", "id": "10002", "name": "Subtask", "subtask": true},
+  {"id": "10009", "name": "Task", "subtask": false}],
+  "maxResults": 50, "startAt": 0, "total": 4}}

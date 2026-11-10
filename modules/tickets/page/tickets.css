@@ -40,7 +40,11 @@
 .tk-rs.tk-doing { color: var(--plan-text); background: var(--plan-fill); }
 .tk-rs.tk-done { color: var(--added); background: var(--added-fill); }
 .tk-rs.tk-dropped { color: var(--faint); }
-.tk-rs.tk-problem { color: var(--turn-words); background: var(--turn-fill); }
+/* A ticket it can't read now (a sign-in that ran out, one waiting for Allow, a read that failed): the kit's tag of
+   something to put right, its edge and icon with it. */
+.tk-row.needs { box-shadow: inset 0 0 0 1px var(--needs-edge); }
+.tk-row.needs .tk-i { color: inherit; }
+.tk-rs.tk-problem { color: var(--needs-text); background: var(--needs-fill); }
 
 /* Its card, pointed at. */
 .tk-pill.tk-todo { color: var(--muted); background: var(--hover); }

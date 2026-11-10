@@ -8,8 +8,8 @@ itself.
 ## What needs you comes out beside it
 
 While the panel is folded, a request, a question, a plan or a reply you haven't read comes out beside it by itself, as
-its row from the list, so you can answer it there, or press it to open its session. Under [Group by
-Team](group-by-team.md), where the list's rows are short, it shows its whole row, so it says what's new. A reply to a
+its row from the list, so you can answer it there, or press it to open its session. Where the list's rows are short,
+it shows its whole row, so it says what's new. A reply to a
 message another session sent went there, not to you, so it doesn't come out. With **Show Conversation Text** off in
 Settings, one that comes out for a reply shows its name and time, without the reply ([The
 list](the-list.md#hiding-the-conversation)).

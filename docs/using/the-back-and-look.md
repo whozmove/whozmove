@@ -31,7 +31,7 @@ sessions** off, Claude Desktop's conversations leave the list, and new conversat
 **Sessions**, with how many there are, lists every conversation Claude Code keeps on this Mac, wherever it ran, by
 project, newest first. Each says when it ended and where it ran, or, while it's still open, where and when it last
 replied, and whether it has a reply you haven't read (with a team file, a conversation that has ended in a team
-member's folder never has: it's that member's, as under [Group by Team](group-by-team.md)).
+member's folder never has: it's that member's, as in [With a team](the-list.md#with-a-team)).
 
 Tick the ones you want gone (**Tick All Ended** ticks every one that has ended) and press **Move to Trash**. It asks
 first, saying how many are still open and how many have replies you haven't read; then each goes to the Trash on its
@@ -55,8 +55,6 @@ the panel back to start a conversation. Turned over again, it opens on your apps
 phone's: each row has its coloured tile, its name and what it's set to; press one for its page, and ‹ to come back.
 
 - **Appearance**: the look (below);
-- **Session List**: **Newest First** or **Group by Project**, the list's order (see [The list](the-list.md)), and
-  **Group by Team** while a team's sessions are listed (see [Group by Team](group-by-team.md));
 - **Show Conversation Text**: a switch, on until you turn it off. Off, rows show no one's words: not yours, not what
   another session sent, not Claude's replies or what it's working on (see [The list](the-list.md#hiding-the-conversation));
 - **Open Files With**: the editor a changed file opens in, from those on your Mac, each with its icon (see
@@ -69,6 +67,11 @@ phone's: each row has its coloured tile, its name and what it's set to; press on
 - **Usage Gear**: a switch, on until you turn it off, for your gear on the usage card. Off, queued jobs start without
   a limit, the card shows only your usage, no row says Over the gear, and the gear you set is forgotten (see [The
   usage card](usage.md#your-gear)).
+- **Tickets**, once a project's way is set: where each project's tickets open, saying how many projects have one, each
+  changed after its before and after (see [Tickets](tickets.md#where-each-projects-tickets-open)).
+
+Some choices matter more than most: their heading says **Important**, and picking another shows what it changes
+first, before and after, with **Keep It** and **Change**.
 
 ## The look
 

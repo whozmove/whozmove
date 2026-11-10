@@ -104,6 +104,24 @@ NSArray<NSDictionary *> *SideChatAsideAsked(NSArray<NSDictionary *> *asides, NSS
     return [(asides ?: @[]) arrayByAddingObject:@{@"at": @(at), @"question": question ?: @"", @"state": kAsking}];
 }
 
+const NSUInteger SideChatStepMost = 120;
+
+NSArray<NSDictionary *> *SideChatAsideToStep(NSArray<NSDictionary *> *asides, double at, NSString *step) {
+    NSString *words = PlainOneLine(step, SideChatStepMost);
+    if (!words.length) return asides;
+    NSMutableArray *out = [NSMutableArray array];
+    for (NSDictionary *aside in asides) {
+        if (AsNumber(aside[@"at"]).doubleValue != at || ![aside[@"state"] isEqual:kAsking]) {
+            [out addObject:aside];
+            continue;
+        }
+        NSMutableDictionary *one = [aside mutableCopy];
+        one[@"step"] = words;
+        [out addObject:one];
+    }
+    return out;
+}
+
 NSArray<NSDictionary *> *SideChatAsideNotAsked(NSArray<NSDictionary *> *asides, NSString *question, double at) {
     return [(asides ?: @[]) arrayByAddingObject:@{@"at": @(at), @"question": question ?: @"", @"state": @"notAsked"}];
 }
@@ -124,10 +142,12 @@ NSArray<NSDictionary *> *SideChatAsideAnswered(NSArray<NSDictionary *> *asides, 
         NSArray *parts = [state isEqual:@"answered"] ? ReplyParts(text) : @[];
         if ([state isEqual:@"answered"] && !parts.count) state = @"noAnswer";
         one[@"state"] = state;
+        [one removeObjectForKey:@"step"];
         if (parts.count) {
             one[@"text"] = text;
             one[@"answer"] = parts;
             one[@"answeredAt"] = @(now);
+            if (AsNumber(answer[@"remembered"])) one[@"remembered"] = answer[@"remembered"];
         }
         if ([state isEqual:@"limit"] && AsNumber(answer[@"resetsAt"])) one[@"resetsAt"] = answer[@"resetsAt"];
         if ([state isEqual:@"signedOut"] && AsText(answer[@"signIn"])) one[@"signIn"] = answer[@"signIn"];
@@ -173,6 +193,17 @@ NSArray<NSDictionary *> *SideChatAsidesShown(NSArray<NSDictionary *> *asides) {
         [out addObject:one];
     }
     return out;
+}
+
+NSArray<NSDictionary *> *SideChatAsidesEarlier(NSArray<NSDictionary *> *asides, double at) {
+    NSMutableArray *earlier = [NSMutableArray array];
+    for (NSDictionary *aside in asides) {
+        double asked = AsNumber(aside[@"at"]).doubleValue;
+        NSString *text = AsText(aside[@"text"]);
+        if (asked < at && [aside[@"state"] isEqual:@"answered"] && text.length)
+            [earlier addObject:@{@"question": AsText(aside[@"question"]) ?: @"", @"text": text, @"at": @(asked)}];
+    }
+    return earlier;
 }
 
 NSDictionary *SideChatAsideAt(NSArray<NSDictionary *> *asides, double at) {

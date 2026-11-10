@@ -1,0 +1,51 @@
+
+== A step of the note, in its parts (processLineParts)
+a name, what it asks and where it came from: {"name":"Start Docker before npm test","says":"the tests need its database, and the pages don’t say so.","from":"found running the tests on PAY-142"}
+no name: {"name":"","says":"Ask QA before merging.","from":"you, on PAY-142"}
+no source: {"name":"Releases","says":"on Thursdays.","from":""}
+a colon only far into the line is no name: 
+brackets inside, not at the end, stay in what it asks: {"name":"Checks","says":"npm test (all of it) passes.","from":""}
+nothing: {"name":"","says":"","from":""}
+
+== The note as steps (processStepsHTML): numbered text, never a choice
+a list of text, with no button and nothing to tick in it: true
+numbers are text: "1." and "2."; the step taken out has none: ["–","1.","2."]
+each step says itself to VoiceOver: ["taken out: Start Docker before npm test: the tests need its database, and the pages don’t say so. (found running the tests on PAY-142)","step 1: Staging link: QA wants it in each pull request’s description. (you, on PAY-142)","new, step 2: Screenshots: a before and an after in the pull request for anything people see. (the review on #57)"]
+a new step and one taken out say so in words, beside where each came from: ["taken out · found running the tests on PAY-142","you, on PAY-142","new · the review on #57"]
+the name is bold inside the sentence: true
+a step's words are shown as text: <ol class="pn-note"><li class="pn-step" aria-label="step 1: Checks: &lt;b&gt;npm&lt;/b&gt; &amp; &quot;lint&quot;. (&lt;i&gt;you&lt;/i&gt;)"><span class="pn-n" aria-hidden="true">1.</span><span class="pn-body" aria-hidden="true"><span class="pn-says"><b>Checks:</b> &lt;b&gt;npm&lt;/b&gt; &amp; &quot;lint&quot;.</span> <span class="pn-from">&lt;i&gt;you&lt;/i&gt;</span></span></li></ol>
+
+== The card, in each of its states (processDraftHTML)
+a first note: Keep this as how acme-web works? What acme-web’s own pages don’t say. Every session on acme-web and its worktrees gets it with its ticket, beside those pages. 1. Start Docker before npm test: the tests need its database, and the pages don’t say so. found running the tests on PAY-142 2. Staging link: QA wants it in each pull request’s description. you, on PAY-142 To change anything, say so in the conversation, and it shows here again. Not Now Keep It
+…its title: true
+…Not Now, then Keep It, the main button: true
+…named by when it was asked, and waiting: true
+drafted again, against the note as kept: Keep the change to how acme-web works? Against the note kept at 17:02: 1 line added, 1 removed. – Start Docker before npm test: the tests need its database, and the pages don’t say so. taken out · found running the tests on PAY-142 1. Staging link: QA wants it in each pull request’s description. you, on PAY-142 2. Screenshots: a before and an after in the pull request for anything people see. new · the review on #57 To change anything, say so in the conversation, and it shows here again. Not Now Keep It
+…in a 12-hour clock: true
+…kept on another day, with its day: Against the note kept on 30 Apr at 9:15: 1 line added, 1 removed.
+…kept in another year, with its year: Against the note kept on 30 Dec 2032 at 9:15: 1 line added, 1 removed.
+one line added only: Against the note kept at 17:02: 1 line added.
+two lines taken out: Against the note kept at 17:02: 2 lines removed.
+after Not Now, with a line that wasn't there then: Keep this as how acme-web works? What acme-web’s own pages don’t say. Every session on acme-web and its worktrees gets it with its ticket, beside those pages. You said Not Now at 16:58. This one has a change that wasn’t there then. 1. Start Docker before npm test: the tests need its database, and the pages don’t say so. found running the tests on PAY-142 2. Staging link: QA wants it in each pull request’s description. you, on PAY-142 3. Screenshots: a before and an after in the pull request for anything people see. the review on #57 To change anything, say so in the conversation, and it shows here again. Not Now Keep It
+being kept: no buttons, and no line on changing it: Keep this as how acme-web works? What acme-web’s own pages don’t say. Every session on acme-web and its worktrees gets it with its ticket, beside those pages. 1. Start Docker before npm test: the tests need its database, and the pages don’t say so. found running the tests on PAY-142 2. Staging link: QA wants it in each pull request’s description. you, on PAY-142 Keeping it…
+…and named so: true
+couldn't be kept: why, with Try Again: Keep this as how acme-web works? What acme-web’s own pages don’t say. Every session on acme-web and its worktrees gets it with its ticket, beside those pages. 1. Start Docker before npm test: the tests need its database, and the pages don’t say so. found running the tests on PAY-142 2. Staging link: QA wants it in each pull request’s description. you, on PAY-142 To change anything, say so in the conversation, and it shows here again. Couldn’t keep it: its folder for notes on this Mac may be full or locked. Not Now Try Again
+…Try Again is the main button: true
+a project's name is shown as text: true
+a long note: all 40 steps, in a box that scrolls: 40
+a long word in it breaks inside the card: true
+…and a long source wraps with its step, never held on one line: true
+where a step came from is text to read, in --muted, never --faint: true
+nothing to show: no card: 
+
+== On the row (process-notes.js)
+after the tickets' cards: true
+wants a row with a draft: true
+…and not one without: false
+draws its card: true
+
+== Its keys, once pressed: a number does nothing, Return is its main button, Esc lets go (core.keyCards)
+a number key is taken, doing nothing: [true,true,true,true]
+Return and Esc are left to the core's own (its main button; let go): [false,false]
+while it's being kept it takes no keys: false
+a press on a button answers it, not takes the keys: false

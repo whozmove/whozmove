@@ -30,6 +30,8 @@
 @property (strong) NSMutableDictionary<NSString *, NSArray *> *asks;  // [ask id, its agent], by `<session> <at>`
 @property (copy) NSDictionary<NSString *, Row *> *listed;
 @property (copy) NSString *told;
+- (void)ask:(NSString *)question of:(Row *)row sessionId:(NSString *)sessionId through:(id<AgentAside>)agent
+         at:(double)at;
 @end
 
 static NSString *ChatsDir(void) {
@@ -291,23 +293,41 @@ static int PrintSideChat(SideChatModule *module);
     NSString *question = PlainOneLine(AsText(message[@"question"]), SideChatMost);
     Row *row = self.listed[sessionId];
     if (!question.length || !row) return;
-    id<AgentAside> agent = [self asideAgentOf:row];
-    double at = Now();
+    [self ask:question of:row sessionId:sessionId through:[self asideAgentOf:row] at:Now()];
+    [self tell];
+}
+
+// The question asked at `at` through the session's agent (none: not asked), kept as it goes: still being asked, on
+// each step its agent says the answer takes, or didn't answer when it couldn't start. --print-side-chat asks through a
+// sample agent.
+- (void)ask:(NSString *)question of:(Row *)row sessionId:(NSString *)sessionId through:(id<AgentAside>)agent
+         at:(double)at {
     NSArray *asked = agent && ![agent asideWhyNot:row] ? SideChatAsideAsked(self.asides[sessionId], question, at)
                                                         : nil;
     if (!asked) {
         self.asides[sessionId] = SideChatAsideNotAsked(self.asides[sessionId], question, at);
-        [self tell];
         return;
     }
     self.asides[sessionId] = asked;
     __weak typeof(self) weakSelf = self;
-    NSString *askId = [agent ask:question aside:row done:^(NSDictionary *answer) {
+    NSString *askId = [agent ask:question aside:row earlier:SideChatAsidesEarlier(asked, at)
+                            step:^(NSString *step) {
+        [weakSelf stepped:step of:sessionId at:at];
+    } done:^(NSDictionary *answer) {
         [weakSelf answered:answer of:sessionId at:at];
     }];
     if (askId) self.asks[Key(sessionId, at)] = @[askId, agent];
     else self.asides[sessionId] = SideChatAsideAnswered(asked, at, @{@"state": @"noAnswer"}, Now());
     PanelLog(@"side-chat: a side question for %@%@", sessionId, askId ? @"" : @", which couldn't start");
+}
+
+// A new step of its answer, as its agent says it: kept with the question while it's still being asked, and told.
+- (void)stepped:(NSString *)step of:(NSString *)sessionId at:(double)at {
+    NSArray *asides = self.asides[sessionId];
+    if (!asides) return;  // its session went meanwhile
+    NSArray *now = SideChatAsideToStep(asides, at, step);
+    if ([now isEqual:asides]) return;
+    self.asides[sessionId] = now;
     [self tell];
 }
 
@@ -578,6 +598,41 @@ static int PrintSideChat(SideChatModule *module);
 - (id<TypingHost>)typing { return self.inDesktop ? nil : self.sample; }
 @end
 
+// An agent that answers side questions as the run tells it, for --print-side-chat: whether the next ask starts at all
+// (`refuses`), or may be asked (`whyNot`); `step` and `done`, the steps and the answer of the ask under way, given when
+// the run says.
+@interface SideChatSampleAgent : NSObject <AgentAside>
+@property (assign) BOOL refuses;
+@property (copy) NSDictionary *whyNot;
+@property (copy) void (^step)(NSString *step);
+@property (copy) void (^done)(NSDictionary *answer);
+@end
+
+@implementation SideChatSampleAgent
+- (NSString *)name { return @"Sample Agent"; }
+- (NSArray<Row *> *)readSessions { return @[]; }
+- (NSArray<Row *> *)readEndedSessions:(NSArray<Row *> *)listed { return @[]; }
+- (void)addRecordTo:(Row *)row {}
+- (void)addRequestsTo:(NSArray<Row *> *)rows {}
+- (NSString *)titleOf:(Row *)row now:(BOOL)now { return nil; }
+- (BOOL)titleShowsWork:(NSString *)title { return NO; }
+// None: it only answers side questions, so no session reads instructions from it. Every Agent says what it has.
+- (NSArray<NSString *> *)instructionPages { return @[]; }
+- (NSArray<NSString *> *)environmentMarks { return @[]; }
+- (NSString *)sessionOfProcess:(pid_t)pid { return nil; }
+- (NSString *)whyNotAsker:(pid_t)pid { return @"a sample"; }
+- (NSString *)whyNot:(Row *)row speakFrom:(pid_t)process { return @"a sample"; }
+- (NSDictionary *)asideWhyNot:(Row *)row { return self.whyNot; }
+- (NSString *)ask:(NSString *)question aside:(Row *)row earlier:(NSArray<NSDictionary *> *)earlier
+             step:(void (^)(NSString *step))step done:(void (^)(NSDictionary *answer))done {
+    if (self.refuses) return nil;
+    self.step = step;
+    self.done = done;
+    return @"sample-ask";
+}
+- (void)stopAside:(NSString *)askId {}
+@end
+
 // `Whozmove --print-side-chat`: what the record keeps as your words move on (SideChatRecord.m), who can open it once
 // it's kept, in the home folder the run is given, whether held words go in by themselves (Send's WordsGoByThemselves,
 // and for a session's reach, ReachGoesByItself and ReachTerminalInFront) and what they do now (HeldWordsStep), what's
@@ -699,6 +754,13 @@ static int PrintSideChat(SideChatModule *module) {
     NSArray *asked = SideChatAsideAsked(nil, @"Why that file?", 1000);
     say(@"Asked", asked);
     say(@"Asked again while it's being answered: not asked", SideChatAsideAsked(asked, @"And the tests?", 2000));
+    say(@"On a step of its answer", SideChatAsideToStep(asked, 1000, @"Reading cart.ts"));
+    say(@"…said on more than one line, and long: one line, cut", SideChatAsideToStep(asked, 1000,
+        [@"Looking at\nthe cart " stringByPaddingToLength:200 withString:@"and more " startingAtIndex:0]));
+    say(@"…no words, or another time's: as it was", @[SideChatAsideToStep(asked, 1000, @" \n"),
+                                                       SideChatAsideToStep(asked, 2000, @"Reading cart.ts")]);
+    say(@"…once answered, its step goes", SideChatAsideAnswered(SideChatAsideToStep(asked, 1000, @"Thinking"), 1000,
+                                                                @{@"state": @"tooSlow"}, 1500));
     NSArray *answered = SideChatAsideAnswered(asked, 1000, @{@"state": @"answered", @"text": @"Because it holds the "
                                                              "cart.\n```sh\nnpm test\n```", @"cacheRead": @90000},
                                               1500);
@@ -728,6 +790,51 @@ static int PrintSideChat(SideChatModule *module) {
     say(@"One not sent: unsent, kept as it was", SideChatAsideUnsent(failed, 1000));
     say(@"Couldn't be asked once pressed: kept, not asked", SideChatAsideNotAsked(answered, @"And the tests?", 2000));
     say(@"The question asked at a time not asked: none", SideChatAsideAt(asked, 5));
+    NSArray *remembered = SideChatAsideAnswered(SideChatAsideAsked(answered, @"And the tests?", 2000), 2000,
+                                                @{@"state": @"answered", @"text": @"They pass.", @"remembered": @1},
+                                                2500);
+    say(@"Answered, with how many earlier ones the side conversation knew", SideChatAsideAt(remembered, 2000));
+    NSArray *stopped = SideChatAsideAnswered(SideChatAsideAsked(remembered, @"Stopped?", 2600), 2600,
+                                             @{@"state": @"stopped"}, 2700);
+    NSArray *five = SideChatAsideAsked(SideChatAsideNotAsked(stopped, @"Not asked?", 2800), @"Which file?", 3000);
+    say(@"The earlier ones its agent is told, before the one asked now: only those answered with words",
+        SideChatAsidesEarlier(five, 3000));
+    say(@"…none before the first", SideChatAsidesEarlier(remembered, 1000));
+
+    printf("\n== Asked on the side, through its agent as you press\n");
+    SideChatSampleAgent *agent = [SideChatSampleAgent new];
+    Row *asker = [[Row alloc] initWithFields:@{@"sessionId": @"sample-aside"}];
+    NSArray *(^now)(void) = ^NSArray *(void) {
+        NSMutableArray *out = [NSMutableArray array];
+        for (NSDictionary *aside in module.asides[@"sample-aside"])
+            [out addObject:[NSString stringWithFormat:@"%@ %@%@", aside[@"question"], aside[@"state"],
+                            aside[@"step"] ? [NSString stringWithFormat:@" (%@)", aside[@"step"]] : @""]];
+        return out;
+    };
+    [module ask:@"Why that file?" of:asker sessionId:@"sample-aside" through:agent at:1000];
+    say(@"The first: being asked", now());
+    agent.step(@"Thinking");
+    say(@"…its agent says it's thinking", now());
+    agent.step(@"Reading cart.ts");
+    say(@"…then reading", now());
+    agent.done(@{@"state": @"answered", @"text": @"It holds the cart."});
+    say(@"…then answered: its step gone", now());
+    [module ask:@"And the tests?" of:asker sessionId:@"sample-aside" through:agent at:2000];
+    agent.step(@"Running git log");
+    say(@"A follow-up, on a step", now());
+    agent.done(@{@"state": @"answered", @"text": @"They pass."});
+    say(@"…then answered", now());
+    [module ask:@"And now?" of:asker sessionId:@"sample-aside" through:agent at:3000];
+    say(@"Another: being asked", now());
+    [module ask:@"One more?" of:asker sessionId:@"sample-aside" through:agent at:3500];
+    say(@"…another while it's being asked: not asked", now());
+    agent.done(@{@"state": @"tooSlow"});
+    agent.refuses = YES;
+    [module ask:@"Still there?" of:asker sessionId:@"sample-aside" through:agent at:4000];
+    say(@"One that couldn't start: didn't answer", now());
+    agent.whyNot = @{@"why": @"noConversation"};
+    [module ask:@"Anything?" of:asker sessionId:@"sample-aside" through:agent at:5000];
+    say(@"One its agent says can't be asked now: not asked", now());
 
     printf("\n== A reply, cut into prose and code\n");
     say(@"Prose, a command, prose", ReplyParts(@"Okay: the smaller migration first.\n```sh\nnpm run migrate -- "

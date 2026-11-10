@@ -60,8 +60,11 @@ key (an API key, a GitHub, GitLab, Slack, npm or Hugging Face token, an AWS, Str
 client secret, a bearer token): one that does is refused, as the panel shows it. Fields it doesn't know are left out.
 A task is 12 KB at most as it's sent, which a task of plain text within these limits always fits.
 
-The order in One Task is Whozmove's, the same for every session: tasks whose session is waiting on the answer
-(running `task-answer --wait`) first, then the rest, the longest waiting first. A task can't ask to come first. One
+The order in One Task is Whozmove's, the same for every session: by the priority of the ticket the session works on,
+in its tracker's own order (its row's `ticket`, [rows.md](rows.md)), first come first served within each priority;
+then tasks from sessions with no ticket, or whose ticket's priority has no place yet; then those put back with Can't
+Now. Tickets from two trackers are compared from the top of each one's list. A task can't ask to come first: a
+`priority` written into it is left out. Whoever writes a ticket sets its priority, and the user changes any. One
 Task holds only tasks: a session's own request for the user's OK, its question or its plan stays on its row in the
 list, answered there.
 
@@ -69,10 +72,12 @@ A team's lead hands you a task for one of its members with `ask-panel.sh task --
 member named by its session id or its name in the team: checked as every task is, and answered at once, `sent`, or
 `refused:` and why (this session leads no team; Wren isn't on your team; two on your team are called Wren, so use its
 session id; or what the check found). The member it names is the pick's, from then on. One Task shows the pick once
-the lead's team file names it in its `queue` ([team.md](team.md)), in the queue's order, after anything urgent;
-`task-answer` says it waits unseen until then, and that an id the queue names was never sent.
+the lead's team file names it in its `queue` ([team.md](team.md)); `task-answer` says it waits unseen until then,
+and that an id the queue names was never sent. A pick takes its place in the line from its member's ticket; when the
+member has none, from its job's priority in the queue, Critical, P0, P1 or P2, counted from when the queue first named
+it.
 
-One Task shows a lead's pick after anything urgent. Its answers are the lead's, read with
+A lead's pick's answers are the lead's, read with
 `ask-panel.sh task-answer <id>` from the lead's session, and a pick that doesn't pass the check is refused there, with
 why. Each pick waits until the user answers it, whatever the lead names next: naming another, or none, never
 takes one away unanswered. Named again under its id with new words, it changes in place, and One Task says the lead

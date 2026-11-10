@@ -73,6 +73,13 @@ function ticketPickFound(i, api) {
 // How many the list offers to pick from: what was found, and Create a ticket, once you're signed in.
 const ticketChoices = (list) => (ticketsSignedIn(state.ticketTrackers).length ? list.items.length + 1 : 0);
 
+// The card's ticket, for the card's other parts (where a ticket starts): its tracker, site and key, never anything else
+// it said; none for Create a ticket, which has no key yet.
+core.cardTicket = () => {
+  const p = state.ticketPick;
+  return p && !p.create && p.key ? { tracker: p.tracker, site: p.site, key: p.key } : null;
+};
+
 core.startCardParts.push({
   name: 'tickets',
   chip: () => ticketChipHTML(state.ticketPick),
@@ -192,8 +199,11 @@ window.setTicketTrackers = (trackers) => {
 
 const rowTicket = (sid) => state.last.sessions.find((s) => s.sessionId === sid)?.ticket;
 
-// After the row's name, while Claude works too: its ticket, or "New ticket".
-core.slots.name.push((row) => ticketTagHTML(row.s.sessionId, row.s.ticket?.bound, row.s.ticket?.creating));
+// After the row's name, while Claude works too: its ticket, or "New ticket", on a row shown briefly as on a whole one
+// (a chat beside the folded panel), with its card and what it says when the ticket can't be read.
+const rowTicketTag = (row) => ticketTagHTML(row.s.sessionId, row.s.ticket?.bound, row.s.ticket?.creating);
+core.slots.name.push(rowTicketTag);
+core.slots.brief.push(rowTicketTag);
 core.presses.push(['.tk-row[data-tk]', (tag) => native({ type: 'openTicket', sessionId: tag.dataset.tk })]);
 core.pointerTargets.push('.tk-row[data-tk]', '.tk-row[data-tknew]', '.tk-chip', '.tk-res', '.tk-act', '.tk-use button',
   '.tk-move button', '.tk-draft button');
@@ -259,9 +269,10 @@ core.rowCards.push({
   name: 'ticketMove', order: 26,
   wants: (row) => !!row.s.ticket?.move,
   html: (row) => {
-    // Kept by when it was asked, so a press can't land on a card that has just changed to another move.
+    // Kept by when it was asked and what it shows, so a press can't land on a card that has just changed to another
+    // move, or from Move It to what its tracker said, with its own page where Move It was.
     const m = row.s.ticket.move;
-    state.shownAt[`tkmove:${row.s.sessionId}:${m.at}`] ??= Date.now();
+    state.shownAt[`tkmove:${row.s.sessionId}:${m.at}:${ticketMoveState(m)}`] ??= Date.now();
     const tracker = row.s.ticket.bound?.tracker;
     return ticketMoveHTML(row.s.sessionId, m, tracker, ticketWho(tracker));
   },
@@ -274,8 +285,9 @@ core.presses.push(['.perm[data-tkmove]', (card, e) => {
   const button = e.target.closest('button[data-act]'), sid = card.dataset.tkmove;
   if (!button) return;
   e.preventDefault();
-  if (justShown(`tkmove:${sid}:${card.dataset.at}`)) return;
+  if (justShown(`tkmove:${sid}:${card.dataset.at}:${card.dataset.state}`)) return;
   if (button.dataset.act === 'signIn') return native({ type: 'ticketSignIn', tracker: card.dataset.tracker });
+  if (button.dataset.act === 'open') return native({ type: 'openTicket', sessionId: sid });
   native({ type: 'ticketMove', sessionId: sid, key: card.dataset.key, stepId: card.dataset.step,
            at: Number(card.dataset.at), act: button.dataset.act });
 }]);

@@ -31,8 +31,8 @@ version, and how to send a change is in [CONTRIBUTING](../CONTRIBUTING.md).
 - [Print runs](reference/print-modes.md): what each of the app's print runs prints, and which test checks it.
 - [Tests](reference/tests.md): each test on its own, and what it checks.
 - [A task's shape](reference/task.md): what a session sends to hand you a task, and what it hears back.
-- [The team file](reference/team.md): the file a session leading a team of sessions can keep, and how Group by Team
-  reads it.
+- [The team file](reference/team.md): the file a session leading a team of sessions can keep, and how the list reads
+  it for the team's groups.
 - [Tokens](reference/tokens.md): the panel's colours, text sizes and corners by name, and the checks that keep styles
   to them.
 
@@ -57,6 +57,7 @@ between the page and the app, and its rules.
 | [diagrams](../modules/diagrams/README.md) | a ```mermaid block drawn as a diagram wherever Markdown is shown, with Diagram and As written |
 | [commands](../modules/commands/README.md) | a session's model, effort and mode changed from its row, and Compact, with when it's a good time to compact |
 | [compact-at-breaks](../modules/compact-at-breaks/README.md) | Compact at Breaks: a long conversation compacted for you at a natural break, and its row saying so |
+| [process-notes](../modules/process-notes/README.md) | how a project works, beside its own pages: a session's draft of what they don't say, kept only by your Keep It |
 | [waits](../modules/waits/README.md) | a session waiting on someone else (a review, a merge), holding no seat, carried on when that comes |
 | [usage](../modules/usage/README.md) | your plan's usage, on a card under the panel |
 | [starts](../modules/starts/README.md) | new conversations from the panel's card, and ⌃⌥N |

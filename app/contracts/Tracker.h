@@ -49,7 +49,8 @@ typedef void (^TicketDone)(Ticket *ticket, TrackerAnswer *answer);
 - (void)read:(NSString *)key site:(NSString *)site done:(TicketDone)done;
 // One of its next steps, by the id it gave, with a note added as it goes and the fields it needs, each by its id with a
 // value as TicketField describes (never the tracker's own shape); the ticket as it stands after. TrackerStepGone when
-// the step isn't one of the ticket's now.
+// the step isn't one of the ticket's now; TrackerEndRefused when the tracker turns the move away as it is (a field to
+// fill in on the ticket first, or a move that isn't yours), with what it said, if it did, as `trackerSays`.
 - (void)take:(NSString *)stepId of:(NSString *)key site:(NSString *)site note:(NSString *)note
       fields:(NSDictionary *)fields done:(TicketDone)done;
 // A note on the ticket, as a comment.
@@ -63,4 +64,9 @@ typedef void (^TicketDone)(Ticket *ticket, TrackerAnswer *answer);
 - (void)newTicketOptions:(NSString *)group site:(NSString *)site
                     done:(void (^)(NSDictionary *options, TrackerAnswer *answer))done;
 - (void)create:(NSDictionary *)draft site:(NSString *)site done:(TicketDone)done;
+@optional
+// The fields a ticket like this one (its project, its type) takes one option of from a list, each with its options
+// and their ids (TicketField's optionIds), so the ticket's own values (Ticket's `values`, from a read) can be matched
+// to them: empty for none, nil with why when they couldn't be read.
+- (void)optionFieldsOf:(Ticket *)ticket done:(void (^)(NSArray<TicketField *> *fields, TrackerAnswer *answer))done;
 @end

@@ -83,6 +83,23 @@ function worktreeChoices(repo, query, from, words) {
   return out.slice(0, 8);
 }
 
+// Where a part's proposal leads in a repo (as worktreeChoices' targets): for { path }, that one of its folders, the
+// repo's own being null; for { name }, cleaned as a name you write is (trimName), the worktree on that branch, else
+// that branch with no folder yet, else a new worktree by that name from the repo's base branch, named, so your words
+// don't rename it. Null for the repo's own folder, or a name or folder that leads nowhere.
+function namedTarget(repo, want) {
+  if (want.path) {
+    const w = repo.worktrees.find((x) => x.path === want.path);
+    return w ? { kind: 'open', branch: w.branch, path: w.path, where: w.where } : null;
+  }
+  const name = trimName(want.name);
+  if (!name || repo.here?.branch === name) return null;
+  const w = repo.worktrees.find((x) => x.branch === name);
+  if (w) return { kind: 'open', branch: w.branch, path: w.path, where: w.where };
+  if (repo.branches.includes(name)) return { kind: 'branch', name };
+  return { kind: 'new', name, base: repo.base, named: true };
+}
+
 // Whether a target is a worktree, one that's there or one to make: any of them starts in the terminal.
 function inWorktree(target) {
   return !!target && target.kind !== 'here';

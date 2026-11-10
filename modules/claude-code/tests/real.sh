@@ -5,7 +5,8 @@
 # account and calls no model), given Whozmove's plugin with its own `claude plugin` commands, and driven in a
 # pseudo-terminal (pty-driver.py) through what the panel does: a reply, a request for your OK answered at the panel's
 # own end of the line, a file written, a command typed over a draft, the mode moved, a question and a plan answered, a
-# command left running, a compaction, folder trust and a question asked on the session's side. Then what the app reads of it (its print runs) is compared with
+# command left running, a compaction, folder trust and questions asked on the session's side, in one copy kept for
+# both, with what its checker refuses. Then what the app reads of it (its print runs) is compared with
 # real.expected.txt, beside this file.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #

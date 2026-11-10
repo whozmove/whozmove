@@ -60,7 +60,6 @@
 // The cat beside the panel has grown into the folded cat where the glass has closed round it: the page's own takes
 // over there, and says so (catShown).
 - (void)catLanded;
-- (void)setGroupBy:(NSString *)mode;
 - (void)toggleCollapsed;
 // Why a /compact from the Compact card didn't go in, and the words of a button past it (WayPast in Send.h), or nil.
 - (void)compactNote:(NSString *)sid text:(NSString *)text way:(NSString *)way;

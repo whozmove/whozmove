@@ -3,8 +3,9 @@
 # screen with no window, and does to it what the panel does, step by step: a reply, a request for your OK answered at
 # the panel's own end of the hook's line, a file written, a command typed over a half-written draft, the mode moved
 # with Shift+Tab, a question and a plan answered, a command left running, a compaction and folder trust written while
-# it runs, and a question asked on its side with the arguments the app gives one. Each step's effect is read from what Claude Code sends the stand-in server next, its transcript, its
-# registry and what the hooks recorded, never from the screen, which is only waited on and kept when a step fails.
+# it runs, and questions asked on its side with the arguments and environment the app gives one. Each step's effect is
+# read from what Claude Code sends the stand-in server next, its transcript, its registry and what the hooks recorded,
+# never from the screen, which is only waited on and kept when a step fails.
 #   pty-driver.py <settings json>
 # The settings (real.sh writes them) name the Claude Code, the throwaway home, the project, the app, the stand-in's
 # log and port, the stand-in panel's folder and how to start it. What each step found is printed, one line each, for
@@ -416,12 +417,35 @@ def steps(session):
 
     say("== 10b questions on its side, asked as the panel asks them")
     settled(sid)
-    # With the model it was switched to in step 4, as the app asks one with the session's own.
+    # With the model it was switched to in step 4, as the app asks one with the session's own, and the environment the
+    # app gives it: this Whozmove as the checker its hook runs, and git's settings.
     arguments = json.loads(print_run("--print-aside", "--arguments", sid, model, "high"))
-    # The session's own requests, taken before either question, so neither is compared with the other's.
+    extra = json.loads(print_run("--print-aside", "--environment", PROJECT))
+    # A file beside the project, outside the session's folder, and one in it that git follows, for the reads.
+    with open(os.path.join(os.path.dirname(PROJECT), "outside-notes.txt"), "w") as f:
+        f.write("words from outside the project\n")
+    with open(os.path.join(PROJECT, "cart.txt"), "w") as f:
+        f.write("one line\n")
+    subprocess.run(["git", "-C", PROJECT, "add", "cart.txt"], check=True, env=dict(S["appEnv"]))
+    with open(os.path.join(PROJECT, "cart.txt"), "a") as f:
+        f.write("another line\n")
+    # A checker that's slow: the real one, its input held open after the call, so it can't read it whole in time.
+    slow = os.path.join(OUT, "slow-checker.sh")
+    with open(slow, "w") as f:
+        f.write(f'#!/bin/sh\n{{ cat; sleep 8; }} | "{APP}" "$@"\n')
+    os.chmod(slow, 0o755)
+    # The session's own requests, taken before any question, so none is compared with another's.
     own = sorted(os.listdir(S["bodies"]))
-    for what, step in (("a question", "reply"), ("a question that reaches for a command", "bash")):
-        aside(sid, arguments, what, step, own)
+    for what, steps, checker in (("a question", ["reply"], None),
+                                 ("a question that reaches for a command", ["bash"], None),
+                                 ("two questions in one copy", ["reply", "reply"], None),
+                                 ("a read outside its folder", ["readout"], None),
+                                 ("git that would write or run something", ["gitout"], None),
+                                 ("git status", ["gitstatus"], None),
+                                 ("git status, its checker not there", ["gitstatus"], os.path.join(OUT, "not-there")),
+                                 ("git status, its checker too slow", ["gitstatus"], slow)):
+        environment = dict(extra, WHOZMOVE_ASIDE_CHECK=checker) if checker else extra
+        aside(sid, arguments, environment, what, steps, own)
 
     settled(sid)
     rows = print_run("--print-rows")
@@ -472,59 +496,71 @@ def blocks(body):
     return out
 
 
-def aside(sid, arguments, what, step, own):
-    """A question on the session's side, run as the app runs one: in its folder, the question on its input as a
-    stream-json line. Whether it forked (another session listed as its result came, while its input was still open,
-    gone after), how it ended, whether a tool ran, whether anything in the home changed or any hook ran, and whether
-    its request starts as the last of the session's own requests (`own`, the stand-in's bodies before any question)
-    did, up to that request's last cache mark."""
+def aside(sid, arguments, environment, what, steps, own):
+    """Questions on the session's side, run as the app runs them: in its folder, with the environment the app adds
+    (`environment`), each question on its input as a stream-json line once the one before has its result, and its input
+    closed after the last. Whether it forked (another session listed as its first result came, while its input was still
+    open, gone after), how each ended and in how many processes, which tools ran and which were refused, whether the
+    file outside the folder was read or one was written outside it, whether the index changed, whether anything else in
+    the home changed or any hook ran, and whether its first request starts as the last of the session's own requests
+    (`own`, the stand-in's bodies before any question) did, up to that request's last cache mark."""
     bodies, hooks = S["bodies"], os.path.join(APPDIR, "sessions")
     before_bodies, before_home = sorted(os.listdir(bodies)), home_now()
     before_hooks = set(os.listdir(hooks)) if os.path.isdir(hooks) else set()
     registry = os.path.join(CONFIG, "sessions")
     listed = set(os.listdir(registry))
-    line = json.dumps({"type": "user", "message": {"role": "user", "content": f"Why that file? STEP:{step}"}})
-    run = subprocess.Popen([S["claude"]] + arguments, cwd=PROJECT, env=dict(S["claudeEnv"]), stdin=subprocess.PIPE,
-                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-    run.stdin.write(line + "\n")
-    run.stdin.flush()
-    copies, said = set(), []
+    index = os.path.join(PROJECT, ".git", "index")
+    index_before = open(index, "rb").read() if os.path.exists(index) else b""
+    run = subprocess.Popen([S["claude"]] + arguments, cwd=PROJECT, env=dict(S["claudeEnv"], **environment),
+                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    copies, said, results = set(), [], []
+    answered = threading.Event()
 
-    # Its input closes once its result has come, which is how Claude Code is told to finish, as the app does. Until then
-    # it's still running, so the sessions listed as its result comes are the ones listed while it ran, however quickly
-    # it answered: looking now and then would miss a copy that answers between two looks.
+    # Each question goes in once the one before has its result; its input closes after the last's, which is how Claude
+    # Code is told to finish, as the app does. The sessions listed as the first result comes are the ones listed while
+    # it ran, however quickly it answered: looking now and then would miss a copy that answers between two looks.
     def read():
         for each in run.stdout:
             said.append(each)
             if '"type":"result"' in each.replace(" ", ""):
-                for name in set(os.listdir(registry)) - listed:
-                    try:
-                        with open(os.path.join(registry, name)) as f:
-                            copies.add(json.load(f).get("sessionId"))
-                    except (OSError, ValueError):
-                        pass
-                run.stdin.close()
-                return
+                if not results:
+                    for name in set(os.listdir(registry)) - listed:
+                        try:
+                            with open(os.path.join(registry, name)) as f:
+                                copies.add(json.load(f).get("sessionId"))
+                        except (OSError, ValueError):
+                            pass
+                results.append(each)
+                answered.set()
 
     reader = threading.Thread(target=read, daemon=True)
     reader.start()
-    end = time.time() + 120
-    while run.poll() is None and time.time() < end:
-        time.sleep(0.1)
-    if not run.stdin.closed:
-        run.stdin.close()
+    end = time.time() + 180
+    for n, step in enumerate(steps):
+        answered.clear()
+        line = json.dumps({"type": "user", "message": {"role": "user", "content": f"Why that file? STEP:{step}"}})
+        run.stdin.write(line + "\n")
+        run.stdin.flush()
+        while len(results) <= n and run.poll() is None and time.time() < end:
+            answered.wait(0.1)
+    run.stdin.close()
     try:
-        run.wait(10)
+        run.wait(15)
     except subprocess.TimeoutExpired:
         run.kill()
     reader.join(5)
     lines = [json.loads(l) for l in said if l.startswith("{")]
-    result = next((l for l in lines if l.get("type") == "result"), {})
-    ran = [b for l in lines if l.get("type") == "user" for b in l["message"].get("content") or []
-           if isinstance(b, dict) and b.get("type") == "tool_result" and not b.get("is_error")]
+    ended = [l.get("subtype") for l in lines if l.get("type") == "result"]
+    words = [l.get("result") for l in lines if l.get("type") == "result"]
+    tool_results = [b for l in lines if l.get("type") == "user" for b in l["message"].get("content") or []
+                    if isinstance(b, dict) and b.get("type") == "tool_result"]
+    ran = sum(1 for b in tool_results if not b.get("is_error"))
+    seen = any("words from outside the project" in json.dumps(b.get("content")) for b in tool_results)
     say(f"   {what}: forked {bool(copies) and sid not in copies}, listed after "
-        f"{bool(set(os.listdir(registry)) - listed)}; ended {result.get('subtype')}, a tool ran {bool(ran)}, "
-        f"said {json.dumps(result.get('result'))}")
+        f"{bool(set(os.listdir(registry)) - listed)}; ended {ended}, said {json.dumps(words)}")
+    say(f"   {what}: tools ran {ran}, refused {len(tool_results) - ran}; the outside file read {seen}, a file "
+        f"written outside {os.path.exists(os.path.join(os.path.dirname(PROJECT), 'written-by-diff.txt'))}, the "
+        f"index changed {(open(index, 'rb').read() if os.path.exists(index) else b'') != index_before}")
     after_home = home_now()
     changed = sorted(k for k in set(before_home) | set(after_home) if before_home.get(k) != after_home.get(k))
     new_hooks = (set(os.listdir(hooks)) if os.path.isdir(hooks) else set()) - before_hooks

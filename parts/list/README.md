@@ -5,7 +5,8 @@ the order they're shown in, drawing the list again as they change, and what a pr
 
 ## What it shows
 
-- Every session as a row, sorted by whose move it is, grouped by project or a module's grouping, or newest first.
+- Every session as a row, sorted by whose move it is, in one view for everyone: a module's groups on top (a team's),
+  then every project, A to Z, newest first in each.
 - The row you're on with its tint, and a row you've pressed kept in its place until you've moved on from the panel.
 - The list scrolling just enough to show the row you're on as that changes, but never under a press.
 - The panel growing to fit the list, and what hangs below it.
@@ -18,7 +19,8 @@ the order they're shown in, drawing the list again as they change, and what a pr
   row, phase by phase on the main thread, then sent to the page (`update:`).
 - `page/whose-move.js`: what each session is (`classify`), whether you've read its reply and since when you've been on
   it (`isRead`, `stillToRead`, `onItAt`, `stillOnIt`, `waitsOnYou`, `turnSince`), the list's order (`placeRows`,
-  `lastActive`, `steady`), which session speaks for each checkout (`checkoutOwners`, `unpushedCommits`, `projectOf`) and
+  `lastActive`, `steady`) and its groups (`listGroups`: a module's on top, `core.topGroups`, then every project,
+  `projectGroups`), which session speaks for each checkout (`checkoutOwners`, `unpushedCommits`, `projectOf`) and
   how long ago or how long is left (`ago`, `elapsed`, `minutesLeft`): plain functions, checked by tests/panel.sh.
 - `page/panel.js`: the list drawn again (`render`, `renderWhenSettled`), the session you're on and what you've read
   (`goTo`, `followClaude`, `noteOnIt`, `keepSeen`, `keepToRead`, `openedNow`), its row shown as that changes
@@ -52,8 +54,8 @@ place, whose move it is, and the page's side of folding), as part.json lists:
   modules that read the rows (Claude Code's, the commands', Deploy's, git's, the install module's, bring-forward's and
   Storage's), focus, send and printing import `Rows.h`.
 - **On the page,** the bridge's calls from the app draw the list again and keep its sessions (`render`,
-  `renderWhenSettled`, `forgetGone`, `openedNow`); each row is the row part's (`rowsHTML`, `groupsHTML`,
-  `projectsHTML`), and the list moves from what it was by morph (`morph`). As it draws, it has hover look again at what
+  `renderWhenSettled`, `forgetGone`, `openedNow`); each row is the row part's, in the list's groups (`listGroups`,
+  `groupsHTML`), and the list moves from what it was by morph (`morph`). As it draws, it has hover look again at what
   the pointer is on (`syncHover`), the reader drawn and fitted (`drawReader`, `fitReader`), the folded panel posed
   (`drawCat`, `catLook`), the header named (`headerBuild`) and the keyboard let go once no box on the list keeps it
   (`keepsKeyboard`, `wantKeyboard`).

@@ -22,6 +22,7 @@
 .r-ask { display: grid; gap: 9px; }
 .r-q { display: flex; align-items: center; gap: 8px; font-size: var(--size-body); color: var(--muted); }
 .r-q .dot { margin-top: 0; background: var(--needs); }
+.r-whole { font-size: var(--size-body); color: var(--muted); }
 .r-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 /* The answer's buttons are the kit's, Stop in the colour of something to put right. */
 .r-buttons .r-stop { color: var(--needs-text); }

@@ -42,11 +42,12 @@ NSDictionary *TaskRecordAnswer(NSDictionary *record, NSString *taskId, NSString 
 NSDictionary *TaskRecordPick(NSDictionary *record, NSDictionary *task, NSString *member, pid_t pid, long long started,
                              double now, NSString **said, NSString **why);
 // The lead's queue, as its team file names it (row.team.queue's ids, in its order, and `priorities`, each id's job's
-// priority): each pick it sent takes its place there (`pickAt`) and its job's priority (`pickPriority`), and shows
-// from then on (`shown`); one no longer named keeps waiting, after those named, until it's answered or taken back,
-// with neither. An id it names but never sent is kept, so task-answer can say so.
+// priority): each pick it sent is marked as named there (`pickAt`, where) with its job's priority (`pickPriority`,
+// which places it when its member has no ticket), and shows from then on (`shown`), from `now` the first time it's
+// named (`shownAt`, when it waits its turn from); one no longer named keeps waiting, with neither, until it's answered
+// or taken back. An id it names but never sent is kept, so task-answer can say so.
 NSDictionary *TaskRecordQueue(NSDictionary *record, NSArray<NSString *> *ids,
-                              NSDictionary<NSString *, NSString *> *priorities);
+                              NSDictionary<NSString *, NSString *> *priorities, double now);
 // Can't Now: the task goes to the back of your line, and the session is told when it asks.
 NSDictionary *TaskRecordPutBack(NSDictionary *record, NSString *taskId, double now);
 // You're on the task with `id` in One Task, and have read it: `seenAt` is now. It's the task's, not its step's, so it

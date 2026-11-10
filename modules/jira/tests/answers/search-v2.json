@@ -1,0 +1,8 @@
+{"data": {"appliedContentFormat": "markdown", "isLast": false, "nextPageToken": "made-up-token",
+  "issues": [
+    {"id": "10142", "key": "PAY-142", "fields": {"issuetype": {"name": "Bug"}, "summary": "Login button does nothing on Safari",
+      "status": {"name": "In Review", "statusCategory": {"name": "In Progress"}}}},
+    {"id": "10143", "key": "PAY-143", "fields": {"issuetype": {"name": "Task"}, "summary": "Saved cards show twice",
+      "status": {"name": "Ready", "statusCategory": {"name": "To Do"}}}},
+    {"id": "10144", "key": "PAY-144", "fields": {"issuetype": {"name": "Story"}, "summary": "Pay with a saved card",
+      "status": {"name": "Shipped", "statusCategory": {"name": "Done"}}}}]}}

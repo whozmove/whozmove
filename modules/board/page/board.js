@@ -169,7 +169,7 @@ function boardOpensLead(team, sessions) {
   return { session: s.sessionId, again: s.status === 'closed', name: team.lead.name || 'the chief', why: '' };
 }
 
-// The session whose title line under Group by Team carries Up next (or Team Board): the chief's, the session you talk
+// The session whose title line carries Up next (or Team Board): the chief's, the session you talk
 // to, else the lead (the team module's `chief`). While the chief isn't in the list (its conversation has ended, or a
 // new one isn't in the file yet), the lead's, so Up next always has a way in; who the chief is doesn't change. Null for
 // a team nobody leads.

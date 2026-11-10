@@ -39,18 +39,30 @@ When the list can't find any: it says no ticket matches, that Atlassian couldn't
 Atlassian asked Whozmove to slow down, or that the link is for a site you haven't signed in to (with **Sign In with
 Atlassian**). The card still starts conversations, and Create a ticket stays, either way.
 
+## Where each project's tickets open
+
+A ticket given to a new conversation starts where its project's way says: its own worktree (the way recommended), the
+project's own folder, or the folder of its option in one of its fields. The first ticket in a project asks, with a
+guide on the card ([New conversations](new-conversations.md#where-a-ticket-starts)). **Settings ▸ Tickets**, shown
+once a project's way is set, changes it: a heading marked Important over each project, saying its way, with ›. A
+project's page ticks its way; picking another shows before and after first ("A new ticket → its own worktree", then
+"A new ticket → shop, beside PAY-150", warning that two tickets in one folder can clash), with **Keep It** and
+**Change**; only Change changes it. A change counts only for new tickets: tickets started already keep their
+folders. For a way by a field, each of its options is one row there, its folder on a button that opens a menu of the
+project's own folders, or its own worktree; a folder that has gone says so.
+
 ## On its row
 
 After the conversation's name, a small tag shows the ticket's key and where it stands, coloured by its kind: to do,
 under way, done or dropped. It shows while Claude works too.
 
 - **Pointing at it** shows the ticket: where it stands, its type and priority, its title, what it's part of (its
-  epic), its project and boards with their sprints, and where it can go next, with a step the conversation stopped
+  epic) when Jira says, its project and boards with their sprints, and where it can go next, with a step the conversation stopped
   at marked as a person's. Its last move shows there too. It's read again as the card opens.
 - **Pressing it** opens the ticket in your browser, at the address made from its site and key.
-- **When it can't be read,** the tag says so ("couldn't read it now", "sign in again" or "allow its sign-in"), and its
-  card says why, with **Try Again**, **Sign In Again** or **Allow**. When Atlassian asks Whozmove to slow down, the card
-  says when it reads again, with **Try Now**.
+- **When it can't be read,** the tag turns red and says so ("couldn't read it now", "sign in again" or "allow its
+  sign-in"), and its card says why, with **Try Again**, **Sign In Again** or **Allow**. When Atlassian asks Whozmove to
+  slow down, the card says when it reads again, with **Try Now**.
 
 The ticket is read when it's given, each time the conversation asks for it (at most once a minute), as its card opens,
 and every five minutes while the conversation runs, a ticket that couldn't be read too; and at once when you press Try
@@ -76,7 +88,11 @@ next time it reads its ticket.
 
 - **Move It** moves the ticket and adds the note, as you. While it moves, the card says "Moving it…". Afterwards the
   tag shows where the ticket stands now, and its card says "Moved to In Review when you pressed Move It", with when.
-- **Couldn't move it:** the card says why, with **Try Again** or **Not Now**. When it's the sign-in that stopped it,
+- **Couldn't move it:** the card says why. When Jira couldn't be reached, it offers **Try Again** or **Not Now**. When
+  Jira turned the move away, the card shows what Jira said, word for word ("Fill in Blocked by first"), if it said
+  anything, and offers
+  **Open in Jira** first, to put it right on the ticket there, then **Try Again** or **Not Now**; the conversation is
+  told what Jira said too. When it's the sign-in that stopped it,
   the card says so ("Couldn't move it: This sign-in may only read tickets", or "The sign-in has run out") and offers
   **Sign In Again** instead, or
   **Allow** after an update, and the card asks again as it was once you're signed in.
@@ -133,7 +149,12 @@ Whozmove's plugin carries a skill, `whozmove:working-a-ticket`, that says how: r
 its board's rules; choose only from the ticket's own next steps, and move it at its milestones with a short note; at a
 step that's a person's, such as QA's sign-off or an approval, stop and say so, which makes the row your move; and for a
 new ticket, ask what's missing, look for the same ticket first, then show it on its row and wait for your answer. It
-reads its ticket from the panel, as you, so what it reads is what the row shows.
+reads its ticket from the panel, as you, so what it reads is what the row shows, and its description too, which only
+that conversation gets: the panel never shows it, keeps it or logs it. A very long description comes cut short, with
+a line saying the rest is on the ticket's own page.
+
+What a project's own pages don't say about how work is done there, a conversation can draft as a note for the project,
+which its row asks you to keep: [How a project works](process-notes.md).
 
 What goes to Atlassian, and what stays on your Mac, is in the README's Privacy.
 

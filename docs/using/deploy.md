@@ -5,13 +5,15 @@ agent is in the middle of a change.
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="../readme/deploy-dark.webp"><img src="../readme/deploy-light.webp" width="100%" alt="Deploy pressed on a row, turning into a stop square in a turning ring while it runs"></picture></p>
 
-**Deploy** is a round play button at the end of the bottom line, after the folder it puts in place, for any project
+**Deploy** is a round play button at the end of the bottom line of the row you're on, after the folder it puts in
+place (on any other row, at the end of the line under its name, when it has one), for any project
 you've set a command up for, or Whozmove can work out one for (a Compose file, a pm2 file, a Makefile `install`
 target, a package's `deploy:local` script or its commands, a Rust or Go program, a Python package with scripts,
 Whozmove's own `./build.sh --now`). It puts that checkout's or folder's code in place on this Mac, so in a worktree it
 runs that worktree's code. While the row asks you something on a line of its own, such as a task for you in One Task
 or a team member's ask, it has one button, for what it asks: Deploy goes at the end of an ask to try something, and
-isn't on the row at all while anything else is asked. A running server's address stays on the bottom line.
+isn't on the row at all while anything else is asked. A running server's address stays on the bottom line of the row
+you're on.
 
 ## Setting it up
 

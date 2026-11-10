@@ -5,6 +5,7 @@
   "provides": ["Rows.h", "list", "render", "renderWhenSettled", "reportHeight", "hangingBelow", "linesUnder",
                "forgetGone", "keepInPlace", "openedNow", "view", "foldPanel", "stillFolded", "openFromCat", "openSession",
                "takesPresses", "turnToApps", "ago", "elapsed", "minutesLeft", "editedAt", "isRead", "lastActive",
-               "onItAt", "turnSince", "waitsOnYou", "projectOf", "unpushedCommits", "IDLE_AFTER_MS", "setText",
-               "easeHeight", "growIn", "foldAway", "backgroundAtWork", "backgroundRunning", "--list-fill"]
+               "onItAt", "turnSince", "waitsOnYou", "projectOf", "listGroups", "projectGroups", "unpushedCommits",
+               "IDLE_AFTER_MS", "setText", "easeHeight", "growIn", "foldAway", "backgroundAtWork", "backgroundRunning",
+               "--list-fill"]
 }

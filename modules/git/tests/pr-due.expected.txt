@@ -1,0 +1,62 @@
+{
+  "hasOwnPR" : [
+    [
+      "main (base main)",
+      false
+    ],
+    [
+      "fix-cart (base main)",
+      true
+    ],
+    [
+      "main (base none)",
+      true
+    ],
+    [
+      "main (base develop)",
+      true
+    ],
+    [
+      "none (base main)",
+      false
+    ]
+  ],
+  "prDue" : [
+    [
+      "main (base main, looked up for main, 61s ago)",
+      false
+    ],
+    [
+      "main (base main, looked up for fix-cart, 5s ago)",
+      false
+    ],
+    [
+      "fix-cart (base main, looked up for fix-cart, 30s ago)",
+      false
+    ],
+    [
+      "fix-cart (base main, looked up for fix-cart, 61s ago)",
+      true
+    ],
+    [
+      "fix-cart (base main, looked up for main, 5s ago)",
+      true
+    ],
+    [
+      "main (base none, looked up for none, 0s ago)",
+      true
+    ],
+    [
+      "main (base none, looked up for main, 61s ago)",
+      true
+    ],
+    [
+      "main (base develop, looked up for main, 61s ago)",
+      true
+    ],
+    [
+      "none (base main, looked up for main, 61s ago)",
+      false
+    ]
+  ]
+}

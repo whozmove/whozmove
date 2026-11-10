@@ -420,6 +420,8 @@ core.plans = {
   cardLines: planCardLinesHTML,
   taskHTML: planTaskHTML,
   picks: (id) => planPicksNote(planWaitingGlance(id), state.planPicks[id]),
+  // Whether the plan `id` of session `sid` is shown folded beside the list: drawn at a glance here, read Skimmed.
+  folded: (sid, id) => !!state.planDrawn[sid]?.[id] && state.planReadAs !== 'full',
   clearPicks(id) {
     delete state.planPicks[id];
     for (const view of document.querySelectorAll('.gl-view')) if (view.dataset.plan === String(id)) planRedraw(view);

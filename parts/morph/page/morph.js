@@ -63,12 +63,16 @@ const PART_TEXT = { '.you': (el) => el.querySelector(':scope > .what')?.textCont
                     '.step-note': (el) => el.textContent };
 const partText = (sel) => PART_TEXT[sel] ?? core.lines[sel]?.text;
 
+// What a bit that cross-fades says (core.swaps): its text, and what it says to VoiceOver, so a bit drawn with no text
+// at all (a track, which says where it stands only in words for VoiceOver) cross-fades as that changes too.
+const swapText = (bit) => (bit ? `${bit.textContent}|${bit.getAttribute('aria-label') ?? ''}` : undefined);
+
 // What holds a line's words: the words themselves when a band of light crosses them (shineHTML), without the copy of
 // them it shows, which is neither read nor measured; else the line's text.
 const wordsOf = (what) => what?.querySelector('.shine') ?? what;
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
-function rowKey(row) { return row.dataset.id + (row.closest('.pinned') ? ':pinned' : ''); }
+function rowKey(row) { return row.dataset.id; }
 
 // Where an element sits in the list's scrolled content, and how wide it is.
 function place(list, el) {
@@ -104,7 +108,7 @@ function snapshot(list) {
       if (el) parts[sel] = { el, text: partText(sel)?.(el), height: el.offsetHeight, shape: line?.shape?.(el) };
     }
     rows.set(rowKey(row), { ...place(list, row), height: row.offsetHeight, parts, el: row,
-                            swaps: core.swaps.map((sel) => row.querySelector(sel)?.textContent),
+                            swaps: core.swaps.map((sel) => swapText(row.querySelector(sel))),
                             // in a folded group
                             hidden: !!row.closest('.prows.closed') || (row.closest('.prows')?.offsetHeight ?? 2) < 2 });
   }
@@ -444,6 +448,16 @@ function eraseThenWrite(el, old, from, to, tm, { frame, swap } = {}) {
   }));
 }
 
+// A bit that has just taken new content cross-fades into it, as a row's swapped bits do (.swap, core.swaps), started
+// afresh even if it was already fading in: for a page that changes a bit by itself, outside the list's rebuild (One
+// Task's track as its next step comes).
+function swapIn(el) {
+  if (!el) return;
+  el.classList.remove('swap');
+  void el.offsetWidth;  // so the animation starts over
+  el.classList.add('swap');
+}
+
 // Any line of text taking new words as a chat line does (rewriteLine), such as a step's word in a module's own view:
 // `el` already says what it says now, `was` what it said. What they share at their start, by whole words, stays; the
 // rest of the old erases from its end, on a copy laid over the line, then the new writes in from there, at the chat
@@ -494,7 +508,8 @@ function writeIn(el, delay) {
 }
 
 // A chat line that's gone (the session gone quiet), as its copy where it was (`ghost`, .folding): its text erases
-// after `delay`, then it folds away, `late` noting the fold for the list's height.
+// after `delay`, then it folds away, `late` noting the fold for the list's height. Says when the fold starts and how
+// long it takes ({ start, ms }), so a line coming in under it can take its room as it goes.
 function eraseOut(ghost, delay, late) {
   settleLine(ghost);
   keepInStep(ghost);
@@ -503,8 +518,13 @@ function eraseOut(ghost, delay, late) {
   late?.push({ delta: -(h + (parseFloat(getComputedStyle(ghost).marginTop) || 0)), start, ms });
   showPath(path, path.length, 0);
   everyFrame(ghost, start, (t) => showPath(path, path.length * (1 - eraseCurve((t - tm.delay) / tm.erase)), 0));
+  // Its label ("Claude") goes with its words, as they erase, so the line is empty before it folds and nothing coming
+  // in under it (a bubble taking its place) ever shows under what it said.
+  ghost.querySelector(':scope > .who')?.animate([{ opacity: 1 }, { opacity: 0 }],
+    { delay: tm.delay, duration: Math.max(1, tm.erase), easing: 'ease-in', fill: 'forwards' });
   setTimeout(() => tween(ghost, { height: h + 'px', opacity: '1' }, { height: '0px', ...FLAT, opacity: '0' },
                          () => ghost.remove(), ms), start);
+  return { start, ms };
 }
 
 // A copy of what was there, laid over the list where it was, fading out (.fading, so nothing takes it for the row).
@@ -614,6 +634,10 @@ function morph(list, html, { still = false } = {}) {
     const main = row.querySelector(':scope > .main');
     let grewOrShrank = false;
     const lines = rowParts(), chatAfter = chatDelays(main, old), unseen = unseenRows.has(row);
+    // When a chat line that's gone folds in this row ({ start, ms }, eraseOut): a line coming in under it (the bubble
+    // or the card that says what Claude's line said) waits, then grows as that one folds, in the same time, so the row
+    // changes height once, never growing and then shrinking.
+    let folds = null;
     lines.forEach((sel, i) => {
       const el = main.querySelector(':scope > ' + sel), was = old.parts[sel], line = core.lines[sel];
       const chat = sel in chatAfter && !unseen;
@@ -622,9 +646,13 @@ function morph(list, html, { still = false } = {}) {
         for (const k of BOX_KEYS) box[k] = cs[k];
         if (chat) writeIn(el, chatAfter[sel] + CHAT_LEAD);  // its text writes in as its room opens
         el.style.overflow = 'hidden';
-        tween(el, { height: '0px', ...FLAT, opacity: '0', transform: 'translateY(-4px)' },
-                  { height: h + 'px', ...box, opacity: '1', transform: 'translateY(0)' },
-                  () => { el.style.overflow = ''; });
+        const from = { height: '0px', ...FLAT, opacity: '0', transform: 'translateY(-4px)' };
+        const to = { height: h + 'px', ...box, opacity: '1', transform: 'translateY(0)' };
+        if (folds && !chat) {
+          Object.assign(el.style, from);
+          late.push({ delta: h + (parseFloat(box.marginTop) || 0), start: folds.start, ms: folds.ms });
+          setTimeout(() => tween(el, from, to, () => { el.style.overflow = ''; }, folds.ms), folds.start);
+        } else tween(el, from, to, () => { el.style.overflow = ''; });
         line?.grow?.(el);  // how a module's line comes in, beside growing
         grewOrShrank = changed = moved = true;
       } else if (!el && was) {  // a line that's gone: a copy folds away where it was (.folding)
@@ -636,7 +664,7 @@ function morph(list, html, { still = false } = {}) {
         ghost.style.pointerEvents = 'none';
         // A chat line's text erases first; one that was already going (a rebuild came as it erased) folds on from
         // where it is, so its text doesn't come back to erase again.
-        if (chat && !was.el.classList.contains('folding')) eraseOut(ghost, chatAfter[sel], late);
+        if (chat && !was.el.classList.contains('folding')) folds = eraseOut(ghost, chatAfter[sel], late);
         else tween(ghost, { height: was.height + 'px', opacity: '1' },
                           { height: '0px', ...FLAT, opacity: '0' }, () => ghost.remove());
         line?.fold?.(ghost);  // and how it goes
@@ -666,7 +694,7 @@ function morph(list, html, { still = false } = {}) {
     // The modules' bits that cross-fade when their text changes (core.swaps).
     core.swaps.forEach((sel, i) => {
       const bit = row.querySelector(sel);
-      if (bit && bit.textContent !== old.swaps[i]) { bit.classList.add('swap'); changed = true; }
+      if (bit && swapText(bit) !== old.swaps[i]) { bit.classList.add('swap'); changed = true; }
     });
     // A row whose height changed for another reason (a reply that now wraps to two lines) resizes.
     const height = row.offsetHeight, from = {}, to = {};
@@ -749,7 +777,6 @@ function slideGroup(header, collapse, done) {
   if (!body?.classList.contains('prows')) return done();
   resizes.get(document.getElementById('list'))?.cancel();  // the list's height follows the slide instead
   header.classList.toggle('collapsed', collapse);
-  if (!collapse && body.nextElementSibling?.classList.contains('pinned')) body.nextElementSibling.remove();
   const full = body.scrollHeight;
   body.classList.remove('closed');
   body.style.transition = 'none';

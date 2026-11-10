@@ -239,14 +239,31 @@ show('…another agent\'s command not on this Mac: named for it', sideChatAskBef
   chat({ askWhyNot: { why: 'noCommand' }, agent: 'Quill' }), 'Wren'));
 show('…nothing said yet', sideChatAskBefore(idle, chat({ askWhyNot: { why: 'notStarted' } }), 'Wren'));
 show('…its conversation not found', sideChatAskBefore(working, chat({ askWhyNot: { why: 'noConversation' } }), 'Wren'));
-show('asking', asked(aside('asking')));
+show('asking: nothing said, its steps go in its answer\'s place', asked(aside('asking')));
+show('…that place, being asked: the line its agent\'s steps go on, under the copy\'s name',
+     sideChatAsideHTML(aside('asking'), working, chat(), 'Wren'));
+const asideLine = (fields, name = 'Wren') => sideChatAsideWorkHTML(aside('asking', fields), name, NOW)
+  .replace(/style="[^"]*"/g, 'style="…"');
+show('…its line: Thinking, until its agent says its first step, timed from your press', asideLine({}));
+show('…then each step', asideLine({ step: 'Reading cart.ts' }));
+show('…a step, or a name, that is markup is shown as text', [asideLine({ step: '<b>cart</b>' }),
+                                                             asideLine({}, '<i>Wren</i>')]);
+const asideKeyNow = sideChatAsideWorkKey(aside('asking'), 'Wren'), asideClock = performance.now;
+performance.now = () => 1234;
+const asideKeyLater = sideChatAsideWorkKey(aside('asking'), 'Wren');
+performance.now = asideClock;
+show('…drawn again for a new step, not for a second gone by; none once it\'s answered, or for none',
+     [asideKeyNow === asideKeyLater,
+      asideKeyNow !== sideChatAsideWorkKey(aside('asking', { step: 'Reading cart.ts' }), 'Wren'),
+      sideChatAsideWorkKey(aside('answered', { answer }), 'Wren'), sideChatAsideWorkKey(undefined, 'Wren')]);
 show('answered', asked(aside('answered', { answer, answeredAt: min(3) })));
 show('took too long', asked(aside('tooSlow')));
 show('didn\'t answer', asked(aside('noAnswer')));
 show('an error its provider sent back', asked(aside('apiError')));
 show('…sent the normal way, with Send\'s words: says so, no presses', asked(aside('apiError', { sentAt: min(2) })));
-show('it wanted to use a tool', asked(aside('wantedTool')));
-show('…its press is Send\'s words for the session now: idle, working with and without its hook, waiting on you',
+show('it wanted to read more than a side question may', asked(aside('wantedTool')));
+show('…its presses are Ask Again and Send\'s words for the session now: idle, working with and without its hook, '
+     + 'waiting on you',
      [asked(aside('wantedTool'), false, 'Claude Code', idle), asked(aside('wantedTool')),
       asked(aside('wantedTool'), false, 'Claude Code', working, false),
       asked(aside('wantedTool'), false, 'Claude Code', asking)]);
@@ -265,6 +282,21 @@ show('…an agent that hasn\'t said its name: "its agent", capitalised only to o
 show('couldn\'t be asked once pressed, what stood in the way having changed', asked(aside('notAsked')));
 show('…another being asked now: no Ask Again until it\'s answered', asked(aside('tooSlow'), true));
 show('its tip and what VoiceOver says', [sideChatAskTip('Wren'), sideChatAsideLabel('Wren')]);
+
+section('Where the side conversation\'s memory starts');
+const answeredAt = (minutes, remembered) => aside('answered', { at: min(minutes), answer, answeredAt: min(minutes - 1),
+                                                                ...(remembered === undefined ? {} : { remembered }) });
+show('it knew every earlier question: no line', sideChatForgotAbove([answeredAt(9), answeredAt(7, 1),
+                                                                     answeredAt(5, 2)]));
+show('…it knew the newest one of two: the line above that one', sideChatForgotAbove([answeredAt(9), answeredAt(7, 1),
+                                                                                     answeredAt(5, 1)]) === min(7));
+show('…none of them: the line above the newest', sideChatForgotAbove([answeredAt(9), answeredAt(7, 1),
+                                                                     answeredAt(5, 0)]) === min(5));
+show('…an answer that doesn\'t say: no line', sideChatForgotAbove([answeredAt(9), answeredAt(7)]));
+show('…one not answered between them doesn\'t count', sideChatForgotAbove([answeredAt(9), aside('tooSlow',
+  { at: min(8) }), answeredAt(7, 0)]) === min(7));
+show('…drawn once, quiet, above that question', sideChatLinesHTML(chat({ asides: [answeredAt(9), answeredAt(7, 1),
+  answeredAt(5, 1)] }), working, 'Wren', '', NOW));
 
 section('Keys in the box');
 show('Return sends', sideChatKeyAct({ key: 'Enter' }));
@@ -367,6 +399,8 @@ show('your words and your side questions, in the order you sent them', sideChatL
 show('a side question that couldn\'t be answered', sideChatAsideHTML(aside('wantedTool'), working, chat(), 'Wren'));
 show('…while its session waits on your answer: Send After You Answer', sideChatAsideHTML(aside('wantedTool'), asking,
   chat(), 'Wren'));
+show('…once sent the normal way: said under the question, with no copy\'s name over it',
+     sideChatAsideHTML(aside('wantedTool', { sentAt: min(2) }), working, chat(), 'Wren'));
 show('the box with Ask Without Interrupting', sideChatBoxHTML(working, chat(), 'Wren', null));
 show('…Ask Without Interrupting chosen last: it is the dark button, Send is not',
      sideChatBoxHTML(working, chat(), 'Wren', null, null, 'ask'));

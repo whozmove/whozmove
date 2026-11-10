@@ -191,6 +191,8 @@ div.bd-you .bd-go { color: var(--label); }
 .bd-card { margin: 0 12px 12px; padding: 10px 12px; border-radius: var(--radius-box); background: var(--surface); }
 .bd-card-x { margin-left: 4px; }
 .bd-track { margin: 6px 0 2px; }
+/* The card's track runs the card's width, the same one bar as a row's. */
+.bd-track .step-track { --track-length: 100%; }
 .bd-take { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: var(--size-small);
            color: var(--muted); }
 .bd-take span { flex: 1; min-width: 0; }

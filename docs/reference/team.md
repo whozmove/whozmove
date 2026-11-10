@@ -2,23 +2,24 @@
 
 A session leading a team of other sessions for you (handing out work to the others, each in a worktree of its own) can
 tell Whozmove who's on its team by keeping this file. Usually it's the one you talk to; when you talk to another session
-that passes your words on to it, the file can name that one too (`front`). With it, Settings ▸ Session List offers Group
-by Team while one of its team's sessions is listed. That shows the list with a short row for each session:
+that passes your words on to it, the file can name that one too (`front`). With it, while one of its team's sessions
+is listed, the list has the team's groups above its projects, in the same short rows as every other:
 - the chief on top, marked Chief: the session you talk to;
 - the session leading the team, the chief itself unless the file names another you talk to, in which case it's right
   under that one, unmarked, or in the group the file gives it, with how many jobs wait on you and how many are at
   work, and a second line, when it names one, with the next thing for you to look at;
-- then its team and your own sessions, each group folding to its header, which then says how many wait on you, with
-  what needs you first (a request, a reply you haven't read or a job waiting on you), then the rest, newest first;
+- then the file's groups and its team, each folding to its header, which then says how many wait on you, newest
+  first inside each, nothing lifted; your own sessions stay under their projects;
 - each row with its name, what it looks after and the job it's on as a short track of its steps;
-- and a second line: what its job wants of you in a few words, marked as passed on, with Deploy when the row has it;
+- and a second line: what its job wants of you in a few words, in the session's own words, with Deploy when the row
+  has it;
   else what the session itself asks you; else, quietly, where its job stands ("Up next: after the search box").
 
 What needs you still comes out beside the folded panel with its whole row, so it says what's new: the reply, or what
 it asks.
 
-Whozmove only reads the file. It never writes it. Without it, nothing changes. And it reads it only while Working on
-Whozmove ▸ Show Teams is ticked (hold ⌥ as you open the pawn menu): until then no team shows anywhere.
+Whozmove only reads the file. It never writes it. Without it, the list is its projects alone. And it reads it only while
+Working on Whozmove ▸ Show Teams is ticked (hold ⌥ as you open the pawn menu): until then no team shows anywhere.
 
 It lives at `~/Library/Application Support/Whozmove/team/team.json`, and it's read again whenever it changes. Write it
 whole and move it into place, so it's never read half-written. Anything else in it is left alone.
@@ -106,11 +107,12 @@ whole and move it into place, so it's never read half-written. Anything else in 
     - `priority`: as a job's, below. Without one, the job's.
     - Either `short` or `ask` is enough: without a short, the row says the ask. Without either, there's no second
       line. A task for you goes to One Task with `ask-panel.sh task --pick-for`, named in `queue`.
-  - `queue`: the picks it has for you, in the order it wants them shown, 100 at most, each `{id, job}`: the id it gave
+  - `queue`: the picks it has for you, 100 at most, each `{id, job}`, in its order: the id it gave
     a pick it sent One Task with `ask-panel.sh task --pick-for` ([task.md](task.md)), and the id of the job it's for,
-    if any. One Task shows each pick it sent in this order, once the queue names it, after anything urgent; but a pick
-    whose job is Critical or P0 comes before everything else, Critical first, then P0, each in this order. One taken
-    off the queue keeps waiting, after those named, until it's answered or the chief takes it back with
+    if any. One Task shows each pick it sent once the queue names it, in its own line: by its member's ticket's
+    priority, or, when the member has no ticket, by its job's priority here (none counts as P1), counted from when the
+    queue first named it. One taken off the queue keeps waiting, by its member's ticket's priority, else with the
+    tasks that have none, until it's answered or the chief takes it back with
     `ask-panel.sh task-withdraw <id> answered|parked|dropped`. The task and the member it's for are what was checked
     as it was sent, never read from here. An id with other than letters, digits, `.`, `_` or `-`, one named twice and
     any past the 100th are left out.
@@ -119,7 +121,7 @@ whole and move it into place, so it's never read half-written. Anything else in 
   - `part`: a word or two for what it looks after, shown beside its name.
   - `group`: a group of your own naming it's shown in ("Reviewers"), 40 characters at most. Each group gets a header
     of its own, after the chief and before Team. Without one, a member is under Team. A name with a character that
-    can't be seen, or one of those Group by Team has anyway (Team, Yours), is no group.
+    can't be seen, or Team, the group the rest of the team is in, is no group.
   - `tag`: a few words of your own shown after its name in place of its part, in the look of the Chief mark
     ("Design"), 3 words and 30 characters at most (a longer one, or one that hides what it says, is no tag). It's
     only a mark: the member stays in its group, or in Team.
@@ -225,8 +227,8 @@ chief. Jobs waiting on you, on hold or done aren't listed there.
   member's workspace is never seated there or marked a duplicate. One of your own followed sessions counts by its id
   alone. Any other ended session in a member's folder, the file's own among them while another stands for the
   member, is the member's earlier conversation, and so is one ended in the lead's or the front's folder while that isn't
-  the project's own folder, where your own conversations are too: nothing in it is yours to read, under any grouping,
-  and it isn't shown under Group by Team unless it asks you something, you're on it or have just pressed it, or it
+  the project's own folder, where your own conversations are too: nothing in it is yours to read, and it isn't shown
+  unless it asks you something, you're on it or have just pressed it, or it
   edited that checkout after the member did. The member's own row stands for that folder.
 - **One job per member.** A member's row speaks for one job: one under way, the one being worked on first, else the one
   that moved last (another of its jobs waiting on you meanwhile is its row's ask, with that job's button, its track still the one at work); else one waiting its turn, the one that moved last; else the next queued, the most pressing, then
@@ -247,6 +249,6 @@ chief. Jobs waiting on you, on hold or done aren't listed there.
 - **A session listed twice** keeps one place: the front's, else the lead's, else a member's, else one of your own. The
   other entries for it are left out.
 - **A reply to the chief.** A member's reply to a message from the session leading its team, as to one from any other
-  session, answers that session, not you, so it counts as read under any grouping ([The
+  session, answers that session, not you, so it counts as read ([The
   list](../using/the-list.md#whose-move-it-is)). So does any reply in a conversation once it has ended in a member's
   folder (the lead's and the front's too), whatever it answered: the member's own row stands for that folder.

@@ -2,7 +2,7 @@
   "scripts": ["page/fresh.js", "page/rows.js"],
   "styles": ["page/rows.css", "page/cards.css"],
   "talksTo": ["core", "bridge", "list", "morph", "details"],
-  "provides": ["rowHTML", "rowsHTML", "groupsHTML", "projectsHTML", "hostOf", "worktreeChip", "tickTimes",
+  "provides": ["rowHTML", "groupsHTML", "hostOf", "worktreeChip", "tickTimes",
                "rowInView", "openingCard", "justShown", "shownFor", "showAgain", "answered", "FRESH_MS", "orbitHTML",
                "orbitTimed", "stepTrackHTML", "askLineHTML", "askActHTML", "workLineHTML"]
 }

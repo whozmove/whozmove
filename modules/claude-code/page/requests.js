@@ -1,11 +1,12 @@
-// A Claude Code session's requests on its row: a tool waiting for your OK, and a plan waiting for your OK; and your
-// answers, which go back through the permission hook (answerAsk). Its questions are questions.js's, and what shows once
-// one is answered answered.js's; what each request is, and the words for it, request-words.js's.
+// A Claude Code session's requests on its row: a tool waiting for your OK, and a plan waiting for your OK, as its
+// bubble; and your answers, which go back through the permission hook (answerAsk). Its questions are questions.js's,
+// and what shows once one is answered answered.js's; what each request is, and the words for it, request-words.js's.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // By ask id: when the app was last told a request is being answered here (holdAsk); a request's lines shown in full
-// (Show all); which of a big change's edits shows (‹ ›); and a plan's notes being written to send it back.
-moduleState({ heldAt: {}, askOpen: {}, askChange: {}, sendBack: {} });
+// (Show all); and which of a big change's edits shows (‹ ›). By session: the plan its row's Plan bubble last ended in
+// its own button for (planGo), so that button waits to be seen.
+moduleState({ heldAt: {}, askOpen: {}, askChange: {}, planGo: {} });
 
 // The marks beside a request's file, page, search or app, in the colour of the card's quiet words.
 const ASK_ICON = {
@@ -34,7 +35,6 @@ const askMark = (name) => `<svg class="ask-mark" width="13" height="13" viewBox=
 function askHTML(ask, now = Date.now(), root = '') {
   if (ask.legacy) return legacyAskHTML(ask);
   if (ask.tool === 'AskUserQuestion') return quizHTML(ask, now);
-  if (ask.tool === 'ExitPlanMode') return planAskHTML(ask);
   state.shownAt[ask.id] ??= Date.now();
   const kind = askKind(ask), i = ask.input || {}, goes = goesHTML(ask, now);
   const risk = kind === 'command' && i.dangerouslyDisableSandbox ? ' risk' : '';
@@ -229,43 +229,6 @@ function goesHTML(ask, now) {
     + `${TIME_RING_ICON}</span><span data-left="${until}">${ring.words}</span></span>`;
 }
 
-// A plan waiting for your OK: its title and its few lines at a glance (the plans module's), or else its first
-// PLAN_STEPS_SHOWN steps (of its first list), drawn from its markdown as the reader draws it; then the way to the
-// whole plan in the reader beside the list ("Read all 10 steps", or "Read the plan" for a short one or one at a
-// glance), as a plan is more than its steps; then Send back… (a box for your notes, which go to Claude with the
-// plan's No, as the reader sends them; with picks of yours on its card, the plan beside the list with that box open,
-// as only it sends them) and Take me there, to its session, where it's approved (the panel approves one only for a
-// session you allow to, May Approve Plans).
-const PLAN_STEPS_SHOWN = 4;
-function planAskHTML(ask) {
-  state.shownAt[ask.id] ??= Date.now();
-  // With picks of yours, the box isn't here: what's typed in it waits, says so, and goes with them beside the list.
-  const { title, steps, lead } = planOf(ask), picked = core.plans?.picks(ask.id).changed;
-  const notes = picked ? null : state.sendBack[ask.id];
-  const waits = picked && (state.sendBack[ask.id]?.text || '').trim()
-    ? '<p class="ask-say-waits">Your note waits with your picks beside the list.</p>' : '';
-  // Its first list's steps only, where its numbers start again within those (decisions after its steps, say), so the
-  // card never reads 1, 2, 3, 1.
-  const again = steps.findIndex((s, k) => k > 0 && s.n <= steps[k - 1].n);
-  const shown = steps.slice(0, again > 0 ? Math.min(again, PLAN_STEPS_SHOWN) : PLAN_STEPS_SHOWN)
-    .map((s) => `<li value="${s.n}">${markdownHTML(s.text, 'list')}</li>`).join('');
-  // A plan's few lines at a glance, where the plans module finds them, in place of its steps; by the request's id, so
-  // they say how many picks you've changed.
-  const glance = core.plans?.cardLines(ask.input?.plan || '', ask.id);
-  const read = `<button class="button quiet small perm-read">${!glance && steps.length > PLAN_STEPS_SHOWN
-    ? `Read all ${steps.length} steps` : 'Read the plan'}</button>`;
-  const actions = (notes ? '' : '<button class="ask-send">Send back…</button>')
-      + '<button class="button main perm-go">Take me there</button>';
-  const box = notes ? `<div class="ask-say"><input class="field small q-type ask-say-box" `
-    + `placeholder="What should change?" value="${esc((notes.text || '').replace(/\s*\n\s*/g, ' '))}">`
-    + '<button class="button small ask-say-cancel">Cancel</button><button class="button small main ask-say-send"'
-    + `${(notes.text || '').trim() ? '' : ' disabled'}>Send back</button></div>` : '';
-  const what = glance || (shown ? `<ol class="ask-steps">${shown}</ol>`
-    : lead.length ? `<div class="ask-lead-lines">${lead.map((l) => markdownHTML(l, 'list')).join('')}</div>` : '');
-  return `<div class="perm plan-ask" data-ask="${esc(ask.id)}">${titleLine(esc(title))}${what}${read}`
-    + `${box}${waits}<div class="perm-actions">${actions}</div></div>`;
-}
-
 // ---- Presses ----
 
 // A request or a question on a row. A button that has only just appeared doesn't count yet. Reading the card
@@ -288,15 +251,6 @@ function pressRequest(card, e) {
     state.askChange[id] = Math.max(0, (state.askChange[id] || 0) + (button.matches('.ask-next') ? 1 : -1));
     return render();
   }
-  // With picks of yours on its card in the reader, Send back… opens the plan there with its box open, which takes your
-  // words from here (core.planRowNotes): the box here would send your words alone.
-  if (button.matches('.ask-send') && s && core.plans?.picks(id).changed) {
-    return core.planNotes ? core.planNotes(s.sessionId) : openReader(s.sessionId, null, 'writings');
-  }
-  if (button.matches('.ask-send')) { state.sendBack[id] = { text: '' }; return render(); }
-  if (button.matches('.ask-say-send')) return sendBack(id);
-  if (button.matches('.ask-say-cancel')) { delete state.sendBack[id]; return render(); }
-  if (button.matches('.perm-read') && s) return openReader(s.sessionId, null, 'writings');
   if (button.matches('.perm-go') && s) return openSession(s);
   if (button.matches('.perm-allow, .perm-deny')) answerRequest(id, button.matches('.perm-allow'));
 }
@@ -305,17 +259,6 @@ function pressRequest(card, e) {
 function answerRequest(id, allow) {
   answered(id, allow ? 'allow' : 'deny');
   native({ type: 'answerAsk', id, allow });
-  render();
-}
-
-// A plan sent back with your notes, as the reader sends it (writings.js): its No, with the notes as Claude's to read.
-function sendBack(id) {
-  const text = (state.sendBack[id]?.text || '').trim();
-  // Never your words without your picks: they go from the plan beside the list.
-  if (!text || state.answering[id] || core.plans?.picks(id).changed) return;
-  answered(id, 'sentBack');
-  native({ type: 'answerAsk', id, allow: false, message: text });
-  delete state.sendBack[id];
   render();
 }
 
@@ -335,12 +278,64 @@ function holdAsk(id) {
 core.agent.askLine = askLine;
 
 // The most pressing of a row's cards: while a request waits, it takes the place under the chat; once you've answered
-// it here, the line saying so takes the card's place (answered.js).
+// it here, the line saying so takes the card's place (answered.js). Never a plan's: a plan is its row's bubble alone
+// (below), read and answered beside the list, so it has one shape wherever it shows.
 core.rowCards.push({
   name: 'request', order: 10,
-  wants: (row) => !!row.s.ask && !state.answering[row.s.ask.id],
+  wants: (row) => !!row.s.ask && row.s.ask.tool !== 'ExitPlanMode' && !state.answering[row.s.ask.id],
   html: (row) => askHTML(row.s.ask, row.now, row.s.git?.root || row.s.cwd || ''),
 });
+// The plan Claude still waits on in a session with no request for it up here, as a request stops asking here after an
+// hour, or when Whozmove restarts: the session's newest plan, while its transcript lists no answer to it, and either
+// Claude Code's own prompt for it is still up in the session (`held`: the registry says waiting) or the session is idle
+// at its prompt with nothing typed into it since, when your notes can be typed in as a message (the app checks again,
+// AnswerFor's WhyNotTypePlanNotes). { id, title, held } or null. A plain function.
+function planLeft(s) {
+  if (!s || s.ask) return null;
+  const w = (s.writings || []).find((x) => x.kind === 'plan');
+  if (w?.status !== 'waiting') return null;
+  const held = s.status === 'waiting', idle = s.status === 'idle' || s.status === 'shell';
+  if (!held && !(idle && !((s.lastPromptAt || 0) > (w.at || 0)))) return null;
+  return { id: w.id, title: w.title || '', held };
+}
+// The plan Claude waits on in a session, as its row's bubble shows it: its request's, while one is up (from a session
+// started before Whozmove's update too), else the one it still waits on with no request up here (planLeft).
+// { key, title } or null. A plain function.
+function planWaiting(s) {
+  const ask = s?.ask;
+  if (ask) {
+    if (ask.tool !== 'ExitPlanMode') return null;
+    const titled = /^\s*#+\s*\S/m.test(String(ask.input?.plan || ''));
+    return { key: ask.id, title: titled ? planOf(ask).title : 'Waiting for your OK' };
+  }
+  const left = planLeft(s);
+  return left ? { key: 'w:' + left.id, title: left.title || 'Waiting for your OK' } : null;
+}
+// A plan Claude waits on, on any row, as an ask: a bubble named "Plan", the plan's title, in your move's colour,
+// ending in the button that opens it beside the list (the reader's answer to 'plan', askAct), else the way to its
+// session. Only where no other module has something to say (rowNotesLast), so a team's own ask for it wins, and any
+// other ask on the row keeps its line, the plan read from the row's tag; none once you've answered it here, when the
+// line saying so takes its place.
+core.rowNotesLast.push((row) => {
+  const plan = planWaiting(row.s);
+  if (!plan || state.answering[row.s.ask?.id]) return null;
+  const sid = row.s.sessionId, name = row.s.name || base(row.s.cwd || ''), title = plan.title;
+  if (state.planGo[sid] !== plan.key) {
+    state.planGo[sid] = plan.key;
+    state.shownAt['plan-go:' + sid] = Date.now();
+  }
+  return { html: askLineHTML(title, 0, '', '', `Plan: ${title}`, 'Plan'), cls: 'ask-note cplan', look: 'normal',
+           act: { want: 'plan', html: askActHTML(OUT_ICON, name ? `Take Me There: ${name}` : 'Take Me There',
+                                                 ` data-plan-go="${esc(sid)}"`) },
+           line: true, quiet: false, tone: 'turn' };
+});
+// Its own button, where nothing opens the plan beside the list: to its session, once seen.
+core.presses.push(['[data-plan-go]', (el, e) => {
+  e.preventDefault();
+  const sid = el.dataset.planGo, s = state.last.sessions.find((x) => x.sessionId === sid);
+  if (s && !justShown('plan-go:' + sid)) openSession(s);
+}]);
+core.pointerTargets.push('[data-plan-go]');
 // While a request or a question has the keyboard here (pressed, or its answer's box typed in, and not answered yet),
 // it's being answered; the app holds it only while you're at the Mac, so one left that way still goes.
 core.updates.push(() => {
@@ -349,36 +344,60 @@ core.updates.push(() => {
 });
 core.presses.push(['.perm[data-ask]', pressRequest]);
 // A request or a question takes the keyboard once pressed, but where the press answers it, so its keys answer it here
-// rather than going to the app in front, where Claude's own copy of it waits; a plan's card has nothing to key.
+// rather than going to the app in front, where Claude's own copy of it waits.
 core.keyCards.push({
-  card: '.perm[data-ask]:not(.plan-ask):not(.legacy-ask)',
+  card: '.perm[data-ask]:not(.legacy-ask)',
   id: (card) => card.dataset.ask,
   open: (card) => !state.answering[card.dataset.ask],
   takes: (card, target) => !pressAnswers(card, target),
   key: (card, e) => keyOnRequest(card, e),  // questions.js's, which loads after this
 });
-// A plan's notes are kept as they're typed, so the rebuild every second keeps them; Return sends them back.
-core.typing.push(['.ask-say-box', (box) => {
-  const id = box.closest('.perm').dataset.ask;
-  holdAsk(id);
-  state.sendBack[id] = { text: box.value };
-  const send = box.parentElement.querySelector('.ask-say-send');
-  if (send) send.disabled = !box.value.trim();
-}]);
-core.returns.push(['.ask-say-box', (box) => sendBack(box.closest('.perm').dataset.ask)]);
-core.forgotten.keys.push('heldAt', 'askOpen', 'askChange', 'sendBack');
+core.forgotten.keys.push('heldAt', 'askOpen', 'askChange', 'planGo');
+core.forgotten.prefixes.push('plan-go');
 
-// What's typed in a plan's box on its row, taken by the reader's box for your notes, which sends it with your picks,
-// and given back if the reader closes unsent (writings.js), after what the row has had typed in it since. Line breaks
-// are kept for the reader's box; the row's box, a line, shows them as spaces.
-core.planRowNotes = {
-  take(id) {
-    const text = state.sendBack[id]?.text || '';
-    delete state.sendBack[id];
-    return text;
+// The plan a session's agent waits for your OK on, in the panel's own words, for the module that shows it beside the
+// list (the reader), and what it sends to answer it, so what Claude Code's request holds, and the messages that answer
+// it, are this module's alone (core.planAsks). A plan cut short on its way to the panel (`truncated`) is drawn from
+// the transcript's copy, so the digest isn't of what's shown, and it's approved in its tab; what the app already knows
+// stands in Approve's way (`approveWhyNot`) comes after that.
+core.planAsks.push({
+  of(s) {
+    const ask = s?.ask;
+    if (ask?.tool !== 'ExitPlanMode') return null;
+    return {
+      id: ask.id, at: ask.at, text: String(ask.input?.plan ?? ''), path: ask.input?.planFilePath,
+      whole: !ask.truncated, answerable: !ask.legacy, digest: ask.digest || '', approval: ask.approval || null,
+      whyNot: ask.truncated ? 'it\'s too long for the panel to show whole, so approve it in its tab'
+        : ask.approveWhyNot || '',
+    };
   },
-  keep(id, words) {
-    const had = (state.sendBack[id]?.text || '').trim();
-    state.sendBack[id] = { text: [had, words.trim()].filter(Boolean).join('\n\n') };
+  // Your Approve of request `id` beside the list, as its row says it went (answeredFor, yours): 'pending' until its
+  // transcript says 'approved', or 'notTaken'; null for anything else.
+  yours(s, id) {
+    const a = s?.answeredFor;
+    return a?.yours && a.what === 'approved' && a.askId === id ? a.state || 'pending' : null;
   },
-};
+  // The plan Claude still waits on with no request for it up here (planLeft): { id (the writing's), held (its own
+  // prompt is still up in the session, so only there can it be answered) }, or null.
+  left(s) {
+    const left = planLeft(s);
+    return left && { id: left.id, held: left.held };
+  },
+  // Your notes on that plan, typed into its session as a message on your press (typePlanNotes: the app leads them with
+  // Claude Code's words and checks again before each key), and how that went, as its row says it (answeredFor, yours):
+  // { state (typing, typed or notTyped), why, way (the button past the terminal's reason, if any), at } or null.
+  typeBack(s, id, words) { native({ type: 'typePlanNotes', sessionId: s.sessionId, planId: id, words }); },
+  typed(s, id) {
+    const a = s?.answeredFor;
+    return a?.yours && a.what === 'sentBack' && a.askId === id
+      ? { state: a.state || 'typing', why: a.why || '', way: a.way || '', at: a.at || 0 } : null;
+  },
+  // Your press on Approve, for the request and the digest of the text it was drawn with: the app checks them both
+  // before it answers (approveShownPlan, never answerAsk, which can't approve a plan).
+  approve(s, id, digest) { native({ type: 'approveShownPlan', sessionId: s.sessionId, id, digest }); },
+  // Sent back with your notes, or stopped: Claude stays in plan mode with them, or stops.
+  sendBack(s, id, message) { native({ type: 'answerAsk', id, allow: false, message }); },
+  stop(s, id) { native({ type: 'answerAsk', id, allow: false, stop: true }); },
+  // It's being answered beside the list, so no session you allow answers it for you meanwhile.
+  hold(s, id) { native({ type: 'holdAsk', id }); },
+});

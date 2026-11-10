@@ -12,7 +12,9 @@ name, with where it stands; pointing at the tag shows the ticket, and pressing i
 
 This module never names a tracker. It finds the trackers through the core (`modulesThat:` with
 app/contracts/Tracker.h) and talks to them only through that contract, so a tracker (modules/jira) brings its own
-sign-in, keys, links and calls, and nothing here knows what a status is called.
+sign-in, keys, links and calls, and nothing here knows what a status is called, nor what a priority is: a ticket
+carries its tracker's word for its priority, and its place in that tracker's own list (`priorityAt` of `priorities`,
+Ticket.h), which One Task orders by.
 
 ## Its pieces
 
@@ -20,7 +22,8 @@ sign-in, keys, links and calls, and nothing here knows what a status is called.
   - Each session's ticket, bound only by your press: a start from the card that carried one (Module's
     `started:with:`, from the starts module), or Use It on the row.
   - The asks: `ticket-use` (a session asks to work on a ticket, by its key or link: "Work on PAY-148 here?" waits on
-    its row), `ticket` (its own ticket, at once, from the last read, with how its last move went, told once),
+    its row), `ticket` (its own ticket, at once, from the last read, with its description, the one answer that carries
+    it, and how its last move went, told once),
     `ticket-move` (one of its next steps, with a note and the fields it sets, checked against the last read: "Move
     PAY-142 to In Review?" waits on its row, taking the place of any move waiting there, or it's taken at once while
     May Move Its Ticket is on for the very process that asks) and `ticket-stop` (a next step marked as a person's,
@@ -54,7 +57,8 @@ sign-in, keys, links and calls, and nothing here knows what a status is called.
 - `page/ticket-words.js`: what it draws, in plain functions: the chip and its list in each state, the line a start
   adds to your words, a link found in them, the row's tag, its card (with its last move, and a step marked as a
   person's), the card asking to use a ticket, the card asking to move it, and the card asking to create one.
-- `page/tickets.js`: the card's part (`core.startCardParts`), the tag (`core.slots.name`), its card (`core.cards`), the
+- `page/tickets.js`: the card's part (`core.startCardParts`), the card's ticket for its other parts
+  (`core.cardTicket`: its tracker, site and key, none for Create a ticket), the tag (`core.slots.name`), its card (`core.cards`), the
   Use It card (`core.rowCards`, order 25), the Move It card (order 26) and the Create Ticket card (order 27), and the
   app's answers (`ticketsFound`, `ticketPicked`).
 - `page/tickets.css`: their look, from the panel's tokens only.
@@ -97,6 +101,8 @@ all.
   tests/checks.sh fails on any other, and on code that decides by a status's or a step's name.
 - **A ticket's address is made from its site and key** by its tracker, never taken from what the tracker sends.
 - **Every word from a tracker goes into the page escaped,** and into a session only as `ask-panel.sh ticket`'s JSON.
+  A ticket's description (Ticket's `about`) goes only there, to the session working it: never into the page, a row,
+  a kept file or a log line.
 - **Nothing about a ticket is logged but its key:** panel.log says which ask, which key, which step and how it went,
   never a ticket's title, its words, a note, a field's value, a person's step's why, or anything of a new ticket's but
   where it goes and the key it's given. A move's note and fields, the steps marked and a new ticket's draft are kept

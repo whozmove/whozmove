@@ -1,14 +1,15 @@
 # Jira
 
 Jira as a ticket tracker (app/contracts/Tracker.h): signing in with Atlassian once, on Atlassian's own page in your
-browser, and Jira's tickets searched, read with their own next steps, parent and boards, moved, noted on and made, as
+browser, and Jira's tickets searched, read with their own next steps, project and boards, moved, noted on and made, as
 you, through Atlassian's server for AI tools (the Rovo MCP server, v2). Its page on the panel's back says how the
 sign-in stands, with Sign In with Atlassian, Cancel, Sign Out, Allow (after an update), Sign In Again (for a sign-in
 that can't move tickets), or what to ask your Jira admin.
 
-Nothing here knows a status by name. A ticket's next steps are Jira's transitions for that ticket, read each time, with
-the fields each one's screen needs. The kinds to do, under way and done come from Jira's own status categories, and
-dropped from the resolution's name (see Rules).
+Nothing here knows a site's status by name. A ticket's next steps are Jira's transitions for that ticket, read each
+time, with the fields each one's screen needs. The kinds to do, under way and done come from Jira's own three status
+categories (by their key, or by their name where an answer gives only that), and dropped from the resolution's name
+(see Rules).
 
 ## Its pieces
 
@@ -23,7 +24,10 @@ dropped from the resolution's name (see Rules).
   read the first time a call needs it, quietly, and when macOS would ask first (a new build), the sign-in stands as
   asking (`TrackerSignInAsksMac`) until your press of Allow reads it, off the main thread, with macOS's box, and keeps
   it afresh as this build's. It says whether the sign-in it holds reads only (`readsOnly`).
-- `app/JiraTickets.m`: plain functions turning the server's answers into tickets, steps, boards and sites, looking for
+- `app/JiraTickets.m`: plain functions turning the server's answers into tickets, steps, boards, sites, a project's
+  types and its priorities in order (each ticket's place among them by Jira's id), a ticket's options in its own
+  fields that take one (Ticket's `values`) and a type's fields that take one option, with their options' ids (for
+  where a ticket starts: `optionFieldsOf:done:`), looking for
   each in every shape the server has given it, and a move's fields, given as every tracker gives them, into Jira's own
   shapes for that step's screen (an option by the id Jira gave it).
 - `app/JiraFacts.m`: what Atlassian could change: the server's address, the scopes, the tools' names, a key's and a
@@ -53,10 +57,38 @@ As Atlassian's own docs and its server's published pages describe the Rovo MCP s
 - **Tools, by their v2 names.** Listed directly: `getAccessibleAtlassianResources`, `searchJiraIssuesUsingJql`,
   `getJiraIssue`, `transitionJiraIssue`, `addOrEditJiraIssueComment` and `createJiraIssue`. Called through
   `executeRead` (`{name, cloudId, inputs}`): `listJiraIssueTransitions`, `listJiraBoards` and
-  `listJiraProjectIssueTypesMetadata` (a project's types, which a new ticket is checked against before it's shown). Each takes the site as `cloudId`, given as the site's address.
-- **The answers' shapes:** an issue under `data`, a search's issues under `issues.nodes`, and each tool's own error as
-  `{error: true, message, statusCode}` in its result. A search has given at most five issues a page, so it asks for
-  five.
+  `listJiraProjectIssueTypesMetadata` (a project's types, which a new ticket is checked against before it's shown)
+  and `getJiraIssueTypeMetaWithFields` (a type's create fields, among them the priority field's allowed values in the
+  project's scheme's order, with Jira's ids). Each takes the site as `cloudId`, given as the site's address.
+- **A project's priorities, in order:** priority schemes are per project, and only some types' create fields list
+  priority (a Task's and a Story's do; a Bug's, an Epic's and a Subtask's have been seen without it, though each holds
+  one), so the order is read from the project's Task type (its English name, `untranslatedName` on a site in another
+  language), never each ticket's own type; a project with none has no order. The inputs' names (`projectIdOrKey`,
+  `issueTypeId`, `maxResults`) and the answer's shapes (`fields` or `results`, each field with its `allowedValues`) are
+  as Atlassian's docs give them for Jira's own create fields read.
+- **The answers' shapes:** each under `data`: the sites under `resources` (each with its `url` and the `products` it
+  has, Jira among them or not), an issue as itself, a search's issues as a list (once under `issues.nodes`, still
+  read), the transitions, boards (`values`) and a project's `issueTypes`. A search has given at most five issues a
+  page, so it asks for five.
+- **An issue is read, and searched, as the server's full view (`view: "full"`).** It is the only view whose answer
+  has the priority's id (`priority: {id, name}`), the status category's key (`status.statusCategory.key`), the
+  parent (`{id, key, fields: {summary, status, priority, issuetype}}`), the type and project, and a done ticket's
+  resolution (`{id, name, description}`). A list of `fields`, which overrides the view, or a smaller view gives the
+  priority and the category by their names alone and leaves the parent and the resolution out, whatever it names.
+  The description is read as Ticket's `about`, for the session working the ticket alone: text as it comes, in the
+  format the answer names (`appliedContentFormat: "markdown"` in the full view), or Atlassian's document format (a
+  tree of nodes) as its plain text, cut near 20,000 characters, at a word's end, with a line saying so. It brings up to 20 comments as well, which
+  Whozmove doesn't read. Still read, for an answer without them:
+  the category by its name (To Do, In Progress, Done), the project from the key, and the type from a search for the
+  key. Custom fields come mapped by name under `customFields`, each as `{id, value}`.
+- **A move names its step as `transitionId`.** Jira turning a request away comes back as an answer, not an error:
+  `{data: {error: "TRANSITION_FAILED", message, problems: [{field, reason}], status}}`, each reason in Jira's own
+  words ("Fill in Blocked by first"); its `status` can come as text ("400"). A move answered with a 4xx, once a
+  sign-in, an admin, no such ticket and slowing down are ruled out, is turned away as it is (`TrackerEndRefused`),
+  with Jira's reasons, or its message, as what the tracker said (`trackerSays`), clipped to 300 characters, and none
+  when it said nothing. A 5xx, even with reasons, is one that couldn't be done now. Another tool's own error comes as
+  `{error: true, message, statusCode}`. A field a site's rules want filled in before a move, but that isn't on the
+  move's screen, can't be given with it.
 - **Teamwork Graph's enriched reads use a site's Rovo credits,** so none are used.
 
 ## Between the page and the app
@@ -109,17 +141,24 @@ goes through the apps module (`card` and `act`), and its notice through the core
   as dropped, and any other name, in another language or a site's own, as done: wrong only by showing a dropped ticket
   as done.
 - **Nothing it reads is logged:** panel.log says which tool, and how it ended, never a ticket's words, a note or a token.
+  A call that failed says how in Whozmove's own words and numbers (MCP's `MCPHowItFailed`): "no answer in 30s", "no
+  connection: …", "HTTP 502", "the server's error -32603", "an answer it couldn't read", "the tool said it failed", or
+  Jira's own error by its status ("its own error, 500"), never a word of the answer.
 
 ## What it sends, and where
 
 Only to Atlassian (mcp.atlassian.com and auth.atlassian.com), as you, once you've signed in:
 
 - the words you search for on the new conversation card;
-- the keys of the tickets you give conversations, to read them, their next steps and their project's boards;
+- the keys of the tickets you give conversations, to read them, their next steps and their project's boards and
+  priorities (its types, then its Task type's create fields, read once an hour a project, and again sooner only for a
+  priority not among them, at most once in ten minutes); and, when you give a ticket in a project whose way of opening
+  tickets isn't set yet, that ticket's type's create fields, for the fields that take one option, kept an hour;
 - a conversation's moves of its ticket, with the note it adds and the fields the step sets, once you press Move It on
   its row or let it with May Move Its Ticket;
 - a new ticket a conversation drafted: the project it goes in, to ask what types it takes, as the draft comes; then its
   title, type, description, priority and parent, once you press Create Ticket on its row;
 - signing in: Whozmove's name and its return address on this Mac, to register.
 
-It keeps the sign-in in your Keychain, with the scopes it asked for and which build kept it, and nothing else.
+It keeps the sign-in in your Keychain, with the scopes it asked for and which build kept it, and nothing else: each
+project's boards, priorities and fields of options are kept in memory only, for an hour.

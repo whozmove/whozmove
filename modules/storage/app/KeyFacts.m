@@ -355,3 +355,40 @@ NSSet<NSString *> *KeyFileExtensions(void) {
 }
 
 const unsigned long long kKeyFileLargest = 16 * 1024;
+
+NSArray<NSString *> *KeyPlacesInHome(void) {
+    NSMutableArray<NSString *> *places = [@[kKeySSHFolder, @".aws", @".gnupg", @".config/gh"] mutableCopy];
+    [places addObjectsFromArray:[KeyCredentialFiles() valueForKey:@"path"]];
+    [places addObjectsFromArray:KeyShellHistories()];
+    [places addObjectsFromArray:KeyShellStartupFiles()];
+    [places addObjectsFromArray:[KeyAgentRecords() valueForKey:@"path"]];
+    return places;
+}
+
+BOOL KeyFileByName(NSString *path) {
+    path = [path componentsSeparatedByString:@":"].lastObject.lowercaseString;
+    NSArray<NSString *> *parts = [path.pathComponents filteredArrayUsingPredicate:
+                                  [NSPredicate predicateWithFormat:@"SELF != '/'"]];
+    NSString *name = parts.lastObject;
+    if (!name.length) return NO;
+    // By its last parts, as a project keeps it: matched from the end, so one in a folder of a larger checkout counts.
+    NSMutableArray<NSString *> *inProjects = [KeyMCPFiles() mutableCopy];
+    [inProjects addObjectsFromArray:[KeyAgentFilesInProjects() valueForKey:@"path"]];
+    for (NSString *each in inProjects) {
+        NSArray<NSString *> *end = each.lowercaseString.pathComponents;
+        if (parts.count >= end.count
+            && [[parts subarrayWithRange:NSMakeRange(parts.count - end.count, end.count)] isEqualToArray:end])
+            return YES;
+    }
+    if ([@[@".envrc", @".npmrc", @".pypirc", @".netrc", @".git-credentials", @".dev.vars", @"credentials.json",
+           @"id_rsa", @"id_dsa", @"id_ecdsa", @"id_ed25519"] containsObject:name])
+        return YES;
+    // A key's own kinds of file, but JSON, which most JSON files aren't; .env alone counts too.
+    for (NSString *kind in KeyFileExtensions())
+        if (![kind isEqualToString:@"json"] && [name hasSuffix:[@"." stringByAppendingString:kind]]) return YES;
+    for (NSString *end in @[@".p12", @".pfx", @".jks", @".keystore", @".tfstate", @".tfstate.backup"])
+        if ([name hasSuffix:end]) return YES;
+    return [name hasPrefix:@".env."] || [name hasPrefix:@"secrets."]
+        || ([name hasSuffix:@".json"] && ([name containsString:@"service-account"]
+                                         || [name containsString:@"service_account"]));
+}

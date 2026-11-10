@@ -160,8 +160,8 @@ function stickyCovers(t, h, v, least, by) {
 const stickyEl = document.getElementById('sticky'), stickyUnder = document.getElementById('sticky-under');
 const stickyPx = (n) => `${Math.round(n * 100) / 100}px`;
 
-// The row you're on as the list shows it (in a folded group, its copy pinned below the group), or null: the row
-// itself, not what's left of it fading out where it was (fadeAway).
+// The row you're on as the list shows it, or null (none while its group is folded): the row itself, not what's left of
+// it fading out where it was (fadeAway).
 function focusedRow(list) {
   return [...list.querySelectorAll('.row.focused[data-id]')]
     .find((r) => !r.closest('.prows.closed') && !r.matches('.fading')) || null;
@@ -270,7 +270,7 @@ function stickyPlace() {
   waitingPlace();  // the strips naming requests out of view keep to their edges, wherever the header has gone
   // Folded into the cat, it stays as it was, fading with the list (base.css), and while it fades out, where it is.
   if (document.body.classList.contains('collapsed') || st.leaving) return;
-  // A group sliding open takes the row's copy pinned below it away, for the row in it.
+  // The list drawn again puts a new row in its place: found afresh.
   if (st.row && !st.row.isConnected) st.row = focusedRow(list);
   const row = st.row?.dataset.id === st.sid ? st.row : null;
   if (!row) {

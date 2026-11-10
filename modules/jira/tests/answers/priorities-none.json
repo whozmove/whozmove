@@ -1,0 +1,2 @@
+{"startAt": 0, "maxResults": 50, "total": 1, "fields": [
+  {"fieldId": "summary", "key": "summary", "name": "Summary", "required": true, "schema": {"type": "string", "system": "summary"}}]}

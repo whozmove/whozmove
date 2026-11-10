@@ -60,6 +60,10 @@ Its terminal named as in front, when it is: "Sample Terminal"
 == Asked on the side, in memory only
 Asked: [{"at":1000,"question":"Why that file?","state":"asking"}]
 Asked again while it's being answered: not asked: null
+On a step of its answer: [{"at":1000,"question":"Why that file?","state":"asking","step":"Reading cart.ts"}]
+…said on more than one line, and long: one line, cut: [{"at":1000,"question":"Why that file?","state":"asking","step":"Looking at the cart and more and more and more and more and more and more and more and more and more and more and more a"}]
+…no words, or another time's: as it was: [[{"at":1000,"question":"Why that file?","state":"asking"}],[{"at":1000,"question":"Why that file?","state":"asking"}]]
+…once answered, its step goes: [{"at":1000,"question":"Why that file?","state":"tooSlow"}]
 Answered: its words as read, and cut into prose and code: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"}]
 Told to the page: without its words as read: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered"}]
 Answered again: kept as it was: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"}]
@@ -80,6 +84,21 @@ Its words taken back: back to its failed line, to send again: [{"at":1000,"quest
 One not sent: unsent, kept as it was: [{"at":1000,"question":"Why that file?","state":"apiError"}]
 Couldn't be asked once pressed: kept, not asked: [{"answer":[{"prose":"Because it holds the cart."},{"code":"npm test","lang":"sh"}],"answeredAt":1500,"at":1000,"question":"Why that file?","state":"answered","text":"Because it holds the cart.\n```sh\nnpm test\n```"},{"at":2000,"question":"And the tests?","state":"notAsked"}]
 The question asked at a time not asked: none: null
+Answered, with how many earlier ones the side conversation knew: {"answer":[{"prose":"They pass."}],"answeredAt":2500,"at":2000,"question":"And the tests?","remembered":1,"state":"answered","text":"They pass."}
+The earlier ones its agent is told, before the one asked now: only those answered with words: [{"at":1000,"question":"Why that file?","text":"Because it holds the cart.\n```sh\nnpm test\n```"},{"at":2000,"question":"And the tests?","text":"They pass."}]
+…none before the first: []
+
+== Asked on the side, through its agent as you press
+The first: being asked: ["Why that file? asking"]
+…its agent says it's thinking: ["Why that file? asking (Thinking)"]
+…then reading: ["Why that file? asking (Reading cart.ts)"]
+…then answered: its step gone: ["Why that file? answered"]
+A follow-up, on a step: ["Why that file? answered","And the tests? asking (Running git log)"]
+…then answered: ["Why that file? answered","And the tests? answered"]
+Another: being asked: ["Why that file? answered","And the tests? answered","And now? asking"]
+…another while it's being asked: not asked: ["Why that file? answered","And the tests? answered","And now? asking","One more? notAsked"]
+One that couldn't start: didn't answer: ["Why that file? answered","And the tests? answered","And now? tooSlow","One more? notAsked","Still there? noAnswer"]
+One its agent says can't be asked now: not asked: ["Why that file? answered","And the tests? answered","And now? tooSlow","One more? notAsked","Still there? noAnswer","Anything? notAsked"]
 
 == A reply, cut into prose and code
 Prose, a command, prose: [{"prose":"Okay: the smaller migration first."},{"code":"npm run migrate -- --dry-run","lang":"sh"},{"prose":"Then I carry on."}]

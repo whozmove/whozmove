@@ -107,14 +107,43 @@ function turnSince(s, kind) {
   return kind === 'needs' ? s.ask?.at || s.statusUpdatedAt || 0 : s.lastReplyAt || 0;
 }
 
+// The list's one view, for everyone: the groups the modules put on top (core.topGroups: a team's chief, its groups and
+// its team), each module given what the one before left, then every project, A to Z, with the rows left for them.
+// Inside each group the rows keep the order they were placed in (placeRows), newest message first: nothing is lifted,
+// as what waits on you says so on its row. A row a module leaves in neither of its lists isn't shown.
+function listGroups(placed) {
+  const groups = [];
+  let rest = placed;
+  for (const top of core.topGroups) {
+    const given = top(rest);
+    if (!given) continue;
+    groups.push(...given.groups);
+    rest = given.rest;
+  }
+  return [...groups, ...projectGroups(rest)];
+}
+
+// Projects in the order of their names, A to Z, so a project never moves as its conversations do; inside each, its rows
+// as they're placed, newest message first.
+function projectGroups(placed) {
+  const projects = new Map();
+  for (const p of placed) {
+    const of = projectOf(p.s);
+    if (!projects.has(of.key)) projects.set(of.key, { ...of, project: true, rows: [] });
+    projects.get(of.key).rows.push(p);
+  }
+  const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true })
+    || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+  return [...projects.values()].sort(byName);
+}
+
 // The rows in the order the list places them, each { s, kind, latest, quiet, held }, as a chat app lists its
-// conversations (Group by Team then puts what needs you first in each of its groups: needsYouFirst): newest message
-// first (movedAt). A message coming in, Claude's reply or a request, takes its row to the top, and so
-// does yours; while Claude works it stays where your message put it. Only the idle ones (`quiet`: a reply you've read
-// with nothing since for a day, or none at all) go below the rest, newest first there too, so a reply you haven't
-// read never sits under one you were done with a day ago. A row you've pressed (`held(id)`) keeps all it was
-// last shown with (`before`), whatever it has become, so it stays where you saw it, until you've
-// moved on from the panel.
+// conversations, which every group in the list keeps (listGroups): newest message first (movedAt). A message coming in,
+// Claude's reply or a request, takes its row to the top, and so does yours; while Claude works it stays where your
+// message put it. Only the idle ones (`quiet`: a reply you've read with nothing since for a day, or none at all) go
+// below the rest, newest first there too, so a reply you haven't read never sits under one you were done with a day
+// ago. A row you've pressed (`held(id)`) keeps all it was last shown with (`before`), whatever it has become, so it
+// stays where you saw it, until you've moved on from the panel.
 function placeRows(rows, before, held) {
   const byId = (a, b) => (a.s.sessionId < b.s.sessionId ? -1 : a.s.sessionId > b.s.sessionId ? 1 : 0);
   return rows.map(({ s, kind }) => {

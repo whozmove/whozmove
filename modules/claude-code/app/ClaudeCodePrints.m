@@ -40,6 +40,8 @@
 #import "Signature.h"
 #import "ClaudeProgram.h"
 #import "WhereSeenWorking.h"
+#import "AsideReads.h"
+#import "Git.h"
 #import <fcntl.h>
 
 // The module in a print run's core.
@@ -212,21 +214,48 @@ static int PrintReply(NSArray<NSString *> *arguments) {
 // (BetweenStepsHandOut), whose hook may take them (BetweenStepsHookOf), and how a sample transcript records them taken
 // in, and what Claude wrote after them (AfterHandedWords), as Claude Code 2.1.304 writes them.
 // `Whozmove --print-aside`: a question asked on a session's side, in the home folder the run is given, running
-// nothing: the command it runs (ClaudeAsideArguments) and the words that open the question, the sessions it may be
-// asked of (ClaudeAsideResumable), the model and the program it's asked with, how each ending of its output is read
-// (ClaudeAsideAnswer), and its process kept out of everything read from Claude Code's registry while it runs. It writes sample programs and a registry file in the home folder,
-// and takes them away after, so it refuses to run in your own. With `--arguments <session> <model> <effort>` it prints
-// only the arguments a side question of that session runs with, as JSON, writing nothing (or refuses a session id it
-// may not resume): the real Claude Code run asks a real Claude Code with them.
+// nothing of Claude Code's: the command it runs (ClaudeAsideArguments) and the words that open the question, the
+// sessions it may be asked of (ClaudeAsideResumable), the model and the program it's asked with, how each ending of
+// its output is read (ClaudeAsideAnswer), what its checker lets it read and run (AsideReads), when a follow-up goes
+// into the open copy and what a fresh one is told, a kept conversation with a stand-in that answers each line, and its
+// process kept out of everything read from Claude Code's registry while it runs. It writes sample programs, files and
+// a registry file in the home folder, and takes them away after, so it refuses to run in your own. With `--arguments
+// <session> <model> <effort>` it prints only the arguments a side question of that session runs with, as JSON, writing
+// nothing (or refuses a session id it may not resume): the real Claude Code run asks a real Claude Code with them.
+// With `--environment <folder>`, only what a side question in that folder adds to its environment
+// (ClaudeAsideEnvironment, this program the checker), as JSON. With `--steps <file> <folder>`, only the step each
+// sample tool call in the file (a JSON list of {tool, input}) says in a side question of that folder
+// (ClaudeAsideStep), one a line: the test holds them beside the words the session's own hook gives the same calls.
 static int PrintAside(Core *core, NSArray<NSString *> *given) {
     if (given.count == 4 && [given[0] isEqual:@"--arguments"]) {
-        NSArray *arguments = ClaudeAsideArguments(given[1], given[2], given[3]);
+        NSArray *arguments = ClaudeAsideArguments(given[1], given[2], given[3], YES);
         if (!arguments) {
             fprintf(stderr, "--print-aside --arguments: %s isn't a session id it may resume\n", given[1].UTF8String);
             return 2;
         }
         NSData *json = [NSJSONSerialization dataWithJSONObject:arguments options:0 error:nil];
         printf("%s\n", [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding].UTF8String);
+        return 0;
+    }
+    if (given.count == 2 && [given[0] isEqual:@"--environment"]) {
+        NSDictionary *environment = ClaudeAsideEnvironment(@{}, NSBundle.mainBundle.executablePath, given[1]);
+        NSData *json = [NSJSONSerialization dataWithJSONObject:environment options:NSJSONWritingSortedKeys error:nil];
+        printf("%s\n", [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding].UTF8String);
+        return 0;
+    }
+    if (given.count == 3 && [given[0] isEqual:@"--steps"]) {
+        NSData *data = [NSData dataWithContentsOfFile:given[1]];
+        NSArray *samples = data ? AsList([NSJSONSerialization JSONObjectWithData:data options:0 error:nil]) : nil;
+        if (!samples) {
+            fprintf(stderr, "--print-aside --steps: %s isn't a JSON list of tool calls\n", given[1].UTF8String);
+            return 2;
+        }
+        for (id each in samples) {
+            NSDictionary *sample = AsRecord(each);
+            NSDictionary *line = @{@"type": @"assistant", @"message": @{@"content": @[
+                @{@"type": @"tool_use", @"name": AsText(sample[@"tool"]) ?: @"", @"input": AsRecord(sample[@"input"]) ?: @{}}]}};
+            printf("%s\n", (ClaudeAsideStep(line, given[2]) ?: @"").UTF8String);
+        }
         return 0;
     }
     if (HomeIsYourOwn()) {
@@ -247,17 +276,18 @@ static int PrintAside(Core *core, NSArray<NSString *> *given) {
     };
     printf("== What it runs\n");
     NSString *session = @"0b6c1d2e-3f40-4a51-8b62-7c83d94ea5f6";
-    say(@"Its arguments", ClaudeAsideArguments(session, @"claude-opus-5-5[1m]", @"high"));
+    say(@"Its arguments", ClaudeAsideArguments(session, @"claude-opus-5-5[1m]", @"high", YES));
     say(@"No model or effort known: neither passed, so Claude Code's own",
-        @([ClaudeAsideArguments(session, nil, @"") containsObject:@"--model"]
-          || [ClaudeAsideArguments(session, nil, @"") containsObject:@"--effort"]));
-    say(@"The words that open the question", kClaudeAsideLine);
+        @([ClaudeAsideArguments(session, nil, @"", YES) containsObject:@"--model"]
+          || [ClaudeAsideArguments(session, nil, @"", YES) containsObject:@"--effort"]));
+    say(@"The words that open the question", ClaudeAsideLine());
     say(@"A session whose id is a UUID: asked", @(ClaudeAsideResumable(session)));
     say(@"…one whose id looks like a flag: never asked, as Claude Code would read it as one",
         @(ClaudeAsideResumable(@"--mcp-config=planted.json")));
     say(@"…one whose id is any other word: never asked", @(ClaudeAsideResumable(@"s-1")));
     say(@"…and no arguments for one, however it's asked", @(ClaudeAsideArguments(@"--mcp-config=planted.json",
-                                                                                 @"claude-opus-5-5", @"high") == nil));
+                                                                                 @"claude-opus-5-5", @"high", YES)
+                                                                            == nil));
 
     printf("\n== The model it's asked with\n");
     say(@"The session's, as its replies say", ClaudeAsideModel(@"claude-sonnet-5-5", nil, 40000));
@@ -343,6 +373,511 @@ static int PrintAside(Core *core, NSArray<NSString *> *given) {
     NSString *longWords = [@"" stringByPaddingToLength:20000 withString:@"word " startingAtIndex:0];
     say(@"A long answer: 16,384 characters kept", @([ClaudeAsideAnswer(lines(@[@{@"type": @"result",
         @"subtype": @"success", @"is_error": @NO, @"result": longWords}]), NO, NO)[@"text"] length]));
+
+    printf("\n== The steps it says as it answers\n");
+    NSString *shop = [home stringByAppendingPathComponent:@"shop"];
+    [files createDirectoryAtPath:shop withIntermediateDirectories:YES attributes:nil error:nil];
+    NSString *(^step)(NSArray *) = ^NSString *(NSArray *content) { return ClaudeAsideStep(said(content), shop); };
+    NSDictionary *(^thought)(NSString *) = ^NSDictionary *(NSString *words) {
+        return @{@"type": @"thinking", @"thinking": words, @"signature": @"c2lnbg=="};
+    };
+    NSDictionary *(^tool)(NSString *, NSDictionary *) = ^NSDictionary *(NSString *name, NSDictionary *input) {
+        return @{@"type": @"tool_use", @"id": @"toolu_1", @"name": name, @"input": input};
+    };
+    // Made up as the run goes, in a key's shape.
+    NSString *keyShaped = [@"sk-" stringByAppendingString:[@"" stringByPaddingToLength:28 withString:@"q7Z"
+                                                                       startingAtIndex:0]];
+    say(@"Thinking, its words not passed on", step(@[thought(@"")]));
+    say(@"…its summary's first line, without its markdown", step(@[thought(@"**Looking at how the cart totals**\n\nThe "
+                                                                           "cart adds each line.")]));
+    say(@"…a long one, cut", step(@[thought([@"Weighing " stringByPaddingToLength:140 withString:@"the totals "
+                                                                    startingAtIndex:0])]));
+    say(@"…one that names a path, or holds a key's shape: just Thinking",
+        @[step(@[thought(@"Checking /etc/hosts first")]), step(@[thought(@"Reading ~/notes")]),
+          step(@[thought([@"The key " stringByAppendingString:keyShaped])])]);
+    say(@"…hidden from it", step(@[@{@"type": @"redacted_thinking", @"data": @"ZGF0YQ=="}]));
+    say(@"Reading a file in the session's folder: its name",
+        @[step(@[tool(kClaudeToolRead, @{kClaudeToolFilePath: [shop stringByAppendingPathComponent:@"src/cart.ts"]})]),
+          step(@[tool(kClaudeToolRead, @{kClaudeToolFilePath: @"src/cart.ts"})])]);
+    say(@"…one outside it, by any way: no name",
+        @[step(@[tool(kClaudeToolRead, @{kClaudeToolFilePath: @"/etc/hosts"})]),
+          step(@[tool(kClaudeToolRead, @{kClaudeToolFilePath: @"~/.ssh/config"})]),
+          step(@[tool(kClaudeToolRead, @{kClaudeToolFilePath: @"../outside/notes.txt"})]),
+          step(@[tool(kClaudeToolRead, @{})])]);
+    say(@"Searching: its words, cut", @[step(@[tool(kClaudeToolGrep, @{kClaudeToolPattern: @"total"})]),
+                                        step(@[tool(kClaudeToolGrep, @{kClaudeToolPattern:
+                                            @"function (add|remove)LineFromTheCart\\("})])]);
+    say(@"…words that name a path, or hold a key's shape: no words",
+        @[step(@[tool(kClaudeToolGrep, @{kClaudeToolPattern: @"/Users/you/"})]),
+          step(@[tool(kClaudeToolGrep, @{kClaudeToolPattern: keyShaped})])]);
+    say(@"Finding files: a pattern in the folder", step(@[tool(kClaudeToolGlob, @{kClaudeToolPattern: @"src/**/*.ts"})]));
+    say(@"…one that reaches outside it: no pattern", @[step(@[tool(kClaudeToolGlob, @{kClaudeToolPattern: @"/etc/*"})]),
+        step(@[tool(kClaudeToolGlob, @{kClaudeToolPattern: @"../*"})]),
+        step(@[tool(kClaudeToolGlob, @{kClaudeToolPattern: @"~/*"})])]);
+    say(@"git: its own command, never Claude's words for it",
+        @[step(@[tool(kClaudeToolBash, @{kClaudeToolCommand: @"git log --oneline -5",
+                                         @"description": @"Show the last commits in /Users/you/shop"})]),
+          step(@[tool(kClaudeToolBash, @{kClaudeToolCommand: @"git -C /tmp log"})]),
+          step(@[tool(kClaudeToolBash, @{kClaudeToolCommand: @"cat notes.txt"})])]);
+    say(@"Any other tool", step(@[tool(@"Edit", @{kClaudeToolFilePath: @"src/cart.ts"})]));
+    say(@"Several blocks in one line: the last's", step(@[thought(@""), tool(kClaudeToolGrep, @{kClaudeToolPattern:
+                                                                                                 @"total"})]));
+    say(@"Its words, a tool's result, the result, a line of anything else: no step",
+        @[step(@[@{@"type": @"text", @"text": @"It holds the cart."}]) ?: NSNull.null,
+          ClaudeAsideStep(@{@"type": @"user", @"message": @{@"content": @[@{@"type": @"tool_result",
+                                                                             @"content": @"1 match"}]}}, shop)
+              ?: NSNull.null,
+          ClaudeAsideStep(@{@"type": @"result", @"subtype": @"success"}, shop) ?: NSNull.null,
+          ClaudeAsideStep(@{@"type": @"system", @"subtype": @"init"}, shop) ?: NSNull.null]);
+
+    printf("\n== Its thinking's summaries, by the version of Claude Code\n");
+    say(@"Asked for with", ClaudeAsideThinkingArguments());
+    NSString *versions = [home stringByAppendingPathComponent:@"versions-sample"];
+    NSString *byInstaller = [versions stringByAppendingPathComponent:@"versions/2.1.319"];
+    NSString *byCask = [versions stringByAppendingPathComponent:@"Caskroom/claude-code/2.1.319/claude"];
+    NSString *byLink = [versions stringByAppendingPathComponent:@"bin/claude"];
+    for (NSString *path in @[byInstaller, byCask, byLink])
+        [files createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES
+                          attributes:nil error:nil];
+    [@"" writeToFile:byInstaller atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [@"" writeToFile:byCask atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [files createSymbolicLinkAtPath:byLink withDestinationPath:byInstaller error:nil];
+    say(@"Its version: its installer's file, Homebrew's folder, a link to one, npm's",
+        @[ClaudeCodeVersionAt(byInstaller) ?: NSNull.null, ClaudeCodeVersionAt(byCask) ?: NSNull.null,
+          ClaudeCodeVersionAt(byLink) ?: NSNull.null,
+          ClaudeCodeVersionAt([versions stringByAppendingPathComponent:@"node_modules/.bin/claude"]) ?: NSNull.null]);
+    [files removeItemAtPath:versions error:nil];
+    say(@"Asked for: a version they were checked with; not a later one, one that turned them down, or none known",
+        @[@(ClaudeAsideThinks(@"2.1.319", [NSSet set])), @(ClaudeAsideThinks(@"2.1.999", [NSSet set])),
+          @(ClaudeAsideThinks(@"2.1.319", [NSSet setWithObject:@"2.1.319"])), @(ClaudeAsideThinks(nil, [NSSet set]))]);
+    say(@"Asked again without them: it ended with an error, having said nothing",
+        @(ClaudeAsideFlagRefused(@{@"status": @1, @"answered": @NO, @"timedOut": @NO}, NO, NO)));
+    say(@"…not once it said something, was stopped, ran out of time, ended well or didn't start",
+        @[@(ClaudeAsideFlagRefused(@{@"status": @1, @"timedOut": @NO}, YES, NO)),
+          @(ClaudeAsideFlagRefused(@{@"status": @1, @"timedOut": @NO}, NO, YES)),
+          @(ClaudeAsideFlagRefused(@{@"status": @1, @"timedOut": @YES}, NO, NO)),
+          @(ClaudeAsideFlagRefused(@{@"status": @0, @"timedOut": @NO}, NO, NO)),
+          @(ClaudeAsideFlagRefused(nil, NO, NO))]);
+
+    printf("\n== What it may read, as its checker decides (nothing: it may)\n");
+    NSString *project = [home stringByAppendingPathComponent:@"shop"];
+    NSString *outside = [home stringByAppendingPathComponent:@"outside"];
+    for (NSString *folder in @[[project stringByAppendingPathComponent:@"src"], outside,
+                               [project stringByAppendingPathComponent:@".cursor"],
+                               [project stringByAppendingPathComponent:@".vscode"],
+                               [home stringByAppendingPathComponent:@".ssh"],
+                               [project stringByAppendingPathComponent:@"docs"],
+                               [project stringByAppendingPathComponent:@"config"],
+                               [project stringByAppendingPathComponent:@"vendor/lib/sub"],
+                               [project stringByAppendingPathComponent:@"site"],
+                               [project stringByAppendingPathComponent:@"api"],
+                               [home stringByAppendingPathComponent:@"plain/a"],
+                               [home stringByAppendingPathComponent:@"plain/b/.hg"],
+                               [home stringByAppendingPathComponent:@"plain/c"]])
+        [files createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+    // A checkout, which keeps a token and a key out of git, and a line in capitals that git, told to match names in
+    // either case, takes for site's .env, though ripgrep doesn't.
+    RunGit(@[@"init", @"-q", project]);
+    RunGit(@[@"-C", project, @"config", @"core.ignorecase", @"true"]);
+    // And an ignore file named in the checkout's own config, which ripgrep never reads, leaving out api's .env.
+    NSString *hiding = [home stringByAppendingPathComponent:@"hiding"];
+    [@"api/.env\n" writeToFile:hiding atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    RunGit(@[@"-C", project, @"config", @"core.excludesFile", hiding]);
+    [@"deploy_token\n.npmrc\nsite/.ENV\n" writeToFile:[project stringByAppendingPathComponent:@".gitignore"]
+                                            atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    for (NSString *name in @[@"shop/one.txt", @"shop/src/two.txt", @"shop/.env", @"shop/.env.local", @"shop/site.pem",
+                             @"shop/deploy.key", @"shop/prod.env", @"shop/.envrc", @"shop/SITE.PEM",
+                             @"shop/deploy_token", @"shop/.npmrc", @"shop/src/id_rsa", @"shop/src/deploy_token",
+                             @"shop/.mcp.json", @"shop/.cursor/mcp.json", @"shop/.vscode/mcp.json",
+                             @"shop/src/.mcp.json", @"shop/.aider.chat.history.md", @"shop/package.json",
+                             @"outside/notes.txt", @"shop/docs/guide.md", @"shop/config/app.txt",
+                             @"shop/config/.npmrc", @"shop/vendor/lib/readme.txt", @"shop/vendor/lib/.env",
+                             @"shop/vendor/lib/sub/.env", @"shop/site/index.html", @"shop/site/.env",
+                             @"shop/api/server.js", @"shop/api/.env",
+                             @"plain/a/notes.txt", @"plain/b/notes.txt", @"plain/b/.hg/.env", @"plain/c/.env",
+                             @".ssh/id_ed25519", kClaudeCodeState, @".netrc"])
+        [@"sample\n" writeToFile:[home stringByAppendingPathComponent:name] atomically:YES
+                        encoding:NSUTF8StringEncoding error:nil];
+    NSString *claude = [home stringByAppendingPathComponent:kClaudeCodeFolder];
+    [files createDirectoryAtPath:claude withIntermediateDirectories:YES attributes:nil error:nil];
+    [@"{}" writeToFile:[claude stringByAppendingPathComponent:kClaudeCodeLocalSettings] atomically:YES
+              encoding:NSUTF8StringEncoding error:nil];
+    [files createSymbolicLinkAtPath:[project stringByAppendingPathComponent:@"out"] withDestinationPath:outside
+                              error:nil];
+    [files createSymbolicLinkAtPath:[project stringByAppendingPathComponent:@"notes.txt"]
+                withDestinationPath:[outside stringByAppendingPathComponent:@"notes.txt"] error:nil];
+    // Another checkout inside it, which it doesn't track.
+    RunGit(@[@"init", @"-q", [project stringByAppendingPathComponent:@"vendor/lib"]]);
+    // Its history: a first commit with the MCP settings the project keeps, as many do, and a second that changes only
+    // src/two.txt.
+    NSArray<NSString *> *saving = @[@"-C", project, @"-c", @"user.name=Sample", @"-c", @"user.email=sample@example.com",
+                                    @"-c", @"commit.gpgsign=false", @"-c", @"core.hooksPath=/dev/null"];
+    RunGit([saving arrayByAddingObjectsFromArray:@[@"add", @"one.txt", @"src/two.txt", @".mcp.json", @".gitignore"]]);
+    RunGit([saving arrayByAddingObjectsFromArray:@[@"commit", @"-q", @"-m", @"First"]]);
+    [@"sample, changed\n" writeToFile:[project stringByAppendingPathComponent:@"src/two.txt"] atomically:YES
+                             encoding:NSUTF8StringEncoding error:nil];
+    RunGit([saving arrayByAddingObjectsFromArray:@[@"commit", @"-q", @"-a", @"-m", @"Second"]]);
+    // Where keys are kept is Keys' (the storage module's), found as the checker's helper run finds it.
+    id<KeyPlaces> keys = [core moduleThat:@protocol(KeyPlaces)];
+    NSString *(^may)(NSString *, NSDictionary *) = ^NSString *(NSString *tool, NSDictionary *input) {
+        return AsideToolWhyNot(tool, input, project, home, keys);
+    };
+    NSString *(^bash)(NSString *) = ^NSString *(NSString *command) {
+        return may(kClaudeToolBash, @{kClaudeToolCommand: command});
+    };
+    NSString *(^read)(NSString *) = ^NSString *(NSString *file) {
+        return may(kClaudeToolRead, @{kClaudeToolFilePath: file});
+    };
+    say(@"Read, a file in the folder", read([project stringByAppendingPathComponent:@"src/two.txt"]));
+    say(@"…the same, from the folder", read(@"src/two.txt"));
+    say(@"…a file outside it", read([outside stringByAppendingPathComponent:@"notes.txt"]));
+    say(@"…a link in the folder that leads out", read([project stringByAppendingPathComponent:@"notes.txt"]));
+    say(@"…through a linked folder", read([project stringByAppendingPathComponent:@"out/notes.txt"]));
+    say(@"…a path that climbs out", read([project stringByAppendingPathComponent:@"src/../../outside/notes.txt"]));
+    say(@"…one that isn't there", read([project stringByAppendingPathComponent:@"gone.txt"]));
+    say(@"…from the home folder by ~", read(@"~/.netrc"));
+    say(@"…a .env in the folder", read([project stringByAppendingPathComponent:@".env"]));
+    say(@"…a .env.local", read([project stringByAppendingPathComponent:@".env.local"]));
+    say(@"…a .pem", read([project stringByAppendingPathComponent:@"site.pem"]));
+    say(@"…a .key", read([project stringByAppendingPathComponent:@"deploy.key"]));
+    say(@"…one ending .env, direnv's .envrc, one in capitals",
+        @[read(@"prod.env"), read(@".envrc"), read(@"SITE.PEM")]);
+    say(@"…git's own config", read(@".git/config"));
+    say(@"…the project's own .npmrc, an ssh key in it", @[read(@".npmrc"), read(@"src/id_rsa")]);
+    say(@"…MCP settings, which often hold a server's key: the project's, Cursor's, VS Code's, one in a folder of it",
+        @[read(@".mcp.json"), read(@".cursor/mcp.json"), read(@".vscode/mcp.json"), read(@"src/.mcp.json")]);
+    say(@"…an AI tool's history in the project", read(@".aider.chat.history.md"));
+    say(@"…a JSON file, as most aren't a key's", read(@"package.json"));
+    say(@"…one git ignores, whatever its name", read(@"deploy_token"));
+    say(@"…a file git doesn't ignore, beside it", read(@"one.txt"));
+    say(@"…no file given", may(kClaudeToolRead, @{}));
+    // Even a Grep that prints only which files match says whether a key file holds what it looked for.
+    say(@"Grep, over the folder, which holds key files the project keeps",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO"}));
+    say(@"…in a folder of it with key files in it",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"src"}));
+    say(@"…in a folder with no key file in it", may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO",
+                                                                       kClaudeToolPath: @"docs"}));
+    say(@"…in a folder whose only key file git ignores, which Grep leaves out too",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"config"}));
+    say(@"…in a folder holding another checkout, untracked, with a key file in it",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"vendor"}));
+    say(@"…in a folder of that other checkout, with a key file in it, which this one's git lists nothing of",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"vendor/lib/sub"}));
+    say(@"…in a folder whose .env a line in capitals hides from git told to match either case, not from ripgrep",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"site"}));
+    say(@"…in a folder whose .env only an ignore file the checkout's config names hides, which ripgrep never reads",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: @"api"}));
+    NSString *plain = [home stringByAppendingPathComponent:@"plain"];
+    NSString *(^plainGrep)(NSString *) = ^NSString *(NSString *path) {
+        return AsideToolWhyNot(kClaudeToolGrep, path ? @{kClaudeToolPattern: @"TODO", kClaudeToolPath: path}
+                                                     : @{kClaudeToolPattern: @"TODO"}, plain, home, keys);
+    };
+    say(@"…in no checkout: over a folder with a key file further down, in a folder of it with one, and one without",
+        @[plainGrep(nil) ?: NSNull.null, plainGrep(@"c") ?: NSNull.null, plainGrep(@"a") ?: NSNull.null]);
+    say(@"…in no checkout, a folder whose only key file is in version control's own folder, which Grep leaves out",
+        plainGrep(@"b"));
+    say(@"…in a linked folder that leads out", may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO",
+                                                                         kClaudeToolPath: @"out"}));
+    say(@"…in the home folder", may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolPath: home}));
+    say(@"…in a file git ignores", may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO",
+                                                          kClaudeToolPath: @"deploy_token"}));
+    say(@"…with a file-name filter, which searches what git ignores",
+        may(kClaudeToolGrep, @{kClaudeToolPattern: @"TODO", kClaudeToolGrepFilter: @"*.env"}));
+    NSString *(^matching)(NSString *) = ^NSString *(NSString *path) {
+        NSMutableDictionary *input = [@{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: kClaudeGrepContent}
+                                      mutableCopy];
+        if (path) input[kClaudeToolPath] = path;
+        return may(kClaudeToolGrep, input);
+    };
+    say(@"…its matching lines over the folder, or a folder of it, which can hold a key file the project keeps",
+        @[matching(nil), matching(@"src")]);
+    say(@"…its matching lines from one file, and the files that match, or how many lines, over a folder without a key",
+        @[matching(@"src/two.txt") ?: NSNull.null,
+          may(kClaudeToolGrep, @{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: kClaudeGrepFiles,
+                                 kClaudeToolPath: @"docs"}) ?: NSNull.null,
+          may(kClaudeToolGrep, @{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: kClaudeGrepCount,
+                                 kClaudeToolPath: @"docs"}) ?: NSNull.null]);
+    say(@"…the files that match, or how many lines, over the folder, which holds a key file",
+        @[may(kClaudeToolGrep, @{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: kClaudeGrepFiles}) ?: NSNull.null,
+          may(kClaudeToolGrep, @{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: kClaudeGrepCount}) ?: NSNull.null]);
+    say(@"…its matching lines from MCP settings, and a way of printing it has no name for",
+        @[matching(@".mcp.json"), may(kClaudeToolGrep, @{kClaudeToolPattern: @"KEY", kClaudeToolGrepMode: @"json"})]);
+    say(@"Glob, a pattern from the folder down", may(kClaudeToolGlob, @{kClaudeToolPattern: @"**/*.txt"}));
+    say(@"…a whole path, searched whatever its path says", may(kClaudeToolGlob, @{
+        kClaudeToolPattern: [outside stringByAppendingPathComponent:@"*.txt"], kClaudeToolPath: project}));
+    say(@"…from the home folder", may(kClaudeToolGlob, @{kClaudeToolPattern: @"~/.ssh/*"}));
+    say(@"…climbing out", may(kClaudeToolGlob, @{kClaudeToolPattern: @"../outside/*"}));
+    say(@"Write: never", may(@"Write", @{kClaudeToolFilePath: [project stringByAppendingPathComponent:@"new.txt"]}));
+    say(@"Edit, WebFetch, an MCP tool: never",
+        @[may(@"Edit", @{}), may(@"WebFetch", @{}), may(@"mcp__kit__ping", @{})]);
+    say(@"git status", bash(@"git status"));
+    say(@"git status --short --branch", bash(@"git status --short --branch"));
+    say(@"git log, with --no-ext-diff --no-textconv", bash(@"git log --no-ext-diff --no-textconv --oneline -n20"));
+    say(@"git diff, with them, of a file", bash(@"git diff --no-ext-diff --no-textconv HEAD~1 -- src/two.txt"));
+    say(@"git show, with them, a format and a quoted search",
+        bash(@"git show --no-ext-diff --no-textconv --stat --format=%h%x20%s HEAD"));
+    say(@"git log, a single-quoted word", bash(@"git log --no-ext-diff --no-textconv '--grep=fix the cart'"));
+    say(@"git diff without --no-ext-diff --no-textconv", bash(@"git diff"));
+    say(@"…with them only after --", bash(@"git log -- --no-ext-diff --no-textconv"));
+    say(@"git diff --output", bash(@"git diff --no-ext-diff --no-textconv --output=../written.txt"));
+    say(@"…--output in single quotes", bash(@"git diff --no-ext-diff --no-textconv '--output=written.txt'"));
+    say(@"…--ext-diff", bash(@"git diff --ext-diff --no-ext-diff --no-textconv"));
+    say(@"…--textconv", bash(@"git log -p --textconv --no-ext-diff --no-textconv"));
+    say(@"…--show-signature", bash(@"git log --show-signature --no-ext-diff --no-textconv"));
+    say(@"…a format asking for the signature", bash(@"git log --no-ext-diff --no-textconv --format=%GS"));
+    say(@"…--no-index", bash(@"git diff --no-ext-diff --no-textconv --no-index one.txt src/two.txt"));
+    say(@"…a file from the top of the disk", bash(@"git diff --no-ext-diff --no-textconv /dev/null one.txt"));
+    say(@"…from the home folder", bash(@"git diff --no-ext-diff --no-textconv ~/.netrc one.txt"));
+    say(@"…above the folder", bash(@"git diff --no-ext-diff --no-textconv ../outside/notes.txt"));
+    say(@"…a file above it at a commit", bash(@"git show --no-ext-diff --no-textconv HEAD:../outside/notes.txt"));
+    say(@"…a file named as keys are, at a commit or as a path",
+        @[bash(@"git show --no-ext-diff --no-textconv HEAD:.env"),
+          bash(@"git diff --no-ext-diff --no-textconv prod.env one.txt")]);
+    say(@"…MCP settings, at a commit or as a path",
+        @[bash(@"git show --no-ext-diff --no-textconv HEAD:.mcp.json"),
+          bash(@"git log --no-ext-diff --no-textconv -p -- .cursor/mcp.json")]);
+    say(@"…a commit whose patch holds the MCP settings the project keeps, and the history that holds it",
+        @[bash(@"git show --no-ext-diff --no-textconv HEAD~1"), bash(@"git log -p --no-ext-diff --no-textconv")]);
+    say(@"…the commit after it, that history for one file, the history's names, and the first commit's",
+        @[bash(@"git show --no-ext-diff --no-textconv HEAD") ?: NSNull.null,
+          bash(@"git log -p --no-ext-diff --no-textconv -- src/two.txt") ?: NSNull.null,
+          bash(@"git log --no-ext-diff --no-textconv --stat") ?: NSNull.null,
+          bash(@"git show --no-ext-diff --no-textconv --name-only HEAD~1") ?: NSNull.null]);
+    say(@"…a pattern, which git takes as the one file it names",
+        bash(@"git log -p --no-ext-diff --no-textconv -- '*.json'") ?: NSNull.null);
+    NSData *blobId = RunGit(@[@"-C", project, @"rev-parse", @"HEAD:.mcp.json"])[@"out"];
+    NSString *blob = [[[NSString alloc] initWithData:blobId ?: NSData.data encoding:NSUTF8StringEncoding]
+                      stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    say(@"…a file's contents by its id, as a patch's index line gives it, and a folder by its",
+        @[bash([@"git show --no-ext-diff --no-textconv " stringByAppendingString:blob]),
+          bash(@"git show --no-ext-diff --no-textconv HEAD^{tree}")]);
+    say(@"…a folder at a commit, which git diff prints whole: between two commits, beside the working files, and shown",
+        @[bash(@"git diff --no-ext-diff --no-textconv HEAD~1: HEAD:") ?: NSNull.null,
+          bash(@"git diff --no-ext-diff --no-textconv HEAD:") ?: NSNull.null,
+          bash(@"git show --no-ext-diff --no-textconv HEAD:src") ?: NSNull.null]);
+    say(@"…a file at a commit: MCP settings, shown or compared; and one that isn't a key's, shown and compared",
+        @[bash(@"git show --no-ext-diff --no-textconv HEAD:.mcp.json") ?: NSNull.null,
+          bash(@"git diff --no-ext-diff --no-textconv HEAD~1:.mcp.json HEAD:one.txt") ?: NSNull.null,
+          bash(@"git show --no-ext-diff --no-textconv HEAD:one.txt") ?: NSNull.null,
+          bash(@"git diff --no-ext-diff --no-textconv HEAD~1:src/two.txt HEAD:src/two.txt") ?: NSNull.null]);
+    say(@"…braces the shell would turn into options",
+        bash(@"git log --no-ext-diff --no-textconv {--output=x,--stat}"));
+    say(@"…a ~ the shell would turn into the home folder", bash(@"git log --no-ext-diff --no-textconv --author=~"));
+    say(@"git -C, an option before the command", bash(@"git -C .. status"));
+    say(@"git -c", bash(@"git -c core.pager=less log --no-ext-diff --no-textconv"));
+    say(@"another git command", bash(@"git checkout one.txt"));
+    say(@"a second command after it", bash(@"git status; rm one.txt"));
+    say(@"…on a line of its own", bash(@"git status\nrm one.txt"));
+    say(@"…piped", bash(@"git log --no-ext-diff --no-textconv | sh"));
+    say(@"a variable", bash(@"git log --no-ext-diff --no-textconv $HOME"));
+    say(@"a setting before git", bash(@"GIT_DIR=../outside git status"));
+    say(@"another program", bash(@"cat one.txt"));
+    say(@"git status, in the background", may(kClaudeToolBash, @{kClaudeToolCommand: @"git status",
+                                                                kClaudeToolInBackground: @YES}));
+    say(@"A session started in the home folder: reads nothing", AsideToolWhyNot(kClaudeToolRead, @{
+        kClaudeToolFilePath: [project stringByAppendingPathComponent:@"one.txt"]}, home, home, keys));
+    say(@"…nor git there", AsideToolWhyNot(kClaudeToolBash, @{kClaudeToolCommand: @"git status"}, home, home, keys));
+    say(@"A session in a folder inside a checkout, or in none: no git, as it would read the whole checkout or any file",
+        AsideToolWhyNot(kClaudeToolBash, @{kClaudeToolCommand: @"git status"},
+                        [project stringByAppendingPathComponent:@"src"], home, keys));
+    NSString *src = [project stringByAppendingPathComponent:@"src"];
+    say(@"…but the checkout's .gitignore holds there: a file it ignores, and one beside it", @[
+        AsideToolWhyNot(kClaudeToolRead, @{kClaudeToolFilePath: @"deploy_token"}, src, home, keys) ?: NSNull.null,
+        AsideToolWhyNot(kClaudeToolRead, @{kClaudeToolFilePath: @"two.txt"}, src, home, keys) ?: NSNull.null]);
+    say(@"…a folder in no checkout, where nothing is ignored", AsideToolWhyNot(kClaudeToolRead, @{
+        kClaudeToolFilePath: @"notes.txt"}, [home stringByAppendingPathComponent:@"outside"], home, keys));
+    say(@"A folder that isn't there", AsideToolWhyNot(kClaudeToolRead, @{
+        kClaudeToolFilePath: @"one.txt"}, [home stringByAppendingPathComponent:@"gone"], home, keys));
+    say(@"Where keys are kept, wherever the folder is", @[@(AsideKeyFile([home stringByAppendingPathComponent:
+        @".ssh/id_ed25519"], home, keys)), @(AsideKeyFile([home stringByAppendingPathComponent:kClaudeCodeState], home,
+        keys)), @(AsideKeyFile([claude stringByAppendingPathComponent:kClaudeCodeLocalSettings], home, keys)),
+        @(AsideKeyFile([claude stringByAppendingPathComponent:@"notes.json"], home, keys)),
+        @(AsideKeyFile([project stringByAppendingPathComponent:@"one.txt"], home, keys))]);
+    say(@"…and every other place in the home folder Keys knows: Docker's sign-ins, Kubernetes', Codex's, GnuPG's, a "
+        "shell's settings", @[@(AsideKeyFile([home stringByAppendingPathComponent:@".docker/config.json"], home, keys)),
+        @(AsideKeyFile([home stringByAppendingPathComponent:@".kube/config"], home, keys)),
+        @(AsideKeyFile([home stringByAppendingPathComponent:@".codex/auth.json"], home, keys)),
+        @(AsideKeyFile([home stringByAppendingPathComponent:@".gnupg/private-keys-v1.d"], home, keys)),
+        @(AsideKeyFile([home stringByAppendingPathComponent:@".zshrc"], home, keys))]);
+    say(@"Without Keys' list: every file counts, and nothing is read or run",
+        @[@(AsideKeyFile([project stringByAppendingPathComponent:@"one.txt"], home, nil)),
+          AsideToolWhyNot(kClaudeToolRead, @{kClaudeToolFilePath: @"one.txt"}, project, home, nil),
+          AsideToolWhyNot(kClaudeToolBash, @{kClaudeToolCommand: @"git status"}, project, home, nil)]);
+    NSData *(^call)(NSString *, NSDictionary *) = ^NSData *(NSString *tool, NSDictionary *input) {
+        return [NSJSONSerialization dataWithJSONObject:@{kClaudeHookToolName: tool, kClaudeHookToolInput: input,
+                                                        @"session_id": session} options:0 error:nil];
+    };
+    say(@"The checker's answer to the hook: a read it may make", AsideCheck(project, call(kClaudeToolRead,
+        @{kClaudeToolFilePath: [project stringByAppendingPathComponent:@"one.txt"]}), home, keys));
+    say(@"…one it may not", AsideCheck(project, call(kClaudeToolRead,
+        @{kClaudeToolFilePath: [outside stringByAppendingPathComponent:@"notes.txt"]}), home, keys));
+    say(@"…a call it can't read", AsideCheck(project, [@"not json" dataUsingEncoding:NSUTF8StringEncoding], home,
+        keys));
+    say(@"…none", AsideCheck(project, nil, home, keys));
+
+    printf("\n== Kept for follow-ups\n");
+    NSDictionary *opened = @{@"size": @48213, @"at": @2000000000000};
+    say(@"The session as it was when the copy opened: asked in it", @(ClaudeAsideMoved(opened,
+        @{@"size": @48213, @"at": @2000000000000})));
+    say(@"…a step since (its transcript grew): a fresh copy", @(ClaudeAsideMoved(opened,
+        @{@"size": @51840, @"at": @2000000000000})));
+    say(@"…a newer message: a fresh copy", @(ClaudeAsideMoved(opened, @{@"size": @48213, @"at": @2000000060000})));
+    say(@"…not known as it opened, or now: a fresh copy", @[@(ClaudeAsideMoved(nil, opened)),
+                                                           @(ClaudeAsideMoved(opened, nil))]);
+    NSDictionary *open = @{@"busy": @NO, @"started": @2000000000123, @"model": @"claude-opus-5-5[1m]",
+                           @"effort": @"high", @"mark": opened};
+    NSDictionary *(^with)(NSDictionary *, NSDictionary *) = ^NSDictionary *(NSDictionary *given,
+                                                                            NSDictionary *changed) {
+        NSMutableDictionary *merged = [given mutableCopy];
+        [merged addEntriesFromDictionary:changed];
+        return merged;
+    };
+    NSDictionary *(^now)(NSDictionary *) = ^NSDictionary *(NSDictionary *changed) {
+        return with(@{@"started": @2000000000123, @"model": @"claude-opus-5-5[1m]", @"effort": @"high",
+                      @"mark": opened}, changed);
+    };
+    say(@"A follow-up into the open copy: waiting, its own process, the same model and effort, the session still",
+        @(ClaudeAsideReuses(open, now(@{}))));
+    say(@"…a fresh copy when it's still answering, its process ended or replaced, the model or effort changed, or the "
+        @"session moved", @[@(ClaudeAsideReuses(with(open, @{@"busy": @YES}), now(@{}))),
+                           @(ClaudeAsideReuses(open, now(@{@"started": @0}))),
+                           @(ClaudeAsideReuses(open, now(@{@"started": @2000000000999}))),
+                           @(ClaudeAsideReuses(open, now(@{@"model": @"claude-sonnet-5-5"}))),
+                           @(ClaudeAsideReuses(open, now(@{@"effort": @"low"}))),
+                           @(ClaudeAsideReuses(open, now(@{@"mark": @{@"size": @51840, @"at": @2000000000000}})))]);
+    say(@"…a copy whose process was never told: a fresh copy",
+        @(ClaudeAsideReuses(with(open, @{@"started": @0}), now(@{@"started": @0}))));
+    NSArray *earlier = @[@{@"question": @"Why the cart?", @"text": @"Because it holds the order.",
+                           @"at": @2000000000000},
+                         @{@"question": @"And the queue?", @"text": @"It waits for the cart.", @"at": @2000000100000},
+                         @{@"question": @"Which file?", @"text": @"src/cart.js.", @"at": @2000000200000}];
+    say(@"The earlier side questions a fresh copy is told: all, the session never compacted",
+        [ClaudeAsideCarried(earlier, 0) valueForKey:@"question"]);
+    say(@"…only those since it compacted", [ClaudeAsideCarried(earlier, 2000000050000) valueForKey:@"question"]);
+    say(@"…none, once it compacted after them all",
+        [ClaudeAsideCarried(earlier, 2000000300000) valueForKey:@"question"]);
+    NSString *longAnswer = [@"" stringByPaddingToLength:15000 withString:@"word " startingAtIndex:0];
+    NSArray *wordy = @[@{@"question": @"First?", @"text": longAnswer, @"at": @2000000000000},
+                       @{@"question": @"Second?", @"text": longAnswer, @"at": @2000000100000},
+                       @{@"question": @"Third?", @"text": @"Short.", @"at": @2000000200000}];
+    say(@"…the newest that fit in a few thousand words", [ClaudeAsideCarried(wordy, 0) valueForKey:@"question"]);
+    say(@"A fresh copy's first message", ClaudeAsideWords(@"Is the cart saved?", ClaudeAsideCarried(earlier, 0), YES));
+    say(@"…with nothing earlier", ClaudeAsideWords(@"Is the cart saved?", @[], YES));
+    say(@"A follow-up into the open copy", ClaudeAsideWords(@"Is the cart saved?", earlier, NO));
+    NSDictionary *environment = ClaudeAsideEnvironment(@{@"PATH": @"/usr/bin:/bin", @"HOME": home},
+                                                       @"/Applications/Whozmove.app/Contents/MacOS/Whozmove", project);
+    say(@"Its environment", environment);
+    say(@"Without Apple's developer tools: no git", ClaudeAsideArguments(session, nil, nil, NO));
+
+    printf("\n== A kept conversation, with a stand-in that answers each line it's sent\n");
+    NSString *standIn = [home stringByAppendingPathComponent:@"answers.sh"];
+    [@"#!/bin/sh\nn=0\nwhile IFS= read -r line; do n=$((n + 1)); echo \"{\\\"answer\\\":$n,\\\"pid\\\":$$}\"; done\n"
+        writeToFile:standIn atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [files setAttributes:@{NSFilePosixPermissions: @0755} ofItemAtPath:standIn error:nil];
+    NSMutableArray *answers = [NSMutableArray array];
+    __block int asked = 1;
+    NSDictionary *ran = RunConversationOn(standIn, @[], @{@"PATH": @"/usr/bin:/bin"}, home,
+                                          [@"first\n" dataUsingEncoding:NSUTF8StringEncoding], ^BOOL(NSData *each) {
+        NSDictionary *answer = [NSJSONSerialization JSONObjectWithData:each options:0 error:nil];
+        if (answer) [answers addObject:answer];
+        return answer != nil;
+    }, 10, nil, ^NSData * {
+        return asked++ < 3 ? [@"again\n" dataUsingEncoding:NSUTF8StringEncoding] : nil;
+    });
+    NSSet *pids = [NSSet setWithArray:[answers valueForKey:@"pid"]];
+    say(@"Three lines sent, one after each answer: its answers, all from one process",
+        @[[answers valueForKey:@"answer"], @(pids.count)]);
+    say(@"…then its input closed, and it ended by itself", @[ran[@"status"] ?: NSNull.null, ran[@"timedOut"] ?: @NO]);
+    [files removeItemAtPath:standIn error:nil];
+    for (NSString *name in @[@"shop", @"outside", @".ssh", kClaudeCodeState, @".netrc"])
+        [files removeItemAtPath:[home stringByAppendingPathComponent:name] error:nil];
+    [files removeItemAtPath:[claude stringByAppendingPathComponent:kClaudeCodeLocalSettings] error:nil];
+
+    printf("\n== Asked, with stand-ins for Claude Code that take or turn down its thinking's summaries\n");
+    NSString *stands = [home stringByAppendingPathComponent:@"aside-stand-ins"];
+    NSString *folder = [stands stringByAppendingPathComponent:@"project"];
+    [files createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+    // What it writes for each question: with the flag, its thinking's summary; without, the thinking's words empty.
+    NSString *(^frames)(NSString *) = ^NSString *(NSString *thinking) {
+        NSArray *each = @[@{@"type": @"system", @"subtype": @"init"},
+                          said(@[@{@"type": @"thinking", @"thinking": thinking, @"signature": @"c2lnbg=="}]),
+                          said(@[@{@"type": @"tool_use", @"id": @"toolu_1", @"name": kClaudeToolRead,
+                                   @"input": @{kClaudeToolFilePath: [folder stringByAppendingPathComponent:@"cart.ts"]}}]),
+                          @{@"type": @"user", @"message": @{@"content": @[@{@"type": @"tool_result",
+                                                                             @"tool_use_id": @"toolu_1",
+                                                                             @"content": @"export const cart"}]}},
+                          said(@[@{@"type": @"text", @"text": @"It holds the cart."}]),
+                          @{@"type": @"result", @"subtype": @"success", @"is_error": @NO,
+                            @"result": @"It holds the cart."}];
+        NSMutableString *out = [NSMutableString string];
+        for (id frame in each)
+            [out appendFormat:@"%@\n", [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:frame
+                                                                                                       options:0
+                                                                                                         error:nil]
+                                                             encoding:NSUTF8StringEncoding]];
+        return out;
+    };
+    // A stand-in that notes each run (whether it was given the flag, or turned it down), as Claude Code's version
+    // named by where it is.
+    NSString *(^standInAt)(NSString *, BOOL) = ^NSString *(NSString *where, BOOL refuses) {
+        NSString *path = [stands stringByAppendingPathComponent:where];
+        [files createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES
+                          attributes:nil error:nil];
+        NSString *script = [NSString stringWithFormat:@"#!/bin/sh\nflag=\nfor word in \"$@\"; do\n"
+            "  if [ \"$word\" = \"%@\" ]; then\n"
+            "    if [ %d = 1 ]; then echo 'turned it down' >> \"$0.runs\"; "
+            "echo \"error: unknown option '%@'\" >&2; exit 1; fi\n"
+            "    flag=1\n  fi\ndone\n"
+            "if [ -n \"$flag\" ]; then echo 'with the flag' >> \"$0.runs\"; else echo 'without' >> \"$0.runs\"; fi\n"
+            "while IFS= read -r line; do\n"
+            "  if [ -n \"$flag\" ]; then cat \"$0.summaries\"; else cat \"$0.plain\"; fi\ndone\n",
+            ClaudeAsideThinkingArguments().firstObject, refuses ? 1 : 0, ClaudeAsideThinkingArguments().firstObject];
+        [script writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [files setAttributes:@{NSFilePosixPermissions: @0755} ofItemAtPath:path error:nil];
+        [frames(@"**Looking at the cart**\n\nIt adds each line.") writeToFile:[path stringByAppendingString:@".summaries"]
+                                                                  atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [frames(@"") writeToFile:[path stringByAppendingString:@".plain"] atomically:YES encoding:NSUTF8StringEncoding
+                           error:nil];
+        return path;
+    };
+    NSArray *(^runs)(NSString *) = ^NSArray *(NSString *standIn) {
+        NSString *noted = [NSString stringWithContentsOfFile:[standIn stringByAppendingString:@".runs"]
+                                                    encoding:NSUTF8StringEncoding error:nil] ?: @"";
+        return [[noted stringByTrimmingCharactersInSet:NSCharacterSet.newlineCharacterSet]
+                componentsSeparatedByString:@"\n"];
+    };
+    // A question asked of a copy, waited for (its steps and its answer), and the copy ended.
+    NSArray *(^askOf)(ClaudeAside *, NSString *) = ^NSArray *(ClaudeAside *aside, NSString *sessionId) {
+        NSMutableArray *steps = [NSMutableArray array];
+        __block NSDictionary *got = nil;
+        NSString *askId = [aside ask:@"Why that file?" earlier:@[] running:nil sessionId:sessionId model:nil
+                              effort:nil folder:folder mark:nil step:^(NSString *one) { [steps addObject:one]; }
+                                done:^(NSDictionary *answer) { got = answer; }];
+        NSDate *until = [NSDate dateWithTimeIntervalSinceNow:30];
+        while (askId && !got && until.timeIntervalSinceNow > 0)
+            [NSRunLoop.mainRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        [aside end:sessionId];
+        while (aside.openSince.count && until.timeIntervalSinceNow > 0)
+            [NSRunLoop.mainRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        return @[steps, got[@"state"] ?: NSNull.null, got[@"text"] ?: NSNull.null];
+    };
+    NSString *checker = NSBundle.mainBundle.executablePath;
+    NSString *turnsDown = standInAt(@"versions/2.1.319", YES);
+    ClaudeAside *downs = [[ClaudeAside alloc] initWithChecker:checker program:turnsDown];
+    say(@"A checked version that turns the flag down: its steps, and its answer, asked again without it",
+        askOf(downs, @"3d0a6c11-5b2e-4f7a-9c41-0e8b7d6f5a21"));
+    say(@"…its runs", runs(turnsDown));
+    askOf(downs, @"7e4b2f90-1c3d-4a8e-b5f6-2d9c0a1e3b47");
+    say(@"…the next question, from then on: without it, at once", runs(turnsDown));
+    NSString *takes = standInAt(@"Caskroom/claude-code/2.1.319/claude", NO);
+    say(@"A checked version that takes it: its thinking's summary, as a step",
+        askOf([[ClaudeAside alloc] initWithChecker:checker program:takes], @"9a1f3e5c-7b2d-4c6e-8f0a-1b3d5e7f9a2c"));
+    say(@"…its runs", runs(takes));
+    NSString *later = standInAt(@"versions/2.1.999", NO);
+    askOf([[ClaudeAside alloc] initWithChecker:checker program:later], @"2c4e6a8b-0d1f-4e3a-9b5c-7d9f1a3c5e7b");
+    say(@"A version not checked: never given it", runs(later));
+    [files removeItemAtPath:stands error:nil];
 
     printf("\n== Its process, kept out of Claude Code's registry while it runs\n");
     pid_t me = getpid();
@@ -719,7 +1254,7 @@ static int PrintHookLine(NSArray<NSString *> *arguments) {
 // name holds, in its workspace; a second session in Wren's workspace, a duplicate; Far, a member in another project;
 // Mine, one of yours) each wait on what their real permission hook asked over its line, which this run listens on as
 // the panel, noted in panel.pid: a plan, or Moss's, Pip's and Mine's questions (Moss's three: a choice, several picks
-// and a number). Rex's session was started so it could switch to bypassing permissions; the hooks in Whozmove's
+// and a number); and Long, one of yours, waits on two, a command and then a plan too long for the panel to show whole. Rex's session was started so it could switch to bypassing permissions; the hooks in Whozmove's
 // folder have every part, put in place before the sessions started. Atlas leads the team, its pid given; the other pid is a process the
 // registry also names as Atlas's session (its file kept aside, then put back, as anything could write it). Each case,
 // what the panel answers; then, with every request's id in `ids.json` by session, it serves ask-panel.sh until
@@ -951,7 +1486,7 @@ static int PrintAnswerFor(Core *core, NSArray<NSString *> *arguments) {
             [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
         return done();
     };
-    if (!waitFor(^BOOL { return line.requests.count >= 10; })) {
+    if (!waitFor(^BOOL { return line.requests.count >= 12; })) {
         fprintf(stderr, "--print-answer-for: the stand-in sessions' requests didn't all come\n");
         return 1;
     }
@@ -1152,6 +1687,71 @@ static int PrintAnswerFor(Core *core, NSArray<NSString *> *arguments) {
     say(@"It approves Ivy's plan, once the hooks in place are newer than Ivy's session",
         ask(approve(ivy, digests[@"s-ivy"]), atlasPid));
     if (placed) [files setAttributes:@{NSFileModificationDate: placed} ofItemAtPath:hooksFile error:nil];
+    // Your press on Approve beside the list (approveShownPlan): what the page is given with a plan first, then the same
+    // check as a session's, that the plan wasn't cut short, and that the Mac had input from you just before (made up
+    // here). Never counted to Atlas's May Approve Plans, which says one approved below.
+    AnswerFor *mine = AgentIn(core).answerFor;
+    __block NSTimeInterval idle = 0;
+    mine.secondsIdle = ^NSTimeInterval { return idle; };
+    NSDictionary *(^given)(NSString *) = ^NSDictionary *(NSString *sid) {
+        return [mine approvalOf:PendingAsks()[sid] row:byId[sid]] ?: @{};
+    };
+    NSString *(^facts)(NSString *) = ^NSString *(NSString *sid) {
+        NSDictionary *f = given(sid);
+        NSString *why = f[@"approveWhyNot"] ? [@"; can't: " stringByAppendingString:f[@"approveWhyNot"]] : @"";
+        return [([f[@"digest"] length] == 16 ? @"its digest" : @"no digest") stringByAppendingString:why];
+    };
+    say(@"What the page is given with Ivy's plan", facts(@"s-ivy"));
+    say(@"…with Rex's", facts(@"s-rex"));
+    say(@"…with Moss's question", facts(@"s-moss"));
+    say(@"…its digest the one a session you allow is given", [given(@"s-ivy")[@"digest"] isEqual:digests[@"s-ivy"]]
+                                                                 ? @"yes" : @"no");
+    NSString *(^press)(NSString *, NSString *, NSString *) = ^NSString *(NSString *sid, NSString *askId,
+                                                                          NSString *digest) {
+        NSDictionary *said = [mine approveShown:@{@"sessionId": sid, @"id": askId ?: @"", @"digest": digest ?: @""}];
+        if (said[@"approved"]) return @"approved";
+        return [NSString stringWithFormat:@"not: %@%@", said[@"why"] ?: @"?",
+                                          [said[@"again"] boolValue] ? @" (a second press may yet)" : @""];
+    };
+    say(@"You approve Ivy's plan beside the list, shown with another plan's digest",
+        press(@"s-ivy", ivy, @"0123456789abcdef"));
+    say(@"…shown with none", press(@"s-ivy", ivy, nil));
+    say(@"…named as Rex's", press(@"s-rex", ivy, given(@"s-ivy")[@"digest"]));
+    say(@"…Rex's (its session can switch to bypassing permissions)",
+        press(@"s-rex", rex, given(@"s-rex")[@"digest"]));
+    say(@"…Moss's question", press(@"s-moss", moss, @"0123456789abcdef"));
+    [@"# Search box, version 3\nText" writeToFile:planFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    say(@"…Ivy's, its file written again since Claude asked", press(@"s-ivy", ivy, given(@"s-ivy")[@"digest"]));
+    say(@"…Ivy's ask then tells the page", given(@"s-ivy")[@"approval"][@"why"] ?: @"nothing");
+    [planText writeToFile:planFile atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    // The second session in Wren's workspace: not one Atlas may answer for, but your press is yours.
+    NSString *twin = ids[@"s-twin"], *twinDigest = given(@"s-twin")[@"digest"];
+    idle = 60;
+    say(@"…the plan of a second session in Wren's workspace, with no keyboard or mouse use for a minute",
+        press(@"s-twin", twin, twinDigest));
+    idle = 0;
+    say(@"…the same plan", press(@"s-twin", twin, twinDigest));
+    say(@"…again", press(@"s-twin", twin, twinDigest));
+    // Long's plan, behind Long's command, the request its row shows: never drawn with Approve, and too long to be.
+    NSString *longCommand = nil, *longPlan = nil;
+    for (NSDictionary *request in line.requests.allValues)
+        if ([request[@"sessionId"] isEqual:@"s-long"]) {
+            if ([request[@"tool"] isEqual:@"ExitPlanMode"]) longPlan = request[@"id"];
+            else longCommand = request[@"id"];
+        }
+    NSString *longDigest = [mine approvalOf:@{@"id": longPlan ?: @""} row:byId[@"s-long"]][@"digest"];
+    say(@"…a plan too long to show whole, behind an older request of its session's",
+        press(@"s-long", longPlan, longDigest));
+    AnswerAsk(@{@"id": longCommand ?: @"", @"allow": @NO});
+    waitFor(^BOOL { return !line.requests[longCommand ?: @""]; });
+    say(@"…once that's answered, its row showing the plan", press(@"s-long", longPlan, longDigest));
+    NSDictionary *mineSaid = byId[@"s-twin"].answeredFor;
+    say(@"Its row then", [NSString stringWithFormat:@"%@ by %@, %@, %@, %@", mineSaid[@"what"], mineSaid[@"by"],
+                                                    [mineSaid[@"yours"] boolValue] ? @"yours" : @"not yours",
+                                                    mineSaid[@"state"], [mineSaid[@"askId"] isEqual:twin]
+                                                        ? @"for that request" : @"for another"]);
+    fflush(stdout);
+
     // An approval from the page: AnswerAsk builds its answers from {allow, answers, message, stop} only, so approvePlan
     // never goes down the line, and the hook drops a bare allow for a plan, its line staying open.
     AnswerAsk(@{@"id": rex ?: @"", @"allow": @YES, @"approvePlan": @YES});
@@ -1221,6 +1821,68 @@ static int PrintAnswerFor(Core *core, NSArray<NSString *> *arguments) {
         say(@"…its notice", [NSString stringWithFormat:@"%@ (soon %@, closes %@, button %@)", notice.text,
                              notice.level == NoticeSoon ? @"yes" : @"no", notice.closes ? @"yes" : @"no",
                              notice.button ?: @"none"]);
+    // Your notes on a plan that has stopped asking in the panel, typed into its session as a message on your press
+    // (typePlanNotes): the checks, on rows made up here (WhyNotTypePlanNotes); then the press, on Atlas's row made idle
+    // with a plan left waiting, refused at each check, its last refusal that no keyboard or mouse use came just before
+    // it, so nothing here ever reaches a terminal.
+    Row *(^leftRow)(NSString *, NSString *, double) = ^Row *(NSString *status, NSString *planStatus, double typedAt) {
+        Row *made = [[Row alloc] initWithFields:@{@"sessionId": @"s-left", @"status": status}];
+        made.writings = @[@{@"id": @"tl2", @"kind": @"plan", @"status": planStatus, @"at": @2000},
+                          @{@"id": @"tl1", @"kind": @"plan", @"status": @"declined", @"at": @1000}];
+        made.lastPromptAt = @(typedAt);
+        return made;
+    };
+    NSString *(^why)(NSString *) = ^NSString *(NSString *said) { return said ?: @"nothing in the way"; };
+    say(@"Notes for a plan left waiting, its session idle at its prompt",
+        why(WhyNotTypePlanNotes(leftRow(@"idle", @"waiting", 1500), @"tl2", nil)));
+    say(@"…at its prompt with a shell command running", why(WhyNotTypePlanNotes(leftRow(@"shell", @"waiting", 0), @"tl2",
+                                                                                   nil)));
+    say(@"…held at the plan's own prompt", why(WhyNotTypePlanNotes(leftRow(@"waiting", @"waiting", 0), @"tl2", nil)));
+    say(@"…at work", why(WhyNotTypePlanNotes(leftRow(@"busy", @"waiting", 0), @"tl2", nil)));
+    Row *asking = leftRow(@"idle", @"waiting", 0);
+    asking.ask = @{@"id": @"ab12", @"tool": @"Bash"};
+    say(@"…a request up in it", why(WhyNotTypePlanNotes(asking, @"tl2", nil)));
+    say(@"…one waiting in the panel for it", why(WhyNotTypePlanNotes(leftRow(@"idle", @"waiting", 0), @"tl2",
+                                                                        @{@"id": @"ab12"})));
+    say(@"…for its older plan", why(WhyNotTypePlanNotes(leftRow(@"idle", @"waiting", 0), @"tl1", nil)));
+    say(@"…its plan answered", why(WhyNotTypePlanNotes(leftRow(@"idle", @"approved", 0), @"tl2", nil)));
+    say(@"…something typed into it since the plan", why(WhyNotTypePlanNotes(leftRow(@"idle", @"waiting", 2500), @"tl2",
+                                                                               nil)));
+    say(@"…a session no longer listed", why(WhyNotTypePlanNotes(nil, @"tl2", nil)));
+    Row *atlasRow = byId[@"s-atlas"];
+    NSString *wasStatus = atlasRow.status;
+    NSArray *wasWritings = atlasRow.writings;
+    NSNumber *wasPrompt = atlasRow.lastPromptAt;
+    NSDictionary *wasAsk = atlasRow.ask;
+    atlasRow.status = @"idle";
+    atlasRow.ask = nil;
+    atlasRow.lastPromptAt = @0;
+    atlasRow.writings = @[@{@"id": @"tl2", @"kind": @"plan", @"title": @"Search box", @"status": @"waiting",
+                            @"at": @2000}];
+    idle = 60;
+    NSString *(^typeIn)(NSDictionary *) = ^NSString *(NSDictionary *msg) {
+        return [mine typePlanNotes:msg] ?: @"on their way";
+    };
+    say(@"You send notes on Atlas's plan, none written", typeIn(@{@"sessionId": @"s-atlas", @"planId": @"tl2",
+                                                                  @"words": @"  "}));
+    say(@"…too long to type in", typeIn(@{@"sessionId": @"s-atlas", @"planId": @"tl2",
+                                          @"words": [@"" stringByPaddingToLength:700 withString:@"a" startingAtIndex:0]}));
+    say(@"…for a session not listed", typeIn(@{@"sessionId": @"s-gone", @"planId": @"tl2", @"words": @"Split step 2."}));
+    say(@"…for another plan", typeIn(@{@"sessionId": @"s-atlas", @"planId": @"tl1", @"words": @"Split step 2."}));
+    say(@"…with no keyboard or mouse use for a minute", typeIn(@{@"sessionId": @"s-atlas", @"planId": @"tl2",
+                                                                 @"words": @"Split step 2."}));
+    NSDictionary *notTyped = atlasRow.answeredFor;
+    say(@"Atlas's row then", [NSString stringWithFormat:@"%@ by %@, %@, %@, for %@: %@", notTyped[@"what"],
+                              notTyped[@"by"], [notTyped[@"yours"] boolValue] ? @"yours" : @"not yours",
+                              notTyped[@"state"], notTyped[@"askId"], notTyped[@"why"]]);
+    say(@"…its words in panel.log", [[NSString stringWithContentsOfFile:AppDir(@"panel.log") encoding:NSUTF8StringEncoding
+                                                                  error:nil] containsString:@"Split step 2."]
+                                        ? @"yes" : @"no");
+    say(@"Claude Code's words that lead them", kClaudeCodePlanChangesWords);
+    atlasRow.status = wasStatus;
+    atlasRow.writings = wasWritings;
+    atlasRow.lastPromptAt = wasPrompt;
+    atlasRow.ask = wasAsk;
     [core.asks stop];
     [line stop];
     return 0;

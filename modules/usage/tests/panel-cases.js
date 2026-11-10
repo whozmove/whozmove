@@ -12,13 +12,13 @@ show('its line in words, for VoiceOver', words.lineSays(8));
 show('where to change it, for what shows the gear without its seats, before the gear is known', words.where(null));
 show('what it gives the panel\'s page', Object.keys(core.gear));
 
-section('Over the gear at the end of a row\'s title line, in any grouping, with a team or without');
+section('Over the gear at the end of a row\'s title line, with a team or without');
 const titleEnd = (sid) => core.slots.titleEnd.map((part) => part({ s: { sessionId: sid } })).join('');
 show('before the gear is known: nothing', titleEnd('s-wren'));
 setGear({ gear: 2, atWork: 3, counted: ['s-atlas', 's-moss', 's-wren'], over: ['s-wren'], room: 0 }, false);
 show('a session over the gear: grey, outlined, the kit\'s chip', titleEnd('s-wren'));
 show('a session within it: nothing', titleEnd('s-moss'));
-show('a row shown briefly, under Group by Team, the same', core.slots.titleEnd.map((part) => part({
+show('a row shown briefly, as the list\'s are, the same', core.slots.titleEnd.map((part) => part({
   s: { sessionId: 's-wren' }, brief: true })).join(''));
 setGear({ gear: 3, atWork: 3, counted: ['s-atlas', 's-moss', 's-wren'], over: [], room: 0 }, true);
 show('the gear raised: no longer over, so nothing', titleEnd('s-wren'));

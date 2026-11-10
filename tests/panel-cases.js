@@ -4,6 +4,12 @@
 
 load('tests/page-harness.js');  // the stand-ins, the page's scripts and the helpers below use
 
+// Every row in the list is shown briefly; a chat beside the folded panel is the row whole. Most cases below check the
+// parts a whole row has (Claude's line, the work line, the bottom line), so they draw rows whole, as that chat does;
+// a case about the list's own rows draws them short (drawWhole false, then back).
+let drawWhole = true;
+core.rowLooks.unshift((row) => { if (drawWhole) row.brief = false; });
+
 section('What each session is');
 const reply = { lastPrompt: 'fix it', lastPromptAt: min(6), lastReply: 'Fixed.', lastReplyAt: min(5) };
 const unread = { seen: {} };
@@ -209,6 +215,7 @@ state.claudeShowed = null;
 goTo(null);
 
 section('The list');
+drawWhole = false;
 // What the list shows, in order: each project by its folder (› when it's folded), where a project's rows are (folded
 // away or not) and the copies pinned below a folded one, and each row's id with its classes.
 function outline(html) {
@@ -220,35 +227,66 @@ function outline(html) {
       : body ? `(${body === 'pinned' ? 'pinned' : body === 'prows' ? 'rows' : 'folded'})`
       : `${id}.${cls.trim().split(' ').join('.')}`).join(' ');
 }
+// The list as drawn: its groups (listGroups), each project with its rows.
+const projectsOf = (placed, now) => groupsHTML(listGroups(placed), now);
 // The rows placed once, those in `held` where it says they were last shown.
 const placeOnce = (sessions, held = {}) =>
   placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, unread) })), held, (sid) => sid in held);
-show('one list, no headers, nothing folded', outline(rowsHTML(placeOnce(lineup), NOW)));
-state.groupBy = 'project';
+show('the rows as placed: newest message first, the idle ones last',
+     placeOnce(lineup).map((p) => `${p.s.sessionId}.${p.kind}`).join(' '));
+show('…each under its project, in that order', outline(groupsHTML(listGroups(placeOnce(lineup)), NOW)));
 const inRepo = (sessionId, root, fields) => session({ sessionId, cwd: root, git: { branch: 'main', root }, ...fields });
 state.closedProjects['/work/other'] = true;
-show('a folded project: a reply waiting in it pinned below it', outline(projectsHTML(placeOnce([
-  inRepo('g1', '/work/app', reply),
-  inRepo('g3', '/work/other', repliedAt(min(30))),
-  inRepo('g4', '/work/other', {}),
-]), NOW)));
+{
+  const folded = projectsOf(placeOnce([
+    inRepo('g1', '/work/app', reply),
+    inRepo('g3', '/work/other', repliedAt(min(30))),
+    inRepo('g4', '/work/other', {}),
+  ]), NOW);
+  show('a folded project hides all its rows, a reply waiting in it too: nothing below it', outline(folded));
+  show('…its header says how many wait on you', folded.match(/<span class="pneeds[^"]*">([^<]*)</)?.[1]);
+  show('…and VoiceOver says it as for any group, its folder kept as the tip',
+       [...folded.matchAll(/<div class="project[^"]*" data-key="[^"]*" title="([^"]*)" aria-label="([^"]*)"/g)]
+         .map(([, tip, said]) => `${said} | ${tip}`));
+}
+{
+  // A conversation you've just started opens its folded project, once: folded again, it stays folded.
+  const groupsWith = (pending) => [{ key: '/work/other', rows: [{ s: { sessionId: 'st1', pending } }] }];
+  openForStarts(groupsWith(true));
+  const opened = !state.closedProjects['/work/other'];
+  state.closedProjects['/work/other'] = true;
+  openForStarts(groupsWith(true));
+  show('a start in a folded project opens it; folded again while it starts, it stays folded',
+       [opened, !!state.closedProjects['/work/other']]);
+}
 delete state.closedProjects['/work/other'];
 const one = inRepo('a1', '/work/one', repliedAt(min(20), { lastFocusedAt: min(19) }));
 const two = inRepo('b1', '/work/two', repliedAt(min(2)));
-show('projects A to Z, whichever had the newest message', outline(projectsHTML(placeOnce([two, one]), NOW)));
-show('…by name whatever its case, numbers in number order', outline(projectsHTML(placeOnce([
+show('projects A to Z, whichever had the newest message', outline(projectsOf(placeOnce([two, one]), NOW)));
+show('…by name whatever its case, numbers in number order', outline(projectsOf(placeOnce([
   inRepo('c1', '/work/Zebra', {}), inRepo('c2', '/work/app10', {}), inRepo('c3', '/work/app9', {}),
   inRepo('c4', '/work/beta', {})]), NOW)));
 const rest = [inRepo('a2', '/work/one', repliedAt(min(10))), two];
 const a1Was = Object.fromEntries(placeOnce([one, ...rest]).map(({ s, latest, quiet }) => [s.sessionId, { latest, quiet }]));
 const a1AtWork = inRepo('a1', '/work/one', { ...repliedAt(min(20), { lastFocusedAt: min(19) }), status: 'busy',
                                               lastPromptAt: NOW - 1000 });
-show('inside a project, newest message first', outline(projectsHTML(placeOnce([one, ...rest]), NOW)));
+show('inside a project, newest message first', outline(projectsOf(placeOnce([one, ...rest]), NOW)));
 show('…a row you pressed stays where it was there as it starts work',
-  outline(projectsHTML(placeOnce([a1AtWork, ...rest], { a1: a1Was.a1 }), NOW)));
+  outline(projectsOf(placeOnce([a1AtWork, ...rest], { a1: a1Was.a1 }), NOW)));
 show("…until you've moved on: then it goes to its project's top, and the projects stay as they are",
-  outline(projectsHTML(placeOnce([a1AtWork, ...rest]), NOW)));
-state.groupBy = 'status';
+  outline(projectsOf(placeOnce([a1AtWork, ...rest]), NOW)));
+
+drawWhole = true;
+
+section('What cross-fades on a row (core.swaps)');
+// A bit that cross-fades as it changes is told by its text and what it says to VoiceOver, so a track, which says
+// where it stands only in words for VoiceOver, cross-fades as its job moves on.
+const bitSaying = (text, label) => ({ textContent: text, getAttribute: (k) => (k === 'aria-label' ? label : null) });
+show('a track from step 2 to step 3 of 6: changed, so it cross-fades',
+     swapText(bitSaying('', 'Step 2 of 6, Build')) !== swapText(bitSaying('', 'Step 3 of 6, Review')));
+show('…the same step drawn again: unchanged', swapText(bitSaying('', 'Step 2 of 6')) === swapText(bitSaying('', 'Step 2 of 6')));
+show('…a bit of words alone, changed or not', [swapText(bitSaying('Opus', null)) !== swapText(bitSaying('Sonnet', null)),
+  swapText(bitSaying('Opus', null)) === swapText(bitSaying('Opus', null))]);
 
 section('Your message and Claude\'s line, written in and erased');
 show('what the next text keeps of the one before, by whole words: the same verb, nothing, all of it, a word that goes '
@@ -625,10 +663,12 @@ show('once its new size is in, a size that grows big again says compact now',
   const askNote = (row) => (row.s.sessionId === 'h9'
     ? { text: 'Do: Answer the question in Fern\'s new tab', tone: 'turn', cls: 'ask-note',
         html: askLineHTML('Do: Answer the question in Fern\'s new tab') } : null);
+  // Rows whose id starts with hb are shown briefly, as every row in the list is; the others whole, as a chat beside the
+  // folded panel is.
   const brief = (row) => {
-    if (row.s.sessionId.startsWith('hb')) { row.brief = true; row.chatless = row.kind !== 'needs'; }
+    if (!row.s.sessionId.startsWith('hb')) row.brief = false;
   };
-  core.rowNotes.push(askNote); core.rowLooks.push(brief);
+  core.rowNotes.push(askNote); core.rowLooks.push(brief); drawWhole = false;
   const text = (html) => html?.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() ?? null;
   const seen = (s, kind = classify(s, NOW, view()), opts = {}) => {
     const html = rowHTML(s, kind, NOW, opts);
@@ -656,7 +696,7 @@ show('once its new size is in, a size that grows big again says compact now',
       status: 'busy', name: 'New conversation', lastPrompt: 'Tidy the docs', lastPromptAt: min(0),
       activity: 'Starting in Ghostty' })],
     ['a task waiting on you, its ask line in the row\'s note', session({ sessionId: 'h9', ...reply })],
-    ['a row shown briefly (Group by Team), replied', session({ sessionId: 'hb1', ...reply })],
+    ['a row shown briefly (as the list\'s are), replied', session({ sessionId: 'hb1', ...reply })],
     ['…asking you', session({ sessionId: 'hb2', status: 'waiting', ask: { ...command, id: 'hb2a' } })],
     ['stopped', session({ sessionId: 'h10', ...reply, status: 'closed', pid: 0, opensIn: 'Ghostty' })],
   ];
@@ -667,12 +707,12 @@ show('once its new size is in, a size that grows big again says compact now',
   show('a chat beside the folded panel, just answered there: what you answered stays', seen(chatAsk, 'needs',
                                                                                              { chat: true }));
   delete state.answering.h11a; delete state.answeredAt.h11a;
-  const listAsk = session({ sessionId: 'h13', status: 'waiting', ask: { ...command, id: 'h13a' } });
-  answered('h13a', 'once');
+  const listAsk = session({ sessionId: 'hb13', status: 'waiting', ask: { ...command, id: 'hb13a' } });
+  answered('hb13a', 'once');
   const receipt = rowHTML(listAsk, 'needs', NOW);
-  show('a list row whose request you just answered: its line, and the line saying what you answered in the card\'s '
-       + 'place', [seen(listAsk).claude, text(/<div class="perm ask-receipt[^>]*>(.*?)<\/div>/s.exec(receipt)?.[1])]);
-  delete state.answering.h13a; delete state.answeredAt.h13a;
+  show('a list row whose request you just answered: no line over it, and the line saying what you answered in the '
+       + 'card\'s place', [seen(listAsk).claude, text(/<div class="perm ask-receipt[^>]*>(.*?)<\/div>/s.exec(receipt)?.[1])]);
+  delete state.answering.hb13a; delete state.answeredAt.hb13a;
   show('the dot\'s words: stopped, its reply read; and a request answered beside the folded panel',
        [dotWords(session({ status: 'closed', pid: 0 }), 'seen'), dotWords(session({}), 'needs', { text: '✓' })]);
   show('a chat out for a side chat\'s reply: its name and time, without the reply', seen(session({ sessionId: 'h12',
@@ -680,7 +720,104 @@ show('once its new size is in, a size that grows big again says compact now',
   state.conversationShown = true;
   show('…and with it on again, the reply and your message are back', seen(session({ sessionId: 'h1', ...reply })));
   core.rowNotes.splice(core.rowNotes.indexOf(askNote), 1);
-  core.rowLooks.splice(core.rowLooks.indexOf(brief), 1);
+  core.rowLooks.splice(core.rowLooks.indexOf(brief), 1); drawWhole = true;
+}
+{
+  // A row in the list, shown briefly as every row there is, says one thing under its name, each thing once: an ask's
+  // bubble, else a request's card, else Claude's line where nothing else says it (what it asks with no card, or its
+  // finished line on a reply you haven't read), else nothing, its time on the title line. What it has no room for but
+  // you may need says so as its note: a stopped session's way on, and Reload for one started before Whozmove's update.
+  // The ticket it works on keeps its tag after the name. A chat beside the folded panel and a start from the panel stay
+  // whole.
+  drawWhole = false;
+  const parts = (html) => [...html.matchAll(/<(?:div|span) class="(claude[^"]*|perm [^"]*|step-note[^"]*|time|you|work(?: noted)?|where|tag tk-row[^"]*)"/g)]
+    .map(([, cls]) => cls.split(' ')[0]).join(' | ');
+  const words = (html) => /<div class="step-note[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1].replace(/<[^>]+>/g, '').trim();
+  const asking = (row) => (row.s.sessionId === 'ob-ask' ? { html: askLineHTML('Try the search box'), cls: 'ask-note',
+                                                            line: true, quiet: false, tone: 'turn' } : null);
+  core.rowNotes.push(asking);
+  const row = (fields) => { const s = session(fields); return rowHTML(s, classify(s, NOW, view()), NOW); };
+  const command = { id: 'ob-c', tool: 'Bash', input: { command: 'npm test', description: 'Run the tests' },
+                    truncated: false };
+  show('working: no line, its time on the title line', parts(row({ sessionId: 'ob-busy', status: 'busy',
+    statusUpdatedAt: min(2), lastPrompt: 'run it', lastPromptAt: min(2), activity: 'Reading cart.ts' })));
+  show('a reply you haven\'t read, nothing asked: Claude\'s finished line', parts(row({ sessionId: 'ob-turn', ...reply })));
+  show('…once read: nothing under its name', parts(row({ sessionId: 'ob-read', ...reply, seenAt: min(1) })));
+  show('a request: its card, no line over it', parts(row({ sessionId: 'ob-req', status: 'waiting',
+    lastPrompt: 'add the table', lastPromptAt: min(3), ask: command })));
+  show('asking with no card: Claude\'s line says what', parts(row({ sessionId: 'ob-wait', status: 'waiting',
+    lastReply: 'Which colour should the button be?', lastReplyAt: min(2), statusUpdatedAt: min(2) })));
+  show('an ask\'s bubble over an unread reply: the bubble alone', parts(row({ sessionId: 'ob-ask', ...reply })));
+  const stopped = row({ sessionId: 'ob-stop', ...reply, seenAt: min(1), status: 'closed', pid: 0, opensIn: 'Ghostty' });
+  show('stopped: its way on as its note', [parts(stopped), words(stopped)]);
+  const old = row({ sessionId: 'ob-old', ...reply, seenAt: min(1), reload: { state: 'needed' } });
+  show('started before Whozmove\'s update: Reload as its note, pressable',
+       [parts(old), words(old), /class="nopr reload" data-reload="ob-old"/.test(old)]);
+  show('…a bubble stays in front of it', parts(row({ sessionId: 'ob-ask', ...reply, reload: { state: 'needed' } })));
+  const ticketed = row({ sessionId: 'ob-tk', ...reply, seenAt: min(1), ticket: { bound: { tracker: 'Jira',
+    site: 'acme.atlassian.net', key: 'PAY-142', link: 'https://acme.atlassian.net/browse/PAY-142', title: 'Refunds',
+    state: { name: 'In Progress', kind: 'doing' }, readAt: min(1) } } });
+  show('working on a ticket: its tag after the name', [parts(ticketed), /data-tk="ob-tk"/.test(ticketed)]);
+  show('a start from the panel: the row whole', parts(row({ sessionId: 'ob-new', pending: true, status: 'busy',
+    name: 'New conversation', lastPrompt: 'Tidy the docs', lastPromptAt: min(0), activity: 'Starting in Ghostty' })));
+  const s = session({ sessionId: 'ob-chat', ...reply });
+  show('a chat beside the folded panel: the row whole', parts(rowHTML(s, classify(s, NOW, view()), NOW, { chat: true })));
+  show('whether a short row has Claude\'s line (briefLine): asking, a request\'s card, asking with none, an unread '
+       + 'reply, read, working', [briefLine({ asking: true, kind: 'turn' }), briefLine({ kind: 'needs' }, '<card>'),
+    briefLine({ kind: 'needs' }), briefLine({ kind: 'turn' }), briefLine({ kind: 'seen' }), briefLine({ kind: 'busy' })]);
+  // The row you're on (the session in front in its app) keeps its tools: its work line and its bottom line, with what
+  // ends the bottom line there (Deploy, a stand-in here), not at its note's end; another row with a note has that end
+  // at the note's, and one without has neither.
+  const work = (row) => (row.s.sessionId.startsWith('ob-on') || row.s.sessionId.startsWith('ob-off') ? '[PR #12]' : '');
+  const ender = () => '[End]';
+  const quiet = (row) => (row.s.sessionId.endsWith('-noted') ? { text: 'Up next: after the search box', quiet: true }
+    : null);
+  core.slots.workStart.push(work); core.slots.placeEnd.push(ender); core.rowNotesLast.push(quiet);
+  const ends = (html) => ({ parts: parts(html), atNote: /\[End\]<\/div>/.test(html.split('class="where"')[0]),
+                            onBottomLine: /class="where"[\s\S]*\[End\]/.test(html) });
+  show('the row you\'re on: its work line and bottom line under its short lines, its end on the bottom line',
+       ends(row({ sessionId: 'ob-on', ...reply, seenAt: min(1), onItAt: min(1), focused: true })));
+  show('…with a note too: the note in its work line\'s place, as on a whole row, the end still on the bottom line',
+       ends(row({ sessionId: 'ob-on-noted', ...reply, seenAt: min(1), onItAt: min(1), focused: true })));
+  show('a row you\'re not on: neither line, nothing at its end',
+       ends(row({ sessionId: 'ob-off', ...reply, seenAt: min(1), onItAt: min(1) })));
+  show('…with a note: its end at the note\'s', ends(row({ sessionId: 'ob-off-noted', ...reply, seenAt: min(1),
+                                                         onItAt: min(1) })));
+  show('a stopped row and one to reload: nothing at their notes\' end, so their words read whole', [
+    ends(row({ sessionId: 'ob-stop-end', ...reply, seenAt: min(1), status: 'closed', pid: 0, opensIn: 'Ghostty' })).atNote,
+    ends(row({ sessionId: 'ob-old-end', ...reply, seenAt: min(1), reload: { state: 'needed' } })).atNote]);
+  const moving = session({ sessionId: 'ob-on-moved', ...reply, seenAt: min(1), onItAt: min(1) });
+  rowHTML(moving, 'seen', NOW);
+  state.shownAt['compact:ob-on-moved'] = 1;  // long ago, by the page's own clock
+  rowHTML({ ...moving, focused: true }, 'seen', NOW);
+  show('…becoming the row you\'re on: what comes on it counts as just shown', justShown('compact:ob-on-moved'));
+  // An asking row (a bubble ending in Deploy) becoming the row you're on: its end stays the ask's, but the steps that
+  // come onto it with its work line (Push, Commit) count as only just shown, so a press meant for the row that was
+  // below it can't land on them.
+  const tryAsk = (row) => (row.s.sessionId === 'ob-on-asks' ? { html: askLineHTML('Try the search box'), cls: 'ask-note',
+                                                                 line: true, quiet: false, tone: 'turn',
+                                                                 act: { want: 'try', html: '' } } : null);
+  core.rowNotes.unshift(tryAsk);
+  // It speaks for its checkout, which has changes, so it has next steps (Commit), and the git module keeps when they
+  // were first shown (steps:<session>), short or not; a key of the row's own (compact:<session>) beside it.
+  const switchesBefore = state.switches, ownersBefore = state.owners;
+  state.switches = { ...state.switches, nextSteps: true };
+  state.owners = new Set(['ob-on-asks']);
+  const asksRow = session({ sessionId: 'ob-on-asks', ...reply, seenAt: min(1), onItAt: min(1),
+                            checkout: { changes: 2, remotes: 1, upstream: 'origin/main' } });
+  rowHTML(asksRow, 'seen', NOW);
+  state.shownAt['steps:ob-on-asks'] = 1;  // shown long ago, by the page's own clock
+  state.shownAt['compact:ob-on-asks'] = 1;
+  rowHTML(asksRow, 'seen', NOW);
+  const notYet = [justShown('steps:ob-on-asks'), justShown('compact:ob-on-asks')];
+  const opened = rowHTML({ ...asksRow, focused: true }, 'seen', NOW);
+  show('an asking row becoming the row you\'re on: its steps there, and [steps, its own key] just shown before, after',
+       [/data-step="commit"/.test(opened), notYet, [justShown('steps:ob-on-asks'), justShown('compact:ob-on-asks')]]);
+  state.switches = switchesBefore; state.owners = ownersBefore;
+  core.rowNotes.shift();
+  core.slots.workStart.pop(); core.slots.placeEnd.pop(); core.rowNotesLast.pop();
+  core.rowNotes.splice(core.rowNotes.indexOf(asking), 1);
+  drawWhole = true;
 }
 {
   // An ask line has one action, at its end: another module's for what it wants (`act.want`, askAct: 'try' is Deploy's),
@@ -689,9 +826,9 @@ show('once its new size is in, a size that grows big again says compact now',
   // beside the folded panel. Any other note leaves it where it was: on a full row's bottom line, at a brief row's note.
   // Rows whose id starts with deb are shown briefly; one ending in try asks you to try (Deploy), plan to approve a plan
   // (its own button), ask has no action, quiet a quiet note, and said an ask said in the work line's place.
-  // As the team module does, a chat beside the folded panel is the row whole.
+  // A chat beside the folded panel is the row whole, as the row part draws it.
   const look = (row) => {
-    if (row.s.sessionId.startsWith('deb') && !row.chat) { row.brief = true; row.chatless = true; }
+    if (!row.s.sessionId.startsWith('deb')) row.brief = false;
   };
   const asked = (act) => ({ html: askLineHTML('Do: Try the search box'), cls: 'ask-note', line: true, quiet: false,
                             tone: 'turn', act });
@@ -706,7 +843,7 @@ show('once its new size is in, a size that grows big again says compact now',
   };
   const deploy = () => '<button class="play">[Deploy]</button>';
   const tryAct = (row) => (row.askWant === 'try' ? '<button class="play">[Deploy]</button>' : '');
-  core.rowLooks.push(look); core.rowNotes.push(askNote); core.slots.placeEnd.push(deploy);
+  core.rowLooks.push(look); core.rowNotes.push(askNote); core.slots.placeEnd.push(deploy); drawWhole = false;
   core.slots.askAct.push(tryAct);
   const where = (id, opts) => {
     const html = rowHTML(session({ sessionId: id, ...reply }), 'turn', NOW, opts);
@@ -779,7 +916,7 @@ show('once its new size is in, a size that grows big again says compact now',
   delete state.shownAt['end-test:de-swap'];
   delete state.shownAt['end-test:deb-member'];
   core.forgotten.prefixes.pop();
-  core.rowLooks.splice(core.rowLooks.indexOf(look), 1);
+  core.rowLooks.splice(core.rowLooks.indexOf(look), 1); drawWhole = true;
   core.rowNotes.splice(core.rowNotes.indexOf(askNote), 1);
   core.slots.placeEnd.splice(core.slots.placeEnd.indexOf(deploy), 1);
   core.slots.askAct.splice(core.slots.askAct.indexOf(tryAct), 1);
@@ -1067,15 +1204,13 @@ show('in two other terminal tabs', twiceCardHTML(session({
 show('only a paused copy', twiceCardHTML(session({ alsoOpen: [{ entrypoint: 'cli', paused: true }] })));
 
 section('HTML of projects');
-state.groupBy = 'project';
 state.closedProjects['/work/other'] = true;
-print(projectsHTML(placeRows([
+print(projectsOf(placeRows([
   session({ sessionId: 'g1', ...reply }),
   session({ sessionId: 'g2', status: 'busy', lastPromptAt: min(1) }),
   session({ sessionId: 'g3', cwd: '/work/other', git: { branch: 'main', root: '/work/other' }, outcome: 'Answered',
     lastReplyAt: min(500), seenAt: min(499) }),
 ].map((s) => ({ s, kind: classify(s, NOW, unread) })), {}, () => false), NOW));
-state.groupBy = 'status';
 
 section('What the page forgets');
 // forgetGone works from the page's own clock.
@@ -1813,7 +1948,7 @@ state.deploys = { projects: {}, folders: {} };
 Date.now = pageClock;
 state.owners = new Set();
 
-section('What a session wrote: the tag, the plan card, the reader');
+section('What a session wrote: the tag, the reader');
 const planWriting = (id, status, at, title) => ({ id, kind: 'plan', title, path: '/h/.claude/plans/p.md', at: min(at), status });
 const wrote = [planWriting('p2', 'waiting', 2, 'Dark mode, again'),
                { id: '/work/app/v.html', kind: 'prototype', title: 'Two layouts', path: '/work/app/v.html', at: min(5) },
@@ -1823,16 +1958,30 @@ const planAsk = { id: 'pa', tool: 'ExitPlanMode', at: min(1), input: { plan: '# 
 show('no writings: no tag', writingsTag(session({})));
 show('the newest thing, and how many more', writingsTag(session({ writings: wrote.slice(1) })));
 show('the plan waiting for you leads, while Claude asks about it', writingsTag(session({ writings: wrote, ask: planAsk })));
+show('…and once it has stopped asking here, while its session still asks',
+     writingsTag(session({ writings: wrote, status: 'waiting' })).includes('wtag plan'));
 state.reading = { sessionId: 's', mode: 'writings' };
 show("the tag shows as pressed while the reader is open on its session",
   writingsTag(session({ writings: wrote.slice(1) })).includes('tag wtag on'));
 state.reading = null;
+{
+  // A short row has its tag after its name too, as a row drawn whole does: the title line's parts, in order.
+  const titleParts = (html) => [...(html.match(/<div class="line1">.*?<\/div>/s)?.[0] || '')
+    .matchAll(/class="(name|tag[^"]*)"/g)].map(([, cls]) => cls);
+  const wroteRow = { ...session({ writings: wrote.slice(1) }), sessionId: 'ws', name: 'storefront' };
+  drawWhole = false;
+  show('a short row: its name, then its tag', titleParts(rowHTML(wroteRow, 'idle', NOW)));
+  drawWhole = true;
+  show('…as on a row drawn whole', titleParts(rowHTML(wroteRow, 'idle', NOW)));
+}
 show('a plan only just asked about shows from its request, before the transcript lists it',
      writingsOf(session({ ask: planAsk })).map((w) => [w.id, w.title, w.status]));
 show('the plan Claude waits on', waitingPlan(session({ writings: wrote, ask: planAsk }))?.id);
 show('no plan waits once the request is gone', waitingPlan(session({ writings: wrote })));
 show("each one's status in the list", wrote.map((w) => writingStatus(w, session({ writings: wrote, ask: planAsk }))));
-show('a waiting plan whose request has gone: no answer', writingStatus(wrote[0], session({ writings: wrote })));
+show('a waiting plan whose request has gone, its session idle with nothing typed since: still waiting for you',
+     writingStatus(wrote[0], session({ writings: wrote })));
+show('…something typed into it since: no answer', writingStatus(wrote[0], session({ writings: wrote, lastPromptAt: NOW })));
 show('a new request with only an old unanswered plan listed: the request\'s own plan, never the old one',
      waitingPlan(session({ writings: [planWriting('old', 'waiting', 30, 'Old')], ask: planAsk }))?.id);
 state.last = { sessions: [], now: NOW };
@@ -1840,7 +1989,53 @@ print(shelfHTML(session({ writings: wrote, ask: planAsk }), wrote, 'p2'));
 const markupName = { id: '/work/app/<b>n.md', kind: 'notes', path: '/work/app/<b>n.md', at: min(3) };
 show('a file named like markup is listed as text',
      !shelfHTML(session({ writings: [markupName] }), [markupName], null).includes('<b>'));
-print(askHTML(planAsk));
+show('a plan has no card on its row: it\'s its bubble, read beside the list',
+     core.rowCards.find((c) => c.name === 'request').wants({ s: session({ ask: planAsk }) }));
+{
+  // A member of a team held at Claude Code's own prompt for its plan, while the team file still has it at work on
+  // another job, so the plan is its row's other ask: the bubble ends in the button that opens the plan beside the list,
+  // and a press on it, once seen, opens it there.
+  const STEPS = [{ id: 'plan', word: 'Plan', you: true, kind: 'approve' }, { id: 'build', word: 'Build', you: false }];
+  const held = session({ sessionId: 'held', name: 'Moth', status: 'waiting', statusUpdatedAt: min(1),
+                         lastPromptAt: min(4), writings: wrote,
+                         team: { role: 'member', name: 'Moth', part: 'sync',
+                                 job: { id: 'j1', title: 'Offline mode', steps: STEPS, at: 'build', you: false,
+                                        priority: 'p1', holds: 0, stageAt: min(30) },
+                                 status: { stage: 'work', word: 'Build', job: 'j1' },
+                                 alsoAsks: { job: 'j2', title: 'Dark mode', short: 'Approve the dark mode plan',
+                                             at: 'plan', priority: 'p1', kind: 'approve' } } });
+  const [lastBefore, openBefore, kindsBefore, wholeBefore] = [state.last, openReader, state.kinds, drawWhole];
+  drawWhole = false;  // the list's own rows, shown short
+  state.last = { sessions: [held], now: NOW };
+  const heldHTML = rowHTML(held, classify(held, NOW, { id: 'held' }), NOW);
+  const opened = [];
+  openReader = (sid, wid, mode) => opened.push([sid, wid, mode]);
+  state.shownAt['wr-act:held'] = Date.now() - 60000;
+  core.presses.find(([sel]) => sel === '[data-wr-act]')[1](
+    { dataset: { wrAct: 'held', wid: /data-wid="([^"]*)"/.exec(heldHTML)?.[1] } }, { preventDefault() {} });
+  show('a team member held at its plan while the team file has it at work: its other ask ends in the reader\'s plan '
+       + 'button, never the way to its session, and a press opens the plan beside the list [button, to session, opened]',
+       [heldHTML.includes('data-wr-act="held"'), heldHTML.includes('data-team-go="held"'), opened]);
+  // The same member at work on that other job: its ask has the same shape and the same press, opening the newest plan
+  // it showed you that wasn't approved, there only to read, its bar taking you to the session.
+  const working = { ...held, sessionId: 'working', status: 'busy', activity: 'Editing sync.js' };
+  state.last = { sessions: [working], now: NOW };
+  state.kinds = { working: classify(working, NOW, { id: 'working' }) };
+  const workingHTML = rowHTML(working, classify(working, NOW, { id: 'working' }), NOW);
+  state.shownAt['wr-act:working'] = Date.now() - 60000;
+  core.presses.find(([sel]) => sel === '[data-wr-act]')[1](
+    { dataset: { wrAct: 'working', wid: /data-wid="([^"]*)"/.exec(workingHTML)?.[1] } }, { preventDefault() {} });
+  show('…at work on the other job: the same button, and a press opens the plan beside the list [button, to session, '
+       + 'opened]', [workingHTML.includes('data-wr-act="working"'), workingHTML.includes('data-team-go="working"'),
+                     opened.slice(1)]);
+  state.reading = { sessionId: 'working', mode: 'writings', sent: {}, revising: false, notes: '' };
+  print(answerHTML(wrote[0], working));
+  state.reading = null;
+  show('…its newest plan approved, the work it\'s doing: nothing to read, so the way to its session',
+       rowHTML({ ...working, writings: [{ ...wrote[0], status: 'approved' }] }, 'busy', NOW)
+         .includes('data-team-go="working"'));
+  [state.last, openReader, state.kinds, drawWhole] = [lastBefore, openBefore, kindsBefore, wholeBefore];
+}
 state.reading = { sent: {}, revising: false, notes: '' };
 print(answerHTML(wrote[0], session({ writings: wrote, ask: planAsk })));
 state.reading.revising = true;

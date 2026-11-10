@@ -39,14 +39,14 @@ static const double kTakenWithinMs = 5000;
 // Settings' switch, on unless you turn it off: while it's off nothing shows, and a session that sends a task is told.
 static NSString *const kOneTaskOn = @"oneTask";
 // How One Task works, as its page on the panel's back sets it: who may hand you tasks (any session, or only a team's
-// lead), what comes after anything urgent (a lead's picks, or simply the oldest), whether each task says why it's
-// where it is, whether something urgent waits for your Go, whether the talk is under each task, and whether words
-// written while a session works go in by themselves or wait for Send Now. Each default is what One Task
+// lead), whether each task says why it's where it is, whether a task to do now waits for your Go, whether the talk is
+// under each task, and whether words written while a session works go in by themselves or wait for Send Now. The order
+// itself isn't a choice: each ticket's own priority (the page's order.js). Each default is what One Task
 // recommends.
-static NSString *const kWho = @"oneTaskWho", *const kNext = @"oneTaskNext", *const kWhy = @"oneTaskWhy",
-                *const kWaitForGo = @"oneTaskWaitForGo", *const kTalk = @"oneTaskTalk", *const kHeld = @"oneTaskHeld";
+static NSString *const kWho = @"oneTaskWho", *const kWhy = @"oneTaskWhy", *const kWaitForGo = @"oneTaskWaitForGo",
+                *const kTalk = @"oneTaskTalk", *const kHeld = @"oneTaskHeld";
 static NSDictionary *OneTaskDefaults(void) {
-    return @{kWho: @"any", kNext: @"picks", kWhy: @NO, kWaitForGo: @YES, kTalk: @YES, kHeld: @"self"};
+    return @{kWho: @"any", kWhy: @NO, kWaitForGo: @YES, kTalk: @YES, kHeld: @"self"};
 }
 // One Task's page under Tools, as the panel's back names it.
 static NSString *const kPageId = @"one-task";
@@ -210,7 +210,7 @@ static BOOL ProcessStill(NSDictionary *record) {
         [ids addObject:pick];
         if (AsText(AsRecord(one)[@"priority"])) priorities[pick] = AsText(AsRecord(one)[@"priority"]);
     }
-    NSDictionary *placed = TaskRecordQueue(record, ids, priorities);
+    NSDictionary *placed = TaskRecordQueue(record, ids, priorities, Now());
     if (placed != record) [self keep:placed of:row.sessionId];
 }
 
@@ -552,7 +552,7 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
     }
     // The kinds' words come with them, from the task's contract (TaskKindWords), the one copy there is; and the rules
     // its page on the back sets, which the page orders, explains and holds by, with the sessions they turn away.
-    NSDictionary *rules = @{@"next": Chosen(kNext), @"why": @(SwitchedOn(kWhy)), @"waitForGo": @(SwitchedOn(kWaitForGo)),
+    NSDictionary *rules = @{@"why": @(SwitchedOn(kWhy)), @"waitForGo": @(SwitchedOn(kWaitForGo)),
                             @"talk": @(SwitchedOn(kTalk)), @"held": Chosen(kHeld), @"turnedAway": turnedAway};
     NSData *json = [NSJSONSerialization dataWithJSONObject:@[tasks, @(on), rules] options:NSJSONWritingSortedKeys
                                                      error:nil];
@@ -736,19 +736,18 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
                                            foot:@"A session that may not is told so when it asks, so its agent stops "
                                                  "asking." order:20];
 
-    AppChoice *next = [AppChoice choiceWithKey:kNext title:@"What comes first" choices:^NSArray * {
-        return @[@{@"id": @"picks", @"name": @"Then a chief's picks",
-                   @"help": @"What a team's chief picked for you comes next, in its order. Recommended."},
-                 @{@"id": @"oldest", @"name": @"Then the oldest", @"help": @"Everything else by how long it has waited."}];
-    } picked:^NSString * { return Chosen(kNext); } pick:^(NSString *choice) { choose(kNext, choice); }];
-    next.fixed = @{@"name": @"Critical and P0 picks, then urgent tasks",
-                   @"help": @"Always first, whatever else you choose."};
+    // The order, which isn't a choice: a row that can't be pressed, with nothing to pick under it.
+    AppChoice *order = [AppChoice choiceWithKey:@"oneTaskOrder" title:@"What comes first" choices:^NSArray * {
+        return @[];
+    } picked:^NSString * { return nil; } pick:^(NSString *choice) {}];
+    order.fixed = @{@"name": @"Each ticket's own priority, first come first served within it",
+                    @"help": @"From each session's ticket, in its tracker's own order. Always."};
     AppGroup *first = [AppGroup groupWithTitle:@"What comes first" rows:@[
-        next,
+        order,
         toggle(kWhy, @"Say why each is here", @"A line on why the task in front is first, and each after it by name "
                "and why it's where it is. Off, the foot says only how many.", YES),
-        toggle(kWaitForGo, @"Urgent tasks wait for your Go", @"A task you've seen stays until you leave it; something "
-               "urgent asks from the top, and you come back to where you were.", YES)] foot:nil order:30];
+        toggle(kWaitForGo, @"To-do-now tasks wait for your Go", @"A task you've read stays until you leave it; one to "
+               "do now asks from the top, and you come back to where you were.", YES)] foot:nil order:30];
 
     AppChoice *held = [AppChoice choiceWithKey:kHeld title:@"Words you write while it works" choices:^NSArray * {
         return @[@{@"id": @"self", @"name": @"Words go in once it's free", @"help": @"Written while it works, they go in "
@@ -764,9 +763,8 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
     AppGroup *after = [AppGroup groupWithTitle:nil rows:@[] foot:@"A change applies to what comes next: the task you "
                                                                  "have open stays where it is." order:90];
     for (AppGroup *group in @[whoMay, first, talk]) group.enabled = on;
-    // A team's chief and its picks mean nothing while teams don't show, so neither is offered then; but only a team's
+    // A team's chief means nothing while teams don't show, so the choice of one isn't offered then; but only a team's
     // chief, once chosen, stays in sight, as it turns every session away, so you can choose Any session again.
-    next.shown = teams;
     whoMay.shown = ^BOOL { return teams() || [Chosen(kWho) isEqual:@"lead"]; };
     page.groups = @[itself, whoMay, first, talk, after];
     // As recommended while every choice is as it starts; One Task's own switch isn't a choice of how it works.
@@ -858,7 +856,8 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
         return @"refused: teams aren't shown in this Whozmove, so a pick can't reach One Task: the user can tick "
                @"Working on Whozmove ▸ Show Teams (holding ⌥ as they open the pawn menu)";
     NSArray *leads = AsList(row.team[@"leads"]);
-    if (!leads.count) return @"refused: only a team's chief may send a pick, and this session leads no team";
+    if (!leads.count) return @"refused: --pick-for is only for a team's lead, and this session leads no team: send it "
+                             @"without --pick-for, as your own task";
     NSString *member = [self memberOf:row named:name why:nil];
     if (!member) {
         NSString *why = nil;

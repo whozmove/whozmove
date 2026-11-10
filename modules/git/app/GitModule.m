@@ -130,6 +130,28 @@ static int PrintPRWakes(NSArray<NSString *> *arguments) {
                        @"waits on a merged one": [wakes waitsOn:closed] ? @"yes" : @"nothing"});
 }
 
+// `Whozmove --print-pr-due`: for sample states, whether a checkout's branch can have a pull request of its own, kept
+// or dropped at once (BranchHasOwnPR: the branch and the repo's base branch as last read), and whether it's due its
+// look-up (BranchPRDue: those, the branch last looked up, and how long ago). As JSON, then quit.
+static int PrintPRDue(void) {
+    id none = NSNull.null;
+    NSString *(^named)(id) = ^NSString *(id name) { return [name isKindOfClass:NSString.class] ? name : @"none"; };
+    NSMutableArray *own = [NSMutableArray array], *due = [NSMutableArray array];
+    for (NSArray *c in @[@[@"main", @"main"], @[@"fix-cart", @"main"], @[@"main", none], @[@"main", @"develop"],
+                         @[none, @"main"]])
+        [own addObject:@[[NSString stringWithFormat:@"%@ (base %@)", named(c[0]), named(c[1])],
+                         @(BranchHasOwnPR(AsText(c[0]), AsText(c[1])))]];
+    for (NSArray *c in @[@[@"main", @"main", @"main", @61], @[@"main", @"main", @"fix-cart", @5],
+                         @[@"fix-cart", @"main", @"fix-cart", @30], @[@"fix-cart", @"main", @"fix-cart", @61],
+                         @[@"fix-cart", @"main", @"main", @5], @[@"main", none, none, @0],
+                         @[@"main", none, @"main", @61], @[@"main", @"develop", @"main", @61],
+                         @[none, @"main", @"main", @61]])
+        [due addObject:@[[NSString stringWithFormat:@"%@ (base %@, looked up for %@, %@s ago)", named(c[0]),
+                          named(c[1]), named(c[2]), c[3]],
+                         @(BranchPRDue(AsText(c[0]), AsText(c[1]), AsText(c[2]), [c[3] doubleValue]))]];
+    return PrintJSON(@{@"hasOwnPR": own, @"prDue": due});
+}
+
 @implementation GitModule
 
 + (NSString *)moduleName {
@@ -138,7 +160,8 @@ static int PrintPRWakes(NSArray<NSString *> *arguments) {
 
 + (NSDictionary<NSString *, PrintMode> *)printModes {
     return @{@"--print-watched": ^(Core *core, NSArray *a) { return PrintWatched(a); },
-             @"--print-pr-wakes": ^(Core *core, NSArray *a) { return PrintPRWakes(a); }};
+             @"--print-pr-wakes": ^(Core *core, NSArray *a) { return PrintPRWakes(a); },
+             @"--print-pr-due": ^(Core *core, NSArray *a) { return PrintPRDue(); }};
 }
 
 - (instancetype)initWithCore:(Core *)core {
@@ -249,8 +272,8 @@ static int PrintPRWakes(NSArray<NSString *> *arguments) {
                                   order:60];
     git.present = ^BOOL { return YES; };
     AppSwitch *steps = [AppSwitch switchWithKey:@"nextSteps" title:@"Show Next Steps"
-                                           help:@"On each row: what's changed, committed and on GitHub, and the step "
-                                                @"that's next"
+                                           help:@"On the row you're on: what's changed, committed and on GitHub, and "
+                                                @"the step that's next"
                                              on:^BOOL { return weakSelf.core.menuBar.showsNextSteps; }
                                             set:^(BOOL on) { weakSelf.core.menuBar.showsNextSteps = on; }];
     steps.enabled = ^BOOL { return DeveloperToolsReady(); };

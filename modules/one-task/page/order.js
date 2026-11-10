@@ -7,45 +7,64 @@
 // The kinds' words, by kind, as the app sends them with what waits (setTasks), from the task's contract
 // (TaskKindWords): a task of a kind not among them isn't shown.
 let taskKindWords = {};
-// Where a task's priority puts it in the line: a task put back with Can't Now goes behind everything else.
-const TASK_RANKS = { urgent: 0, normal: 1, low: 2 };
-const TASK_BACK = 3;
-// The lead's pick (the lead's next task): after anything urgent, before the rest; among the lead's picks, one its
-// queue no longer names comes after those it does.
-const TASK_PICK = 0.5;
-const TASK_UNPLACED = 1e9;
-// A pick the lead's queue names whose job is Critical or P0 comes before everything else, whichever way "What comes
-// first" is set, as a job to do now should: Critical, then P0, each in the queue's order. It's only the line's order:
-// it takes nothing from the task you're on. A task's own priority isn't read for this (the contract leaves it out),
-// only the job's, as the queue gives it (`pickPriority`), said in the team module's words (core.teamJob).
-const TASK_PICKS_FIRST = { critical: -2, p0: -1 };
+// Where a task stands in the line: by its ticket's priority, then by when it came. A task's own priority isn't read
+// (the contract leaves it out): only the priority of the ticket its session works on, which whoever writes the ticket
+// sets, as its row carries it (rows.md: ticket), never the task.
+
+// A task's place by its ticket: { at, of, word, queue }, `at` its priority's place in its tracker's own list (0 the
+// most pressing) and `of` how many that list has, so tickets from trackers that name their priorities differently go
+// in one order; `word`, the tracker's own word for it. The ticket is that of the session the task is about
+// (taskThere: for the lead's pick, its member's; a pick for a member who isn't listed has no ticket, never the lead's
+// own). A lead's pick its queue names, whose member's ticket has no place, takes its job's place in the queue instead,
+// in the team module's words and with its look (core.teamJob), `queue` then. A ticket whose priority has no place yet
+// (its tracker gives no order, or hasn't read it) has its word and `at` null; no ticket, or one with no priority,
+// gives null.
+function taskPlace(item) {
+  const there = item.pickFor && !taskMember(item) ? null : taskThere(item);
+  const bound = there?.ticket?.bound, word = typeof bound?.priority === 'string' ? bound.priority : '';
+  const at = bound?.priorityAt, of = bound?.priorities;
+  if (Number.isInteger(at) && Number.isInteger(of) && at >= 0 && at < of) return { at, of, word, queue: false };
+  if (item.pick && item.pickAt != null && core.teamJob?.priorityPlace) {
+    const { at: job, of: ladder, look } = core.teamJob.priorityPlace(item.pickPriority);
+    return { at: job, of: ladder, look, word: core.teamJob.priorityWord(item.pickPriority), queue: true };
+  }
+  return word ? { at: null, of: null, word, queue: false } : null;
+}
+// Whether a task is one to do now: by a ticket, its place above the middle of its tracker's list, less than half its
+// length rounded down (Jira's Highest and High of five, the top one of two or three, none of a list of one); by a
+// team's queue, as the team says it (its look: Critical and P0). Never one put back with Can't Now.
+const taskDoNow = (item) => !item.back && Number.isInteger(item.place?.at)
+  && (item.place.queue ? item.place.look === 'urgent' : item.place.at < Math.floor(item.place.of / 2));
+// How it's coloured, by the same rule: a task to do now in the colour of something to put right; by a ticket, one at
+// its list's lowest place as low, and by a queue, as the team colours it; every other as normal.
+const taskLook = (item) => (taskDoNow(item) ? 'urgent'
+  : item.place?.queue ? (item.place.look === 'low' ? 'low' : 'normal')
+    : Number.isInteger(item.place?.at) && item.place.at === item.place.of - 1 ? 'low' : 'normal');
 
 // What waits on you, in the order One Task hands it to you: the tasks sessions sent (setTasks), while their session is
-// listed, each { key, sid, s, task, rank, at, sent, back }, and for the lead's pick (`pick`, in the lead's record)
-// the member's session it's for (`forS`), if listed. Only tasks: a session's own request, question or plan stays on
-// its row in the list, so nothing shows in two places. The lead's Critical and P0 picks first, then urgent ones, then
-// the lead's other picks, in the lead's queue's order (`pickAt`), then by priority, the oldest first; Can't Now at
-// the back, in the order they were put there.
-function taskLine(sent, sessions, rules = {}) {
-  // Simply the oldest after anything urgent (One Task's page): a lead's picks wait their turn by age, as the rest do.
-  const picksFirst = rules.next !== 'oldest';
+// listed, each { key, sid, s, task, place, came, at, sent, back }, and for the lead's pick (`pick`, in the lead's
+// record) the member's session it's for (`forS`), if listed. Only tasks: a session's own request, question or plan
+// stays on its row in the list, so nothing shows in two places. Those with a place by it (taskPlace), the most pressing
+// first, two lists compared from the top; then those with none; then Can't Now, in the order they were put there.
+// Within each, first come first served (`came`): a lead's pick from when its queue first named it (`shownAt`).
+function taskLine(sent, sessions) {
   const items = [], byId = new Map(sessions.map((s) => [s.sessionId, s]));
   for (const one of sent) {
     const s = byId.get(one.sessionId);
     if (!s || !one.task?.id) continue;
     const isPick = !!one.pick, forS = isPick && one.for ? byId.get(one.for) : undefined;
-    const first = isPick && one.pickAt != null ? TASK_PICKS_FIRST[one.pickPriority] : undefined;
-    items.push({ key: `task:${one.sessionId}:${one.task.id}`, sid: one.sessionId, s, task: one.task, back: !!one.back,
-                 rank: one.back ? TASK_BACK
-                   : first ?? (isPick && picksFirst && one.task.priority !== 'urgent' ? TASK_PICK
-                     : TASK_RANKS[one.task.priority] ?? TASK_RANKS.normal),
-                 at: one.at || 0, sent: one.sent || 0, pick: isPick, forS, writers: taskWriters(s, forS, sessions),
-                 about: taskAboutOf(s, one.task, sessions, byId),
-                 talk: one.talk, takenBack: one.takenBack || null, pickAt: one.pickAt ?? null,
-                 pickPriority: one.pickPriority || null, seenAt: one.seenAt || 0 });
+    const item = { key: `task:${one.sessionId}:${one.task.id}`, sid: one.sessionId, s, task: one.task, back: !!one.back,
+                   at: one.at || 0, came: (isPick && one.shownAt) || one.at || 0, sent: one.sent || 0, pick: isPick,
+                   forS, writers: taskWriters(s, forS, sessions), about: taskAboutOf(s, one.task, sessions, byId),
+                   talk: one.talk, takenBack: one.takenBack || null, pickAt: one.pickAt ?? null,
+                   pickPriority: one.pickPriority || null, seenAt: one.seenAt || 0,
+                   pickFor: isPick && !!one.for && one.for !== one.sessionId };
+    item.place = taskPlace(item);
+    items.push(item);
   }
-  const place = (item) => (item.pick && item.pickAt !== null ? item.pickAt : TASK_UNPLACED);
-  return items.sort((a, b) => a.rank - b.rank || place(a) - place(b) || a.at - b.at);
+  const group = (item) => (item.back ? 2 : Number.isInteger(item.place?.at) ? 0 : 1);
+  return items.sort((a, b) => group(a) - group(b) || (group(a) === 0 ? a.place.at - b.place.at : 0)
+    || (a.back ? a.at - b.at : a.came - b.came));
 }
 
 // What each session's row says waits on you, from the line in its order: session id → { item, more }, its first task and
@@ -273,10 +292,11 @@ const taskWho = (s) => s.team?.name || s.name || base(s.cwd || '');
 // The member the lead's pick is for, when it's another session than the lead's own and it's listed: a lead's pick
 // about its own work has none, so it's said as the lead's alone. By session, never by any role.
 const taskMember = (item) => (item.pick && item.forS && item.forS.sessionId !== item.sid ? item.forS : undefined);
-// Whom a task is from, as the head says it: the session's name; for the lead's pick, the lead's, and the member's
-// it's for ("Atlas's pick, for Wren"), or the lead's name alone for a pick about its own work ("Atlas").
+// Whom a task is from, as the head says it: the session's name, with its ticket's priority in its tracker's word when
+// it has one ("From Wren · Highest"); for the lead's pick, the lead's, and the member's it's for ("Atlas's pick, for
+// Wren"), or the lead's name alone for a pick about its own work ("Atlas").
 function taskFrom(item) {
-  if (!item.pick) return `From ${taskWho(item.s)}`;
+  if (!item.pick) return `From ${taskWho(item.s)}${item.place?.word ? ` · ${item.place.word}` : ''}`;
   const member = taskMember(item);
   return member ? `${taskWho(item.s)}’s pick, for ${taskWho(member)}` : taskWho(item.s);
 }
@@ -322,48 +342,60 @@ function taskNewest(items, before) {
 
 // The line under the header while One Task isn't in sight and something waits (a page sender's notice for the
 // notifications module): who it's from and its title, and for the lead's pick, as its head names it ("Atlas's pick,
-// for Wren: Search box"); urgent for an urgent task, the lead's pick among them. What makes it new is the newest
-// to come (taskNewest), so once its × has put it away it stays away until another task joins, or one is sent again;
-// meanwhile it folds to how many wait, which opens One Task as Open does. With more than one waiting, the line says
-// how many after its words, the same as it folds to, so the number is the same either side of its ×.
-function taskNotice(items, newest) {
-  // Urgent ones have a line of their own (taskUrgentNotice), which comes first.
-  const item = items.find((one) => one.task.priority !== 'urgent');
+// for Wren: Search box"). What makes it new is the newest to come (taskNewest), so once its × has put it away it stays
+// away until another task joins, or one is sent again; meanwhile it folds to how many wait, which opens One Task as
+// Open does. With more than one waiting, the line says how many after its words, the same as it folds to, so the
+// number is the same either side of its ×.
+function taskNotice(items, newest, onKey) {
+  // Those to do now have a line of their own (taskUrgentNotice), which comes first, and is said in quiet hours; but
+  // for the one you were on (`onKey`), which it leaves out, as its Open doesn't go back to it: this line names that.
+  const item = items.find((one) => !taskDoNow(one) || one.key === onKey);
   if (!item) return null;
   const what = item.task.title;
-  const urgent = item.task.priority === 'urgent';
-  return { key: 'waits', level: urgent ? 'urgent' : 'soon',
+  return { key: 'waits', level: 'soon',
            text: item.pick ? `${taskFrom(item)}: ${what}` : `A task from ${taskWho(item.s)} waits: ${what}`,
            after: items.length > 1 ? `${items.length} waiting` : undefined, button: 'Open', since: String(newest || 0),
            chip: `${items.length} waiting`, chipTitle: 'Open One Task' };
 }
 
-// ---- Something urgent while you're on a task ----
+// ---- Something to do now while you're on a task ----
 
 // A task you've seen stays yours until you leave it: seen once it has been in front this long with One Task open, or
 // the moment you press anything on it.
 const TASK_SEEN_MS = 1500;
 
-// Whether Go can set a task aside to come back to: any but an urgent one (normal, low, or no priority at all).
-const taskSetsAside = (item) => !!item?.task && item.task.priority !== 'urgent';
+// Whether Go can set a task aside to come back to: any task, one to do now among them, as Go only ever goes to one
+// ahead of it.
+const taskSetsAside = (item) => !!item?.task;
 
-// The urgent tasks waiting while you're on another (`frontKey`), in the line's order.
-const taskUrgentOthers = (items, frontKey) => items.filter((item) => item.task.priority === 'urgent'
-  && item.key !== frontKey);
-
-// What the strip under One Task's head says of them, with Go: "Urgent from trailmap: Fix the login crash", or for
-// more than one, "2 urgent: Fix the login crash and 1 more".
-function taskUrgentWords(urgent) {
-  if (!urgent.length) return '';
-  return urgent.length > 1 ? `${urgent.length} urgent: ${urgent[0].task.title} and ${urgent.length - 1} more`
-    : `Urgent from ${taskWho(urgent[0].s)}: ${urgent[0].task.title}`;
+// The tasks to do now that are ahead of the one you're on (`frontKey`) in the line, in its order: all of them when
+// that isn't in it.
+function taskUrgentOthers(items, frontKey) {
+  const front = items.findIndex((item) => item.key === frontKey);
+  return items.filter((item, at) => taskDoNow(item) && (front < 0 || at < front));
 }
 
-// The line under the header for what's urgent, while One Task isn't in sight: the strip's words, with Open, which goes
-// straight to the first and sets aside the task you were on; new again whenever the urgent tasks change, so its × puts
-// away only the ones it named.
-function taskUrgentNotice(items) {
-  const urgent = items.filter((item) => item.task.priority === 'urgent');
+// What the strip under One Task's head says of them, with Go, in pieces, so its bold part is never cut from the
+// sentence: { head, title, more }, "Highest from Wren" and "Fix the login crash", or for more than one, "2 to do now"
+// and "Fix the login crash", with " and 1 more"; the tracker's word as it gave it. Null for none.
+function taskUrgentParts(urgent) {
+  if (!urgent.length) return null;
+  const first = urgent[0];
+  if (urgent.length > 1) return { head: `${urgent.length} to do now`, title: first.task.title,
+                                  more: ` and ${urgent.length - 1} more` };
+  return { head: `${first.place?.word || 'To do now'} from ${taskWho(first.s)}`, title: first.task.title, more: '' };
+}
+// …the same as one line: "Highest from Wren: Fix the login crash".
+function taskUrgentWords(urgent) {
+  const parts = taskUrgentParts(urgent);
+  return parts ? `${parts.head}: ${parts.title}${parts.more}` : '';
+}
+
+// The line under the header for the tasks to do now, while One Task isn't in sight: the strip's words, with Open,
+// which goes straight to the first and sets aside the task you were on (`onKey`), never named here, as Open doesn't go
+// back to it; new again whenever they change, so its × puts away only the ones it named.
+function taskUrgentNotice(items, onKey) {
+  const urgent = items.filter((item) => taskDoNow(item) && item.key !== onKey);
   if (!urgent.length) return null;
   return { key: 'urgent', level: 'urgent', text: taskUrgentWords(urgent), button: 'Open',
            since: urgent.map(taskStepKey).join(' ') };
@@ -378,21 +410,30 @@ function taskAsideGone(title, item) {
     dropped: `${who} dropped its job` }[item.takenBack] || `by ${who}`}.`;
 }
 
-// Which task is in front, as One Task decides it, from where you are (`on`): { next, key, held, seen, wanted, aside },
-// the task a press has just brought in, the one you're on, whether you're pointing at it or typing in it, which tasks
-// you've read (a function of the task's key: a task, not a step, so a reword or its next step leaves it read), the one
-// a reply's notice opened at, and the task you set aside ({key, step}) to come back to. A task you've read is yours
-// until you leave it: nothing replaces it, not a newer task, not the lead reordering or rewording it, not something
-// urgent. Gives { front, gone }: `gone`, the task you set aside, as it was let go, when it no longer waits. Coming back
-// to it, what's kept of what you'd done on it is taskKeptUi's.
+// Which task is in front, as One Task decides it, from where you are (`on`): { next, key, held, seen, waitForGo,
+// wanted, aside }, the task a press has just brought in, the one you're on, whether you're pointing at it or typing in
+// it, which tasks you've read (a function of the task's key: a task, not a step, so a reword or its next step leaves it
+// read), whether one to do now waits for your Go, the one a reply's notice opened at, and the task you set aside
+// ({key, step}) to come back to. A task you've read is yours until you leave it: nothing replaces it, not a newer task,
+// not the lead reordering or rewording it, not one to do now (with `waitForGo` off, one to do now ahead of it does).
+// While one is set aside, those to do now ahead of it come first. Gives { front, gone }: `gone`, the task you set
+// aside, as it was let go, when it no longer waits. Coming back to it, what's kept of what you'd done on it is
+// taskKeptUi's.
 function taskChooseFront(items, on) {
   const find = (key) => (key ? items.find((item) => item.key === key) || null : null);
   if (find(on.next)) return { front: find(on.next) };
   const current = find(on.key);
-  if (current && (on.held || on.seen(current.key))) return { front: current };
+  // With tasks to do now not waiting for your Go (One Task's page, `waitForGo` false), one ahead takes the front from
+  // a task you've read; nothing else does.
+  const holds = on.seen(current?.key) && (on.waitForGo !== false || !taskUrgentOthers(items, current?.key).length);
+  if (current && (on.held || holds)) return { front: current };
   if (find(on.wanted)) return { front: find(on.wanted) };
   if (on.aside) {
-    const urgent = taskUrgentOthers(items, null)[0];
+    // The one to do now that a press brought in stays in front, read or not, while no other to do now is ahead of it:
+    // Open on the line under the header can bring in one behind the task it sets aside, as it names those too.
+    if (current && current.key !== on.aside.key && taskDoNow(current)
+        && !taskUrgentOthers(items, current.key).some((item) => item.key !== on.aside.key)) return { front: current };
+    const urgent = taskUrgentOthers(items, on.aside.key)[0];
     if (urgent) return { front: urgent };
     const it = find(on.aside.key);
     if (it && !it.takenBack) return { front: it };
@@ -437,18 +478,19 @@ function taskOpensOn(items, last, seen) {
 }
 
 // Say why each is here (One Task's page): why the one in front is first, and each after it is where it is, in a
-// line: a lead's Critical or P0 pick first, urgent, a lead's pick after anything urgent, or how long it has waited,
-// the longest first.
+// line: its ticket's priority in its tracker's word ("Highest on its ticket"), or with no order known for it (its
+// tracker gives none, or couldn't be read); a lead's pick by its queue ("P1 in Atlas's queue"); a ticket with no
+// priority, one not read yet since Whozmove started, or no ticket; then how long it has waited, "longest" for the first
+// of those in the same place.
 function taskWhyHere(item, items, now) {
-  if (item.rank < 0) {
-    const word = core.teamJob?.priorityWord(item.pickPriority) || item.pickPriority;
-    return `${item.s.team?.name || 'the chief'}’s ${word} pick, first`;
-  }
-  if (item.task.priority === 'urgent') return 'It’s urgent';
-  if (item.rank === TASK_PICK) return `${taskWho(item.s)}’s pick, after anything urgent`;
   if (item.back) return 'You put it back with Can’t Now';
-  const rest = items.filter((one) => one.rank === item.rank && !one.back);
-  return rest[0] === item ? `Waited longest, ${ago(now - item.at)}` : `Waited ${ago(now - item.at)}`;
+  const p = item.place, placed = Number.isInteger(p?.at), bound = taskThere(item).ticket?.bound;
+  const none = !bound ? 'No ticket' : !bound.readAt ? 'Its ticket isn’t read yet' : 'No priority on its ticket';
+  const why = !p ? none : p.queue ? `${p.word} in ${taskWho(item.s)}’s queue`
+    : `${p.word} on its ticket${placed ? '' : ', no order known'}`;
+  const same = items.filter((one) => !one.back && (placed ? one.place?.at === p.at : !Number.isInteger(one.place?.at)));
+  const waited = ago(now - item.came);
+  return `${why}, ${same[0] === item ? `waited longest, ${waited}` : `waited ${waited}`}`;
 }
 
 // The sessions that may not hand you tasks now (One Task's page: only a team's lead), what they sent waiting unseen,

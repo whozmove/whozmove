@@ -35,6 +35,7 @@
 #import "Records.h"
 #import "BetweenSteps.h"
 #import "ClaudeAside.h"
+#import "AsideReads.h"
 #import "ClaudeProgram.h"
 #import "WhereSeenWorking.h"
 
@@ -74,7 +75,7 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
 // take their place; nil until they've been listed once.
 @property (copy) NSSet<NSString *> *waitedAsListed;
 @property (strong) BetweenSteps *betweenSteps;  // your words held for its sessions' words hook
-@property (strong) ClaudeAside *aside;  // questions asked on its sessions' side, while each is answered
+@property (strong) ClaudeAside *aside;  // its sessions' side conversations, kept open a while for follow-ups
 // Whether each session can be asked on the side, as last found, with when (on the main thread only): found again only
 // every few seconds, as the side chat asks of every listed session as the rows are read.
 @property (strong) NSMutableDictionary<NSString *, NSArray *> *asideWhy;
@@ -114,7 +115,7 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
     self.usage = [ClaudeUsage new];
     self.kept = [KeptSessions new];
     self.betweenSteps = [BetweenSteps new];
-    self.aside = [ClaudeAside new];
+    self.aside = [[ClaudeAside alloc] initWithChecker:NSBundle.mainBundle.executablePath program:nil];
     self.asideWhy = [NSMutableDictionary dictionary];
     self.takesWords = [NSMutableDictionary dictionary];
     self.conversationList = [Conversations new];
@@ -182,11 +183,33 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
     return ClaudeCodePrintModes();
 }
 
+// The checker a side question's copy runs before each tool it reaches for (AsideReads): the session's folder after
+// the flag, the tool's call on its input; where keys are kept is the storage module's (KeyPlaces).
++ (NSDictionary<NSString *, HelperRun> *)helperRuns {
+    return @{kClaudeAsideCheckFlag: ^int(Core *core, NSArray<NSString *> *arguments) {
+        return AsideCheckRun(arguments.firstObject, Home(), [core moduleThat:@protocol(KeyPlaces)]);
+    }};
+}
+
 - (NSDictionary<NSString *, void (^)(NSDictionary *)> *)messages {
     __weak typeof(self) weakSelf = self;
     return @{
         // A request answered in the panel, for the permission hook to pass on.
         @"answerAsk": ^(NSDictionary *msg) { AnswerAsk(msg); },
+        // Your press on Approve under a plan beside the list, for the request and the text drawn with it: checked
+        // again here. How it went comes back with the rows: on the row's ask while Claude still waits on it
+        // (`approval`), else on the row as answered (`answeredFor`, yours).
+        @"approveShownPlan": ^(NSDictionary *msg) {
+            [weakSelf.answerFor approveShown:msg];
+            [weakSelf.core.rows refresh];
+        },
+        // Your press on Send under a plan beside the list that has stopped asking in the panel: your notes typed into
+        // its session as a message, checked again here and before each key. How it went comes back with the rows, on
+        // the row as answered (`answeredFor`, yours); a refusal at once is there too.
+        @"typePlanNotes": ^(NSDictionary *msg) {
+            [weakSelf.answerFor typePlanNotes:msg];
+            [weakSelf.core.rows refresh];
+        },
         // A request being answered in the panel: kept from a session you allow, and one that goes by itself if no
         // one answers held off a while longer.
         @"holdAsk": ^(NSDictionary *msg) { if (ActiveAtTheMac()) HoldAsk(AsText(msg[@"id"])); },
@@ -226,10 +249,14 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
             [self workOf:rows];
             [self.answerFor markRows:rows];
             return;
-        case RowPhaseDetails: return [self detailsOf:rows];
+        case RowPhaseDetails:
+            [self detailsOf:rows];
+            [self addApprovalsTo:rows];
+            return;
         case RowPhaseListed:
             [self.details keepFlagsOf:rows];
             [self keep:rows];
+            [self endAsidesOf:rows];
             return;
     }
 }
@@ -375,6 +402,20 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
         if (row.sessionId && asks[row.sessionId]) row.ask = asks[row.sessionId];
 }
 
+// A plan's request with what the page needs before your press on Approve: its digest, and why it can't be approved
+// from here, if that's known already. On the main thread, where AnswerFor keeps what it last found of each session's
+// process, once the details have said its mode.
+- (void)addApprovalsTo:(NSArray<Row *> *)rows {
+    for (Row *row in rows) {
+        NSDictionary *ask = row.ask;
+        NSDictionary *approval = [ask[@"tool"] isEqual:@"ExitPlanMode"] ? [self.answerFor approvalOf:ask row:row] : nil;
+        if (!approval) continue;
+        NSMutableDictionary *more = [ask mutableCopy];
+        [more addEntriesFromDictionary:approval];
+        row.ask = more;
+    }
+}
+
 // Its transcript's topic, which Claude Code also puts in its terminal tab's title ("✳ <topic>").
 - (NSString *)titleOf:(Row *)row now:(BOOL)now {
     return now ? [self.transcripts topicOf:row.sessionId] : [self.transcripts lastTopicOf:row.sessionId];
@@ -383,6 +424,11 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
 - (BOOL)titleShowsWork:(NSString *)title {
     return title.length && [[NSCharacterSet characterSetWithCharactersInString:kClaudeCodeTitleWorking]
                                characterIsMember:[title characterAtIndex:0]];
+}
+
+// Its own instruction files and, after them, the ones it reads where none of those is there (AGENTS.md).
+- (NSArray<NSString *> *)instructionPages {
+    return [kClaudeCodeInstructions arrayByAddingObjectsFromArray:kClaudeCodeAgentsInstructions];
 }
 
 - (NSArray<NSString *> *)environmentMarks {
@@ -739,14 +785,40 @@ static NSString *ResumeCommand(NSString *sessionId, NSString *wordsFile) {
     return why;
 }
 
-// A copy of its conversation, with its model and effort, asked in its own folder (ClaudeAside).
-- (NSString *)ask:(NSString *)question aside:(Row *)row done:(void (^)(NSDictionary *answer))done {
+// The session's side conversation, with its model and effort, asked in its own folder (ClaudeAside): told the earlier
+// side questions since the session last compacted, and whether the session has moved since it opened, by its
+// transcript's size and newest message.
+- (NSString *)ask:(NSString *)question aside:(Row *)row earlier:(NSArray<NSDictionary *> *)earlier
+             step:(void (^)(NSString *step))step done:(void (^)(NSDictionary *answer))done {
     if (self.core.printing || !row.sessionId || !row.cwd.length || [self asideWhyNot:row]) return nil;
     NSDictionary *agent = row.agent;
     NSString *model = ClaudeAsideModel(AsText(agent[@"model"]), FlagValue(ProcessArguments(row.pid), @"--model"),
                                        AsNumber(agent[@"tokens"]).integerValue);
-    return [self.aside ask:question running:row.pid > 0 ? ProcessPath(row.pid) : nil sessionId:row.sessionId
-                      model:model effort:AsText(agent[@"effort"]) folder:row.cwd done:done];
+    NSDictionary *state = [self.transcripts stateOf:row.sessionId];
+    NSString *path = AsText(state[@"path"]);
+    NSNumber *size = path ? [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil][NSFileSize] : nil;
+    NSDictionary *mark = size && AsNumber(state[@"messageAt"]) ? @{@"size": size, @"at": state[@"messageAt"]} : nil;
+    NSArray *carried = ClaudeAsideCarried(earlier, AsNumber(state[@"compactedAt"]).doubleValue);
+    return [self.aside ask:question earlier:carried running:row.pid > 0 ? ProcessPath(row.pid) : nil
+                 sessionId:row.sessionId model:model effort:AsText(agent[@"effort"]) folder:row.cwd mark:mark
+                      step:step done:done];
+}
+
+// Each side conversation ends once its session has: its row gone, closed or no longer running, or the session
+// compacting or compacted since it opened. One answering finishes its answer first.
+- (void)endAsidesOf:(NSArray<Row *> *)rows {
+    NSDictionary<NSString *, NSNumber *> *open = [self.aside openSince];
+    if (!open.count) return;
+    NSMutableDictionary<NSString *, Row *> *byId = [NSMutableDictionary dictionary];
+    for (Row *row in rows)
+        if (row.sessionId) byId[row.sessionId] = row;
+    [open enumerateKeysAndObjectsUsingBlock:^(NSString *sessionId, NSNumber *openedAt, BOOL *stop) {
+        Row *row = byId[sessionId];
+        double compactedAt = AsNumber([self.transcripts stateOf:sessionId][@"compactedAt"]).doubleValue;
+        if (!row || row.pid <= 0 || [row.status isEqual:@"closed"] || row.compacting
+            || compactedAt > openedAt.doubleValue)
+            [self.aside end:sessionId];
+    }];
 }
 
 - (void)stopAside:(NSString *)askId {

@@ -16,14 +16,15 @@ static NSNumber *Ms(NSDate *date) {
     return date ? @(floor(date.timeIntervalSince1970 * 1000)) : nil;
 }
 
-// Why the last read didn't read it, as the row's tag says it: signing in again, asked to slow down (until when), or
-// anything else, in the tracker's words.
+// Why the last read or move didn't go, as the row says it: signing in again, asked to slow down (until when), turned
+// away as it is (with what the tracker said, for the page to escape), or anything else, in the tracker module's words.
 static NSDictionary *ProblemShown(TrackerAnswer *problem) {
     if (!problem || problem.ok) return nil;
     NSString *kind = problem.end == TrackerEndSignIn ? @"signIn" : problem.end == TrackerEndAsksMac ? @"allow"
-        : problem.end == TrackerEndSlowDown ? @"slow" : @"failed";
+        : problem.end == TrackerEndSlowDown ? @"slow" : problem.end == TrackerEndRefused ? @"refused" : @"failed";
     NSMutableDictionary *shown = [@{@"kind": kind, @"why": problem.why ?: @""} mutableCopy];
     if (problem.retryAt) shown[@"retryAt"] = Ms(problem.retryAt);
+    if (problem.end == TrackerEndRefused && problem.trackerSays.length) shown[@"says"] = problem.trackerSays;
     return shown;
 }
 
@@ -120,9 +121,19 @@ NSString *TicketAnswer(TicketBinding *bound, TicketOffer *offer, NSString *decli
         [ticket removeObjectForKey:@"reading"];
         [ticket removeObjectForKey:@"problem"];
         [ticket removeObjectForKey:@"moved"];
+        // Its description, for the session working it alone: the one answer that carries it.
+        if (bound.ticket.about.length) ticket[@"description"] = bound.ticket.about;
         answer[@"ticket"] = ticket;
-        // Its move: waiting while it's on the row or being taken, then how it went, once.
-        if (bound.move) answer[@"move"] = @{@"waiting": bound.move.to.name ?: bound.move.name ?: @""};
+        // Its move: waiting while it's on the row or being taken, with why it wasn't moved when your Move It was
+        // turned away (still on the row, for Try Again or Not Now), then how it went, once.
+        if (bound.move) {
+            NSMutableDictionary *move = [@{@"waiting": bound.move.to.name ?: bound.move.name ?: @""} mutableCopy];
+            TrackerAnswer *problem = bound.move.problem;
+            if (problem && !problem.ok && problem.end != TrackerEndSignIn && problem.end != TrackerEndAsksMac)
+                move[@"notMoved"] = problem.why.length ? problem.why : @"it couldn't be moved";
+            if (move[@"notMoved"] && problem.trackerSays.length) move[@"trackerSays"] = problem.trackerSays;
+            answer[@"move"] = move;
+        }
         else if (bound.told) answer[@"move"] = bound.told;
         NSISO8601DateFormatter *iso = [NSISO8601DateFormatter new];
         answer[@"readAt"] = [iso stringFromDate:bound.readAt ?: NSDate.date];

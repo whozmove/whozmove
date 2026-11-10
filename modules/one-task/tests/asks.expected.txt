@@ -15,7 +15,7 @@ Asker takes it back, answered elsewhere: taken back: later leaves the user's lin
 …takes back one with no why it knows: refused: say why it's taken back, as one of answered, parked, dropped
 …takes back one that doesn't wait: gone: no task nope from this session waits
 …by an id that's a path: refused: name the task by the id it was sent with
-Other, leading no team, sends a pick: refused: only a team's chief may send a pick, and this session leads no team
+Other, leading no team, sends a pick: refused: --pick-for is only for a team's lead, and this session leads no team: send it without --pick-for, as your own task
 Asker, the lead, sends a pick for Wren, by name: sent: j12. It shows the user once your team file's queue names it; ask for the answer with ask-panel.sh task-answer j12 --wait
 …asks for its answer before its queue names it: waiting: j12 isn't in your team file's queue yet, so the user doesn't see it
 …sends it again unchanged, by Wren's session id: sent: j12 waits as it was

@@ -1,6 +1,7 @@
 // KeyFacts: what Keys relies on about other programs, which they could change: Betterleaks' flags and where it sits in
 // the app, the kinds of key it names and where each one is replaced, where credential files, shell histories and
-// other AI tools' records are kept, and macOS's folders Keys doesn't open without Full Disk Access. What these were
+// other AI tools' records are kept (the one list of where keys are, which the module offers as KeyPlaces), and macOS's
+// folders Keys doesn't open without Full Disk Access. What these were
 // last checked with is in docs/using/install.md ("What it's tested with").
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import <Foundation/Foundation.h>
@@ -110,4 +111,17 @@ extern const unsigned long long kKeyDownloadsLargest;
 // as a whole. Any other file holds more than the key, and is opened at its line instead.
 NSSet<NSString *> *KeyFileExtensions(void);
 extern const unsigned long long kKeyFileLargest;
+
+// Every place in the home folder, from it, that the lists above name as where keys are kept: the credential files,
+// ssh's folder, the shell histories and the files a shell reads as it starts, and other AI tools' records; and the
+// folders a tool keeps its keys in whole (the cloud tools', GnuPG's and GitHub CLI's), whatever their files are named.
+// What the storage module offers as KeyPlaces (contracts/Module.h).
+NSArray<NSString *> *KeyPlacesInHome(void);
+
+// Whether a file holds keys by what it's called, wherever it is and in any case: by its name (any .env, prod.env and
+// .envrc too; the package tools' and git's credentials; ssh's private keys; one of KeyFileExtensions' kinds but JSON,
+// certificates and key stores; Cloudflare's .dev.vars, credentials.json, a service account's JSON, secrets.yaml and its
+// like, and Terraform's state), or by its last parts, as KeyMCPFiles and KeyAgentFilesInProjects name them
+// (.cursor/mcp.json). Only the path's end is looked at, so it can be any path, or one at a commit's (HEAD:.env).
+BOOL KeyFileByName(NSString *path);
 

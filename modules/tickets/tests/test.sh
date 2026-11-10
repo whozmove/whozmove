@@ -2,7 +2,8 @@
 # The tickets module's tests: a made-up tracker's tickets given to sample sessions by a start and by Use It, never by
 # an ask or a file written by hand; what `ask-panel.sh ticket` and `ticket-use` answer at once, with and without a
 # ticket, an offer waiting or a Not Now; the rows' `ticket`; what's kept for a later copy of the panel and offered back
-# only to the same process; and panel.log carrying no ticket's words (Whozmove --print-tickets, in a throwaway home).
+# only to the same process; and panel.log carrying no ticket's words, and no file in Whozmove's folder its description,
+# which only `ticket`'s answer carries (Whozmove --print-tickets, in a throwaway home).
 # Then moves, in another: ticket-move refused, shown on the row for Move It or Not Now, asked again in the first's
 # place, failing then tried again, its step gone when pressed, gone as the session ends, and taken by itself under May
 # Move Its Ticket, which ends once the ticket changes; ticket-stop marking a person's step, and the mark going; and
@@ -66,6 +67,8 @@ out=$(
     "press-move s5 move ABC-3 8" "press-move s5 move ABC-4 5" "press-move s5 move ABC-3 5 stale" "took" \
     "fails failed" "press-move s5 move ABC-3 5" "moves" "ask s5 ticket" "press-move s5 move ABC-3 5" "took" "moves" \
     "ask s5 ticket" "ask s5 ticket" \
+    "afresh ABC-3" "read s5" "move s5 5 $finish" "fails refused" "press-move s5 move ABC-3 5" "moves" "ask s5 ticket" \
+    "press-move s5 notNow ABC-3 5" "ask s5 ticket" \
     "afresh ABC-3" "read s5" "move s5 8" "press-move s5 notNow ABC-3 8" "moves" "took" "ask s5 ticket" "ask s5 ticket" \
     "move s5 8 $note" "elsewhere ABC-3 5" "press-move s5 move ABC-3 8" "took" "moves" "ask s5 ticket" "read s5" "moves" \
     "afresh ABC-3" "read s6" "move s6 8 $note" "ended s6" "moves" "press-move s6 move ABC-3 8" "took" \
@@ -74,6 +77,7 @@ out=$(
     "afresh ABC-3" "read s5" "stop s5 6 Only QA signs off on payment changes" "move s5 8 $note" "switch s5 on" \
     "menu s5" "moves" "move s5 8 $note" "took" "ask s5 ticket" "menu s5" "moves" \
     "afresh ABC-3" "read s5" "fails failed" "move s5 8" "took" "ask s5 ticket" "moves" \
+    "afresh ABC-3" "read s5" "fails refused" "move s5 8" "took" "ask s5 ticket" "moves" \
     "afresh ABC-3" "read s5" "fails signIn" "move s5 8" "took" "ask s5 ticket" "moves" "press-move s5 move ABC-3 8" \
     "took" "moves" \
     "ask s5 ticket-use ABC-1" "press s5 use" "menu s5" "moves" "menu s5" \

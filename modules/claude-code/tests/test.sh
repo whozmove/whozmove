@@ -1032,11 +1032,12 @@ compare "Don't Wait on Me's files" "$REPO/$HERE/dont-wait.expected.txt" "$dont_w
 # recorded session isn't running, and another, s-sol, runs in Sol's workspace, so it is Sol; and a second session,
 # s-twin, runs in Wren's beside Wren's own, a duplicate. Each but
 # Atlas is a stand-in session whose process runs the real permission hook for a plan (Moss, Pip and Mine: questions,
-# Moss's three of them), as Claude Code would;
+# Moss's three of them), as Claude Code would, and Long, one of yours in shop, runs it twice: a command, then a plan
+# too long for the panel to show whole;
 # Atlas's runs ask-panel.sh whenever `cmd` appears, so the script runs from inside its session. Another process is
 # registered as Atlas's session too, idle, as anything could write in Claude Code's registry.
 answer_cases() {
-  local home="$T/ah" print atlas forged now name wren
+  local home="$T/ah" print atlas forged now name wren long
   mkdir -p "$home/.claude/sessions" "$home/$APPDIR/team" "$T/ah-atlas"
   git -C "$home" init -q -b main shop
   git -C "$home/shop" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
@@ -1082,6 +1083,25 @@ answer_cases() {
     '{"questions":[{"question":"Which index?","options":[{"label":"Titles"},{"label":"Text"}]},
       {"question":"Which pages?","multiSelect":true,"options":[{"label":"Docs"},{"label":"Blog"},{"label":"Shop"}]},
       {"question":"How many results?","kind":"number","min":1,"max":50}]}'
+  # Long, a session of yours with two requests waiting, each from a hook of its own: a command, then a second later a
+  # plan too long for the panel to show whole.
+  mkdir -p "$T/ah-s-long"
+  echo "{\"session_id\":\"s-long\",\"tool_name\":\"Bash\",\"cwd\":\"$home/shop\",
+         \"tool_input\":{\"command\":\"ls\"}}" > "$T/ah-s-long/event"
+  python3 -c 'import json, sys
+print(json.dumps({"session_id": "s-long", "tool_name": "ExitPlanMode", "cwd": sys.argv[1],
+                  "tool_input": {"plan": "# Every page\n" + "Step.\n" * 20000}}))' "$home/shop" > "$T/ah-s-long/event2"
+  # shellcheck disable=SC2016
+  long=$(detached bash -c 'while :; do
+    if [ -e "$1/go" ]; then
+      rm "$1/go"
+      HOME="$2" "$3" "$4" < "$1/event" > "$1/said" 2>&1 &
+      sleep 1
+      HOME="$2" "$3" "$4" < "$1/event2" > "$1/said2" 2>&1 &
+    fi
+    sleep 0.1
+  done' asking "$T/ah-s-long" "$home" "$PY" "$P")
+  register "$long" s-long Long "$home/shop" waiting
   # Atlas runs as a stand-in for Claude Code's own program (stand-in.c under its name, which the print run is told
   # counts as it), in its folder, as only such a session holds the switches kept for its folder.
   mkdir -p "$T/ah-bin"; clang -O0 -o "$T/ah-bin/claude" "$REPO/$HERE/stand-in.c"
@@ -1113,7 +1133,7 @@ JSON
   WHOZMOVE_STAND_IN_CLAUDE="$T/ah-bin/claude:/bin/bash" HOME="$home" "$APP" --print-answer-for 60 "$atlas" "$forged" \
     > "$T/answer.txt" 2>&1 & print=$!
   for i in $(seq 1 100); do [ -S "$home/$APPDIR/hook.sock" ] && break; sleep 0.1; done
-  for name in s-wren s-bea s-mine s-far s-moss s-pip s-ivy s-rex s-sol s-twin; do touch "$T/ah-$name/go"; done
+  for name in s-wren s-bea s-mine s-far s-moss s-pip s-ivy s-rex s-sol s-twin s-long; do touch "$T/ah-$name/go"; done
   for i in $(seq 1 300); do [ -e "$home/$APPDIR/ids.json" ] && break; sleep 0.1; done
   wren=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["s-wren"])' "$home/$APPDIR/ids.json")
   moss=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["s-moss"])' "$home/$APPDIR/ids.json")
@@ -1139,6 +1159,7 @@ SH
   for i in $(seq 1 100); do [ -e "$T/ah-s-wren/went" ] && break; sleep 0.1; done
   for i in $(seq 1 100); do [ -e "$T/ah-s-moss/went" ] && break; sleep 0.1; done
   for i in $(seq 1 100); do [ -e "$T/ah-s-ivy/went" ] && break; sleep 0.1; done
+  for i in $(seq 1 100); do [ -e "$T/ah-s-twin/went" ] && break; sleep 0.1; done
   outside=$(HOME="$home" "$REPO/app/ask-panel.sh" waiting; echo "exit=$?")
   echo "== The cases, and what the panel answers each"
   touch "$home/$APPDIR/answer-for.done"; wait $print
@@ -1156,6 +1177,8 @@ SH
   cat "$T/ah-s-ivy/said"
   echo "== What Rex's real hook passed on to Claude, given allow and approvePlan from the page: nothing, still waiting"
   cat "$T/ah-s-rex/said"
+  echo "== What the real hook of the second session in Wren's workspace passed on to Claude, approved by your press"
+  cat "$T/ah-s-twin/said"
 }
 if [ -n "$SOCKETS" ]; then
   refused_here "Answered for you"
@@ -1317,13 +1340,62 @@ compare "Whozmove's own waits" "$REPO/$HERE/own-waits.expected.txt" "$own" "${1:
 kept_waits=$(HOME="$T" "$APP" --print-kept-waits 2>&1)
 compare "Ended sessions kept while they wait" "$REPO/$HERE/kept-waits.expected.txt" "$kept_waits" "${1:-}" || status=1
 
-# A question asked on a session's side (Whozmove --print-aside), running nothing: the command and the words it runs,
-# the model and program it's asked with, how each ending of its output is read, and its process kept out of everything
-# read from Claude Code's registry while it runs. It has a home of its own, as the earlier sections leave stand-in
+# A question asked on a session's side (Whozmove --print-aside), running nothing of Claude Code's: the command and the
+# words it runs, the model and program it's asked with, how each ending of its output is read, the steps it says as it
+# answers, which versions are asked for its thinking's summaries, what its checker lets it read and run in a sample
+# folder, when a follow-up goes into the open copy and what a fresh one is told, a kept conversation with a stand-in
+# that answers each line, a question asked of stand-ins for Claude Code that take or turn down the summaries' flag, and
+# its process kept out of everything read from Claude Code's registry while it runs. It has a home of its own, as the earlier sections leave stand-in
 # sessions running in the shared home's registry, which the print would count as sessions of its own.
 mkdir -p "$T/aside-home"
 aside=$(HOME="$T/aside-home" "$APP" --print-aside 2>&1)
 compare "Asked on the side" "$REPO/$HERE/aside.expected.txt" "$aside" "${1:-}" || status=1
+
+# The words a side question's copy gives each step it takes (Whozmove --print-aside --steps) beside those the session's
+# own hook gives the same tool call (activity_for), so the two can't drift apart: the same, but where the copy says
+# less on purpose (a file outside the session's folder, a search or pattern naming a path, git's own command in place
+# of Claude's words for it, a tool a side question may not use), which is said beside it. A word that drifts fails.
+mkdir -p "$T/steps-folder/src"
+steps=$(HOME="$T" python3 - "$H" "$APP" "$T/steps-folder" "$T/steps.json" <<'PY' 2>&1
+import importlib.util, json, subprocess, sys
+hook_path, app, folder, samples_path = sys.argv[1:5]
+spec = importlib.util.spec_from_file_location("hook", hook_path)
+hook = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(hook)
+# Each: whether the two say the same (else why not), what it is, the tool and what it was given.
+samples = [
+    ("", "Read, a file in the folder", "Read", {"file_path": folder + "/src/cart.ts"}),
+    ("", "Grep, a word", "Grep", {"pattern": "total"}),
+    ("", "Grep, a long pattern, cut", "Grep", {"pattern": "function (add|remove)LineFromTheCart\\("}),
+    ("", "Glob, a pattern in the folder", "Glob", {"pattern": "src/**/*.ts"}),
+    ("", "Glob, a long pattern, cut", "Glob", {"pattern": "src/components/checkout/**/*.test.tsx"}),
+    ("", "Bash, a command with no words for it", "Bash", {"command": "cat notes.txt"}),
+    ("a file outside the session's folder", "Read, outside the folder", "Read", {"file_path": "/etc/hosts"}),
+    ("a search naming a path", "Grep, a path", "Grep", {"pattern": "/Users/you/"}),
+    ("a pattern naming a path", "Glob, a whole path", "Glob", {"pattern": "/etc/*"}),
+    ("git's own command, not Claude's words", "Bash, git with Claude's words for it", "Bash",
+     {"command": "git log --oneline -5", "description": "Show the last commits in /Users/you/shop"}),
+    ("a tool a side question may not use", "Edit", "Edit", {"file_path": folder + "/src/cart.ts"}),
+]
+with open(samples_path, "w") as out:
+    json.dump([{"tool": tool, "input": given} for _, _, tool, given in samples], out)
+copy = subprocess.run([app, "--print-aside", "--steps", samples_path, folder], capture_output=True, text=True,
+                      check=True).stdout.split("\n")
+drifted = False
+for (apart, what, tool, given), copied in zip(samples, copy):
+    said = hook.activity_for(tool, given)
+    if apart:
+        print(f"{what}: the hook “{said}”, the copy “{copied}” ({apart})")
+    elif said == copied:
+        print(f"{what}: both “{said}”")
+    else:
+        drifted = True
+        print(f"{what}: DRIFTED, the hook “{said}”, the copy “{copied}”")
+sys.exit(1 if drifted else 0)
+PY
+) || { echo "A side question's steps have drifted from the hook's words:"; echo "$steps"; status=1; }
+compare "A side question's steps, beside the hook's" "$REPO/$HERE/aside-steps.expected.txt" "$steps" "${1:-}" \
+  || status=1
 
 # Who may ask the panel in a session's name (Whozmove --print-askers), through the asks' own path with no socket: in a
 # sample home, each a process of the test's own, with its record in Claude Code's registry. Real, Other, Twin, Elsewhere

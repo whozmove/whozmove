@@ -101,6 +101,7 @@
     json[@"team"] = self.team;
     json[@"ticket"] = self.ticket;
     json[@"wait"] = self.wait;
+    json[@"processDraft"] = self.processDraft;
     json[@"answeredFor"] = self.answeredFor;
     json[@"compactTime"] = self.compactTime;
     json[@"compactedFor"] = self.compactedFor;

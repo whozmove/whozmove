@@ -50,7 +50,7 @@ NETWORK = {
     "python": re.compile(r"\burllib\b|\bhttp\.client\b|^\s*(?:import|from)\s+ssl\b|\bAF_INET6?\b"),
 }
 STARTS = {
-    "native": re.compile(r"\b(?:RunTool|RunBriefly|RunConversation|RunInCheckout|SpawnDetached)\(|\bNSTask\b"
+    "native": re.compile(r"\b(?:RunTool|RunBriefly|RunConversation(?:On)?|RunInCheckout|SpawnDetached)\(|\bNSTask\b"
                          r"|\bposix_spawnp?\(|\bpopen\(|\bsystem\(|\bexec[lv]p?e?\("),
     "python": re.compile(r"\bsubprocess\b|\bos\.(?:system|popen|exec\w*|spawn\w*)\("),
 }

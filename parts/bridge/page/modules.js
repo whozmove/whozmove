@@ -18,12 +18,13 @@ const core = {
                        // list is drawn
   drawn: [],           // (list) as soon as the list's new HTML is in, before anything measures it
   afterDraw: [],       // () once the list is drawn and what's under the pointer looked at again
-  // More ways to group the list, by the word its choice in Settings ▸ Session List names (state.groupBy): each
-  // { groups(placed) → [{ key, name, rows }] or null }, its groups in order, each with a key of its own among every
-  // group's (what keeps it folded), its name (null for rows above the groups, with no header), and its rows as placed,
-  // each marked `waits` when it waits on you in the module's own way (it stays in view while its group is folded); null
-  // while there's nothing to group by, when the list is shown newest first.
-  groupings: {},
+  // Groups of a module's own above the projects (the list is always its projects, A to Z): each (placed) → { groups,
+  // rest } or null. `groups` in order, each { key, name, rows } with a key of its own among every group's
+  // (what keeps it folded), its name (null for rows on top with no header) and its rows in the order they were placed;
+  // `rest`, the placed rows it leaves for the projects. A row in neither isn't shown (one the module hides). A row
+  // marked `waits` waits on you in the module's own way, and stays in view while its group is folded. Null while the
+  // module has nothing to group, when the next one is asked, and in the end every row goes under its project.
+  topGroups: [],
   // (s) → whether the session's last reply went to another session rather than to you (whose-move.js): it then counts
   // as read, so it never waits on you.
   repliesElsewhere: [],
@@ -34,11 +35,13 @@ const core = {
   // A row (rows.js). `row` is { s, kind, now, owner, clock, chat }, and what the modules' looks add to it: `kind` is
   // what the session is now (classify), and `chat` says it's drawn as a chat beside the folded panel (chats.js), not in
   // the list.
-  rowLooks: [],        // (row) a module's first look at a row, which keeps what it found on `row` for its parts;
-                       // `row.brief` set there shows the row as its title line (its brief slot's parts after the
-                       // name, and `row.name` in place of the session's, if set), Claude's line without yours (none
-                       // with `row.chatless`), its card and its note, the row marked `brief` (a chat beside the
-                       // folded panel, drawn whole, takes that look as it lands there: landing.js)
+  rowLooks: [],        // (row) a module's first look at a row, which keeps what it found on `row` for its parts. The
+                       // row part has already said whether the row is shown briefly (`row.brief`: every row in the
+                       // list but one still starting from the panel; a chat beside the folded panel is drawn whole,
+                       // and takes that look as it lands there: landing.js): its title line (its brief slot's parts
+                       // after the name, and `row.name` in place of the session's, if set), Claude's line only where
+                       // nothing else says it, its card and its note, the row marked `brief`; and whether that row
+                       // keeps its work line and bottom line all the same (`row.tools`: the row you're on)
   // The cards that can show under a row's chat, one at a time: { name, order, wants(row), html(row), away(row),
   // close(sid) }. The most pressing (lowest order) that wants to show does; the others are away.
   rowCards: [],
@@ -58,7 +61,18 @@ const core = {
   // in afresh around it; the box's words while it says something; a press on the card it takes (true); what's typed in
   // its field or the box; a key in its field it takes (true); a line it adds to your words; what the start carries for
   // its module, by its name, handed to it once the start becomes a session (Module's started:with:); and that it was
-  // sent. `api` is { refresh(), focusBox() }.
+  // sent. Then where it starts: `where(card)`, where the part would have it start, { name } (a worktree by its
+  // branch's name: one that's there, the branch with no folder yet, or a new one), { path } (one of the repo's
+  // folders) or { here } (its own), followed while you haven't picked where yourself, and let go of once the part has
+  // none; `under(card, api)`, the line under the box in the card's own line's place (one element of class `c-under`),
+  // while you haven't picked where yourself; `warn(card, api)`, { text, name }, a warning in the busy notice's place,
+  // its Use a New Worktree giving the worktree named; and `boxKeys(card, event, api)`, a key in the box it takes
+  // (true); and `waits(card, api)`, true while it's still finding out where it starts, which holds Start. Each of a
+  // part's drawn pieces (chip, list, placeholder, words, under, warn) is handed `api` too. `api` is { refresh(),
+  // focusBox(), place(), useHere(), start() }: place() is where the card would start now, { kind (here, open, branch,
+  // new), name, where, path (for one that's there), trust (Start would also trust the folder), app (desktop or
+  // terminal: the one it would start in in the project's own folder), followed, chosen, git, terminal (its name, or null) }; useHere() starts it in the
+  // project's own folder, as your pick; start() is Start.
   startCardParts: [],
   // The places on a row's template, and on a project's header, each (row or project) → HTML: after the name; after the
   // title line's words (the name and the parts after it), and what lines up at its end, before the time; at the end of
@@ -66,8 +80,8 @@ const core = {
   // has that line; the work line's start (the pull requests), its numbers and its steps at its end; the bottom line's
   // start (how the agent is set up) and its end, after where the session runs, which on a row shown briefly goes at its
   // note's end instead, and is drawn nowhere while the row asks something of you; an ask's one action, at its line's
-  // end, for what the ask wants (`askAct`: row.askWant, as 'try' for Deploy), the first
-  // given standing in for the note's own; the project's header after its name; and after the name on a row shown
+  // end, for what the ask wants (`askAct`: row.askWant, as 'try' for Deploy, 'plan' and 'look' for the reader), the
+  // first given standing in for the note's own; the project's header after its name; and after the name on a row shown
   // briefly (row.brief), in place of `name`. Before the title line's are asked, the row says whether it has Claude's
   // line (row.claudeLine), whether it asks something of you (row.asking) and for what (row.askWant), whether the
   // bottom line's end is drawn (row.placeEnd), and whether that end is drawn at its note's end (row.endAtNote: a row
@@ -102,9 +116,13 @@ const core = {
   pointerWatchers: [], // (el) each time what's under the pointer is looked at: what it's on, or null
   // A team's job, as the team module draws it, for what draws its jobs elsewhere (the team board): { track(job, kind) →
   // {count, at, look}, for stepTrackHTML; stageWord(stage) → where a job at that stage is, in the list's words (work,
-  // queued, parked); priorityWord(priority) → Critical, P0, P1 or P2; doNow(priority) → whether it's Critical or P0,
-  // drawn in the colour of something to put right }.
+  // queued, parked); priorityWord(priority) → Critical, P0, P1 or P2; priorityPlace(priority) → {at, of, look}, its
+  // place in that ladder, 0 the most pressing, one it doesn't know as P1's, and its look (urgent, normal or low);
+  // doNow(priority) → whether it's Critical or P0, drawn in the colour of something to put right }.
   teamJob: null,
+  // The ticket on the new conversation card, as the module that gives sessions tickets has it, for the card's other
+  // parts: () → { tracker, site, key }, or null while there's none, or one not made yet (Create a ticket).
+  cardTicket: null,
   // Each kind of task as One Task does it, for what shows an ask of that kind elsewhere (a team's step): { act(kind) →
   // { icon, verb, does } (the kit's icon, its verb, and what a press does with the task in hand: 'copy', 'open',
   // 'read' or 'there'), or null for a kind it doesn't know }.
@@ -130,15 +148,23 @@ const core = {
   // - taskHTML(text) → a task's view of the plan it asks you to approve, from its own block (with or without its
   //   heading): the card alone, bare, every choice as lines, nothing to press; or null;
   // - picks(id) → { changed, note }, how many of your picks on the plan the request `id` waits on differ from
-  //   Claude's, and the notes that send them back; clearPicks(id).
+  //   Claude's, and the notes that send them back; clearPicks(id);
+  // - folded(sessionId, id) → whether that plan is shown folded beside the list (drawn by readerHTML, read Skimmed).
   // Null without the module: each place shows as before.
   plans: null,
-  // The reader module's: planNotes(sid) opens the plan Claude waits on in that session beside the list, with the box
-  // for your notes open, under your picks. Null without the module.
-  planNotes: null,
-  // The Claude Code module's: what you typed in a plan's box on its row, by the request's id, so it goes with your
-  // picks: take(id) hands it over (the row no longer has it), keep(id, words) gives it back. Null without the module.
-  planRowNotes: null,
+  // Each agent's page module (Claude Code's): the plan a session's agent waits for your OK on, and how to answer it, so
+  // the module that shows it beside the list (the reader) reads no agent's request and sends no agent's message. Each
+  // pushes { of(s) → { id (what an answer goes to), at, text (as asked), path, whole (false: it came cut short, its
+  // text not all of it), answerable (false: only its tab answers it), digest (of `text`, which Approve carries), whyNot
+  // (why Approve beside the list can't be offered, in words, or ''), approval (how your last press of Approve went:
+  // { why, at, again }, or null) }, or null while that agent's session waits on no plan; yours(s, id) → your Approve
+  // of request `id` as its row says it went: 'pending', 'approved', 'notTaken' or null; approve(s, id, digest),
+  // sendBack(s, id, message), stop(s, id) and hold(s, id) (being answered beside the list, so no session you allow
+  // answers it meanwhile); and for a plan its session still waits on with no request for it up any more: left(s) →
+  // { id (its writing's), held (only its session's own prompt can answer it) } or null, typeBack(s, id, words) (your
+  // notes typed into the session as a message), and typed(s, id) → how that went: { state ('typing', 'typed' or
+  // 'notTyped'), why, way } or null }. The first whose `of` (or `left`) answers for a session is the one that answers it.
+  planAsks: [],
   cards: [],           // a row's details, opened as something is rested on: { selector, key(anchor), html(anchor) }
 
   // The header (parts/header) and the row you're on, held at the list's edge (sticky.js): what's measured from the

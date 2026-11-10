@@ -2,8 +2,13 @@
 # registering, the page you'd see, tokens) and its server for AI tools (a session, Jira's tools, with made-up tickets on
 # a made-up site), checking what Whozmove sends as Atlassian would: PKCE with S256, the state, the token on every call.
 # It writes the port it listens on to <port file>, and what it was asked, one line each, to <log file>, never a token.
-# In `noscope`, it refuses every write as Jira refuses a token without the write scope.
-#   python3 -I stand-in.py <port file> <log file> [blocked | slow | expired | noscope]
+# In `noscope`, it refuses every write as Jira refuses a token without the write scope; in `nolist`, it turns away the
+# read of a project's priorities, as Jira does for a type you may not create; in `slowtype`, a read leaves the ticket's
+# type out, as a view smaller than the full one does, and it asks to slow down only for the search by key that a read
+# then makes for it. In `silent`, Jira turns every move away saying
+# nothing; in `busy`, Jira answers every move with a 500 that gives reasons all the same.
+#   python3 -I stand-in.py <port file> <log file> [blocked | slow | slowtype | expired | noscope | nolist | drop |
+#   silent | busy]
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 import base64, hashlib, json, sys, urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -19,71 +24,177 @@ def log(line):
     with open(LOG_FILE, "a") as f:
         f.write(line + "\n")
 
-def status(name, key, cid):
-    return {"name": name, "statusCategory": {"key": key, "id": cid}}
+# Each state's category, as Jira has three: an issue in a view smaller than v2's full one names its category alone
+# ({name}), the full view and a step's target give its key ({key}).
+CATEGORIES = {"To Do": ("To Do", "new"), "In Progress": ("In Progress", "indeterminate"),
+              "In Review": ("In Progress", "indeterminate"), "Blocked": ("In Progress", "indeterminate"),
+              "Done": ("Done", "done")}
 
-STATES = {"To Do": status("To Do", "new", 2), "In Progress": status("In Progress", "indeterminate", 4),
-          "In Review": status("In Review", "indeterminate", 4), "Done": status("Done", "done", 3)}
+def issue_status(name, full=False):
+    category = {"key": CATEGORIES[name][1], "name": CATEGORIES[name][0]} if full else {"name": CATEGORIES[name][0]}
+    return {"name": name, "statusCategory": category}
+
+def step_target(name):
+    return {"name": name, "statusCategory": {"key": CATEGORIES[name][1]}}
+
 # Each state's own next steps, as this made-up project's workflow gives them: ids only Jira reads.
 STEPS = {"To Do": [("21", "Start work", "In Progress")],
-         "In Progress": [("31", "Send to review", "In Review"), ("11", "Back to To Do", "To Do")],
+         "In Progress": [("31", "Send to review", "In Review"), ("11", "Back to To Do", "To Do"),
+                         ("41", "Block", "Blocked")],
          "In Review": [("51", "QA sign-off", "Done"), ("61", "Back to In Progress", "In Progress")],
-         "Done": []}
+         "Blocked": [], "Done": []}
 
-def issue(key="PAY-142"):
-    return {"id": "10142", "key": key, "self": "https://ignored.example/rest/api/3/issue/10142", "fields": {
-        "summary": "Login button does nothing on Safari", "status": STATES[state["issue"]],
-        "issuetype": {"name": "Bug", "avatarUrls": {}}, "priority": {"name": "High"},
-        "assignee": {"displayName": "Sam Rivera", "accountId": "abc"},
-        "project": {"key": "PAY", "name": "Payments"}, "resolution": None,
-        "parent": {"key": "PAY-120", "fields": {"summary": "Checkout works in every browser", "issuetype": {"name": "Epic"}}},
-        "customfield_10020": [{"id": 7, "name": "Sprint 13", "state": "closed"}, {"id": 8, "name": "Sprint 14", "state": "active"}]}}
+# The project's priorities, in its scheme's order, with Jira's ids; and one given since that list was read (PAY-151's).
+PRIORITIES = [("1", "Highest"), ("2", "High"), ("3", "Medium"), ("4", "Low"), ("5", "Lowest")]
+LATER = {"id": "10100", "name": "Blocker"}
+
+# Jira turning a request away, as v2 says it: in the answer's data, with each problem's reason.
+def refused(key, reason, field="global0"):
+    return {"data": {"error": "TRANSITION_FAILED", "message": "Jira rejected the transition request for issue %s." % key,
+                     "problems": [{"field": field, "reason": reason}], "repairHint": "Fix each entry in problems.",
+                     "status": 400, "upstreamErrors": {"errorMessages": [reason], "errors": {}}}}
+
+# An issue as v2 gives it. In its full view: the priority's id, the category's key, the type, project, parent, a done
+# one's resolution, its comments, and custom fields by name. In any smaller view, or for a list of fields, which
+# overrides the view: the priority and category by name, no project, parent or resolution, and a type only in a search.
+SPRINTS = [{"id": 7, "name": "Sprint 13", "state": "closed"}, {"id": 8, "name": "Sprint 14", "state": "active"}]
+
+# A ticket's description, as the full view gives it: Markdown text, with markup to stay as text; or, in mode adf,
+# Atlassian's document format; or, in mode longabout, longer than Whozmove hands a session.
+def description():
+    if MODE == "adf":
+        return {"type": "doc", "version": 1, "content": [
+            {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "Made-up description"}]},
+            {"type": "paragraph", "content": [
+                {"type": "text", "text": "The button does nothing on "},
+                {"type": "text", "text": "Safari 17", "marks": [{"type": "strong"}]},
+                {"type": "hardBreak"},
+                {"type": "text", "text": "Seen by "}, {"type": "mention", "attrs": {"id": "made-up", "text": "@Sam Rivera"}},
+                {"type": "text", "text": " "}, {"type": "emoji", "attrs": {"shortName": ":eyes:", "text": "👀"}}]},
+            {"type": "bulletList", "content": [
+                {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Open the checkout"}]}]},
+                {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Press <Pay>"}]}]}]},
+            {"type": "codeBlock", "content": [{"type": "text", "text": "TypeError: pay is undefined"}]},
+            {"type": "paragraph", "content": [{"type": "inlineCard", "attrs": {"url": "https://example.com/steps"}}]},
+            {"type": "mediaSingle", "content": [{"type": "media", "attrs": {"id": "made-up", "type": "file"}}]}]}
+    if MODE == "longabout":
+        return "Made-up description, line after line.\n" * 600
+    return ("Made-up description: the **Login** button does nothing on Safari 17.\n\n"
+            "1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>")
+
+def issue(key="PAY-142", searched=False, args=None):
+    full = (args or {}).get("view") == "full" and "fields" not in (args or {})
+    priority = LATER if key == "PAY-151" else {"id": "2", "name": "High"}
+    fields = {"summary": "Login button does nothing on Safari", "status": issue_status(state["issue"], full),
+              "priority": priority if full else {"name": priority["name"]},
+              "assignee": {"displayName": "Sam Rivera"}, "labels": []}
+    if full:
+        fields.update({
+            "issuetype": {"id": "10004", "name": "Bug", "description": "A problem.", "subtask": False, "hierarchyLevel": 0},
+            "project": {"id": "10000", "key": "PAY", "name": "Payments"},
+            "parent": {"id": "10100", "key": "PAY-100", "fields": {
+                "summary": "Checkout on every browser", "status": issue_status("In Progress", True),
+                "priority": {"id": "3", "name": "Medium"},
+                "issuetype": {"id": "10001", "name": "Epic", "subtask": False, "hierarchyLevel": 1}}},
+            "comment": {"comments": [{"id": "10000", "author": {"displayName": "Sam Rivera"}, "body": "Seen on 17.2 too.",
+                                      "created": "2001-01-01T00:00:00.000+0000", "jsdPublic": True}],
+                        "maxResults": 1, "startAt": 0, "total": 1},
+            "description": description(),
+            "customFields": {"Sprint": {"id": "customfield_10020", "value": SPRINTS}}})
+        if state["issue"] == "Done":
+            fields["resolution"] = {"id": "10000", "name": "Done", "description": "Work on it is complete."}
+    else:
+        fields["customfield_10020"] = SPRINTS
+        if searched:
+            fields["issuetype"] = {"name": "Bug"}
+    return {"id": "10142", "key": key, "fields": fields}
 
 def tool(name, args):
     if name == "getAccessibleAtlassianResources":
-        return [{"id": "11111111-1111-1111-1111-111111111111", "url": SITE, "name": "acme", "scopes": ["read:jira-work"]},
-                {"id": "11111111-1111-1111-1111-111111111111", "url": SITE, "name": "acme", "scopes": ["read:confluence"]}]
+        # As v2 gives them: each site under data's resources, with the products it has; one without Jira is left out.
+        return {"data": {"resources": [
+            {"cloudId": "11111111-1111-1111-1111-111111111111", "url": SITE,
+             "products": [{"access": "read-write", "id": "jira"}]},
+            {"cloudId": "22222222-2222-2222-2222-222222222222", "url": "https://beta.atlassian.net",
+             "products": [{"access": "read-write", "id": "confluence"}]}]}}
     if args.get("cloudId") != SITE:
         return {"error": True, "message": "Unknown site", "statusCode": 404}
     if name == "searchJiraIssuesUsingJql":
-        found = [issue()] if "login" in args.get("jql", "").lower() or "PAY-142" in args.get("jql", "") else []
-        return {"issues": {"totalCount": len(found), "nodes": found, "pageInfo": {"hasNextPage": False}},
-                "context": {"endpoint": "v2:streamable-http"}}
+        found = [issue(searched=True, args=args)] if "login" in args.get("jql", "").lower() or "PAY-142" in args.get("jql", "") else []
+        return {"data": {"appliedContentFormat": "markdown", "isLast": True, "issues": found}}
     if name == "getJiraIssue":
         if args.get("issueIdOrKey") != "PAY-142" and args.get("issueIdOrKey") != "PAY-151":
             return {"error": True, "message": "Issue does not exist or you do not have permission to see it.", "statusCode": 404}
-        return {"data": {"appliedContentFormat": "html", **issue(args["issueIdOrKey"])}}
+        read = issue(args["issueIdOrKey"], args=args)
+        if MODE == "slowtype":
+            read["fields"].pop("issuetype", None)
+        return {"data": {"appliedContentFormat": "markdown", **read}}
     if name == "executeRead":
         inner, inputs = args.get("name"), args.get("inputs", {})
         if inner == "listJiraIssueTransitions":
             fields = {"resolution": {"required": True, "name": "Resolution", "schema": {"type": "resolution"},
                                      "allowedValues": [{"id": "10000", "name": "Done"}, {"id": "10001", "name": "Won't Do"}]}}
-            return {"transitions": [{"id": i, "name": n, "isAvailable": True, "to": STATES[to],
-                                     **({"fields": fields} if to == "Done" else {})}
-                                    for i, n, to in STEPS[state["issue"]]]}
+            return {"data": {"transitions": [{"id": i, "name": n, "isAvailable": True, "to": step_target(to),
+                                              "hasScreen": to == "Done", "fields": fields if to == "Done" else {}}
+                                             for i, n, to in STEPS[state["issue"]]]}}
         if inner == "listJiraProjectIssueTypesMetadata":
             if inputs.get("projectIdOrKey") != "PAY":
                 return {"error": True, "message": "No project could be found with key '%s'." % inputs.get("projectIdOrKey"),
                         "statusCode": 404}
-            return {"issueTypes": [{"id": "10001", "name": "Task"}, {"id": "10004", "name": "Bug"},
-                                   {"id": "10007", "name": "Story"}]}
+            return {"data": {"issueTypes": [{"id": "10001", "name": "Task", "subtask": False},
+                                            {"id": "10004", "name": "Bug", "subtask": False},
+                                            {"id": "10007", "name": "Story", "subtask": False}],
+                             "maxResults": 50, "startAt": 0, "total": 3}}
+        if inner == "getJiraIssueTypeMetaWithFields":
+            if MODE == "nolist":
+                return {"error": True, "message": "You do not have permission to create issues in this project.",
+                        "statusCode": 403}
+            if inputs.get("projectIdOrKey") != "PAY" or inputs.get("issueTypeId") != "10001":
+                return {"error": True, "message": "Issue type not found", "statusCode": 404}
+            # As Jira gives a type's create fields: a page of them, the priority field's allowed values in order, a
+            # made-up Region that lists its options, and a Team looked up as you type, which lists none.
+            return {"startAt": 0, "maxResults": 50, "total": 4, "fields": [
+                {"fieldId": "summary", "key": "summary", "name": "Summary", "required": True, "schema": {"type": "string", "system": "summary"}},
+                {"fieldId": "priority", "key": "priority", "name": "Priority", "required": False,
+                 "schema": {"type": "priority", "system": "priority"},
+                 "allowedValues": [{"self": "https://ignored.example", "id": i, "name": n} for i, n in PRIORITIES]},
+                {"fieldId": "customfield_10300", "key": "customfield_10300", "name": "Region", "required": False,
+                 "schema": {"type": "option", "custom": "select"},
+                 "allowedValues": [{"id": "10400", "value": "North"}, {"id": "10401", "value": "South"}]},
+                {"fieldId": "customfield_10001", "key": "customfield_10001", "name": "Team", "required": False,
+                 "schema": {"type": "team", "custom": "atlassian-team"}}]}
         if inner == "listJiraBoards":
-            return {"values": [{"id": 3, "name": "Payments board", "type": "scrum"}]}
+            return {"data": {"isLast": True, "maxResults": 50, "startAt": 0, "total": 1,
+                             "values": [{"id": 3, "name": "Payments board", "type": "scrum",
+                                         "location": {"projectKey": "PAY", "projectName": "Payments"}}]}}
         return {"error": True, "message": 'Unknown operation "%s". Use discover to find valid operation names.' % inner,
                 "statusCode": 400}
     if name == "transitionJiraIssue":
+        key = args.get("issueIdOrKey", "")
         steps = {i: to for i, n, to in STEPS[state["issue"]]}
-        to = steps.get(args.get("transition", {}).get("id"))
+        to = steps.get(args.get("transitionId"))
+        if MODE == "silent":
+            return {"data": {"error": "TRANSITION_FAILED", "status": 409}}
+        if MODE == "busy":
+            busy = refused(key, "Something went wrong on our side. Try again in a moment.")
+            busy["data"]["status"] = 500
+            return busy
         if not to:
-            return {"error": True, "message": "Transition is not valid", "statusCode": 400}
+            return refused(key, "Can't move (%s). You might not have permission, or the work item is missing required "
+                                "information." % key)
         # As Jira does, a step to Done needs its resolution, given as one of the screen's allowed values by its id.
         if to == "Done" and args.get("fields", {}).get("resolution") not in ({"id": "10000"}, {"id": "10001"}):
-            return {"error": True, "message": "Resolution is required.", "statusCode": 400}
+            return refused(key, "Resolution is required.", "resolution")
+        # Block wants a field that isn't on its screen filled in first, as a site's validator can.
+        if to == "Blocked":
+            return refused(key, "Fill in Blocked by first: what is it waiting on?")
         state["issue"] = to
-        return {"success": True}
+        return {"data": {"message": "Issue %s transitioned successfully" % key, "statusName": to,
+                         "transitionId": int(args["transitionId"])}}
     if name == "addOrEditJiraIssueComment":
         state["notes"].append(args.get("commentBody", ""))
-        return {"id": "20001"}
+        return {"data": {"appliedContentFormat": "markdown", "body": args.get("commentBody", ""), "commentId": "20001",
+                         "message": "Comment added to %s successfully" % args.get("issueIdOrKey", "")}}
     if name == "createJiraIssue":
         if not (args.get("projectKey") and args.get("issueType") and args.get("summary")):
             return {"error": True, "message": "Missing fields", "statusCode": 400}
@@ -93,8 +204,8 @@ def tool(name, args):
         state["made"] += 1
         # One the test can't read back just after it's made, as a read can fail then.
         if "unread" in args.get("summary", ""):
-            return {"key": "PAY-152", "id": "10152", "self": "https://ignored.example"}
-        return {"key": "PAY-151", "id": "10151", "self": "https://ignored.example"}
+            return {"data": {"id": "10152", "key": "PAY-152"}}
+        return {"data": {"id": "10151", "key": "PAY-151"}}
     return {"error": True, "message": "Unknown tool", "statusCode": 400}
 
 def challenge_of(verifier):
@@ -202,7 +313,8 @@ class Handler(BaseHTTPRequestHandler):
                     state["access"] = "gone"
                     log("POST tools/call %s: turned away, the token has run out" % shown)
                     return self.send(401, {"error": "invalid_token"})
-                if MODE == "slow":
+                by_key = name == "searchJiraIssuesUsingJql" and args.get("jql", "").startswith("key = ")
+                if MODE == "slow" or (MODE == "slowtype" and by_key):
                     log("POST tools/call %s: asked to slow down" % shown)
                     return self.send(429, {"error": "rate_limited"}, {"Retry-After": "30"})
                 writes = name in ("transitionJiraIssue", "addOrEditJiraIssueComment", "createJiraIssue", "executeWrite")
@@ -211,6 +323,31 @@ class Handler(BaseHTTPRequestHandler):
                     value = {"error": True, "message": "Unauthorized; scope does not match", "statusCode": 401}
                     result = {"content": [{"type": "text", "text": json.dumps(value)}]}
                     return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})
+                if MODE == "failreads" and name == "getJiraIssue":
+                    # Each read fails another way, every one with words of its own that must never reach a log.
+                    state["failed"] = state.get("failed", 0) + 1
+                    words = "Made-up server words: <b>nope</b> & more"
+                    how = state["failed"]
+                    log("POST tools/call %s: failed, way %d" % (shown, how))
+                    if how == 1:
+                        return self.send(502, {"error": words})
+                    if how == 2:
+                        return self.send(200, {"jsonrpc": "2.0", "id": message["id"],
+                                               "error": {"code": -32603, "message": words}})
+                    if how == 3:
+                        return self.send(200, ("<html>%s</html>" % words).encode(), None, "text/html")
+                    if how == 4:
+                        result = {"content": [{"type": "text", "text": words}], "isError": True}
+                        return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})
+                    if how == 5:
+                        value = {"error": True, "message": words, "statusCode": 503}
+                        result = {"content": [{"type": "text", "text": json.dumps(value)}], "isError": True}
+                        return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})
+                    if how == 6:
+                        result = {"content": [{"type": "text", "text": json.dumps({"error": True, "message": words})}]}
+                        return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})
+                    self.close_connection = True
+                    return
                 if MODE == "drop" and name == "createJiraIssue":
                     # Made, then the answer lost on its way back, as a dropped connection or a timeout loses it.
                     state["made"] += 1
@@ -220,6 +357,10 @@ class Handler(BaseHTTPRequestHandler):
                 log("POST tools/call %s%s%s" % (shown, " with a note" if args.get("commentBody") else "",
                                                 " with fields " + json.dumps(args["fields"], sort_keys=True)
                                                 if name == "transitionJiraIssue" and "fields" in args else ""))
+                if name == "transitionJiraIssue" and "transitionId" not in args:
+                    result = {"content": [{"type": "text", "text": "Invalid arguments: transitionId is required"}],
+                              "isError": True}
+                    return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})
                 value = tool(name, args)
                 result = {"content": [{"type": "text", "text": json.dumps(value)}]}
                 return self.send(200, {"jsonrpc": "2.0", "id": message["id"], "result": result})

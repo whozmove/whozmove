@@ -17,15 +17,65 @@ const tSent = (sessionId, id, at, more = {}) => ({ sessionId, at, task: { id, ki
 const tKeys = (items) => items.map((i) => i.key).join(', ');
 
 section('What waits, in order');
-show('by priority, the oldest first; Can\'t Now at the back; trailmap\'s own request not among them', tKeys(taskLine([
-  tSent('shop', 'old', min(30)), tSent('cli', 'low', min(40), { priority: 'low' }), tSent('shop', 'new', min(5)),
-  tSent('cli', 'back', min(50), { back: true }), tSent('shop', 'urgent', min(1), { priority: 'urgent' }),
-], tSessions)));
+// A session's ticket as its row carries it (rows.md: ticket): its priority in its tracker's own word, and its place in
+// that tracker's list, the most pressing first, of how many.
+const tTicket = (priority, priorityAt, priorities) => ({ bound: { tracker: 'Jira', site: 'acme.atlassian.net',
+                                                                  key: 'PAY-1', priority, priorityAt, priorities } });
+const tTicketed = (sessionId, name, ...ticket) => session({ sessionId, name, ticket: tTicket(...ticket) });
+show('by each ticket\'s priority, the oldest first; no ticket after; Can\'t Now at the back; trailmap\'s own request '
+     + 'not among them', tKeys(taskLine([
+  tSent('shop', 'old', min(30)), tSent('low', 'low', min(40)), tSent('shop', 'new', min(5)),
+  tSent('cli', 'back', min(50), { back: true }), tSent('high', 'high', min(1)),
+], [...tSessions, tTicketed('low', 'billing', 'Low', 3, 5), tTicketed('high', 'checkout', 'Highest', 0, 5)])));
 show('a task from a session that isn\'t listed is left out', tKeys(taskLine([tSent('gone', 'x', min(3))], tSessions)));
 show('a request waiting on you, and no task: nothing (the request stays on its row in the list)',
      tKeys(taskLine([], tSessions)));
 show('a task waiting, and a request beside it: the task alone', tKeys(taskLine([
   tSent('app', 'Offline maps', min(10))], tSessions)));
+
+section('By each ticket\'s priority');
+const tLadder = ['Critical', 'P0', 'P1', 'P2'];
+const tRung = (sessionId, word) => tTicketed(sessionId, sessionId, word, tLadder.indexOf(word), tLadder.length);
+show('cards arriving P2, Critical, P0, Critical: Critical, Critical in the order they came, P0, P2', tKeys(taskLine([
+  tSent('d', 'p2', min(40)), tSent('a', 'critical-first', min(30)), tSent('c', 'p0', min(20)),
+  tSent('b', 'critical-second', min(10))], [tRung('d', 'P2'), tRung('a', 'Critical'), tRung('c', 'P0'),
+                                             tRung('b', 'Critical')])));
+const tTwo = [tTicketed('blocker', 'Kit', 'Blocker', 0, 3), tTicketed('highest', 'Wren', 'Highest', 0, 5),
+              tTicketed('minor', 'Moss', 'Minor', 2, 3), tTicketed('medium', 'Fern', 'Medium', 2, 5),
+              tTicketed('lowest', 'Ash', 'Lowest', 4, 5)];
+show('two trackers compared from the top: Blocker of three and Highest of five tie, the one that waited longer first; '
+     + 'Minor of three ties Medium of five; Lowest after both', tKeys(taskLine([
+  tSent('lowest', 'lowest', min(90)), tSent('medium', 'medium', min(10)), tSent('minor', 'minor', min(20)),
+  tSent('highest', 'highest', min(5)), tSent('blocker', 'blocker', min(8))], tTwo)));
+const tUnplaced = tTicketed('unplaced', 'Rue', 'Blocker', undefined, undefined);
+show('no ticket, or a priority not placed yet, after every placed one, in the order they came; Can\'t Now last',
+     tKeys(taskLine([tSent('shop', 'no-ticket', min(30)), tSent('unplaced', 'not-placed', min(40)),
+                     tSent('lowest', 'lowest', min(1)), tSent('highest', 'put-back', min(50), { back: true })],
+                    [...tTwo, tShop, tUnplaced])));
+show('a priority written into the task itself counts for nothing', tKeys(taskLine([
+  tSent('shop', 'says-urgent', min(1), { priority: 'urgent' }), tSent('lowest', 'lowest', min(9))], [tShop, ...tTwo])));
+show('to do now, and each place\'s look, on lists of five, three, seven, four, two and one', [5, 3, 7, 4, 2, 1]
+  .map((of) => `of ${of}: ${Array.from({ length: of }, (_, at) => `${at}${taskDoNow({ place: { at, of } }) ? ' now'
+    : ''} ${taskLook({ place: { at, of } })}`).join(', ')}`));
+show('…no ticket, a priority not placed, or put back with Can\'t Now: never, and normal', [
+  taskDoNow({ place: null }), taskDoNow({ place: { at: null, of: null, word: 'Blocker' } }),
+  taskDoNow({ place: { at: 0, of: 5 }, back: true }), taskLook({ place: null })]);
+show('a queue\'s Critical, P0, P1, P2 and none, by the team module\'s place', ['critical', 'p0', 'p1', 'p2', undefined]
+  .map((p) => { const place = core.teamJob.priorityPlace(p);
+                return `${p ?? 'none'}: ${place.at} of ${place.of}${taskDoNow({ place }) ? ', to do now' : ''}`; }));
+const tFromLine = taskLine([tSent('blocker', 'Fix <the> login: Safari', min(8)), tSent('highest', 'Search', min(5)),
+                            tSent('shop', 'Notes', min(30)), tSent('unplaced', 'Billing', min(40))],
+                           [...tTwo, tShop, tUnplaced]);
+show('who it\'s from, with its ticket\'s word; none without a ticket', tFromLine.map(taskFrom));
+show('why each is here', tFromLine.map((i) => taskWhyHere(i, tFromLine, min(0))));
+const tBare = (sessionId, bound) => session({ sessionId, name: sessionId, ticket: { bound } });
+const tBareLine = taskLine([tSent('read', 'a', min(6)), tSent('unread', 'b', min(4))], [
+  tBare('read', { tracker: 'Jira', key: 'PAY-2', readAt: min(1) }), tBare('unread', { tracker: 'Jira', key: 'PAY-3' })]);
+show('…a ticket with no priority, and one not read yet since Whozmove started',
+     tBareLine.map((i) => taskWhyHere(i, tBareLine, min(0))));
+show('the strip: two to do now, and one, a title with ": " in it, escaped', [
+  taskStripHTML(taskUrgentOthers(tFromLine, 'task:shop:Notes'), null),
+  taskStripHTML(taskUrgentOthers(tFromLine, 'task:shop:Notes').slice(0, 1), null)]);
 
 section('The one in front');
 const tLine = taskLine([tSent('shop', 'old', min(30)), tSent('shop', 'new', min(5))], [tShop]);
@@ -166,9 +216,10 @@ const tWren = session({ sessionId: 'wren', name: 'Wren', writings: [{ id: 'w9', 
 const tPicked0 = { sessionId: 'lead', at: min(30), sent: min(30), pick: true, for: 'wren',
                 task: { id: 'j12', kind: 'approve', title: 'Search box', why: 'Wren\'s plan.',
                         attach: [{ kind: 'file', label: 'The plan', path: '/work/app/plans/search.md' }] } };
-const tPickLine = taskLine([tSent('shop', 'normal', min(60)), tPicked0, tSent('shop', 'urgent', min(5), { priority: 'urgent' })],
-                         [tShop, tLead, tWren]);
-show('after anything urgent, before the rest; its member\'s own request not among them', tKeys(tPickLine));
+const tPickLine = taskLine([tSent('shop', 'no-ticket', min(60)), tPicked0, tSent('highest', 'highest', min(5))],
+                         [tShop, tLead, tWren, tTwo[1]]);
+show('not named by its queue yet, its member with no ticket: with the rest, first come first served; its member\'s own '
+     + 'request not among them', tKeys(tPickLine));
 const tPicked = tPickLine.find((i) => i.pick);
 show('its head, and where your answer goes', [taskFrom(tPicked), taskSaid(tPicked, 'Approve', '')]);
 show('without its member listed', taskFrom(taskLine([tPicked0], [tLead])[0]));
@@ -178,9 +229,10 @@ const tNamed = taskLine([tPicked0], [session({ sessionId: 'lead', name: 'lead', 
 show('named by their names in the team, not their sessions\'', [taskFrom(tNamed), taskSaid(tNamed, 'Approve', ''),
                                                                  taskNotice([tNamed], 0).text, taskSayWords(tNamed)]);
 show('Take me there and its changes go to its member', taskThere(tPicked).name);
-show('the line under the header says it as its head does, urgent when the pick is', [
-  taskNotice([tPicked], 0).text, taskUrgentNotice([{ ...tPicked, task: { ...tPicked.task, priority: 'urgent' } }])
-    .level]);
+const tWrenHot = session({ sessionId: 'wren', name: 'Wren', ticket: tTicket('Highest', 0, 5) });
+show('the line under the header says it as its head does, and to do now when its member\'s ticket is', [
+  taskNotice([tPicked], 0).text, taskUrgentNotice(taskLine([tPicked0], [tLead, tWrenHot])).text,
+  taskUrgentNotice(taskLine([tPicked0], [tLead, tWrenHot])).level]);
 const tAllOf = (item) => {
   const to = talkTo(item, [tLead, tWren], false);
   return [taskFrom(item), taskSaid(item, 'Approve', ''), taskThere(item).name, taskNotice([item], 0).text,
@@ -198,62 +250,54 @@ show('two of the lead\'s picks waiting, the one before unanswered: both in line,
                                                                                      title: 'Search results' } }],
                     [tLead, tWren])));
 show('a pick reworded while it\'s in front: the foot says who changed it', taskUpdatedWords(tPicked));
-show('the lead\'s picks in its queue\'s order, one off the queue after them, all after anything urgent', tKeys(taskLine([
-  { ...tPicked0, pickAt: 1, task: { ...tPicked0.task, id: 'b' } },
-  { ...tPicked0, at: min(90), task: { ...tPicked0.task, id: 'off' } },
-  { ...tPicked0, pickAt: 0, at: min(1), task: { ...tPicked0.task, id: 'a' } },
-  tSent('shop', 'urgent', min(2), { priority: 'urgent' })], [tShop, tLead, tWren])));
-// A pick the queue names, with how pressing its job is there (`pickPriority`, from the queue): Critical and P0 come
-// before everything else, Critical first, each in the queue's order.
+// A pick the queue names, with how pressing its job is there (`pickPriority`, from the queue), and when the queue
+// first named it (`shownAt`): its member with no ticket, it takes its job's place in the queue's ladder.
 const tQueued = (id, pickAt, pickPriority, more = {}) => ({ ...tPicked0, pickAt, pickPriority, at: min(20),
   task: { ...tPicked0.task, id }, ...more });
-const tFirst = [tSent('shop', 'old', min(90)), tQueued('p1-pick', 0, 'p1'), tQueued('p0-pick', 1, 'p0'),
-                tQueued('crit-pick', 2, 'critical'), tSent('shop', 'urgent', min(2), { priority: 'urgent' })];
-show('a Critical or P0 pick comes before everything else: Critical, then P0, then urgent, the P1 pick, the rest',
-     tKeys(taskLine(tFirst, [tShop, tLead, tWren])));
-show('…and the same when the user chose the oldest first', tKeys(taskLine(tFirst, [tShop, tLead, tWren],
-                                                                         { next: 'oldest' })));
-show('…each in the queue\'s order', tKeys(taskLine([tQueued('c2', 3, 'critical'), tQueued('c1', 1, 'critical'),
-                                                    tQueued('z1', 2, 'p0'), tQueued('z0', 0, 'p0')],
-                                                   [tShop, tLead, tWren])));
-show('a P1 or P2 pick keeps its old place, after anything urgent', tKeys(taskLine([
-  tSent('shop', 'old', min(90)), tQueued('p2-pick', 1, 'p2'), tQueued('p1-pick', 0, 'p1'),
-  tSent('shop', 'urgent', min(2), { priority: 'urgent' })], [tShop, tLead, tWren])));
-show('a pick the queue no longer names loses it, and goes after those it names', tKeys(taskLine([
-  tQueued('named', 0, 'p1'), tQueued('dropped', undefined, 'critical', { pickPriority: undefined }),
-  tQueued('also-dropped', undefined, 'critical')], [tShop, tLead, tWren])));
+show('the lead\'s picks by their jobs\' priority in its queue, each from when the queue first named it; one off the '
+     + 'queue with those that have none', tKeys(taskLine([
+  tQueued('p1-named-last', 2, 'p1', { at: min(40), shownAt: min(3) }),
+  tQueued('p1-named-first', 0, 'p1', { shownAt: min(10) }), tQueued('p0', 1, 'p0', { at: min(5), shownAt: min(5) }),
+  tQueued('off', undefined, undefined, { at: min(90) }), tSent('shop', 'no-ticket', min(60))], [tShop, tLead, tWren])));
+show('…a job with no priority counts as P1, as the team module reads it', taskWhyHere(taskLine([
+  tQueued('none', 0, undefined)], [tLead, tWren])[0], [], min(0)));
+show('…its member\'s ticket placed: the ticket\'s place and word, not the queue\'s', [taskLine([
+  tQueued('crit-pick', 0, 'critical')], [tLead, tTicketed('wren', 'Wren', 'Low', 3, 5)])[0]].map((i) =>
+  `${i.place.word} ${i.place.at} of ${i.place.of}: ${taskWhyHere(i, [i], min(0))}`));
 show('…a task put back with Can\'t Now still goes to the back', tKeys(taskLine([
   tSent('shop', 'old', min(90)), tQueued('crit-pick', 0, 'critical', { back: true })], [tShop, tLead, tWren])));
 const tAtlas = session({ sessionId: 'lead', name: 'lead', team: { role: 'lead', name: 'Atlas' } });
 const tCrit = taskLine([tQueued('crit-pick', 0, 'critical'), tQueued('p0-pick', 1, 'p0')], [tShop, tAtlas, tWren]);
-show('the why line: the lead\'s name and the ladder\'s word, or "the chief" when the file gives no name',
-     [...tCrit.map((i) => taskWhyHere(i, tCrit, min(0))),
-      taskWhyHere(taskLine([tQueued('crit-pick', 0, 'critical')], [tShop, tLead, tWren])[0], [], min(0))]);
+show('the why line: the ladder\'s word in the lead\'s queue, by its name in the team',
+     tCrit.map((i) => taskWhyHere(i, tCrit, min(0))));
 
-section('Something urgent while you\'re on a task');
+section('Something to do now while you\'re on a task');
 const tOn = taskLine([tSent('shop', 'search', min(20)), tSent('cli', 'notes', min(15))], tSessions);
-const tUrg = (id, at) => tSent('app', id, at, { priority: 'urgent' });
+// trailmap works on a Highest ticket, so each of its tasks is one to do now.
+const tHot = [tShop, tCli, session({ ...tApp, ticket: tTicket('Highest', 0, 5) })];
+const tUrg = (id, at) => tSent('app', id, at);
 const tWith = (...urgent) => taskLine([tSent('shop', 'search', min(20)), tSent('cli', 'notes', min(15)), ...urgent],
-                                      tSessions);
+                                      tHot);
 const tSeen = (...steps) => (step) => steps.includes(step);
 const tFront = (items, on) => { const r = taskChooseFront(items, { seen: tSeen(), ...on });
   return [r.front?.key ?? null, r.gone ? 'gone' : null]; };
-show('not seen yet: something urgent takes the front, as before', tFront(tWith(tUrg('crash', min(1))),
+show('not seen yet: one to do now takes the front, as before', tFront(tWith(tUrg('crash', min(1))),
                                                                          { key: tOn[0].key }));
 show('seen: it stays, whatever comes', tFront(tWith(tUrg('crash', min(1))),
                                               { key: tOn[0].key, seen: tSeen(tOn[0].key) }));
 show('…pointed at or typed in, not seen yet: it stays too', tFront(tWith(tUrg('crash', min(1))),
                                                                      { key: tOn[0].key, held: true }));
-show('…a newer task that isn\'t urgent: it stays', tFront(taskLine([...[tSent('shop', 'search', min(20))],
+show('…a newer task that isn\'t to do now: it stays', tFront(taskLine([...[tSent('shop', 'search', min(20))],
   tSent('cli', 'older', min(90))], tSessions), { key: 'task:shop:search', seen: tSeen(tOn[0].key) }));
 const tUrgents = tWith(tUrg('crash', min(1)), tUrg('backup', min(2)));
-show('the urgent ones while you\'re on another, and what the strip says: one, and two',
+show('those to do now while you\'re on another, and what the strip says: one, and two',
      [taskUrgentOthers(tUrgents, tOn[0].key).map((i) => i.task.id), taskUrgentWords(taskUrgentOthers(tWith(
        tUrg('crash', min(1))), tOn[0].key)), taskUrgentWords(taskUrgentOthers(tUrgents, tOn[0].key))]);
 const tAside = { key: tOn[0].key, step: taskStepKey(tOn[0]) };
-show('Go: the urgent one a press brought in', tFront(tUrgents, { next: 'task:app:backup', key: tOn[0].key, aside: tAside }));
-show('…answered one, set aside: the next urgent one', tFront(tWith(tUrg('crash', min(1))), { key: 'task:app:backup',
-                                                                                             aside: tAside }));
+show('Go: the one to do now a press brought in', tFront(tUrgents, { next: 'task:app:backup', key: tOn[0].key,
+                                                                     aside: tAside }));
+show('…answered one, set aside: the next one to do now', tFront(tWith(tUrg('crash', min(1))),
+                                                                  { key: 'task:app:backup', aside: tAside }));
 show('…answered both: back to the one set aside, as you left it', tFront(tOn, { key: 'task:app:crash',
                                                                                 aside: tAside }));
 show('…its next step came meanwhile: back to it all the same, keeping your words', tFront(taskLine([
@@ -265,23 +309,29 @@ show('…gone meanwhile', tFront([tOn[1]], { key: 'task:app:crash', aside: tAsid
 show('what the foot says of it: taken back, parked, gone; and once you\'re back', [
   taskAsideGone('Search box', { ...tOn[0], takenBack: 'answered' }), taskAsideGone('Search box', { ...tOn[0],
   takenBack: 'parked' }), taskAsideGone('Search box', null), taskBackWords('Search box')]);
-show('the strip: what\'s urgent with Go, and ‹ Back', [taskStripHTML(taskUrgentOthers(tUrgents, tOn[0].key), null),
+show('the strip: what\'s to do now with Go, and ‹ Back', [taskStripHTML(taskUrgentOthers(tUrgents, tOn[0].key), null),
                                                       taskStripHTML([], { title: 'Search <box>' })]);
-show('Go sets aside a task with no priority, a normal one and a low one, never an urgent one',
-     [{}, { priority: 'normal' }, { priority: 'low' }, { priority: 'urgent' }].map((more) =>
-       taskSetsAside(taskLine([tSent('shop', 'x', min(3), more)], tSessions)[0])));
-const tNormal = taskLine([tSent('shop', 'search', min(20), { priority: 'normal' }), tUrg('crash', min(1))], tSessions);
+show('Go sets aside any task: one with no ticket, one at the lowest place, one to do now',
+     [tShop, tTicketed('shop', 'storefront', 'Lowest', 4, 5), tTicketed('shop', 'storefront', 'Highest', 0, 5)]
+       .map((s) => taskSetsAside(taskLine([tSent('shop', 'x', min(3))], [s])[0])));
+const tNormal = taskLine([tSent('shop', 'search', min(20)), tUrg('crash', min(1))], tHot);
 const tNormalOn = tNormal.find((i) => i.task.id === 'search');
-show('…a normal task set aside comes back as you left it, after the urgent one', tFront(
+show('…a task set aside comes back as you left it, after the one to do now', tFront(
   tNormal.filter((i) => i.task.id === 'search'), { key: 'task:app:crash', aside: { key: tNormalOn.key,
                                                                                     step: taskStepKey(tNormalOn) } }));
-const tLow = taskLine([tSent('shop', 'search', min(20), { priority: 'low' })], tSessions)[0];
-show('…and a low one', tFront([tLow], { key: 'task:app:crash', aside: { key: tLow.key, step: taskStepKey(tLow) } }));
+const tBehind = taskLine([tSent('app', 'first-highest', min(20)), tSent('app', 'later-highest', min(1)),
+                          tSent('blocker', 'blocker-earlier', min(30))], [...tHot, ...tTwo]);
+show('on one to do now: only those ahead of it ask, never one that came after it in the same place',
+     taskUrgentOthers(tBehind, 'task:app:first-highest').map((i) => i.task.id));
+show('…set aside: those to do now ahead of it come first, in the line\'s order', [
+  tFront(tBehind, { key: 'task:blocker:blocker-earlier', aside: { key: 'task:app:later-highest' } }),
+  tFront(tBehind.filter((i) => i.task.id !== 'blocker-earlier'), { key: 'task:app:first-highest',
+                                                                   aside: { key: 'task:app:later-highest' } })]);
 // Read once, kept read: what you've read is asked of by task, not by step, so a reword (a lead's pick, a session's next
 // step) never lets something else take its place.
 const tReworded = (...more) => taskLine([tSent('shop', 'search', min(20)), tSent('cli', 'notes', min(30)), ...more],
-                                        tSessions).map((i) => (i.task.id === 'search' ? { ...i, sent: i.sent + 1 } : i));
-show('read, then reworded, with something urgent sent: it stays, the urgent one asking from the top', tFront(
+                                        tHot).map((i) => (i.task.id === 'search' ? { ...i, sent: i.sent + 1 } : i));
+show('read, then reworded, with one to do now sent: it stays, that one asking from the top', tFront(
   tReworded(tUrg('crash', min(1))), { key: 'task:shop:search', seen: tSeen('task:shop:search') }));
 show('read, then reworded, with an older task waiting: it stays', tFront(tReworded(),
   { key: 'task:shop:search', seen: tSeen('task:shop:search') }));
@@ -344,8 +394,8 @@ show('…the one you were last on, not read: none, the line\'s first then',
 show('…after a restart: the one read most recently, never one at the back nor one taken back', tOpens(null));
 show('…after a restart, nothing read: none', taskOpensOn(taskLine([tSent('cli', 'unread', min(5))], tSessions), null,
                                                          () => true));
-show('the foot\'s count, with how many are urgent', [taskMoreWords(3, true, 2), taskMoreWords(3, true)]);
-show('the urgent line under the header, and the line for the rest', [taskUrgentNotice(tUrgents), taskNotice(tUrgents,
+show('the foot\'s count, with how many are to do now', [taskMoreWords(3, true, 2), taskMoreWords(3, true)]);
+show('the to-do-now line under the header, and the line for the rest', [taskUrgentNotice(tUrgents), taskNotice(tUrgents,
                                                                                                              0)?.text]);
 const tTaken = (why) => taskLine([{ ...tPicked0, takenBack: why }], [tLead, tWren])[0];
 show('taken back by the lead: what\'s said of it, by why', ['answered', 'parked', 'dropped', 'other'].map((why) =>
@@ -410,7 +460,12 @@ show('…with a task from another session: the line names only that task',
      taskNotice(taskLine([tSent('shop', 'Passkeys', min(9))], [tQuiz, tShop]), 0)?.text);
 const tOne = taskNotice(taskLine([tSent('shop', 'Passkey sign-in', min(9), { step: { n: 2, of: 3 } })], [tShop]), 0);
 show('a task in front, the only one: its title, and no count after it', [tOne.text, tOne.after ?? null, tOne.chip]);
-show('a low one', taskNotice(taskLine([tSent('cli', 'Nightly', min(9), { priority: 'low' })], tSessions), 0).level);
+show('one at its list\'s lowest place: soon, as every one not to do now', taskNotice(taskLine([
+  tSent('lowest', 'Nightly', min(9))], tTwo), 0).level);
+const tLoneHot = taskLine([tUrg('crash', min(3))], tHot);
+show('one to do now, alone: its own line says it, and this one only once you\'ve read it and closed One Task',
+     [taskUrgentNotice(tLoneHot)?.text, taskNotice(tLoneHot, 0), taskUrgentNotice(tLoneHot, tLoneHot[0].key),
+      taskNotice(tLoneHot, 0, tLoneHot[0].key)?.text]);
 show('nothing waits', taskNotice([], 0));
 const tNewer = taskLine([{ ...tSent('shop', 'Later', min(1)), sent: min(1) }, tSent('shop', 'Passkeys', min(9))],
                         tSessions);
@@ -525,18 +580,20 @@ show('…a reply its agent cut, and one from before Whozmove restarted',
                   { s: tIdle, name: 'storefront', lead: false, gone: false }));
 
 section('How One Task works, as its page under Tools sets it');
-const tRules = [tSent('shop', 'normal-old', min(90)), { ...tPicked0, at: min(5), sent: min(5) },
-                tSent('shop', 'urgent', min(2), { priority: 'urgent' })];
-show('what comes first: a lead\'s picks after anything urgent, or simply the oldest',
-     [tKeys(taskLine(tRules, [tShop, tLead, tWren])), tKeys(taskLine(tRules, [tShop, tLead, tWren], { next: 'oldest' }))]);
-const tWhyLine = taskLine([...tRules, tSent('shop', 'normal-new', min(1))], [tShop, tLead, tWren]);
+const tRules = [tSent('shop', 'no-ticket-old', min(90)),
+                { ...tPicked0, at: min(5), sent: min(5), pickAt: 0, pickPriority: 'p1', shownAt: min(5) },
+                tSent('highest', 'highest', min(2))];
+const tWhyLine = taskLine([...tRules, tSent('shop', 'no-ticket-new', min(1))], [tShop, tLead, tWren, ...tTwo]);
 show('say why each is here, for each in line', tWhyLine.map((i) => `${i.task.id}: ${taskWhyHere(i, tWhyLine,
                                                                                                   min(0))}`));
 show('…drawn: over the task, and what\'s after it', [taskWhyHTML(tWhyLine[0], tWhyLine, min(0)),
                                                      taskAfterHTML(tWhyLine[0], tWhyLine, min(0))]);
-show('urgent tasks not waiting for your Go: one you\'ve seen gives way, as before; pointed at, it stays', [
-  tFront(tWith(tUrg('crash', min(1))), { key: tOn[0].key, seen: () => false }),
-  tFront(tWith(tUrg('crash', min(1))), { key: tOn[0].key, held: true, seen: () => false })]);
+show('tasks to do now not waiting for your Go: one you\'ve read gives way to one ahead; pointed at, it stays', [
+  tFront(tWith(tUrg('crash', min(1))), { key: tOn[0].key, seen: tSeen(tOn[0].key), waitForGo: false }),
+  tFront(tWith(tUrg('crash', min(1))), { key: tOn[0].key, held: true, seen: () => false, waitForGo: false })]);
+const tHigher = taskLine([tSent('lowest', 'reading', min(20)), tSent('medium', 'higher', min(1))], tTwo);
+show('…a card ranked higher but not to do now: the one you\'ve read stays', tFront(tHigher,
+  { key: 'task:lowest:reading', seen: tSeen('task:lowest:reading'), waitForGo: false }));
 show('held words waiting for your Send Now: idle, and while it works', [
   tState(tTalkSay('held'), tIdle, '', '', true), tState(tTalkSay('held'), tBusy, '', '', true)]);
 show('sessions turned away: one, two, and one not listed', [taskTurnedAwayWords(['shop'], tSessions),
@@ -577,22 +634,34 @@ const tLastBefore = state.last;
 const tRowOf = (s, kind = 'seen') => rowHTML(s, kind, NOW);
 const tNote = (html) => html.match(/<div class="step-note[\s\S]*?<\/div>/)?.[0].replace(/<svg[\s\S]*?<\/svg>/, '[mark]')
   ?? 'no line';
+// Coloured by its ticket's place, its tracker's word first: to do now, between, the lowest; not placed yet, between.
+const tRowTickets = [tTicketed('hot', 'checkout', 'Highest', 0, 5), tTicketed('mid', 'search', 'Medium', 2, 5),
+                     tTicketed('cold', 'docs', 'Lowest', 4, 5), tUnplaced];
+setTasks(tRowTickets.map((s) => tSent(s.sessionId, 'fix', min(1), { title: 'Fix <it>' })), true, taskKindWords);
+state.last = { sessions: tRowTickets, now: NOW };
+for (const draw of core.beforeDraw) draw(state.last.sessions);
+show('a ticket\'s task on its row: its look, its word, its words for VoiceOver', tRowTickets.map((s) =>
+  tNote(tRowOf(s)).match(/ask-(?:urgent|normal|low)|ask-line-priority">[^<]*|aria-label="Open[^"]*"/g)));
 setTasks([tSent('shop', 'passkeys', min(3), { title: 'Passkey sign-in' }), tSent('shop', 'more', min(2)),
           tSent('cli', 'help', min(4), { kind: 'approve', title: 'A <b>plan</b>' })], true, taskKindWords);
 state.last = { sessions: tSessions, now: NOW };
 for (const draw of core.beforeDraw) draw(state.last.sessions);
-show('a full row with no team: its task, "+1", on a line of its own', tNote(tRowOf(tShop)));
+show('a row with no team: its task, "+1", on a line of its own', tNote(tRowOf(tShop)));
 show('…a title that is markup is shown as text', tNote(tRowOf(tCli)));
 show('…a session with none: no line', tNote(tRowOf(tApp, 'needs')));
+// A row drawn whole (as a chat beside the folded panel is) has a work line; the list's rows, shown briefly, have none.
+const tWhole = (row) => { if (row.s.sessionId === 'shop') row.brief = false; };
 core.slots.workStart.push((row) => (row.s.sessionId === 'shop' ? '[PR #12]' : ''));
+core.rowLooks.push(tWhole);
 const tWorked = tRowOf(tShop);
-show('a row with a work line: the work line stays, the task\'s line under it',
+show('a row drawn whole, with a work line: the work line stays, the task\'s line under it',
      /<div class="work">\[PR #12\]<\/div>/.test(tWorked) && tNote(tWorked) !== 'no line');
+core.rowLooks.pop();
 core.slots.workStart.pop();
 // One ask, one action: while its task waits, the row offers nothing else (no Deploy on its bottom line); a try's action
 // is Deploy (another module's, askAct) when there's a build to put in place, else the session it's about.
 core.slots.placeEnd.push(() => '[Deploy]');
-show('a full row, while its task waits: no Deploy on the row', !tRowOf(tShop).includes('[Deploy]'));
+show('a row, while its task waits: no other Deploy on it', !tRowOf(tShop).includes('[Deploy]'));
 const tTryDeploy = (row) => (row.askWant === 'try' ? '[Try Deploy]' : '');
 core.slots.askAct.push(tTryDeploy);
 show('…a try with a build to put in place: Deploy at its end, alone', tNote(tRowOf(tShop)).match(/\[[\w ]+\]|data-ot-act/g));
@@ -712,6 +781,20 @@ show('…after a restart, another task read last: none put back in front of it',
      ?? 'none');
 state.tasksWant = null;
 show('…after a restart, opened with none named: the one read last', oneTaskOpening(oneTaskItems()).next);
+// Open on the to-do-now line under the header: it names every task to do now, so Open goes to the first of them but the
+// one you were on, even one that came after it, never back to the one you were on, in the frame after the press too,
+// before it's read.
+state.last = { sessions: tHot, now: NOW };
+setTasks([tSent('app', 'first-highest', min(9)), tSent('app', 'later-highest', min(1))], true, taskKindWords);
+const tHotRead = oneTaskItems()[0];
+state.tasksLastOn = { key: tHotRead.key, step: taskStepKey(tHotRead), ui: {}, title: 'first-highest' };
+state.tasksSeen[tHotRead.key] = true;
+state.tasksGoUrgent = true;
+const tHotOpen = oneTaskOpening(oneTaskItems());
+show('Open on the to-do-now line, on one to do now with another after it: the line names only that other, and Open '
+     + 'goes to it, where it stays the frame after', [taskUrgentNotice(oneTaskItems(), state.tasksLastOn.key).text,
+  tHotOpen.next, taskChooseFront(oneTaskItems(), { key: tHotOpen.next, aside: tHotOpen.aside,
+                                                   seen: (key) => !!state.tasksSeen[key] }).front?.task.id]);
 state.tasksWant = null;
 state.tasksLastOn = null;
 setTasks([], true, taskKindWords);

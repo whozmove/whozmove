@@ -58,8 +58,11 @@ modules/*/tests/test.sh  # each module's own tests, with its own recorded output
                          # says each command, never its words; and the Claude Desktop module's, how it says what's
                          # written in a conversation's message box and what Claude's window shows; the waits module's,
                          # waits begun and woken as the gear has room, what's kept across a restart, and ask-panel.sh's
-                         # wait waiting through the panel being away; and the git module's, what wakes a session
-                         # waiting on a pull request
+                         # wait waiting through the panel being away; the git module's, what wakes a session
+                         # waiting on a pull request; and the process-notes module's, a project's note kept only by
+                         # Keep It, the same lines not asked again after Not Now, and the Keep It card in each state;
+                         # and the ticket routing module's, where a ticket starts by its project's way, the guide,
+                         # what's kept, and Settings' before and after
 modules/claude-code/tests/real.sh --throwaway-mac
                          # a real Claude Code (the version modules/claude-code/tests/claude-code.txt pins, or
                          # --newest) against a stand-in for Anthropic's servers, driven through what the panel does,

@@ -170,7 +170,7 @@ function chatFlight(sid, frame, band, from, delay) {
   return f;
 }
 
-// The look a chat takes on its way into a row the list shows briefly (a grouping's one line), where the chat is the row
+// The look a chat takes on its way into a row the list shows briefly (as it shows every row), where the chat is the row
 // whole, or into its row from saying a module's line in Claude's place (a reply in its side chat): a copy of that row
 // as the list has it, or as it's held at the list's edge (with `kept`, the lines of it that stay there), over the
 // chat's own row, out of sight till it fades in (chatLookAt); which of the chat's lines it has too (`has`: the copy's,

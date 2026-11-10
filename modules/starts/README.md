@@ -34,7 +34,13 @@ New Conversation in the pawn menu, and ⌃⌥N's switch in Settings on the panel
   after where it starts, a list under the box, whose own field the card keeps in place, with what's typed in it and the
   caret, as the list comes in afresh around it, the box's words, a line added to your words, and what the start
   carries for that module (`with`), which `app/Starts.m` hands to it once the start is a session (Module's
-  `started:with:`, to the module named, never another). The card never names one: tickets' is the Ticket chip.
+  `started:with:`, to the module named, never another). A part can also say where the card starts (`where`: a
+  worktree by its branch's name, one that's there, its branch with no folder, or a new one; one of the repo's
+  folders; or its own), followed only while you haven't picked where yourself and let go of, back to where it was,
+  once the part has none; the line under the box in the card's own line's place (`under`); a warning in the busy
+  notice's place, its Use a new worktree giving the worktree it names (`warn`); Start held while it finds out where
+  (`waits`); and keys in the box (`boxKeys`). The
+  card never names one: tickets' is the Ticket chip, and ticket routing's says where a ticket starts.
 - `tests/test.sh`: what sample starts would run, a terminal tab's command and Claude Desktop's link (`--print-starts`,
   `starts.expected.txt`), what a sample repo has and worktrees checked and made in it, or refused without Apple's
   developer tools (`--print-worktrees`, `worktrees.expected.txt`),

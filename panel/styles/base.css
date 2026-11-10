@@ -48,18 +48,15 @@ body.collapsed #sticky-under { opacity: 0; visibility: hidden;
 .project .pchev svg { transition: transform .15s ease; }
 .project.collapsed .pchev svg { transform: rotate(-90deg); }
 .project.is-hover .pname, .project.is-hover .pchev { color: var(--text); }
-/* How many of a folded group's rows wait on you, when it hides them all (hidesAll): your move's words, a request's
-   when one of them is one. */
+/* How many of a folded group's rows wait on you, as it hides them all: your move's words, a request's when one of them
+   is one. */
 .project .pneeds { flex: none; color: var(--turn-words); font-size: var(--size-small); white-space: nowrap; }
 .project .pneeds.asks { color: var(--needs-text); }
-/* How many rows a module's group has (core.groupings), at its header's end. */
-.project .pcount { margin-left: auto; flex: none; padding-right: 4px; color: var(--faint); font-size: var(--size-small);
-                   font-variant-numeric: tabular-nums; }
 /* A group's rows. Collapsed groups keep their rows here at zero height, so opening and closing can
-   slide (see slideGroup); the open conversation is pinned below a collapsed group instead. */
+   slide (see slideGroup). */
 .prows { overflow: hidden; transition: height .2s ease, opacity .2s ease; }
 .prows.closed { height: 0; opacity: 0; }
-/* A module's group with no header (core.groupings) keeps a header's room above it. It never folds. */
+/* A module's group with no header (core.topGroups) keeps a header's room above it. It never folds. */
 .prows.bare { padding-top: var(--group-top); }
 /* A project's ＋ (the kit's icon button, the starts module's), at its header's end, a point over the header's room
    above and below so the header stays as tall as one without it. */

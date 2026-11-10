@@ -19,6 +19,14 @@ BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL acti
     return watched ? (changed && timely) || since >= quietEvery : timely;
 }
 
+BOOL BranchHasOwnPR(NSString *branch, NSString *base) {
+    return [branch isKindOfClass:NSString.class] && ![branch isEqual:base];
+}
+
+BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInterval since) {
+    return BranchHasOwnPR(branch, base) && (since >= 60 || ![lookedUp isEqual:branch]);
+}
+
 
 @interface Checkouts ()
 // Per checkout (git root), what's known about it. Touched on the main thread only; git and gh run on the queue.
@@ -95,6 +103,14 @@ BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL acti
         if ([self.reading containsObject:root]) continue;
         NSDictionary *known = self.known[root];
         id branch = branches[root];
+        // On the base branch, as last read, there's no PR of its own to keep: another branch's from before a switch,
+        // or one whose look-up landed just after it, goes at once, with no gh, so a session that waits on its PR
+        // never takes it (PRWakes).
+        if (!BranchHasOwnPR(branch, known[@"base"]) && (known[@"pr"] || known[@"prBranch"])) {
+            NSMutableDictionary *entry = [known mutableCopy];
+            [entry removeObjectsForKeys:@[@"pr", @"prBranch"]];
+            self.known[root] = known = entry;
+        }
         double checkedAt = [known[@"checkedAt"] doubleValue];
         BOOL watched = CheckoutWatched(root);
         NSArray *counts = @[@(CheckoutFileChanges(root)), @(CheckoutRefChanges(root))];
@@ -102,9 +118,10 @@ BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL acti
         BOOL treeDue = CheckoutReadDue(watched, changed, now - checkedAt, [activity[root] doubleValue] > checkedAt,
                                        CheckoutQuietEvery(root))
             || [self.dueNow containsObject:root];
-        // The branch's PR is only for the next steps, so it isn't looked up while they're off.
-        BOOL prDue = prs && gh && [branch isKindOfClass:NSString.class]
-            && (now - [known[@"prCheckedAt"] doubleValue] >= 60 || ![known[@"prBranch"] isEqual:branch]);
+        // The branch's PR is only for the next steps, so it isn't looked up while they're off, nor on the repo's base
+        // branch, as last read, where they never offer one (BranchPRDue).
+        BOOL prDue = prs && gh && BranchPRDue(branch, known[@"base"], known[@"prBranch"],
+                                              now - [known[@"prCheckedAt"] doubleValue]);
         if (!treeDue && !prDue) continue;
         [self.reading addObject:root];
         if (treeDue) {
@@ -147,7 +164,9 @@ BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL acti
                                  entry[@"changes"] ?: @"?");
                     entry[@"checkedAt"] = @(at);
                 }
-                if (![branch isKindOfClass:NSString.class]) [entry removeObjectsForKeys:@[@"pr", @"prBranch"]];
+                // The base branch has no PR of its own to show either (BranchHasOwnPR, with the base this read found),
+                // so the one a launch's first read may ask for, before the base is known, goes too.
+                if (!BranchHasOwnPR(branch, entry[@"base"])) [entry removeObjectsForKeys:@[@"pr", @"prBranch"]];
                 else if (!pushed && prs && gh) {
                     // Not on GitHub: it has no PR, as gh would say (so Create PR is there as soon as it's pushed),
                     // and an old branch's goes at once.

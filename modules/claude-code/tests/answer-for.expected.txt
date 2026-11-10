@@ -5,7 +5,7 @@ Turned on then: on
 Atlas's mode menu, once that's gone: It can send back a team member's plan in this project with a note, never approve one
 Wren's mode menu (a member): not in its mode menu
 Atlas asks what's waiting, May Send Back Plans off, with a file written to say it's on: refused: May Send Back Plans isn't on for this session's folder; and May Answer Questions isn't on for this session's folder; and May Approve Plans isn't on for this session's folder
-Mine asks (May Send Back Plans isn't in its menu): refused: May Send Back Plans is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it; and May Answer Questions is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it; and May Approve Plans is off: this session isn't the one leading the team in the team file (Group by Team), whose row offers it
+Mine asks (May Send Back Plans isn't in its menu): refused: May Send Back Plans is off: this session isn't the one leading the team in the team file, whose row offers it; and May Answer Questions is off: this session isn't the one leading the team in the team file, whose row offers it; and May Approve Plans is off: this session isn't the one leading the team in the team file, whose row offers it
 Turned on: on
 Atlas's mode menu then: ✓ Stays on for shop while Whozmove runs
 …with nothing written in a file: none
@@ -51,6 +51,23 @@ It approves Moss's question: refused: it isn't a plan: May Approve Plans approve
 It approves Bea's plan, while the user answers it: refused: the user is answering it: leave it to them
 It approves Ivy's plan, its file written again since Claude asked: refused: its plan file has changed since Claude asked: only the user can approve it now, in its tab
 It approves Ivy's plan, once the hooks in place are newer than Ivy's session: refused: its session started before Whozmove's update: only the user can approve it, in its tab
+What the page is given with Ivy's plan: its digest
+…with Rex's: its digest; can't: its session is bypassing permissions, so approve it in its tab
+…with Moss's question: no digest
+…its digest the one a session you allow is given: yes
+You approve Ivy's plan beside the list, shown with another plan's digest: not: Claude asked again with a new version since this one was shown: read that one
+…shown with none: not: the plan shown wasn't named
+…named as Rex's: not: it isn't this session's
+…Rex's (its session can switch to bypassing permissions): not: its session is bypassing permissions, so approve it in its tab
+…Moss's question: not: it isn't a plan
+…Ivy's, its file written again since Claude asked: not: its plan file has changed since Claude asked, so read it and approve it in its tab
+…Ivy's ask then tells the page: its plan file has changed since Claude asked, so read it and approve it in its tab
+…the plan of a second session in Wren's workspace, with no keyboard or mouse use for a minute: not: the Mac had no keyboard or mouse use just before the press, so it wasn't taken as yours: press Approve again (a second press may yet)
+…the same plan: approved
+…again: not: it has been answered already
+…a plan too long to show whole, behind an older request of its session's: not: Claude asks something else of this session first: answer that, then this plan
+…once that's answered, its row showing the plan: not: it's too long for the panel to show whole, so approve it in its tab
+Its row then: approved by You, yours, pending, for that request
 The page answers Rex's plan with allow and approvePlan: a second later, Rex's hook: is still on its line
 Atlas sends back Wren's plan again: refused: it has been answered already
 Wren's row then: sentBack by Atlas: Split step 2 first, and keep the results in one list. (“Search box, version 2”)
@@ -69,6 +86,24 @@ May Answer Questions turned off: off
 Atlas asks what's waiting then: refused: May Send Back Plans isn't on for this session's folder; and May Answer Questions isn't on for this session's folder; and May Approve Plans isn't on for this session's folder
 Whozmove restarts with May Answer Questions and May Approve Plans ticked on Atlas: waiting: 2
 …its notice: Whozmove restarted, so May Answer Questions and May Approve Plans went off for Atlas in shop: one press at the foot of its mode menu brings them back. (soon yes, closes yes, button none)
+Notes for a plan left waiting, its session idle at its prompt: nothing in the way
+…at its prompt with a shell command running: nothing in the way
+…held at the plan's own prompt: Claude Code's own prompt for this plan is still up in its session, and a key typed there would answer it: answer it there
+…at work: Claude is at work in this session: send your notes once it's idle
+…a request up in it: Claude asks something else of this session first: answer that, then this plan
+…one waiting in the panel for it: Claude asks something else of this session first: answer that, then this plan
+…for its older plan: Claude isn't waiting on this plan any more
+…its plan answered: Claude isn't waiting on this plan any more
+…something typed into it since the plan: something has been typed into its session since this plan, so it may be answered already
+…a session no longer listed: its session isn't listed any more
+You send notes on Atlas's plan, none written: say what should change, in your notes
+…too long to type in: notes typed in as a message may be 564 characters at most
+…for a session not listed: its session isn't listed any more
+…for another plan: Claude isn't waiting on this plan any more
+…with no keyboard or mouse use for a minute: the Mac had no keyboard or mouse use just before the press, so it wasn't taken as yours: press Send again
+Atlas's row then: sentBack by You, yours, notTyped, for tl2: the Mac had no keyboard or mouse use just before the press, so it wasn't taken as yours: press Send again
+…its words in panel.log: no
+Claude Code's words that lead them: The user wants changes to the plan: 
 == From inside Atlas's session: waiting, send-back for Wren's plan, then with no note, with one too long, then
    answer for Moss's question, and with no answers, then approve for Ivy's plan, and with no digest
 {"onlyTheUser":[],"waiting":[{"digest":"33143a491c238220","file":"T/ah/plans/p.md","held":true,"id":"<s-bea's>","kind":"plan","may":["send-back","approve"],"name":"Bea","sessionId":"s-bea","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"digest":"33143a491c238220","file":"T/ah/plans/p.md","id":"<s-ivy's>","kind":"plan","may":["send-back","approve"],"name":"Ivy","sessionId":"s-ivy","text":"# Search box, version 2\nText","title":"Search box, version 2"},{"id":"<s-moss's>","kind":"question","name":"Moss","questions":[{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":false,"options":["Titles","Text"],"question":"Which index?"},{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":true,"options":["Docs","Blog","Shop"],"question":"Which pages?"},{"answers":"{written: text}","kind":"number","max":50,"min":1,"question":"How many results?"}],"sessionId":"s-moss"},{"held":true,"id":"<s-pip's>","kind":"question","name":"Pip","questions":[{"answers":"{option: label}, {options: [labels]} where several may be picked, or {written: text}","kind":"choice","multiSelect":false,"options":["Titles","Text"],"question":"Which index?"}],"sessionId":"s-pip"},{"digest":"33143a491c238220","file":"T/ah/plans/p.md","id":"<s-wren's>","kind":"plan","may":["send-back","approve"],"name":"Wren","sessionId":"s-wren","text":"# Search box, version 2\nText","title":"Search box, version 2"}]}
@@ -97,3 +132,5 @@ exit=1
 == What Ivy's real hook passed on to Claude
 {"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {}}}}
 == What Rex's real hook passed on to Claude, given allow and approvePlan from the page: nothing, still waiting
+== What the real hook of the second session in Wren's workspace passed on to Claude, approved by your press
+{"hookSpecificOutput": {"hookEventName": "PermissionRequest", "decision": {"behavior": "allow", "updatedInput": {}}}}

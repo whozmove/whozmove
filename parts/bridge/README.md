@@ -17,7 +17,7 @@ app makes into it, and where on the page the core and the modules plug in. It dr
 - `page/modules.js`: the page's `core`, the lists the core's scripts and the modules' register with as they load
   (`core.starts`, `core.updates`, `core.places`, `core.pointerTargets` and the rest), and a module's own state
   (`moduleState`).
-- `page/app-calls.js`: the frame's own functions the app calls on the page (`update`, `setRoom`, `setGroupBy`,
+- `page/app-calls.js`: the frame's own functions the app calls on the page (`update`, `setRoom`,
   `setConversationShown`, `toggleCollapsed`, `hoverAt`, `hoverEnd`, `keyboardGone`, `turned`, `setRunningBuild`,
   `setSwitches`, `stepNote` and `panelSeen`);
   the folded panel's, the reader's, the side the reader would open to (`readerSide`) and `turnToApps` are beside what

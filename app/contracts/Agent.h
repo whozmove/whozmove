@@ -35,6 +35,10 @@
 // mark before its topic while it works). Two tabs with the same title, the same conversation open twice, are told
 // apart by it.
 - (BOOL)titleShowsWork:(NSString *)title;
+// The files that hold its instructions to a session, by their paths inside the session's folder ("CLAUDE.md"), in the
+// order it reads them, whether a folder has them or not. A feature that lists a project's own pages takes them from
+// here, so it names no agent's file.
+@property (readonly) NSArray<NSString *> *instructionPages;
 // The marks it puts on the commands its sessions run, as the names of environment variables. A command you set off from
 // the panel (making a worktree, say) is yours, so they're taken off it.
 @property (readonly) NSArray<NSString *> *environmentMarks;
@@ -90,23 +94,31 @@
 - (void)forgetWords:(NSString *)wordsId;
 @end
 
-// A question asked on the side: a throwaway copy of a session's conversation answers it, using no tools and saving
-// nothing, while the session itself works on and never sees it.
+// A question asked on the side: one side conversation per session, kept until the session ends or compacts, a copy of
+// its conversation that may read files and git in the session's folder but changes nothing and saves nothing, while
+// the session itself works on and never sees it.
 @protocol AgentAside <Agent>
 // Why a session can't be asked on the side now, found without running anything, or nil: {why}, `why` noCommand (its
 // command isn't on this Mac), notStarted (nothing said in it yet) or noConversation (its conversation's file isn't
 // where it keeps them). Signed out is found by asking (its answer's signedOut).
 - (NSDictionary *)asideWhyNot:(Row *)row;
-// Asks it, at once and off the main thread: the ask's id, or nil when it couldn't start (and `done` is never called).
-// `done` is called once, on the main thread, with {state, text, resetsAt, signIn, status, cacheRead, fresh, written,
-// output}: `state` answered, tooSlow, noAnswer, wantedTool (it reached for a tool, which it can't use), limit (your
-// plan's, until `resetsAt`, ms since 1970), signedOut (`signIn`, the command that signs it in), tooLong (its
-// conversation is too long to read again), apiError (its provider sent back an error), noCommand (no command found to
-// run) or stopped; `text`, its answer (16,384 characters at most) once answered; and, when it said, the error status
-// its provider sent back (a number, never words), and the tokens it read from the cache, read fresh, wrote to the cache
-// and wrote out.
-- (NSString *)ask:(NSString *)question aside:(Row *)row done:(void (^)(NSDictionary *answer))done;
-// An ask stopped: ended by its own checked process, its `done` then given `stopped`. Nothing if it has ended.
+// Asks it, at once and off the main thread: the ask's id, or nil when it couldn't start (and neither block is called).
+// `earlier` is the session's side questions answered before this one, oldest first, each {question, text, at}: the
+// side conversation keeps those since the session last compacted. `done` is called once, on the main thread, with
+// {state, text, resetsAt, signIn, status, cacheRead, fresh, written, output, remembered}: `state` answered, tooSlow,
+// noAnswer, wantedTool (it used every round it may and still wanted to read more), limit (your plan's, until
+// `resetsAt`, ms since 1970), signedOut (`signIn`, the command that signs it in), tooLong (its conversation is too long
+// to read again), apiError (its provider sent back an error), noCommand (no command found to run) or stopped; `text`,
+// its answer (16,384 characters at most) once answered; when it said, the error status its provider sent back (a
+// number, never words), and the tokens it read from the cache, read fresh, wrote to the cache and wrote out; and
+// `remembered`, how many of the newest of `earlier` the side conversation knew. Before that, `step` is called on the
+// main thread each time the answer starts a new step, with words for the line its session's row shows while it works
+// ("Thinking", "Reading cart.ts"): one line, plain text, naming no path outside the session's folder; never after
+// `done`.
+- (NSString *)ask:(NSString *)question aside:(Row *)row earlier:(NSArray<NSDictionary *> *)earlier
+             step:(void (^)(NSString *step))step done:(void (^)(NSDictionary *answer))done;
+// An ask stopped: ended by its own checked process, which ends the session's side conversation, its `done` then given
+// `stopped`. Nothing if it has ended.
 - (void)stopAside:(NSString *)askId;
 @end
 

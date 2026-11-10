@@ -24,8 +24,8 @@
 == searches
 "" → assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC
 "login" → text ~ "login" ORDER BY statusCategory ASC, updated DESC
-"PAY-142" → key = PAY-142
-"https://acme.atlassian.net/browse/PAY-142" → key = PAY-142
+"PAY-142" → key = "PAY-142"
+"https://acme.atlassian.net/browse/PAY-142" → key = "PAY-142"
 "say \"hi\" \\ or ORDER BY" → text ~ "say \"hi\" \\ or ORDER BY" ORDER BY statusCategory ASC, updated DESC
 "  safari  login  " → text ~ "safari  login" ORDER BY statusCategory ASC, updated DESC
 == kinds
@@ -57,28 +57,105 @@ signed in, two sites: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":
 signed in, reading only: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"},{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lines":["To acme.atlassian.net","Sign in again to let Whozmove move tickets.","What you search for and the tickets you give conversations are read from Jira, as you, and their moves, with their notes, are made there as you. The sign-in stays in this Mac's Keychain."]}
 blocked, copied: {"actions":[{"id":"copyAsk","main":true,"title":"Copied"},{"id":"signIn","title":"Try Again"}],"figure":"Not allowed yet","lines":["Your Jira admin hasn't let apps sign in from this Mac yet.","Copied: paste it to your Jira admin."]}
 ## answers
+== boards-v2.json
+1 board "Payments board"
+project PAY: Payments, WEB: no name
 == boards.json
 3 board "Payments board"
 9 board "Payments support"
+project PAY: no name, WEB: no name
 == error-404.json
-error 404
+error 404: Issue does not exist or you do not have permission to see it.
+== error-busy.json
+error 500: Something went wrong on our side. Try again in a moment.
 == error-none.json
 error 0
+== error-refused-silent.json
+error 409, turned away
+== error-refused-unnumbered.json
+error 400, turned away: Fill in Blocked by first: what is it waiting on?
+== error-refused.json
+error 400, turned away: Fill in Blocked by first: what is it waiting on?
 == error-scope.json
-error 401, naming a scope
+error 401, naming a scope: Unauthorized; scope does not match
 == issue-none.json
 null
+its priority's id: none
+its options in its own fields: {}
+its description: none
+== issue-options.json
+{"groups":[{"id":"PAY","kind":"project","name":"Payments"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Fix the refund button","tracker":"Jira","type":"Task"}
+its priority's id: none
+its options in its own fields: {"customfield_10300":{"id":"10400","name":"Web"},"customfield_10303":{"id":"10600","name":"Checkout"}}
+its description: none
 == issue-plain.json
 {"groups":[{"id":"WEB","kind":"project","name":"Web","sprint":"Sprint 3"}],"id":"10077","key":"WEB-77","link":"https://acme.atlassian.net/browse/WEB-77","site":"acme.atlassian.net","state":{"kind":"dropped","name":"Closed"},"steps":[],"title":"Log in link in the footer goes nowhere <b>bold</b>","tracker":"Jira","type":"Bug"}
+its priority's id: none
+its options in its own fields: {}
+its description: none
+== issue-v2-full.json
+{"groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10144","key":"PAY-144","link":"https://acme.atlassian.net/browse/PAY-144","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"Low","site":"acme.atlassian.net","state":{"kind":"dropped","name":"Abandonné"},"steps":[],"title":"Pay with a saved card","tracker":"Jira","type":"Story"}
+its priority's id: 4
+its options in its own fields: {}
+its description: "Made-up description: let people **pay with a card they saved**.\n\n- Only cards that haven't run out\n- Never <i>the</i> full number"
+== issue-v2-read.json
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"PAY"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Review"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira"}
+its priority's id: none
+its options in its own fields: {}
+its description: none
 == issue-v2.json
 {"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its priority's id: 2
+its options in its own fields: {}
+its description: none
+== priorities-fields.json
+[{"id":"1","name":"Highest"},{"id":"2","name":"High"},{"id":"3","name":"Medium"},{"id":"4","name":"Low"},{"id":"5","name":"Lowest"}]
+a field of options: customfield_10300 "Team" ["Web"] ["10400"]
+id 1: 0 of 5
+id 2: 1 of 5
+id 3: 2 of 5
+id 4: 3 of 5
+id 5: 4 of 5
+id 99: no place
+id none: no place
+== priorities-none.json
+[]
+id 99: no place
+id none: no place
+== priorities-results.json
+[{"id":"10000","name":"Blocker"},{"id":"10001","name":"Major"},{"id":"10002","name":"Minor"}]
+id 10000: 0 of 3
+id 10001: 1 of 3
+id 10002: 2 of 3
+id 99: no place
+id none: no place
+== priorities-team-lookup.json
+[]
+a field of options: customfield_10300 "Region" ["North","South"] ["10400","10401"]
+id 99: no place
+id none: no place
 == search-list.json
-{"groups":[],"key":"WEB-77","link":"https://acme.atlassian.net/browse/WEB-77","site":"acme.atlassian.net","state":{"kind":"todo","name":"Open"},"steps":[],"title":"Footer link","tracker":"Jira"}
+{"groups":[{"id":"WEB","kind":"project","name":"WEB"}],"key":"WEB-77","link":"https://acme.atlassian.net/browse/WEB-77","site":"acme.atlassian.net","state":{"kind":"todo","name":"Open"},"steps":[],"title":"Footer link","tracker":"Jira"}
 == search-nodes.json
 {"groups":[{"id":"PAY","kind":"project","name":"Payments"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
 {"groups":[{"id":"PAY","kind":"project","name":"Payments"}],"id":"10131","key":"PAY-131","link":"https://acme.atlassian.net/browse/PAY-131","site":"acme.atlassian.net","state":{"kind":"todo","name":"To Do"},"steps":[],"title":"Login page is slow on mobile data","tracker":"Jira","type":"Story"}
+== search-v2.json
+{"groups":[{"id":"PAY","kind":"project","name":"PAY"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Review"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"groups":[{"id":"PAY","kind":"project","name":"PAY"}],"id":"10143","key":"PAY-143","link":"https://acme.atlassian.net/browse/PAY-143","site":"acme.atlassian.net","state":{"kind":"todo","name":"Ready"},"steps":[],"title":"Saved cards show twice","tracker":"Jira","type":"Task"}
+{"groups":[{"id":"PAY","kind":"project","name":"PAY"}],"id":"10144","key":"PAY-144","link":"https://acme.atlassian.net/browse/PAY-144","site":"acme.atlassian.net","state":{"kind":"done","name":"Shipped"},"steps":[],"title":"Pay with a saved card","tracker":"Jira","type":"Story"}
+== sites-v2.json
+["acme.atlassian.net"]
 == sites.json
 ["acme.atlassian.net","beta.atlassian.net"]
+== transitions-v2.json
+[{"id":"11","name":"Mark ready","needs":[],"to":{"kind":"todo","name":"Ready"}},{"id":"18","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}]
+step 51 with {"customfield_10200":3,"fixVersions":["2.1","2.2"],"resolution":"Won't Do"}: This step doesn't set customfield_10200 now
+step 51 with {"fixVersions":"2.2"}: This step doesn't set fixVersions now
+step 51 with {"resolution":"Fixed"}: This step doesn't set resolution now
+step 51 with {"resolution":["Done"]}: This step doesn't set resolution now
+step 51 with {"customfield_10200":"three"}: This step doesn't set customfield_10200 now
+step 51 with {"customfield_10100":"Sam Rivera"}: This step doesn't set customfield_10100 now
+step 31 with {"resolution":"Done"}: This step doesn't set resolution now
 == transitions.json
 [{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"51","name":"QA sign-off","needs":[{"id":"customfield_10100","kind":"person","name":"Approved by","required":false},{"id":"customfield_10200","kind":"number","name":"Story points","required":false},{"id":"fixVersions","kind":"option","many":true,"name":"Fix versions","options":["2.1","2.2"],"required":false},{"id":"resolution","kind":"option","name":"Resolution","options":["Done","Won't Do"],"required":true}],"to":{"kind":"done","name":"Done"}}]
 step 51 with {"customfield_10200":3,"fixVersions":["2.1","2.2"],"resolution":"Won't Do"}: {"customfield_10200":3,"fixVersions":[{"id":"10200"},{"id":"10201"}],"resolution":{"name":"Won't Do"}}
@@ -88,6 +165,10 @@ step 51 with {"resolution":["Done"]}: Resolution doesn't take that now
 step 51 with {"customfield_10200":"three"}: Story points doesn't take that now
 step 51 with {"customfield_10100":"Sam Rivera"}: Approved by is a person to pick in Jira itself, so move it there
 step 31 with {"resolution":"Done"}: This step doesn't set resolution now
+== types-v2.json
+["Task","Bug","Subtask"]; the type its priorities are read from: 10001
+== types.json
+["Fehler","Aufgabe","Unteraufgabe"]; the type its priorities are read from: 10001
 ## the Keychain's stand-in, kept afresh
 none kept
 in the stand-in file
@@ -168,18 +249,24 @@ sites: ["acme.atlassian.net"]
 keychain stand-in: holds the sign-in
 == search login
 done, 1 found
-  {"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+  {"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+== search PAY-142
+done, 1 found
+  {"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
 == search nothing like it
 done, 0 found
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
+== take PAY-142 41
+refused: Jira turned it away (Jira says: Fill in Blocked by first: what is it waiting on?); it stands: In Progress
 == take PAY-142 31 The fix is in pull request #57.
 done; it stands: In Review
 == take PAY-142 31
 step gone: PAY-142 is In Review already; it stands: In Review
 == take PAY-142 51
-failed: Couldn't reach Jira just now; it stands: In Review
+refused: Jira turned it away (Jira says: Resolution is required.); it stands: In Review
 == take PAY-142 51 {"resolution":"Fixed"}
 failed: Resolution doesn't take that now; it stands: In Review
 == take PAY-142 51 {"resolution":"Done"} Signed off.
@@ -193,10 +280,22 @@ done: {"group":"PAY","kind":"project","types":["Task","Bug","Story"]}
 not found: There's no such ticket, or it isn't yours to see: no options
 == create
 done: PAY-151
+== read PAY-151
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-151","link":"https://acme.atlassian.net/browse/PAY-151","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"Blocker","site":"acme.atlassian.net","state":{"kind":"done","name":"Done"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == create refused
 refused: Jira turned it away as it is: a priority, a parent or a field this project wants may be wrong: no key
 == create unread
 done: PAY-152
+== fields Task
+done, 1 fields
+  customfield_10300 Region ["North","South"] ["10400","10401"]
+== fields Task
+done, 1 fields
+  customfield_10300 Region ["North","South"] ["10400","10401"]
+== fields Epic
+done, 0 fields
 == signout
 sign-in: signed out
 == kept
@@ -204,6 +303,21 @@ keychain stand-in: empty
 == state
 sign-in: signed out
 notices: 0
+== log
+log: Jira: signed in with Atlassian
+log: Jira: transitionJiraIssue didn't answer (8): its own error, 400
+log: Jira: PAY-142 moved
+log: Jira: transitionJiraIssue didn't answer (8): its own error, 400
+log: Jira: PAY-142 moved
+log: Jira: getJiraIssue didn't answer (5): its own error, 404
+log: Jira: executeRead didn't answer (5): its own error, 404
+log: Jira: PAY-151 created
+log: Jira: createJiraIssue didn't answer (8): its own error, 400
+log: Jira: PAY-152 created
+log: Jira: getJiraIssue didn't answer (5): its own error, 404
+log: Jira: signed out
+log: has none of a ticket's description
+log: has none of a failed answer's words
 ## what the stand-in was asked
 GET the resource's page
 GET the sign-in service's page
@@ -214,9 +328,15 @@ POST initialize
 POST tools/call getAccessibleAtlassianResources
 POST tools/call searchJiraIssuesUsingJql
 POST tools/call searchJiraIssuesUsingJql
+POST tools/call searchJiraIssuesUsingJql
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call transitionJiraIssue
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call transitionJiraIssue
@@ -242,9 +362,132 @@ POST tools/call executeRead listJiraProjectIssueTypesMetadata
 POST tools/call createJiraIssue
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
 POST tools/call createJiraIssue
 POST tools/call createJiraIssue
 POST tools/call getJiraIssue
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+## talk (adf)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description\nThe button does nothing on Safari 17\nSeen by @Sam Rivera 👀\n- Open the checkout\n- Press <Pay>\nTypeError: pay is undefined\nhttps://example.com/steps"
+== log
+log: Jira: signed in with Atlassian
+log: has none of a ticket's description
+log: has none of a failed answer's words
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+## talk (failreads)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== read PAY-142
+failed: Couldn't reach Jira just now
+no ticket
+== log
+log: Jira: signed in with Atlassian
+log: Jira: getJiraIssue didn't answer (7): HTTP 502
+log: Jira: getJiraIssue didn't answer (7): the server's error -32603
+log: Jira: getJiraIssue didn't answer (7): an answer it couldn't read
+log: Jira: getJiraIssue didn't answer (7): the tool said it failed
+log: Jira: getJiraIssue didn't answer (7): its own error, 503
+log: Jira: getJiraIssue didn't answer (7): its own error, 500
+log: Jira: getJiraIssue didn't answer (7): no connection: it was lost on the way
+log: has none of a ticket's description
+log: has none of a failed answer's words
+== hows
+how: no answer in 30s
+how: no connection: this Mac is offline
+how: no connection: the server's name wasn't found
+how: no connection: the server didn't take it
+how: no connection: it was lost on the way
+how: no connection: macOS didn't trust its certificate
+how: no connection (error -999)
+how: answered
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue: failed, way 1
+POST tools/call getJiraIssue: failed, way 2
+POST tools/call getJiraIssue: failed, way 3
+POST tools/call getJiraIssue: failed, way 4
+POST tools/call getJiraIssue: failed, way 5
+POST tools/call getJiraIssue: failed, way 6
+POST tools/call getJiraIssue: failed, way 7
+## talk (longabout)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: 20052 characters, ending "ine after line.\nMade-up\n\n(Cut short here: the rest is on the ticket's own page.)"
+== log
+log: Jira: signed in with Atlassian
+log: has none of a ticket's description
+log: has none of a failed answer's words
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 ## talk (blocked)
 == signin
 sign-in: blocked (Your Jira admin hasn't let apps sign in from this Mac yet. They can allow it once, for everyone.)
@@ -256,6 +499,33 @@ notices: 0
 GET the resource's page
 GET the sign-in service's page
 POST register Whozmove, a 127.0.0.1 return, no secret
+## talk (nolist)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+done
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
+== fields Task
+blocked: Atlassian turned Whozmove away for this site: your Jira admin can allow it, none read
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 ## talk (slow)
 == signin
 opened: Atlassian's page, with an S256 challenge and a state
@@ -275,6 +545,71 @@ GET the page you'd see: as Atlassian wants it
 POST token for a code: proven with its verifier
 POST initialize
 POST tools/call getAccessibleAtlassianResources: asked to slow down
+## talk (slowtype)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== read PAY-142
+slow down: Atlassian asked Whozmove to slow down (with a time to try again)
+no ticket
+== take PAY-142 31
+slow down: Atlassian asked Whozmove to slow down (with a time to try again); it stands: unknown
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call searchJiraIssuesUsingJql: asked to slow down
+## talk (silent)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== take PAY-142 41
+refused: Jira turned it away; it stands: In Progress
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call transitionJiraIssue
+## talk (busy)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== take PAY-142 41
+failed: Couldn't reach Jira just now; it stands: In Progress
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call getJiraIssue
+POST tools/call executeRead listJiraIssueTransitions
+POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call transitionJiraIssue
 ## talk (expired)
 == signin
 opened: Atlassian's page, with an S256 challenge and a state
@@ -324,7 +659,8 @@ sign-in: signed in
 sites: ["acme.atlassian.net"]
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == state
 sign-in: signed in
 notices: 0
@@ -332,7 +668,8 @@ notices: 0
 sign-in: signed in
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == rewritten
 sign-in: signed in
 == read PAY-142
@@ -348,6 +685,8 @@ log: Jira: signed in with Atlassian
 log: Jira: macOS asks before it gives this build the sign-in
 log: Jira: macOS gave this build the sign-in
 log: Jira: the sign-in kept in the Keychain was changed since this build kept it, so it isn't used
+log: has none of a ticket's description
+log: has none of a failed answer's words
 == replaced
 sign-in: signed in
 == read PAY-142
@@ -372,6 +711,8 @@ POST tools/call getAccessibleAtlassianResources
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 GET the resource's page
 GET the sign-in service's page
 POST token for a refresh: the latest refresh token
@@ -379,6 +720,8 @@ POST initialize
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 ## talk (planted)
 == planted
 sign-in: expired
@@ -395,18 +738,22 @@ sign-in: signed in
 sites: ["acme.atlassian.net"]
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == restart
 sign-in: signed in
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == state
 sign-in: signed in
 notices: 0
 == log
 log: Jira: the sign-in kept in the Keychain can be read by other apps, so it isn't used
 log: Jira: signed in with Atlassian
+log: has none of a ticket's description
+log: has none of a failed answer's words
 ## what the stand-in was asked
 GET the resource's page
 GET the sign-in service's page
@@ -418,6 +765,8 @@ POST tools/call getAccessibleAtlassianResources
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 GET the resource's page
 GET the sign-in service's page
 POST token for a refresh: the latest refresh token
@@ -425,6 +774,8 @@ POST initialize
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 ## talk (midsession)
 == signin
 opened: Atlassian's page, with an S256 challenge and a state
@@ -437,13 +788,17 @@ the entry lets other apps read it now
 the access token is turned away
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == log
 log: Jira: signed in with Atlassian
 log: Jira: the new sign-in is kept in memory only: the Keychain didn't take it
+log: has none of a ticket's description
+log: has none of a failed answer's words
 == restart
 sign-in: expired (The sign-in kept on this Mac could be read by other apps, so Whozmove won't use it.)
 == read PAY-142
@@ -464,6 +819,8 @@ POST token for a refresh: the latest refresh token
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 ## talk (drop)
@@ -506,7 +863,8 @@ card: {"actions":[{"id":"signOut","title":"Sign Out"}],"figure":"Signed in","lin
 kept without its scopes; sign-in: signed in
 == read PAY-142
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-120","title":"Checkout works in every browser","type":"Epic"},"priority":"High","site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-142","link":"https://acme.atlassian.net/browse/PAY-142","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"steps":[{"id":"31","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}},{"id":"11","name":"Back to To Do","needs":[],"to":{"kind":"todo","name":"To Do"}},{"id":"41","name":"Block","needs":[],"to":{"kind":"doing","name":"Blocked"}}],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == take PAY-142 31
 sign in: This sign-in may only read tickets; it stands: unknown
 == card
@@ -515,6 +873,8 @@ card: {"actions":[{"id":"signIn","main":true,"title":"Sign In Again"},{"id":"sig
 log: Jira: signed in with Atlassian
 log: Jira: transitionJiraIssue was refused for the sign-in's scope
 log: Jira: signed in with Atlassian
+log: has none of a ticket's description
+log: has none of a failed answer's words
 ## what the stand-in was asked
 GET the resource's page
 GET the sign-in service's page
@@ -526,6 +886,8 @@ POST tools/call getAccessibleAtlassianResources
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
 POST tools/call transitionJiraIssue: refused, the token has no write scope
 POST register Whozmove, a 127.0.0.1 return, no secret
 GET the page you'd see: as Atlassian wants it
@@ -539,3 +901,5 @@ POST initialize
 POST tools/call getJiraIssue
 POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields

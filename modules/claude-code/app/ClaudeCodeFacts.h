@@ -36,6 +36,8 @@ extern NSString *const kClaudeCodeTranscripts;   // one folder per project, one 
 extern NSString *const kClaudeCodeSettings;
 // A project's own settings that stay on this Mac, in its kClaudeCodeFolder beside the shared kClaudeCodeSettings.
 extern NSString *const kClaudeCodeLocalSettings;
+// Its sign-in, in kClaudeCodeFolder, where it keeps one in a file rather than in the keychain.
+extern NSString *const kClaudeCodeCredentials;
 // Settings an organisation sets for the whole machine.
 extern NSString *const kClaudeCodeManagedSettings;
 // Whether Claude Code records the lines a shell command changed in its checkout (a result's bashEditDiff) for a
@@ -90,6 +92,11 @@ extern const NSInteger kClaudeCodeImportHops;
 // with `!` (kClaudeCodeShellInput) and what it printed, and a slash command's output (kClaudeCodeShellOutputs).
 extern NSString *const kClaudeCodeShellInput;
 extern NSArray<NSString *> *const kClaudeCodeShellOutputs;
+// A plan's prompt (ExitPlanMode) keeps the registry's status `waiting` while it's up, and idle only once it's gone, its
+// call then left with no result in the transcript; and the words that lead your notes on a plan, typed in as a message
+// once it has stopped asking in the panel, so Claude takes them as the permission hook's send-back has it say, and
+// writes a new version (checked with 2.1.304).
+extern NSString *const kClaudeCodePlanChangesWords;
 // A conversation's titles, as records in its transcript (checked with 2.1.304): the one Claude Code gives it as it goes
 // ({"type": "ai-title", "aiTitle": …}), and the name you give it with /rename ({"type": "custom-title", "customTitle":
 // …}), which counts over it. The ai-title record comes again as the conversation goes on; the custom-title one may be
@@ -198,18 +205,70 @@ extern NSString *const kClaudeUsageRequest;
 // --fork-session, never saved), reading the question on its input as a stream-json user message, and writes stream-json
 // lines, the last a `result`. Its request starts as the session's last one did, byte for byte up to the session's last
 // cache mark, but for the billing line at the system prompt's start (it says sdk-cli where the session's says cli) and
-// a few beta flags. It runs no tool: no settings files are read (so no allow rules, plugins, their hooks or MCP
-// servers), and the one hook it has, passed on its command line, refuses every tool; one turn at most, so a tool it
-// reaches for ends the run (error_max_turns). It doesn't compact (DISABLE_AUTO_COMPACT) and registers as an sdk-cli
-// session in the session's folder while it runs. `model` is the session's, with "[1m]" where its context is the long
-// one; `effort`, the session's, or nil. None (nil) for a session ClaudeAsideResumable refuses, however it's reached.
-NSArray<NSString *> *ClaudeAsideArguments(NSString *sessionId, NSString *model, NSString *effort);
+// a few beta flags. It doesn't compact (DISABLE_AUTO_COMPACT) and registers as an sdk-cli session in the session's
+// folder while it runs.
+// It's kept for follow-ups: after each `result` it reads the next message from its input and answers it in the same
+// conversation, and it ends at once when its input closes. Each message's `result` carries that message's own usage,
+// and --max-turns counts each message's rounds (kClaudeAsideTurns), not the whole process's.
+// It may only read: no settings files are read (so no allow rules, plugins, their hooks or MCP servers), it runs in
+// dontAsk, so a tool its --allowedTools doesn't name is refused, and the one hook it has, passed on its command line,
+// runs the checker (kClaudeAsideHook) before every tool. The allow rules alone aren't enough: `git diff
+// --output=<file>` is a Bash(git diff:*) and writes that file, and Read reads anywhere. A hook's exit 2 refuses the
+// tool, with what it wrote on stderr given to the copy, which answers on; any other failure, exit 1 among them, lets
+// the tool run, as does a hook still running at its timeout. So the hook turns every failure into exit 2, and its
+// timeout (kClaudeAsideHookTimeout) is past the copy's own deadline: the checker always has the last word, and refuses
+// by itself when it can't decide in time. The hook and the Bash tool's git both see the copy's environment. Grep and
+// Glob don't follow links while they walk a folder, but a path given to them is followed, and a Glob pattern that's a
+// whole path searches its own folder, whatever `path` says; Grep's `glob`, by its schema ripgrep's --glob, overrides the
+// ignore files. What git itself does when the copy runs it is git's, beside GitReadOnlyWhyNot in Git.h.
+// `model` is the session's, with "[1m]" where its context is the long one; `effort`, the session's, or nil; `git`
+// whether the four git commands are allowed (only once Apple's developer tools are there, as /usr/bin/git offers to
+// install them each time it's run otherwise). None (nil) for a session ClaudeAsideResumable refuses, however it's
+// reached.
+NSArray<NSString *> *ClaudeAsideArguments(NSString *sessionId, NSString *model, NSString *effort, BOOL git);
+// The most rounds one side question may take: one each time it reads, and its answer.
+extern const NSInteger kClaudeAsideTurns;
+// What the copy writes as it goes (checked with 2.1.319, in its program): without --include-partial-messages, an
+// `assistant` line for each block of Claude's message once that block is finished (a stretch of thinking, a tool it
+// calls, its words), a `user` line with a tool's result once it has run or the checker refused it, and last the
+// `result`. A thinking block's words come empty, as the API's own default is for Claude's newer models ("omitted"),
+// unless the copy is run with ClaudeAsideThinkingArguments, which asks for a short summary in their place. Claude Code
+// doesn't list that flag in its help, so it's passed only to the versions it was checked with
+// (ClaudeAsideThinkingVersions); one that turns it down ends at once, with an error and no line.
+NSArray<NSString *> *ClaudeAsideThinkingArguments(void);
+NSArray<NSString *> *ClaudeAsideThinkingVersions(void);
+// The version a Claude Code program is, by its real path: its installer's file, named for it (…/versions/2.1.319), or
+// Homebrew's cask folder for it (…/2.1.319/claude). Nil for any other (npm's, Claude Desktop's own copy).
+NSString *ClaudeCodeVersionAt(NSString *program);
+// The hook the copy runs before every tool, one constant line: Whozmove's own checker, named by the copy's
+// environment (kClaudeAsideCheckVariable, with the session's folder in kClaudeAsideFolderVariable, so a folder's name
+// is never read as shell words), given the tool's call on its input. Anything but its yes refuses.
+extern NSString *const kClaudeAsideHook;
+extern const NSInteger kClaudeAsideHookTimeout;
+extern NSString *const kClaudeAsideCheckVariable, *const kClaudeAsideFolderVariable;
+// The flag the checker runs under (a helper run of Whozmove's own), with the session's folder after it.
+extern NSString *const kClaudeAsideCheckFlag;
+// A hook's call as Claude Code gives it on the hook's input: the tool's name and what it was given. The tools a side
+// question may use, and the fields of theirs the checker reads: Read's file, Grep's and Glob's folder and pattern,
+// Grep's file-name filter (passed to ripgrep's --glob, which overrides the ignore files), and Bash's command and whether
+// it runs in the background.
+extern NSString *const kClaudeHookToolName, *const kClaudeHookToolInput;
+extern NSString *const kClaudeToolRead, *const kClaudeToolGrep, *const kClaudeToolGlob, *const kClaudeToolBash;
+extern NSString *const kClaudeToolFilePath, *const kClaudeToolPath, *const kClaudeToolPattern;
+extern NSString *const kClaudeToolCommand, *const kClaudeToolInBackground, *const kClaudeToolGrepFilter;
+// What Grep prints (its output_mode): the matching lines, the files that match (what it prints when it isn't given
+// one), or how many lines match in each. Grep searches with ripgrep's --hidden, so over a folder it reads every file in
+// it that git doesn't ignore, dotfiles too, following no link; in no checkout, every file.
+extern NSString *const kClaudeToolGrepMode, *const kClaudeGrepContent, *const kClaudeGrepFiles, *const kClaudeGrepCount;
+// The folders Grep always leaves out, wherever they are: version control's own (Claude Code 2.1.319).
+NSArray<NSString *> *ClaudeGrepSkips(void);
 // Whether a session may be asked on the side: only one whose id is a UUID, as Claude Code's own are. It reads a word
 // after --resume that looks like a flag ("--mcp-config=…") as that flag, so an id planted where sessions are recorded
 // could otherwise start a program you never agreed to.
 BOOL ClaudeAsideResumable(NSString *sessionId);
-// The words that open a side question, so the copy answers it and doesn't carry the session's task on.
-extern NSString *const kClaudeAsideLine;
+// The words that open each side question, so the copy answers it, reads only, and doesn't carry the session's task on;
+// the git commands it may run, and what they need, are git's own list (GitReadOnlyCommands).
+NSString *ClaudeAsideLine(void);
 // Whether it's signed in (it prints JSON with loggedIn), and signing it in.
 NSArray<NSString *> *ClaudeAuthStatusArguments(void);
 NSArray<NSString *> *ClaudeSignInArguments(void);

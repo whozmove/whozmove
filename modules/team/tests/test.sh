@@ -1,5 +1,5 @@
 #!/bin/bash
-# The team module's tests: Group by Team's groups, what its rows say and show (page-cases.js, run with macOS's jsc in
+# The team module's tests: the team's groups, what its rows say and show (page-cases.js, run with macOS's jsc in
 # UTC, compared with page.expected.txt), and who holds a member's seat in its workspace (seats-cases.json, compared
 # with seats.expected.txt). What the app reads from the team file is checked with the rows (tests/rows.sh).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later

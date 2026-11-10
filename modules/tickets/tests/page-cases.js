@@ -168,6 +168,12 @@ show('asked again, in place of another', ticketMoveHTML('s1', { ...move, instead
 show('moving', ticketMoveHTML('s1', { ...move, moving: true }));
 show('couldn\'t move it', ticketMoveHTML('s1', { ...move, problem: { kind: 'failed', why: 'Couldn’t reach Atlassian just now.' } }));
 show('…no reason given', ticketMoveHTML('s1', { ...move, problem: { kind: 'failed', why: '' } }));
+show('…turned away by Jira, saying why, its own page first', ticketMoveHTML('s1', { ...move,
+  problem: { kind: 'refused', why: 'Jira turned it away', says: 'Fill in Blocked by first.' } }, 'Jira'));
+show('…turned away, its words to escape, no tracker named', ticketMoveHTML('s1', { ...move,
+  problem: { kind: 'refused', why: 'Turned away', says: 'Set <b>Blocked by</b> & "Reason" first.' } }));
+show('…turned away, saying nothing', ticketMoveHTML('s1', { ...move,
+  problem: { kind: 'refused', why: 'Jira turned it away' } }, 'Jira'));
 show('…its sign-in ran out', ticketMoveHTML('s1', { ...move, problem: { kind: 'signIn', why: 'The sign-in has run out' } },
   'Jira'));
 show('…its sign-in can only read', ticketMoveHTML('s1', { ...move, problem: { kind: 'signIn',

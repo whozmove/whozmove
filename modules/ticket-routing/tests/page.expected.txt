@@ -1,0 +1,105 @@
+
+== A ticket’s worktree, by its key
+a key: pay-142
+…"../x": x
+…"-x": x
+…"a b;c": a-b-c
+…"x.lock": x
+…"$(rm -rf ~)": rm-rf
+…"PAY-142.lock.lock": pay-142
+…"..": 
+…"": 
+…null: 
+…"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ": zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+== Where the card is told to start
+the guide, its own worktree lit: {"name":"pay-142"}
+…the Team field lit: {"path":"/code/acme-shop-checkout"}
+…the Team field, its folder the project’s own: {"here":true}
+…the project’s folder lit: {"here":true}
+…Not Now: {"here":true}
+its own worktree: {"name":"pay-142"}
+the project’s folder: {"here":true}
+by a field: its option’s folder: {"path":"/code/acme-shop-checkout"}
+outside git: nothing to say: null
+a conversation working it: nothing to say: null
+
+== The guide
+<div class="c-under rt-guide" data-k="u" role="radiogroup" aria-label="How should acme-shop’s tickets open?"><div class="rt-head">How should acme-shop’s tickets open?</div><div class="rt-why">Each ticket works best in a folder of its own (a worktree): two tickets never work in the same copy of your files.</div><div class="rt-opt" data-way="own" role="radio" aria-checked="true" aria-label="Its own worktree: PAY-142 → a new worktree, pay-142"><span class="tickbox round on"></span><span class="rt-words"><b>Its own worktree<span class="tag new rt-rec">Recommended</span></b><i>PAY-142 → a new worktree, pay-142</i></span></div><div class="rt-opt" data-way="folder" role="radio" aria-checked="false" aria-label="In acme-shop itself: PAY-142 → acme-shop, with your other work"><span class="tickbox round"></span><span class="rt-words"><b>In acme-shop itself</b><i>PAY-142 → acme-shop, with your other work</i></span></div><div class="rt-why">Looking at acme-shop’s fields…</div><div class="rt-gfoot"><span>Start keeps this for acme-shop’s tickets. You can change it in Settings ▸ Tickets.</span><button class="button quiet small rt-notnow">Not Now</button></div></div>
+-- the Team field offered, and lit
+<div class="c-under rt-guide" data-k="u" role="radiogroup" aria-label="How should acme-shop’s tickets open?"><div class="rt-head">How should acme-shop’s tickets open?</div><div class="rt-why">Each ticket works best in a folder of its own (a worktree): two tickets never work in the same copy of your files.</div><div class="rt-opt" data-way="own" role="radio" aria-checked="false" aria-label="Its own worktree: PAY-142 → a new worktree, pay-142"><span class="tickbox round"></span><span class="rt-words"><b>Its own worktree<span class="tag new rt-rec">Recommended</span></b><i>PAY-142 → a new worktree, pay-142</i></span></div><div class="rt-opt" data-way="field" role="radio" aria-checked="true" aria-label="By its Team field: PAY-142 (checkout) → ~/code/acme-shop-checkout"><span class="tickbox round on"></span><span class="rt-words"><b>By its Team field</b><i>PAY-142 (checkout) → ~/code/acme-shop-checkout</i></span></div><div class="rt-opt" data-way="folder" role="radio" aria-checked="false" aria-label="In acme-shop itself: PAY-142 → acme-shop, with your other work"><span class="tickbox round"></span><span class="rt-words"><b>In acme-shop itself</b><i>PAY-142 → acme-shop, with your other work</i></span></div><div class="rt-gfoot"><span>Start keeps this for acme-shop’s tickets. You can change it in Settings ▸ Tickets.</span><button class="button quiet small rt-notnow">Not Now</button></div></div>
+-- a ticket with no Team, and no terminal
+<div class="c-under rt-guide" data-k="u" role="radiogroup" aria-label="How should acme-shop’s tickets open?"><div class="rt-head">How should acme-shop’s tickets open?</div><div class="rt-why">Each ticket works best in a folder of its own (a worktree): two tickets never work in the same copy of your files.</div><div class="rt-opt" data-way="own" role="radio" aria-checked="true" aria-label="Its own worktree: PAY-142 → acme-shop for now: worktrees start in a terminal"><span class="tickbox round on"></span><span class="rt-words"><b>Its own worktree<span class="tag new rt-rec">Recommended</span></b><i>PAY-142 → acme-shop for now: worktrees start in a terminal</i></span></div><div class="rt-opt" data-way="field" role="radio" aria-checked="false" aria-label="By its Team field: PAY-142 → acme-shop for now: worktrees start in a terminal"><span class="tickbox round"></span><span class="rt-words"><b>By its Team field</b><i>PAY-142 → acme-shop for now: worktrees start in a terminal</i></span></div><div class="rt-opt" data-way="folder" role="radio" aria-checked="false" aria-label="In acme-shop itself: PAY-142 → acme-shop, with your other work"><span class="tickbox round"></span><span class="rt-words"><b>In acme-shop itself</b><i>PAY-142 → acme-shop, with your other work</i></span></div><div class="rt-gfoot"><span>Start keeps this for acme-shop’s tickets. You can change it in Settings ▸ Tickets.</span><button class="button quiet small rt-notnow">Not Now</button></div></div>
+-- a name to escape
+<div class="c-under rt-guide" data-k="u" role="radiogroup" aria-label="How should &lt;b&gt;shop&lt;/b&gt;’s tickets open?"><div class="rt-head">How should &lt;b&gt;shop&lt;/b&gt;’s tickets open?</div><div class="rt-why">Each ticket works best in a folder of its own (a worktree): two tickets never work in the same copy of your files.</div><div class="rt-opt" data-way="own" role="radio" aria-checked="true" aria-label="Its own worktree: PAY-1 → a new worktree, pay-1"><span class="tickbox round on"></span><span class="rt-words"><b>Its own worktree<span class="tag new rt-rec">Recommended</span></b><i>PAY-1 → a new worktree, pay-1</i></span></div><div class="rt-opt" data-way="field" role="radio" aria-checked="false" aria-label="By its Team field: PAY-1 (checkout) → ~/code/acme-shop-checkout"><span class="tickbox round"></span><span class="rt-words"><b>By its Team field</b><i>PAY-1 (checkout) → ~/code/acme-shop-checkout</i></span></div><div class="rt-opt" data-way="folder" role="radio" aria-checked="false" aria-label="In &lt;b&gt;shop&lt;/b&gt; itself: PAY-1 → &lt;b&gt;shop&lt;/b&gt;, with your other work"><span class="tickbox round"></span><span class="rt-words"><b>In &lt;b&gt;shop&lt;/b&gt; itself</b><i>PAY-1 → &lt;b&gt;shop&lt;/b&gt;, with your other work</i></span></div><div class="rt-gfoot"><span>Start keeps this for &lt;b&gt;shop&lt;/b&gt;’s tickets. You can change it in Settings ▸ Tickets.</span><button class="button quiet small rt-notnow">Not Now</button></div></div>
+-- its own worktree lit while Claude Desktop is the card’s app: it says the terminal it starts in
+<div class="c-under rt-guide" data-k="u" role="radiogroup" aria-label="How should acme-shop’s tickets open?"><div class="rt-head">How should acme-shop’s tickets open?</div><div class="rt-why">Each ticket works best in a folder of its own (a worktree): two tickets never work in the same copy of your files.</div><div class="rt-opt" data-way="own" role="radio" aria-checked="true" aria-label="Its own worktree: PAY-142 → a new worktree, pay-142 · worktrees start in Ghostty"><span class="tickbox round on"></span><span class="rt-words"><b>Its own worktree<span class="tag new rt-rec">Recommended</span></b><i>PAY-142 → a new worktree, pay-142 · worktrees start in Ghostty</i></span></div><div class="rt-opt" data-way="field" role="radio" aria-checked="false" aria-label="By its Team field: PAY-142 (checkout) → ~/code/acme-shop-checkout"><span class="tickbox round"></span><span class="rt-words"><b>By its Team field</b><i>PAY-142 (checkout) → ~/code/acme-shop-checkout</i></span></div><div class="rt-opt" data-way="folder" role="radio" aria-checked="false" aria-label="In acme-shop itself: PAY-142 → acme-shop, with your other work"><span class="tickbox round"></span><span class="rt-words"><b>In acme-shop itself</b><i>PAY-142 → acme-shop, with your other work</i></span></div><div class="rt-gfoot"><span>Start keeps this for acme-shop’s tickets. You can change it in Settings ▸ Tickets.</span><button class="button quiet small rt-notnow">Not Now</button></div></div>
+
+== The line under the box
+-- a new worktree
+<div class="c-under rt-row" data-k="u"><span>PAY-142’s own folder: ~/code/acme-shop-worktrees/pay-142</span><button class="button quiet small rt-act" data-act="here">Use acme-shop</button></div>
+-- its worktree is there
+<div class="c-under rt-row" data-k="u"><span>Carries on in pay-142: ~/code/acme-shop-worktrees/pay-142</span><button class="button quiet small rt-act" data-act="here">Use acme-shop</button></div>
+-- its branch is there, with no folder
+<div class="c-under rt-row" data-k="u"><span>pay-142, in a new folder</span><button class="button quiet small rt-act" data-act="here">Use acme-shop</button></div>
+-- a new worktree, with Claude Desktop picked on the card
+<div class="c-under rt-row" data-k="u"><span>PAY-142’s own folder: ~/code/acme-shop-worktrees/pay-142 · worktrees start in Ghostty</span><button class="button quiet small rt-act" data-act="here" title="Starts in acme-shop, in Claude Desktop">Use acme-shop</button></div>
+-- no terminal
+<div class="c-under rt-row" data-k="u"><span>Worktrees start in a terminal, and there’s none here: PAY-142 starts in acme-shop.</span></div>
+-- the project’s folder
+<div class="c-under rt-row" data-k="u"><span>PAY-142 starts in acme-shop, with your other work.</span></div>
+-- by a field: reading it
+<div class="c-under rt-row" data-k="u"><span>Reading PAY-142’s Team…</span></div>
+-- …its option’s folder
+<div class="c-under rt-row" data-k="u"><span>PAY-142’s Team, checkout: ~/code/acme-shop-checkout</span><button class="button quiet small rt-act" data-act="here">Use acme-shop</button></div>
+-- …no option
+<div class="c-under rt-row" data-k="u"><span>PAY-142 has no Team yet: its own worktree for now</span><button class="button quiet small rt-act" data-act="here">Use acme-shop</button></div>
+-- …an option with no folder
+<div class="c-under rt-row" data-k="u"><span>Team web has no folder yet: its own worktree for now</span><button class="button quiet small rt-act" data-act="setIt">Set It</button></div>
+-- …its folder gone
+<div class="c-under rt-row" data-k="u"><span>~/code/acme-shop-web has gone: its own worktree for now</span><button class="button quiet small rt-act" data-act="setIt">Set It</button></div>
+-- …not read
+<div class="c-under rt-row" data-k="u"><span>Sign in with Atlassian first: its own worktree for now</span><button class="button quiet small rt-act" data-act="signIn">Sign In</button></div>
+-- …its option’s folder, one the card can’t start in: the card’s own line
+: null
+-- a conversation working it already
+<div class="c-under rt-row" data-k="u"><span>PAY-142 is being worked in pay-142.</span><button class="button quiet small rt-act" data-act="reopen">Go to It</button></div>
+
+== Another ticket’s conversation
+the conversation working this ticket: w1
+…none: null
+…one only starting isn’t one yet: null
+…another site’s ticket of the same key isn’t this one: null
+in the project’s folder: PAY-139: {"text":"PAY-139 is being worked here. Two tickets in one folder can clash.","name":"pay-142"}
+…in an existing worktree: {"text":"PAY-139 is being worked here. Two tickets in one folder can clash.","name":"pay-142"}
+…a closed one doesn’t count: null
+…the same ticket doesn’t count: null
+…a new worktree: nowhere to look: null
+
+== The card part, with a made-up answer
+asked once the card has a ticket: [{"type":"ticketRoute","asked":1,"folder":"/code/acme-shop","tracker":"Jira","site":"acme.atlassian.net","key":"PAY-142"}]
+…not again while it’s the same: []
+the guide’s lit way: {"name":"pay-142"}
+…the guide takes the line’s place: true
+…a press just after it shows doesn’t count: own
+a press on the Team field lights it: field
+…and the card is told to start in its folder: {"path":"/code/acme-shop-checkout"}
+the warning where it would start: PAY-139 in the project’s folder: {"text":"PAY-139 is being worked here. Two tickets in one folder can clash.","name":"pay-142"}
+…said too while the card offers Go to It for this ticket, with no button: its own worktree is the busy one: {"text":"PAY-139 is being worked here. Two tickets in one folder can clash."}
+Start keeps the lit way: [{"type":"ticketRouteSet","folder":"/code/acme-shop","way":{"kind":"field","field":"customfield_10001"}}]
+…and the next card asks afresh: null
+Esc on the guide only puts it away: nothing starts, the card shows the project’s folder, and Start keeps nothing: {"taken":true,"where":{"here":true},"guide":false,"started":[],"again":false,"sent":[]}
+Not Now pressed: it starts here, keeping nothing: {"where":{"here":true},"sent":[{"started":true}]}
+Use acme-shop on the line: [{"type":"ticketRoute","asked":4,"folder":"/code/acme-shop","tracker":"Jira","site":"acme.atlassian.net","key":"PAY-142"},{"here":true}]
+an answer for a ticket since changed is let go: PAY-142
+Not Now in a folder Claude hasn’t worked in: the guide only goes, nothing starts or is trusted: {"guide":false,"sent":[]}
+…the same for Esc there: {"taken":true,"guide":false,"sent":[]}
+Esc just after the guide shows: taken, and nothing more: {"taken":true,"notNow":null,"sent":[]}
+…and once the field comes in, it counts as just shown again: true
+you picked where yourself: the guide is hidden, Esc closes the card, and Start keeps no way: {"taken":false,"sent":[]}
+a field way still being read: nothing proposed, and Start waits: {"where":null,"waits":true}
+…once read: its folder, and Start goes: {"where":{"path":"/code/acme-shop-checkout"},"waits":false}
+Set It: Settings ▸ Tickets on the project’s own page: [{"type":"appsShow","app":"ticket-routing","page":"/code/acme-shop"},{"type":"turn","on":true}]
+Sign In on a ticket not read for want of one: [{"type":"ticketRouteSignIn","tracker":"Jira"}]
+…and, signed in, it’s asked about afresh: [{"type":"ticketRoute","asked":13,"folder":"/code/acme-shop","tracker":"Jira","site":"acme.atlassian.net","key":"PAY-142"}]
+no ticket: nothing: {"where":null,"under":""}

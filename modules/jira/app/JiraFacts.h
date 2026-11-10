@@ -15,6 +15,8 @@ NSString *JiraResource(void);
 // Whozmove asked for it lacks.
 NSArray<NSString *> *JiraScopes(void);
 extern NSString *const kJiraWriteScope;
+// How the list of your sites says a site has Jira: the product's id it lists for it, or the word in a scope it lists.
+extern NSString *const kJiraProductId, *const kJiraScopeWord;
 
 // The tools Whozmove calls, by their names in v2. The sites you're on, search, an issue, taking a transition, a comment
 // and creating are listed directly; the others are called through v2's deferred calls (kJiraExecuteRead,
@@ -23,8 +25,21 @@ extern NSString *const kJiraWriteScope;
 // Teamwork Graph's enriched reads, which use a site's Rovo credits.
 extern NSString *const kJiraToolSites, *const kJiraToolSearch, *const kJiraToolIssue, *const kJiraToolTransitions,
                 *const kJiraToolTransition, *const kJiraToolComment, *const kJiraToolCreate,
-                *const kJiraToolIssueTypes, *const kJiraToolBoards, *const kJiraExecuteRead,
-                *const kJiraExecuteWrite;
+                *const kJiraToolIssueTypes, *const kJiraToolBoards, *const kJiraToolTypeFields,
+                *const kJiraExecuteRead, *const kJiraExecuteWrite;
+
+// A project's priorities in their scheme's order, the most pressing first, each with Jira's id: the priority field's
+// allowed values among the create fields of one of the project's types (kJiraToolTypeFields, through executeRead, its
+// inputs the project and the type's id). Priority schemes are per project, so the list is too. Only some types' create
+// fields list priority (a Task's and a Story's do; a Bug's, an Epic's and a Subtask's have been seen without it, though
+// each holds a priority), so the order is read from the project's type named kJiraPriorityType, never each ticket's
+// own; a project without one has no order, and its tickets no place. Its inputs are named as Jira's own create fields
+// read names them, and its answer is looked for in each shape Jira has given those fields in (JiraPrioritiesIn). The
+// same read, for a ticket's own type, gives the fields its tickets take one option of (JiraOptionFieldsIn).
+extern NSString *const kJiraPriorityType;
+// How many of a type's create fields one read asks for: Jira gives them a page at a time, 50 unless asked, and the
+// priority field must be on the page read, however many fields of its own a project's screen has.
+extern const NSInteger kJiraFieldsMost;
 
 // Whether a tool writes to Jira (taking a step, a comment, a new ticket, or v2's deferred writes), and so needs the
 // write scope.
@@ -35,10 +50,17 @@ NSString *JiraCloudId(NSString *site);
 // How many tickets one site's search asks for: Atlassian's server has given at most five a page.
 extern const NSInteger kJiraSearchMost;
 
-// The fields Whozmove reads of an issue, and of each issue a search finds: what the row, its card and a session need,
-// never the description or the comments (a session reads those itself, once it has the ticket).
-NSArray<NSString *> *JiraIssueFields(void);
-NSArray<NSString *> *JiraSearchFields(void);
+// How Whozmove asks for an issue, read or searched: as the server's full view, the only one whose answer has the
+// priority's id, the status category's key, the parent and the resolution. A list of fields, or a smaller view, gives
+// the first two by their names alone and leaves the others out, whatever it names. The full view brings the comments
+// too; Whozmove takes only what the row, its card and a session need, and keeps none of them.
+extern NSString *const kJiraReadView;
+
+// The most of a ticket's description handed to a session, in characters, and the line put at the end of one cut
+// there. Text is taken as it comes, in the format the answer names (appliedContentFormat: Markdown in the full view);
+// Atlassian's document format, the tree of nodes Jira's own API gives a description as, is turned into its plain text.
+extern const NSInteger kJiraAboutMost;
+extern NSString *const kJiraAboutCut;
 
 // What Whozmove talks to Atlassian with: no cookies, no cache, and a timeout; and the version it says it is.
 NSURLSession *JiraSession(NSTimeInterval timeout);
@@ -58,6 +80,9 @@ BOOL JiraIsSite(NSString *host);
 // category for dropped: a status whose resolution says so (Won't Do, Duplicate, Cannot Reproduce) is done, as Jira
 // counts it, unless the resolution names it dropped.
 TicketKind JiraKindOf(NSString *categoryKey, NSString *resolution);
+// A statusCategory's key: its own, or, when it comes by its name alone (an issue in a view smaller than v2's full one), the key of Jira's
+// category by that name; nil for one it doesn't name.
+NSString *JiraCategoryKey(id category);
 
 // The search for words typed on the card, as JQL: a key finds that ticket; words, tickets whose text has them, most
 // recently changed first, done ones last. The words are quoted for JQL, so nothing typed changes the query.

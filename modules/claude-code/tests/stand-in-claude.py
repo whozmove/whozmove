@@ -4,8 +4,8 @@
 # Whozmove reads, the little of Claude Code the run's driver uses: the registry file, the transcript, the plugin's
 # hooks (run as its own children, as Claude Code runs them), the prompt with its draft kept through Ctrl+S, Shift+Tab's
 # modes, /model, /compact and /exit, `claude plugin` for Whozmove's plugin, the turns, through ANTHROPIC_BASE_URL, and a
-# question asked on a session's side (-p --resume <id> --fork-session, one turn, the question on its input as a
-# stream-json line, nothing saved, its tools refused by the PreToolUse hook --settings gives it).
+# question asked on a session's side (-p --resume <id> --fork-session, each question on its input as a stream-json
+# line, kept for the next, nothing saved, its tools as --allowedTools and the PreToolUse hook --settings gives it say).
 # It checks the run, not Whozmove: a pass with it says nothing about Claude Code.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 import json
@@ -266,13 +266,45 @@ class Claude:
 TOOLS = [{"name": n, "input_schema": {"type": "object"}} for n in ("Bash", "Write", "AskUserQuestion", "ExitPlanMode")]
 
 
+def allowed(call, rules):
+    """Whether --allowedTools names a tool call, as Claude Code matches its rules: a tool's own name, or Bash(<words>:*)
+    for a command that starts with those words."""
+    for rule in rules:
+        if rule == call["name"]:
+            return True
+        if rule.startswith("Bash(") and rule.endswith(":*)") and call["name"] == "Bash":
+            if call["input"].get("command", "").startswith(rule[5:-3]):
+                return True
+    return False
+
+
+def run_tool(call):
+    """A tool the copy may use, run: Read's file, or a Bash command in the session's folder. (Text, refused)."""
+    if call["name"] == "Read":
+        try:
+            with open(call["input"].get("file_path", "")) as f:
+                return f.read(), False
+        except OSError as why:
+            return str(why), True
+    if call["name"] == "Bash":
+        done = subprocess.run(["/bin/sh", "-c", call["input"].get("command", "true")], capture_output=True, text=True)
+        return done.stdout + done.stderr, False
+    return f"{call['name']} isn't a tool the stand-in runs", True
+
+
 def aside(args):
-    """A question on a session's side: its conversation as its transcript has it since its last compaction, sent again
-    with the question after it, as the session itself sends it; registered while it runs, and nothing written but that.
-    A tool it reaches for goes to --settings' PreToolUse hooks first, and runs only if none refuses it (exit 2)."""
+    """A question on a session's side, kept for more: its conversation as its transcript has it since its last
+    compaction, sent again with each question after it as the session itself sends it; registered while it runs, and
+    nothing written but that. It answers each line its input gives, once the one before has its result, and ends once
+    its input closes, as Claude Code does. A tool it reaches for is refused unless --allowedTools names it (dontAsk),
+    then goes to --settings' PreToolUse hooks, given the call on their input: exit 2 refuses it, and any other ending,
+    or a hook still running at its timeout, lets it run, as Claude Code's do. --max-turns counts each question's
+    rounds."""
     sid = args[args.index("--resume") + 1]
     model = args[args.index("--model") + 1] if "--model" in args else "claude-sonnet-5-5"
     settings = json.loads(args[args.index("--settings") + 1]) if "--settings" in args else {}
+    rules = args[args.index("--allowedTools") + 1].split(",") if "--allowedTools" in args else []
+    turns = int(args[args.index("--max-turns") + 1]) if "--max-turns" in args else 1
     paths = [os.path.join(top, sid + ".jsonl") for top, _, files in os.walk(os.path.join(CONFIG, "projects"))
              if sid + ".jsonl" in files]
     messages = []
@@ -287,26 +319,45 @@ def aside(args):
     save(registry, {"pid": os.getpid(), "sessionId": str(uuid.uuid4()), "cwd": os.getcwd(), "startedAt": now_ms(),
                     "procStart": str(now_ms()), "kind": "interactive", "entrypoint": "sdk-cli", "status": "busy",
                     "statusUpdatedAt": now_ms(), "version": "stand-in", "name": None})
-    question = json.loads(sys.stdin.readline())["message"]["content"]
+    hooks = [h for g in settings.get("hooks", {}).get("PreToolUse", []) for h in g.get("hooks", [])]
     say = lambda line: print(json.dumps(line), flush=True)
     say({"type": "system", "subtype": "init"})
-    reply = Claude.api(None, {"model": model, "max_tokens": 1000, "tools": TOOLS,
-                              "messages": messages + [{"role": "user", "content": question}]})
-    say({"type": "assistant", "message": reply})
-    calls = [c for c in reply["content"] if c["type"] == "tool_use"]
-    refuses = [h["command"] for g in settings.get("hooks", {}).get("PreToolUse", []) for h in g.get("hooks", [])]
-    for call in calls:
-        refused = any(subprocess.run(["/bin/sh", "-c", command], capture_output=True).returncode == 2
-                      for command in refuses)
-        text = "A side question uses no tools" if refused else subprocess.run(
-            ["/bin/sh", "-c", call["input"].get("command", "true")], capture_output=True, text=True).stdout
-        say({"type": "user", "message": {"role": "user", "content": [
-            {"type": "tool_result", "tool_use_id": call["id"], "content": text, "is_error": refused}]}})
-    words = "".join(c.get("text", "") for c in reply["content"])
-    say({"type": "result", "subtype": "error_max_turns" if calls else "success", "is_error": bool(calls),
-         "result": None if calls else words, "usage": reply.get("usage", {})})
-    # As Claude Code does with stream-json input, it finishes only once its input closes, still listed until then.
-    sys.stdin.read()
+
+    def refused_by_hook(call):
+        given = json.dumps({"session_id": sid, "hook_event_name": "PreToolUse", "tool_name": call["name"],
+                            "tool_input": call["input"]})
+        for hook in hooks:
+            try:
+                done = subprocess.run(["/bin/sh", "-c", hook["command"]], input=given, capture_output=True, text=True,
+                                      timeout=hook.get("timeout", 60))
+            except subprocess.TimeoutExpired:
+                continue
+            if done.returncode == 2:
+                return done.stderr.strip() or "refused by a hook"
+        return None
+
+    for question in sys.stdin:
+        if not question.strip():
+            continue
+        messages.append({"role": "user", "content": json.loads(question)["message"]["content"]})
+        reply, calls = {}, []
+        for _ in range(turns):
+            reply = Claude.api(None, {"model": model, "max_tokens": 1000, "tools": TOOLS, "messages": messages})
+            say({"type": "assistant", "message": reply})
+            messages.append({"role": "assistant", "content": reply["content"]})
+            calls = [c for c in reply["content"] if c["type"] == "tool_use"]
+            if not calls:
+                break
+            results = []
+            for call in calls:
+                why = "dontAsk: not allowed" if not allowed(call, rules) else refused_by_hook(call)
+                text, failed = (why, True) if why else run_tool(call)
+                results.append({"type": "tool_result", "tool_use_id": call["id"], "content": text, "is_error": failed})
+            say({"type": "user", "message": {"role": "user", "content": results}})
+            messages.append({"role": "user", "content": results})
+        words = "".join(c.get("text", "") for c in reply.get("content", []))
+        say({"type": "result", "subtype": "error_max_turns" if calls else "success", "is_error": bool(calls),
+             "result": None if calls else words, "usage": reply.get("usage", {})})
     os.remove(registry)
     return 0
 

@@ -1,0 +1,3 @@
+{"data": {"error": "TRANSITION_FAILED", "message": "Jira rejected the transition request for issue PAY-142.",
+  "problems": [{"field": "global0", "reason": "Fill in Blocked by first: what is it waiting on?"}],
+  "status": "400"}}

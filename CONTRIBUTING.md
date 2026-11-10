@@ -49,8 +49,9 @@ program is fixed in its module alone. How a module plugs in is in [Modules](docs
 - A module keeps the facts about its own program (Spotify's are in modules/spotify/app/SpotifyFacts.h, Claude Code's
   in modules/claude-code/app/ClaudeCodeFacts.h).
 - Preference keys keep their names: build.sh reads `showNextSteps` and `showDeploy`, and every switch and choice keeps
-  what you picked across launches, under the name it has always had (`panelLook`, `appearance`, `groupBy`,
-  `openWith`, `newConversationShortcut`), wherever it's set from now.
+  what you picked across launches, under the name it has always had (`panelLook`, `appearance`, `openWith`,
+  `newConversationShortcut`), wherever it's set from now; a key no longer read (`groupBy`, the list's order before it
+  had one view) is never used again for another choice.
 - A choice you make once and come back to now and then is a row in Settings (Module's `settingEntries`, or the settings
   part's `Settings`), not an item in the pawn menu: the menu keeps what has to work while the panel is hidden, folded or
   lost off the screen.

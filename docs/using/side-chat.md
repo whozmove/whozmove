@@ -53,32 +53,48 @@ Every "can't" says so before you send, with the way forward in Send's place:
 
 ## Asking without interrupting
 
-**Ask Without Interrupting**, beside Send, asks a question the session itself never sees: a copy of its
-conversation so far answers it in the chat, while the session works on, untouched. Your question shows marked
-"Without interrupting", quieter than the rest of the conversation, with "Asking a copy of Wren…" under it and **Stop**
-in Ask's place until it's answered; then the answer, under "A copy of Wren", with **Add to Message** and **Copy**. One
-question at a time for each session.
+**Ask Without Interrupting**, beside Send, asks a question the session itself never sees: a copy of its conversation
+so far answers it in the chat, while the session works on, untouched. Your question shows marked "Without
+interrupting", quieter than the rest of the conversation, with **Stop** in Ask's place until it's answered. In its
+answer's place, under "A copy of Wren", is the line a working session's row shows, on one line, a long step ending in
+"…": "Thinking", then each step the copy takes as it starts ("Reading cart.ts", "Running git log"), naming no file
+outside the session's folder, and, with a version of Claude Code Whozmove was tested with, the first line of what it's
+thinking. Then the answer, with **Add to Message** and **Copy**. One question at a time for each session.
 
 - **Add to Message** puts "I asked a copy of you “…” and it said: " and the answer into your box, after
   anything you'd written there, cut to the room the box has: read it, trim it, and Send passes it on to the session as
   your words.
-- The copy uses no tools and saves nothing: it can't read a file, run a command or change anything, and isn't kept as
-  a conversation. A question it could only answer by looking at files says so, with Send's own words for the session
-  now.
+- A follow-up remembers your earlier side questions and their answers, until the session compacts; in a long side chat,
+  only the newest that fit, about 4,000 words. While the session hasn't moved since your last side question, the
+  follow-up goes to the same copy; once it has, a fresh copy of the session as it is now is told your earlier side
+  questions, so it knows both. A quiet line, "A copy no longer knows the questions above", marks where its memory
+  starts. The copy ends 5 minutes after its last answer, and when the session ends or compacts.
+- The copy may read: the project's files in the session's folder, and, when that folder is the top of a git checkout,
+  git's status, log, diff and show there. It changes nothing, messages no one, and never reads outside the session's
+  folder. It never opens a file where keys are kept: Claude Code's own settings and sign-in, and every file Storage's
+  Keys knows holds keys (ssh's and the cloud tools' folders, MCP settings such as `.mcp.json` or `.cursor/mcp.json`,
+  and files named as keys are, such as `.env`, `.npmrc`, `id_rsa`, `.pem` or `.key`); nor, in a git checkout, a file
+  git ignores. A search or git won't show one either: a search shows matching lines from one file at a time, and
+  over a folder only which files match, and only a folder with no such file in it; git shows no change to such a
+  file, even one your project committed long ago. A session started in your home folder has a copy that reads
+  nothing, and so does any copy while Whozmove can't find where keys are kept. Each read is one more round of its
+  answer, up to 12, so an answer that reads files takes longer. When it wants to read more than a side question may,
+  it says so, with **Ask Again** and Send's own words for the session now.
 - **Send's words** (**Send After This Step**, **Send After Its Turn**, **Send After You Answer** or **Send**), on any
   question the copy couldn't answer, send the same question the normal way, as Send does: the session itself sees it,
   and it goes in as Send's words say (straight away while it's idle). Nothing goes in without that press, and a second
-  press sends nothing more. The question then says "Sent to Wren", and your words follow below it, "Goes in once …
-  step ends" while it works; **Take Back** there puts the question back as it was, with Ask Again and Send's words.
+  press sends nothing more. The question then says "Sent to Wren", and your words follow below it, "Goes in once … step
+  ends" while it works; **Take Back** there puts the question back as it was, with Ask Again and Send's words.
 - Each one counts toward your plan's usage, as the session's own work does. The copy asks Anthropic just as the
   session last did, so while the session works, or soon after its last step, it can read the conversation from
   Anthropic's cache rather than all over again; a session left idle a long while is read again whole.
 - Not yet on a Claude Desktop conversation: "Not in Claude Desktop yet", with **Take Me There** to ask it there.
 - Every other "can't" says so in Ask's place, or under the box before you've written anything: Claude Code not on this
   Mac (**Get Claude Code**), nothing said in the session yet, or its conversation not found (**Take Me There**). After
-  you've asked: "Took too long", "Didn't answer" or "Claude Code couldn't answer just now", for an error Anthropic sent
-  back (**Ask Again** or Send's words), signed out (**Copy the Sign-In Command**), your plan's limit reached (**Copy the
-  Question**), or too long to read again (Send's words). One more can't be asked while another is being answered.
+  you've asked, in the answer's place: "Took too long", "Didn't answer" or "Claude Code couldn't answer just now", for
+  an error Anthropic sent back (**Ask Again** or Send's words), signed out (**Copy the Sign-In Command**), your plan's
+  limit reached (**Copy the Question**), or too long to read again (Send's words). One more can't be asked while another
+  is being answered.
 - The copy reads none of Claude Code's settings files, so if you've set Claude Code's sign-in or a gateway in its
   `settings.json` `env` rather than in your shell, it can't reach Anthropic, and says it didn't answer.
 - Side questions and their answers are held in memory only: they go when the session ends or Whozmove quits, and a

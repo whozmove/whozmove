@@ -1288,7 +1288,7 @@ Q
   HOME="$T" "$APP" --print-teams > "$T/teams-version.json"
   cmp -s "$T/teams-as-written.json" "$T/teams-version.json" && echo "version $version: the same" || echo "version $version: differs"
 done
-echo "== With Show Teams off, the file isn't read: no teams, no row has a team, and Group by Team isn't offered"
+echo "== With Show Teams off, the file isn't read: no teams, and no row has a team"
 HOME="$T" "$APP" --print-teams --switch-off
 mv "$T/team-before-queue.json" "$team"
 echo "== A member is its workspace: whoever runs in a member's own folder holds its seat. Pim's conversation, cleared, is"

@@ -41,7 +41,8 @@ The file is grouped, and says beside each token what it's for:
 - **The cat, the usage card and its vine**: `--cream` and `--cat-feature` (the cat and its eyes), the chats beside it
   (`--chat`, `--chat-edge`, `--chat-shadow`, `--chat-pill`), `--usage-card`, and `--vine-green` to `--vine-heart`.
 - **Text sizes**, `--size-tag` to `--size-heading`, and `--size-lyrics` (a song's lines in the reader); **corners**,
-  `--radius-bar` to `--radius-pill`.
+  `--radius-bar` to `--radius-pill`; **a track's sizes**, `--track-length` (its one length whatever its steps' count),
+  `--track-dot` (the step it's on, never thinner) and `--track-height`, with `--track` the colour of its empty part and `--track-done` of what's done.
 - **The layout**, `--header`, `--side` and `--above` (the room for the reader beside the list, and for what comes up
   from the folded cat above it), `--column`, and a spring for motion, `--spring`.
 

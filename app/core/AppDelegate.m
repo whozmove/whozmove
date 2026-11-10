@@ -80,12 +80,11 @@
         [NSFileManager.defaultManager removeItemAtPath:pidFile error:nil];
 }
 
-// A freshly loaded page (at the start, or after a reload) learns how tall it can grow, how it's grouped, whether rows
-// show the conversation, the panel's switches and look, and the build running, and gets each module's part and its
+// A freshly loaded page (at the start, or after a reload) learns how tall it can grow, whether rows show the
+// conversation, the panel's switches and look, and the build running, and gets each module's part and its
 // rows at once.
 - (void)pageLoaded {
     [self.window resendRoom];
-    [self.settings applySavedGrouping];
     [self.settings applySavedConversation];
     [self.menuBar applySavedSwitches];
     [self.page setRunningBuild:RunningBuild()];

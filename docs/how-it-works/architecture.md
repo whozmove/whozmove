@@ -33,8 +33,10 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   call's result shows up in the transcript (settled in Claude), when Claude Code says the session has been idle since
   the request (a plan approved, then the turn stopped, leaves no result), or when the session ends. Only ever allows
   once, never "always allow". A plan (ExitPlanMode) is approved from the panel only for a session you allow to (May
-  Approve Plans): the panel's answer then carries `approvePlan`, and the hook passes on an allow with an empty input,
-  as Claude's own prompt does; it drops a bare allow for a plan, and `approvePlan` for anything else.
+  Approve Plans), or by your press on Approve under it beside the list, never by a message the page makes up: both go
+  through one check (the Claude Code module's `AnswerFor`), and only then does the panel's answer carry `approvePlan`,
+  for the hook to pass on an allow with an empty input, as Claude's own prompt does; it drops a bare allow for a plan,
+  and `approvePlan` for anything else.
   A plan is sent back by a session you allow (May Send Back Plans, the Claude Code module's `AnswerFor`) as your own
   notes would be, marked as that session's, and a question answered by one (May Answer Questions) as the question
   card's answers would be, each marked: the panel answers down the same line, once. In a session you turned
@@ -175,7 +177,7 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     the agent keeps, `AgentConversations`, those a host keeps itself left to it, and ticked ones moved to the Trash,
     ended first while open; `Trashed`: where each one's files went, for Undo and Put Back), `team` (`Team`: the team
     file a session leading a team of sessions can keep, read when it changes, and each row's place in it, and each
-    team as a whole for the others (`TeamFacts`); and Group by Team among Settings' ways to show the list), `board`
+    team as a whole for the others (`TeamFacts`)), `board`
     (`BoardModule`: each team as a whole sent to the page as the file changes, and Team Board among the tools on the
     panel's back), and `notifications` (`NotificationsModule`: what every module has to tell you, gathered as the rows
     are read, sent to the page with whether the panel is hidden or flicked off the screen's edge, a press run through
@@ -288,8 +290,8 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     name, plain functions); and Storage's `disk-line` (the line above the list when the disk is running low, or when the
     map you were waiting for is ready), `map` (the map's rings and sizes, plain functions), `clean` (Clean up's list,
     plain functions), `map-view` (the reader's `storage` mode and its tabs) and `clean-view` (the Clean up tab); the
-    team's `team` (Group by Team: its groups, every row short with its job's track, and what waits on you or where its
-    job stands: plain functions); the board's `board` (where each job stands, who's on what, the goals as tiles, what's
+    team's `team` (the team's groups above the projects, its rows' job tracks, and what waits on you or where its job
+    stands: plain functions); the board's `board` (where each job stands, who's on what, the goals as tiles, what's
     done this week, the kinds of what needs you and how many are in One Task, and what Take Me There opens: plain
     functions, and Up next's rows, line and words) and `board-view` (the reader's `board` mode, Glance, Up next for all
     goals or one, a job's card, and Up next or Team Board on the chief's line); notifications' `decide` (what the line under the header shows and how many wait, where

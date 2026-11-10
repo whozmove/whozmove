@@ -164,5 +164,90 @@ show('words', keptBy({ app: 'terminal' }));
 show('a new worktree', keptBy({ text: '', target: { ...fresh, check: freeHello } }));
 show('a project chosen', keptBy({ text: '', folder: '/work/api', name: 'api', picked: true }));
 state.startDraft = null;
+
+section('Where a part has it start (where, under, warn)');
+// A sample part standing in for another module's, saying what `sample` says: never a module's own.
+const sample = { name: 'sample', where: () => sample.w, under: () => sample.u, warn: () => sample.x };
+core.startCardParts.push(sample);
+state.repos = { '/work/app': repo };
+const followed = (fields, w) => {
+  sample.w = w;
+  const card = startCard2(fields);
+  followWhere(card);
+  return { target: card.target, followed: card.followed };
+};
+show('a name with a worktree on that branch: that worktree', followed({}, { name: 'usage' }));
+show('…a branch with no folder: it, in a new folder', followed({}, { name: 'release' }));
+show('…neither: a new worktree by that name, from the base, named', followed({}, { name: 'PAY 142!' }));
+show('…the branch its own folder is on: its own folder', followed({}, { name: 'main' }));
+show('…one of its folders, by path', followed({}, { path: '/work/app-wt/usage' }));
+show('…its own folder', followed({ target: { kind: 'open', branch: 'usage' } }, { here: true }));
+show('…nothing: where it was stays', followed({ target: { kind: 'branch', name: 'release' } }, null));
+show('your own pick wins', followed({ chosen: true }, { name: 'usage' }));
+show('the proposal going: where it was before comes back', (() => {
+  const card = startCard2({ target: { kind: 'branch', name: 'release' } });
+  sample.w = { name: 'usage' };
+  followWhere(card);
+  sample.w = null;
+  followWhere(card);
+  return { target: card.target, followed: card.followed };
+})());
+state.startOptions = { terminal: null };
+show('no terminal: its own folder, worktrees starting only in one', followed({}, { name: 'usage' }));
+state.startOptions = { terminal: 'Ghostty' };
+state.repos['/work/notes'] = { none: true, where: '~/work/notes' };
+show('outside git: nowhere else to go', followed({ folder: '/work/notes', name: 'notes' }, { name: 'usage' }));
+show('where it would start now, for the parts', (() => {
+  const card = startCard2({});
+  sample.w = { name: 'pay-142' };
+  followWhere(card);
+  return cardPlace(card);
+})());
+show('…not followed while you picked it', cardPlace(startCard2({ chosen: true })));
+show('a proposal isn’t kept for the next card', (() => {
+  state.dock = startCard2({ text: '', target: { kind: 'new', name: 'pay-142', base: 'main', named: true },
+                            followed: { key: 'name:pay-142', was: null } });
+  keepDraft();
+  state.dock = null;
+  return state.startDraft;
+})());
+show('your own pick is kept for the next card, and wins there', (() => {
+  state.dock = startCard2({ text: '', target: { kind: 'open', branch: 'usage', path: '/work/app-wt/usage' }, chosen: true });
+  keepDraft();
+  state.dock = null;
+  return state.startDraft;
+})());
+show('…a proposal’s place isn’t, but where it was before is', (() => {
+  state.dock = startCard2({ text: '', target: { kind: 'new', name: 'pay-142', base: 'main', named: true },
+                            followed: { key: 'name:pay-142', was: { kind: 'branch', name: 'release' } } });
+  keepDraft();
+  state.dock = null;
+  return state.startDraft;
+})());
+state.startDraft = null;
+sample.waits = () => true;
+show('a part still finding out where it starts holds Start', cardState(startCard2({})).go);
+sample.waits = null;
+show('…and lets it go once it knows', cardState(startCard2({})).go);
+state.folders = { '/work/app': { trusted: false } };
+show('where it would start now says Start would also trust the folder', cardPlace(startCard2({ text: 'go' })).trust);
+state.folders = { '/work/app': { trusted: true } };
+sample.w = null;
+sample.u = '<div class="c-under sample-line" data-k="u">Its own line</div>';
+print('-- a part’s line in place of the card’s');
+print(startCardHTML(startCard2({}), startable));
+print('-- …not once you picked where yourself');
+print(startCardHTML(startCard2({ chosen: true }), startable));
+sample.u = null;
+sample.x = { text: 'Another sample is at work here.', name: 'sample-1' };
+print('-- a part’s warning in the busy notice’s place, its button naming its worktree');
+print(startCardHTML(startCard2({}), startable));
+state.startOptions = { terminal: null };
+print('-- …with no terminal: the words alone');
+print(startCardHTML(startCard2({}), startable));
+state.startOptions = { terminal: 'Ghostty' };
+sample.x = null;
+core.startCardParts.splice(core.startCardParts.indexOf(sample), 1);
+state.startDraft = null;
 state.repos = {};
 state.folders = {};

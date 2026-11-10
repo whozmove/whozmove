@@ -16,7 +16,8 @@ const bk = {
                    // permission: { kind, use, state }, switches, statuses }
   settings: [],    // as the app sends them: { key, kind, title, glyph, group, page, style, foot, on or value, choices }
   // The pages you've come through, the apps first: 'apps', 'settings', a choice's page as 'set:' and its name, an
-  // app's as 'app:' and its id, and one of its lists as 'list:', its app's id and the list's key.
+  // app's as 'app:' and its id, one of its lists as 'list:', its app's id and the list's key, and a page one of its
+  // rows opens as 'sub:', its app's id and the row's key.
   stack: ['apps'],
   // On a list's page: what's ticked; when its question was asked (0 while it isn't); a line about one that can't be
   // ticked, pressed or left out ({text, way, id}); and until when the pointer has held what the last press did.
@@ -28,6 +29,8 @@ const bk = {
   saidShownAt: 0,
   pointer: null,   // where the pointer is on the page, or null
   allowed: {},     // the tools whose card's Allow has been pressed, by id: what to do in System Settings shows then
+  // A choice pressed whose change shows first, before and after, until Keep It or Change: { app, key, value }.
+  confirm: null,
 };
 
 const ROWS_ICON = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.4 2.6h6.2M4.4 6h6.2'
@@ -74,6 +77,8 @@ const GLYPHS = {
   gauge: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 11.4a5.2 5.2 0 0 1 10.4 0M8 11.4 10.5 7.6" fill="none" '
     + 'stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><circle cx="8" cy="11.4" r="1.1" '
     + 'fill="currentColor"></circle></svg>',
+  ticket: '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" '
+    + 'stroke-linejoin="round" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"></path></svg>',
 };
 
 // After a switch or a choice is pressed, the page isn't drawn again until its knob has slid across, or its tick moved
@@ -89,6 +94,16 @@ const appOf = (id) => bk.apps.find((a) => a.id === id);
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const here = () => bk.stack[bk.stack.length - 1];
 const appHere = () => here().startsWith('app:') ? appOf(here().slice(4)) : null;
+// The page one of an app's rows opens, when that's where the back is ('sub:', its app's id and the row's key): {app,
+// row}, or null.
+function subHere() {
+  if (!here().startsWith('sub:')) return null;
+  const rest = here().slice(4), at = rest.indexOf(':'), app = appOf(rest.slice(0, at));
+  const row = app && pageRowOf(app, rest.slice(at + 1));
+  return row ? { app, row } : null;
+}
+// The app whose page, or page within it, is here.
+const appOfHere = () => appHere() || subHere()?.app || null;
 // The list whose page is here, with its app's id: {appId, list}, or null.
 function listHere() {
   if (!here().startsWith('list:')) return null;
@@ -103,6 +118,9 @@ function listHere() {
 const MARKS = { git: BRANCH_ICON, storage: DISK_ICON };
 function iconHTML(app, size) {
   if (app.icon) return `<img class="b-icon" src="${esc(app.icon)}" width="${size}" height="${size}" alt="">`;
+  // A tool with a mark of Settings' (its glyph): that mark, on its colour.
+  if (GLYPHS[app.glyph]) return `<span class="b-mark" style="width: ${size}px; height: ${size}px"><i class="b-glyph g-${esc(app.glyph)}">`
+    + `${GLYPHS[app.glyph]}</i></span>`;
   return `<span class="b-mark" style="width: ${size}px; height: ${size}px"><i>${MARKS[app.id]
     || esc(initialOf(app.name))}</i></span>`;
 }
@@ -113,11 +131,12 @@ const tileHTML = (glyph) => `<span class="b-glyph g-${esc(glyph)}">${GLYPHS[glyp
 // The list's header, turned over: where you are at its left, after ‹ (a page back, or from the apps, back to the
 // list), then the same buttons in the same places, with ＋'s place left empty.
 function headHTML() {
-  const app = appHere(), page = here().startsWith('set:') ? here().slice(4) : null;
+  const app = appHere(), sub = subHere(), page = here().startsWith('set:') ? here().slice(4) : null;
   const back = bk.stack.length > 1 ? `<button class="icon-button b-back" data-pop="1" title="Back">${BACK_ICON}</button>`
     : `<button class="icon-button b-back" data-turn="left" title="Your sessions">${BACK_ICON}</button>`;
   const listed = listHere();
-  const title = app ? `${iconHTML(app, 16)}<b>${esc(app.name)}</b>` : listed ? `<b>${esc(listed.list.title)}</b>`
+  const title = app ? `${iconHTML(app, 16)}<b>${esc(app.name)}</b>` : sub ? `<b>${esc(sub.row.title)}</b>`
+    : listed ? `<b>${esc(listed.list.title)}</b>`
     : `<b>${esc(page || (here() === 'settings' ? 'Settings' : 'Apps'))}</b>`;
   return `${back}<span class="b-title">${title}</span><span class="icon-button add-new b-slot" aria-hidden="true"></span>`
     + `<span class="icon-button apps" data-turn="right" title="Your sessions">${ROWS_ICON}</span>`
@@ -227,17 +246,35 @@ const switchHTML = (s, off) => `<div class="b-switch${off ? ' off' : ''}" data-k
   + `aria-checked="${!!s.on}"><span class="b-words"><b>${esc(s.title)}${s.isNew ? NEW_TAG : ''}</b>`
   + `<i>${esc(s.help)}</i></span>${SWITCH}</div>`;
 
-// One of the rows in a group on an app's page (groupsView): a switch; a choice's rows, after the one above them that
-// can't be pressed; or a part of the day, its name over its line, and its two ends, each pressed for its menu of times.
+// One of the rows in a group on an app's page (groupsView): a switch; a row opening a page of its own; a choice drawn
+// as one row, with the Mac's menu of its choices; a choice's rows, after the one above them that can't be pressed,
+// which may stand alone, with nothing to pick under it; or a part of the day, its name over its line, and its two
+// ends, each pressed for its menu of times.
 // Each end's button is named with the row's name and which end it is, so VoiceOver, which can land on one by itself,
 // says what it's for; the "to" between them is then only for the eye.
 function groupRowHTML(row) {
   if (row.kind === 'switch') return switchHTML(row, row.off);
+  // A row opening a page of its own: its name, what it's set to, and ›.
+  if (row.kind === 'page')
+    return `<div class="b-row"${row.off ? ' aria-disabled="true"'
+      : ` data-go="sub:${esc(appOfHere()?.id || '')}:${esc(row.key)}"`} role="button"><span class="b-name">${esc(row.title)}</span>`
+      + `<span class="b-value">${esc(row.said)}</span><span class="b-chev">${MORE_ICON}</span></div>`;
+  // A choice drawn as one row: its name over its line, and the one picked on a button opening the Mac's menu of them.
+  if (row.kind === 'choice' && row.menu) {
+    // None of them picked (what was picked has gone): the button asks for one.
+    const said = row.choices.find((c) => c.id === row.value)?.name || 'Choose…';
+    return `<div class="b-span${row.off ? ' off' : ''}"><span class="b-words"><b>${esc(row.title)}</b>`
+      + `${row.fixed?.help ? `<i>${esc(row.fixed.help)}</i>` : ''}</span><button class="button small b-menu" `
+      + `data-menu="${esc(row.key)}" aria-label="${esc(`${row.title}: ${said}`)}"${row.off ? ' disabled' : ''}>`
+      + `<span class="b-menu-name">${esc(said)}</span><span class="caret">${CHEVRON_ICON}</span></button></div>`;
+  }
   if (row.kind === 'choice')
     return (row.fixed ? `<div class="b-row b-choice b-fixed" aria-disabled="true"><span class="b-words">`
       + `<b>${esc(row.fixed.name)}</b><i>${esc(row.fixed.help)}</i></span></div>` : '')
-      + `<div class="b-picks" role="radiogroup" aria-label="${esc(row.title)}">${row.choices.map((c) => choiceRowHTML(c,
-        c.id === row.value, `data-choice="${esc(row.key)}" data-id="${esc(c.id)}"`, row.off)).join('')}</div>`;
+      + (!row.choices.length ? '' : `<div class="b-picks" role="radiogroup" aria-label="${esc(row.title)}">`
+        + `${row.choices.map((c) => choiceRowHTML(c, c.id === row.value,
+          `data-choice="${esc(row.key)}" data-id="${esc(c.id)}"`, row.off)).join('')}</div>`)
+      + confirmHTML(row);
   const end = (which, said) => `<button class="button small b-time" data-time="${esc(row.key)}" data-end="${which}"`
     + ` aria-label="${esc(`${row.title}, ${which} ${said}`)}"${row.off ? ' disabled' : ''}>${esc(said)}</button>`;
   return `<div class="b-span${row.off ? ' off' : ''}"><span class="b-words"><b>${esc(row.title)}</b>`
@@ -245,10 +282,26 @@ function groupRowHTML(row) {
     + `<span aria-hidden="true">to</span>${end('to', row.to)}</span></div>`;
 }
 
-// An app's groups, each its heading over a card of its rows and its line under the card; then, while what's on the
-// page isn't as recommended, the button that puts it back.
+// What picking a choice would change, under its choices while it's the one pressed: before and after, what to be
+// careful of and what stays, then Keep It, which leaves it as it is, and Change, which picks it.
+function confirmHTML(row) {
+  const c = bk.confirm, said = c && c.app === appOfHere()?.id && c.key === row.key ? row.confirms?.[c.value] : null;
+  if (!said) return '';
+  const line = (k, text) => `<div class="b-ba-line"><span class="b-ba-k">${k}</span><span>${esc(text)}</span></div>`;
+  return `<div class="b-ba" role="group" aria-label="${esc(`${row.title}: before and after`)}">`
+    + line('Before', said.before) + line('After', said.after)
+    + (said.warn ? `<div class="b-ba-warn">${esc(said.warn)}</div>` : '')
+    + (said.keep ? `<div class="b-ba-keep">${esc(said.keep)}</div>` : '')
+    + '<div class="b-ba-btns"><button class="button small quiet" data-confirm="keep">Keep It</button>'
+    + '<button class="button small main" data-confirm="change">Change</button></div></div>';
+}
+
+// An app's groups, each its heading (with Important after it, for one that matters more than most) over a card of its
+// rows and its line under the card; then, while what's on the page isn't as recommended, the button that puts it back.
+const IMPORTANT_TAG = ' <span class="tag b-imp">Important</span>';
 function groupsHTML(app) {
-  return groupsView(app).map((g) => (g.title ? `<div class="caps b-sec">${esc(g.title)}</div>` : '')
+  return groupsView(app).map((g) => (g.title ? `<div class="caps b-sec">${esc(g.title)}${g.important ? IMPORTANT_TAG : ''}`
+    + '</div>' : '')
     + (g.rows.length ? `<div class="b-card b-group">${g.rows.map(groupRowHTML).join('')}</div>` : '')
     + footHTML(g.foot ? [g.foot] : [])).join('')
     + (app.recommended === false ? '<div class="b-more"><button class="button small" data-recommended="1">Use the '
@@ -330,7 +383,8 @@ function trayHTML(list, now) {
   return line + note;
 }
 
-const bodyHTML = () => appHere() ? appHTML(appHere()) : listHere() ? listHTML(listHere().list)
+const bodyHTML = () => appHere() ? appHTML(appHere()) : subHere() ? groupsHTML({ groups: subHere().row.groups })
+  : listHere() ? listHTML(listHere().list)
   : here().startsWith('set:') ? choicesHTML(here().slice(4)) : here() === 'settings' ? settingsHTML() : homeHTML();
 
 // Drawn again only where it changed. What a press changes (a switch's state, the choice picked, whether the others can
@@ -338,7 +392,7 @@ const bodyHTML = () => appHere() ? appHTML(appHere()) : listHere() ? listHTML(li
 // them; anything more is drawn once the knob has slid.
 function draw() {
   // A page that has gone (its app from this Mac, its setting from the module) goes back as far as what's still there.
-  while (bk.stack.length > 1 && ((here().startsWith('app:') && !appHere())
+  while (bk.stack.length > 1 && ((here().startsWith('app:') && !appHere()) || (here().startsWith('sub:') && !subHere())
                                  || (here().startsWith('list:') && !listHere())
                                  || (here().startsWith('set:') && !settingsPage(bk.settings, here().slice(4)).length)))
     bk.stack.pop();
@@ -481,6 +535,7 @@ function go(page) {
     bk.askedAt = 0;
     bk.note = null;
   }
+  bk.confirm = null;
   if (page) bk.stack.push(page);
   else if (bk.stack.length > 1) bk.stack.pop();
   else return;
@@ -516,7 +571,7 @@ function setSetting(key, value) {
 
 // One of an app's switches: the same way.
 function press(key) {
-  const app = appHere(), apps = app && afterPress(bk.apps, app.id, key);
+  const app = appOfHere(), apps = app && afterPress(bk.apps, app.id, key);
   if (!apps) return;
   bk.apps = apps;
   drawnAfter = Date.now() + SLIDE_MS;
@@ -525,10 +580,17 @@ function press(key) {
   native({ type: 'appsSwitch', app: app.id, key, on });
 }
 
-// One of an app's choices: the same way.
-function choose(key, value) {
-  const app = appHere(), apps = app && afterChoice(bk.apps, app.id, key, value);
+// One of an app's choices: the same way. One whose change shows first shows its before and after instead, and is
+// picked once Change is pressed (`sure`).
+function choose(key, value, sure) {
+  const app = appOfHere(), apps = app && afterChoice(bk.apps, app.id, key, value);
   if (!apps) return;
+  const row = rowsIn(app.groups).find((r) => r.kind === 'choice' && r.key === key);
+  if (!sure && row?.confirms?.[value]) {
+    bk.confirm = { app: app.id, key, value };
+    return draw();
+  }
+  bk.confirm = null;
   bk.apps = apps;
   drawnAfter = Date.now() + SLIDE_MS;
   draw();
@@ -550,11 +612,24 @@ backEl.addEventListener('mousedown', (e) => {
   if ((el = hit('[data-pick]'))) return setSetting(el.dataset.pick, el.dataset.id);
   if ((el = hit('.b-switch[data-key]'))) return press(el.dataset.key);
   if ((el = hit('[data-choice]'))) return choose(el.dataset.choice, el.dataset.id);
+  if ((el = hit('[data-confirm]'))) {
+    const c = bk.confirm;
+    bk.confirm = null;
+    if (c && el.dataset.confirm === 'change') return choose(c.key, c.value, true);
+    return draw();
+  }
+  // A choice's menu is the Mac's own, opened by the app at its button, as a time's is.
+  if ((el = hit('[data-menu]'))) {
+    if (el.disabled) return;
+    const r = el.getBoundingClientRect();
+    return native({ type: 'appsChoiceMenu', app: appOfHere()?.id, key: el.dataset.menu, x: Math.round(r.left),
+                    y: Math.round(r.top) });
+  }
   // A time's menu is the Mac's own, opened by the app over the time pressed, its top-left corner where the time's is.
   if ((el = hit('[data-time]'))) {
     if (el.disabled) return;
     const r = el.getBoundingClientRect();
-    return native({ type: 'appsTime', app: appHere()?.id, key: el.dataset.time, end: el.dataset.end,
+    return native({ type: 'appsTime', app: appOfHere()?.id, key: el.dataset.time, end: el.dataset.end,
                     x: Math.round(r.left), y: Math.round(r.top) });
   }
   if (hit('[data-recommended]')) return native({ type: 'appsUseRecommended', app: appHere()?.id });
@@ -678,10 +753,13 @@ window.turned = (on) => {
 
 // The page to show as the panel turns over to its back, asked from the panel's side (the line above its list says the
 // disk is low, and Storage's page has more): there at once, as it's out of sight until the panel has turned.
-window.showApp = (id) => {
+// The pages the back is on to show an app's: on a page one of its rows opens, when that row is there; else its own.
+const showingStack = (id, page) => ['apps', `app:${id}`, ...(page && pageRowOf(appOf(id), page) ? [`sub:${id}:${page}`]
+  : [])];
+window.showApp = (id, page) => {
   if (!appOf(id)) return;
   stopFold();
-  bk.stack = ['apps', `app:${id}`];
+  bk.stack = showingStack(id, page);
   drawnAfter = 0;
   draw();
   bodyEl.scrollTop = 0;

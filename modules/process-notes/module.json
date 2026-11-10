@@ -1,0 +1,5 @@
+{
+  "order": 46,
+  "scripts": ["page/process-words.js", "page/process-notes.js"],
+  "styles": ["page/process-notes.css"]
+}

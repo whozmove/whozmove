@@ -6,7 +6,7 @@
 refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
 == start s1 ABC-1
 == ask s1 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-1: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
 == rows
 s1: {"bound":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","readAt":"(when read)","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
 s2: none
@@ -30,7 +30,7 @@ refused: this session has no ticket. The user gives it one on the new conversati
 shown on your row: “Work on ABC-2 here?” Carry on; ask-panel.sh ticket --wait says once the user has answered
 == press s2 use
 == ask s2 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-2: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-2","link":"https://one.example/t/ABC-2","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-2","tracker":"Sample","type":"Task"}}
 == ask s2 ticket-use ABC-2
 working on it already: ABC-2
 == ask s1 ticket-use ABC-2
@@ -43,7 +43,7 @@ s3: none
 == ask s1 ticket
 not used: the user chose Not Now for ABC-2, so carry on with ABC-1
 == ask s1 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-1: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-1","link":"https://one.example/t/ABC-1","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-1","tracker":"Sample","type":"Task"}}
 == ask s1 ticket-use not-a-key
 refused: that isn't a ticket Whozmove knows: give its key (PAY-142) or its link
 == ask s1 ticket-link https://elsewhere.test/t/ABC-1
@@ -116,6 +116,8 @@ s1.json: Sample ABC-1, for this process, only you can read it: yes
 s4.json: Sample ABC-1, for this process, only you can read it: yes
 == log
 panel.log has none of a ticket's words
+panel.log has none of a ticket's description
+Whozmove's folder has none of a ticket's description in any file
 panel.log has none of a note's, a field's or a why's words
 panel.log has none of a new ticket's words
 ## moves
@@ -171,7 +173,7 @@ refused: Resolution (resolution) takes one of its options, by name
 == move s5 8 {"note": "Ready: pull request 57"}
 shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
 == ask s5 ticket
-{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == moves
 s5: {"key":"ABC-3","move":{"at":"(when)","fields":[],"key":"ABC-3","name":"Send to review","note":"Ready: pull request 57","stepId":"8","to":{"kind":"doing","name":"In Review"}},"state":"Doing"}
 s6: {"key":"ABC-3"}
@@ -196,7 +198,7 @@ nothing taken
 s5: {"key":"ABC-3","move":{"at":"(when)","fields":[{"name":"Resolution","value":"Fixed"},{"name":"Fix version","value":"2.1"}],"instead":"In Review","key":"ABC-3","name":"Finish","note":"The fix is in pull request 57","problem":{"kind":"failed","why":"Couldn't reach it"},"stepId":"5","to":{"kind":"done","name":"Done"}},"state":"Doing"}
 s6: {"key":"ABC-3","state":"Doing"}
 == ask s5 ticket
-{"move":{"waiting":"Done"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"notMoved":"Couldn't reach it","waiting":"Done"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == press-move s5 move ABC-3 5
 == took
 ABC-3 to Done, with the note “The fix is in pull request 57” and fields {"fixVersion":["2.1"],"resolution":"Fixed"}
@@ -204,9 +206,23 @@ ABC-3 to Done, with the note “The fix is in pull request 57” and fields {"fi
 s5: {"key":"ABC-3","moved":{"at":"(when)","by":"you","to":"Done"},"state":"Done"}
 s6: {"key":"ABC-3","state":"Doing"}
 == ask s5 ticket
-{"move":{"moved":"Done"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"moved":"Done"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == ask s5 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== afresh ABC-3
+== read s5
+== move s5 5 {"note": "The fix is in pull request 57", "fields": {"resolution": "Fixed", "fixVersion": ["2.1"]}}
+shown on your row: “Move ABC-3 to Done?” Carry on; ask-panel.sh ticket says once the user has answered
+== fails refused
+== press-move s5 move ABC-3 5
+== moves
+s5: {"key":"ABC-3","move":{"at":"(when)","fields":[{"name":"Resolution","value":"Fixed"},{"name":"Fix version","value":"2.1"}],"key":"ABC-3","name":"Finish","note":"The fix is in pull request 57","problem":{"kind":"refused","says":"Fill in <Reviewer> first","why":"It turned it away"},"stepId":"5","to":{"kind":"done","name":"Done"}},"moved":{"at":"(when)","by":"you","to":"Done"},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== ask s5 ticket
+{"move":{"notMoved":"It turned it away","trackerSays":"Fill in <Reviewer> first","waiting":"Done"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== press-move s5 notNow ABC-3 5
+== ask s5 ticket
+{"move":{"notMoved":"the user said Not Now"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == afresh ABC-3
 == read s5
 == move s5 8
@@ -218,9 +234,9 @@ s6: {"key":"ABC-3","state":"Doing"}
 == took
 nothing taken
 == ask s5 ticket
-{"move":{"notMoved":"the user said Not Now"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"notMoved":"the user said Not Now"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == ask s5 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == move s5 8 {"note": "Ready: pull request 57"}
 shown on your row: “Move ABC-3 to In Review?” Carry on; ask-panel.sh ticket says once the user has answered
 == elsewhere ABC-3 5
@@ -231,7 +247,7 @@ nothing taken
 s5: {"key":"ABC-3","moved":{"at":"(when)","gone":"ABC-3 is Done already"},"state":"Done"}
 s6: {"key":"ABC-3","state":"Doing"}
 == ask s5 ticket
-{"move":{"notMoved":"ABC-3 is Done already"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"notMoved":"ABC-3 is Done already"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"done","name":"Done"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == read s5
 == moves
 s5: {"key":"ABC-3","state":"Done"}
@@ -261,7 +277,7 @@ marked: QA sign-off is a person's step: say so in your reply and stop
 s5: {"key":"ABC-3","state":"Doing","stopped":{"6":"Only QA signs off on payment changes"}}
 s6: {"key":"ABC-3","state":"Doing"}
 == ask s5 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"stopped":{"6":"Only QA signs off on payment changes"},"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"stopped":{"6":"Only QA signs off on payment changes"},"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == elsewhere ABC-3 8
 == read s5
 == moves
@@ -286,7 +302,7 @@ moving ABC-3 to In Review: ask-panel.sh ticket says once it has
 == took
 ABC-3 to In Review, with the note “Ready: pull request 57” and fields {}
 == ask s5 ticket
-{"move":{"moved":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"In Review"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"moved":"In Review"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"In Review"},"steps":[{"id":"7","name":"Reopen","needs":[],"to":{"kind":"doing","name":"Doing"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == menu s5
 May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time · moved it once
 on
@@ -301,7 +317,19 @@ moving ABC-3 to In Review: ask-panel.sh ticket says once it has
 == took
 nothing taken
 == ask s5 ticket
-{"move":{"notMoved":"Couldn't reach it"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"notMoved":"Couldn't reach it"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+== moves
+s5: {"key":"ABC-3","moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"Doing"}
+s6: {"key":"ABC-3","state":"Doing"}
+== afresh ABC-3
+== read s5
+== fails refused
+== move s5 8
+moving ABC-3 to In Review: ask-panel.sh ticket says once it has
+== took
+nothing taken
+== ask s5 ticket
+{"move":{"notMoved":"It turned it away","trackerSays":"Fill in <Reviewer> first"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == moves
 s5: {"key":"ABC-3","moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"Doing"}
 s6: {"key":"ABC-3","state":"Doing"}
@@ -313,7 +341,7 @@ moving ABC-3 to In Review: ask-panel.sh ticket says once it has
 == took
 nothing taken
 == ask s5 ticket
-{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
+{"move":{"waiting":"In Review"},"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-3: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-3","link":"https://one.example/t/ABC-3","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[{"id":"resolution","kind":"option","name":"Resolution","options":["Fixed","Won't Fix"],"required":true},{"id":"fixVersion","kind":"option","many":true,"name":"Fix version","options":["2.1","2.2"],"required":false}],"to":{"kind":"done","name":"Done"}},{"id":"6","name":"QA sign-off","needs":[],"to":{"kind":"done","name":"Signed Off"}},{"id":"8","name":"Send to review","needs":[],"to":{"kind":"doing","name":"In Review"}}],"title":"Made-up words of ABC-3","tracker":"Sample","type":"Task"}}
 == moves
 s5: {"key":"ABC-3","move":{"at":"(when)","fields":[],"key":"ABC-3","name":"Send to review","problem":{"kind":"signIn","why":"Sign in first"},"stepId":"8","to":{"kind":"doing","name":"In Review"}},"moved":{"at":"(when)","by":"itself","to":"In Review"},"state":"Doing"}
 s6: {"key":"ABC-3","state":"Doing"}
@@ -343,6 +371,8 @@ May Move Its Ticket is off: it lasts only while Whozmove and this session run; t
 not changed
 == log
 panel.log has none of a ticket's words
+panel.log has none of a ticket's description
+Whozmove's folder has none of a ticket's description in any file
 panel.log has none of a note's, a field's or a why's words
 panel.log has none of a new ticket's words
 == logged
@@ -375,6 +405,10 @@ s5: Move It for ABC-3 step 5
 Sample ABC-3: step 5 not taken (7)
 s5: Move It for ABC-3 step 5
 Sample ABC-3: step 5 taken (Move It)
+s5 asked ticket-move: ABC-3 step 5, shown on its row
+s5: Move It for ABC-3 step 5
+Sample ABC-3: step 5 not taken (8)
+s5: Not Now for moving ABC-3 (step 5)
 s5 asked ticket-move: ABC-3 step 8, shown on its row
 s5: Not Now for moving ABC-3 (step 8)
 s5 asked ticket-move: ABC-3 step 8, shown on its row
@@ -392,6 +426,8 @@ s5 asked ticket-move: ABC-3 step 8, moving it by itself
 Sample ABC-3: step 8 taken (by itself)
 s5 asked ticket-move: ABC-3 step 8, moving it by itself
 Sample ABC-3: step 8 not taken (7)
+s5 asked ticket-move: ABC-3 step 8, moving it by itself
+Sample ABC-3: step 8 not taken (8)
 s5 asked ticket-move: ABC-3 step 8, moving it by itself
 Sample ABC-3: step 8 not taken (1)
 s5: Move It for ABC-3 step 8
@@ -500,10 +536,10 @@ s9: none
 == ask s7 ticket
 created: ABC-4: https://one.example/t/ABC-4. It's this session's ticket now: ask-panel.sh ticket --wait reads it
 == ask s7 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-4: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
 == read s7
 == ask s7 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-4: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-4","link":"https://one.example/t/ABC-4","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-4","tracker":"Sample","type":"Task"}}
 == menu s7
 May Move Its Ticket: It moves its own ticket at its milestones, adds its note and sets the fields its step asks for, without asking each time
 May Move Its Ticket is off: it lasts only while Whozmove and this session run; turn it on again in this session's mode menu
@@ -597,7 +633,7 @@ s11: {"key":"ABC-6"}
 == ask s11 ticket
 created: ABC-6: https://one.example/t/ABC-6. It's this session's ticket now: ask-panel.sh ticket --wait reads it
 == ask s11 ticket
-{"readAt":"(when read)","ticket":{"groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-6","link":"https://one.example/t/ABC-6","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-6","tracker":"Sample","type":"Task"}}
+{"readAt":"(when read)","ticket":{"description":"Made-up description of ABC-6: what it asks, with <b>markup</b> & \"quotes\" to stay as text.","groups":[{"id":"7","kind":"board","name":"The board"}],"key":"ABC-6","link":"https://one.example/t/ABC-6","site":"one.example","state":{"kind":"doing","name":"Doing"},"steps":[{"id":"5","name":"Finish","needs":[],"to":{"kind":"done","name":"Done"}}],"title":"Made-up words of ABC-6","tracker":"Sample","type":"Task"}}
 == signout
 == draft s8 {"title": "Saved cards: a test for the update", "group": "ABC", "type": "Task"}
 shown on your row: “Create this ticket?”, once Sample has said ABC takes it. Carry on; ask-panel.sh ticket --wait says once the user has answered
@@ -659,6 +695,8 @@ made, asked to slow down first: waits: type bug, checked, waits on 4 (Slow down)
 made, an end it doesn't name: waits: type bug, checked, waits on 99 (Something new), may have been made
 == log
 panel.log has none of a ticket's words
+panel.log has none of a ticket's description
+Whozmove's folder has none of a ticket's description in any file
 panel.log has none of a note's, a field's or a why's words
 panel.log has none of a new ticket's words
 == logged
@@ -810,10 +848,10 @@ read: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, In Progress, un
 done: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Done, done" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-done">Done</span></span>
 dropped: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Won’t Do, dropped" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-dropped">Won’t Do</span></span>
 a kind it doesn't know counts as to do: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, Odd, to do" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-todo">Odd</span></span>
-couldn't read it: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, couldn’t read it now" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">couldn’t read it now</span></span>
+couldn't read it: <span class="tag tk-row needs" data-tk="s1" aria-label="PAY-142, couldn’t read it now" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">couldn’t read it now</span></span>
 …read before, so it says where it stood: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, In Progress, under way" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-doing">In Progress</span></span>
-sign in again: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, sign in again" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">sign in again</span></span>
-allow its sign-in: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142, allow its sign-in" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">allow its sign-in</span></span>
+sign in again: <span class="tag tk-row needs" data-tk="s1" aria-label="PAY-142, sign in again" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">sign in again</span></span>
+allow its sign-in: <span class="tag tk-row needs" data-tk="s1" aria-label="PAY-142, allow its sign-in" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span><span class="tk-rs tk-problem">allow its sign-in</span></span>
 asked to slow down: <span class="tag tk-row" data-tk="s1" aria-label="PAY-142" title="Open PAY-142 in your browser"><svg class="tk-i" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.4" d="M2.5 4.5h11v2a1.5 1.5 0 0 0 0 3v2h-11v-2a1.5 1.5 0 0 0 0-3z"/></svg><span class="tk-rk">PAY-142</span></span>
 
 == The row: its card
@@ -860,26 +898,32 @@ asked, read: <div class="perm tk-use" data-tkuse="s1" data-key="PAY-148"><div cl
 none: 
 
 == The row: Move it?
-asked: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+asked: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="asked" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
-with no note: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
-with the fields it sets: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Done?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+with no note: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="asked" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+with the fields it sets: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="asked" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Done?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="tk-cl"><span class="tk-lab">Resolution</span><span class="tk-val">Fixed</span></div><div class="tk-cl"><span class="tk-lab">Fix versions</span><span class="tk-val">2.1, 2.2</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
-asked again, in place of another: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+asked again, in place of another: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="asked" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
-moving: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+moving: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="moving" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="q-help tk-moving">Moving it…</div></div>
-couldn't move it: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+couldn't move it: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="failed" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: couldn’t reach Atlassian just now.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Try Again</button></div></div>
-…no reason given: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+…no reason given: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="failed" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it just now.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Try Again</button></div></div>
-…its sign-in ran out: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+…turned away by Jira, saying why, its own page first: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-state="refused" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: Jira turned it away.</div><div class="q-help">Jira says:</div><div class="tk-note">Fill in Blocked by first.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button data-act="move">Try Again</button><button class="perm-allow" data-act="open">Open in Jira</button></div></div>
+…turned away, its words to escape, no tracker named: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="refused" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: turned away.</div><div class="q-help">It says:</div><div class="tk-note">Set &lt;b&gt;Blocked by&lt;/b&gt; &amp; &quot;Reason&quot; first.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button data-act="move">Try Again</button><button class="perm-allow" data-act="open">Open the Ticket</button></div></div>
+…turned away, saying nothing: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-state="refused" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: Jira turned it away.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button data-act="move">Try Again</button><button class="perm-allow" data-act="open">Open in Jira</button></div></div>
+…its sign-in ran out: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-state="signIn" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: the sign-in has run out.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
-…its sign-in can only read: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+…its sign-in can only read: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-state="signIn" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Couldn’t move it: this sign-in may only read tickets.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Sign In Again</button></div></div>
-…macOS asks first: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
+…macOS asks first: <div class="perm tk-move" data-tkmove="s1" data-tracker="Jira" data-key="PAY-142" data-step="31" data-state="allow" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to In Review?</span></div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">The fix is in pull request #57.
 It checks the button on Safari 17 and 18.</div><div class="perm-why tk-warn">Whozmove was updated, so macOS asks once before it hands over the sign-in.</div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="signIn">Allow</button></div></div>
-long words, words to escape: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Ready for &lt;b&gt;release&lt;/b&gt;?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done &amp; &lt;dusted&gt;.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note &lt;script&gt;x&lt;/script&gt; &amp; https://example.com/a/very/long/path/that/goes/on/and/on</div><div class="tk-cl"><span class="tk-lab">A field with a &lt;long&gt; name</span><span class="tk-val">A value A value A value A value A value A value A value A value A value A value A value A value &amp; more</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
+long words, words to escape: <div class="perm tk-move" data-tkmove="s1" data-tracker="" data-key="PAY-142" data-step="31" data-state="asked" data-at="1999999940000"><div class="q-top"><span class="card-title">Move PAY-142 to Ready for &lt;b&gt;release&lt;/b&gt;?</span></div><div class="q-help">Asked again: this takes the place of moving it to Done &amp; &lt;dusted&gt;.</div><div class="q-help">It adds this to PAY-142 as it goes:</div><div class="tk-note">A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note A very long note &lt;script&gt;x&lt;/script&gt; &amp; https://example.com/a/very/long/path/that/goes/on/and/on</div><div class="tk-cl"><span class="tk-lab">A field with a &lt;long&gt; name</span><span class="tk-val">A value A value A value A value A value A value A value A value A value A value A value A value &amp; more</span></div><div class="perm-actions"><button data-act="notNow">Not Now</button><button class="perm-allow" data-act="move">Move It</button></div></div>
 no step named, nothing drawn: 
 none: 
 

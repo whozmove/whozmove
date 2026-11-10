@@ -1,0 +1,6 @@
+{"id": "10142", "key": "PAY-142", "fields": {"summary": "Fix the refund button", "issuetype": {"name": "Task"},
+  "status": {"name": "In Progress", "statusCategory": {"key": "indeterminate"}}, "project": {"key": "PAY", "name": "Payments"},
+  "customfield_10300": {"self": "https://ignored.example/rest/api/3/customFieldOption/10400", "value": "Web", "id": "10400"},
+  "customfield_10301": [{"value": "Mobile", "id": "10500"}, {"value": "Desktop", "id": "10501"}],
+  "customfield_10302": {"accountId": "made-up", "displayName": "Sam Rivera"},
+  "customfield_10303": {"id": 10600, "name": "Checkout"}}}

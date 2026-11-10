@@ -29,29 +29,32 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
   saw, as it was sent then (`taskAnswer`, `taskPutBack`), a task its session takes back (ask-panel.sh task-withdraw,
   `TaskRecordTakeBackTask`) kept without its buttons until the page lets it go (`taskLetGo`), a command copied and a
   link opened from the task as it was checked (`taskCopy`, `taskOpen`), how it works as its page under Tools sets it
-  (`oneTaskWho`, any session or only a team's lead, by `team.leads`; `oneTaskNext`; `oneTaskWhy`; `oneTaskWaitForGo`;
-  `oneTaskTalk`; `oneTaskHeld`), each default as One Task recommends, told to the page with what waits, and shown on One
-  Task's page under Tools (`appEntries`: a tool, `one-task`, order 205, its switch and three groups of choices, with Use
-  the Recommended Settings), which its row in Settings opens; on unless you turn it off, and One Task in the pawn menu
+  (`oneTaskWho`, any session or only a team's lead, by `team.leads`; `oneTaskWhy`; `oneTaskWaitForGo`; `oneTaskTalk`;
+  `oneTaskHeld`), each default as One Task recommends, told to the page with what waits, and shown on One Task's page
+  under Tools (`appEntries`: a tool, `one-task`, order 205, its switch and three groups of choices, with Use the
+  Recommended Settings), which its row in Settings opens; on unless you turn it off, and One Task in the pawn menu
   while something waits, with how many as the page counts them (`oneTaskWaiting`), which opens it (`openOneTask`). And
   the lead's picks: the tasks a team's lead sends itself (ask-panel.sh task --pick-for, `TaskRecordPick`), kept in the
   lead's own record as tasks of their own (`pick`), apart from that ceiling, only for a member whose own row still
   places it on the team, sent again only when the task itself changes, and waiting until answered whatever the lead
-  sends next (`pickTasks` remembers each by id); shown once the `team.queue` of its row names them, in that order
-  (`TaskRecordQueue`, `placePicks`). And the talk: your words about a task (`taskSay`) to the session it's about, found
-  here (the one that sent it, or the lead's pick's member, its `for`, unless you chose the lead), never from what the
-  page says; held in the record and typed in through the core's Send (`say:`) once the session can take them, by
-  themselves only into a terminal that isn't the app in front at all (`TaskTalkGoesByItself`; else `taskSayNow`, your
-  press); taken back before they go in (`taskTakeBack`); refused, with why and the way past it, when none of it can go
-  in, and then put on the clipboard as they'd go in for you to paste yourself (`taskTalkCopy`), or Accessibility's pane
-  opened (`taskTalkPermission`); taken once the session's own record shows them, and its reply read as its turn ends,
-  the whole reply to that very line (the agent's `replyTo:of:since:done:`), cut into prose and code (`TaskReplyParts`)
-  and held in memory only, read again once after Whozmove restarts; a code block copied from it by its place
-  (`taskReplyCopy`), never run.
-- `page/order.js`: its rules, as plain functions: what waits and in what order (the tasks: a lead's pick whose job is
-  Critical or P0 first of all, Critical then P0, each in the queue's order (`pickPriority`, which the app keeps from
-  the queue, said in the team module's words, `core.teamJob.priorityWord`), then urgent ones, then the lead's other picks, then by priority, the oldest first, Can't Now at the
-  back), whom a task is from
+  sends next (`pickTasks` remembers each by id); shown once the `team.queue` of its row names them, from when it first
+  named each (`TaskRecordQueue`, `placePicks`, `shownAt`). And the talk: your words about a task (`taskSay`) to the
+  session it's about, found here (the one that sent it, or the lead's pick's member, its `for`, unless you chose the
+  lead), never from what the page says; held in the record and typed in through the core's Send (`say:`) once the
+  session can take them, by themselves only into a terminal that isn't the app in front at all
+  (`TaskTalkGoesByItself`; else `taskSayNow`, your press); taken back before they go in (`taskTakeBack`); refused, with
+  why and the way past it, when none of it can go in, and then put on the clipboard as they'd go in for you to paste
+  yourself (`taskTalkCopy`), or Accessibility's pane opened (`taskTalkPermission`); taken once the session's own record
+  shows them, and its reply read as its turn ends, the whole reply to that very line (the agent's
+  `replyTo:of:since:done:`), cut into prose and code (`TaskReplyParts`) and held in memory only, read again once after
+  Whozmove restarts; a code block copied from it by its place (`taskReplyCopy`), never run.
+- `page/order.js`: its rules, as plain functions: what waits and in what order (the tasks, by the priority of the
+  ticket their session works on, its place in its tracker's own list (`taskPlace`, from the row's `ticket.bound`:
+  `priorityAt` of `priorities`), the most pressing first, two trackers compared from the top; a lead's pick whose
+  member has no ticket by its job's priority in the queue (`pickPriority`, which the app keeps from the queue, placed
+  by the team module, `core.teamJob.priorityPlace`); then those with no place; within each, first come first served,
+  a lead's pick from when its queue first named it; Can't Now at the back), which are to do now (`taskDoNow`: a place
+  above the middle of its list) and how each is coloured (`taskLook`), whom a task is from
   and its answer goes to ("Atlas's pick, for Wren", or "Atlas" alone for a pick about the lead's own work, told
   apart by session: `taskMember`), the one in front, each kind's answers (`taskChoices`), its buttons and the answer
   each gives, and the line that says a task waits; what each session's row says waits (`taskAsks`: its first task
@@ -66,15 +69,17 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
   points or phases; a try's what changed, steps and what to look for), its answer held at the view's foot on
   a long task (`--sticky-foot`). A task you've seen stays in front until you leave it (`taskChooseFront`), seen by
   task, not by step, so through a reword, its next step and a restart (`taskSeen`, kept as `seenAt` on its record;
-  `taskOpensOn`): something urgent asks from a strip under the head (`taskStripHTML`, the kit's `.notice.urgent`), Go
+  `taskOpensOn`): one to do now ahead of it asks from a strip under the head (`taskStripHTML`, the kit's
+  `.notice.urgent`), Go
   sets the one you're on aside with all you'd done on it, and answering brings you back as you left it, or, changed
   meanwhile, with only your words (`taskKeptUi`, as on a reword while you're on it). The one you're on leaving the
   line unanswered comes back once its session's row is back, or the foot says it no longer waits once the app no
   longer keeps it (`taskLeft`). A new task slides in; a next step only changes its words. While it isn't in sight, the line under the
   header says a task waits, with Open (a page sender's notice, `core.noticeSenders`); its × folds it to how many wait,
-  which opens One Task too, until another task comes. On the session's row, in any way of showing the list, its first
-  task as the row's note (`core.rowNotes`, `line`: a line of its own), drawn with the row part's `askLineHTML`, in
-  your move's colour, giving way to any other note; pressed (`[data-one-task]`, a pointer target), once seen
+  which opens One Task too, until another task comes. On the session's row in the list, its first
+  task as the row's note (`core.rowNotes`, `line`: a line of its own), drawn with the row part's `askLineHTML`, its
+  ticket's word in the mark's place and its bubble coloured by `taskLook` (none: your move's colour, with the mark),
+  giving way to any other note; pressed (`[data-one-task]`, a pointer target), once seen
   (`ot-row:<session>`), One Task opens at that task. Its one action at its end, by its kind (`TASK_KIND_ACTS`, each
   kind's icon, verb and what a press does, and `taskRowAct` in `page/order.js`; the button `[data-ot-act]`, for the
   step the line says, `<task key>:<sent>`, once seen too, a step sent again under the same id waiting again): Deploy

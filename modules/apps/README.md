@@ -3,15 +3,20 @@
 The panel's back. The header's four squares turn the panel over, and behind the list are your apps, four across, with
 Settings first, as a phone's home screen has them; Settings… in the pawn menu turns it over straight to Settings.
 Settings is as a phone's: cards of rows, each with its coloured tile, its name and what it's set to. A choice's row
-opens its page (Appearance, each look a small panel, then light or dark; Session List; Open Files With, the editors with
+opens its page (Appearance, each look a small panel, then light or dark; Open Files With, the editors with
 their icons), and a switch's row has its switch (⌃⌥N in any app). The apps beside Settings are those Whozmove works
 with: Claude, Ghostty, iTerm2, Terminal, Spotify and Git, those on this Mac (Claude, Spotify and Git always), and
 under them Whozmove's own **Tools** (Storage). Pressing one shows its page: what Whozmove does with it, its switches,
 its groups (each a heading over a card of its switches, choices of one among a few, each a name over what it does with
 a tick on the one picked, and parts of the day, each end's time pressed for a menu of the day's half hours, with a line
-under the card; dimmed while its module says they can't be pressed), Use the Recommended Settings while what's there
+under the card; dimmed while its module says they can't be pressed; a heading marked Important for a group that
+matters more than most; for a choice whose change you'd want to see first, its before and after under its choices
+once one is pressed, with Keep It and Change, picked only on Change; a choice among many drawn as one row, the one
+picked on a button opening the Mac's menu of them; and a row opening a page of its own groups, saying what it's set
+to, with ›), Use the Recommended Settings while what's there
 isn't, its cards (how something Whozmove needs there stands, with a button for it), what macOS lets Whozmove do with it
-(Accessibility or Automation, and System Settings when it isn't allowed), and Open. A tool's page leads with its card,
+(Accessibility or Automation, and System Settings when it isn't allowed), and Open. A tool with no icon of its own has a
+tile with a mark of Settings' when it names one (its `glyph`), else its first letter. A tool's page leads with its card,
 what it does, and says what macOS has to allow only once the tool needs it, in its card. A row in Settings can open an
 app's page too, saying how it's set there, and ‹ there goes back to Settings. ‹ goes back a page, and on
 the apps, turns the panel back to the list, its left edge sinking in. The header has the list's buttons in the same
@@ -47,7 +52,8 @@ which turns it back and folds the panel away.
   `page/back.css`, its style. `module.json` lists them for tools/page.sh, which puts the page together beside the
   panel's.
 
-Each setting is the panel's own or its module's: parts/settings has Appearance and Session List, the changes module
+Each setting is the panel's own or its module's: parts/settings has Appearance and Show Conversation Text, the changes
+module
 Open Files With, and new conversations ⌃⌥N's switch. Each app is its module's: Claude Desktop's lists Claude, on every
 Mac, as the page for Claude as a whole (with Track Claude Desktop app sessions, or Get Claude Desktop without it),
 Ghostty's, iTerm2's, Terminal's and Spotify's list their own, the git module lists Git (with Show Next Steps), Deploy
@@ -71,13 +77,16 @@ The back's page has a bridge of its own, in the same shape as the panel's page's
   Reduce Transparency is on), `appsSwitch` (`{app, key, on}`: one of an app's own switches or one in its groups),
   `appsChoice` (`{app, key, value}`: the id of one of a choice's choices, picked), `appsTime` (`{app, key, end, x, y}`:
   a part of the day's `from` or `to` time pressed, where its top-left corner is on the back, from the page's, for the
-  app to open that end's menu of times over it), `appsUseRecommended` (`{app}`: Use the Recommended Settings, at the
+  app to open that end's menu of times over it), `appsChoiceMenu` (`{app, key, x, y}`: a choice drawn as one row
+  pressed, for the app to open the Mac's menu of its choices at its button, a pick from it picked as `appsChoice`'s),
+  `appsUseRecommended` (`{app}`: Use the Recommended Settings, at the
   foot of its page), `appsAction` (`{app, key}`: a card's button, or a button on a tool's card, which its module
   answers), `appsOpen` and `appsPrivacy` (`{app}`: Open, and Open System Settings, or a tool's card's Allow), and
   `appsList` (`{app, list, key, ids}`: a press on a list's page, its tray's action with the ids ticked, or a row's way
   or button, or one under what was said, with the ids it's for, which the list's module answers).
-- The panel's page sends `appsShow` (`{app}`): that app's page is the one the back is on as the panel turns over
-  (the low-disk line asks for Storage's), told to the back with `showApp(id)`.
+- The panel's page sends `appsShow` (`{app, page}`): that app's page, or the page one of its rows opens when `page`
+  names its key, is the one the back is on as the panel turns over
+  (the low-disk line asks for Storage's), told to the back with `showApp(id, page)`.
 - The app calls `setApps(apps, look, settings)`, each app `{id, name, does, icon, open, tool, card, hint, switches:
   [{kind, key, title, help, on, enabled, group, isNew}], groups: [{title, foot, enabled, rows}], recommended, statuses:
   [{key, title, section, said, note, ok, button, busy}], lists: [{key, title, count, intro, loading, empty, sections,

@@ -1,5 +1,5 @@
-// The team module's part of the page, run outside the app by test.sh: Group by Team's groups, the counts, the second
-// line and the tracks it shows, and a row as it draws it (team.js). Every name here is made up.
+// The team module's part of the page, run outside the app by test.sh: the team's groups above the projects, the counts,
+// the second line and the tracks it shows, and a row as it draws it (team.js). Every name here is made up.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 load('tests/page-harness.js');  // the stand-ins, the page's scripts and the helpers below use
@@ -34,34 +34,39 @@ const visitor = session({ sessionId: 'visitor', name: 'look around', team: { inF
 const plain = session({ sessionId: 'plain', name: 'tidy photos', lastReply: 'Sorted', lastReplyAt: min(20) });
 const everyone = [lead, wren, bea, moss, dark, visitor, plain];
 const placeAll = (sessions) => placeRows(sessions.map((s) => ({ s, kind: classify(s, NOW, view()) })), {}, () => false);
+// The team's groups, then what it leaves for the projects (`rest`), each as its rows' ids; null with no team listed.
+const teamShown = (placed) => {
+  const top = teamGroups(placed);
+  return top && [...top.groups, { key: 'rest', name: '(the projects)', rows: top.rest }];
+};
 const outline = (html) => [...html.matchAll(/<div class="project( collapsed)?" data-key="([^"]*)"|data-id="([^"]*)"/g)]
   .map(([, folded, key, id]) => (key ? `[${key}${folded ? ' ›' : ''}]` : id)).join(' ');
 
 section('The groups (teamGroups)');
-show('no one of the team listed: none, so the list shows newest first', teamGroups(placeAll([dark, visitor, plain])));
-show('the lead on top, then the team and yours',
-     teamGroups(placeAll(everyone)).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
-show('a group with no rows is left out', teamGroups(placeAll([wren, plain])).map((g) => g.name));
+show('no one of the team listed: none, so the list is its projects alone', teamShown(placeAll([dark, visitor, plain])));
+show('the lead on top, then the team, and yours left for the projects',
+     teamShown(placeAll(everyone)).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
+show('a group with no rows is left out', teamShown(placeAll([wren, plain])).map((g) => g.name));
 const gone = { ...visitor, sessionId: 'gone', status: 'closed' };
 const goneOwn = { ...plain, sessionId: 'gone-own', status: 'closed' };
 show('an ended session in a member\'s folder isn\'t shown; one running there, and an ended one of yours, are',
-     teamGroups(placeAll([wren, visitor, gone, goneOwn])).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId)}`));
+     teamShown(placeAll([wren, visitor, gone, goneOwn])).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId)}`));
 const goneUnread = { ...gone, sessionId: 'gone-unread', lastReply: 'The fonts are in', lastReplyAt: min(3),
                      statusUpdatedAt: min(3) };
 show('…nor is one with a reply you haven\'t read, as that reply isn\'t yours to read; one that asks you something is',
-     teamGroups(placeAll([wren, gone, goneUnread, { ...goneUnread, sessionId: 'gone-asks', ask: { kind: 'question' } }]))
+     teamShown(placeAll([wren, gone, goneUnread, { ...goneUnread, sessionId: 'gone-asks', ask: { kind: 'question' } }]))
        .map((g) => `${g.name}: ${g.rows.map((p) => `${p.s.sessionId} (${p.kind})`)}`));
 show('…and so is one you\'ve pressed, held where it was, or are on',
-     teamGroups([...placeAll([wren]), { s: gone, kind: 'idle', held: true },
+     teamShown([...placeAll([wren]), { s: gone, kind: 'idle', held: true },
                  { s: { ...gone, sessionId: 'gone-focused', focused: true }, kind: 'idle' }])
        .map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId)}`));
 state.owners = new Set(['gone', 'gone-unread']);
 show('…and so is one that speaks for its checkout, with its next steps and Deploy, with no dot for its reply',
-     teamGroups(placeAll([wren, gone, goneUnread]))
+     teamShown(placeAll([wren, gone, goneUnread]))
        .map((g) => `${g.name}: ${g.rows.map((p) => `${p.s.sessionId} (${p.kind})`)}`));
 state.owners = new Set();
 // A reply in a conversation that has ended in a member's folder (its earlier one, or one in the lead's or the
-// front's) is the member's history, never yours to read, in any way of showing the list and in every count of what
+// front's) is the member's history, never yours to read, anywhere in the list and in every count of what
 // waits on you; one still running there, and one of yours, still waits on you; without the team file, nothing changes.
 const whoseMove = (s) => classify(s, NOW, view());
 show('a reply you haven\'t read, as whose move it is: ended in a member\'s folder, running there, ended of yours, and '
@@ -85,10 +90,10 @@ keepToRead([resumed]);
 show('…and once the ended one is resumed, its reply to you waits on you again', whoseMove(resumed));
 // Where the session you talk to, or the lead, runs in the project's own folder, your own conversations are there too:
 // one that has ended there isn't the team's history (no `history` from the app), so its reply still waits on you, and
-// it stays under Yours.
+// it's left for its project.
 const ownInProject = { ...goneUnread, sessionId: 'own-in-project', team: { inFolderOf: 'Desk' } };
 show('an own conversation ended in the project\'s folder, where the session you talk to runs: whose move it is, '
-     + 'and its group', [whoseMove(ownInProject), teamGroups(placeAll([wren, ownInProject]))
+     + 'and its group', [whoseMove(ownInProject), teamShown(placeAll([wren, ownInProject]))
        .map((g) => `${g.name}: ${g.rows.map((p) => `${p.s.sessionId} (${p.kind})`)}`)]);
 state.toRead = {};
 // Groups the file names for members: after the lead, before the team, in the file's order; one with no place in it
@@ -98,25 +103,25 @@ const named = [lead, inGroup(wren, 'Reviewers', 1), inGroup(moss, 'Reviewers', 1
                { ...plain, sessionId: 'later', team: { role: 'member', name: 'Lark', group: 'Archive' } },
                inGroup(dark, 'Reviewers', 1)];
 show('groups the file names, in its order, after the lead, before the team',
-     teamGroups(placeAll(named)).map((g) => `${g.name} (${g.key}): ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
+     teamShown(placeAll(named)).map((g) => `${g.name} (${g.key}): ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
 // A group's name is the file's words: drawn as text, whatever they are, and whole however long (the app clips them).
 const fifty = 'A group whose name runs on to fifty characters, ok';
 const oddNames = [lead, inGroup(wren, '<b>x</b>', 0), inGroup(bea, fifty, 1)];
 const headers = /data-key="([^"]*)"[\s\S]*?<span class="pname">([^<]*)</g;
 show('a group\'s name in markup, and a long one, drawn as text in its header',
-     [...groupsHTML(teamGroups(placeAll(oddNames)), NOW).matchAll(headers)].map(([, key, name]) => `${key} | ${name}`));
+     [...groupsHTML(teamShown(placeAll(oddNames)), NOW).matchAll(headers)].map(([, key, name]) => `${key} | ${name}`));
 // Members the file gives a tag: a tag is only a mark, so each stays in its group, or in Team.
 const tagged = (s, tag, shown) => ({ ...s, team: { ...s.team, tag, ...(shown ? { shown } : {}) } });
 const withTags = [lead, tagged(wren, 'Product', 'Zed'), tagged(inGroup(bea, 'Designers', 0), 'Design'),
                   tagged(moss, 'Fonts lead', 'Ash'), dark, plain];
 show('tagged members stay where they\'d be untagged: in their group, or in Team',
-     teamGroups(placeAll(withTags)).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
+     teamShown(placeAll(withTags)).map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId).join(', ')}`));
 // The session you talk to, when the file names one apart from the one running the team (`front`): the chief, which the
 // app marks, on top, then the one running the team, whatever needs you.
 const front = session({ sessionId: 'front', name: 'desk-tab', statusUpdatedAt: min(40),
                         team: { role: 'front', name: 'Desk', shown: 'The desk', chief: true } });
 const behind = { ...lead, team: { ...lead.team, chief: false } };
-const groupsOf = (sessions) => teamGroups(placeAll(sessions))
+const groupsOf = (sessions) => teamShown(placeAll(sessions))
   .map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId).join(', ')}`);
 show('the session you talk to on top, then the one running the team, and a tagged member in Team',
      groupsOf([tagged(wren, 'Product', 'Zed'), behind, front, plain]));
@@ -136,33 +141,32 @@ show('the one running the team in its group, the session you talk to alone on to
 show('…Team after the groups when the file doesn\'t place it',
      groupsOf([front, inGroup(wren, 'Reviewers', 0), ledFrom('Reviewers', 0), inGroup(moss, 'Writers', 1), bea]));
 
-section('Whether the list is grouped by team (teamInUse)');
-show('chosen, and one of the team listed', teamInUse('team', everyone));
-show('chosen, but none of the team listed: newest first', teamInUse('team', [dark, visitor, plain]));
-show('another grouping chosen', teamInUse('project', everyone));
-
-state.groupBy = 'team';
-state.teamOn = teamInUse(state.groupBy, everyone);
+section('The list with a team (listGroups)');
 state.closedProjects['team:team'] = true;
-const drawn = groupsHTML(teamGroups(placeAll(everyone)), NOW);
-show('drawn: the lead with no header, the team folded, hiding all it has',
+const drawn = groupsHTML(listGroups(placeAll(everyone)), NOW);
+show('drawn: the lead with no header, the team folded, hiding all it has, then the projects',
      outline(drawn).replace(/<div class="pinned">/g, ''));
 show('…nothing pinned below them, not even a job waiting on you', /class="pinned"/.test(drawn));
 show('…each folded header says how many wait on you',
-     [...drawn.matchAll(/data-key="([^"]*)"[^>]*>[\s\S]*?(?:<span class="(pneeds[^"]*)">([^<]*)<\/span>)?\s*<span class="pcount"/g)]
-       .map(([, key, cls, words]) => `${key}: ${words ? `${words} (${cls})` : '-'}`));
+     [...drawn.matchAll(/<div class="project[^"]*" data-key="([^"]*)"[^>]*>([\s\S]*?)<\/div>/g)]
+       .map(([, key, head]) => [key, head.match(/<span class="(pneeds[^"]*)">([^<]*)<\/span>/)])
+       .map(([key, m]) => `${key}: ${m ? `${m[2]} (${m[1]})` : '-'}`));
 show('…and as VoiceOver reads it', [...drawn.matchAll(/aria-label="([^"]*)"/g)].map((m) => m[1])
   .filter((said) => said.includes('folded')));
-show('a project\'s folded group still keeps an idle row whose job waits on you',
-     groupBody([{ s: moss, kind: 'idle', waits: true, html: '[moss]' }, { s: plain, kind: 'idle', html: '[plain]' }], true)
-       .replace(/<div class="prows closed">.*?<\/div>/, ''));
-show('…a group that hides all keeps none', groupBody([{ s: moss, kind: 'idle', waits: true, html: '[moss]' }], true, false,
-                                                    true).includes('pinned'));
+{
+  // A project folds as the team's groups do: an idle row whose job waits on you is hidden too, its header counting it.
+  state.closedProjects['/work/fold'] = true;
+  const foldedProject = groupsHTML([{ key: '/work/fold', name: 'fold', project: true,
+    rows: [{ s: moss, kind: 'idle', waits: true }, { s: plain, kind: 'idle' }] }], NOW);
+  delete state.closedProjects['/work/fold'];
+  show('a project\'s folded group hides an idle row whose job waits on you too, its header counting it',
+       [/class="pinned"/.test(foldedProject), foldedProject.match(/class="pneeds[^"]*">([^<]*)/)?.[1]]);
+}
 show('…the lead keeps a group header\'s room above it', /<div class="prows bare">/.test(drawn));
-show('…each header with how many it has', [...drawn.matchAll(/<span class="pcount">(\d+)<\/span>/g)].map((m) => m[1]));
+show('…no header says how many it has, a project\'s ending in its ＋ slot', /pcount/.test(drawn));
 delete state.closedProjects['team:team'];
 
-section('What needs you first, in each group (needsYouFirst)');
+section('In each group, the order the list placed them');
 const DAY = 24 * 60;
 const oldAsk = session({ sessionId: 'old-ask', name: 'old ask', lastReplyAt: min(4 * DAY), seenAt: min(4 * DAY - 5),
                          team: { role: 'followed', name: 'old ask',
@@ -173,21 +177,15 @@ const unread = session({ sessionId: 'unread', name: 'unread', lastReplyAt: min(9
 const askingNow = session({ sessionId: 'asking', name: 'asking', status: 'waiting', statusUpdatedAt: min(120),
                         lastReplyAt: min(120) });
 const yours = [readToday, idleOne, oldAsk, unread, askingNow];
-const yoursOf = (placed, kept = {}) => teamGroups([...placeAll([wren]), ...placed], kept)
-  .find((g) => g.key === 'team:yours').rows.map((p) => `${p.s.sessionId} (${p.kind}${p.waits ? ', waits' : ''})`);
+const restOf = (placed) => teamGroups([...placeAll([wren]), ...placed]).rest
+  .map((p) => `${p.s.sessionId} (${p.kind}${p.waits ? ', waits' : ''})`);
 show('as the list places them: newest message first, the idle ones last', placeAll(yours).map((p) => p.s.sessionId));
-show('under Group by Team: a request, an unread reply and an ask read days ago first, then the rest',
-     yoursOf(placeAll(yours)));
-const kept = {};
-yoursOf(placeAll(yours), kept);
-const pressed = placeAll([{ ...oldAsk, team: { ...oldAsk.team, job: job('build') } }, readToday, idleOne])
-  .map((p) => (p.s.sessionId === 'old-ask' ? { ...p, held: true } : p));
-show('a row you\'ve pressed stays in the part it was in, while its job moves on', yoursOf(pressed, kept));
-show('…and goes to its place once you\'ve moved on', yoursOf(pressed.map(({ held, ...p }) => p), kept));
-// Another module's news of a session beyond its row (as a reply in its side chat) counts as needing you too.
-core.sessionNews.push((s) => (s.sessionId === 'idle-one' ? { news: 'side:1', level: 'soon' } : null));
-show('a row with news from another module (a side chat\'s reply) comes up with them', yoursOf(placeAll(yours)));
-core.sessionNews.pop();
+show('left for the projects in that order: nothing lifted, a job waiting on you marked so its folded project keeps it',
+     restOf(placeAll(yours)));
+const memberRows = [{ ...wren, sessionId: 'wren-old', lastReplyAt: min(300), statusUpdatedAt: min(300) },
+                    { ...bea, status: 'idle', lastReplyAt: min(1), statusUpdatedAt: min(1) }];
+show('the team in that order too, a job waiting on you included',
+     teamGroups(placeAll(memberRows)).groups.map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId)}`));
 
 section('What the lead says (teamCountsHTML)');
 const counted = (c) => teamCountsHTML(c).replace(/<i class="tmini (\w+)"><\/i>/g, '($1)')
@@ -214,15 +212,16 @@ show('…nor counts beside its name while it names what\'s next', rowHTML({ ...l
   team: { ...idleLead, next: { short: 'Pick a name', priority: 'p1' } } }, 'seen', NOW).includes('tsum'));
 
 section('The second line (teamNote)');
-const said = (note) => note && { ...note, html: note.html.replace(/<svg[\s\S]*?<\/svg>/, '[passed on]') };
+const said = (note) => note && { ...note, html: note.html.replace(/<svg[\s\S]*?<\/svg>/, '[mark]') };
 show('the lead: its counts', teamNote(lead.team).cls);
 show('…as its note, with the counts', noteHTML(teamNote(lead.team)));
 show('a job waiting on your try: its short, and what it holds up', said(teamNote(wren.team)));
 show('…said with the row\'s Deploy at its end', noteHTML(said(teamNote(wren.team)), '[Deploy]'));
 show('another module\'s note keeps the Deploy too', noteHTML({ text: 'Deploying: building' }, '[Deploy]'));
 show('…its whole ask isn\'t on the row', said(teamNote(wren.team)).html.includes('hundred'));
-show('…its tip and VoiceOver: passed on by the session leading the team, by name',
-     teamNote(wren.team, 'wren', (id) => (id === null ? 'Atlas' : '')).html.match(/title="([^"]*)"/)[1]);
+show('…VoiceOver says its own ask, never passed on by the session leading the team, and it has no tip',
+     [teamNote(wren.team, 'wren', (id) => (id === null ? 'Atlas' : '')).html.match(/aria-label="([^"]*)"/)[1],
+      /title=/.test(teamNote(wren.team, 'wren', (id) => (id === null ? 'Atlas' : '')).html.split('ask-line-more')[0])]);
 show('…without a short: its step\'s word, never the long ask', said(teamNote({ job: job('test', { ask: 'A long note' }) })));
 // Its bubble's colour (`look`) and the priority's name first.
 const bubble = (note) => `${note.look}: ${note.html.match(/ask-line-priority">([^<]*)/)[1]}`;
@@ -237,6 +236,8 @@ show('…its action: a try\'s', act(teamNote(wren.team, 'wren')));
 show('…a plan\'s', act(teamNote({ name: 'Wren', job: job('plan') }, 'wren')));
 show('…a step with no kind: to its session', act(teamNote({ name: 'Wren', job: job('plan', {
   steps: STEPS.map((st) => ({ ...st, kind: undefined })) }) }, 'wren')));
+show('…a look\'s: the prototype, for a module that shows it beside the list to answer', act(teamNote({ name: 'Wren',
+  job: job('plan', { steps: STEPS.map((st) => (st.id === 'plan' ? { ...st, kind: 'pick' } : st)) }) }, 'wren')));
 show('…the lead\'s next, for a member: to the member\'s session, by its name',
      act(teamNote({ ...lead.team, next: { short: 'Try the dark theme', priority: 'p1', for: 'wren' } }, 'lead',
                   (id) => (id === 'wren' ? 'Wren' : ''))));
@@ -282,6 +283,12 @@ section('A job\'s track (trackHTML)');
 show('at the start, waiting on you', trackHTML(job('plan'), 'normal'));
 show('waiting on your try, urgent', trackHTML(job('test'), 'urgent'));
 show('at work', trackHTML(job('build'), trackNow(job('build'), 'busy')));
+const twelve = Array.from({ length: 12 }, (_, i) => ({ id: `s${i}`, word: i === 11 ? 'Done' : `Step ${i + 1}`, you: false }));
+show('a board of twelve, at its last step: the same one bar, where it stands said in words',
+     trackHTML(job('build', { steps: twelve, at: 's11', you: false }), 'idle'));
+show('a track of one step from the row part itself: nothing, wherever it\'s drawn', stepTrackHTML(1, 0, 'normal'));
+show('a job of one step: no track, as a track of one says nothing',
+     trackHTML(job('build', { steps: [{ id: 'only', word: 'Pick one', you: true }], at: 'only', you: true }), 'normal'));
 show('at work, its session idle', trackNow(job('review'), 'idle'));
 // A step after review that waits its turn ("Ready to try"): nobody works on the job there.
 const readyJob = job('review', { at: 'ready', waits: true, steps: [...STEPS.slice(0, 3),
@@ -320,7 +327,7 @@ show('…with an ask over 120 characters: its short as the title, the whole ask 
 show('…with no ask: its short', teamNextCardHTML({ ...lead, team: { ...lead.team,
   next: { short: 'Look at the list', priority: 'p2' } } }));
 
-section('A row under Group by Team (rowHTML)');
+section('A team\'s row (rowHTML)');
 // What a row shows, line by line: its classes, then each part's own class.
 const lines = (html) => [...html.matchAll(/<(?:div|span) class="([^"]*)"/g)].map(([, cls]) => cls)
   .filter((cls) => /^(row |name|line1|you|claude|perm|card-title|work|step-note|where|tag ttag|tpart|step-track|tag wtag|tsum|time)/
@@ -328,7 +335,9 @@ const lines = (html) => [...html.matchAll(/<(?:div|span) class="([^"]*)"/g)].map
   .join(' | ');
 const kindNow = (s) => classify(s, NOW, view());
 const nameOf = (html) => html.match(/<span class="name">([^<]*)<\/span>/)[1];
-show('the lead: Chief, its counts in its reply\'s place', lines(rowHTML(lead, kindNow(lead), NOW)));
+show('the lead: Chief, its reply not read yet, and its counts', lines(rowHTML(lead, kindNow(lead), NOW)));
+const leadRead = { ...lead, onItAt: min(1) };
+show('…its reply read: its counts alone', lines(rowHTML(leadRead, kindNow(leadRead), NOW)));
 const withNext = { ...lead, team: leadNext };
 show('…naming what\'s next for you: that on its second line, and only Chief beside its name',
      lines(rowHTML(withNext, kindNow(withNext), NOW)));
@@ -341,7 +350,7 @@ show('…P0: in the colour of something to put right',
 show('…without it: no card', / tjob/.test(rowHTML(lead, kindNow(lead), NOW)));
 show('the session you talk to: the name it shows, Chief beside it, and no second line of the team\'s',
      `${nameOf(rowHTML(front, kindNow(front), NOW))} · ${lines(rowHTML(front, kindNow(front), NOW))}`);
-show('…the one running the team behind it: no mark, its counts as ever', lines(rowHTML(behind, kindNow(behind), NOW)));
+show('…the one running the team behind it: no mark, its reply not read yet, and its counts', lines(rowHTML(behind, kindNow(behind), NOW)));
 const taggedLead = { ...behind, team: { ...behind.team, tag: 'lead' } };
 show('…with a tag from the file: that, in the same look', lines(rowHTML(taggedLead, kindNow(taggedLead), NOW)));
 const designer = tagged(wren, 'Design', 'Juniper');
@@ -381,6 +390,18 @@ show('…where a job waiting on your try has Deploy as its one action, and no ot
      rowHTML(wren, kindNow(wren), NOW).match(/\[(Try )?Deploy\]/g));
 core.slots.askAct.pop();
 core.slots.placeEnd.pop();
+// A member's plan waiting in its tab: its bubble ends in the button that opens the plan beside the list (the reader's,
+// askAct 'plan'), and Claude Code's small plan card steps aside; its yes to a merge, with no plan waiting, keeps the
+// team's own button, to its session.
+const planWren = { ...wren, sessionId: 'plan-wren', status: 'waiting', statusUpdatedAt: min(1),
+  ask: { id: 'pw', tool: 'ExitPlanMode', at: min(1), digest: 'd1', input: { plan: '# Search box\n\n1. A box' } },
+  team: { ...wren.team, job: job('plan', { short: 'Approve the search plan' }) } };
+const planWrenHTML = rowHTML(planWren, kindNow(planWren), NOW);
+show('a member\'s plan waiting in its tab: the reader\'s plan button, and no plan card [button, card]',
+     [planWrenHTML.includes('data-wr-act="plan-wren"'), planWrenHTML.includes('plan-ask')]);
+const yesWren = { ...wren, sessionId: 'yes-wren', team: { ...wren.team, job: job('merge-yes') } };
+show('…its yes to a merge, no plan waiting: the team\'s own button, to its session',
+     rowHTML(yesWren, kindNow(yesWren), NOW).includes('data-team-go="yes-wren"'));
 // A member at work on one job while another waits on your try (the app's `alsoAsks`): the row's track is the job it's
 // at, and its line the try's ask, the same bubble as its own job's would be (its priority's name, its words), ending in
 // Deploy as its one action; it counts among what waits on you. The job's details open from its track, never from the
@@ -400,23 +421,58 @@ show('…its priority\'s name and its words, never "Also waiting on you"',
      [bubble(teamNote(busyWren.team, 'busy-wren')), said(teamNote(busyWren.team, 'busy-wren')).html,
       busyWrenHTML.includes('Also waiting on you')]);
 show('…Deploy as its one action, and its track at work', [busyWrenHTML.match(/\[(Try )?Deploy\]/g),
-  busyWrenHTML.match(/step-tick now [^"]*/)[0]]);
+  busyWrenHTML.match(/step-now [^"]*/)[0]]);
 const busyNote = busyWrenHTML.match(/<div class="(step-note[^"]*)"/)[1];
 show('…its details from the track, never the bubble', [opensFrom('step-track'), busyNote, opensFrom(busyNote)]);
 core.slots.askAct.pop();
 core.slots.placeEnd.pop();
 const planAsk = teamNote({ ...busyWren.team, alsoAsks: { ...busyWren.team.alsoAsks, at: 'plan', kind: 'approve' } },
                          'busy-wren');
-show('…a plan\'s: the plan\'s button, to its session', [act(planAsk),
-  planAsk.act.html.includes(core.taskKinds.act('approve').icon)]);
+show('…a plan\'s: the reader\'s want, and the plan\'s button, to its session, where nothing answers it',
+     [act(planAsk), planAsk.act.html.includes(core.taskKinds.act('approve').icon)]);
+// …its plan or looks open beside the list, as its own job's would, whether its session has stopped or works on: one
+// shape and one press, what opens saying when it's only to read.
+show('…a plan\'s or looks\': the want for the reader [plan, look]',
+     [teamNote({ ...busyWren.team, alsoAsks: { ...busyWren.team.alsoAsks, at: 'plan', kind: 'approve' } }, 'busy-wren')
+       .act.want,
+      teamNote({ ...busyWren.team, alsoAsks: { ...busyWren.team.alsoAsks, at: 'plan', kind: 'pick' } }, 'busy-wren')
+       .act.want]);
+const leftPlan = [{ id: 'sync-plan', kind: 'plan', title: 'Faster sync', at: min(2), status: 'waiting' }];
+const stoppedWren = (status, writings = leftPlan) => ({ ...busyWren, sessionId: 'stopped-wren', status,
+  statusUpdatedAt: min(1), lastPromptAt: min(3), writings,
+  team: { ...busyWren.team, alsoAsks: { ...busyWren.team.alsoAsks, at: 'plan', kind: 'approve' } } });
+const stoppedEnd = (status, writings) => {
+  // What the list says each row is, as it does before drawing them (state.kinds).
+  const kindsBefore = state.kinds, kind = kindNow(stoppedWren(status, writings));
+  state.kinds = { 'stopped-wren': kind };
+  const html = rowHTML(stoppedWren(status, writings), kind, NOW);
+  state.kinds = kindsBefore;
+  return html.includes('data-wr-act="stopped-wren"') ? 'the reader\'s plan button'
+    : html.includes('data-team-go="stopped-wren"') ? 'to its session' : 'none';
+};
+show('…its plan left waiting, at its own prompt, idle, in its shell, and working: [reader, reader, reader, reader]',
+     ['waiting', 'idle', 'shell', 'busy'].map((status) => stoppedEnd(status)));
+show('…working, its newest plan sent back, and approved (the work it\'s doing): [reader, session]',
+     [stoppedEnd('busy', [{ ...leftPlan[0], status: 'declined' }]),
+      stoppedEnd('busy', [{ ...leftPlan[0], status: 'approved' }])]);
+// Working is what the list says of the row: one whose turn has ended while its agents work in the background isn't.
+const backgroundWren = { ...stoppedWren('idle', [{ ...leftPlan[0], status: 'declined' }]),
+  background: [{ type: 'agent', holds: 1 }] };
+const kindsBeforeBackground = state.kinds;
+state.kinds = { 'stopped-wren': kindNow(backgroundWren) };
+show('…its turn ended, its agents at work in the background, its newest plan sent back: [kind, nothing to read here]',
+     [state.kinds['stopped-wren'], rowHTML(backgroundWren, kindNow(backgroundWren), NOW)
+       .includes('data-team-go="stopped-wren"')]);
+state.kinds = kindsBeforeBackground;
 const goAsk = teamNote({ ...busyWren.team, alsoAsks: { ...busyWren.team.alsoAsks, kind: undefined } }, 'busy-wren');
 show('…a step with no kind: ↗ to its session', [act(goAsk), goAsk.act.html.includes(OUT_ICON)]);
 const bothAsk = teamNote({ ...wren.team, alsoAsks: busyWren.team.alsoAsks }, 'wren');
 show('…its own job waiting on you too: its own job\'s ask', [bothAsk.cls, bubble(bothAsk),
   bothAsk.html.match(/ask-line-words">([^<]*)/)[1], bothAsk.act.want]);
 const tidyMoss = { ...moss, status: 'busy', statusUpdatedAt: min(0), lastPromptAt: min(0) };
-show('…among what waits on you first', outline(groupsHTML(teamGroups(placeAll([lead, tidyMoss, busyWren])), NOW)));
-show('…where without it, it\'s newest first', outline(groupsHTML(teamGroups(placeAll([lead, tidyMoss,
+show('…newest first among the team all the same, nothing lifted',
+     outline(groupsHTML(listGroups(placeAll([lead, tidyMoss, busyWren])), NOW)));
+show('…as without it', outline(groupsHTML(listGroups(placeAll([lead, tidyMoss,
   { ...busyWren, team: { ...busyWren.team, alsoAsks: undefined } }])), NOW)));
 show('…a try with no words: where its job stands', stepLine({ s: { ...busyWren, team: { ...busyWren.team,
   alsoAsks: { job: 'j2', short: '' } } }, kind: 'busy', brief: true }));
@@ -428,7 +484,7 @@ show('…another note on the row comes first', stepLine({ s: queuedMoss, kind: k
 core.rowNotes.pop();
 // A session's own task in One Task (its module's row note): in place of where a member's job stands, a try with
 // Deploy as its one action, as the team's ask has; the team's own line, where it has one, comes first.
-const lastBefore = state.last, teamOnBefore = state.teamOn;
+const lastBefore = state.last;
 const ownTask = (sessionId, id) => ({ sessionId, at: min(2), sent: min(2),
                                       task: { id, kind: 'try', title: 'Search on a phone', why: 'w' } });
 setTasks([ownTask('moss', 'm1'), ownTask('wren', 'w1'), ownTask('lead', 'l1')], true,
@@ -443,12 +499,11 @@ show('…with Deploy at its end as its one action, outside the line\'s press',
 // The job's details open from the team's own line only (`.step-note.task`, `.step-note.tstatus`).
 show('…its job\'s details don\'t open from it', mossTask.match(/<div class="(step-note[^"]*)"/)[1]);
 show('a member whose job waits on you, with a task too: the team\'s ask', lines(rowHTML(wren, kindNow(wren), NOW)));
-show('the lead with its counts, and a task of its own: its counts', lines(rowHTML(lead, kindNow(lead), NOW)));
+show('the lead with its counts, and a task of its own: its counts, under its reply not read yet', lines(rowHTML(lead, kindNow(lead), NOW)));
 core.slots.askAct.pop();
 setTasks([], true);
 state.last = lastBefore;
 for (const draw of core.beforeDraw) draw(state.last?.sessions || []);
-state.teamOn = teamOnBefore;
 show('a member: its name in the team, its part, its track, its time, and its ask, no chat',
      lines(rowHTML(wren, kindNow(wren), NOW)));
 show('…named as the team names it, not its tab', nameOf(rowHTML(wren, kindNow(wren), NOW)));
@@ -475,14 +530,14 @@ const quietLead = { ...runningLead, team: { ...lead.team, counts: { waiting: {},
 show('…with no second line: the same, nothing between its title\'s words and the time',
      leadRow(rowHTML(quietLead, kindNow(quietLead), NOW)));
 state.board = null;
-show('the row you\'re on: the same', lines(rowHTML({ ...wren, focused: true }, kindNow(wren), NOW)));
+show('the row you\'re on: the same, and its bottom line under it', lines(rowHTML({ ...wren, focused: true }, kindNow(wren), NOW)));
 const asks = { ...bea, status: 'waiting', ask: { id: 'a1', tool: 'Bash', input: { command: 'make' }, at: min(1) } };
-show('a session asking you itself: what it asks, and its card', lines(rowHTML(asks, kindNow(asks), NOW)));
-show('a writing\'s tag isn\'t on it',
+show('a session asking you itself: its card, which says what it asks', lines(rowHTML(asks, kindNow(asks), NOW)));
+show('a writing\'s tag after its part, as on any row',
      lines(rowHTML({ ...moss, writings: [{ id: 'w1', kind: 'notes', title: 'Notes', path: '/w/n.md', at: min(3) }] },
                    kindNow(moss), NOW)));
 show('one of yours with a job: its track and its ask', lines(rowHTML(dark, kindNow(dark), NOW)));
-show('one of yours with a reply: one line', lines(rowHTML(plain, kindNow(plain), NOW)));
+show('one of yours with a reply not read yet: Claude\'s line', lines(rowHTML(plain, kindNow(plain), NOW)));
 show('another session in a member\'s folder: saying whose', lines(rowHTML(visitor, kindNow(visitor), NOW)));
 show('…in words', rowHTML(visitor, kindNow(visitor), NOW).match(/<span class="tpart">[^<]*<\/span>/)[0]);
 // Another session running in a member's own workspace while one holds its seat: a duplicate, the later one or the
@@ -503,7 +558,7 @@ show('…its line, a class of its own, quiet, with no Deploy', JSON.stringify(du
 core.rowNotes.push((row) => (row.s.sessionId === 'twin' ? { text: 'Deploying: building' } : null));
 show('…another module\'s note on the row comes first', stepLine({ s: twin, kind: kindNow(twin), brief: true }).text);
 core.rowNotes.pop();
-show('…grouped: under yours', teamGroups(placeAll([wren, twin, twinFirst]))
+show('…grouped: left for its project', teamShown(placeAll([wren, twin, twinFirst]))
   .map((g) => `${g.name}: ${g.rows.map((p) => p.s.sessionId)}`));
 // A chat beside the folded panel: the row whole, as without the team, saying what's new.
 const asChat = (s) => rowHTML(s, kindNow(s), NOW, { chat: true });
@@ -515,12 +570,12 @@ show('…named', nameOf(asChat(wren)));
 // were, and what the row last showed stays as it was.
 rowHTML(wren, kindNow(wren), NOW);
 state.shownAt['compact:wren'] = Date.now() - 60000;  // on the page's own clock, a minute ago
-const briefBefore = JSON.stringify([state.teamBrief, state.teamAsks]);
+const briefBefore = JSON.stringify(state.teamAsks);
 asChat(wren);
 rowHTML(wren, kindNow(wren), NOW);
 asChat(wren);
 show('…the list\'s row and its chat in turn: what the row last showed is left as it was',
-     JSON.stringify([state.teamBrief, state.teamAsks]) === briefBefore);
+     JSON.stringify(state.teamAsks) === briefBefore);
 show('…and its buttons aren\'t taken as just shown again', !justShown('compact:wren'));
 state.shownAt['team-act:wren'] = Date.now() - 60000;
 rowHTML(wren, kindNow(wren), NOW);
@@ -553,11 +608,6 @@ rowHTML(moss, kindNow(moss), NOW);
 const asked = { ...moss, team: { ...moss.team, job: job('test') } };
 rowHTML(asked, kindNow(asked), NOW);
 show('a second line coming: what is on the row counts as just shown', justShown('compact:moss'));
-state.shownAt['compact:plain'] = min(10);
-state.teamOn = false;
-rowHTML(plain, kindNow(plain), NOW);
-show('another grouping chosen: what a row held back counts as just shown', justShown('compact:plain'));
-state.teamOn = true;
 // A note coming on a row with a part at its note's end (Deploy, say): what's on the row counts as just shown, once.
 const ending = (row) => (row.s.sessionId === 'bea' ? '[end]' : '');
 core.slots.placeEnd.push(ending);
@@ -571,12 +621,6 @@ rowHTML(bea, kindNow(bea), NOW);
 show('…drawn again with it: not any more', justShown('compact:bea'));
 delete state.stepNotes.bea;
 core.slots.placeEnd.splice(core.slots.placeEnd.indexOf(ending), 1);
-state.teamOn = teamInUse(state.groupBy, [dark, visitor, plain]);
-show('chosen, but none of the team listed: none of it',
+show('a session the team follows, and one in a member\'s folder: short rows, with what of the team they have',
      lines(rowHTML(dark, kindNow(dark), NOW)) + ' / ' + lines(rowHTML(visitor, kindNow(visitor), NOW)));
-state.groupBy = 'status';
-state.teamOn = teamInUse(state.groupBy, everyone);
-show('newest first: none of it', lines(rowHTML(wren, kindNow(wren), NOW)));
-state.groupBy = 'project';
-state.teamOn = teamInUse(state.groupBy, everyone);
-show('by project: none of it', lines(rowHTML(lead, kindNow(lead), NOW)));
+show('a session of no team: a short row too, nothing of the team on it', lines(rowHTML(plain, kindNow(plain), NOW)));

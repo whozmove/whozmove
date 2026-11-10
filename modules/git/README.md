@@ -18,14 +18,16 @@ commits wait to go, and the PRs a session made or worked on.
   (`CheckoutWatch`); and every 5 minutes or so anyway, in case an event was missed (`CheckoutReadDue`). A checkout
   macOS can't watch (on a network share) is read every 20s and 2s after activity, as are all of them in a print run.
   The repo's remotes and base branch are kept until GitHub's copies of its branches, its base branch, its packed refs or
-  its config change. The branch's PR is asked of gh every 60s, only once the branch is on GitHub (`BranchOnRemote`).
+  its config change. The branch's PR is asked of gh every 60s, only once the branch is on GitHub (`BranchOnRemote`),
+  and never for its base branch (`BranchPRDue`).
 - `app/NextSteps.m`: the steps, Commit and its ways (the changes view's ⌄ menu), Push, Publish and Create PR into a
   branch, each asked of the session's agent in its fixed words (`StepRequest`), through `Send` (parts/send), only when
   the checkout has it to take; a commit takes only what's staged when something is. And the branches GitHub's copy
   has, read for Create PR's details.
 - `app/PullRequests.m` and `app/GitHub.m`: the PRs each session's agent recorded, and their state, from gh.
 - `app/PRWakes.m`: a waiting session's pull request, for the waits module (contracts/Wake.h's `WakeSource`, which
-  GitModule adopts): its branch's while open, else the newest open one it linked. While a session waits on it, it's
+  GitModule adopts): its branch's while open, else the newest open one it linked (the default branch has no looked-up
+  pull request of its own, so there it's always one the session linked). While a session waits on it, it's
   asked of gh once a minute with its comments and reviews (`FetchPRActivity` in GitHub.m), Show Next Steps on or not;
   what came after the wait began wakes it: an approval, a review asking for changes, a merge or a close always (and a
   merge or close from a moment before the wait, as it's first read so), a comment or a commenting review only for a
@@ -42,9 +44,10 @@ commits wait to go, and the PRs a session made or worked on.
   ([parts/details](../../parts/details/README.md)). `module.json` lists them for tools/page.sh.
 
 tests/rows.sh checks the rows' checkouts and PRs in its sample home, and tests/panel.sh the steps, the review and their
-words. modules/git/tests/test.sh checks which checkouts each kind of change is told for (an edit, a new file, staging,
-a commit, a submodule's, a remote's branch, the config), in a throwaway repo with a worktree, a submodule and a link,
-whether branches are on a remote, and when a read is due; and what wakes a session waiting on a pull request
+words. modules/git/tests/test.sh checks whether a branch keeps a PR of its own and when its look-up is due, never on the
+base branch (`--print-pr-due`, pr-due.expected.txt); which checkouts each kind of change is told for (an edit, a new
+file, staging, a commit, a submodule's, a remote's branch, the config), in a throwaway repo with a worktree, a submodule
+and a link, whether branches are on a remote, and when a read is due; and what wakes a session waiting on a pull request
 (`--print-pr-wakes`, from a made-up answer of gh's, pr-activity.json).
 
 ## Between the page and the app

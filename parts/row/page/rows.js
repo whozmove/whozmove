@@ -18,9 +18,9 @@ function worktreeChip(name, cls = '', attrs = '') {
   return `<span class="wt${cls ? ` ${cls}` : ''}"${attrs}>${WORKTREE_ICON}<span class="wt-name">${esc(name)}</span></span>`;
 }
 
-// A session's row in the list, the one in view: a row pinned below a folded group is in the list twice, and the one in
-// view is the pinned one. Never a chat's row beside the folded cat (chats.js), which repeats the session's: a chat
-// lands on the list's row and leaves it while the panel already counts as folded.
+// A session's row in the list, the one in view: none while its group is folded. Never a chat's row beside the folded
+// cat (chats.js), which repeats the session's: a chat lands on the list's row and leaves it while the panel already
+// counts as folded.
 function rowInView(sid) {
   return [...document.querySelectorAll('#list .row[data-id]')]
     .find((r) => r.dataset.id === sid && !r.closest('.prows.closed')) || null;
@@ -382,12 +382,17 @@ function openingCard(sid, name) {
   }
 }
 
-// Steps as a track of ticks: `count` of them, the ones before `at` done, the one at `at` in `look` (a class the styles
-// colour: urgent, normal, low, busy or idle), and the ones to come. It knows no steps of its own: what they are, and
-// which look, is the caller's.
-function stepTrackHTML(count, at, look) {
-  return '<span class="step-track">' + Array.from({ length: count }, (_, i) =>
-    `<i class="step-tick${i < at ? ' done' : i === at ? ` now ${look}` : ''}"></i>`).join('') + '</span>';
+// Steps as one bar, the same length whatever their count (a board of three and one of twelve look alike): `count` of
+// them, what's done up to the one at `at`, then that one in `look` (a class the styles colour: urgent, normal, low,
+// busy or idle), never thinner than a dot nor past the bar's end (rows.css). VoiceOver says where it stands in words,
+// "Step 4 of 5", with the caller's `label` for it after ("Step 4 of 5, Your test"). It knows no steps of its own: what
+// they are, and which look, is the caller's. At none of them (`at` -1), nothing is done and none is marked. Fewer than
+// two steps draw nothing, wherever a track is drawn: a track of one says nothing.
+function stepTrackHTML(count, at, look, label = '') {
+  if (count < 2) return '';
+  const said = at < 0 ? `${count} steps` : `Step ${at + 1} of ${count}${label ? `, ${label}` : ''}`;
+  return `<span class="step-track" role="img" aria-label="${esc(said)}" style="--n:${count};--at:${Math.max(0, at)}">`
+    + `<i class="step-done"></i>${at < 0 ? '' : `<i class="step-now ${look}"></i>`}</span>`;
 }
 
 // What a session runs in the background, round its dot: a mark for each job (backgroundRunning), three at most, spaced
@@ -417,9 +422,8 @@ function runningHTML(s) {
   const count = jobs.length > ORBIT_MOST || !names ? `${jobs.length}${names ? ':' : ''} ` : '';
   return `<div class="background-work" title="${esc(names)}">Running ${esc(count)}${esc(names)}</div>`;
 }
-
-// How many marks each row's ring had when its list was last drawn (by list, then by row: its id, and a pinned copy's
-// apart), so a change of count is seen through, never a jump (orbitChange).
+// How many marks each row's ring had when its list was last drawn (by list, then by row: its id), so a change of count
+// is seen through, never a jump (orbitChange).
 const orbitCounts = new WeakMap();
 // A mark's place on a ring of `n`: one at the top, two opposite, three at thirds; at `scale` of its size.
 const markAt = (i, n, scale = 1) => `rotate(${(360 / n) * i}deg) translateY(-${ORBIT_REACH}px) scale(${scale})`;
@@ -431,7 +435,7 @@ const markAt = (i, n, scale = 1) => `rotate(${(360 / n) * i}deg) translateY(-${O
 function orbitChange(list) {
   const was = orbitCounts.get(list) || new Map(), now = new Map();
   for (const row of list.querySelectorAll('.row[data-id]')) {
-    const key = row.dataset.id + (row.closest('.pinned') ? ':pinned' : '');
+    const key = row.dataset.id;
     const dot = row.querySelector(':scope > .dot'), orbit = dot?.querySelector(':scope > .orbit');
     const n = orbit ? Number(orbit.dataset.count) : 0;
     now.set(key, n);
@@ -501,6 +505,15 @@ function dotWords(s, kind, answered = null) {
   return (answered ? 'Answered' : DOT_WORDS[kind] || 'Idle') + (running ? `, ${running} running in the background` : '');
 }
 
+// Whether a row shown briefly has Claude's line, which says each thing once: none while the row asks something of you
+// (an ask's bubble says what the session wants), none under a request's card (`card`: it says what it would run), none
+// while it works or once its reply is read; only what it asks when nothing else says it (a question, with no card),
+// and its finished line on a reply you haven't read, until you have. A plain function, which tests/panel.sh checks.
+function briefLine(row, card = '') {
+  if (row.asking) return false;
+  return row.kind === 'needs' ? !card : row.kind === 'turn';
+}
+
 // A session's row. `row` is what each module's part is given: the session, what it is now (kind: classify), the time
 // the rows were sent (now), whether it speaks for its checkout while Show Next Steps is on (owner), the page's own
 // clock, which Deploy's press and animations are timed by, whether it's drawn as a chat beside the folded panel (chat:
@@ -508,8 +521,15 @@ function dotWords(s, kind, answered = null) {
 // what each module found when it first looked at the row (core.rowLooks: its
 // next steps, Deploy's button).
 function rowHTML(s, kind, now, { chat = false, said = null } = {}) {
+  // Every row in the list is shown briefly (row.brief), the one view for everyone, but one still starting from the
+  // panel, which says how that goes; a chat beside the folded panel is the row whole, there to say what's new.
+  // The row you're on (the session in front in its app) keeps its tools all the same (row.tools): its work line (pull
+  // requests, what isn't committed, its next steps) and its bottom line (the agent's model, effort and mode, the
+  // context ring, where it runs, Deploy), under its short lines, so the session you're working in is the one you can
+  // steer from here, and the rest of the list stays short.
   const row = { s, kind, now, owner: state.switches.nextSteps && state.owners.has(s.sessionId),
-                clock: Date.now(), chat };
+                clock: Date.now(), chat, brief: !chat && !s.pending };
+  row.tools = row.brief && !!s.focused;
   // Beside the folded panel, a request you've answered there shows the answer going in until the app's next rows say
   // it has gone, up to a second on: its card goes, Claude's line says what you answered, written over what it asked
   // (the agent's answeredLine), and its dot is the working one, so the chat shrinks once and never reads as still
@@ -521,42 +541,47 @@ function rowHTML(s, kind, now, { chat = false, said = null } = {}) {
   const hidden = !state.conversationShown;
   const news = chat && said?.line ? said : null, saying = hidden ? null : news;
   for (const look of core.rowLooks) look(row);
+  // Whether it has its work line and bottom line: drawn whole, or the row you're on.
+  const lined = !row.brief || row.tools;
   // How long ago, on the title line; not while it works (or compacts), when Claude's line has the time (unless the
-  // row has no Claude's line: row.chatless, or none that Show Conversation Text keeps (conversationLine), or Claude's
-  // line says what a module said: `saying`, with its own time).
+  // row has no Claude's line: a row shown briefly where something else says it, or none that Show Conversation Text
+  // keeps (conversationLine), or Claude's line says what a module said: `saying`, with its own time).
   const since = Number.isFinite(news?.at) ? news.at : kind === 'needs' ? s.statusUpdatedAt || 0 : lastActive(s);
   const time = ago(now - since);
   const closed = s.status === 'closed' ? ' closed' : '';
   const focused = s.focused ? ' focused' : '';
   const tip = s.focused ? hostOf(s).openNow : closed ? hostOf(s).closedTip?.(s) || '' : '';
   const title = tip ? `title="${esc(tip)}"` : '';
-  // A module's own classes (a new conversation's row, still landing), after `brief` for a row it shows briefly, and
+  // A module's own classes (a new conversation's row, still landing), after `brief` for a row shown briefly, and
   // `talk-hidden` while Show Conversation Text is off.
   const marks = (row.brief ? ' brief' : '') + (answered ? ' answered' : '') + (hidden ? ' talk-hidden' : '')
     + slot('rowClass', row);
-  // A row a module shows briefly (row.brief) is its title line, with the module's own parts after the name (its brief
-  // slot, in place of the others' name parts), Claude's line without yours (none at all with row.chatless, when the
-  // time stays on the title line while it works), its card (a request) and its note, under the name the module gives it
-  // (row.name), else the session's.
+  // A row shown briefly (row.brief) is its title line, with the modules' own parts after the name (their brief slot, in
+  // place of the others' name parts), Claude's line without yours only where nothing else says it (briefLine), its
+  // card (a request) and its note, under the name a module gives it (row.name), else the session's; and, on the row
+  // you're on (row.tools), its work line and bottom line under them, as a whole row has.
   // Its note; whether it asks something of you (row.asking: an ask line), and what its one action is for
   // (row.askWant: the note's `act.want`, such as 'try', which another module's button answers, askAct); whether
   // the bottom line's end is drawn (row.placeEnd): never while the row asks, as an ask has one action and its row
-  // draws no other Deploy or context ring, else always on a full row, and on a row shown briefly only at
-  // its note's end (row.endAtNote); then Claude's line, with the modules' end after its words while it's there, and
+  // draws no other Deploy or context ring, else always on a full row and the row you're on, and on another row shown
+  // briefly only at its note's end (row.endAtNote); then Claude's line, with the modules' end after its words while it's there, and
   // whether it is (row.claudeLine). What must stay on the bottom line, Deploy's address, is in a slot of its own there
   // (placeStays). All are known before the title line's places are asked, so a module puts its part in one.
   const note = stepLine(row);
   row.asking = isAsk(note);
   row.askWant = row.asking ? note.act?.want || '' : '';
-  row.placeEnd = !row.asking && (!row.brief || (!!note && note.end !== false));
-  row.endAtNote = row.brief && row.placeEnd;
-  // With Show Conversation Text off, no one's words: not yours (nor another session's), and Claude's line only where
-  // conversationLine keeps it. Kept apart from row.chatless, which is the modules'.
-  const chatless = row.chatless || (hidden && !conversationLine(s, kind, answered));
+  row.placeEnd = !row.asking && (lined || (!!note && note.end !== false));
+  row.endAtNote = !lined && row.placeEnd;
+  // Its card, the most pressing that wants to show (a request), known before Claude's line, which a request's card
+  // takes the place of on a row shown briefly.
+  const asks = rowCard(row);
+  // On a row shown briefly, Claude's line only where nothing else says it (briefLine). With Show Conversation Text
+  // off, no one's words: not yours (nor another session's), and Claude's line only where conversationLine keeps it.
+  const chatless = (row.brief && !briefLine(row, asks)) || (hidden && !conversationLine(s, kind, answered));
   const chatLines = chatless ? ''
     : chatHTML(s, kind, now, { yours: !row.brief && !hidden, answered, end: slot('chatEnd', row), said: saying?.line });
   row.claudeLine = chatLines.includes('<div class="claude ');
-  const work = row.brief ? '' : workHTML(row, note?.line ? null : note);
+  const work = lined ? workHTML(row, note?.line ? null : note) : '';
   // The note's end: an ask's one action (another module's for what it wants, else the note's own), or on a row shown
   // briefly the parts that end its bottom line (the context ring, Deploy).
   const given = row.asking ? slot('askAct', row) : '';
@@ -572,10 +597,17 @@ function rowHTML(s, kind, now, { chat = false, said = null } = {}) {
   // count as each other's moves, while a move in the chat (its ask arriving) still waits to be seen. Both are kept
   // under the session, so they're forgotten with it.
   const ends = state.briefEnds[s.sessionId] ??= {}, drawn = chat ? 'chat' : 'row';
-  const endAt = given ? 'act' : end ? (row.asking ? 'own' : 'note') : row.brief || row.asking ? '' : 'line';
+  const endAt = given ? 'act' : end ? (row.asking ? 'own' : 'note') : !lined || row.asking ? '' : 'line';
   const endWas = ends[drawn];
   if (endAt && endAt !== endWas && (endWas !== undefined || row.brief)) showAgain(s);
   ends[drawn] = endAt;
+  // A row that gains or loses its work line and bottom line (`lined`: the row you're on changing, or a start from the
+  // panel landing) counts what's on it as only just shown, as when its end moves, whatever its end does: an asking
+  // row's end stays the ask's, while its work line's steps (Push, Commit) and its bottom line come in under a press
+  // meant for the row that was below it. (A chat beside the folded panel is always drawn whole.)
+  const linedKey = drawn + ':lined';
+  if (ends[linedKey] !== undefined && ends[linedKey] !== lined) showAgain(s);
+  ends[linedKey] = lined;
   // After the title line's words, what follows them (a module's, on a row shown briefly), then, past a gap that
   // lines it up from row to row, what goes at the line's end before the time (a team's job track).
   const titleEnd = slot('titleEnd', row), trail = slot('titleTrail', row);
@@ -586,9 +618,10 @@ function rowHTML(s, kind, now, { chat = false, said = null } = {}) {
   // Its dot, with what the session runs in the background going round it, and what that is under Claude's line, or
   // under its card, so a request's reason and its card stay together.
   const dot = kind === 'needs' && !answered ? phase(1600) : kind === 'busy' || answered ? phase(1400) : '';
-  // With the conversation hidden, the dot says in words what the row is, as Claude's line would have, for VoiceOver.
-  const dotSays = hidden ? ` role="img" aria-label="${esc(dotWords(s, kind, answered))}"` : '';
-  const asks = rowCard(row), card = asks + (row.brief ? '' : runningHTML(s));
+  // With no Claude's line (the conversation hidden, or a row shown briefly where nothing needs it), the dot says in words
+  // what the row is, as Claude's line would have, for VoiceOver.
+  const dotSays = hidden || !row.claudeLine ? ` role="img" aria-label="${esc(dotWords(s, kind, answered))}"` : '';
+  const card = asks + (lined ? runningHTML(s) : '');
   // A module's button at the row's far edge (core.slots.edge), its last child; its bar swelled while the pointer is on
   // it (state.edgePointed). There whatever card is open on the row: the strip is the row's own padding past its lines,
   // and a card ends at its lines, its buttons further in still, so it never covers what a card asks you to press.
@@ -604,53 +637,25 @@ function rowHTML(s, kind, now, { chat = false, said = null } = {}) {
         </div>
         ${chatLines}
         ${card}
-        ${work}${work && !note?.line ? '' : noteHTML(note, end)}${row.brief ? '' : whereHTML(row)}`;
+        ${work}${work && !note?.line ? '' : noteHTML(note, end)}${lined ? whereHTML(row) : ''}`;
   // Under its lines, the details open on it (parts/details), from what the row now has.
   return `${lines}${detailsHTML(s.sessionId, chat, lines)}
       </div>${room}
     </div>`;
 }
 
-// A project's rows in a body that folds to nothing. The conversation open in Claude, any session waiting on you (a
-// request, a question or a reply you haven't read, or a row a module's group says waits on you: `waits`), a row you've
-// pressed, and one just started from the panel stay in view: while the project is folded, a copy of their row is
-// pinned below it. The original stays in the body, in place, so opening the project slides to its true height. A
-// module's group that hides all it has while folded (`hidesAll`) pins none: its header says how many need you instead.
-function groupBody(rows, closed, bare = false, hidesAll = false) {
-  const pinned = closed && !hidesAll
-    ? rows.filter((r) => r.s.focused || waitsOnYou(r.kind) || r.waits || r.held || r.s.pending) : [];
-  return `<div class="prows${closed ? ' closed' : ''}${bare ? ' bare' : ''}">${rows.map((r) => r.html).join('')}</div>`
-    + (pinned.length ? `<div class="pinned">${pinned.map((r) => r.html).join('')}</div>` : '');
+// A group's rows in a body that folds to nothing: folded, a group hides all its rows, even one that waits on you, as its
+// header says how many do (groupsHTML), a request still comes out beside the folded panel, and the count beside the
+// pawn counts it. The rows stay in the body, in place, so opening the group slides to its true height.
+function groupBody(rows, closed, bare = false) {
+  return `<div class="prows${closed ? ' closed' : ''}${bare ? ' bare' : ''}">${rows.map((r) => r.html).join('')}</div>`;
 }
 
-// The rows as they're placed (placeRows), newest message first, as one list with no headers, as a chat app's.
-function rowsHTML(placed, now) {
-  return placed.map(({ s, kind }) => rowHTML(s, kind, now)).join('');
-}
-
-// Projects in the order of their names, A to Z, so a project never moves as its conversations do; inside each, its rows
-// as they're placed, newest message first.
-function projectGroups(placed) {
-  const projects = new Map();
-  for (const p of placed) {
-    const of = projectOf(p.s);
-    if (!projects.has(of.key)) projects.set(of.key, { ...of, project: true, rows: [] });
-    projects.get(of.key).rows.push(p);
-  }
-  const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true })
-    || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
-  return [...projects.values()].sort(byName);
-}
-
-function projectsHTML(placed, now) {
-  return groupsHTML(projectGroups(placed), now);
-}
-
-// The list in groups (a project's, or a module's: core.groupings), each under a header with its name and its chevron,
-// which folds it, and on a project's, what the modules put there (＋ for a new conversation in it), or on a module's,
-// how many rows it has; and, on one that hides all it has while folded, how many of them wait on you, in the colour of
-// a request when one of them is one (the more pressing), said as VoiceOver reads it: "Reviewers, folded, 2 wait on
-// you, 3 sessions".
+// The list in groups (a project's, or a module's: core.topGroups), each under a header with its name and its chevron,
+// which folds it, and on a project's, what the modules put there (＋ for a new conversation in it); and, while it's
+// folded, how many of its rows wait on you, in the colour of a request when one of them is one (the more pressing). A
+// header says only that: how many rows a group has is VoiceOver's to say, "Reviewers, folded, 2 wait on you, 3
+// sessions".
 function groupsHTML(groups, now) {
   return groups
     .map((p) => {
@@ -659,18 +664,18 @@ function groupsHTML(groups, now) {
       // its team).
       if (p.name == null) return groupBody(rows, false, true);
       const closed = !!state.closedProjects[p.key];
-      const yours = closed && p.hidesAll ? rows.filter((r) => waitsOnYou(r.kind) || r.waits) : [];
+      const yours = closed ? rows.filter((r) => waitsOnYou(r.kind) || r.waits) : [];
       const wait = yours.length ? `${yours.length} ${yours.length === 1 ? 'waits' : 'wait'} on you` : '';
       const needs = wait ? `<span class="pneeds${yours.some((r) => r.kind === 'needs') ? ' asks' : ''}">${wait}</span>`
         : '';
       const sessions = `${rows.length} ${rows.length === 1 ? 'session' : 'sessions'}`;
       const said = [p.name, closed ? 'folded' : '', wait, sessions].filter(Boolean).join(', ');
       const head = `<div class="project${closed ? ' collapsed' : ''}" data-key="${esc(p.key)}"`
-        + `${p.project ? ` title="${esc(p.key)}"` : ` aria-label="${esc(said)}"`}>
+        + `${p.project ? ` title="${esc(p.key)}"` : ''} aria-label="${esc(said)}">
             <span class="pname">${esc(p.name)}</span><span class="pchev">${CHEVRON_ICON}</span>${needs}
-            ${p.project ? slot('project', p) : `<span class="pcount">${p.rows.length}</span>`}
+            ${p.project ? slot('project', p) : ''}
           </div>`;
-      return head + groupBody(rows, closed, false, !!p.hidesAll);
+      return head + groupBody(rows, closed);
     })
     .join('');
 }

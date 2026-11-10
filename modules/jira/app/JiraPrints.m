@@ -26,6 +26,14 @@ static NSString *JSON(id value) {
     return data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : [value description];
 }
 
+NSString *JiraAboutSaid(NSString *about) {
+    if (!about) return @"none";
+    if (about.length <= 300) return JSON(about);
+    NSRange end = [about rangeOfComposedCharacterSequencesForRange:NSMakeRange(about.length - 80, 80)];
+    return [NSString stringWithFormat:@"%lu characters, ending %@", (unsigned long)about.length,
+            JSON([about substringFromIndex:end.location])];
+}
+
 // The plain functions, over made-up samples kept with the tests (`samples`, a JSON file: keys and links, links to
 // make, searches, kinds, well-known pages, sign-in services' metadata, and the sites the card shows).
 static int Facts(NSString *samples) {
@@ -84,9 +92,18 @@ static int Answers(NSString *folder, NSString *site) {
         if (![name hasSuffix:@".json"]) continue;
         id answer = ReadJSON([folder stringByAppendingPathComponent:name]);
         Say(@"== %@", name);
-        if ([name hasPrefix:@"issue"]) Say(@"%@", JSON([JiraTicketFrom(JiraIssueIn(answer), site) json]));
-        else if ([name hasPrefix:@"search"]) for (NSDictionary *issue in JiraIssuesIn(answer))
-            Say(@"%@", JSON([JiraTicketFrom(issue, site) json]));
+        if ([name hasPrefix:@"issue"]) {
+            Ticket *ticket = JiraTicketFrom(JiraIssueIn(answer), site);
+            Say(@"%@", JSON([ticket json]));
+            Say(@"its priority's id: %@", JiraPriorityIdOf(JiraIssueIn(answer)) ?: @"none");
+            Say(@"its options in its own fields: %@", JSON(JiraTicketFrom(JiraIssueIn(answer), site).values ?: @{}));
+            Say(@"its description: %@", JiraAboutSaid(ticket.about));
+        }
+        else if ([name hasPrefix:@"search"]) for (NSDictionary *issue in JiraIssuesIn(answer)) {
+            Ticket *ticket = JiraTicketFrom(issue, site);
+            Say(@"%@", JSON([ticket json]));
+            if (ticket.about) Say(@"  its description: %@", JiraAboutSaid(ticket.about));
+        }
         else if ([name hasPrefix:@"transitions"]) {
             Ticket *holder = [Ticket new];
             holder.steps = JiraStepsIn(answer);
@@ -102,11 +119,33 @@ static int Answers(NSString *folder, NSString *site) {
                 NSDictionary *shaped = JiraFieldsFor(answer, sample[0], sample[1], &why);
                 Say(@"step %@ with %@: %@", sample[0], JSON(sample[1]), shaped ? JSON(shaped) : why);
             }
-        } else if ([name hasPrefix:@"boards"]) for (TicketGroup *board in JiraBoardsIn(answer))
-            Say(@"%@ %@ %@", board.groupId, board.kind, JSON(board.name));
+        } else if ([name hasPrefix:@"boards"]) {
+            for (TicketGroup *board in JiraBoardsIn(answer)) Say(@"%@ %@ %@", board.groupId, board.kind, JSON(board.name));
+            Say(@"project PAY: %@, WEB: %@", JiraProjectNameIn(answer, @"PAY") ?: @"no name",
+                JiraProjectNameIn(answer, @"WEB") ?: @"no name");
+        } else if ([name hasPrefix:@"types"])
+            Say(@"%@; the type its priorities are read from: %@", JSON(JiraIssueTypesIn(answer)),
+                JiraTypeIdIn(answer, kJiraPriorityType) ?: @"none");
         else if ([name hasPrefix:@"sites"]) Say(@"%@", JSON(JiraSitesIn(answer)));
+        else if ([name hasPrefix:@"priorities"]) {
+            // Each priority's place, matched by id; then one not among them, and none at all.
+            NSArray *order = JiraPrioritiesIn(answer);
+            Say(@"%@", JSON(order));
+            // The project's own fields that take one option, each with its options' ids.
+            for (TicketField *field in JiraOptionFieldsIn(answer))
+                Say(@"a field of options: %@ %@ %@ %@", field.fieldId, JSON(field.name), JSON(field.options),
+                    JSON(field.optionIds));
+            for (NSString *priorityId in [[order valueForKey:@"id"] arrayByAddingObjectsFromArray:@[@"99", @""]]) {
+                Ticket *ticket = [Ticket new];
+                BOOL placed = JiraPlaceIn(ticket, priorityId.length ? priorityId : nil, order);
+                Say(@"id %@: %@", priorityId.length ? priorityId : @"none", placed
+                    ? [NSString stringWithFormat:@"%@ of %@", ticket.priorityAt, ticket.priorities] : @"no place");
+            }
+        }
         else if ([name hasPrefix:@"error"])
-            Say(@"error %ld%@", (long)JiraErrorIn(answer), JiraErrorNamesScope(answer) ? @", naming a scope" : @"");
+            Say(@"error %ld%@%@%@", (long)JiraErrorIn(answer), JiraErrorNamesScope(answer) ? @", naming a scope" : @"",
+                JiraTurnedAway(answer) ? @", turned away" : @"",
+                JiraErrorWords(answer) ? [@": " stringByAppendingString:JiraErrorWords(answer)] : @"");
     }
     return 0;
 }

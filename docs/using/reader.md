@@ -19,10 +19,15 @@ on a request you've clicked, the first Esc gives its keys back, and the next clo
 
 Plans and notes read as formatted text, a flow diagram in them drawn ([Diagrams](plans.md#diagrams)). A plan opens on
 its short view, with the rest folded under it, or, with **Full version of the plan**, exactly as written, wherever
-there's one to show ([Plans at a glance](plans.md)). A plan Claude is waiting on can be sent back with your notes
-(**Send back…**: Claude stays in plan mode and writes a new version) or stopped; approving it happens in the session,
-where **Take me there** brings you. Only a session you allow to approve plans for you (May Approve Plans, see [Requests,
-questions and plans](requests.md#plans-approved-for-you)) approves one from the panel.
+there's one to show ([Plans at a glance](plans.md)). A plan Claude is waiting on can be approved, as it's shown, by
+your press on **Approve** ([Requests, questions and plans](requests.md#plans)); sent back with your notes (**Send
+back…**: Claude stays in plan mode and writes a new version); or stopped. **Take me there** goes to its session. The
+plan button at the end of a row's bubble opens it here, and a look's prototype button opens the session's newest
+prototype here too. A plan stops asking in the panel after an hour, or when Whozmove restarts: its button still opens
+it here, saying to answer it in its session while Claude Code's own prompt for it is up there, with **Take me there**;
+with the session idle at its prompt, **Send back…** types your notes in as a message ([Requests, questions and
+plans](requests.md#plans)). From an ask on the row of a session at work (a team member's, for another of its jobs),
+the button opens the newest plan it showed you that wasn't approved, only to read here, with **Take me there**.
 
 ## Prototypes
 

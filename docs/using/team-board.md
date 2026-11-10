@@ -14,7 +14,7 @@ the one running the team.
 
 ## Opening it
 
-**Up next**, at the end of the chief's line under [Group by Team](group-by-team.md), opens Up next on All goals,
+**Up next**, at the end of the chief's line ([With a team](the-list.md#with-a-team)), opens Up next on All goals,
 whenever a session is a team's chief.
 
 Teams are for people working on Whozmove until anyone can make one: Up next, like every team surface, shows only while
@@ -127,11 +127,11 @@ With more than one team, the head has a button for each, by its project's folder
 
 ## A job's card
 
-Pressing a line opens its card at the foot: where it is and for how long, whose it is and what that member looks
-after, its title, its steps as the track Group by Team shows, what it wants of you in full, what it holds up, and
-**Take Me There**, which brings its member's session forward: after you clear its conversation, or open a new one in
-the member's workspace, it's that one while it runs, never a duplicate. One that has stopped says so, and its button,
-**Open Wren Again**, carries it on, as pressing its ended row does. A member that isn't in the list now: the card says "Wren isn't
+Pressing a line opens its card at the foot: where it is and for how long, whose it is and what that member looks after,
+its title, its steps as one bar the card's width (none for a job of one step), what it wants of you in full, what it
+holds up, and **Take Me There**, which brings its member's session forward: after you clear its conversation, or open a
+new one in the member's workspace, it's that one while it runs, never a duplicate. One that has stopped says so, and its
+button, **Open Wren Again**, carries it on, as pressing its ended row does. A member that isn't in the list now: the card says "Wren isn't
 in the list now: this opens Atlas", and the button opens the session running the team (or carries it on). A job nobody
 has yet opens that session the same way. With neither in the list, the card says so, with no button, as there's nothing
 listed to open.

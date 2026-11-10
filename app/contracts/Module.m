@@ -87,6 +87,23 @@
 
 @end
 
+@interface AppPage ()
+@property (copy) NSString *key, *title;
+@property (copy) NSArray<AppGroup *> *(^groups)(void);
+@end
+
+@implementation AppPage
+
++ (instancetype)pageWithKey:(NSString *)key title:(NSString *)title groups:(NSArray<AppGroup *> *(^)(void))groups {
+    AppPage *page = [self new];
+    page.key = key;
+    page.title = title;
+    page.groups = groups;
+    return page;
+}
+
+@end
+
 @interface AppGroup ()
 @property (copy) NSString *title, *foot;
 @property (copy) NSArray *rows;

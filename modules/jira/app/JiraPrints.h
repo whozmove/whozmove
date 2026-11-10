@@ -7,6 +7,8 @@
 #import <Foundation/Foundation.h>
 
 int PrintJira(NSArray<NSString *> *arguments);
+// A ticket's description as the tests print it: whole, as JSON, when it's short; else how long it is and how it ends.
+NSString *JiraAboutSaid(NSString *about);
 // For the tests, in a throwaway home: marks the Keychain's stand-in entry under `service` as one other apps can read.
 void JiraStandInOpenAccess(NSString *service);
 // For the tests, in a throwaway home: marks it as one macOS would ask about, with the build that kept it set to an

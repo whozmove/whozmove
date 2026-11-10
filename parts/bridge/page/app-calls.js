@@ -42,12 +42,6 @@ window.setRoom = (h, most = 640) => {
   reportHeight();
 };
 
-// The grouping chosen in Settings, on the panel's back (status, project, or a module's), set before the first update.
-window.setGroupBy = (mode) => {
-  state.groupBy = mode;
-  render();
-};
-
 // Settings' Show Conversation Text, told as the page loads and each time it's switched: off, rows show no one's words
 // (the row part's rowHTML and conversationLine).
 window.setConversationShown = (on) => {

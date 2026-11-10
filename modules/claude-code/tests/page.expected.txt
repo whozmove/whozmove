@@ -126,8 +126,6 @@ test(&quot;finds&quot;, () =&gt; {
 <div class="perm ask-other" data-ask="kill"><div class="ask-head"><span class="card-title">Stop a command running in the background?</span></div><dl class="ask-fields"><dt>Shell id</dt><dd>bash_3</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Stop it</button></div></div>
 -- other
 <div class="perm ask-other" data-ask="other"><div class="ask-head"><span class="card-title">Use Frobnicate?</span></div><dl class="ask-fields"><dt>Level</dt><dd>3</dd></dl><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
--- plan
-<div class="perm plan-ask" data-ask="plan"><div class="ask-head"><span class="card-title">Coupon field</span></div><ol class="ask-steps"><li value="1"><p>Move the field above the total</p></li><li value="2"><p>Check the code on blur</p></li><li value="3"><p>Show the saving</p></li><li value="4"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 8 steps</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
 -- qOne
 <div class="perm quiz ask-qOne" data-ask="qOne"><div class="ask-label">Checkout</div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above the total</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under the total</span></button><button class="opt ask-num" data-o="2"><span class="tag mark">3</span><span class="ask-num-label">In the basket</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">4</span><span class="ask-num-label">Type an answer</span></button></div></div>
 -- qMulti
@@ -136,8 +134,6 @@ test(&quot;finds&quot;, () =&gt; {
 <div class="perm quiz ask-qSteps" data-ask="qSteps"><div class="q-title">Before I start</div><div class="q-head"><div class="ask-label">Checkout</div><span class="ask-step"><button class="icon-button small ask-prev" title="The question before" disabled>‹</button><span class="ask-of">1 of 3</span><button class="icon-button small ask-next" title="The next question">›</button></span></div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-page"><div class="ask-nums"><button class="opt ask-num" data-q="0" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-q="0" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under</span></button><button class="opt ask-num ask-type-opt" data-q="0"><span class="tag mark">3</span><span class="ask-num-label">Type an answer</span></button></div></div><div class="perm-actions"><button class="q-pass">Skip</button><button class="perm-allow q-next">Next</button></div></div>
 -- qNumber
 <div class="perm quiz ask-qNumber" data-ask="qNumber"><div class="q-top"><span class="card-title">How many products per page?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-foot"><span class="ask-stepper"><button class="ask-dec" title="Less">−</button><input class="field q-type" type="number" data-q="0" min="12" max="96" step="12" value="24"><button class="ask-inc" title="More">+</button></span><span class="q-unit">products</span><span class="ask-foot-words ask-range" data-q="0">12 to 96</span></div><div class="perm-actions"><button class="perm-allow q-submit">Submit</button></div></div>
--- planBare
-<div class="perm plan-ask" data-ask="planBare"><div class="ask-head"><span class="card-title">Tidy the cart</span></div><div class="ask-lead-lines"><p>Move the coupon code into the basket page.</p><p>Keep the old route as a redirect.</p></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
 -- qText
 <div class="perm quiz ask-qText" data-ask="qText"><div class="q-top"><span class="card-title">What should the shop be called?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><input class="field q-type" data-q="0" placeholder="A name" value=""><div class="perm-actions"><button class="q-skip">Skip</button><button class="perm-allow q-submit" disabled>Submit</button></div></div>
 -- a request from a session started before the update, which the panel doesn't answer: answered in Claude
@@ -155,10 +151,7 @@ echo done</pre><button class="button quiet small ask-more" data-part="">Show les
 <div class="perm ask-bigEdit" data-ask="big"><div class="ask-file"><svg class="ask-mark" width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M8.6 2.4 10.6 4.4 4.6 10.4 2 11 2.6 8.4Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="card-title">Edit Form.tsx?</span><span class="ask-step"><button class="icon-button small ask-prev" title="The change before">‹</button><span class="ask-of">3 of 4</span><button class="icon-button small ask-next" title="The next change">›</button></span></div><div class="ask-dir ask-under">src</div><pre class="perm-detail"><span class="ln-add">+ f</span></pre><div class="card-help ask-all">Allow once allows all 4 changes</div><div class="perm-actions"><button class="perm-deny">Deny</button><button class="perm-allow">Allow once</button></div></div>
 …past its last edit, the last: 1 of 4
 …: 4 of 4
--- a plan being sent back, its notes typed, and a single pick's box to type in
-<div class="perm plan-ask" data-ask="plan"><div class="ask-head"><span class="card-title">Coupon field</span></div><ol class="ask-steps"><li value="1"><p>Move the field above the total</p></li><li value="2"><p>Check the code on blur</p></li><li value="3"><p>Show the saving</p></li><li value="4"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 8 steps</button><div class="ask-say"><input class="field small q-type ask-say-box" placeholder="What should change?" value="Keep &lt;codes&gt; on the server"><button class="button small ask-say-cancel">Cancel</button><button class="button small main ask-say-send">Send back</button></div><div class="perm-actions"><button class="button main perm-go">Take me there</button></div></div>
--- a plan that starts at a glance: its few lines (the plans module's) in place of its steps
-<div class="perm plan-ask" data-ask="ExitPlanMode-1"><div class="ask-head"><span class="card-title">Coupon field</span></div><div class="gl-minis"><div class="gl-mini"><span class="gl-ml">For you</span><span class="gl-mt">The coupon field sits above the total, where it&#39;s seen.</span></div><div class="gl-mini"><span class="gl-ml">You decide</span><span class="gl-mt">1 choice, Claude's pick ready</span></div><div class="gl-mini"><span class="gl-ml">Could go wrong</span><span class="gl-mt">A code typed with spaces reads as wrong.</span></div></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
+-- a single pick's box to type in
 <div class="perm quiz ask-qOne" data-ask="qOne"><div class="ask-label">Checkout</div><div class="q-top"><span class="card-title">Where does the coupon field go?</span><button class="icon-button small q-close" title="Dismiss without answering">×</button></div><div class="ask-nums"><button class="opt ask-num" data-o="0"><span class="tag mark">1</span><span class="ask-num-label">Above the total</span><span class="ask-num-desc">above the total</span></button><button class="opt ask-num" data-o="1"><span class="tag mark">2</span><span class="ask-num-label">Under the total</span></button><button class="opt ask-num" data-o="2"><span class="tag mark">3</span><span class="ask-num-label">In the basket</span></button><div class="opt ask-num ask-type-opt is-typing"><span class="tag mark">4</span><input class="field q-type ask-row-box" data-q="0" placeholder="Type an answer" aria-label="Type an answer" value=""></div></div></div>
 …"Type an answer" became the box in its own row, with no second box under it: 1 box, in the row: true
 Esc gives the row back, keeping what was typed, which the row shows faint: [false,"Beside the &lt;b&gt;button&lt;/b&gt;"]
@@ -207,20 +200,6 @@ several questions, one a number typed outside its range: Submit stays off, and i
 × dismisses a question: {"type":"answerAsk","id":"qText","allow":false}
 a command's Allow once: {"type":"answerAsk","id":"command","allow":true}
 Show less on a command shown in full: nothing sent, and it's cut short again: ["nothing sent","{\"\":false}"]
-Send back… opens the box for notes, and Cancel closes it: ["{\"text\":\"\"}","null"]
-a plan sent back with its notes: {"type":"answerAsk","id":"plan","allow":false,"message":"Keep <codes> on the server"} · sentBack
-…with no notes, nothing: 0
--- a long plan: its first list's 3 steps, as its numbers start again after them, drawn from their markdown, then Read all 7 steps, Send back… and Take me there
-<div class="perm plan-ask" data-ask="longPlan"><div class="ask-head"><span class="card-title">Keep the coupon codes safe</span></div><ol class="ask-steps"><li value="1"><p><strong>On the server</strong> (on your yes): check each code before the total, as the basket does</p></li><li value="2"><p>Log what was &lt;b&gt;tried&lt;/b&gt;</p></li><li value="3"><p>Test it</p></li></ol><button class="button quiet small perm-read">Read all 7 steps</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
-Read all its steps opens the whole plan in the reader, and Take me there its session: nothing sent: ["reader: sLong, writings","session: sLong","nothing sent","nothing sent"]
-a plan of 4 steps or fewer: Read the plan: Read the plan
-a plan whose pick you changed: its row says so, and that your note waits, in place of its box: ["1 choice, 1 changed by you",false,"<p class=\"ask-say-waits\">Your note waits with your picks beside the list.</p>",true]
-…its Return or Send back, from a box drawn before: nothing sent without your picks: 0
-…and Send back… opens the plan beside the list, its box open, which takes your note from here: ["nothing sent","the plan in sCoupon, its box open"]
-the box beside the list takes your note, and the row no longer has it: ["Keep it short",null,false]
-…given back as the reader closes unsent: it waits on the row again: true
--- a plan with no steps: its first lines drawn from their markdown
-<div class="perm plan-ask" data-ask="ExitPlanMode-1"><div class="ask-head"><span class="card-title">Tidy</span></div><div class="ask-lead-lines"><p>Move <strong>the coupon</strong> into <code>basket.ts</code>.</p><ul><li>and keep <em>the</em> route</li></ul></div><button class="button quiet small perm-read">Read the plan</button><div class="perm-actions"><button class="ask-send">Send back…</button><button class="button main perm-go">Take me there</button></div></div>
 which presses answer (and so leave the keyboard where it was): ["perm-allow: true","q-close: true","ask-num: true","ask-type-opt: false","opt: false","ask-inc: false","ask-more: false","q-next: false","q-pass: false"]
 …and on several questions, a numbered option only picks: false
 a request drawn twice: the box opened with its copy beside the list holding the keys, another card, and none: ["beside the list","the list","the list"]
@@ -249,7 +228,7 @@ a question answered names what was sent: Under the total
 which cards want the row: a request answered, and one not answered: [["answered (11)"],["request (10)"]]
 answered just now: in the list, then as a chat beside the folded panel: ["line","no line"]
 answered a while ago and still there: in the list, then as a chat: ["line, Take me there","line, Take me there"]
-answered just now, Claude's line and dot: in the list, then as a chat: ["asking dot · wait: Wants to run a command","working dot · done: ✓ Allowed once · npm install fuse.js"]
+answered just now, Claude's line and dot: in the list, then as a chat: ["asking dot · its card, no line over it","working dot · done: ✓ Allowed once · npm install fuse.js"]
 …turned down, as a chat: working dot · done no: ✓ Denied · npm install fuse.js
 …answered a while ago and still there, as a chat: ["asking dot · wait: Wants to run a command","line, Take me there"]
 
@@ -284,3 +263,24 @@ its row says so, and that a press carries it on: true
 …not while it runs: 
 …nor once it closed while it waits on someone else, whose own line says it once: 
 …but it does for one whose wait isn't shown as closed (run again a moment ago): true
+
+== A plan waiting, as its row's ask (requests.js)
+a plan: a bubble named Plan with its title, the plan button, no card: {"bubble":"Plan: Coupon field","card":false,"button":"wr-act"}
+…a plan with no heading: Plan: Waiting for your OK
+…from a session started before the update: the bubble too, no card: {"bubble":"Plan: Coupon field","card":false,"button":"wr-act"}
+…answered here: the line saying so, no bubble: [{"bubble":null,"card":false,"button":null},"Approved"]
+a plan waiting in the transcript only: its bubble, the plan button, no card: {"bubble":"Plan: Coupon field","card":false,"button":"wr-act"}
+…its session idle at its prompt, nothing typed since: the bubble too: {"bubble":"Plan: Coupon field","card":false,"button":"wr-act"}
+…something typed into it since: none, as it may be answered already: {"bubble":null,"card":false,"button":null}
+…its session at work: none: {"bubble":null,"card":false,"button":null}
+…nor for a plan answered there: {"bubble":null,"card":false,"button":null}
+…nor for an older one, a newer plan answered since: {"bubble":null,"card":false,"button":null}
+left: held at its own prompt, or idle at its prompt: [{"id":"tc1","held":true},{"id":"tc1","held":false}]
+typeBack: the press, for the app to check and type in: [{"type":"typePlanNotes","sessionId":"p1","planId":"tc1","words":"Split step 2."}]
+typed: how it went, as the row says: [{"state":"typing","why":"","way":"","at":1999999940000},{"state":"typed","why":"","way":"","at":1999999940000},{"state":"notTyped","why":"Ghostty is in front","way":"Bring It Here","at":1999999940000}]
+…for another plan, or an Approve of yours: none: [null,null,null]
+the row: nothing while they go in or once they're in; why, where they weren't: [null,null,{"head":"Your notes","what":"Your notes on the plan weren't typed in: Ghostty is in front","warn":true,"plan":true}]
+…nothing to open it beside the list: the bubble's own button, to its session, and still no card: {"bubble":"Plan: Coupon field","card":false,"button":"plan-go"}
+a question keeps its card, and asks no plan: class="perm quiz ask-qOne"
+a command keeps its card: true
+your approval: pending, taken, not taken: [null,null,{"head":"Your approval","what":"Your approval wasn't taken: approve the plan in its tab","warn":true,"plan":true}]

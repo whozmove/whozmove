@@ -238,9 +238,9 @@ window.compactNote = (sid, text, way) => {
 // At the start of the bottom line. The model, effort and mode cross-fade as they change, not the ring.
 core.slots.setup.push((row) => agentSetupHTML(row.s, row));
 core.swaps.push(':scope > .main > .where .agent');
-// A row shown briefly has no bottom line, so its ring goes at its note's end, where that has Deploy, just before it:
-// put first, as this script comes after Deploy's.
-core.slots.placeEnd.unshift((row) => (row.brief ? contextRing(row.s) : ''));
+// A row shown briefly has no bottom line (but the row you're on, row.tools), so its ring goes at its note's end, where
+// that has Deploy, just before it: put first, as this script comes after Deploy's.
+core.slots.placeEnd.unshift((row) => (row.brief && !row.tools ? contextRing(row.s) : ''));
 // The Compact card comes after a request waiting on the row, and closes for Deploy's set-up card.
 // A pick going in comes after a request waiting on the row, and before the Compact card. Away, what it showed is
 // forgotten, so a button that comes back waits again before it takes a press.

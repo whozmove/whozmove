@@ -2,8 +2,8 @@
 
 Everything the panel does, a page for each part of it.
 
-- [The list](the-list.md): every session, newest first, whose move it is in each, and the row you're on.
-- [Group by Team](group-by-team.md): the list by team, when a session leads a team of other sessions for you.
+- [The list](the-list.md): every session, by project, newest first in each, whose move it is in each, the row you're
+  on, and a team's groups on top when a session leads a team of other sessions for you.
 - [Team Board](team-board.md): Up next, every session working now and what waits, by goal; and a team's work: what's
   moving, who's on what, its goals and what's done this week.
 - [Messages](messages.md): every message your sessions send each other, beside the list, and the inbox a team's lead
@@ -18,6 +18,8 @@ Everything the panel does, a page for each part of it.
   folded panel first.
 - [Starting a conversation](new-conversations.md): the card, ⌃⌥N, projects and worktrees.
 - [Tickets](tickets.md): giving a conversation a Jira ticket, and its row showing it.
+- [How a project works](process-notes.md): what a project's own pages don't say, kept beside them as a note by your
+  Keep It.
 - [Waiting on someone else](waiting.md): a session waiting on a review or a merge, holding no seat, and carrying on
   when it comes.
 - [Model, effort, mode and compacting](model-and-compact.md): a session's settings from its row, and its context.

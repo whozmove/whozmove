@@ -46,8 +46,9 @@ line above it. In a request's card on the list, a diagram stays its text.
 At the top of a plan, choose how to read it. **Skimmed** is the card, with the plan folded under it. **Full version of
 the plan** is the plan exactly as Claude wrote it, title and all, as text, with nothing taken out or added: no card, no
 folds, only its flows drawn, each with As written. The toggle stays in the same place in both. Picks you made on the
-card still count: the bar under the plan says how many you changed, and they go with **Send Back with My Picks**. The
-choice is one for every plan, kept on this Mac across launches.
+card still count: the bar under the plan says how many you changed, and they go with **Send Back with My Picks**.
+**Approve** is under the plan in both: read Skimmed, it says above it that it approves the whole plan, folded parts too.
+The choice is one for every plan, kept on this Mac across launches.
 
 ## Where the short view comes from
 
@@ -67,16 +68,13 @@ Nothing is summarised by an AI, and nothing about a plan leaves your Mac.
 
 ## On the row
 
-The plan card on a session's row shows a few lines from the plan's own short view in place of its first steps: what
-changes for you, how many choices there are and whether Claude has picked for each, and what could go wrong, each
-at most three lines, ending in "…" when there's more. Once you've picked another option beside the list, it says so:
-"3 choices, 1 changed by you". A plan without its own short view shows its steps, as before. **Read the plan** opens
-it beside the list. **Send back…** opens a box for your notes on the row; with picks of yours, it opens the plan beside
-the list instead, with its box for your notes open under your picks, and what you typed on the row in it; until then
-the row says "Your note waits with your picks beside the list". Close the plan unsent and your note waits on the row
-again. If the plan is answered in its session, or Claude writes a new version, before you send, your notes and picks
-aren't sent to the new one: the bar under the plan shows them, to copy into what you send next, until **Done with
-These**. Your picks are kept while Whozmove runs.
+A plan waiting shows on its row as a bubble ending in the plan button, which opens it beside the list ([Requests,
+questions and plans](requests.md#plans)); where another ask has the row's line, the plan's tag after the session's
+name, in the plan's colour, opens it there. **Send back…** under it opens a box for your notes, under your picks. Close
+the plan unsent and your notes are kept for it: its **Send back…** opens them again. If the plan is answered in its
+session, or Claude writes a new version, before you send, your notes and picks aren't sent to the new one: the bar
+under the plan shows them, to copy into what you send next, until **Done with These**. Your picks are kept while
+Whozmove runs.
 
 ## In One Task
 

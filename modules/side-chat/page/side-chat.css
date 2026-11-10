@@ -25,6 +25,9 @@
 .sc-work:empty { display: none; }
 .sc-work .who { width: auto; min-width: 42px; max-width: 80px; box-sizing: border-box; padding-right: 8px;
                 overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* The same line in a side question's answer's place while it's asked, under the copy's name, which says who: so
+   without its own label, its step and time taking the chat's whole width, a long step ending in "…". */
+.sc-aside-work .who { display: none; }
 .sc-you { align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .sc-you p { margin: 0; padding: 6px 10px; border-radius: var(--radius-box); background: var(--ask-fill);
             box-shadow: inset 0 0 0 1px var(--ask-edge); font-size: var(--size-card); line-height: 1.45;
@@ -36,6 +39,8 @@
 .sc-said.wait { color: var(--turn-text); }
 .sc-said.read { color: var(--done-text); }
 .sc-said.no { color: var(--needs-text); }
+/* What stopped a side question, under the copy's name, at the start of its line as the name is. */
+.sc-said.ended { justify-content: flex-start; text-align: left; }
 .sc-act { border: 0; background: none; padding: 0; font: inherit; color: var(--link); }
 .sc-act.is-hover { text-decoration: underline; }
 .sc-reply { display: flex; flex-direction: column; gap: 3px; max-width: 94%; }
@@ -66,6 +71,8 @@
 .sc-goes { font-size: var(--size-meta); color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
 .sc-goes:empty { display: none; }
 .sc-why { color: var(--text); }
+/* Where the side conversation's memory starts: a quiet line between side questions, not one of them. */
+.sc-forgot { margin: 0; font-size: var(--size-meta); color: var(--muted); text-align: center; }
 
 /* Side Chat, the bar at a row's far edge: a button with no words filling the strip the row draws there, which the row
    part's bar is the look of (it swells pointed at, stays lit while its chat is open, and is in your move's colour

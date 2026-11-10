@@ -110,7 +110,7 @@ never makes the row hold on there. Under reduced motion the list is simply there
 
 While the panel is folded, what needs you comes out beside the cat by itself (`chats.js`): each chat is the session's
 row, the list's own (`rowHTML`, its request card and all, drawn through `morph` so its lines change as the list's do;
-whole, with Claude's line, where a grouping shows the list's rows briefly, as Group by Team does; saying a module's
+whole, with Claude's line, where the list shows its rows briefly, as it shows every row; saying a module's
 line in Claude's place where that's what's new, a reply in its side chat), on a card of the
 panel's colour, with a pin and a ×, the time it has left a ring round the × that empties, as tall as its row,
 a request's card and all, up to where the screen ends beside the cat, where its row scrolls. Three at most,
@@ -148,7 +148,7 @@ even if the cat hadn't moved yet, never a click. The panel opening round the cat
 press or the pointer resting on it, each is pulled home into its row in the list as one thing (`chatsLand`, in
 `landing.js`), as if on
 a spring, carrying a little past its row and settling back, the lowest first, so each moves into room already clear,
-shedding its card as it nears its row. Where the list shows its row briefly (Group by Team's short row), the chat, being
+shedding its card as it nears its row. As the list shows its row briefly (every row's short look), the chat, being
 its row whole, takes the row's look on its way: first its lines that the row hasn't fold away together, each as a held
 row's line does, and its lines and dot move to where the row has them, so it comes to the row's shape; then the row's
 look fades in over it, and only once that's all there does the chat's own go, so what's in both never dims

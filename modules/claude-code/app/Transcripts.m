@@ -324,6 +324,7 @@ long long SpentToday(NSDictionary *spent, double today) {
 @property (copy) NSString *mode;                     // the newest permission mode recorded
 @property (assign) double modeAt;                    // the time of that record, in ms since 1970
 @property (assign) double messageAt;                 // when the newest message was written, in ms since 1970
+@property (assign) double compactedAt;               // when it last compacted, in ms since 1970, or 0
 @property (copy) NSString *title;                    // the newest topic recorded
 @property (copy) NSDictionary *writings;             // plans, prototypes and notes, as WritingNews found them
 @property (copy) NSArray<NSDictionary *> *edits;      // the files changed and how, as EditNews found them
@@ -375,8 +376,11 @@ static TranscriptNews *ReadTranscriptNews(NSString *path, unsigned long long *of
     // until the next reply says otherwise.
     NSRange boundary = [chunk rangeOfData:[@"\"compact_boundary\"" dataUsingEncoding:NSUTF8StringEncoding]
                                   options:NSDataSearchBackwards range:NSMakeRange(0, NSMaxRange(lastNewline))];
+    NSDictionary *boundaryEntry = boundary.location != NSNotFound
+        ? JSONLineAt(chunk, boundary.location, NSMaxRange(lastNewline), NULL) : nil;
+    if ([boundaryEntry isKindOfClass:NSDictionary.class]) news.compactedAt = TimestampMs(boundaryEntry[@"timestamp"]);
     if (boundary.location != NSNotFound && (!usage || boundary.location > usageAt)) {
-        NSDictionary *entry = JSONLineAt(chunk, boundary.location, NSMaxRange(lastNewline), NULL);
+        NSDictionary *entry = boundaryEntry;
         id tokens = [entry isKindOfClass:NSDictionary.class]
             && [entry[@"compactMetadata"] isKindOfClass:NSDictionary.class]
             ? entry[@"compactMetadata"][@"postTokens"] : nil;
@@ -513,6 +517,7 @@ static void AddSessionNews(NSString *sid, NSMutableDictionary *t, NSDictionary *
     // Timed by its record, not by when it was read: an older record read now mustn't outrank a mode picked here since.
     if (news.mode.length) { t[@"mode"] = news.mode; t[@"modeAt"] = @(news.modeAt); }
     if (news.messageAt > [t[@"messageAt"] doubleValue]) t[@"messageAt"] = @(news.messageAt);
+    if (news.compactedAt > [t[@"compactedAt"] doubleValue]) t[@"compactedAt"] = @(news.compactedAt);
     if (news.title.length) t[@"title"] = news.title;
     if (news.writings) AddWritingNews(t, news.writings);
     AddEditNews(t, news.edits);

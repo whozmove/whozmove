@@ -94,7 +94,7 @@ starts  app/shared/Git.m  # git, Apple's developer tools' own, for local command
 starts  app/shared/Processes.h  # where the app's code starts every program
 starts  app/shared/Processes.m  # where the app's code starts every program
 starts  icon/make-icon.m  # iconutil, making the app's icon (not part of the app)
-starts  modules/claude-code/app/ClaudeAside.m  # claude, a side question to a copy of a session's conversation, from api.anthropic.com
+starts  modules/claude-code/app/ClaudeAside.m  # claude, a side question to a copy of a session's conversation, from api.anthropic.com; the copy may run git status, log, diff and show in the session's folder, and its hook runs Whozmove itself (--helper-aside-check) before each tool, which asks git check-ignore whether git ignores a file it would read
 starts  modules/claude-code/app/ClaudeCodePrints.m  # stand-in sessions for a print run's tests, in a throwaway home only
 starts  modules/claude-code/app/ClaudeUsage.m  # claude, for usage, from api.anthropic.com (Claude Code's own check)
 starts  modules/claude-code/app/PluginInstall.m  # claude plugin, putting the hooks in

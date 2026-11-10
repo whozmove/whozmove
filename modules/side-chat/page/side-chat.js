@@ -79,6 +79,17 @@ function drawSideChat() {
     changed = true;
   }
   tickTimes(work, now);
+  // A side question being asked: the same line in its answer's place, under the copy's name, the same way.
+  for (const asking of body.querySelectorAll('.sc-aside-work')) {
+    const aside = (chat.asides || []).find((one) => String(one.at) === asking.dataset.at);
+    const askingKey = sideChatAsideWorkKey(aside, name);
+    if (asking.dataset.key !== askingKey) {
+      asking.innerHTML = askingKey ? sideChatAsideWorkHTML(aside, name, now) : '';
+      asking.dataset.key = askingKey;
+      changed = true;
+    }
+    tickTimes(asking, now);
+  }
   if (changed && atFoot) body.scrollTop = body.scrollHeight;
   sideChatFoot(s, sid, chat, name);
   state.sideChatSeen[sid] = now;

@@ -1,5 +1,5 @@
-// Settings: the panel's look, the list's order (the modules' ways to group it among it) and whether rows show the
-// conversation, kept, put on the panel and the page, and listed for Settings on the panel's back.
+// Settings: the panel's look and whether rows show the conversation, kept, put on the panel and the page, and listed
+// for Settings on the panel's back.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #import "Settings.h"
 #import "PanelWindow.h"
@@ -10,16 +10,15 @@
 
 // The panel's look: grey until Black (white on the light panel) or Glass is picked, and light or dark as the Mac is
 // until Light or Dark is. While macOS's Reduce Transparency is on, Glass is grey, and can't be picked, as macOS's own
-// Liquid Glass choice can't. The list's order: newest first ("status", its old name) until Group by Project is picked.
-// Whether rows show the conversation: on until Show Conversation Text is turned off.
-static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appearance", *const kGroupBy = @"groupBy",
+// Liquid Glass choice can't. Whether rows show the conversation: on until Show Conversation Text is turned off. (The
+// list has one view for everyone, so there's no choice of order: `groupBy`, the key that kept it, is never used again
+// for another choice.)
+static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appearance",
                 *const kShowConversation = @"showConversationText";
 
 @interface Settings ()
 @property (strong) PanelWindow *window;
 @property (strong) Page *page;
-// The modules' ways to group the list (addGrouping:), each {word, name, foot, shown}.
-@property (strong) NSMutableArray<NSDictionary *> *groupings;
 // Show Conversation Text: kept, and told to the page as it's set.
 @property (nonatomic) BOOL showsConversation;
 @end
@@ -30,7 +29,6 @@ static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appeara
     if (!(self = [super init])) return nil;
     self.window = window;
     self.page = page;
-    self.groupings = [NSMutableArray array];
     [NSUserDefaults.standardUserDefaults registerDefaults:@{kShowConversation: @YES}];
     return self;
 }
@@ -78,44 +76,6 @@ static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appeara
     return [appearance isEqual:@"light"] || [appearance isEqual:@"dark"] ? appearance : @"system";
 }
 
-#pragma mark The list's order
-
-- (void)applySavedGrouping {
-    [self applyGroupBy:[NSUserDefaults.standardUserDefaults stringForKey:kGroupBy]];
-}
-
-- (void)addGrouping:(NSString *)word name:(NSString *)name foot:(NSString *)foot shown:(BOOL (^)(void))shown {
-    BOOL (^always)(void) = ^{ return YES; };
-    [self.groupings addObject:@{@"word": word, @"name": name, @"foot": foot ?: @"", @"shown": shown ?: always}];
-}
-
-// Anything but Project or a module's grouping is newest first, an order no longer offered included, and it's saved as
-// such. So the page is only ever told a word Settings knows.
-- (void)applyGroupBy:(NSString *)mode {
-    NSArray *words = [self.groupings valueForKey:@"word"];
-    if (![mode isEqual:@"project"] && ![words containsObject:mode ?: @""]) mode = @"status";
-    [NSUserDefaults.standardUserDefaults setObject:mode forKey:kGroupBy];
-    [self.page setGroupBy:mode];
-}
-
-// The order picked, as Session List ticks it: a module's grouping not offered now shows the list newest first
-// meanwhile (the page goes by the same rule), so that's what's ticked, the choice kept for when it's offered again.
-- (NSString *)pickedGrouping {
-    NSString *mode = [NSUserDefaults.standardUserDefaults stringForKey:kGroupBy];
-    if ([mode isEqual:@"project"]) return mode;
-    for (NSDictionary *grouping in self.groupings)
-        if ([grouping[@"word"] isEqual:mode]) return ((BOOL (^)(void))grouping[@"shown"])() ? mode : @"status";
-    return @"status";
-}
-
-// The modules' groupings offered now.
-- (NSArray<NSDictionary *> *)shownGroupings {
-    return [self.groupings filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSDictionary *grouping,
-                                                                                         NSDictionary *bindings) {
-        return ((BOOL (^)(void))grouping[@"shown"])();
-    }]];
-}
-
 #pragma mark The conversation on rows
 
 - (BOOL)showsConversation {
@@ -135,7 +95,7 @@ static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appeara
 
 // Appearance, a page of two choices: the look, each drawn as a small panel (Black is White on the light panel, as the
 // app looks now, and Glass can't be picked while Reduce Transparency is on, with the way to turn it off under it), and
-// light or dark. Then the list's order, and whether rows show the conversation.
+// light or dark. Then whether rows show the conversation.
 - (NSArray<SettingEntry *> *)entries {
     __weak typeof(self) weakSelf = self;
     BOOL plain = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceTransparency;
@@ -167,33 +127,15 @@ static NSString *const kPanelLook = @"panelLook", *const kAppearance = @"appeara
     scheme.foot = @"Match the Mac follows System Settings ▸ Appearance.";
     scheme.group = 10;
     scheme.order = 11;
-    NSArray<NSDictionary *> *groupings = [self shownGroupings];
-    SettingEntry *order = [SettingEntry choiceWithKey:@"groupBy" title:@"Session List" glyph:@"list"
-        choices:^NSArray<NSDictionary *> * {
-            NSMutableArray *choices = [@[@{@"id": @"status", @"name": @"Newest First"},
-                                         @{@"id": @"project", @"name": @"Group by Project"}] mutableCopy];
-            for (NSDictionary *grouping in groupings)
-                [choices addObject:@{@"id": grouping[@"word"], @"name": grouping[@"name"]}];
-            return choices;
-        }
-        picked:^NSString * { return [weakSelf pickedGrouping]; }
-        pick:^(NSString *choice) { [weakSelf applyGroupBy:choice]; }];
-    NSString *own = @"Newest first is one list, the newest message at the top. Grouped, each project's sessions are "
-                    @"together, the projects A to Z.";
-    NSMutableArray *foot = [@[own] mutableCopy];
-    for (NSDictionary *grouping in groupings)
-        if ([grouping[@"foot"] length]) [foot addObject:grouping[@"foot"]];
-    order.foot = [foot componentsJoinedByString:@" "];
-    order.group = 10;
-    order.order = 20;
     SettingEntry *conversation = [SettingEntry switchWithKey:kShowConversation title:@"Show Conversation Text"
         glyph:@"chat" on:^BOOL { return weakSelf.showsConversation; }
         set:^(BOOL on) { weakSelf.showsConversation = on; }];
-    conversation.foot = @"With Show Conversation Text off, rows show only their names and what needs you: not what you "
-                        @"or your sessions wrote, nor what each is working on.";
+    conversation.foot = @"Off, no one's words show: in the list, not Claude's line on a reply you haven't read or a "
+                        @"question it asks; beside the folded panel, not your message, its reply or what it's working "
+                        @"on. What needs you stays.";
     conversation.group = 10;
     conversation.order = 25;
-    return @[look, scheme, order, conversation];
+    return @[look, scheme, conversation];
 }
 
 @end

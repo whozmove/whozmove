@@ -15,12 +15,16 @@ your box to send.
   (`sayBetweenSteps:`, parts/send) and keeps how far each got, in a record per session in Whozmove's folder that only
   you can read, until the session's process ends. Words that hadn't gone in when Whozmove last stopped come back to
   your box. It reads each reply through the session's agent (AgentWork's `replyTo:` for words typed in,
-  AgentBetweenSteps' `wordsState:` for words its hook handed in, once that turn has ended), cuts it into prose and code
-  (`ReplyParts`, app/shared/Text.h) and holds it in memory only. Your questions asked without interrupting go to the
-  session's agent (AgentAside's `ask:aside:done:`, one at a time for each session, never a Claude Desktop
-  conversation's yet), and each is held in memory with its answer until its session goes, stopped then if it's still
-  being answered; only the tokens each read go in the log. It tells the page each listed session's chat
-  (`setSideChats`), and `--print-side-chat` is the print mode the tests check.
+  AgentBetweenSteps' `wordsState:` for words its hook handed in, once that turn has ended), cuts it into prose and
+  code (`ReplyParts`, app/shared/Text.h) and holds it in memory only. Your questions asked without interrupting go to
+  the session's agent (AgentAside's `ask:aside:earlier:step:done:`, one at a time for each session, never a Claude
+  Desktop conversation's yet), with the ones answered before it (`SideChatAsidesEarlier`), as the agent keeps one side
+  conversation for each session and owns it; Side Chat keeps the questions and answers, each held in memory with its
+  answer, how many of the earlier ones the side conversation knew (`remembered`) and, while it's being answered, the
+  step the agent last said it's on (`step`, so the page shows the line its row shows while it works, in the answer's
+  place), until its session goes, stopped
+  then if it's still being answered; only the tokens each read go in the log. It tells the page each listed session's
+  chat (`setSideChats`), and `--print-side-chat` is the print mode the tests check.
 - `app/SideChatRecord.h`, `app/SideChatRecord.m`: what a session's record keeps as your words move on, as plain
   functions: words said, how far they got, taken back, read and answered, back in your box after a restart, and let
   go once the page has put them back; and the questions asked on its side, kept in memory only: asked, answered, and
@@ -36,7 +40,8 @@ your box to send.
   - a reply as it's shown (`sideChatReply`), a reply or side answer you haven't seen (`sideChatUnseen`) and Side
     Chat's bar on the row (`sideChatEdge`);
   - asking without interrupting: why it can't now, in Ask Without Interrupting's place (`sideChatAskBefore`), how far a
-    side question got and its presses, Send's words for a failed one among them (`sideChatAsideSaid`), its answer added
+    side question got and its presses, Send's words for a failed one among them (`sideChatAsideSaid`), where the side
+    conversation's memory starts (`sideChatForgotAbove`, from the newest answer's `remembered`), its answer added
     to your box (`sideChatAddAnswer`) or its question (`sideChatQuestionInBox`), and what a key in the box does
     (`sideChatKeyAct`): Return goes the way you chose last, which `sideChatWayNow` says (Ask Without Interrupting only
     while it, or Stop for a copy still answering, is in Ask's place, else Send), and ⌥Return the other way;
@@ -87,7 +92,7 @@ questions asked without interrupting, and a reply cut into prose and code (`--pr
 - **"Read" only once the session's own record shows the words;** until then, Take Back.
 - **Nothing goes in that you can't see:** words that hadn't gone in when Whozmove stopped come back to your box.
 - **A reply waiting is your move's colour,** never a count and never red: red is for words that didn't go in.
-- **A side question never reaches the session:** it's asked of a copy of its conversation, which uses no tools and
-  saves nothing, only by your press, one at a time, and it's drawn quieter than the conversation, never outlined (an
-  outline is words held for the session). Its answer goes to the session only as your own words, once you've read
-  them in your box (Add to Message, then Send).
+- **A side question never reaches the session:** it's asked of a copy of its conversation, which may read the project's
+  files and git in the session's folder but changes nothing and saves nothing, only by your press, one at a time, and
+  it's drawn quieter than the conversation, never outlined (an outline is words held for the session). Its answer goes
+  to the session only as your own words, once you've read them in your box (Add to Message, then Send).

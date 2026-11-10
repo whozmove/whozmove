@@ -1,7 +1,7 @@
 # Details
 
 A row's details: what something on a row says when you rest the pointer on it a moment, a PR, "+N more open", the
-row's numbers, where it runs, a session open twice, Create PR or a job under Group by Team. They open inside the row,
+row's numbers, where it runs, a session open twice, Create PR or a team's job. They open inside the row,
 under its own lines, and the rows below move down to make room; nothing is ever laid over the list. They work the same
 in a chat beside the folded panel, which is its row.
 

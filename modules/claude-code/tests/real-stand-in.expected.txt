@@ -59,12 +59,38 @@
    asked in the panel: ExitPlanMode
    Claude Code got the note: True
 == 10b questions on its side, asked as the panel asks them
-   a question: forked True, listed after False; ended success, a tool ran False, said "Hello from the stand-in."
+   a question: forked True, listed after False; ended ['success'], said ["Hello from the stand-in."]
+   a question: tools ran 0, refused 0; the outside file read False, a file written outside False, the index changed False
    a question: the home changed [], a hook ran for it False
    a question: its request starts as the session's last did, up to its last cache mark: True
-   a question that reaches for a command: forked True, listed after False; ended error_max_turns, a tool ran False, said null
+   a question that reaches for a command: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   a question that reaches for a command: tools ran 0, refused 1; the outside file read False, a file written outside False, the index changed False
    a question that reaches for a command: the home changed [], a hook ran for it False
    a question that reaches for a command: its request starts as the session's last did, up to its last cache mark: True
+   two questions in one copy: forked True, listed after False; ended ['success', 'success'], said ["Hello from the stand-in.", "Hello from the stand-in."]
+   two questions in one copy: tools ran 0, refused 0; the outside file read False, a file written outside False, the index changed False
+   two questions in one copy: the home changed [], a hook ran for it False
+   two questions in one copy: its request starts as the session's last did, up to its last cache mark: True
+   a read outside its folder: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   a read outside its folder: tools ran 0, refused 1; the outside file read False, a file written outside False, the index changed False
+   a read outside its folder: the home changed [], a hook ran for it False
+   a read outside its folder: its request starts as the session's last did, up to its last cache mark: True
+   git that would write or run something: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   git that would write or run something: tools ran 0, refused 5; the outside file read False, a file written outside False, the index changed False
+   git that would write or run something: the home changed [], a hook ran for it False
+   git that would write or run something: its request starts as the session's last did, up to its last cache mark: True
+   git status: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   git status: tools ran 1, refused 0; the outside file read False, a file written outside False, the index changed False
+   git status: the home changed [], a hook ran for it False
+   git status: its request starts as the session's last did, up to its last cache mark: True
+   git status, its checker not there: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   git status, its checker not there: tools ran 0, refused 1; the outside file read False, a file written outside False, the index changed False
+   git status, its checker not there: the home changed [], a hook ran for it False
+   git status, its checker not there: its request starts as the session's last did, up to its last cache mark: True
+   git status, its checker too slow: forked True, listed after False; ended ['success'], said ["Done: the step ran."]
+   git status, its checker too slow: tools ran 0, refused 1; the outside file read False, a file written outside False, the index changed False
+   git status, its checker too slow: the home changed [], a hook ran for it False
+   git status, its checker too slow: its request starts as the session's last did, up to its last cache mark: True
 == 11 the session ends
    its registry file went: True
 == --print-rows
@@ -92,17 +118,17 @@
     "changes": {
       "added": 1,
       "all": {
-        "added": 1,
-        "files": 1,
+        "added": 3,
+        "files": 2,
         "removed": 0,
         "staged": {
-          "added": 0,
-          "files": 0,
+          "added": 1,
+          "files": 1,
           "removed": 0
         },
         "unstaged": {
-          "added": 1,
-          "files": 1,
+          "added": 2,
+          "files": 2,
           "removed": 0
         }
       },
@@ -123,6 +149,10 @@
         "<id>": [
           1,
           0
+        ],
+        "outside": [
+          2,
+          0
         ]
       },
       "removed": 0,
@@ -134,9 +164,9 @@
       "base": "main",
       "baseRef": "main",
       "behind": 0,
-      "changes": 0,
+      "changes": 1,
       "checkedAt": "<time>",
-      "filesPartly": 0,
+      "filesPartly": 1,
       "filesStaged": 0,
       "filesUnstaged": 0,
       "headAt": "<time>",
@@ -210,7 +240,10 @@
    ask
    background
    bash
+   gitout
+   gitstatus
    plan
+   readout
    reply
    result
    summary

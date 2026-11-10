@@ -15,6 +15,19 @@
         "Who may send: who any",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first: next picks, why off",
+        "Places: north › Here (its page: where here)",
+        "(no heading): only its line"
+      ],
+      "recommended" : true
+    },
+    {
+      "after" : "There picked on North's page, a row's own page",
+      "groups" : [
+        "(no heading): on on",
+        "Who may send: who any",
+        "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
+        "What comes first: next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : true
@@ -26,6 +39,7 @@
         "Who may send: who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first: next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -37,6 +51,7 @@
         "Who may send: who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first: next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -48,6 +63,7 @@
         "Who may send: who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first: next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -59,6 +75,7 @@
         "Who may send (dimmed): who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first (dimmed): next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -70,6 +87,7 @@
         "Who may send (dimmed): who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first (dimmed): next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -81,6 +99,7 @@
         "Who may send (dimmed): who lead",
         "Quiet hours: quiet off, quietHours 22:00 to 08:00 (can't be pressed)",
         "What comes first (dimmed): next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -92,6 +111,7 @@
         "Who may send (dimmed): who lead",
         "Quiet hours: quiet on, quietHours 23:00 to 08:00",
         "What comes first (dimmed): next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -103,6 +123,7 @@
         "Who may send (dimmed): who lead",
         "Quiet hours: quiet on, quietHours 23:00 to 06:30",
         "What comes first (dimmed): next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : false
@@ -114,6 +135,7 @@
         "Who may send: who any",
         "Quiet hours: quiet off, quietHours 23:00 to 06:30 (can't be pressed)",
         "What comes first: next picks, why off",
+        "Places: north › There (its page: where there)",
         "(no heading): only its line"
       ],
       "recommended" : true
@@ -203,6 +225,7 @@
           "fixed" : null,
           "key" : "who",
           "kind" : "choice",
+          "menu" : false,
           "title" : "Who may send"
         }
       ],
@@ -255,6 +278,7 @@
           },
           "key" : "next",
           "kind" : "choice",
+          "menu" : false,
           "title" : "What comes first"
         },
         {
@@ -268,6 +292,52 @@
       ],
       "shown" : "always",
       "title" : "What comes first"
+    },
+    {
+      "enabled" : "always",
+      "foot" : null,
+      "order" : 35,
+      "rows" : [
+        {
+          "groups" : [
+            {
+              "enabled" : "always",
+              "foot" : null,
+              "order" : 0,
+              "rows" : [
+                {
+                  "choices" : [
+                    {
+                      "id" : "here",
+                      "name" : "Here"
+                    },
+                    {
+                      "id" : "there",
+                      "name" : "There"
+                    }
+                  ],
+                  "fixed" : {
+                    "help" : "Picked from a menu",
+                    "name" : "Where North's go"
+                  },
+                  "key" : "where",
+                  "kind" : "choice",
+                  "menu" : true,
+                  "title" : "Where North's go"
+                }
+              ],
+              "shown" : "always",
+              "title" : "North's"
+            }
+          ],
+          "key" : "north",
+          "kind" : "page",
+          "said" : "There",
+          "title" : "North"
+        }
+      ],
+      "shown" : "always",
+      "title" : "Places"
     },
     {
       "enabled" : "always",
@@ -301,6 +371,7 @@
       {
         "enabled" : true,
         "foot" : "Settings ▸ Sample Tool opens this page.",
+        "important" : false,
         "rows" : [
           {
             "enabled" : true,
@@ -318,6 +389,7 @@
       {
         "enabled" : true,
         "foot" : "A session that may not is told so.",
+        "important" : true,
         "rows" : [
           {
             "choices" : [
@@ -343,10 +415,19 @@
                 "name" : "Only those you’ve allowed"
               }
             ],
+            "confirms" : {
+              "lead" : {
+                "after" : "Only a team’s chief sends",
+                "before" : "Any session sends",
+                "keep" : "What's sent already stays.",
+                "warn" : "The others are told why."
+              }
+            },
             "enabled" : true,
             "fixed" : null,
             "key" : "who",
             "kind" : "choice",
+            "menu" : false,
             "title" : "Who may send",
             "value" : "any"
           }
@@ -356,6 +437,7 @@
       {
         "enabled" : true,
         "foot" : "The rest waits for the morning.",
+        "important" : false,
         "rows" : [
           {
             "enabled" : true,
@@ -384,6 +466,7 @@
       {
         "enabled" : true,
         "foot" : null,
+        "important" : false,
         "rows" : [
           {
             "choices" : [
@@ -402,6 +485,9 @@
                 "name" : "Then the oldest"
               }
             ],
+            "confirms" : {
+
+            },
             "enabled" : true,
             "fixed" : {
               "help" : "First, whatever else you choose.",
@@ -409,6 +495,7 @@
             },
             "key" : "next",
             "kind" : "choice",
+            "menu" : false,
             "title" : "What comes first",
             "value" : "picks"
           },
@@ -427,7 +514,63 @@
       },
       {
         "enabled" : true,
+        "foot" : null,
+        "important" : false,
+        "rows" : [
+          {
+            "groups" : [
+              {
+                "enabled" : true,
+                "foot" : null,
+                "important" : false,
+                "rows" : [
+                  {
+                    "choices" : [
+                      {
+                        "enabled" : true,
+                        "help" : "",
+                        "id" : "here",
+                        "isNew" : false,
+                        "name" : "Here"
+                      },
+                      {
+                        "enabled" : true,
+                        "help" : "",
+                        "id" : "there",
+                        "isNew" : false,
+                        "name" : "There"
+                      }
+                    ],
+                    "confirms" : {
+
+                    },
+                    "enabled" : true,
+                    "fixed" : {
+                      "help" : "Picked from a menu",
+                      "name" : "Where North's go"
+                    },
+                    "key" : "where",
+                    "kind" : "choice",
+                    "menu" : true,
+                    "title" : "Where North's go",
+                    "value" : "here"
+                  }
+                ],
+                "title" : "North's"
+              }
+            ],
+            "key" : "north",
+            "kind" : "page",
+            "said" : "Here",
+            "title" : "North"
+          }
+        ],
+        "title" : "Places"
+      },
+      {
+        "enabled" : true,
         "foot" : "A change applies to what comes next.",
+        "important" : false,
         "rows" : [
 
         ],

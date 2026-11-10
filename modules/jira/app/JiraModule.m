@@ -18,9 +18,12 @@
 #import "JiraTickets.h"
 #import "JiraPrints.h"
 
-// How long a request to Atlassian may take, and how long the boards of a project are kept before they're read again.
+// How long a request to Atlassian may take, and how long the boards of a project are kept before they're read again,
+// as are its priorities, which are read sooner only for a priority not among them, and then at most once in ten
+// minutes a project.
 static const NSTimeInterval kJiraTimeout = 30;
 static const NSTimeInterval kBoardsKept = 60 * 60;
+static const NSTimeInterval kPrioritiesKept = 60 * 60, kPrioritiesAgain = 10 * 60;
 
 @interface JiraModule : NSObject <Module, Tracker>
 @property (weak) Core *core;
@@ -29,6 +32,12 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
 @property (strong) MCPClient *server;
 @property (copy) NSArray<NSString *> *knownSites;
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *boards;  // "site key" → {at, groups}
+// "site key" → {order, readAt, againAt, reading, waiting}: the project's priorities, most pressing first, each {id,
+// name}, when they were last read, when they were last asked for sooner than the hour, or didn't answer, whether
+// they're being read now, and meanwhile the project's other tickets waiting for that read to place them.
+@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *priorities;
+// "site project type" → {at, fields}: the fields a type of a project's tickets takes one option of, kept an hour.
+@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *optionFields;
 @property (strong) NSDate *slowUntil;  // Atlassian asked to slow down until then
 @property (assign) BOOL copiedAsk;
 // What opens Atlassian's page for you: your browser, but in Jira's tests, which follow the page themselves.
@@ -53,6 +62,7 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
     self.server = [[MCPClient alloc] initWithURL:JiraServer() session:self.session name:@"Whozmove"
                                          version:JiraVersion()];
     self.boards = [NSMutableDictionary dictionary];
+    self.priorities = [NSMutableDictionary dictionary];
     return self;
 }
 
@@ -105,6 +115,7 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
     [self.server reset];
     self.knownSites = nil;
     [self.boards removeAllObjects];
+    [self.priorities removeAllObjects];
 }
 
 - (NSString *)keyIn:(NSString *)text site:(NSString **)site {
@@ -115,7 +126,8 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
 }
 
 // One tool called on Atlassian's server, with a token, as you: a 401 refreshes the token once and calls again. What it
-// answered, or why not, as a tracker's answer; a tool's own error ({error: true}) counts as not done. A tool that
+// answered, or why not, as a tracker's answer; a tool's own error ({error: true}, or one in its data) counts as not
+// done. A tool that
 // writes isn't called while the sign-in reads only, and one Atlassian refuses for its scope (a 403, or its own error
 // naming a scope) means signing in again, as a sign-in kept before Whozmove asked to write has no write scope.
 - (void)call:(NSString *)tool arguments:(NSDictionary *)arguments again:(BOOL)again
@@ -144,19 +156,30 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
                 return done(nil, [self slowDown]);
             }
             if (end == MCPEndAnswered && !error) return done(value, [TrackerAnswer done]);
-            // A new ticket Jira turns away as given (400): a priority, a parent or a field that project wants.
+            // A new ticket Jira turns away as given (400): a priority, a parent or a field that project wants. A move
+            // it turns away (a 4xx: a field to fill in on the ticket first, or a move that isn't yours), with what Jira
+            // said if it said anything, which trying again as it is won't change. A 5xx, reasons or not, is Jira not
+            // managing it just then, as when it couldn't be reached, which trying again may mend.
+            BOOL turnedAway = [tool isEqualToString:kJiraToolTransition] && JiraTurnedAway(value);
             TrackerEnd ended = end == MCPEndSignIn || error == 401 ? TrackerEndSignIn
                 : end == MCPEndRefused || error == 403 ? TrackerEndBlocked
                 : error == 404 ? TrackerEndNotFound
-                : error == 400 && [tool isEqualToString:kJiraToolCreate] ? TrackerEndRefused : TrackerEndFailed;
-            NSString *says = ended == TrackerEndSignIn ? @"The sign-in has run out"
+                : error == 400 && [tool isEqualToString:kJiraToolCreate] ? TrackerEndRefused
+                : turnedAway ? TrackerEndRefused : TrackerEndFailed;
+            NSString *says = ended == TrackerEndRefused && turnedAway ? @"Jira turned it away"
+                : ended == TrackerEndSignIn ? @"The sign-in has run out"
                 : ended == TrackerEndBlocked ? @"Atlassian turned Whozmove away for this site: your Jira admin can allow it"
                 : ended == TrackerEndNotFound ? @"There's no such ticket, or it isn't yours to see"
                 : ended == TrackerEndRefused ? @"Jira turned it away as it is: a priority, a parent or a field this "
                                                @"project wants may be wrong"
                 : @"Couldn't reach Jira just now";
-            PanelLog(@"Jira: %@ didn't answer (%ld)", tool, (long)ended);
-            done(nil, [TrackerAnswer end:ended why:says]);
+            // How, in Whozmove's own words and numbers, never the answer's: the tool's own error by its status, else
+            // how the call failed (MCPHowItFailed).
+            NSString *how = error ? [NSString stringWithFormat:@"its own error, %ld", (long)error] : why ?: @"unknown";
+            PanelLog(@"Jira: %@ didn't answer (%ld): %@", tool, (long)ended, how);
+            TrackerAnswer *answer = [TrackerAnswer end:ended why:says];
+            if (ended == TrackerEndRefused && turnedAway) answer.trackerSays = JiraErrorWords(value);
+            done(nil, answer);
         }];
     }];
 }
@@ -198,7 +221,7 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
         __block NSUInteger left = sites.count;
         for (NSString *site in sites) {
             NSDictionary *arguments = @{@"cloudId": JiraCloudId(site), @"jql": JiraSearchFor(words),
-                                        @"maxResults": @(kJiraSearchMost), @"fields": JiraSearchFields()};
+                                        @"maxResults": @(kJiraSearchMost), @"view": kJiraReadView};
             [self call:kJiraToolSearch arguments:arguments again:NO done:^(id value, TrackerAnswer *answer) {
                 if (answer.ok) for (NSDictionary *issue in JiraIssuesIn(value)) {
                     Ticket *ticket = JiraTicketFrom(issue, site);
@@ -220,18 +243,100 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
    withSteps:(void (^)(Ticket *ticket, TrackerAnswer *answer, id steps))done {
     if (!JiraIsKey(key) || !JiraIsSite(site))
         return done(nil, [TrackerAnswer end:TrackerEndNotFound why:@"That isn't a Jira ticket"], nil);
-    NSDictionary *arguments = @{@"cloudId": JiraCloudId(site), @"issueIdOrKey": key, @"fields": JiraIssueFields()};
+    NSDictionary *arguments = @{@"cloudId": JiraCloudId(site), @"issueIdOrKey": key, @"view": kJiraReadView};
     [self call:kJiraToolIssue arguments:arguments again:NO done:^(id value, TrackerAnswer *answer) {
-        Ticket *ticket = answer.ok ? JiraTicketFrom(JiraIssueIn(value), site) : nil;
+        NSDictionary *issue = answer.ok ? JiraIssueIn(value) : nil;
+        Ticket *ticket = issue ? JiraTicketFrom(issue, site) : nil;
         if (!ticket)
             return done(nil, answer.ok ? [TrackerAnswer end:TrackerEndFailed why:@"Couldn't read it now"] : answer, nil);
-        // Its next steps, from Jira's own transitions for this ticket now, with the fields each one's screen needs.
-        [self callDeferred:kJiraToolTransitions write:NO site:site
-                    inputs:@{@"issueIdOrKey": key, @"expand": @"transitions.fields"}
-                      done:^(id steps, TrackerAnswer *stepsAnswer) {
-            ticket.steps = stepsAnswer.ok ? JiraStepsIn(steps) : @[];
-            [self boardsOf:ticket done:^{ done(ticket, [TrackerAnswer done], stepsAnswer.ok ? steps : nil); }];
+        [self typeOf:ticket done:^{
+            // Its next steps, from Jira's own transitions for this ticket now, with the fields each one's screen needs.
+            [self callDeferred:kJiraToolTransitions write:NO site:site
+                        inputs:@{@"issueIdOrKey": key, @"expand": @"transitions.fields"}
+                          done:^(id steps, TrackerAnswer *stepsAnswer) {
+                // Steps it couldn't read end the read with that answer (asked to slow down, say): a ticket read with
+                // none would tell a move its step had gone.
+                if (!stepsAnswer.ok) return done(nil, stepsAnswer, nil);
+                ticket.steps = JiraStepsIn(steps);
+                [self boardsOf:ticket done:^{
+                    [self place:ticket priority:JiraPriorityIdOf(issue) done:^{ done(ticket, [TrackerAnswer done], steps); }];
+                }];
+            }];
         }];
+    }];
+}
+
+// The ticket's place among its project's priorities, matched by Jira's id. The list is kept an hour a project, and
+// asked for sooner only for a priority not among it, at most once in ten minutes, never while Atlassian asked to slow
+// down, and once at a time a project: a ticket read meanwhile waits for that read, and is placed by it. Not read
+// (offline, slowed down, not allowed, no type that lists them), the ticket reads all the same, by the list it had, else
+// with no place, until a later read places it.
+- (void)place:(Ticket *)ticket priority:(NSString *)priorityId done:(void (^)(void))done {
+    TicketGroup *project = ticket.groups.firstObject;
+    if (!priorityId || !project.groupId) return done();
+    NSString *kept = [NSString stringWithFormat:@"%@ %@", ticket.site, project.groupId];
+    NSDictionary *known = self.priorities[kept];
+    BOOL fresh = known[@"readAt"] && [known[@"readAt"] timeIntervalSinceNow] > -kPrioritiesKept;
+    BOOL again = known[@"againAt"] && [known[@"againAt"] timeIntervalSinceNow] > -kPrioritiesAgain;
+    // An empty list is a project with no order (no type that lists its priorities): no sooner read for that.
+    BOOL settled = fresh && (JiraPlaceIn(ticket, priorityId, known[@"order"]) || ![known[@"order"] count]);
+    // Being read already, for another of the project's tickets (all of them are read together as Whozmove starts):
+    // placed when that read answers, rather than going a whole read unplaced.
+    if (known[@"reading"]) {
+        NSMutableDictionary *reading = (NSMutableDictionary *)known;
+        [reading[@"waiting"] addObject:^{
+            JiraPlaceIn(ticket, priorityId, reading[@"order"]);
+            done();
+        }];
+        return;
+    }
+    if (settled || again) {
+        JiraPlaceIn(ticket, priorityId, known[@"order"]);
+        return done();
+    }
+    // Asked again within the hour, for a priority not among them, or after a read that didn't answer: not again for
+    // ten minutes.
+    NSMutableDictionary *next = [known mutableCopy] ?: [NSMutableDictionary dictionary];
+    if (fresh) next[@"againAt"] = NSDate.date;
+    next[@"reading"] = @YES;
+    next[@"waiting"] = [NSMutableArray array];
+    self.priorities[kept] = next;
+    [self prioritiesOf:project.groupId site:ticket.site done:^(NSArray *order) {
+        NSArray *waiting = next[@"waiting"];
+        [next removeObjectsForKeys:@[@"reading", @"waiting"]];
+        if (order) [next addEntriesFromDictionary:@{@"order": order, @"readAt": NSDate.date}];
+        else next[@"againAt"] = NSDate.date;
+        JiraPlaceIn(ticket, priorityId, next[@"order"]);
+        done();
+        for (void (^placed)(void) in waiting) placed();
+    }];
+}
+
+// A project's priorities in their scheme's order, read from its type that lists them (JiraFacts): empty for a project
+// without that type, nil when either read didn't answer.
+- (void)prioritiesOf:(NSString *)project site:(NSString *)site done:(void (^)(NSArray *order))done {
+    [self callDeferred:kJiraToolIssueTypes write:NO site:site inputs:@{@"projectIdOrKey": project}
+                  done:^(id types, TrackerAnswer *answer) {
+        if (!answer.ok) return done(nil);
+        NSString *typeId = JiraTypeIdIn(types, kJiraPriorityType);
+        if (!typeId) return done(@[]);
+        [self callDeferred:kJiraToolTypeFields write:NO site:site
+                    inputs:@{@"projectIdOrKey": project, @"issueTypeId": typeId,
+                             @"maxResults": @(kJiraFieldsMost)}
+                      done:^(id fields, TrackerAnswer *read) { done(read.ok ? JiraPrioritiesIn(fields) : nil); }];
+    }];
+}
+
+// The ticket's type, when its read left it out (a view smaller than v2's full one does): from a search for its key.
+// A search that can't say leaves it without one, and none is made while Atlassian has asked to slow down.
+- (void)typeOf:(Ticket *)ticket done:(void (^)(void))done {
+    if (ticket.type.length || self.slowUntil.timeIntervalSinceNow > 0) return done();
+    NSDictionary *arguments = @{@"cloudId": JiraCloudId(ticket.site), @"jql": JiraSearchFor(ticket.key),
+                                @"maxResults": @1, @"view": kJiraReadView};
+    [self call:kJiraToolSearch arguments:arguments again:NO done:^(id value, TrackerAnswer *answer) {
+        for (NSDictionary *issue in answer.ok ? JiraIssuesIn(value) : @[])
+            if ([AsText(issue[@"key"]) isEqualToString:ticket.key]) ticket.type = JiraTicketFrom(issue, ticket.site).type;
+        done();
     }];
 }
 
@@ -240,18 +345,22 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
     TicketGroup *project = ticket.groups.firstObject;
     if (!project.groupId) return done();
     NSString *kept = [NSString stringWithFormat:@"%@ %@", ticket.site, project.groupId];
-    void (^add)(NSArray *) = ^(NSArray *boards) {
+    // With the project's name, which a read of the issue may leave out, from what the boards answer says of it.
+    void (^add)(NSArray *, NSString *) = ^(NSArray *boards, NSString *name) {
         for (TicketGroup *board in boards) board.sprint = project.sprint;
+        if (name.length && [project.name isEqualToString:project.groupId]) project.name = name;
         ticket.groups = [@[project] arrayByAddingObjectsFromArray:boards];
         done();
     };
     NSDictionary *known = self.boards[kept];
-    if (known && [known[@"at"] timeIntervalSinceNow] > -kBoardsKept) return add(known[@"groups"]);
+    if (known && [known[@"at"] timeIntervalSinceNow] > -kBoardsKept) return add(known[@"groups"], known[@"name"]);
     [self callDeferred:kJiraToolBoards write:NO site:ticket.site inputs:@{@"projectKeyOrId": project.groupId}
                   done:^(id value, TrackerAnswer *answer) {
         NSArray *boards = answer.ok ? JiraBoardsIn(value) : @[];
-        if (answer.ok) self.boards[kept] = @{@"at": NSDate.date, @"groups": boards};
-        add(boards);
+        NSString *name = answer.ok ? JiraProjectNameIn(value, project.groupId) : nil;
+        if (answer.ok) self.boards[kept] = name ? @{@"at": NSDate.date, @"groups": boards, @"name": name}
+                                                : @{@"at": NSDate.date, @"groups": boards};
+        add(boards, name);
     }];
 }
 
@@ -272,7 +381,7 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
         NSDictionary *shaped = fields.count ? JiraFieldsFor(steps, stepId, fields, &why) : @{};
         if (!shaped) return done(ticket, [TrackerAnswer end:TrackerEndFailed why:why]);
         NSMutableDictionary *arguments = [@{@"cloudId": JiraCloudId(site), @"issueIdOrKey": key,
-                                            @"transition": @{@"id": stepId}} mutableCopy];
+                                            @"transitionId": stepId} mutableCopy];
         if (shaped.count) arguments[@"fields"] = shaped;
         [self call:kJiraToolTransition arguments:arguments again:NO done:^(id value, TrackerAnswer *moved) {
             if (!moved.ok) return done(ticket, moved);
@@ -295,12 +404,34 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
     [self callDeferred:kJiraToolIssueTypes write:NO site:site inputs:@{@"projectIdOrKey": group ?: @""}
                   done:^(id value, TrackerAnswer *answer) {
         if (!answer.ok) return done(nil, answer);
-        NSMutableArray *types = [NSMutableArray array];
-        NSDictionary *record = AsRecord(value);
-        NSArray *list = AsList(record[@"issueTypes"]) ?: AsList(record[@"values"]) ?: AsList(value);
-        for (id type in list) if (AsText(AsRecord(type)[@"name"])) [types addObject:type[@"name"]];
         // A Jira ticket's group is its project.
-        done(@{@"group": group ?: @"", @"kind": @"project", @"types": types}, [TrackerAnswer done]);
+        done(@{@"group": group ?: @"", @"kind": @"project", @"types": JiraIssueTypesIn(value)}, [TrackerAnswer done]);
+    }];
+}
+
+// The fields a ticket's project takes one option of for its type, from that type's create fields (JiraFacts), kept an
+// hour: read through the same calls, and the same slow-down, as the rest.
+- (void)optionFieldsOf:(Ticket *)ticket done:(void (^)(NSArray<TicketField *> *, TrackerAnswer *))done {
+    NSString *project = ticket.groups.firstObject.groupId, *site = ticket.site, *type = ticket.type;
+    if (!project.length || !type.length || !JiraIsSite(site))
+        return done(nil, [TrackerAnswer end:TrackerEndNotFound why:@"Couldn't tell its project and type"]);
+    NSString *kept = [NSString stringWithFormat:@"%@ %@ %@", site, project, type];
+    NSDictionary *known = self.optionFields[kept];
+    if (known && [known[@"at"] timeIntervalSinceNow] > -kBoardsKept) return done(known[@"fields"], [TrackerAnswer done]);
+    [self callDeferred:kJiraToolIssueTypes write:NO site:site inputs:@{@"projectIdOrKey": project}
+                  done:^(id types, TrackerAnswer *answer) {
+        if (!answer.ok) return done(nil, answer);
+        NSString *typeId = JiraTypeIdIn(types, type);
+        if (!typeId) return done(@[], [TrackerAnswer done]);
+        [self callDeferred:kJiraToolTypeFields write:NO site:site
+                    inputs:@{@"projectIdOrKey": project, @"issueTypeId": typeId, @"maxResults": @(kJiraFieldsMost)}
+                      done:^(id fields, TrackerAnswer *read) {
+            if (!read.ok) return done(nil, read);
+            NSArray *found = JiraOptionFieldsIn(fields);
+            if (!self.optionFields) self.optionFields = [NSMutableDictionary dictionary];
+            self.optionFields[kept] = @{@"at": NSDate.date, @"fields": found};
+            done(found, [TrackerAnswer done]);
+        }];
     }];
 }
 
@@ -319,12 +450,15 @@ static const NSTimeInterval kBoardsKept = 60 * 60;
         PanelLog(@"Jira: %@ created", key);
         // Made: answered as done with its key and site whatever the read brings, so it's never made again.
         [self read:key site:site done:^(Ticket *ticket, TrackerAnswer *read) {
+            // Its type, if the read had none (a search may not find a ticket made a moment ago): the one it was made as.
+            if (ticket && !ticket.type.length) ticket.type = arguments[@"issueType"];
             if (ticket) return done(ticket, read);
             Ticket *made = [Ticket new];
             made.tracker = @"Jira";
             made.site = site;
             made.key = key;
             made.link = JiraLinkFor(key, site);
+            made.type = arguments[@"issueType"];
             done(made, [TrackerAnswer done]);
         }];
     }];
@@ -395,8 +529,9 @@ static NSString *Said(TrackerAnswer *answer) {
     if (answer.ok) return @"done";
     NSArray *ends = @[@"done", @"sign in", @"macOS asks first", @"blocked", @"slow down", @"not found", @"step gone", @"failed",
                       @"refused"];
-    return [NSString stringWithFormat:@"%@: %@%@", ends[answer.end], answer.why,
-            answer.retryAt ? @" (with a time to try again)" : @""];
+    return [NSString stringWithFormat:@"%@: %@%@%@", ends[answer.end], answer.why,
+            answer.retryAt ? @" (with a time to try again)" : @"",
+            answer.trackerSays ? [NSString stringWithFormat:@" (Jira says: %@)", answer.trackerSays] : @""];
 }
 static NSString *Line(id json) {
     NSData *data = [NSJSONSerialization dataWithJSONObject:json ?: NSNull.null
@@ -510,6 +645,21 @@ int PrintJiraTalk(NSString *site, NSArray<NSString *> *steps) {
                 NSRange at = [line rangeOfString:@"  Jira: "];
                 if (at.location != NSNotFound) printf("log: %s\n", [line substringFromIndex:at.location + 2].UTF8String);
             }
+            // Nor a ticket's description, nor any word of an answer that failed: the stand-in's are all made up, as
+            // "Made-up description…" and "Made-up server words…".
+            printf("log: %s a ticket's description\n",
+                   [log containsString:@"Made-up description"] ? "HAS" : "has none of");
+            printf("log: %s a failed answer's words\n", [log containsString:@"Made-up server words"] ? "HAS" : "has none of");
+            finished = YES;
+        } else if ([verb isEqualToString:@"hows"]) {
+            // How a call failed in each way a stand-in can't make in a test's time: a timeout, macOS's own errors.
+            NSArray *codes = @[@(NSURLErrorTimedOut), @(NSURLErrorNotConnectedToInternet), @(NSURLErrorCannotFindHost),
+                               @(NSURLErrorCannotConnectToHost), @(NSURLErrorNetworkConnectionLost),
+                               @(NSURLErrorServerCertificateUntrusted), @(NSURLErrorCancelled)];
+            for (NSNumber *code in codes)
+                printf("how: %s\n", MCPHowItFailed([NSError errorWithDomain:NSURLErrorDomain code:code.integerValue
+                                                                    userInfo:nil], 0, nil, NO, 30).UTF8String);
+            printf("how: %s\n", (MCPHowItFailed(nil, 200, @{@"result": @{}}, NO, 30) ?: @"answered").UTF8String);
             finished = YES;
         } else if ([verb isEqualToString:@"notices"]) {
             for (Notice *notice in jira.notices) printf("notice: %s [%s]\n", notice.text.UTF8String, notice.button.UTF8String);
@@ -527,6 +677,7 @@ int PrintJiraTalk(NSString *site, NSArray<NSString *> *steps) {
         } else if ([verb isEqualToString:@"read"]) {
             [jira read:rest site:site done:^(Ticket *ticket, TrackerAnswer *answer) {
                 printf("%s\n%s\n", Said(answer).UTF8String, ticket ? Line([ticket json]).UTF8String : "no ticket");
+                if (ticket.about) printf("its description: %s\n", JiraAboutSaid(ticket.about).UTF8String);
                 finished = YES;
             }];
         } else if ([verb isEqualToString:@"take"] && words.count >= 3) {
@@ -543,6 +694,23 @@ int PrintJiraTalk(NSString *site, NSArray<NSString *> *steps) {
             [jira take:words[2] of:rest site:site note:note fields:fields
                   done:^(Ticket *ticket, TrackerAnswer *answer) {
                 printf("%s; it stands: %s\n", Said(answer).UTF8String, ticket.state.name.UTF8String ?: "unknown");
+                finished = YES;
+            }];
+        } else if ([verb isEqualToString:@"fields"]) {
+            // The fields a ticket of PAY of this type takes one option of: read, or kept from the read before.
+            Ticket *ticket = [Ticket new];
+            ticket.key = @"PAY-142";
+            ticket.site = site;
+            ticket.type = rest;
+            TicketGroup *project = [TicketGroup new];
+            project.groupId = @"PAY";
+            ticket.groups = @[project];
+            [jira optionFieldsOf:ticket done:^(NSArray<TicketField *> *fields, TrackerAnswer *answer) {
+                printf("%s, %s\n", Said(answer).UTF8String, fields ? [NSString stringWithFormat:@"%lu fields",
+                       (unsigned long)fields.count].UTF8String : "none read");
+                for (TicketField *field in fields)
+                    printf("  %s %s %s %s\n", field.fieldId.UTF8String, field.name.UTF8String, Line(field.options).UTF8String,
+                           Line(field.optionIds).UTF8String);
                 finished = YES;
             }];
         } else if ([verb isEqualToString:@"types"]) {

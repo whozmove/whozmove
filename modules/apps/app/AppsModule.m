@@ -295,9 +295,26 @@ static NSNumber *Says(BOOL (^enabled)(void)) {
                                  @"isNew": choice[@"isNew"] ?: @NO, @"enabled": choice[@"enabled"] ?: @YES}];
         NSDictionary *fixed = each.fixed[@"name"] ? @{@"name": each.fixed[@"name"], @"help": each.fixed[@"help"] ?: @""}
                                                   : nil;
+        // What picking each of the others would change, for a choice that says so first.
+        NSMutableDictionary *confirms = [NSMutableDictionary dictionary];
+        NSString *picked = each.picked();
+        for (NSDictionary *choice in each.confirm ? choices : @[]) {
+            NSDictionary *said = [choice[@"id"] isEqual:picked] ? nil : AsRecord(each.confirm(choice[@"id"]));
+            if (!AsText(said[@"before"]) || !AsText(said[@"after"])) continue;
+            confirms[choice[@"id"]] = @{@"before": said[@"before"], @"after": said[@"after"],
+                                        @"warn": AsText(said[@"warn"]) ?: NSNull.null,
+                                        @"keep": AsText(said[@"keep"]) ?: NSNull.null};
+        }
         return @{@"kind": @"choice", @"key": each.key, @"title": each.title ?: @"", @"choices": choices,
-                 @"value": each.picked() ?: NSNull.null, @"fixed": fixed ?: NSNull.null,
-                 @"enabled": Says(each.enabled)};
+                 @"value": picked ?: NSNull.null, @"fixed": fixed ?: NSNull.null,
+                 @"enabled": Says(each.enabled), @"confirms": confirms, @"menu": @(each.menu)};
+    }
+    if ([row isKindOfClass:AppPage.class]) {
+        AppPage *each = row;
+        if (each.shown && !each.shown()) return nil;
+        return @{@"kind": @"page", @"key": each.key, @"title": each.title ?: @"",
+                 @"said": (each.said ? each.said() : nil) ?: @"",
+                 @"groups": [self shownGroupsOf:each.groups() ?: @[] locale:locale]};
     }
     if ([row isKindOfClass:AppTime.class]) {
         AppTime *each = row;
@@ -313,8 +330,13 @@ static NSNumber *Says(BOOL (^enabled)(void)) {
 // An app's groups as the back shows them: those showing now, each with its heading, its line, whether its rows can be
 // pressed now, and its rows showing now.
 - (NSArray<NSDictionary *> *)shownGroups:(ListedApp *)listed locale:(NSLocale *)locale {
+    return [self shownGroupsOf:listed.groups locale:locale];
+}
+
+// Groups as the back shows them, an app's own or those of a page one of its rows opens (AppPage).
+- (NSArray<NSDictionary *> *)shownGroupsOf:(NSArray<AppGroup *> *)groups locale:(NSLocale *)locale {
     NSMutableArray *out = [NSMutableArray array];
-    for (AppGroup *group in listed.groups) {
+    for (AppGroup *group in groups) {
         if (group.shown && !group.shown()) continue;
         NSMutableArray *rows = [NSMutableArray array];
         for (id row in group.rows) {
@@ -322,7 +344,7 @@ static NSNumber *Says(BOOL (^enabled)(void)) {
             if (shown) [rows addObject:shown];
         }
         [out addObject:@{@"title": group.title ?: NSNull.null, @"foot": group.foot ?: NSNull.null,
-                         @"enabled": Says(group.enabled), @"rows": rows}];
+                         @"enabled": Says(group.enabled), @"important": @(group.important), @"rows": rows}];
     }
     return out;
 }
@@ -375,7 +397,8 @@ static NSNumber *Says(BOOL (^enabled)(void)) {
                          @"groups": [self shownGroups:listed locale:NSLocale.autoupdatingCurrentLocale],
                          @"recommended": @([self isRecommended:listed]), @"statuses": statuses, @"lists": lists,
                          @"permission": permission ?: NSNull.null,
-                         @"tool": @(app.tool), @"card": (app.card ? app.card() : nil) ?: NSNull.null,
+                         @"tool": @(app.tool), @"glyph": app.glyph ?: NSNull.null,
+                         @"card": (app.card ? app.card() : nil) ?: NSNull.null,
                          @"hint": (app.hint ? app.hint() : nil) ?: NSNull.null}];
     }
     return out;
@@ -549,7 +572,9 @@ static NSString *SettingKind(SettingEntry *entry) {
             ListedApp *app = [me appFor:msg[@"app"]];
             if (!app || ![me isOnThisMac:app.entry]) return;
             [me tell];
-            [me.back call:@"showApp" with:@[app.entry.appId]];
+            // A page one of its rows opens (AppPage's key), when the message names one.
+            NSString *page = [msg[@"page"] isKindOfClass:NSString.class] ? msg[@"page"] : nil;
+            [me.back call:@"showApp" with:page ? @[app.entry.appId, page] : @[app.entry.appId]];
         },
         @"appsTurnBack": ^(NSDictionary *msg) {
             [weakSelf.core.window turnOver:NO left:[msg[@"side"] isEqual:@"left"] then:nil];
@@ -565,6 +590,7 @@ static NSString *SettingKind(SettingEntry *entry) {
         @"appsSwitch": ^(NSDictionary *msg) { [weakSelf flip:msg]; },
         @"appsChoice": ^(NSDictionary *msg) { [weakSelf choose:msg]; },
         @"appsTime": ^(NSDictionary *msg) { [weakSelf timeMenu:msg]; },
+        @"appsChoiceMenu": ^(NSDictionary *msg) { [weakSelf choiceMenu:msg]; },
         @"appsUseRecommended": ^(NSDictionary *msg) { [weakSelf useRecommended:msg]; },
         @"appsAction": ^(NSDictionary *msg) { [weakSelf act:msg]; },
         @"appsList": ^(NSDictionary *msg) { [weakSelf listPressed:msg]; },
@@ -602,10 +628,20 @@ static NSString *SettingKind(SettingEntry *entry) {
     };
     for (AppSwitch *each in app.switches)
         if (can(each)) return each;
-    for (AppGroup *group in app.groups) {
+    return [self row:can in:app.groups];
+}
+
+// The first row in these groups, or on a page one of their rows opens, that `can` takes, in groups showing and
+// pressable now.
+- (id)row:(BOOL (^)(id row))can in:(NSArray<AppGroup *> *)groups {
+    for (AppGroup *group in groups) {
         if ((group.shown && !group.shown()) || (group.enabled && !group.enabled())) continue;
-        for (id row in group.rows)
+        for (id row in group.rows) {
             if (can(row)) return row;
+            AppPage *page = [row isKindOfClass:AppPage.class] ? row : nil;
+            id inside = page && (!page.shown || page.shown()) ? [self row:can in:page.groups() ?: @[]] : nil;
+            if (inside) return inside;
+        }
     }
     return nil;
 }
@@ -674,6 +710,41 @@ static NSString *SettingKind(SettingEntry *entry) {
     if (time) time.set([picked[2] integerValue], [picked[3] integerValue]);
     self.told = nil;
     [self tell];
+}
+
+// A choice drawn as one row pressed (AppChoice's menu): the Mac's own menu of its choices, opened where its button is
+// on the back, the picked one ticked and over it, as a pop-up button's menu opens.
+- (void)choiceMenu:(NSDictionary *)msg {
+    ListedApp *app = [self appFor:msg[@"app"]];
+    AppChoice *each = [self pressable:msg[@"key"] kind:AppChoice.class in:app];
+    id x = msg[@"x"], y = msg[@"y"];
+    if (!each || !each.menu || ![x isKindOfClass:NSNumber.class] || ![y isKindOfClass:NSNumber.class] || !self.back)
+        return;
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:each.title ?: @""];
+    menu.autoenablesItems = NO;
+    NSMenuItem *current = nil;
+    NSString *picked = each.picked();
+    for (NSDictionary *choice in each.choices()) {
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:AsText(choice[@"name"]) ?: @""
+                                                      action:@selector(pickFromMenu:) keyEquivalent:@""];
+        item.target = self;
+        item.enabled = ![choice[@"enabled"] isEqual:@NO];
+        item.representedObject = @[app.entry.appId, each.key, choice[@"id"]];
+        if ([choice[@"id"] isEqual:picked]) {
+            item.state = NSControlStateValueOn;
+            current = item;
+        }
+        [menu addItem:item];
+    }
+    NSView *view = self.back.view;
+    NSPoint at = NSMakePoint([x doubleValue], view.isFlipped ? [y doubleValue] : NSHeight(view.bounds) - [y doubleValue]);
+    [menu popUpMenuPositioningItem:current atLocation:at inView:view];
+}
+
+// A choice picked from that menu: picked as one pressed on its row would be.
+- (void)pickFromMenu:(NSMenuItem *)item {
+    NSArray *picked = item.representedObject;
+    [self choose:@{@"app": picked[0], @"key": picked[1], @"value": picked[2]}];
 }
 
 // Use the Recommended Settings, at the foot of an app's page: each entry for it that isn't as recommended puts itself
@@ -774,7 +845,13 @@ static NSArray *PrintedGroups(NSArray<AppGroup *> *groups) {
             } else if ([row isKindOfClass:AppChoice.class]) {
                 AppChoice *each = row;
                 [rows addObject:@{@"kind": @"choice", @"key": each.key, @"title": each.title ?: @"",
-                                  @"choices": each.choices() ?: @[], @"fixed": each.fixed ?: NSNull.null}];
+                                  @"choices": each.choices() ?: @[], @"fixed": each.fixed ?: NSNull.null,
+                                  @"menu": @(each.menu)}];
+            } else if ([row isKindOfClass:AppPage.class]) {
+                AppPage *each = row;
+                [rows addObject:@{@"kind": @"page", @"key": each.key, @"title": each.title ?: @"",
+                                  @"said": (each.said ? each.said() : nil) ?: @"",
+                                  @"groups": PrintedGroups(each.groups() ?: @[])}];
             } else if ([row isKindOfClass:AppTime.class]) {
                 AppTime *each = row;
                 [rows addObject:@{@"kind": @"time", @"key": each.key, @"title": each.title, @"help": each.help ?: @""}];
@@ -793,7 +870,7 @@ static NSArray *PrintedGroups(NSArray<AppGroup *> *groups) {
 // and Use the Recommended Settings. The times are written as two places write them, as the Mac's own would differ.
 static int PrintAppPage(Core *core) {
     NSMutableDictionary *st = [@{@"on": @YES, @"who": @"any", @"next": @"picks", @"why": @NO, @"quiet": @NO,
-                                 @"from": @(22 * 60), @"to": @(8 * 60)} mutableCopy];
+                                 @"from": @(22 * 60), @"to": @(8 * 60), @"where": @"here"} mutableCopy];
     NSDictionary *recommended = [st copy];
     BOOL (^on)(void) = ^BOOL { return [st[@"on"] boolValue]; };
     AppSwitch *(^flag)(NSString *, NSString *, NSString *) = ^AppSwitch *(NSString *key, NSString *title,
@@ -818,6 +895,13 @@ static int PrintAppPage(Core *core) {
         @{@"id": @"lead", @"name": @"Only a team’s chief", @"help": @"The others are told why.", @"isNew": @YES},
         @{@"id": @"allowed", @"name": @"Only those you’ve allowed", @"help": @"Not yet.", @"enabled": @NO}])]
                                         foot:@"A session that may not is told so." order:20];
+    // Who may send matters more than most, and picking another says what changes first.
+    who.important = YES;
+    ((AppChoice *)who.rows.firstObject).confirm = ^NSDictionary *(NSString *choice) {
+        return [choice isEqual:@"lead"] ? @{@"before": @"Any session sends", @"after": @"Only a team’s chief sends",
+                                            @"warn": @"The others are told why.", @"keep": @"What's sent already stays."}
+                                        : nil;
+    };
     AppChoice *next = choice(@"next", @"What comes first", @[
         @{@"id": @"picks", @"name": @"Then a chief’s picks", @"help": @"In its order."},
         @{@"id": @"oldest", @"name": @"Then the oldest", @"help": @"By how long it has waited."}]);
@@ -829,8 +913,18 @@ static int PrintAppPage(Core *core) {
                                           order:40];
     hidden.shown = ^BOOL { return NO; };
     AppGroup *foot = [AppGroup groupWithTitle:nil rows:@[] foot:@"A change applies to what comes next." order:90];
+    // A row opening a page of its own, North's, whose one choice is drawn as a row with the Mac's menu of them.
+    AppChoice *where = choice(@"where", @"Where North's go", @[@{@"id": @"here", @"name": @"Here"},
+                                                              @{@"id": @"there", @"name": @"There"}]);
+    where.menu = YES;
+    where.fixed = @{@"name": @"Where North's go", @"help": @"Picked from a menu"};
+    AppPage *north = [AppPage pageWithKey:@"north" title:@"North" groups:^NSArray<AppGroup *> * {
+        return @[[AppGroup groupWithTitle:@"North's" rows:@[where] foot:nil order:0]];
+    }];
+    north.said = ^NSString * { return [st[@"where"] isEqual:@"here"] ? @"Here" : @"There"; };
+    AppGroup *places = [AppGroup groupWithTitle:@"Places" rows:@[north] foot:nil order:35];
     for (AppGroup *group in @[who, first]) group.enabled = on;
-    tool.groups = @[head, who, first, hidden, foot];
+    tool.groups = @[head, who, first, places, hidden, foot];
     tool.recommended = ^BOOL {
         for (NSString *key in @[@"on", @"who", @"next", @"why"])
             if (![st[key] isEqual:recommended[key]]) return NO;
@@ -876,6 +970,16 @@ static int PrintAppPage(Core *core) {
         for (NSDictionary *group in [apps shownGroups:[apps appFor:@"sample-tool"] locale:here]) {
             NSMutableArray *rows = [NSMutableArray array];
             for (NSDictionary *each in group[@"rows"]) {
+                // A row opening a page of its own: what it says it's set to, and the choices on its page.
+                if ([each[@"kind"] isEqual:@"page"]) {
+                    NSMutableArray *inside = [NSMutableArray array];
+                    for (NSDictionary *inner in each[@"groups"])
+                        for (NSDictionary *row in inner[@"rows"]) [inside addObject:[NSString stringWithFormat:@"%@ %@",
+                                                                                     row[@"key"], row[@"value"]]];
+                    [rows addObject:[NSString stringWithFormat:@"%@ › %@ (its page: %@)", each[@"key"], each[@"said"],
+                                     [inside componentsJoinedByString:@", "]]];
+                    continue;
+                }
                 NSString *set = [each[@"kind"] isEqual:@"switch"] ? ([each[@"on"] boolValue] ? @"on" : @"off")
                               : [each[@"kind"] isEqual:@"choice"] ? each[@"value"]
                               : [NSString stringWithFormat:@"%@ to %@", each[@"fromSaid"], each[@"toSaid"]];
@@ -890,6 +994,8 @@ static int PrintAppPage(Core *core) {
                            @"recommended": @([apps isRecommended:[apps appFor:@"sample-tool"]])}];
     };
     after(@"nothing pressed");
+    press[@"appsChoice"](@{@"app": @"sample-tool", @"key": @"where", @"value": @"there"});
+    after(@"There picked on North's page, a row's own page");
     press[@"appsChoice"](@{@"app": @"sample-tool", @"key": @"who", @"value": @"lead"});
     after(@"Only a team's chief picked");
     press[@"appsChoice"](@{@"app": @"sample-tool", @"key": @"who", @"value": @"allowed"});
