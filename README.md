@@ -114,10 +114,9 @@ Then open it. Whozmove sets itself up: it adds its hooks to Claude Code and open
 new version is out for `brew upgrade`.
 
 > [!NOTE]
-> Whozmove isn't signed by Apple yet, so the first time you open it, press **Open Anyway** in System Settings →
-> Privacy & Security. macOS asks for two permissions when they're first needed: **Accessibility**, to use Claude
-> Desktop's message box and buttons, and **Automation**, to switch to and type into Ghostty and iTerm2 tabs and to
-> control Spotify. Storage's map asks for **Full Disk Access** only once it's missing folders for want of it.
+> macOS asks for two permissions when they're first needed: **Accessibility**, to use Claude Desktop's message box
+> and buttons, and **Automation**, to switch to and type into Ghostty and iTerm2 tabs and to control Spotify.
+> Storage's map asks for **Full Disk Access** only once it's missing folders for want of it.
 
 <table>
   <tr>
@@ -341,3 +340,6 @@ stay open under the same licence.
 The pull-request and branch icons are GitHub's [Octicons](https://github.com/primer/octicons), under the MIT
 licence (Copyright (c) 2026 GitHub Inc.); its full notice is beside them, in `panel/scripts/icons.js` and
 `modules/git/page/prs.js`.
+
+Keys looks with [Betterleaks](https://github.com/betterleaks/betterleaks), which every copy of Whozmove carries,
+unchanged, under the MIT licence; its full notice is in the app, in `Contents/Resources/Betterleaks-LICENSE`.

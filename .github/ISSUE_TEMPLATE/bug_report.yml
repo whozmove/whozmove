@@ -71,7 +71,7 @@ body:
     id: whozmove
     attributes:
       label: Whozmove version or commit
-      placeholder: "0.2.0"
+      placeholder: "0.3.0"
   - type: dropdown
     id: installed
     attributes:

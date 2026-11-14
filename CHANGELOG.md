@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2026-11-14
 
 ### Installing and setting up
 
@@ -15,7 +15,7 @@
 
 - **One view for everyone.** The list is always grouped by project, the projects A to Z, each with its conversations
   newest first; nothing is lifted for waiting on you, as its bubble, its dot and the count beside the pawn say so. A
-  group's header says only its name. Settings has no Session List choice any more: Newest First and Group by
+  group's header says only its name. The pawn menu has no list order choice any more: Newest First and Group by
   Project, which it offered, are this one view, and a team's groups come first in it (below). Folded, a project hides
   all its rows, even those waiting on you, and its header says how many wait on you ("shop › 2 wait on you"), as a
   team's group does; a request still comes out beside the folded panel, and a conversation you start there opens it.
@@ -50,7 +50,7 @@
   stays on the bottom line, where you can still press it.
 - **A team member's other job waiting on you is its ask.** While a member works on one job and another of its jobs
   waits on your try or your yes, that one is the bubble on its row, named by its priority, with its one button
-  (Deploy for a try), rather than a quiet line under it; the track still shows the job it's working on.
+  (Deploy for a try); the track still shows the job it's working on.
 - **A plan waiting is its row's bubble, and Approve is beside the list.** A plan Claude waits on shows on its row as a
   bubble, "Plan" and the plan's title (a team member's, its job's own bubble, or its other job's, only to read while
   its session works), ending in the plan button, its one shape on the row: no plan card, and where another ask has the
@@ -168,7 +168,7 @@
   ‹ turns the panel back to the list, the other way round
   from rows, as if you'd pressed that edge in. The pawn menu now keeps what you need while the panel is hidden, folded
   or off the screen: New Conversation, Show / Hide Panel, Reset Position, Settings…, Open at Login and Quit. Look ▸,
-  the list's order, Open With and Use ⌃⌥N in Any App have moved to Settings, each keeping what you'd picked.
+  Open With and Use ⌃⌥N in Any App have moved to Settings, each keeping what you'd picked.
 - **Sessions, to clear old conversations away.** Each terminal's page and Claude's on the panel's back has
   **Sessions**, every Claude Code conversation on this Mac, wherever it ran, by project. Tick some (or **Tick All
   Ended**) and **Move to Trash**: each goes to the Trash on its own, ended first if it's still open, with **Undo**, and
@@ -199,7 +199,7 @@
   there says it's a duplicate of the member ("Duplicate of Wren"), with a line to close the previous session. Closing a
   member's tab keeps its row where it was, shown as ended, and pressing it, or Take Me There, carries that conversation
   on. A member at work on one job shows that job and the step it's at, while another of its jobs waiting on your try is
-  said quietly under it ("Also waiting on you: Try the search box").
+  the bubble on its row.
 - **One look for the panel's controls.** Buttons, the ×, tags, boxes to tick, short lists, labels in capitals and bars
   now look the same wherever they are, on the list, its cards, the reader, the panel's back, Storage, Spotify's strip
   and the new conversation card: a card's title is 12pt, something you can't press yet fades to the same 40%, and a
@@ -349,8 +349,8 @@
   session leads a team for you.
 - **Only Claude Code itself asks in a session's name.** A task for you, the inbox, a message or a ticket's step comes
   only from Claude Code's own program, signed by Anthropic, working where that session works, never from another
-  program that wrote a session's record. Sessions still running a version Claude Code has since updated count as ever.
-  Claude Code from npm counts as ever from 2.1.113 on, as it's the same build; an older one, run by Node, still shows
+  program that wrote a session's record. Sessions still running a version Claude Code has since updated count.
+  Claude Code from npm counts from 2.1.113 on, as it's the same build; an older one, run by Node, still shows
   its sessions, but they can't ask. A refused ask says why and what to do.
 
 ### Deploy
@@ -416,7 +416,7 @@
   hand turns a knob, and once you've stopped, back up the same way to exactly where it was, never louder. A change you
   make to Spotify's volume meanwhile is left as you made it. A small speaker beside the strip's time shows it. Spotify's
   page on the panel's back turns it off, and sets how much quieter: **A little**, **Half** or **Much quieter**. It needs
-  macOS 14 or later, and Whozmove allowed to control Spotify, which a card there asks for when it isn't yet (**Allow**).
+  Whozmove allowed to control Spotify, which a card there asks for when it isn't yet (**Allow**).
   Whozmove reads only whether a microphone is in use and by which app, never a sound.
 
 ### Storage
@@ -502,8 +502,6 @@
   read.
 - **What's highlighted follows the list as it scrolls.** Scrolling the list under a still pointer (by hand, or as it
   brings a request into view) highlights what's under the pointer now, rather than what was.
-- **A short branch stays whole on a row's bottom line.** With a build's address after it, "main" reads whole:
-  a long name shortens first, to about a dozen letters, then the effort and the model give way.
 - **No empty sliver for the effort or model.** On a crowded bottom line, one with no room for even a letter goes
   whole, with its "·", rather than leaving a sliver beside it; the mode always shows.
 - **Uses much less energy with many sessions open.** Whozmove runs git for a checkout only once something in it has
