@@ -901,7 +901,10 @@ skill_cases() {
   PLUGIN_MODULES="$M" copy_plugin "$T/clashing" && echo "   copied" || echo "   stopped"
   [ -e "$T/clashing" ] && echo "   a copy was made" || echo "   no copy"
 }
-plugin=$({ plugin_cases; skill_cases; } 2>&1 | sed -e "s|$T|T|g" -e 's/+[0-9a-f]\{8\}/+<hash>/g')
+# The hooks' base version becomes <version>, as each release changes it and this output shouldn't need recording again.
+release=$(plutil -extract version raw -o - "$PLUGIN/.claude-plugin/plugin.json")
+plugin=$({ plugin_cases; skill_cases; } 2>&1 | sed -e "s|$T|T|g" -e 's/+[0-9a-f]\{8\}/+<hash>/g' \
+                                                  -e "s/${release//./\\.}+<hash>/<version>+<hash>/g")
 compare "Whozmove's plugin" "$REPO/$HERE/plugin.expected.txt" "$plugin" "${1:-}" || status=1
 
 # The panel's own end of the hook's line (Whozmove --print-hook-line, which answers each request "deny"), with the

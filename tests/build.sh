@@ -322,8 +322,10 @@ rm -f "$T/Library/Keychains/whozmove-signing.keychain-db"
 }
 
 # What changes from run to run made stable: the throwaway folder becomes T, build.sh's work folder <work>, the hooks'
-# hash <hash>, your user id in launchd's names <uid>.
+# hash <hash>, their base version <version> (each release changes it, and this output shouldn't need recording again),
+# your user id in launchd's names <uid>.
+release=$(plutil -extract version raw -o - "$REPO/modules/claude-code/plugin/.claude-plugin/plugin.json")
 out=$(tests 2>&1 | sed -e "s|$T|T|g" -e "s|^.*/$EXE\.[A-Za-z0-9]\{6\}/|<work>/|" -e 's/+[0-9a-f]\{8\}/+<hash>/g' \
-                       -e 's|gui/[0-9]*\([ /]\)|gui/<uid>\1|g')
+                       -e "s/${release//./\\.}+<hash>/<version>+<hash>/g" -e 's|gui/[0-9]*\([ /]\)|gui/<uid>\1|g')
 . "$REPO/tests/compare.sh"
 compare Build "$REPO/tests/build.expected.txt" "$out" "${1:-}"
