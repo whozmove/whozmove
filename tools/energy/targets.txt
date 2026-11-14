@@ -1,0 +1,12 @@
+# The targets docs/how-it-works/energy.md holds Whozmove's whole group to, for tools/energy.sh's reports: each one's
+# name, its limit, its unit as a report writes it, and the row of the page's table it's written in, which
+# tests/energy-tool.sh checks still says the same, so the page and the reports can't drift apart.
+quiet	5	%	Overnight, nothing at work
+busy	15	%	Panel shown, agents at work
+graphics	10	%	Graphics
+reads	0.3	 GB an hour	Disk reads over a day
+launch	100	 MB	A launch
+git	30	 a minute	git, agents at work
+writes	20	 MB an hour	Writes
+wakeups	150	 a second	Wakeups
+memory	600	 MB	The app's memory

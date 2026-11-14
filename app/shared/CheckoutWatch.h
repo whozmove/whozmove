@@ -23,5 +23,19 @@ NSUInteger CheckoutFileChanges(NSString *root);
 NSUInteger CheckoutRefChanges(NSString *root);
 NSUInteger CheckoutRepoChanges(NSString *root);
 // How long a reader leaves a checkout nothing seems to have changed in before it looks again anyway, in case an event
-// was missed: about 5 minutes, a little different for each checkout, so they don't all come at once.
+// was missed: half an hour at least, and up to ten minutes more, different for each checkout, so the checkouts read
+// together as Whozmove starts don't all come round again at once. macOS says itself when it lost events, and then every
+// checkout is read (CheckoutWatch), so this is only for a change it lost without saying, or one to a file outside the
+// checkout that git reads too (your own list of files to ignore, a config file the repo's config includes).
+extern const NSTimeInterval kCheckoutQuietLeast, kCheckoutQuietSpread;
 NSTimeInterval CheckoutQuietEvery(NSString *root);
+// When something in a checkout's files or refs last seemed to change, as macOS told it, in seconds since 1970, or 0
+// before anything has. Main thread only.
+NSTimeInterval CheckoutChangedAt(NSString *root);
+// Whether a reader should read a checkout that has changed since its last read, `sinceChange` seconds after the latest
+// change and `sinceFirstUnread` after the first it hasn't read: once nothing new has come for kCheckoutSettle seconds,
+// or kCheckoutSettleMost after the first, whichever comes sooner. So a burst of edits (an agent at work) is read once
+// it pauses, rather than at every look, and what a row shows still follows an edit within 10 seconds. Plain, for the
+// tests.
+extern const NSTimeInterval kCheckoutSettle, kCheckoutSettleMost;
+BOOL CheckoutSettled(NSTimeInterval sinceChange, NSTimeInterval sinceFirstUnread);

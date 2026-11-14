@@ -2206,8 +2206,6 @@ requests left in asks: aaaa1111.json bbbb2222.json dddd4444.json
   ]
 }
 files kept in the sample home after the runs: broken.json k-alone.json k-behind.json k-cleared.json k-desk-own.json k-desk.json k-fern.json k-folder-gone.json k-ghostty.json k-iterm.json k-ivy.json k-lo.json k-misnamed.json k-next-ask.json k-next-low.json k-next-odd.json k-next-same.json k-no-transcript.json k-old.json k-sage.json k-terminal.json k-unseated.json k-vscode.json s-closed.json s-term.json 
-== Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send
-== macOS permissions the app asks for that README.md doesn't name, and repo files naming one it doesn't ask for
 == Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu
    would type (null: not offered)
 {

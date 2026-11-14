@@ -66,9 +66,10 @@ const core = {
   // folders) or { here } (its own), followed while you haven't picked where yourself, and let go of once the part has
   // none; `under(card, api)`, the line under the box in the card's own line's place (one element of class `c-under`),
   // while you haven't picked where yourself; `warn(card, api)`, { text, name }, a warning in the busy notice's place,
-  // its Use a New Worktree giving the worktree named; and `boxKeys(card, event, api)`, a key in the box it takes
-  // (true); and `waits(card, api)`, true while it's still finding out where it starts, which holds Start. Each of a
-  // part's drawn pieces (chip, list, placeholder, words, under, warn) is handed `api` too. `api` is { refresh(),
+  // its Use a New Worktree giving the worktree named; `boxKeys(card, event, api)`, a key in the box it takes (true);
+  // `waits(card, api)`, true while it's still finding out where it starts, which holds Start; and `note(card, api)`,
+  // text saying what Start would also do, drawn under that line (`st-note`), each part's in turn. Each of a part's
+  // drawn pieces (chip, list, placeholder, words, under, warn, note) is handed `api` too. `api` is { refresh(),
   // focusBox(), place(), useHere(), start() }: place() is where the card would start now, { kind (here, open, branch,
   // new), name, where, path (for one that's there), trust (Start would also trust the folder), app (desktop or
   // terminal: the one it would start in in the project's own folder), followed, chosen, git, terminal (its name, or null) }; useHere() starts it in the
@@ -138,6 +139,12 @@ const core = {
   // where it shows without its seats, which are only on the usage card; with no gear, why nothing is let in, or that
   // nothing limits what starts) }. Every word is the usage module's. Null without the module.
   gear: null,
+  // A session's chat, as Side Chat keeps and draws it, lent to the views that show it (One Task's talk under a task):
+  // draw(s, { lines, box, opening }) puts its conversation into the element `lines` and its box into `box` (either
+  // left out), each inside the reader, drawn again with every call, never taking the cursor; `opening`, the words that
+  // open yours there, shown under the box and sent with them. Its presses, keys, what you type and having seen it are
+  // Side Chat's, wherever it's drawn; emptying an element stops it showing there. Null without the module: no chat.
+  sessionChat: null,
   // A plan at a glance, as the plans module draws it, for the places that show a plan (the reader, the plan card on a
   // row, One Task), each passing the plan's text as it has it:
   // - readerHTML(text, { sessionId, id, who, waiting, held }) → the reader's view (Skimmed: the card, then the plan
@@ -205,7 +212,8 @@ const core = {
   // A step's note arriving for a session (stepNote): (session)
   noted: [],
   // What a note's button does on the page, by the name the app gives it (stepNote's `go`): (session). 'open' is the
-  // core's own, opening the session.
+  // core's own, opening the session. One that takes you out of the panel, to another app, says so (`out: true` on it),
+  // and its button has the mark for that, as Take Me There's does.
   noteWays: {},
 
   // What the page keeps per session or request, forgotten a minute after it has gone from the list (forgetGone): the

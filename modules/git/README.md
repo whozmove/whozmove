@@ -13,13 +13,14 @@ commits wait to go, and the PRs a session made or worked on.
   for the panel's back, with Show Next Steps (`appEntries`), which waits, dimmed, until Apple's developer tools are in,
   as git does (the install module's card on that page says how they stand, with Install).
 - `app/Checkouts.m`: each listed checkout's git status, base branch, new files, staged files and when its last commit
-  was made, read on a queue of its own: within 2s of any activity by a session working there, else 20s on, but only
-  once something in the checkout has changed since its last read, as macOS's file system events tell it
-  (`CheckoutWatch`); and every 5 minutes or so anyway, in case an event was missed (`CheckoutReadDue`). A checkout
-  macOS can't watch (on a network share) is read every 20s and 2s after activity, as are all of them in a print run.
-  The repo's remotes and base branch are kept until GitHub's copies of its branches, its base branch, its packed refs or
-  its config change. The branch's PR is asked of gh every 60s, only once the branch is on GitHub (`BranchOnRemote`),
-  and never for its base branch (`BranchPRDue`).
+  was made, read on a queue of its own once something in the checkout has changed since its last read, as macOS's file
+  system events tell it (`CheckoutWatch`), and those changes have settled: 2s after the latest, or 10s after the first
+  while an agent keeps writing (`CheckoutSettled`), and 20s on while no session is at work there; and every half hour
+  or so anyway (30 to 40 minutes, different for each checkout), in case an event was missed (`CheckoutReadDue`,
+  `CheckoutQuietEvery`). A checkout macOS can't watch (on a network share) is read every 20s and 2s after activity, as
+  are all of them in a print run. The repo's remotes and base branch are kept until GitHub's copies of its branches,
+  its base branch, its packed refs or its config change. The branch's PR is asked of gh every 60s, only once the branch
+  is on GitHub (`BranchOnRemote`), and never for its base branch (`BranchPRDue`).
 - `app/NextSteps.m`: the steps, Commit and its ways (the changes view's ⌄ menu), Push, Publish and Create PR into a
   branch, each asked of the session's agent in its fixed words (`StepRequest`), through `Send` (parts/send), only when
   the checkout has it to take; a commit takes only what's staged when something is. And the branches GitHub's copy
@@ -65,9 +66,10 @@ and a link, whether branches are on a remote, and when a read is due; and what w
   part's `workHTML`), and while another is, the row says why when it's pressed.
 - A step's words are fixed (`StepRequest`): the page only names the step, and a pull request's branch, which goes in its
   words only if it's the repo's default or one of its branches on GitHub as last read for its details.
-- Git runs only for a checkout something may have changed in (`CheckoutWatch`), never more often than every 2s after a
-  session's activity there, else 20s, and Whozmove's own reads never count as a change: each runs without optional
-  locks, so it writes nothing.
+- Git runs only for a checkout something may have changed in (`CheckoutWatch`), once those changes settle
+  (`CheckoutSettled`), never more often than every 2s after a session's activity there, else 20s, and Whozmove's own
+  reads never count as a change: each runs without optional locks and without a repo's file monitor (`GitReading`), so
+  it writes nothing there.
 - **Only someone who can change the repo wakes a session:** a comment or review counts only from an account GitHub
   marks `OWNER`, `MEMBER` or `COLLABORATOR`, so a stranger's comment never starts an unattended turn; and never from one
   gh's answer shows is a bot (a login ending in "[bot]", or an author whose type is Bot). A bot account added to the

@@ -69,4 +69,11 @@ typedef void (^TicketDone)(Ticket *ticket, TrackerAnswer *answer);
 // and their ids (TicketField's optionIds), so the ticket's own values (Ticket's `values`, from a read) can be matched
 // to them: empty for none, nil with why when they couldn't be read.
 - (void)optionFieldsOf:(Ticket *)ticket done:(void (^)(NSArray<TicketField *> *fields, TrackerAnswer *answer))done;
+// Every ticket you can see, on each site it's signed in to, the most recently changed first, or only those changed
+// since `since` when it's given: each as a search gives it, with its priority's place, its people, labels, links and
+// when it changed, but no next steps; `more` on the answer when it was cut at the most the tracker reads at once.
+- (void)everyTicketSince:(NSDate *)since done:(TicketsDone)done;
+// One ticket as read, with its description (`about`) and the moves it was given (`moves`), who made each and when, but
+// no next steps: whoever reads it whole doesn't move it by them.
+- (void)readWhole:(NSString *)key site:(NSString *)site done:(TicketDone)done;
 @end

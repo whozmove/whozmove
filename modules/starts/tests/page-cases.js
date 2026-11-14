@@ -165,9 +165,10 @@ show('a new worktree', keptBy({ text: '', target: { ...fresh, check: freeHello }
 show('a project chosen', keptBy({ text: '', folder: '/work/api', name: 'api', picked: true }));
 state.startDraft = null;
 
-section('Where a part has it start (where, under, warn)');
+section('Where a part has it start (where, under, warn, note)');
 // A sample part standing in for another module's, saying what `sample` says: never a module's own.
-const sample = { name: 'sample', where: () => sample.w, under: () => sample.u, warn: () => sample.x };
+const sample = { name: 'sample', where: () => sample.w, under: () => sample.u, warn: () => sample.x,
+                 note: () => sample.n };
 core.startCardParts.push(sample);
 state.repos = { '/work/app': repo };
 const followed = (fields, w) => {
@@ -239,6 +240,10 @@ print(startCardHTML(startCard2({}), startable));
 print('-- …not once you picked where yourself');
 print(startCardHTML(startCard2({ chosen: true }), startable));
 sample.u = null;
+sample.n = 'Start also does <this>, as text.';
+print('-- a part’s note under the card’s line, as text');
+print(startCardHTML(startCard2({}), startable));
+sample.n = null;
 sample.x = { text: 'Another sample is at work here.', name: 'sample-1' };
 print('-- a part’s warning in the busy notice’s place, its button naming its worktree');
 print(startCardHTML(startCard2({}), startable));

@@ -284,10 +284,12 @@ function namesAnd(names) {
 // reach production. Both come from the app, which reads the project's files (`setup.checked`, CheckDeploy in
 // app/Deploys.m), all of it, to scroll through, with the files checked before every run, the programs that aren't, and
 // what Whozmove can't follow. Confirming also says the port it gets in $PORT here, as a command confirmed on this card
-// runs with one. `setup` is { step, text, then, checked }; `d` is deployFor's. Deploy runs in the checkout's top folder
-// (`d.folder`), whichever folder the session is in.
+// runs with one. `setup` is { step, text, then, checked, refused }; `d` is deployFor's. Deploy runs in the checkout's top
+// folder (`d.folder`), whichever folder the session is in. Opened again because macOS refused to save the command
+// (`refused`, its words), it says so on both steps until it closes or saves.
 function setupHTML(s, setup, d) {
   const card = `<div class="perm deploy-setup" data-setup="${esc(s.sessionId)}" data-step="${setup.step}">`;
+  const refused = setup.refused ? `<div class="c-note notice inline warn">Not saved: ${esc(setup.refused)}</div>` : '';
   if (setup.step === 2) {
     const checked = setup.checked || {};
     const more = checked.cut ? '\n… and more than the card can show' : '';
@@ -302,6 +304,7 @@ function setupHTML(s, setup, d) {
         + ` checkout of ${esc(base(d.key))} its own, so their builds can run side by side.</div>` : '')
       + (checked.production ? '<div class="c-note notice inline warn">This looks as if it could deploy to production.</div>'
         : '')
+      + refused
       + '<div class="perm-actions"><button class="d-back">Back</button>'
       + '<button class="perm-allow d-yes">Yes, use it</button></div></div>';
   }
@@ -312,6 +315,7 @@ function setupHTML(s, setup, d) {
     + ' keeps running.</div>'
     + `<input class="field q-type d-cmd" placeholder="A command, or a server" maxlength="1000"`
     + ` value="${esc(setup.text)}">`
+    + refused
     + '<div class="perm-actions"><button class="d-cancel">Cancel</button>'
     + `<button class="perm-allow d-next"${setup.text.trim() ? '' : ' disabled'}>Use this</button></div></div>`;
 }

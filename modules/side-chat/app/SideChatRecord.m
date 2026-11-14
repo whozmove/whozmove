@@ -5,7 +5,9 @@
 #import "Text.h"
 
 const NSUInteger SideChatMost = 600;
-NSArray<NSString *> *const SideChatBackStates = @[@"takenBack", @"refused", @"ended", @"restarted"];
+const NSUInteger SideChatMostOpening = 200;
+NSString *const SideChatAccessibilityWay = @"Open Accessibility Settings";
+NSArray<NSString *> *const SideChatBackStates = @[@"takenBack", @"refused", @"ended", @"restarted", @"notSent"];
 
 static NSArray<NSDictionary *> *Says(NSDictionary *record) {
     return AsList(record[@"says"]) ?: @[];
@@ -40,11 +42,57 @@ NSDictionary *SideChatRecordAt(NSDictionary *record, double at) {
     return nil;
 }
 
-NSDictionary *SideChatRecordSaid(NSDictionary *record, NSString *words, double at, pid_t pid, long long started) {
+NSString *SideChatOpening(NSString *opening) {
+    if (!opening.length) return @"";
+    NSString *plain = PlainOneLine(opening, SideChatMostOpening + 1);
+    // Only a line that is already plain, ending in its one space before your words, and starting with a letter, so
+    // what you saw under the box is exactly what goes in, and it never starts as a command does.
+    if (!plain.length || opening.length > SideChatMostOpening || ![opening isEqual:[plain stringByAppendingString:@" "]]
+        || ![NSCharacterSet.letterCharacterSet characterIsMember:[plain characterAtIndex:0]])
+        return nil;
+    return opening;
+}
+
+NSDictionary *SideChatToGo(NSString *words, NSString *opening, NSDictionary *aside) {
+    NSString *said = aside ? AsText(aside[@"question"]) : AsText(words);
+    if (!said.length) return nil;
+    // A side question goes with the words that opened it where it was asked, wherever its press is; your own words
+    // with the view's, as it gives them.
+    NSString *open = aside ? AsText(aside[@"opening"]) ?: @"" : SideChatOpening(opening);
+    if (!open) return @{@"words": said, @"why": @"What this is about couldn't go with your words from here: send them "
+                                                 "from its Side Chat"};
+    if (open.length + said.length > SideChatMost)
+        return @{@"words": said, @"why": @"Too long to go with what it's about: shorten it and send it again"};
+    return @{@"words": said, @"opening": open, @"line": [open stringByAppendingString:said]};
+}
+
+NSString *SideChatCopyLine(NSDictionary *said, NSString *words, NSString *opening) {
+    if (said) return PlainOneLine(SideChatLine(said), SideChatMost);
+    NSString *open = SideChatOpening(opening);
+    return open ? PlainOneLine([open stringByAppendingString:AsText(words) ?: @""], SideChatMost) : nil;
+}
+
+NSDictionary *SideChatRefusedWay(NSDictionary *change, BOOL desktop, BOOL mayControl) {
+    if (![change[@"state"] isEqual:@"refused"] || AsText(change[@"way"]) || !desktop || mayControl) return change;
+    NSMutableDictionary *more = [change mutableCopy];
+    more[@"way"] = SideChatAccessibilityWay;
+    more[@"permission"] = @YES;
+    return more;
+}
+
+NSString *SideChatLine(NSDictionary *said) {
+    return AsText(said[@"line"]) ?: AsText(said[@"words"]) ?: @"";
+}
+
+NSDictionary *SideChatRecordSaid(NSDictionary *record, NSString *words, NSString *opening, double at, pid_t pid,
+                                 long long started) {
     NSMutableDictionary *next = [record mutableCopy] ?: [NSMutableDictionary dictionary];
     next[@"pid"] = @(pid);
     next[@"processStart"] = @(started);
-    next[@"says"] = [Says(record) arrayByAddingObject:@{@"at": @(at), @"words": words, @"state": @"held"}];
+    NSString *line = [(opening ?: @"") stringByAppendingString:words];
+    NSMutableDictionary *said = [@{@"at": @(at), @"words": words, @"line": line, @"state": @"held"} mutableCopy];
+    if (opening.length) said[@"opening"] = opening;
+    next[@"says"] = [Says(record) arrayByAddingObject:said];
     return next;
 }
 
@@ -56,8 +104,10 @@ NSDictionary *SideChatRecordProgress(NSDictionary *record, double at, NSDictiona
     NSMutableDictionary *edit = [@{@"state": state, @"late": NSNull.null} mutableCopy];
     if ([state isEqual:@"typed"] || [state isEqual:@"read"]) edit[@"doneAt"] = AsNumber(change[@"at"]) ?: NSNull.null;
     if ([state isEqual:@"read"]) edit[@"how"] = AsText(change[@"how"]) ?: @"step";
-    if ([state isEqual:@"refused"])
+    if ([state isEqual:@"refused"] || [state isEqual:@"notSent"]) {
         for (NSString *key in @[@"why", @"way", @"where"]) edit[key] = AsText(change[key]) ?: NSNull.null;
+        edit[@"permission"] = [change[@"permission"] isEqual:@YES] ? @YES : NSNull.null;
+    }
     return Changed(record, at, edit);
 }
 
@@ -98,10 +148,23 @@ NSDictionary *SideChatRecordPutBack(NSDictionary *record, double at) {
 
 static NSString *const kAsking = @"asking";
 
-NSArray<NSDictionary *> *SideChatAsideAsked(NSArray<NSDictionary *> *asides, NSString *question, double at) {
+// A side question as kept, with the words that opened it where it was asked, if any: what Ask Again and Send's words
+// send it with, wherever they're pressed.
+static NSDictionary *Aside(NSString *question, NSString *opening, double at, NSString *state) {
+    NSMutableDictionary *aside = [@{@"at": @(at), @"question": question ?: @"", @"state": state} mutableCopy];
+    if (opening.length) aside[@"opening"] = opening;
+    return aside;
+}
+
+NSString *SideChatAsideLine(NSDictionary *aside) {
+    return [(AsText(aside[@"opening"]) ?: @"") stringByAppendingString:AsText(aside[@"question"]) ?: @""];
+}
+
+NSArray<NSDictionary *> *SideChatAsideAsked(NSArray<NSDictionary *> *asides, NSString *question, NSString *opening,
+                                            double at) {
     for (NSDictionary *aside in asides)
         if ([aside[@"state"] isEqual:kAsking]) return nil;
-    return [(asides ?: @[]) arrayByAddingObject:@{@"at": @(at), @"question": question ?: @"", @"state": kAsking}];
+    return [(asides ?: @[]) arrayByAddingObject:Aside(question, opening, at, kAsking)];
 }
 
 const NSUInteger SideChatStepMost = 120;
@@ -122,8 +185,9 @@ NSArray<NSDictionary *> *SideChatAsideToStep(NSArray<NSDictionary *> *asides, do
     return out;
 }
 
-NSArray<NSDictionary *> *SideChatAsideNotAsked(NSArray<NSDictionary *> *asides, NSString *question, double at) {
-    return [(asides ?: @[]) arrayByAddingObject:@{@"at": @(at), @"question": question ?: @"", @"state": @"notAsked"}];
+NSArray<NSDictionary *> *SideChatAsideNotAsked(NSArray<NSDictionary *> *asides, NSString *question, NSString *opening,
+                                               double at) {
+    return [(asides ?: @[]) arrayByAddingObject:Aside(question, opening, at, @"notAsked")];
 }
 
 NSArray<NSDictionary *> *SideChatAsideAnswered(NSArray<NSDictionary *> *asides, double at, NSDictionary *answer,
@@ -201,7 +265,7 @@ NSArray<NSDictionary *> *SideChatAsidesEarlier(NSArray<NSDictionary *> *asides, 
         double asked = AsNumber(aside[@"at"]).doubleValue;
         NSString *text = AsText(aside[@"text"]);
         if (asked < at && [aside[@"state"] isEqual:@"answered"] && text.length)
-            [earlier addObject:@{@"question": AsText(aside[@"question"]) ?: @"", @"text": text, @"at": @(asked)}];
+            [earlier addObject:@{@"question": SideChatAsideLine(aside), @"text": text, @"at": @(asked)}];
     }
     return earlier;
 }

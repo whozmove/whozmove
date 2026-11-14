@@ -39,6 +39,12 @@ BOOL JiraPlaceIn(Ticket *ticket, NSString *priorityId, NSArray<NSDictionary *> *
 // The boards in an answer to listJiraBoards, as groups; and the name it gives the project by that key, if it does.
 NSArray<TicketGroup *> *JiraBoardsIn(id answer);
 NSString *JiraProjectNameIn(id answer, NSString *projectKey);
+// The moves an issue read with its history (kJiraHistoryExpand) was given, oldest first, nil when the answer has no
+// history; the next page's token in a search's answer, nil on its last page; and whether it says that page is its last
+// (JiraFacts says which of these shapes are assumed).
+NSArray<TicketMoveMade *> *JiraMovesIn(NSDictionary *issue);
+NSString *JiraNextPageIn(id answer);
+BOOL JiraIsLastPage(id answer);
 // The names of the types in an answer to listJiraProjectIssueTypesMetadata, each once.
 NSArray<NSString *> *JiraIssueTypesIn(id answer);
 // The Jira sites in an answer to getAccessibleAtlassianResources, as hosts, each once, in the order given.

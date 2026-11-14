@@ -18,7 +18,9 @@ connects  *  parts/pane/app/Browser.m  Apple's networking  # pages a session wro
 connects  127.0.0.1  app/shared/OAuth.m  nothing goes out  # a sign-in's one-time return address, on this Mac alone
 connects  127.0.0.1  modules/claude-code/tests/stand-in-claude.py  nothing goes out  # the stand-in server
 connects  127.0.0.1  modules/jira/tests/stand-in.py  nothing goes out  # the stand-in for Atlassian
+connects  api.apple-cloudkit.com  tools/release.sh  Apple's stapler  # a release's notarisation ticket, to staple to it
 connects  api.github.com  tools/betterleaks.sh  macOS's curl, and its SHA-256  # Betterleaks, when its download address fails
+connects  appstoreconnect.apple.com  tools/release.sh  Apple's notarytool  # a release, sent to Apple's notary service, and its log
 connects  auth.atlassian.com  app/shared/OAuth.h  Apple's networking  # signing in, at the service a server names
 connects  auth.atlassian.com  app/shared/OAuth.m  Apple's networking  # signing in, at the service a server names
 connects  auth.atlassian.com  modules/jira/app/JiraAccount.h  Apple's networking  # signing in with Atlassian
@@ -37,14 +39,17 @@ connects  mcp.atlassian.com  modules/jira/app/JiraFacts.h  Apple's networking  #
 connects  mcp.atlassian.com  modules/jira/app/JiraFacts.m  Apple's networking  # Jira's tickets, as you, once signed in
 connects  mcp.atlassian.com  modules/jira/app/JiraModule.m  Apple's networking  # Jira's tickets, as you, once signed in
 connects  raw.githubusercontent.com  modules/install/app/InstallModule.m  Apple's networking  # the tap's cask
+connects  timestamp.apple.com  tools/bundle.sh  Apple's codesign  # a release's secure timestamp, as it's signed
 downloads  modules/claude-code/tests/claude-code.sh  # Claude Code, for the real Claude Code run (real.sh)
 downloads  tools/betterleaks.sh  # Betterleaks, which Keys looks with, checked against tools/betterleaks.txt's SHA-256
 link  claude.com  modules/claude-desktop/app/ClaudeDesktopFacts.m  # Claude Desktop's download page
 link  code.claude.com  modules/claude-code/app/ClaudeCodeFacts.m  # Claude Code's install page
 link  code.visualstudio.com  modules/changes/app/Editors.m  # VS Code's download page
+link  developer.apple.com  tools/signing.sh  # where you upload the request and download your certificate
 link  github.com  .github/ISSUE_TEMPLATE/bug_report.yml  # the security policy
 link  github.com  .github/ISSUE_TEMPLATE/config.yml  # the security policy
 link  github.com  modules/install/app/Updates.m  # Whozmove's releases page
+link  www.apple.com  tools/signing.sh  # Apple's Developer ID - G2 certificate, to download
 link  www.spotify.com  modules/spotify/app/SpotifyFacts.m  # Spotify's download page
 link  aistudio.google.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there
 link  api.slack.com  modules/storage/app/KeyFacts.m  # the page that replaces a key from there

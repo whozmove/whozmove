@@ -203,7 +203,12 @@ Claude Desktop's own files and git, and sends your answers back the same way. Pi
   once you press Create Ticket, none of which is kept or logged; for each ticket's project, its priorities in
   their order, read with the ticket and kept in memory only, for an hour; and when you give a new conversation a
   ticket in a project whose way of opening tickets isn't set yet, the fields that ticket's type takes one option of,
-  with their options, kept in memory only, for an hour, and the ticket's own options. Signing in registers Whozmove there, named
+  with their options, kept in memory only, for an hour, and the ticket's own options; and when a conversation in a project where
+  one has worked one of your tickets, or that you've turned reading on for, asks Whozmove for your tickets, every ticket you
+  can see, the most recently changed first, with who reported each and who it's
+  assigned to, their labels, links and when they changed, and one ticket's history of moves when it asks, held in
+  memory only until that conversation is told, ten minutes at most, and never logged; other Jira tools in Claude Code or
+  Claude Desktop read with their own sign-in, never through Whozmove. Signing in registers Whozmove there, named
   Whozmove, with a return address on this Mac (127.0.0.1) that only that sign-in uses. Everything else stays on this
   Mac.
 - Deploy runs only the command you confirmed for a project, in your own shell; and, when you press Install and
@@ -215,11 +220,15 @@ Claude Desktop's own files and git, and sends your answers back the same way. Pi
   access token is kept in memory only, and none of them is ever written to a file or a log. Which ticket each
   conversation works on (its tracker, site and key, with that conversation's process) is kept in Whozmove's folder,
   `tickets/`, only to offer it back after Whozmove starts again; a ticket's words are never kept or logged. Its
-  description goes to the conversation working on it, when that conversation asks for its ticket, and that
-  conversation sends it to Anthropic as part of the conversation, as a session does with anything it reads. Whozmove
+  description goes to the conversation working on it, when that conversation asks for its ticket, or to a
+  conversation that reads that ticket whole, and that conversation sends it to Anthropic as part of the conversation,
+  as a session does with anything it reads, as it does with the tickets it reads, the names and account ids on them
+  included. Whozmove
   itself holds it in memory only, never in a file or a log. Where each project's tickets open is kept in
   `ticket-routing/`: the project's folder, and for a way by a field, its tracker and site, the field's and its
-  options' ids and names, and each option's folder.
+  options' ids and names, and each option's folder. Which projects read your tickets (those where a conversation has
+  worked one of your tickets, and those you've turned reading on or off for) are kept in `ticket-reading.json`, by
+  their folders.
 - How a project works, as a session drafted it, is kept only once you press Keep It on its row: the project's folder,
   the note and when you kept it, in Whozmove's folder, `process-notes/`. What you said Not Now to is kept only in
   memory. The note goes nowhere, and the log never holds a word of it.
@@ -300,10 +309,13 @@ Claude Desktop's own files and git, and sends your answers back the same way. Pi
 - With Bring Forward on, Whozmove looks 20 times a second at which modifier keys are held and at how many keys have been
   pressed, never at which, and holds up, changes or posts none. Holding its keys brings the session you picked forward
   and types nothing: your dictation app types into it once it's in front.
-- `build.sh` signs the app ad hoc, with its bundle id as its identity, so that a rebuild keeps the Accessibility
-  permission. Releases are signed the same way, and built on GitHub from their version's tagged commit
-  (`tools/release.sh`, run by `.github/workflows/release.yml`). The catch: any other ad-hoc-signed app that claims the
-  id `com.whozmove.app` would get that permission too. Signing with a certificate of your own closes that.
+- Releases are signed with their developer's Developer ID, notarised by Apple and built on GitHub from their
+  version's tagged commit (`tools/release.sh`, run by `.github/workflows/release.yml`), so the permissions you give
+  Whozmove are kept for its developer's signature: every update keeps them, and an app signed by anyone else doesn't
+  get them. `build.sh` signs a build of your own with your Developer ID once you've set one up
+  ([Signing your own builds](docs/guides/signing.md)), and otherwise ad hoc, with its bundle id as its identity, so
+  a rebuild keeps the permissions there too, though any other app signed ad hoc as `com.whozmove.app` would get them
+  as well, which your own Developer ID closes. Every program in the app runs with macOS's hardened runtime.
 
 </details>
 

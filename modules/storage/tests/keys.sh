@@ -23,8 +23,8 @@
 # among them, and its refusal for a file that holds more than the key; a second look,
 # which still lists the key sent to Claude; and one without Full Disk Access, with a project in Documents, which it
 # says it couldn't look in; AI tools' records sharing Betterleaks' runs, one it can't get through holding back only
-# itself, and a key's header with no end not hiding the next record's key. And a copy without Betterleaks, with its
-# way to get Whozmove again (again.expected.txt).
+# itself, and a key's header with no end not hiding the next record's key; files sent to Betterleaks by how many and
+# how large. And a copy without Betterleaks, with its way to get Whozmove again (again.expected.txt).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # The keys are made up while it runs, from fixed seeds, so they read the same every time and none is ever written
@@ -37,11 +37,9 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/storage/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-keys.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-trap 'rm -rf "$T"' EXIT
 . tests/lib.sh
+T=$(throwaway keys) || exit 1
+leave_nothing "$T"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 # What Keys wrote in a home's panel.log, without its times, how long a look took and Betterleaks' version said as that.
@@ -139,7 +137,7 @@ ALL=("$PUSHED" "$COMMITTED" "$NEW" "$IGNORED" "$MCP" "$AIDER" "$REMOTE" "$CHANGE
 
 # A look with one Betterleaks, in a sample home of its own: what it finds, and what its actions do.
 look_with() {
-local SCANNER=$1 H=$2 W B C found out aws history again
+local SCANNER=$1 H=$2 W B C D found out aws history again runs sent
 W="$H/Library/Application Support/Whozmove"
 mkdir -p "$H/code" "$W/sessions"
 # A checkout with its own GitHub stand-in: a commit pushed, then one not pushed yet.
@@ -684,6 +682,34 @@ out+=$'\n'"its runs: $(paste -sd ';' - < "$T/runs.txt")"
 rm -f "$T/runs.txt"
 HOME="$C" "$APP" --print-keys --full-disk-access "$T/runs-betterleaks" > /dev/null
 out+=$'\n'"looked again: $( [ -s "$T/runs.txt" ] && paste -sd ';' - < "$T/runs.txt" || echo "no runs")"
+# Files go to Betterleaks a run's worth at a time, by how many or how large, whichever comes first: nine made-up files
+# of about 2 MB in Downloads (more than one run reads) and three small ones go in two runs, not one.
+D="$H-large"
+mkdir -p "$D/Downloads"
+python3 -I -c '
+import random, sys
+r = random.Random(95)
+for n in range(9):
+    with open("%s/notes-%d.txt" % (sys.argv[1], n), "w") as f:
+        for _ in range(25000):
+            f.write("".join(r.choice("abcdefghij klmnop") for _ in range(79)) + "\n")
+for n in range(3):
+    with open("%s/small-%d.txt" % (sys.argv[1], n), "w") as f:
+        f.write("nothing here %d\n" % n)' "$D/Downloads"
+cat > "$T/files-betterleaks" <<EOF
+#!/bin/sh
+case "\$1" in version|config) exec "$SCANNER" "\$@" ;; esac
+n=0
+for a in "\$@"; do case "\$a" in */Downloads/*) n=\$((n + 1)) ;; esac; done
+[ "\$n" -gt 0 ] && echo "\$n" >> "$T/files-runs.txt"
+exec "$SCANNER" "\$@"
+EOF
+chmod +x "$T/files-betterleaks"
+rm -f "$T/files-runs.txt"
+HOME="$D" "$APP" --print-keys --full-disk-access "$T/files-betterleaks" > /dev/null
+runs=$(wc -l < "$T/files-runs.txt" | tr -d ' ')
+sent=$(awk '{ s += $1 } END { print s }' "$T/files-runs.txt")
+out+=$'\n'"large files in Downloads: $runs runs, $sent files in all"
 printf '%s\n' "$out"
 }
 

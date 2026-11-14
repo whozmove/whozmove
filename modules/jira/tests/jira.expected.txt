@@ -282,7 +282,7 @@ not found: There's no such ticket, or it isn't yours to see: no options
 done: PAY-151
 == read PAY-151
 done
-{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10142","key":"PAY-151","link":"https://acme.atlassian.net/browse/PAY-151","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"Blocker","site":"acme.atlassian.net","state":{"kind":"done","name":"Done"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
+{"assignee":"Sam Rivera","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14"},{"id":"3","kind":"board","name":"Payments board","sprint":"Sprint 14"}],"id":"10151","key":"PAY-151","link":"https://acme.atlassian.net/browse/PAY-151","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priority":"Blocker","site":"acme.atlassian.net","state":{"kind":"done","name":"Done"},"steps":[],"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug"}
 its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
 == create refused
 refused: Jira turned it away as it is: a priority, a parent or a field this project wants may be wrong: no key
@@ -488,6 +488,43 @@ POST tools/call executeRead listJiraIssueTransitions
 POST tools/call executeRead listJiraBoards
 POST tools/call executeRead listJiraProjectIssueTypesMetadata
 POST tools/call executeRead getJiraIssueTypeMetaWithFields
+## talk (every)
+== signin
+opened: Atlassian's page, with an S256 challenge and a state
+the browser's tab: Signed in. You can close this tab.
+sign-in: signed in
+sites: ["acme.atlassian.net"]
+== every
+done, 6 tickets
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10142","key":"PAY-142","labels":["checkout"],"link":"https://acme.atlassian.net/browse/PAY-142","links":[{"how":"is blocked by","key":"PAY-145","title":"Card form forgets the name","type":"Task"}],"parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10143","key":"PAY-143","link":"https://acme.atlassian.net/browse/PAY-143","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"Medium","priorityAt":2,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"todo","name":"To Do"},"title":"Receipts show the wrong currency","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10144","key":"PAY-144","link":"https://acme.atlassian.net/browse/PAY-144","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"Highest","priorityAt":0,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Review"},"title":"Refunds take a week","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10145","key":"PAY-145","link":"https://acme.atlassian.net/browse/PAY-145","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"Low","priorityAt":3,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"todo","name":"To Do"},"title":"Card form forgets the name","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10146","key":"PAY-146","link":"https://acme.atlassian.net/browse/PAY-146","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"Lowest","priorityAt":4,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"done","name":"Done"},"title":"Old promo banner","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10147","key":"PAY-147","link":"https://acme.atlassian.net/browse/PAY-147","parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"title":"Split payments","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+== every changed
+done, 1 tickets
+  {"assignee":"Sam Rivera","assigneeId":"made-up-sam","groups":[{"id":"PAY","kind":"project","name":"Payments","sprint":"Sprint 14","sprintEnds":"2030-01-12T18:29:00.000Z","sprintStarts":"2030-01-06T06:30:00.000Z"}],"id":"10142","key":"PAY-142","labels":["checkout"],"link":"https://acme.atlassian.net/browse/PAY-142","links":[{"how":"is blocked by","key":"PAY-145","title":"Card form forgets the name","type":"Task"}],"parent":{"key":"PAY-100","title":"Checkout on every browser","type":"Epic"},"priorities":5,"priority":"High","priorityAt":1,"reporter":{"id":"made-up-ana","name":"Ana Lima"},"site":"acme.atlassian.net","state":{"kind":"doing","name":"In Progress"},"title":"Login button does nothing on Safari","tracker":"Jira","type":"Bug","updated":"2030-01-08T09:15:00.000+0000"}
+== whole PAY-142
+done; its moves: [{"at":"2030-01-07T10:00:00.000+0000","by":{"id":"made-up-sam","name":"Sam Rivera"},"from":"To Do","to":"In Progress"}]
+its description: "Made-up description: the **Login** button does nothing on Safari 17.\n\n1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>"
+== whole PAY-999
+not found: There's no such ticket, or it isn't yours to see; its moves: none read
+## what the stand-in was asked
+GET the resource's page
+GET the sign-in service's page
+POST register Whozmove, a 127.0.0.1 return, no secret
+GET the page you'd see: as Atlassian wants it
+POST token for a code: proven with its verifier
+POST initialize
+POST tools/call getAccessibleAtlassianResources
+POST tools/call searchJiraIssuesUsingJql
+POST tools/call executeRead listJiraProjectIssueTypesMetadata
+POST tools/call executeRead getJiraIssueTypeMetaWithFields
+POST tools/call searchJiraIssuesUsingJql
+POST tools/call searchJiraIssuesUsingJql
+POST tools/call getJiraIssue
+POST tools/call getJiraIssue
 ## talk (blocked)
 == signin
 sign-in: blocked (Your Jira admin hasn't let apps sign in from this Mac yet. They can allow it once, for everyone.)

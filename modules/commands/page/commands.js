@@ -117,6 +117,9 @@ core.noteWays.modeMenu = (s) => {
     .find((el) => el.closest('.row').dataset.id === s.sessionId);
   if (pick) pressPick(pick);
 };
+// A pick into a Claude Desktop conversation that needs Whozmove allowed in Accessibility: its note's button opens that
+// pane in System Settings. It takes you out of the panel (`out`), so its button has the mark Take Me There has.
+core.noteWays.accessibility = Object.assign(() => native({ type: 'accessibilitySettings' }), { out: true });
 
 // ---- The Compact card ----
 

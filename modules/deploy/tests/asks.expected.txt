@@ -140,7 +140,8 @@ ports.json as it was
    First, with a stand-in npm; one that ends
    by itself once up; one its shell leaves running, which Stop Deploy stops by its pid; Restart; a press kept while
    an agent works there; and the port checked before a press: one of Deploy's own builds on it (an older command's,
-   a server's that picks its own port), or a program it didn't start
+   a server's that picks its own port), or a program it didn't start; last, a command holding a made-up token,
+   confirmed once more where macOS refuses the save
 The card in the main checkout shows it runs: @echo port=$${PORT:-none}
 Confirmed: saved: make show, with ports, what it runs kept
 The ports kept once it's confirmed: shop 3000
@@ -263,4 +264,5 @@ Asked for in the worktree by a session, its port held: ran, up at base+1, its $P
 …the worktree's port from now on: base+1
 …and the program on its old port: still there
 Stopped: stopped
+Confirmed with Deploy where macOS refuses the save: panel.log says it wasn't saved, and why, nothing ran
 A made-up token in a confirmed command, set, pressed, asked for and too long to save: the press ran, panel.log hasn't it, the run's own log has it

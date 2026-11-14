@@ -10,11 +10,9 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/notifications/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-notifications.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-trap 'rm -rf "$T"' EXIT
 . tests/lib.sh
+T=$(throwaway notifications) || exit 1
+leave_nothing "$T"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 

@@ -413,7 +413,7 @@ function taskAsideGone(title, item) {
 // Which task is in front, as One Task decides it, from where you are (`on`): { next, key, held, seen, waitForGo,
 // wanted, aside }, the task a press has just brought in, the one you're on, whether you're pointing at it or typing in
 // it, which tasks you've read (a function of the task's key: a task, not a step, so a reword or its next step leaves it
-// read), whether one to do now waits for your Go, the one a reply's notice opened at, and the task you set aside
+// read), whether one to do now waits for your Go, the one a row's task line opened at, and the task you set aside
 // ({key, step}) to come back to. A task you've read is yours until you leave it: nothing replaces it, not a newer task,
 // not the lead reordering or rewording it, not one to do now (with `waitForGo` off, one to do now ahead of it does).
 // While one is set aside, those to do now ahead of it come first. Gives { front, gone }: `gone`, the task you set
@@ -506,133 +506,24 @@ function taskTurnedAwayWords(ids, sessions) {
 const taskBackWords = (title, asLeft = true) => `Back to “${title}”${asLeft ? ', as you left it' : ''}.`;
 
 // The words the foot offers to copy when a task you were on, or set aside, no longer waits: what you'd typed in its
-// Comment box and in its talk box, Comment's first with a blank line between, so nothing you wrote goes with it.
-const taskKeptWords = (talk, ui) => [ui?.note, talk].map((words) => (words || '').trim()).filter(Boolean).join('\n\n');
+// Comment box, so nothing you wrote goes with it. What you wrote in its talk stays in its session's chat.
+const taskKeptWords = (ui) => (ui?.note || '').trim();
 
-// ---- The talk about a task: what you ask the session it's about, under the task ----
+// ---- The talk about a task: the chat with the session it's about, under the task ----
 
-// The most you may write, with the words that open it (the app's TaskMostTalkLine).
-const TALK_MOST = 600;
-
-// Whom your words go to: { s, name, lead, gone, was }. Once the talk has begun, the session it began with (`gone` once
-// that isn't listed, or the lead's pick isn't for it any more, `was` still that session while it's listed, for Take
-// Me There); before, the session that sent the task, or for the lead's pick its member, unless you chose the lead
-// (`toLead`) or the member isn't listed. `lead`: the words go to the lead, not its member.
+// Whom the talk is with: { s, name, lead }. The session that sent the task, or for the lead's pick its member, unless
+// you chose the lead (`toLead`) or the member isn't listed: each is that session's own chat (Side Chat's), so the choice
+// can change at any time. `lead`: the talk is with the lead, not its member.
 function talkTo(item, sessions, toLead) {
-  const to = item.talk?.to;
-  if (to) {
-    const s = sessions.find((one) => one.sessionId === to);
-    const still = to === item.sid || (!!item.pick && to === item.forS?.sessionId);
-    return { s: still ? s : undefined, name: s ? taskWho(s) : 'The session', lead: to === item.sid && !!item.pick,
-             gone: !s || !still, was: s };
-  }
   const s = taskMember(item) && !toLead ? taskMember(item) : item.s;
-  return { s, name: taskWho(s), lead: !!item.pick && s === item.s, gone: false };
+  return { s, name: taskWho(s), lead: !!item.pick && s === item.s };
 }
 
-// The words that open yours in the session, as the app types them, shown under the box before you send; and how many
-// characters your own words may have after them.
+// The words that open yours in the session, as the app makes them for the task and its step, shown under the box
+// before you send and sent with your words: the member's own for the lead's pick, which name none of the lead's.
 const talkOpening = (item, to) => (to.s && to.s !== item.s ? item.talk?.leadForMember : item.talk?.lead) || '';
-const talkRoom = (opening) => Math.max(0, TALK_MOST - opening.length);
 
 // Where the session runs, as the talk's heading says it: in Claude Desktop, or its session in the terminal the app
 // names (`terminals`, by session).
 const talkWhere = (s, terminals) => (s?.entrypoint === 'claude-desktop' ? 'in Claude Desktop'
   : terminals?.[s?.sessionId] ? `its session in ${terminals[s.sessionId]}` : 'its session');
-
-// A reason as the talk says it: its own full stop, or one added.
-const talkWhy = (why) => (/[.!?]$/.test(why || '') ? why : `${why || 'It didn’t go in'}.`);
-
-// What's said under your words by how far they've got, and the presses that go with it: { words, held, acts }, each
-// act { act, word }. Held words go in by themselves once the session is idle at its prompt, unless its tab is the one
-// you're in, its terminal is the app in front (`front`, the terminal's name), or it's a Claude Desktop conversation,
-// which comes forward only for your press: then Send Now. Behind a
-// request of the session's own, what it asks (`asks`, as its row says it), with Show It. Take Back until they're
-// going in. Words that couldn't go in, or stopped part-way, are back in your box, so they aren't drawn here.
-function talkState(said, s, name, asks, front, waits) {
-  const back = { act: 'takeBack', word: 'Take Back' }, there = { act: 'there', word: 'Take Me There' };
-  const desktop = s?.entrypoint === 'claude-desktop';
-  switch (said.state) {
-    case 'held':
-      if (!s) return { words: `Not sent: ${name} isn’t on this task now`, held: true, acts: [there, back] };
-      if (s.ask) return { words: `${name} asks first${asks ? `: ${asks}` : ''}. Answer it on its row, and your words `
-        + 'go after', held: true, acts: [{ act: 'show', word: 'Show It' }, back] };
-      if (s.status === 'busy' || s.status === 'waiting') return { words: waits ? `Waits for your Send Now, once ${name} `
-        + 'finishes' : `Goes to ${name} when it finishes`, held: true, acts: [back] };
-      // Words that wait for your Send Now (One Task's page) never go in by themselves.
-      if (waits) return { words: 'Waits for your Send Now', held: true, acts: [{ act: 'sayNow', word: 'Send Now' }, back] };
-      if (desktop || s.focused || front) return { words: desktop ? `${name} has finished` : s.focused
-        ? `${name}’s tab is in front` : `${front} is in front`, held: true, acts: [{ act: 'sayNow', word: 'Send Now' },
-                                                                                back] };
-      return { words: 'Going in…', held: true, acts: [back] };
-    case 'typing': return { words: 'Going in…', acts: [] };
-    case 'typed': return { words: desktop ? 'Sent in Claude Desktop · just now' : 'Typed in · just now', acts: [] };
-    case 'sent': return { words: 'Sent', acts: [] };
-    case 'notTaken': return { words: `Typed in, but ${name} hasn’t sent it`, acts: [there] };
-    case 'noReply': return { words: `${name} finished without a reply`, acts: [there] };
-    default: return { words: '', acts: [] };
-  }
-}
-
-// Words that are back in your box, as the line under it says why: { why, way, permission }. None of it went in
-// (`refused`): "Can't type into Ghostty", and the reason; or it stopped part-way. `way`, a button past the reason, when
-// there's one: the terminal's own, or Accessibility's (`permission`).
-function talkBackWords(said) {
-  const where = said.where ? ` into ${said.where}` : ' it in';
-  const head = said.state === 'refused' ? `Can’t type${where}.` : `Stopped part-way${said.where ? ` in ${said.where}`
-    : ''}.`;
-  return { why: `${head} ${talkWhy(said.why)}`, way: said.way || null, permission: !!said.permission };
-}
-
-// Words you're writing as a next step of the task came in, as the line under the box says it and Send names it:
-// { note, send }, or null while it's the step you began on (`began`, the task's `sent` then).
-function talkNewStep(item, began) {
-  if (!began || began === item.sent) return null;
-  const step = item.task?.step;
-  return step ? { note: `Step ${step.n} came in.`, send: `Send about step ${step.n}` }
-    : { note: 'It was sent again.', send: 'Send' };
-}
-
-// What's said while the session works on your words: its row's live line, as the list shows it, else that it's
-// reading them. Only after the last thing you said has gone in, and before its reply.
-function talkLive(says, s, name) {
-  const last = says[says.length - 1];
-  if (!last || !s || !['typed', 'sent'].includes(last.state) || !['busy', 'waiting'].includes(s.status)) return '';
-  return s.activity || `${name} is reading your words`;
-}
-
-// A reply as it's shown, from its parts as the app cut it (each {prose} or {code, lang}): all of it, in place, each
-// code block whole as it's copied, with its place among the parts (`n`), which its Copy names. `cut` only when its
-// agent gave no more than the most it reads of a reply (the app's TaskMostReply), so the rest is in the session.
-function talkReply(parts) {
-  const shown = [];
-  let cut = false;
-  for (const [n, part] of (Array.isArray(parts) ? parts : []).entries()) {
-    if (part?.cut === true) cut = true;
-    else if (typeof part?.code === 'string') shown.push({ code: part.code, lang: String(part.lang || ''), n });
-    else if (part?.prose) shown.push({ prose: String(part.prose) });
-  }
-  return { parts: shown, cut };
-}
-
-// A reply in words, as VoiceOver says it: its prose, and that a command is there to copy.
-const talkReplyWords = (reply) => reply.parts.map((p) => (p.code !== undefined ? 'A command to copy.' : p.prose))
-  .join(' ');
-
-// The line under the header while One Task isn't in sight and a session has answered your words (a page sender's
-// notice): the newest reply you haven't seen in One Task, by who and about which task, with Open; `soon`, as every
-// reply is. `seen`: when you last saw each task's talk, by its key.
-function talkNotice(items, sessions, seen) {
-  let newest = null;
-  for (const item of items) {
-    if (!item.task) continue;
-    for (const said of item.talk?.says || []) {
-      const at = said.repliedAt || 0;
-      if (said.state === 'replied' && at > (seen[item.key] || 0) && at > (newest?.at || 0)) newest = { item, at };
-    }
-  }
-  if (!newest) return null;
-  const to = talkTo(newest.item, sessions, false);
-  return { key: 'reply', level: 'soon', text: `${to.name} answered you about ${newest.item.task.title}`,
-           button: 'Open', since: String(newest.at), item: newest.item };
-}

@@ -9,6 +9,14 @@
 // Betterleaks inside the app's bundle, where the build puts it (tools/bundle.sh).
 extern NSString *const kBetterleaksInBundle;
 
+// The matcher every run of Betterleaks that reads its rules is given, in either version's spelling: Go's own regular
+// expressions, as its default compiles one into memory, which the hardened runtime it's signed with stops at once.
+extern NSString *const kBetterleaksMatcher;
+
+// The largest file Betterleaks is let look in (`--max-target-megabytes`, in both versions): it skips a larger one
+// without reading it.
+extern const unsigned long long kBetterleaksLargestFile;
+
 // Betterleaks' major version, from what `betterleaks version` says ("2.0.0-rc.4", "1.9.0"); 0 for one it can't tell.
 // Keys works with versions 1 and 2, whichever the app carries (tools/betterleaks.txt names it).
 NSInteger BetterleaksMajor(NSString *said);

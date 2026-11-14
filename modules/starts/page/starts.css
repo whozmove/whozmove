@@ -53,6 +53,8 @@ body.collapsed #dock { display: none; }
 .c-lfoot b { color: var(--muted); font-weight: 600; }
 /* Where it runs, or the folder a new worktree goes in, which can be put elsewhere. */
 .c-under { margin-top: 6px; color: var(--faint); font-size: var(--size-small); line-height: 16px; }
+/* What Start would also do, as a part says it, under that line, in its words' look. */
+.st-note { margin-top: 2px; color: var(--faint); font-size: var(--size-small); line-height: 16px; }
 .c-place { padding: 0 3px; margin: 0 -3px; border-radius: var(--radius-tag); color: var(--muted); }
 .c-place.is-hover { background: var(--hover-strong); color: var(--text); }
 .c-place .caret { display: inline-flex; margin-left: 3px; opacity: .6; vertical-align: -1px; }

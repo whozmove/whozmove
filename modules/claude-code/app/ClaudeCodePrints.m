@@ -374,6 +374,34 @@ static int PrintAside(Core *core, NSArray<NSString *> *given) {
     say(@"A long answer: 16,384 characters kept", @([ClaudeAsideAnswer(lines(@[@{@"type": @"result",
         @"subtype": @"success", @"is_error": @NO, @"result": longWords}]), NO, NO)[@"text"] length]));
 
+    printf("\n== A result before its answer: not the ask's (seen live, never against the stand-in API)\n");
+    NSDictionary *early = @{@"type": @"result", @"subtype": @"success", @"is_error": @NO, @"result": @"",
+                            @"num_turns": @0, @"duration_ms": @41};
+    NSDictionary *(^plus)(NSDictionary *, NSDictionary *) = ^NSDictionary *(NSDictionary *base, NSDictionary *more) {
+        NSMutableDictionary *both = [base mutableCopy];
+        [both addEntriesFromDictionary:more];
+        return both;
+    };
+    say(@"Before anything is said, using nothing, saying nothing: early", @(ClaudeAsideEarlyResult(early, NO)));
+    say(@"…its usage all 0: early", @(ClaudeAsideEarlyResult(plus(early, @{@"usage": @{@"input_tokens": @0,
+        @"cache_read_input_tokens": @0, @"output_tokens": @0}}), NO)));
+    say(@"…an error with words the answer can't tell: early", @(ClaudeAsideEarlyResult(
+        @{@"type": @"result", @"subtype": @"error_during_execution", @"is_error": @YES, @"result": @"Interrupted"},
+        NO)));
+    say(@"…after it has said something for the ask: its answer", @(ClaudeAsideEarlyResult(early, YES)));
+    say(@"…having used tokens: its answer", @(ClaudeAsideEarlyResult(plus(early, @{@"usage": usage}), NO)));
+    say(@"…with words: its answer", @(ClaudeAsideEarlyResult(plus(early, @{@"result": @"1"}), NO)));
+    say(@"…an error the API sent back: its answer", @(ClaudeAsideEarlyResult(
+        @{@"type": @"result", @"subtype": @"success", @"is_error": @YES, @"api_error_status": @529,
+          @"result": @"API Error: 529 Overloaded"}, NO)));
+    say(@"…the plan's limit: its answer", @(ClaudeAsideEarlyResult(
+        @{@"type": @"result", @"subtype": @"success", @"is_error": @YES, @"result": @"You've hit your limit"}, NO)));
+    say(@"…not a result: no", @(ClaudeAsideEarlyResult(said(@[@{@"type": @"text", @"text": @""}]), NO)));
+    say(@"What panel.log keeps of one: its shape, never its words",
+        ClaudeAsideResultShape(plus(early, @{@"result": @"some words"}), 0.84, NO,
+                               @"2.1.319"));
+    say(@"…a kept copy's, its version unknown", ClaudeAsideResultShape(early, 12.5, YES, nil));
+
     printf("\n== The steps it says as it answers\n");
     NSString *shop = [home stringByAppendingPathComponent:@"shop"];
     [files createDirectoryAtPath:shop withIntermediateDirectories:YES attributes:nil error:nil];
@@ -874,6 +902,77 @@ static int PrintAside(Core *core, NSArray<NSString *> *given) {
     say(@"A checked version that takes it: its thinking's summary, as a step",
         askOf([[ClaudeAside alloc] initWithChecker:checker program:takes], @"9a1f3e5c-7b2d-4c6e-8f0a-1b3d5e7f9a2c"));
     say(@"…its runs", runs(takes));
+    // A stand-in that writes an early empty result for each line it's sent, then its answer a moment later
+    // (`answers` 1), its words begun at once and its answer only after afterEarly (2), or only the early one (0);
+    // asked with one mark, so a follow-up goes into the same copy.
+    NSString *(^earlyFirst)(NSString *, int) = ^NSString *(NSString *where, int answers) {
+        NSString *path = [stands stringByAppendingPathComponent:where];
+        [files createDirectoryAtPath:path.stringByDeletingLastPathComponent withIntermediateDirectories:YES
+                          attributes:nil error:nil];
+        // Its lines from files beside it: the early result, and the answer with NUM for which question it is.
+        NSString *(^json)(NSArray *) = ^NSString *(NSArray *each) {
+            NSMutableString *out = [NSMutableString string];
+            for (id one in each)
+                [out appendFormat:@"%@\n", [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:one
+                                                                                                         options:0
+                                                                                                           error:nil]
+                                                               encoding:NSUTF8StringEncoding]];
+            return out;
+        };
+        [json(@[@{@"type": @"system", @"subtype": @"init"}, early]) writeToFile:[path stringByAppendingString:@".early"]
+                                                                    atomically:YES encoding:NSUTF8StringEncoding
+                                                                         error:nil];
+        [json(@[said(@[@{@"type": @"text", @"text": @"Answer NUM"}]),
+                @{@"type": @"result", @"subtype": @"success", @"is_error": @NO, @"result": @"Answer NUM",
+                  @"usage": @{@"output_tokens": @3}}]) writeToFile:[path stringByAppendingString:@".answer"]
+                                                         atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [json(@[said(@[@{@"type": @"text", @"text": @"Looking at the cart."}])])
+            writeToFile:[path stringByAppendingString:@".begun"] atomically:YES encoding:NSUTF8StringEncoding
+                  error:nil];
+        NSString *script = [NSString stringWithFormat:@"#!/bin/sh\nn=0\nwhile IFS= read -r line; do\n  n=$((n+1))\n"
+            "  cat \"$0.early\"\n  if [ %d = 1 ]; then sleep 1; sed \"s/NUM/$n/g\" \"$0.answer\"; fi\n"
+            "  if [ %d = 2 ]; then sleep 0.5; cat \"$0.begun\"; sleep 2; sed \"s/NUM/$n/g\" \"$0.answer\"; fi\ndone\n",
+            answers, answers];
+        [script writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [files setAttributes:@{NSFilePosixPermissions: @0755} ofItemAtPath:path error:nil];
+        return path;
+    };
+    // Two questions, the second asked the moment the first is told, and each one's answer, with whether the copy was
+    // still open after the first and how it stands once both are told.
+    NSArray *(^twoOf)(ClaudeAside *, NSString *) = ^NSArray *(ClaudeAside *aside, NSString *sessionId) {
+        NSDictionary *mark = @{@"size": @1000, @"at": @1};
+        NSMutableArray *got = [NSMutableArray array];
+        __block NSString *second = nil;
+        __block BOOL openAfterFirst = NO;
+        NSString *first = [aside ask:@"Which file?" earlier:@[] running:nil sessionId:sessionId model:nil effort:nil
+                              folder:folder mark:mark step:nil done:^(NSDictionary *answer) {
+            [got addObject:@[answer[@"state"] ?: NSNull.null, answer[@"text"] ?: NSNull.null]];
+            openAfterFirst = aside.openSince[sessionId] != nil;
+            second = [aside ask:@"And why?" earlier:@[] running:nil sessionId:sessionId model:nil effort:nil
+                         folder:folder mark:mark step:nil done:^(NSDictionary *again) {
+                [got addObject:@[again[@"state"] ?: NSNull.null, again[@"text"] ?: NSNull.null]];
+            }];
+        }];
+        NSDate *until = [NSDate dateWithTimeIntervalSinceNow:30];
+        while (first && got.count < 2 && until.timeIntervalSinceNow > 0)
+            [NSRunLoop.mainRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        BOOL openAfter = aside.openSince[sessionId] != nil;
+        [aside end:sessionId];
+        while (aside.openSince.count && until.timeIntervalSinceNow > 0)
+            [NSRunLoop.mainRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        return @[got, @{@"open after the first": @(openAfterFirst), @"open after both": @(openAfter)}];
+    };
+    ClaudeAside *patient = [[ClaudeAside alloc] initWithChecker:checker program:earlyFirst(@"early/claude", 1)];
+    say(@"A copy that writes an early empty result before each answer: each answer on its own question, in one copy",
+        twoOf(patient, @"4b6d8f0a-2c4e-4f61-8a3b-5c7d9e1f3a5b"));
+    ClaudeAside *silent = [[ClaudeAside alloc] initWithChecker:checker program:earlyFirst(@"silent/claude", 0)];
+    silent.afterEarly = 1;
+    ClaudeAside *slow = [[ClaudeAside alloc] initWithChecker:checker program:earlyFirst(@"slow/claude", 2)];
+    slow.afterEarly = 1;
+    say(@"…one that begins answering at once and answers after the wait: its answer, the wait over once it spoke",
+        twoOf(slow, @"6d8f0b2c-4e6a-4b83-8c5d-7e9f1a3b5c7d"));
+    say(@"…one whose early result is all it writes: \"Didn't answer\" once the wait is up, its copy ended, the next "
+        "question in a fresh one", twoOf(silent, @"5c7e9a1b-3d5f-4a72-9b4c-6d8e0f2a4b6c"));
     NSString *later = standInAt(@"versions/2.1.999", NO);
     askOf([[ClaudeAside alloc] initWithChecker:checker program:later], @"2c4e6a8b-0d1f-4e3a-9b5c-7d9f1a3c5e7b");
     say(@"A version not checked: never given it", runs(later));
@@ -1265,7 +1364,8 @@ static int PrintHookLine(NSArray<NSString *> *arguments) {
 // (SessionAsks), with no socket: Real, Claude Code's program (the test's stand-in, WHOZMOVE_STAND_IN_CLAUDE); Inner,
 // started from inside Real, its record its own; Other; Twin, its record saying it's Other while Other runs; Elsewhere,
 // in another folder, its record saying it's Gone, which Whozmove kept working in shop once it ended; Forger, another
-// program, its record saying it's Real. Each asks for a task's answer, the inbox, a message and a ticket. Then Real's
+// program, its record saying it's Real. Each asks for a task's answer, the inbox, a message and a ticket, and each with
+// a listed row says whether the core takes it as that row's own process (Core's whyNot:asksFrom:). Then Real's
 // record is rewritten to say it's another session and Usurper's to say it's Real, and Usurper asks (Real, seen as its
 // session's own, still runs); Tucked, another program Holder started, asks with a record of its own; and Npm, a
 // stand-in named as Node is, with nothing of Claude Code's in its arguments, as an older Claude Code from npm sets its
@@ -1288,6 +1388,11 @@ static int PrintAskers(Core *core, NSArray<NSString *> *arguments) {
         NSString *sessionId = [agent sessionOfProcess:pid], *why = [agent whyNotAsker:pid];
         printf("%s: its session %s%s%s\n", names[i].UTF8String, (sessionId ?: @"none").UTF8String,
                why ? ", but it can't ask: " : "", (why ?: @"").UTF8String);
+        // The core's check of a session's own process, as a module asks it before trusting where that process works:
+        // the same as an ask that only shows something, so one inside another listed session's commands never passes.
+        Row *own = sessionId ? core.rows.byId[sessionId] : nil;
+        NSString *notOwn = own ? [core whyNot:own asksFrom:pid] : nil;
+        if (own) printf("  speaks for its own row: %s%s\n", notOwn ? "no: " : "yes", (notOwn ?: @"").UTF8String);
         for (NSDictionary *asked in asks) {
             NSData *json = [NSJSONSerialization dataWithJSONObject:asked options:NSJSONWritingSortedKeys error:nil];
             printf("  %s: %s\n", [asked[@"ask"] UTF8String],

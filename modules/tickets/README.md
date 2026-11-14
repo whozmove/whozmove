@@ -9,6 +9,9 @@ it, and marks a step that's a person's with `ask-panel.sh ticket-stop`. A new ti
 session, is drafted with `ask-panel.sh ticket-draft`, checked with its tracker, and made only by your Create Ticket on
 its row; it's then the session's own. The session's row shows the ticket after its
 name, with where it stands; pointing at the tag shows the ticket, and pressing it opens the ticket in your browser.
+A session also reads every ticket you can see, through Whozmove, with `ask-panel.sh tickets`, once its project reads
+them: a session there has been given one of your tickets, or you turned reading on for it in Settings ▸ Tickets, and you
+haven't turned it off there. Its project is found from where macOS says its process works, never from its record.
 
 This module never names a tracker. It finds the trackers through the core (`modulesThat:` with
 app/contracts/Tracker.h) and talks to them only through that contract, so a tracker (modules/jira) brings its own
@@ -27,7 +30,11 @@ Ticket.h), which One Task orders by.
     `ticket-move` (one of its next steps, with a note and the fields it sets, checked against the last read: "Move
     PAY-142 to In Review?" waits on its row, taking the place of any move waiting there, or it's taken at once while
     May Move Its Ticket is on for the very process that asks) and `ticket-stop` (a next step marked as a person's,
-    with why, for the ticket's card) and `ticket-draft` (a new ticket, as JSON: checked with its tracker, whether its
+    with why, for the ticket's card), `tickets` (every ticket you can see, read through its tracker's
+    `everyTicketSince:done:` and told once read, as a first line and a line of JSON each, `since` only those changed,
+    `full` one ticket, read whole with `readWhole:site:done:`; "not now: …" for a project that reads none, said
+    as turned off or as never on, its folder by its repo's main checkout, from where macOS says the asking process
+    works) and `ticket-draft` (a new ticket, as JSON: checked with its tracker, whether its
     group is there and takes that type, then "Create this ticket?" waits on its row, taking the place of any draft
     waiting there; one its tracker turns away goes back to the session, "not yet: …", and is never shown, as does one
     it turns away at Create Ticket). Each is
@@ -48,7 +55,14 @@ Ticket.h), which One Task orders by.
     (`ticketMove`), Create Ticket, Try Again or Not Yet (`ticketDraft`), reading again (`ticketRead`) and opening it
     (`openTicket`).
   - What's kept for a later copy of the panel: `AppDir/tickets/<session>.json`, the tracker, site and key with the
-    session's process (its pid and when it started), only you able to read it.
+    session's process (its pid and when it started), only you able to read it. And which projects' conversations
+    read your tickets, `AppDir/ticket-reading.json`: those turned off, those turned on, and those where a session was
+    given a ticket (marked from its process's folder, as macOS keeps it, once that process is checked as its Claude
+    Code: as its row is next listed, or as it asks), by their folders, only
+    you able to read it.
+- `app/TicketReads.m`: plain functions for a read of your tickets: which projects read, kept and read back, why one
+  doesn't, as told, what Use It and Create Ticket would also do (`TicketReadsAlso`),
+  `--since`'s time, and the answers.
 - `app/TicketBindings.m`: plain functions: the row's `ticket`, what `ask-panel.sh ticket` answers (and while a new
   ticket waits), a move checked against the ticket as last read, a new ticket's draft checked, and the record kept and
   read back.
@@ -60,10 +74,12 @@ Ticket.h), which One Task orders by.
 - `page/tickets.js`: the card's part (`core.startCardParts`), the card's ticket for its other parts
   (`core.cardTicket`: its tracker, site and key, none for Create a ticket), the tag (`core.slots.name`), its card (`core.cards`), the
   Use It card (`core.rowCards`, order 25), the Move It card (order 26) and the Create Ticket card (order 27), and the
-  app's answers (`ticketsFound`, `ticketPicked`).
+  app's answers (`ticketsFound`, `ticketPicked`, `ticketReadsSaid`, `ticketReadsChanged`); on the card, the Use It card and the Create
+  Ticket card, while the project reads none yet and isn't turned off, the line saying pressing also lets its
+  conversations read your tickets (the card's `note`, an offer's or a draft's `reads`).
 - `page/tickets.css`: their look, from the panel's tokens only.
-- `plugin/skills/working-a-ticket/SKILL.md`: how a session works its ticket, collected into Whozmove's plugin as
-  `whozmove:working-a-ticket`. A start from the card names it in the line it adds to your words, to work a ticket or
+- `plugin/skills/working-a-ticket/SKILL.md`: how a session asked about your tickets reads them through Whozmove
+  first, and how a session works its ticket, collected into Whozmove's plugin as `whozmove:working-a-ticket`. A start from the card names it in the line it adds to your words, to work a ticket or
   to create one.
 - `tests/test.sh`: `--print-tickets`, its moves and its new tickets in homes of their own, ask-panel.sh turning malformed keys, links and
   step ids, and stdin too long, away, and the page's cases (`page-cases.js`), compared with `tickets.expected.txt`.
@@ -71,11 +87,13 @@ Ticket.h), which One Task orders by.
 
 ## Between the page and the app
 
-The page sends `ticketSearch {words, asked}`, `ticketFind {text, asked}`, `ticketSignIn {tracker}`,
+The page sends `ticketSearch {words, asked}`, `ticketFind {text, asked}`, `ticketReadsAsk {folder, asked}`,
+`ticketSignIn {tracker}`,
 `ticketCancelSignIn {tracker}`, `ticketCopyAsk {tracker}`, `ticketAnswer {sessionId, act}` (`use` or `notNow`),
 `ticketMove {sessionId, key, stepId, act}` (`move` or `notNow`), `ticketDraft {sessionId, at, act}` (`create` or
 `notYet`), `ticketRead {sessionId, now}` and `openTicket {sessionId}`. The app calls `setTicketTrackers(trackers)`,
-`ticketsFound(asked, {tickets, end, why})` and `ticketPicked(asked, {ticket} | {none} | {key, end, site})`, and each
+`ticketsFound(asked, {tickets, end, why})`, `ticketPicked(asked, {ticket} | {none} | {key, end, site})` and
+`ticketReadsSaid(asked, {project, tracker} | {})` and `ticketReadsChanged()`, and each
 row carries its `ticket`. A start carries `with: {tickets: {tracker, site, key}}`, or `{tracker, site, create: true}`
 for Create a ticket. docs/reference/bridge.md has them
 all.
@@ -100,9 +118,15 @@ all.
   someone's own tracker: its tests and docs use made-up sites and keys (acme.atlassian.net, PAY-142), and
   tests/checks.sh fails on any other, and on code that decides by a status's or a step's name.
 - **A ticket's address is made from its site and key** by its tracker, never taken from what the tracker sends.
-- **Every word from a tracker goes into the page escaped,** and into a session only as `ask-panel.sh ticket`'s JSON.
-  A ticket's description (Ticket's `about`) goes only there, to the session working it: never into the page, a row,
-  a kept file or a log line.
+- **Every word from a tracker goes into the page escaped,** and into a session only as `ask-panel.sh ticket`'s or
+  `tickets`' JSON. A ticket's description (Ticket's `about`) goes only there, to the session working it, or to a
+  session reading it whole (`tickets --full`): never into the page, a row, a kept file or a log line. Who reported a
+  ticket and who has it, by their accounts, its labels and links go only to a session reading your tickets (Ticket's
+  `jsonWhole`), never a row.
+- **Whozmove reads your tickets for a session only with its own sign-in,** which no session is ever given. Such a read
+  changes nothing in the tracker, and only your press of a project's choice in Settings ▸ Tickets stops it. Other
+  tools in a session read with their own sign-ins: Whozmove neither finds nor stops them, and the project's page says
+  so.
 - **Nothing about a ticket is logged but its key:** panel.log says which ask, which key, which step and how it went,
   never a ticket's title, its words, a note, a field's value, a person's step's why, or anything of a new ticket's but
   where it goes and the key it's given. A move's note and fields, the steps marked and a new ticket's draft are kept

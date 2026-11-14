@@ -19,8 +19,8 @@ compare "The team's page" "$HERE/page.expected.txt" "$page" "${1:-}" || status=1
 
 # Who holds a member's seat in its workspace for sample cases (Whozmove --print-seats), compared with
 # seats.expected.txt.
-T=$(mktemp -d "${TMPDIR:-/tmp}/wz-team.XXXXXX") || exit 1
-trap 'rm -rf "$T"' EXIT
+T=$(throwaway team) || exit 1
+leave_nothing "$T"
 APP=$(built_app "$T") || exit 1
 seats=$(HOME="$T" "$APP" --print-seats "$HERE/seats-cases.json" 2>&1) || { echo "$seats"; exit 1; }
 compare "Who holds a member's seat" "$HERE/seats.expected.txt" "$seats" "${1:-}" || status=1

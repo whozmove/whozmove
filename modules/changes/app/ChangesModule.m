@@ -40,6 +40,28 @@ static int PrintChanges(Core *core, NSArray<NSString *> *arguments) {
     return PrintJSON(view ?: @{});
 }
 
+// `Whozmove --print-count-due`: whether a checkout's changes are due a count for sample states (ChangesCountDue): not
+// watched or watched, changed or not, its editors' lines moved or not, seconds since its last count, since the latest
+// change and since the first one not counted. As JSON, then quit. The module's tests check it.
+static int PrintCountDue(void) {
+    NSMutableArray *due = [NSMutableArray array];
+    for (NSArray *c in @[@[@NO, @NO, @NO, @1, @0, @0], @[@NO, @NO, @YES, @1, @0, @0], @[@NO, @NO, @NO, @3, @0, @0],
+                         @[@YES, @NO, @NO, @3, @0, @0], @[@YES, @YES, @NO, @3, @1, @1],
+                         @[@YES, @YES, @YES, @3, @1, @1], @[@YES, @YES, @NO, @3, @2, @2],
+                         @[@YES, @YES, @NO, @2, @2, @2], @[@YES, @YES, @NO, @11, @1, @10],
+                         @[@YES, @NO, @NO, @1799, @0, @0], @[@YES, @NO, @NO, @1800, @0, @0]]) {
+        NSString *what = [c[0] boolValue]
+            ? [NSString stringWithFormat:@"watched, %@%@", [c[1] boolValue] ? @"changed" : @"unchanged",
+                                        [c[2] boolValue] ? @", edits moved" : @""]
+            : [c[2] boolValue] ? @"not watched, edits moved" : @"not watched";
+        [due addObject:@[[NSString stringWithFormat:@"%@, %@s since the last count, %@s since the latest change, %@s "
+                                                    @"since the first", what, c[3], c[4], c[5]],
+                         @(ChangesCountDue([c[0] boolValue], [c[1] boolValue], [c[2] boolValue], [c[3] doubleValue],
+                                           [c[4] doubleValue], [c[5] doubleValue], 1800))]];
+    }
+    return PrintJSON(due);
+}
+
 // Names in a sentence: "A, B or C".
 static NSString *ListedWithOr(NSArray<NSString *> *names) {
     if (names.count < 2) return names.firstObject ?: @"";
@@ -63,7 +85,8 @@ static NSString *ListedWithOr(NSArray<NSString *> *names) {
 }
 
 + (NSDictionary<NSString *, PrintMode> *)printModes {
-    return @{@"--print-changes": ^(Core *core, NSArray *a) { return PrintChanges(core, a); }};
+    return @{@"--print-changes": ^(Core *core, NSArray *a) { return PrintChanges(core, a); },
+             @"--print-count-due": ^(Core *core, NSArray *a) { return PrintCountDue(); }};
 }
 
 - (void)pageLoaded {

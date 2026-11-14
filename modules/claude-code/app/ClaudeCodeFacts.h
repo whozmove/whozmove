@@ -209,7 +209,11 @@ extern NSString *const kClaudeUsageRequest;
 // folder while it runs.
 // It's kept for follow-ups: after each `result` it reads the next message from its input and answers it in the same
 // conversation, and it ends at once when its input closes. Each message's `result` carries that message's own usage,
-// and --max-turns counts each message's rounds (kClaudeAsideTurns), not the whole process's.
+// and --max-turns counts each message's rounds (kClaudeAsideTurns), not the whole process's. Checked again with 2.1.319
+// (with and without --thinking-display summarized) and 2.1.304, against a stand-in API answering in 2 s, on a session
+// at rest, one in the middle of a turn (a tool call with no result) and one of about 108 MB: one `result` per message,
+// after its answer, and nothing after it. Live, a fresh copy has given a `result` within a second, with no usage and
+// no words, before its real answer a few seconds later (ClaudeAsideEarlyResult), which the stand-in never brought out.
 // It may only read: no settings files are read (so no allow rules, plugins, their hooks or MCP servers), it runs in
 // dontAsk, so a tool its --allowedTools doesn't name is refused, and the one hook it has, passed on its command line,
 // runs the checker (kClaudeAsideHook) before every tool. The allow rules alone aren't enough: `git diff

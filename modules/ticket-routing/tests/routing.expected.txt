@@ -73,7 +73,7 @@ Ticket routing: acme-shop: a folder that isn't one of the project's own was let 
    warning a way into the project's folder gives while another ticket's conversation works there
 ## settings
 Settings' row: Tickets, 0 projects, shown no
-its page: Tickets (shown no): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown no): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
 ## team PAY-142 checkout
 ## ask PAY-142
@@ -84,7 +84,7 @@ its page: Tickets (shown no): Where a ticket you give a new conversation starts,
   → {"asked":2,"git":true,"key":"PAY-142","name":"acme-shop","place":{"kind":"here"},"project":"<repos>/acme-shop","way":{"kind":"folder"}}
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · In acme-shop itself ›
       Its tickets open
@@ -92,10 +92,14 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
           · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
           ✓ In acme-shop itself (Every ticket in the project's folder, with your other work)
           · By its Team field (Each option's own folder, as its name matches) → {"after":"A new ticket → its Team's folder","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## pick way field
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · By its Team field ›
       Its tickets open
@@ -119,10 +123,14 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
           · acme-shop-checkout (<repos>/acme-shop-checkout)
           · billing (<repos>/billing)
           ✓ Its own worktree (Until it has a folder)
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## pick option 12 <repos>/billing
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · By its Team field ›
       Its tickets open
@@ -146,12 +154,16 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
           · acme-shop-checkout (<repos>/acme-shop-checkout)
           ✓ billing (<repos>/billing)
           · Its own worktree (Until it has a folder)
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## pick option 12 own
 ## pick way own
 ## busy PAY-150
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · Its own worktree ›
       Its tickets open
@@ -159,6 +171,10 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
           ✓ Its own worktree (A new worktree for each ticket, named after its key)
           · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop, beside PAY-150","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":"Two tickets in one folder can clash."}
           · By its Team field (Each option's own folder, as its name matches) → {"after":"A new ticket → its Team's folder","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":null}
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## logged
 Ticket routing: acme-shop's way changed
 Ticket routing: acme-shop's way changed
@@ -171,7 +187,7 @@ Ticket routing: acme-shop's way changed
 ## relaunch
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   [elsewhere] elsewhere isn't there any more · Not there · Forget It
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · Its own worktree ›
@@ -179,19 +195,27 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
         way:<repos>/acme-shop
           ✓ Its own worktree (A new worktree for each ticket, named after its key)
           · In acme-shop itself (Every ticket in the project's folder, with your other work) → {"after":"A new ticket → acme-shop","before":"A new ticket → its own worktree","keep":"Tickets started already keep their folders.","warn":null}
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## set folder
 ## kept
 routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"kind":"folder"}},"<repos>/elsewhere":{"at":"(when)","runs":{"kind":"own"}}}
 ## forget
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · In acme-shop itself ›
       Its tickets open
         way:<repos>/acme-shop
           · Its own worktree (A new worktree for each ticket, named after its key) → {"after":"A new ticket → its own worktree","before":"A new ticket → acme-shop","keep":"Tickets started already keep their folders.","warn":null}
           ✓ In acme-shop itself (Every ticket in the project's folder, with your other work)
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## kept
 routes.json (600): {"<repos>/acme-shop":{"at":"(when)","runs":{"kind":"folder"}}}
 ## logged
@@ -202,7 +226,7 @@ Ticket routing: elsewhere's way forgotten
 == An option's folder moved away: Settings says it has gone, and its tickets get their own worktree
 ## settings
 Settings' row: Tickets, 1 project, shown yes
-its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.
+its page: Tickets (shown yes): Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.
   How tickets open [Important]: A change counts for new tickets: tickets started already keep their folders.
     acme-shop · By its Team field ›
       Its tickets open
@@ -223,6 +247,10 @@ its page: Tickets (shown yes): Where a ticket you give a new conversation starts
           · acme-shop (<repos>/acme-shop)
           · acme-shop-checkout (<repos>/acme-shop-checkout)
           ✓ Its own worktree (Until it has a folder)
+      Reading your tickets through Whozmove: Other Jira tools in Claude Code or Claude Desktop read with their own sign-in, not through Whozmove.
+        reads:<repos>/acme-shop
+          · Conversations Read Your Jira Tickets (Every ticket you can see, as they need them to plan and work. They only read: nothing changes in Jira.) → {"after":"Conversations in acme-shop read every ticket you can see, through Whozmove","before":"Conversations in acme-shop read none through Whozmove until you turn this on: none there has worked one of your tickets","keep":"Nothing changes in Jira, and nothing they read is kept."}
+          ✓ They Read None (Each conversation that asks is told it's off here, and how to turn it on)
 ## team PAY-160 billing
 ## ask PAY-160
   → {"asked":1,"git":true,"key":"PAY-160","name":"acme-shop","place":{"kind":"own","reading":true},"project":"<repos>/acme-shop","way":{"field":{"id":"customfield_10001","name":"Team"},"kind":"field"}}

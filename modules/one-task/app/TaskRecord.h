@@ -74,47 +74,20 @@ NSString *TaskRecordSays(NSDictionary *record, NSString *taskId);
 // The tasks waiting, each { task, at, sent, back }, in the order they came.
 NSArray<NSDictionary *> *TaskRecordWaiting(NSDictionary *record);
 
-// The talk about a task: what you asked the session it's about, under the task (its entry's `talk`): `to`, the session
-// your words go to, kept from the first, and `toLead`, whether that's the lead rather than its member; and
-// `says`, the last TaskMostTalk, each {at, words, line, state}: `held` until it can go in, `typing`, `typed`, `sent`
-// once the session's own record shows it took them, `replied` or `noReply` once its turn ends, `notTaken`, `refused`
-// with `why` when none of it could go in, or `stopped` with `why` when it stopped part-way: each of those last two with
-// `way`, a button past the reason, when there's one, and `where`, the terminal it couldn't type into. It goes with its
-// task, and stays through the task's next steps.
-extern const NSUInteger TaskMostTalk, TaskMostTalkLine;
+// The talk about a task is its session's own chat (Side Chat's). What One Task keeps for it: the words that open yours
+// there, and the most that Copy Your Words copies of what you wrote about a task that no longer waits.
+extern const NSUInteger TaskMostTalkLine;
 // The words that open your words in the session, naming the task as kept: "About your task “Search as you type” (step 2
 // of 3, On a phone): ". For the lead's pick sent to its member (`lead`, the lead's name), none of the lead's words:
 // "About the task Atlas gave me on your work (step 2 of 3): ", the lead's name only when it's a short plain name
-// (TaskTalkName), else "your lead", as a team file could name a lead with a sentence. So your words never start a
-// command (/, ! or #), and nothing another session wrote reads as yours.
+// (TaskTalkName), else "your lead", as a team file could name a lead with a sentence. One plain line, starting with a
+// letter and ending in its one space, within Task.h's limits (at most about 200 characters), so your words never start
+// a command (/, ! or #), and nothing another session wrote reads as yours.
 NSString *TaskTalkLead(NSDictionary *task, NSString *lead);
-// The whole line typed into the session: TaskTalkLead and your words on one line, with nothing that hides what they
-// say or ends in a backslash; nil with no words, or longer than TaskMostTalkLine (the box keeps within it).
-NSString *TaskTalkLine(NSDictionary *task, NSString *lead, NSString *words);
-// Whether held words may go into a session by themselves, without your press: only into a terminal (not Claude
-// Desktop) that isn't the app in front at all, by its app id (`hostApp`, `frontApp`), and not into the session you're
-// on (`focused`). A tab switch in the terminal in front may not be known yet, so the whole app counts; with its app
-// unknown, never.
-BOOL TaskTalkGoesByItself(BOOL focused, BOOL desktop, NSString *hostApp, NSString *frontApp);
-// A reply cut into what's read and what's copied: its prose, each {prose}, and each code fence (``` or ~~~, a fence
-// left open running to the end), {code, lang}, exactly as written between its fences, in the order they came. Empty
-// prose is left out, and a reply its agent cut at TaskMostReply ends with {cut: true}. Nothing in it is ever run: a
-// fence's words are only shown and copied.
-NSArray<NSDictionary *> *TaskReplyParts(NSString *reply);
-// The most of a reply its agent gives (Agent.h's replyTo:), which cuts a longer one there with "…".
-extern const NSUInteger TaskMostReply;
 // A name as it may open your words to a member: TaskMostTalkName characters at most, only letters, digits, spaces and
 // hyphens, else nil.
 extern const NSUInteger TaskMostTalkName;
 NSString *TaskTalkName(NSString *name);
-// Your words about `taskId`, held until they can go in, as `line`, to the session `to`; nil, with why, when the task no
-// longer waits, or the talk is already with another session.
-NSDictionary *TaskRecordSay(NSDictionary *record, NSString *taskId, NSString *words, NSString *line, NSString *to,
-                            BOOL toLead, double now, NSString **why);
-// What's said at `at` with `change` taken in (NSNull takes a field out), and Take Back: held words taken out before
-// they go in, or words that couldn't go in or stopped part-way, back in your box (once they're going in, they stay).
-NSDictionary *TaskRecordTalkState(NSDictionary *record, NSString *taskId, double at, NSDictionary *change);
-NSDictionary *TaskRecordTakeBack(NSDictionary *record, NSString *taskId, double at);
 
 // --print-tasks: each case, what the shape's check and the record's rules make of it.
 int PrintTasks(NSArray<NSString *> *arguments);

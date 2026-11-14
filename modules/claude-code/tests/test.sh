@@ -48,24 +48,22 @@ APPDIR=$(find "$REPO/app" "$REPO/modules" -name '*.m' -exec sed -n "$APP_LINE" {
 EXE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$REPO/app/Info.plist")
 [ -n "$APPDIR" ] && [ "$(printf '%s\n' "$APPDIR" | wc -l)" -eq 1 ] && [ -n "$EXE" ] \
   || { echo "Couldn't read the app's folder (once) or process name"; exit 1; }
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
+. "$REPO/tests/lib.sh"
 # In /tmp rather than $TMPDIR: the panel's socket is in Whozmove's folder there, and a socket's path can't be longer
 # than 103 bytes. Where /tmp is refused (Claude Code's sandbox), its own temporary folder, which is short there.
-T=$(mktemp -d /tmp/wz-hooks.XXXXXX 2>/dev/null || mktemp -d "${TMPDIR:-/tmp}/wz-hooks.XXXXXX") || exit 1
+T=$(throwaway --short hooks) || exit 1
 T=$(cd "$T" && pwd -P) || exit 1
 D="$T/$APPDIR"
 # Where the stand-in panel mirrors what the hook asks it over its line, and takes the test's answers from (never
 # Whozmove's own folder).
 L="$T/line"
 # Stand-in processes are started detached, their pids kept in $T/pids so they're stopped however this ends.
-trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
-detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
+leave_nothing "$T"
 mkdir -p "$D/sessions" "$T/.claude/sessions" "$T/.claude/projects/p" "$T/repo" "$T/Applications/$EXE.app"
 # Where the app runs from, as it notes it in its folder each time it opens: the hooks record only while it's there.
 echo "$T/Applications/$EXE.app" > "$D/app"
 # Where a Unix socket can't be made or reached here (Claude Code's sandbox), each section that goes over the hook's
 # line fails at once, saying why, rather than waiting out each of its timeouts; it's never compared, nor recorded.
-. "$REPO/tests/lib.sh"
 SOCKETS=$(sockets_refused "$T")
 refused_here() { echo "$1: couldn't run here, as $SOCKETS"; status=1; }
 git -C "$T/repo" init -q -b main && git -C "$T/repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init

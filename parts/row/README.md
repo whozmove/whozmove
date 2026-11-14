@@ -56,7 +56,8 @@ the list's HTML and what the cards go by, as part.json lists:
   count as only just shown once it's back (`showAgain`, parts/handoff).
 - **A module that shows what a session is doing** away from its row (at a side chat's foot) draws the row's own line
   for it (`workLineHTML`, with its own label), so it reads the same wherever it's drawn, its time kept ticking by
-  `tickTimes`.
+  `tickTimes`. Drawn inside a scroller under sticky bars (a side chat in One Task's view), it's `still`: the same
+  words without the shine or the breathing, which WebKit would paint again every frame there.
 - **The strip at a row's far edge** holds what a module gives in `core.slots.edge` (parts/bridge); its bar swells as
   hover looks (`core.pointerWatchers`, parts/hover), on the side the reader opens (`.far-left` on the page, set by its
   own `readerSide` as the app tells it, parts/bridge).

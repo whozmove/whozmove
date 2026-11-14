@@ -3,7 +3,9 @@
 A module is one folder in `modules/`: its native code, its page files, its tests and its README. Nothing outside it
 lists it: the app finds it at launch, the build compiles it, the page loads its files and the tests run it. So adding
 one, an agent, an app for sessions to run in, or a feature, means writing that folder. The only change outside it is
-its line in the docs' map, and an empty container in the page if it needs a place of its own.
+its line in the docs' map, an empty container in the page if it needs a place of its own, and, if it needs an ability
+macOS's hardened runtime holds back that Whozmove doesn't ask for yet, its entitlement in `tools/Whozmove.entitlements`
+(CONTRIBUTING.md's rules say which never go in).
 [The overview](../how-it-works/overview.md) shows where it fits.
 
 ## 1. Choose what it is
@@ -114,8 +116,18 @@ acts before the page is there and never names another module.
 `tests/test.sh` runs the module's print modes, and its page part, and compares what they print with copies kept beside
 it (`<name>.expected.txt`). `tests/all.sh` finds it. Spotify's is a good one to start from. What it shares:
 
-- `tests/lib.sh`: `built_app` (the app, built once for the whole run), `in_minutes` (times as minutes ago, so a run
-  reads the same every time) and `page_cases` (a file of the page's cases, run with macOS's JavaScriptCore).
+- `tests/lib.sh`: `throwaway` and `leave_nothing` (the test's own folder and its clean-up), called at the top, before
+  anything else: the folder goes, and everything the test started stops, however it ends (`|| exit 1` stops the test
+  when no folder could be made):
+
+  ```bash
+  T=$(throwaway <name>) || exit 1
+  leave_nothing "$T"
+  ```
+
+  Then `built_app` (the app, built once for the whole run), `detached` and `pause` (stand-in processes),
+  `in_minutes` (times as minutes ago, so a run reads the same every time), `page_cases` (a file of the page's cases,
+  run with macOS's JavaScriptCore) and `page_test` (those cases compared with what was recorded beside them).
 - `tests/compare.sh`: `compare`, which prints the difference, or with `--update` keeps the new output once you've read
   it.
 - A throwaway `HOME` for every run, so nothing touches your real sessions or files.

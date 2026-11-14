@@ -55,10 +55,20 @@ your box to send.
 - `page/side-chat.js`: Side Chat at every running session's row's far edge (the row part's `edge` slot), opening the
   chat as the reader's `sideChat` mode with the cursor in its box, what you write kept per session, the presses in it,
   Return going the way you chose last (kept per session, in memory only; `sideChatWayNow`), which is the dark button,
-  ⌥Return the other way, and Esc to close, and what the app tells it (`setSideChats`).
+  ⌥Return the other way, and Esc to close, and what the app tells it (`setSideChats`). It lends the chat to the views
+  that show it through the core (`core.sessionChat`, `draw(s, { lines, box, opening })`, One Task's talk under a task):
+  its conversation and its box drawn into the elements they give, each marked with its session (`data-sc-chat`) and the
+  box with the words that open yours there (`data-sc-opening`), so its presses, keys and what you type find their
+  session and send that opening wherever it's drawn (`sideChatAct`, `sideChatUnder`, `sideChatPutBack`); Esc there
+  leaves the box, and having it in front counts as seeing the chat (`sideChatSaw`). With no head of its own there,
+  the conversation ends with what its head would say while the session asks for your OK, with Show It for its request
+  (`sideChatHostedLive`), so what Send waits on is in sight. A new reply or side answer is said
+  to VoiceOver where it's drawn (`sideChatSayAloud`), in its own window too.
   While the session works, the conversation's foot is the row part's own line (`workLineHTML`, under the session's
   name), drawn again only when its step changes and its time ticked (`tickTimes`) in between, so it reads as the row
-  does and a reply you're selecting text in isn't drawn again each second.
+  does and a reply you're selecting text in isn't drawn again each second. Drawn in another view, it and a side
+  question's line are still (`workLineHTML`'s `still`): no shine, which under that view's sticky bars WebKit would
+  paint again every frame.
 - `page/side-chat.css`: its look, One Task's talk's in side chat's own classes, from the kit's tokens; on the row, a clear button
   filling the strip, the row's bar its look: kept lit while its chat is open (`keep`), in your move's colour while a
   reply waits that you haven't seen (`lit`).
@@ -71,13 +81,24 @@ questions asked without interrupting, and a reply cut into prose and code (`--pr
 
 ## Between the page and the app
 
-- The page sends `sideChatSend` (`{sessionId, words, aside}`, `aside` when a side question is sent with Send's words),
-  `sideChatTakeBack` and `sideChatSendNow` (`{sessionId, at}`), `sideChatCopy` (`{sessionId, words}` or
-  `{sessionId, at}`), `sideChatReplyCopy` (`{sessionId, at, part}`) and
-  `sideChatPutBack` (`{sessionId, at}`), `sideChatAsk` (`{sessionId, question}`), `sideChatAskStop`
-  (`{sessionId, at}`), `sideChatAsideCopy` (`{sessionId, at, what, part}`), `sideChatCopySignIn` and
-  `sideChatGetAgent` (`{sessionId}`), and the app calls `setSideChats(chats)`: each listed session's chat, by
-  session, `{says, asides, askWhyNot, agent, hook, frame, front, idleWay}`.
+- The page sends `sideChatSend` (`{sessionId, words, aside, opening}`, `aside` when a side question is sent with Send's
+  words, `opening` the words that open yours where the chat is drawn), `sideChatTakeBack` and `sideChatSendNow`
+  (`{sessionId, at}`), `sideChatCopy` (`{sessionId, words, opening}` or `{sessionId, at}`), `sideChatReplyCopy`
+  (`{sessionId, at, part}`) and `sideChatPutBack` (`{sessionId, at}`), `sideChatAsk` (`{sessionId, question,
+  opening}`), `sideChatAskStop` (`{sessionId, at}`), `sideChatAsideCopy` (`{sessionId, at, what, part}`),
+  `sideChatCopySignIn` and `sideChatGetAgent` (`{sessionId}`), and `sideChatAccessibility` (`{}`, Accessibility's pane in
+  System Settings, by your press), and the app calls `setSideChats(chats)`: each listed session's chat, by session,
+  `{says, asides, askWhyNot, agent, hook, frame, front, idleWay}`.
+- An `opening` is checked as your words are (`SideChatOpening`: one plain line of at most 200 characters, starting with
+  a letter and ending in its one space), or nothing goes. The record keeps the whole line as it goes in (`line`) beside
+  your words (`words`, what the chat shows and what comes back to your box), and what's sent, sent again with Send Now,
+  copied with Copy and Go, and the reply to typed words is found by, is the line (`SideChatLine`). What goes is decided
+  in plain functions: what words and a side question go as (`SideChatToGo`), what Copy and Go copies
+  (`SideChatCopyLine`), and the way past a refusal (`SideChatRefusedWay`). Words that can't go with their opening (not
+  one plain line, or too long with it) come back to your box saying why (`notSent`), never dropped. A side question
+  keeps the opening it was asked with: its copy is asked the question after it, and Ask Again, Send's words, Copy the
+  Question and a later question's copy all take it with that one, wherever they're pressed (`SideChatAsideLine`); the
+  chat shows your question, the opening quietly over it.
 
 ## Rules
 
@@ -86,7 +107,11 @@ questions asked without interrupting, and a reply cut into prose and code (`--pr
   once it's idle at its prompt, under the panel's own typing rule, and by themselves only where it's safe (Send's
   `ReachGoesByItself`), else for your Send Now, or Copy and Go in a terminal Whozmove can't type into.
 - **Every "can't" says so before you press,** with the way forward in Send's place: Copy and Go, Open Again, or Close
-  the Other Copy.
+  the Other Copy; and once words come back, the way past why: the terminal's own, or, for Claude Desktop without the
+  Accessibility permission, which Send can't give, its pane (`sideChatAccessibility`).
+- **Drawn elsewhere, still Side Chat's.** A view that shows the chat (`core.sessionChat`) decides only whose chat and
+  the words that open yours there; everything inside is Side Chat's, and it names nothing of the view's: no word of
+  its own about a task, and its own placeholder.
 - **Everything said is escaped,** a reply's prose drawn from its Markdown, and a command in it only ever copied, as
   the app read it, never run.
 - **"Read" only once the session's own record shows the words;** until then, Take Back.

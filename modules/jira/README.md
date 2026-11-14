@@ -29,9 +29,11 @@ categories (by their key, or by their name where an answer gives only that), and
   fields that take one (Ticket's `values`) and a type's fields that take one option, with their options' ids (for
   where a ticket starts: `optionFieldsOf:done:`), looking for
   each in every shape the server has given it, and a move's fields, given as every tracker gives them, into Jira's own
-  shapes for that step's screen (an option by the id Jira gave it).
+  shapes for that step's screen (an option by the id Jira gave it). For a read of every ticket you can see: a search's next
+  page (`everyTicketSince:done:`), and a ticket's moves from its history (`readWhole:site:done:`).
 - `app/JiraFacts.m`: what Atlassian could change: the server's address, the scopes, the tools' names, a key's and a
-  link's shapes, the search's JQL, the kinds, and what to ask an admin.
+  link's shapes, the search's JQL and every ticket's (what changed lately),
+  the kinds, and what to ask an admin. It says which answers are assumed until a live read confirms them.
 - `app/JiraPrints.m`: `--print-jira facts <samples>`, `--print-jira answers <folder> <site>` and `--print-jira keychain
   …` (a made-up entry of its own, for a virtual Mac), for the tests.
 - `tests/test.sh`: the plain functions over made-up samples (`facts.json`), recorded answers (`answers/`, made up, in
@@ -158,6 +160,8 @@ Only to Atlassian (mcp.atlassian.com and auth.atlassian.com), as you, once you'v
   its row or let it with May Move Its Ticket;
 - a new ticket a conversation drafted: the project it goes in, to ask what types it takes, as the draft comes; then its
   title, type, description, priority and parent, once you press Create Ticket on its row;
+- when a conversation reads your tickets: a search for every ticket you can see on each site (with how many minutes
+  back, for what changed), a page at a time, and a ticket's key, to read it with its history;
 - signing in: Whozmove's name and its return address on this Mac, to register.
 
 It keeps the sign-in in your Keychain, with the scopes it asked for and which build kept it, and nothing else: each

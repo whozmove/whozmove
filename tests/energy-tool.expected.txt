@@ -1,0 +1,72 @@
+== now, N seconds
+bash (process PID), over N seconds:
+  the app: N% of a core, N wakeups a second, read N MB, wrote N MB, memory N MB
+  programs it started, seen: gh N, git N, sleep N (N a minute)
+  by folder: gh (no folder) N, gh shop N, git shop N
+  agents at work meanwhile: couldn't tell (no sessions folder)
+  against the targets, agents at work or not (couldn't tell):
+    MARK  · share of a core: N% (target under N%)
+    MARK  · wakeups: N a second (target under N a second)
+    MARK  · reads: N GB an hour (target under N GB an hour)
+    MARK  · writes: N MB an hour (target under N MB an hour)
+    MARK  · git runs seen: N a minute (target under N a minute)
+    MARK  · the app's memory: N MB (target under N MB)
+exit ok
+== launch
+bash (process PID), started DAY N:N, awake N minutes since:
+  read N MB, wrote N MB, memory N MB, N s of CPU
+  the power log: read only for Whozmove: run this without --pid to see Whozmove's
+  against the targets:
+    under · the app's memory: N MB (target under N MB)
+exit ok
+== launch, with a power log
+bash (process PID), started DAY N:N, awake N minutes since:
+  read N MB, wrote N MB, memory N MB, N s of CPU
+    N:N-N:N: read N MB, N% of a core (began before it started: what ran then is in it too)
+    N:N-N:N: read N MB, N% of a core
+    N:N-N:N: read N MB, N% of a core
+  settled N minutes after it started
+  against the targets:
+    under · the app's memory: N MB (target under N MB)
+    over  · its group read until it settled: N MB (target under N MB)
+exit ok
+== no such process
+procs: can't read process N
+tools/energy.sh: process N isn't running
+exit failed
+== no Whozmove running
+tools/energy.sh: Whozmove isn't running: open it, then run this again
+exit failed
+== written in the home
+(end)
+== week, week
+Whozmove's whole group, the last 7 days (from DAY 08:00), per hour the Mac was awake at least 30 minutes; Deploys' hours left out (4 hours, Whozmove's restarts known since DAY 13:20):
+  DAY: quiet 1 h: 2.5% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.10 GB an hour, 100 wakeups a second, 0 programs an hour
+              busy 1 h: 5.0% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.20 GB an hour, 100 wakeups a second, 600 programs an hour
+  (1 hour the Mac was awake under 30 minutes left out)
+The week:
+  quiet hours (1 h): 2.5% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.10 GB an hour, 100 wakeups a second, 0 programs an hour
+  busy hours (1 h): 5.0% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.20 GB an hour, 100 wakeups a second, 600 programs an hour
+  against the targets:
+    under · quiet hours' share of a core: 2.5% (target under 5%)
+    under · busy hours' share of a core: 5.0% (target under 15%)
+    under · graphics: 1.0% of the time (target under 10%)
+    under · reads: 0.15 GB an hour (target under 0.3 GB an hour)
+    under · wakeups: 100 a second (target under 150 a second)
+exit ok
+== week, no-name
+This Mac's power log doesn't record apps by name, so week can't measure here: use now or launch instead.
+exit ok
+== week, no-battery
+This Mac has no battery, so its power log doesn't say when it was awake: each hour with Whozmove's figures counts as awake.
+Whozmove's whole group, the last 7 days (from DAY 08:00), per hour the Mac was awake at least 30 minutes; Deploys' hours left out (0 hours, Whozmove's restarts known since DAY 13:20):
+  DAY: quiet 1 h: 2.5% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.10 GB an hour, 100 wakeups a second, 0 programs an hour
+              busy 0 h: -
+The week:
+  quiet hours (1 h): 2.5% of a core, graphics 1.0% of the time, graphics 18 joules an hour, reads 0.10 GB an hour, 100 wakeups a second, 0 programs an hour
+  against the targets:
+    under · quiet hours' share of a core: 2.5% (target under 5%)
+    under · graphics: 1.0% of the time (target under 10%)
+    under · reads: 0.10 GB an hour (target under 0.3 GB an hour)
+    under · wakeups: 100 a second (target under 150 a second)
+exit ok

@@ -549,7 +549,10 @@ BOOL SwitchPressTurnsOn(Allowed *allowed, NSString *key, Row *row) {
         PanelLog(@"%@ -> %@: Accessibility permission needed", row.hostSessionId,
                  CommandLogged(command.field, command.value));
         NSBeep();
+        // Its note's button opens Accessibility in System Settings (the page's noteWays.accessibility).
         command.why = @"Allow Whozmove in Accessibility, then try again";
+        command.way = @"Open Accessibility Settings";
+        command.go = @"accessibility";
         [self abandon:command];
         return;
     }
@@ -836,7 +839,7 @@ BOOL SwitchPressTurnsOn(Allowed *allowed, NSString *key, Row *row) {
     [self releaseDefaultsOf:command saved:NO];
     [self endCompact:command result:nil];
     if (command.why && ![command.field isEqual:@"compact"])
-        [self.page stepNote:command.sessionId text:command.why way:command.way];
+        [self.page stepNote:command.sessionId text:command.why way:command.way go:command.go];
 }
 
 // A pick that can't go in beeps, and says why on its row, with the way past a terminal's reason when there is one, so
@@ -850,9 +853,9 @@ BOOL SwitchPressTurnsOn(Allowed *allowed, NSString *key, Row *row) {
     [self.page stepNote:sid text:why way:way go:go];
 }
 
-// One whose reason sends you to the session itself ("change it there"): Take me there opens it.
+// One whose reason sends you to the session itself ("change it there"): Take Me There opens it.
 - (void)cantPickThere:(NSString *)sid why:(NSString *)why {
-    [self cantPick:sid why:why way:@"Take me there" go:@"open"];
+    [self cantPick:sid why:why way:@"Take Me There" go:@"open"];
 }
 
 // Watches for the command's result: every quarter second for a minute, then every 2s for ten more (the row goes

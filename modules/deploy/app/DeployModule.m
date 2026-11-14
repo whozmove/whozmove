@@ -72,6 +72,29 @@ static int PrintDeployChecks(NSArray<NSString *> *arguments) {
 static int PrintDeployAsks(Core *core, NSArray<NSString *> *arguments);
 static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments);
 
+// Why Whozmove's folder in $HOME refuses a save made as Deploy makes its own (atomically, through a temporary copy,
+// which Claude Code's sandbox refuses), or nil: tried with an empty file, taken away after. A print run that saves asks
+// first, and where saves are refused it says why and stops, rather than printing what a refused save leaves behind.
+static NSString *DeploySavesRefused(void) {
+    NSString *path = AppDir(@"deploy-save-check");
+    NSError *refused = nil;
+    BOOL saved = [NSData.data writeToFile:path options:NSDataWritingAtomic error:&refused];
+    [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+    return saved ? nil : refused.localizedDescription ?: @"the save didn't go through";
+}
+
+// A record a print run edits, from a file read (nil when there's none, or it isn't a record): a copy, or a new one.
+static NSMutableDictionary *EditableRecord(id value) {
+    return [AsRecord(value) mutableCopy] ?: [NSMutableDictionary dictionary];
+}
+
+// The one line a print run that saves says, and what it ends with, where Deploy's saves are refused.
+static int SaysSavesRefused(NSString *why) {
+    printf("Deploy's saves are refused here: %s\n", why.UTF8String);
+    fflush(stdout);
+    return 3;
+}
+
 @interface DeployModule : NSObject <Module, BuildsInPlace>
 @property (weak) Core *core;
 @property (strong) Deploys *deploys;  // made as the app starts: what it reads and runs is the app's alone
@@ -285,9 +308,10 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments);
 // what's in the way; and when the switch ends (its command changed, another process given its pid, its process gone).
 // Then it listens at `socket`, Asker's switch on, until `<socket>.done` is there or `seconds` have gone, for
 // ask-panel.sh to be tried from inside Asker's process and from outside any session. It changes Whozmove's folder in
-// $HOME, so it refuses your own.
+// $HOME, so it refuses your own. Where Deploy's saves are refused there, it says why in one line and ends with 3, before
+// anything; given nothing else, it only checks that, ending with 0 when they aren't, so a test can ask before it starts.
 static int PrintDeployAsks(Core *core, NSArray<NSString *> *arguments) {
-    if (arguments.count < 2) return 2;
+    if (arguments.count == 1) return 2;
     if (HomeIsYourOwn()) {
         fprintf(stderr, "--print-deploy-asks changes Whozmove's folder in $HOME: give it a throwaway one\n");
         return 2;
@@ -295,6 +319,9 @@ static int PrintDeployAsks(Core *core, NSArray<NSString *> *arguments) {
     // Whozmove's folder, as the app makes it as it starts.
     [NSFileManager.defaultManager createDirectoryAtPath:AppDir(nil) withIntermediateDirectories:YES
                                              attributes:@{NSFilePosixPermissions: @0700} error:nil];
+    NSString *refused = DeploySavesRefused();
+    if (refused) return SaysSavesRefused(refused);
+    if (!arguments.count) return 0;
     DeployModule *module = nil;
     for (id each in core.modules.all)
         if ([each isKindOfClass:DeployModule.class]) module = each;
@@ -529,8 +556,8 @@ static int PrintDeployAsks(Core *core, NSArray<NSString *> *arguments) {
 // checkout, side by side, each up on its own $PORT, the later one in place; one on every address; one on a port of its
 // own; one on two ports; one that never listens; one whose program isn't installed, with a package.json and no
 // node_modules and then with neither (what its card goes by, and its last lines with terminal codes taken out); one
-// that ends by itself once up; and one its shell leaves running, which Stop Deploy stops by its pid.
-// The deploy module's tests check it.
+// that ends by itself once up; and one its shell leaves running, which Stop Deploy stops by its pid. Where Deploy's saves
+// are refused in $HOME, it says why in one line and ends with 3, before anything. The deploy module's tests check it.
 static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     if (arguments.count < 3) return 2;
     if (HomeIsYourOwn()) {
@@ -539,6 +566,8 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     }
     [NSFileManager.defaultManager createDirectoryAtPath:AppDir(nil) withIntermediateDirectories:YES
                                              attributes:@{NSFilePosixPermissions: @0700} error:nil];
+    NSString *refused = DeploySavesRefused();
+    if (refused) return SaysSavesRefused(refused);
     DeployModule *module = nil;
     for (id each in core.modules.all)
         if ([each isKindOfClass:DeployModule.class]) module = each;
@@ -590,7 +619,7 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
         [deploys save:named forRow:rowIn(folder) thenDeploy:NO];
         [deploys settle];
         id after = ReadJSON(AppDir(@"deploy.json"))[@"projects"][RealPath(project)][@"savedAt"];
-        return [after isEqual:before] ? @"not saved" : [@"saved: " stringByAppendingString:saved()];
+        return !after || [after isEqual:before] ? @"not saved" : [@"saved: " stringByAppendingString:saved()];
     };
     NSString *(^ports)(void) = ^NSString *{
         NSDictionary *folders = ReadJSON(AppDir(@"ports.json"))[@"projects"][RealPath(project)][@"folders"];
@@ -600,7 +629,7 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
         return each.count ? [each componentsJoinedByString:@", "] : @"none";
     };
     void (^keepOnly)(NSDictionary *) = ^(NSDictionary *entry) {
-        NSMutableDictionary *store = [ReadJSON(AppDir(@"deploy.json")) mutableCopy];
+        NSMutableDictionary *store = EditableRecord(ReadJSON(AppDir(@"deploy.json")));
         store[@"projects"] = @{RealPath(project): entry};
         [[NSJSONSerialization dataWithJSONObject:store options:0 error:nil] writeToFile:AppDir(@"deploy.json")
                                                                            atomically:YES];
@@ -1160,13 +1189,18 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     // A program Deploy didn't start on the worktree's port (the test's own server, on base+7): named, never stopped,
     // and the next free port offered, which Use Port runs on, from now on.
     serve([local stringByAppendingString:@" $PORT"]);
-    NSMutableDictionary *record = [ReadJSON(AppDir(@"ports.json")) mutableCopy];
-    NSMutableDictionary *entry = [record[@"projects"][RealPath(project)] mutableCopy];
-    NSMutableDictionary *kept = [entry[@"folders"] mutableCopy];
-    kept[RealPath(tree)] = @(base + 7);
-    entry[@"folders"] = kept;
-    record[@"projects"] = @{RealPath(project): entry};
-    [[NSJSONSerialization dataWithJSONObject:record options:0 error:nil] writeToFile:AppDir(@"ports.json") atomically:YES];
+    // The worktree's port kept as base+7, the one that program holds, from whatever ports.json has, or nothing.
+    void (^keepHeldPort)(void) = ^{
+        NSMutableDictionary *record = EditableRecord(ReadJSON(AppDir(@"ports.json")));
+        NSMutableDictionary *entry = EditableRecord(AsRecord(record[@"projects"])[RealPath(project)]);
+        NSMutableDictionary *kept = EditableRecord(entry[@"folders"]);
+        kept[RealPath(tree)] = @(base + 7);
+        entry[@"folders"] = kept;
+        record[@"projects"] = @{RealPath(project): entry};
+        [[NSJSONSerialization dataWithJSONObject:record options:0 error:nil] writeToFile:AppDir(@"ports.json")
+                                                                            atomically:YES];
+    };
+    keepHeldPort();
     say(@"Deploy pressed in the worktree, its port held", press(tree));
     // Who started it: the test's own shell, standing in for a session's process, counts only if it started first.
     pid_t parent = arguments[4].intValue;
@@ -1200,13 +1234,7 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     say(@"Stopped", stop(tree));
     // A session's ask, the worktree's port held by that program again: it takes the next free port, kept from now on,
     // with the program left running, and its status says which.
-    record = [ReadJSON(AppDir(@"ports.json")) mutableCopy];
-    entry = [record[@"projects"][RealPath(project)] mutableCopy];
-    kept = [entry[@"folders"] mutableCopy];
-    kept[RealPath(tree)] = @(base + 7);
-    entry[@"folders"] = kept;
-    record[@"projects"] = @{RealPath(project): entry};
-    [[NSJSONSerialization dataWithJSONObject:record options:0 error:nil] writeToFile:AppDir(@"ports.json") atomically:YES];
+    keepHeldPort();
     say(@"Asked for in the worktree by a session, its port held", asked(tree));
     say(@"…its status", askedStatus(tree));
     say(@"…the worktree's port from now on", at(ReadJSON(AppDir(@"ports.json"))[@"projects"][RealPath(project)]
@@ -1215,8 +1243,9 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     say(@"Stopped", stop(tree));
 
     // A made-up token in a confirmed command, which prints it and fails, so its run's last line holds it too: set on
-    // the card, deployed by a press, run once more as asked for by a session, and a version too long to save. None of
-    // it reaches panel.log; only the run's own log has it. Nothing here prints the command, its answers or its lines.
+    // the card, deployed by a press, run once more as asked for by a session, a version too long to save, and one
+    // confirmed where macOS refuses the save. None of it reaches panel.log; only the run's own log has it. Nothing here
+    // prints the command, its answers or its lines.
     NSString *token = [@"wz-made-up-" stringByAppendingString:NSUUID.UUID.UUIDString];
     NSString *carries = [NSString stringWithFormat:@"echo %@; false", token];
     [deploys readNowFor:@[rowIn(project)]];
@@ -1240,6 +1269,33 @@ static int PrintBuildsUp(Core *core, NSArray<NSString *> *arguments) {
     [deploys save:[carries stringByPaddingToLength:1200 withString:@" #" startingAtIndex:0] forRow:rowIn(project)
        thenDeploy:NO];
     [deploys settle];
+    // Confirmed with Deploy where macOS refuses the save: a folder stands where deploy.json goes, the saved file set
+    // aside meanwhile and put back after. Nothing is kept and nothing runs, and panel.log says why. Only whether its
+    // lines since say so is printed, in these words, never the line or macOS's own (another macOS words it otherwise).
+    NSString *store = AppDir(@"deploy.json"), *storeKept = [store stringByAppendingString:@".kept"];
+    unsigned long long logged = [files attributesOfItemAtPath:AppDir(@"panel.log") error:nil].fileSize;
+    [files removeItemAtPath:storeKept error:nil];
+    BOOL hadStore = [files moveItemAtPath:store toPath:storeKept error:nil];
+    [files createDirectoryAtPath:store withIntermediateDirectories:NO attributes:nil error:nil];
+    id refusedAfter = LastDeployRun(project)[@"startedAt"] ?: @0;
+    [deploys check:carries forRow:rowIn(project)];
+    [deploys settle];
+    [deploys save:carries forRow:rowIn(project) thenDeploy:YES];
+    [deploys settle];
+    NSFileHandle *log = [NSFileHandle fileHandleForReadingAtPath:AppDir(@"panel.log")];
+    [log seekToFileOffset:logged];
+    NSString *loggedSince = [[NSString alloc] initWithData:[log readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+    [log closeFile];
+    BOOL saysWhy = NO;
+    for (NSString *line in [loggedSince ?: @"" componentsSeparatedByString:@"\n"]) {
+        NSRange at = [line rangeOfString:@" not saved: "];
+        if (at.location != NSNotFound && NSMaxRange(at) < line.length) saysWhy = YES;
+    }
+    say(@"Confirmed with Deploy where macOS refuses the save", [NSString stringWithFormat:@"panel.log %@, %@",
+        saysWhy ? @"says it wasn't saved, and why" : @"doesn't say it wasn't saved",
+        [refusedAfter isEqual:LastDeployRun(project)[@"startedAt"] ?: @0] ? @"nothing ran" : @"it ran"]);
+    [files removeItemAtPath:store error:nil];
+    if (hadStore) [files moveItemAtPath:storeKept toPath:store error:nil];
     NSString *(^has)(NSString *) = ^NSString *(NSString *path) {
         NSString *text = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
         return [text containsString:token] ? @"has it" : @"hasn't it";

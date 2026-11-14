@@ -27,13 +27,10 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/sessions/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-sessions.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-# Stand-in processes are kept in $T/pids so they're stopped however this ends (a paused one is carried on first).
-stop() { kill -CONT $(cat "$T/pids" 2>/dev/null) 2>/dev/null; kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; }
-trap 'stop; rm -rf "$T"' EXIT
 . tests/lib.sh
+T=$(throwaway sessions) || exit 1
+# Stand-in processes are kept in $T/pids so they're stopped however this ends (a paused one is carried on too).
+leave_nothing "$T"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 
@@ -99,7 +96,6 @@ register() {
 # Started detached, so their parent is launchd and no app is above them: otherwise they would inherit whatever terminal
 # this test runs in, and Sessions would say "Running in Ghostty" here and "Running in a terminal" on a runner with none.
 # Every Mac then says the same.
-detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
 for which in OPEN BUSY PAUSED STALE; do
   eval "${which}_PID=$(detached sleep 600)"
 done

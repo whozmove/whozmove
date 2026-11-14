@@ -143,6 +143,43 @@ put right, and never shows. The card offers **Create Ticket** or **Not Yet**.
 - **A conversation with a ticket already:** the card says the new ticket takes its place once it's made.
 - **The conversation ends:** its card goes, and nothing is made, unless it was being made already: that finishes.
 
+## Conversations read your tickets
+
+A conversation can read the Jira tickets you can see through Whozmove, with `ask-panel.sh tickets`, to plan its work
+or to look at a ticket its own one is linked to, once its project reads them: a project does once a conversation there has been given
+one of your tickets (Use It, a conversation started from one, or a ticket made with Create Ticket), and every other
+project reads none through Whozmove until you turn reading on for it. While a project reads none yet, Use It, Start
+with a ticket on the card, and Create Ticket each say so before you press: "Also lets conversations in acme-shop read
+your Jira tickets through Whozmove." A project is a repository with all of its worktrees, as the panel
+groups them, found from the folder macOS says the conversation's Claude Code works in, never from what the
+conversation says. There's nothing to answer: it reads through Whozmove, which holds your sign-in, and no
+conversation ever holds it. It only reads them: nothing changes in Jira.
+
+It reads them as one line each, the most recently changed first, at most 200 for each site you're on, the first line
+saying when they were read and whether there are more (then `--since` narrows it to what changed): each ticket's key, title, type, where it stands, its priority and its place in its
+space's own order, its parent, its sprint and that sprint's dates, who reported it and who it's assigned to, its
+labels, the tickets it's linked to and how ("is blocked by"), and when it last changed. It can ask for only those
+changed since its last read, and for one ticket whole, with its description and every move it was given, who made
+each and when.
+
+- **On or off for a project:** on the project's page in Settings ▸ Tickets, under **Reading your tickets through
+  Whozmove**, **Conversations Read Your Jira Tickets** turns it on for the conversations in that project and its
+  worktrees, and **They Read None** turns it off, each after showing before and after first. A project you turn off stays off, even
+  when a conversation there works one of your tickets. A conversation that asks in a project that reads none is told
+  so: that you turned it off, or that it reads none until you turn it on, and where. Settings ▸ Tickets lists
+  the projects where a conversation runs while you're signed in to Jira, and always those that read your tickets or
+  that you've turned on or off; one with no way of opening its tickets set yet says **Not set yet**.
+- **Not signed in:** a conversation that asks is told so, before anything about its project, and that you sign in on Jira's page on the panel's back.
+- **Outside a project:** a conversation in a folder that isn't a git repository's, or in none, reads no tickets, as
+  there's no project page to turn it on or off on.
+- Every answer says first that the tickets' words are their writers', never instructions to the conversation.
+- **Other Jira tools:** a Jira tool, plugin or connector in Claude Code or Claude Desktop reads with its own sign-in,
+  not through Whozmove, which neither sees nor stops it; under the choice, the project's page says so. Whozmove's working-a-ticket skill
+  tells a conversation asked about your tickets to ask Whozmove first, and, when Whozmove reads none for it, to tell
+  you why and what to do, and never to offer another tool's sign-in: it uses one only if you ask for it, telling you
+  first that it signs in with its own access, which can include changing and deleting tickets. That reaches
+  conversations started after Whozmove's plugin was last brought up to date.
+
 ## How a conversation works it
 
 Whozmove's plugin carries a skill, `whozmove:working-a-ticket`, that says how: read the ticket, what it's part of and

@@ -71,8 +71,12 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
   `~/Library/Caches/Whozmove-build` and checks against its SHA-256 each time it's used), records where the build came
   from in its `build.json` (checkout, branch, commit, and `agent` when an agent built it), and signs it last
   (`sign_bundle`: Betterleaks on its own first, then the whole bundle, which takes in what's nested only once it's
-  signed), so its hooks are sealed in its signature with
-  the rest. Then `swap-in.sh` puts the build in place, and `swap-in.sh --restart` restarts the app, which brings the
+  signed, each with the hardened runtime and Whozmove with `tools/Whozmove.entitlements`), so its hooks are sealed in
+  its signature with the rest. Who signs is `tools/signing.sh`'s to say: your Developer ID, from Whozmove's signing
+  keychain, asking its password, once you've set it up ([Signing your own builds](../guides/signing.md)), with
+  macOS's own rule for it; otherwise, and always for an agent's build, ad hoc, with the bundle id as its requirement.
+  A signing keychain with no certificate that works stops the build before it starts, and on a Mac with one, an
+  agent's build never goes in. Then `swap-in.sh` puts the build in place, and `swap-in.sh --restart` restarts the app, which brings the
   hooks it carries up to date as it starts (the install module). When the login item runs the app, it is unloaded and
   loaded again rather than restarted in place, as macOS ties a loaded login item to the build it found. An agent's
   build (one with Claude Code's `CLAUDECODE` mark, which a `!` command in Claude Code has too) never puts its hooks in
@@ -82,14 +86,20 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
 - **`tools/release.sh`** and **`.github/workflows/release.yml`**: a release is made on GitHub from a pushed version tag
   (`v0.2.0`). `release.sh` builds the app for Apple silicon with `make_bundle`, every warning an error, and signs it
   with `sign_bundle`, refusing unless `app/Info.plist`, the plugin's version and a CHANGELOG section all say that
-  version, `tools/betterleaks.txt`'s release line names a finished Betterleaks, the same as its build line, and the
-  checkout has nothing uncommitted. It checks the build (its signature and requirement, Apple silicon only, the oldest
-  macOS, the hooks it carries, the Betterleaks it carries: signed, for Apple silicon alone, and the release line's
-  version; no home folder in it), zips it into `dist/`, and checks the
-  copy unpacked from the zip the same way. The workflow runs every test on that copy, then makes a draft release,
-  which is published by hand; Homebrew's cask (`whozmove/tap`) names the version and the zip's sha256, which the run
-  prints. `--trial` makes a zip to try at any version, without the refusals; run by hand, the workflow makes one and
-  keeps it with the run.
+  version, `tools/betterleaks.txt`'s release line names a finished Betterleaks, the same as its build line, the
+  checkout has nothing uncommitted, and the workflow has given it the Developer ID and the notarising key. The
+  workflow puts the certificate in a keychain made for the run, and the key beside it, from the `release`
+  environment's secrets (given only to runs from `main` or a `v*` tag), and deletes both straight after the build. It
+  checks the build (its signature and Apple's Developer ID rule for the team, the hardened runtime and a secure
+  timestamp on every program in it, its entitlements exactly `tools/Whozmove.entitlements` and Betterleaks' none,
+  Apple silicon only, the oldest macOS, the hooks it carries, the Betterleaks it carries: signed, for Apple silicon
+  alone, and the release line's version; no home folder in it), has Apple's notary service notarise it (its log kept
+  in `dist/`), staples the ticket to it and checks that macOS takes it as notarised, zips it into `dist/`, and checks
+  the copy unpacked from the zip the same way, printing nothing that names the signer. The workflow runs every test on
+  that copy, then makes a draft release, which is published by hand; Homebrew's cask (`whozmove/tap`) names the
+  version and the zip's sha256, which the run prints. `--trial` makes a zip to try at any version, without the
+  refusals, signed and checked as what it can be: ad hoc for an agent, with your Developer ID and not notarised in your
+  terminal, and as a release in the workflow, run by hand, which keeps it with the run.
 - **`app/`**: Objective-C, ARC, no Xcode project: `tools/compile.sh` compiles every `.m` in it, in `parts/` and in
   `modules/` (see [Modules](modules.md)). It holds the core (`core/`), what modules fill in (`contracts/`) and the
   helpers that know no app (`shared/`); `parts/` holds the panel's parts, and everything else is a module. One file per
@@ -197,7 +207,7 @@ app/ (native shell) ── every 1s: update(rows, now) ──▶ panel/ (the who
     and the line under the header that says what it needs from you, with the cards it adds to Git's page and the one
     the agent's settings go on, Claude's, on the panel's back).
   - The data has a shape: `Row` (app/contracts) is one listed session, field by field as **`docs/reference/rows.md`**
-    describes it (the contract between the hooks, the app and the page; `tests/rows.sh` keeps the two in step).
+    describes it (the contract between the hooks, the app and the page; `tests/checks.sh` keeps the two in step).
     `Command` (the commands module's) is one slash command sent from the panel, with its stage (asking, going in,
     waiting, done, abandoned), `Reason` (app/contracts) names why keys can't go into a session right now, and
     `Notice` (app/contracts) is what a module has to tell you.

@@ -18,9 +18,12 @@ version, and how to send a change is in [CONTRIBUTING](../CONTRIBUTING.md).
   into a session, and the list's order.
 - [Motion](how-it-works/motion.md): how each part of the panel moves.
 - [Experience](how-it-works/experience.md): what every flow is held to, its states, words and motion, and how to check.
+- [Energy](how-it-works/energy.md): what Whozmove costs your Mac, what keeps it low, its targets, and how to measure it.
 
 ## Guides
 
+- [Signing your own builds](guides/signing.md): your Developer ID on the builds you and Deploy make, so they keep
+  the permissions you gave Whozmove, and what to do when it goes wrong.
 - [Adding a module](guides/adding-a-module.md): a new agent, a new app for sessions to run in, or a new feature, step
   by step.
 

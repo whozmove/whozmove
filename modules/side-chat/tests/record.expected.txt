@@ -1,17 +1,45 @@
 == What a session's record keeps
 Said: held, for its process: {"pid":42,"processStart":7,"says":["Do the smaller migration first. held"]}
 Said again: in order: ["Do the smaller migration first. held","Keep the old table. held"]
-Typed in: {"at":1000,"doneAt":1500,"state":"typed","words":"Do the smaller migration first."}
-Read, as its record shows: {"at":1000,"doneAt":1600,"how":"typed","state":"read","words":"Do the smaller migration first."}
-Read stays read: {"at":1000,"doneAt":1600,"how":"typed","state":"read","words":"Do the smaller migration first."}
-Refused, with why: {"at":2000,"state":"refused","where":"Ghostty","why":"Couldn't find its tab","words":"Keep the old table."}
+Said under a task, with the words that open them: kept apart from yours: {"at":1000,"line":"About your task “Search box” (step 2 of 3): Where is it?","opening":"About your task “Search box” (step 2 of 3): ","state":"held","words":"Where is it?"}
+…the line they go in as: "About your task “Search box” (step 2 of 3): Where is it?"
+…and without any: yours alone: "Do the smaller migration first."
+Words that open yours: none: ""
+…one plain line, ending in its space: "About your task “Search box” (step 2 of 3): "
+…on two lines: refused: "(refused)"
+…with no space before your words: refused: "(refused)"
+…starting as a command does: refused: "(refused)"
+…with a control character: refused: "(refused)"
+What goes: your words, with the words that open them, and the line: {"line":"About your task “Search box” (step 2 of 3): Where is it?","opening":"About your task “Search box” (step 2 of 3): ","words":"Where is it?"}
+…with none: yours alone: {"line":"Where is it?","opening":"","words":"Where is it?"}
+…words that open them not one plain line: back in your box, with why: {"why":"What this is about couldn't go with your words from here: send them from its Side Chat","words":"Where is it?"}
+…too long with them: back, with why: "Too long to go with what it's about: shorten it and send it again"
+…exactly as long as there's room for: goes: "600"
+A side question sent with Send's words: with the words it was asked with, whatever the press sent: {"line":"About your task “Search box” (step 2 of 3): Why that file?","opening":"About your task “Search box” (step 2 of 3): ","words":"Why that file?"}
+…one asked in the chat's own window: none: {"line":"Why?","opening":"","words":"Why?"}
+…no words at all: nothing: null
+Copy and Go: words said, as they went in: "About your task “Search box” (step 2 of 3): Where is it?"
+…words from the box, with the words that open them: "About your task “Search box” (step 2 of 3): Where is it?"
+…the words that open them not one plain line: nothing copied: "(none)"
+Refused in Claude Desktop without the Accessibility permission: its pane is the way: {"permission":true,"state":"refused","way":"Open Accessibility Settings","where":"Claude Desktop","why":"Whozmove needs the Accessibility permission for this"}
+…with the permission: as Send said: {"state":"refused","where":"Claude Desktop","why":"Whozmove needs the Accessibility permission for this"}
+…a terminal: as Send said: {"state":"refused","where":"Claude Desktop","why":"Whozmove needs the Accessibility permission for this"}
+…a refusal with a way of its own: kept: {"state":"refused","way":"Turn It On"}
+…words that went in: as Send said: {"state":"typed"}
+Not sent: back in the box, with why: {"at":1000,"line":"Hi","state":"notSent","why":"Too long","words":"Hi"}
+…of 200 characters with its space: kept: "200"
+…one longer: refused: "(refused)"
+Typed in: {"at":1000,"doneAt":1500,"line":"Do the smaller migration first.","state":"typed","words":"Do the smaller migration first."}
+Read, as its record shows: {"at":1000,"doneAt":1600,"how":"typed","line":"Do the smaller migration first.","state":"read","words":"Do the smaller migration first."}
+Read stays read: {"at":1000,"doneAt":1600,"how":"typed","line":"Do the smaller migration first.","state":"read","words":"Do the smaller migration first."}
+Refused, with why: {"at":2000,"line":"Keep the old table.","state":"refused","where":"Ghostty","why":"Couldn't find its tab","words":"Keep the old table."}
 Back in the box stays there: "refused"
-Held words copied with Copy and Go: {"at":2000,"doneAt":2500,"state":"copied","words":"Keep the old table."}
+Held words copied with Copy and Go: {"at":2000,"doneAt":2500,"line":"Keep the old table.","state":"copied","words":"Keep the old table."}
 …stay copied, whatever Send said before it let them go: "copied"
 Words already read aren't copied this way: "read"
 Put back by the page: gone: ["Do the smaller migration first. read"]
 Put back, but it wasn't back: kept: ["Do the smaller migration first. read","Keep the old table. refused"]
-Replied: {"at":1000,"doneAt":1600,"how":"typed","repliedAt":1900,"state":"replied","words":"Do the smaller migration first."}
+Replied: {"at":1000,"doneAt":1600,"how":"typed","line":"Do the smaller migration first.","repliedAt":1900,"state":"replied","words":"Do the smaller migration first."}
 No reply: "noReply"
 A reply to words not read yet: nothing: ["Do the smaller migration first. held","Keep the old table. held"]
 Taken back in time: ["Do the smaller migration first. held","Keep the old table. takenBack"]
@@ -87,6 +115,10 @@ The question asked at a time not asked: none: null
 Answered, with how many earlier ones the side conversation knew: {"answer":[{"prose":"They pass."}],"answeredAt":2500,"at":2000,"question":"And the tests?","remembered":1,"state":"answered","text":"They pass."}
 The earlier ones its agent is told, before the one asked now: only those answered with words: [{"at":1000,"question":"Why that file?","text":"Because it holds the cart.\n```sh\nnpm test\n```"},{"at":2000,"question":"And the tests?","text":"They pass."}]
 …none before the first: []
+Asked under a task: kept with the words that opened it: {"answer":[{"prose":"Step 2."}],"answeredAt":1500,"at":1000,"opening":"About your task: ","question":"Which step?","state":"answered","text":"Step 2."}
+…as its agent was asked it, and Copy the Question copies it: "About your task: Which step?"
+…and told to a later question's copy with them: [{"at":1000,"question":"About your task: Which step?","text":"Step 2."}]
+…not asked: kept with them too: [{"at":1000,"opening":"About your task: ","question":"Which step?","state":"notAsked"}]
 
 == Asked on the side, through its agent as you press
 The first: being asked: ["Why that file? asking"]
@@ -99,6 +131,8 @@ Another: being asked: ["Why that file? answered","And the tests? answered","And 
 …another while it's being asked: not asked: ["Why that file? answered","And the tests? answered","And now? asking","One more? notAsked"]
 One that couldn't start: didn't answer: ["Why that file? answered","And the tests? answered","And now? tooSlow","One more? notAsked","Still there? noAnswer"]
 One its agent says can't be asked now: not asked: ["Why that file? answered","And the tests? answered","And now? tooSlow","One more? notAsked","Still there? noAnswer","Anything? notAsked"]
+One asked under a task: its agent is asked it after the words that open it: "About your task “Search box” (step 2 of 3): Where is it?"
+…and the chat keeps your question alone: "Where is it? asking"
 
 == A reply, cut into prose and code
 Prose, a command, prose: [{"prose":"Okay: the smaller migration first."},{"code":"npm run migrate -- --dry-run","lang":"sh"},{"prose":"Then I carry on."}]

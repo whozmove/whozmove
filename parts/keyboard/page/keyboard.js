@@ -7,9 +7,9 @@
 const TEXT_BOX = '.q-type';
 
 // The panel takes the keyboard only while one of its own text boxes (a card's, or a module's elsewhere, as a new
-// conversation's words: core.textBoxes) is typed in, or a card that answers to keys has been pressed (heldCard), and
-// gives it back on leaving it, so a click on the panel never keeps keystrokes from the app being typed in. Leaving
-// waits a moment: a rebuild of the list swaps the box for a fresh one, and focuses that.
+// conversation's words: core.textBoxes) is typed in, or a card that answers to keys, or a box in it, has been pressed
+// (heldCard), and gives it back on leaving it, so a click on the panel never keeps keystrokes from the app being typed
+// in. Leaving waits a moment: a rebuild of the list swaps the box for a fresh one, and focuses that.
 const textBoxes = () => [TEXT_BOX, ...core.textBoxes].join(', ');
 const keepsKeyboard = () => !!document.activeElement?.closest?.(textBoxes()) || !!heldCard() || viewHasKeys();
 function wantKeyboard(on) {
@@ -77,21 +77,35 @@ function viewHasKeys() {
 // without the keyboard gets no focus events, so they can't be what asks), even if the page thinks it has it: Claude
 // Desktop, brought forward to send a new conversation, takes it without the page knowing. So do a card that answers
 // to keys (keyCardPressed) and the view beside the list (viewPressed). A press anywhere else here gives it back.
-document.addEventListener('mousedown', (e) => {
+// A box inside a card that answers to keys holds that card too, as a press on the card does: whichever way you came in,
+// an Esc in the box, its module's (core.escapes) or else leaving it (keyOnHeldCard), leaves the keys on the card, so
+// the next Esc is the one that lets go of them. A box in no such card holds none (keyCardPressed finds none for it).
+function pressTakesKeys(e) {
   if (e.button !== 0) return;
   const box = !!e.target.closest?.(textBoxes());
-  state.keyCard = box ? null : keyCardPressed(e.target);
+  state.keyCard = keyCardPressed(e.target);
   state.viewKeys = viewPressed(e.target);
   const wants = box || !!state.keyCard || !!state.viewKeys;
   if (wants) state.keyboardWanted = false;
   wantKeyboard(wants);
-}, true);
+}
+document.addEventListener('mousedown', pressTakesKeys, true);
 
 // Keys on the card that has the keyboard, but for ⌘, ⌃ and ⌥ ones (copying what's selected on it): what its module
 // says (core.keyCards' key), else Return presses its main button, as in its box, and Esc lets go of the keyboard,
-// answering nothing.
+// answering nothing. In a box, keys are the box's, but for an Esc in a box of that card that no module took (the
+// list hands a box's Esc to its module first, core.escapes): it leaves the box, keeping what's typed in it, with the
+// card still holding the keys, so the next Esc lets go of them, as its edge says.
 function keyOnHeldCard(e) {
-  if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.target.closest?.(textBoxes())) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return;
+  const box = e.target.closest?.(textBoxes());
+  if (box) {
+    if (e.key === 'Escape' && e.keyCode !== 229 && !e.defaultPrevented && heldCard()?.contains(box)) {
+      e.preventDefault();
+      box.blur();
+    }
+    return;
+  }
   const card = heldCard();
   if (!card) return;
   if (state.keyCard.kind.key(card, e)) return e.preventDefault();

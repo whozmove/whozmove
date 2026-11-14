@@ -273,15 +273,27 @@ static NSDictionary *ProblemOf(TrackerAnswer *answer) {
 
 #pragma mark Settings ▸ Tickets
 
-// Settings' Tickets row, once a project's way is set: it opens the page below, saying how many projects have one.
+// The modules that add to a project's page (contracts/Module.h's ProjectSettings), and the projects listed: those whose
+// way is set, and those another module has something for.
+- (NSArray<id<ProjectSettings>> *)projectSettings {
+    return [self.core modulesThat:@protocol(ProjectSettings)] ?: @[];
+}
+- (NSArray<NSString *> *)projectsListed {
+    NSMutableSet *projects = [NSMutableSet setWithArray:self.routes.allKeys];
+    for (id<ProjectSettings> other in self.projectSettings) [projects addObjectsFromArray:other.projectsWithSettings ?: @[]];
+    return projects.allObjects;
+}
+
+// Settings' Tickets row, once a project's way is set or another module has something for it: it opens the page
+// below, saying how many projects it lists.
 - (NSArray<SettingEntry *> *)settingEntries {
     __weak typeof(self) weakSelf = self;
     SettingEntry *page = [SettingEntry pageWithKey:@"ticketRouting" title:@"Tickets" app:kAppId];
     page.said = ^NSString * {
-        NSUInteger n = weakSelf.routes.count;
+        NSUInteger n = weakSelf.projectsListed.count;
         return n == 1 ? @"1 project" : [NSString stringWithFormat:@"%lu projects", (unsigned long)n];
     };
-    page.shown = ^BOOL { return weakSelf.routes.count > 0 || weakSelf.gone.count > 0; };
+    page.shown = ^BOOL { return weakSelf.projectsListed.count > 0 || weakSelf.gone.count > 0; };
     page.group = 20;
     page.order = 40;
     return @[page];
@@ -306,10 +318,11 @@ static NSDictionary *ProblemOf(TrackerAnswer *answer) {
     AppEntry *app = [AppEntry appWithId:kAppId name:@"Tickets"
                                    does:@"Where a ticket you give a new conversation starts, in each project where "
                                         @"you've started one: its own worktree, the project's folder, or a folder for "
-                                        @"each option of one of its fields." order:80];
+                                        @"each option of one of its fields; and, for each project, what else its "
+                                        @"conversations do with tickets." order:80];
     app.tool = YES;
     app.glyph = @"ticket";
-    app.present = ^BOOL { return weakSelf.routes.count > 0 || weakSelf.gone.count > 0; };
+    app.present = ^BOOL { return weakSelf.projectsListed.count > 0 || weakSelf.gone.count > 0; };
     // A project whose folder isn't there any more: said, with Forget It, which lets its way go.
     NSMutableArray *statuses = [NSMutableArray array];
     for (NSString *project in self.gone)
@@ -324,7 +337,7 @@ static NSDictionary *ProblemOf(TrackerAnswer *answer) {
             PanelLog(@"Ticket routing: %@'s way forgotten", project.lastPathComponent);
         }]];
     app.statuses = statuses;
-    NSArray *projects = [self.routes.allKeys sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
+    NSArray *projects = [self.projectsListed sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
         return [a.lastPathComponent localizedCaseInsensitiveCompare:b.lastPathComponent];
     }];
     NSMutableArray *rows = [NSMutableArray array];
@@ -332,6 +345,8 @@ static NSDictionary *ProblemOf(TrackerAnswer *answer) {
         AppPage *page = [AppPage pageWithKey:project title:project.lastPathComponent
                                       groups:^NSArray<AppGroup *> * { return [weakSelf groupsFor:project]; }];
         page.said = ^NSString * {
+            // A project listed for another module's settings, its way not set yet: asked the first time.
+            if (!weakSelf.routes[project]) return @"Not set yet";
             return RouteWayName(project, AsRecord(weakSelf.routes[project][@"runs"]) ?: @{});
         };
         [rows addObject:page];
@@ -386,6 +401,9 @@ static NSDictionary *ProblemOf(TrackerAnswer *answer) {
                                               foot:@"Matched by name as the way was set. An option with no folder "
                                                    @"gives each of its tickets its own worktree." order:1]];
     }
+    // What other modules add for this project, under its way.
+    for (id<ProjectSettings> other in self.projectSettings)
+        [groups addObjectsFromArray:[other settingsForProject:project] ?: @[]];
     return groups;
 }
 

@@ -150,13 +150,17 @@ document.addEventListener('contextmenu', (e) => {
 });
 
 // The set-up card for what Deploy runs, opened on a row: with the command saved for its project, or the one Whozmove
-// suggests. `then` is 'deploy' when Deploy opened it (once confirmed, it deploys), 'save' when it's a change.
-function openSetup(sid, then) {
+// suggests. `then` is 'deploy' when Deploy opened it (once confirmed, it deploys), 'save' when it's a change. `text`, when
+// given, is the command to show in their place: the one just confirmed that macOS refused to save, and `refused` why,
+// which the card says for as long as it's open, as the row's note goes after a few seconds.
+function openSetup(sid, then, text, refused) {
   const s = state.last.sessions.find((x) => x.sessionId === sid);
   if (!s || s.ask) return;  // a request waiting on the row comes first
   const deploy = deployFor(s, state.deploys);
   openingCard(sid, 'setup');
-  state.deploySetup[sid] = { step: 1, text: deploy.command || deploy.suggested || '', then };
+  const shown = typeof text === 'string' && text ? text : deploy.command || deploy.suggested || '';
+  state.deploySetup[sid] = { step: 1, text: shown, then };
+  if (typeof refused === 'string' && refused) state.deploySetup[sid].refused = refused;
   state.shownAt['setup:' + sid] = Date.now();
   render();
 }
@@ -237,8 +241,9 @@ window.deployChecked = (sid, check) => {
   render();
 };
 
-// Change Deploy Command… or Set Up Deploy…, in Deploy's menu: the set-up card opens on the row (openSetup).
-window.openDeploySetup = (sid, then) => openSetup(sid, then);
+// Change Deploy Command… or Set Up Deploy…, in Deploy's menu: the set-up card opens on the row (openSetup); and again
+// with the command just confirmed, and why, when macOS refused to save it.
+window.openDeploySetup = (sid, then, text, refused) => openSetup(sid, then, text, refused);
 
 // ---- What it plugs into ----
 

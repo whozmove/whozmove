@@ -12,12 +12,19 @@
 #import "Core.h"
 
 // How often a checkout is looked at again, at most (and, while nothing in it seems to have changed, as macOS's file
-// system events tell it, CheckoutQuietEvery); the biggest new file read whole; the most a diff is read for (a checkout
-// changing more than that isn't counted line by line); the longest line kept; the most lines a changes view is sent,
-// the files past that listed with their counts only; and the most new files read.
+// system events tell it, CheckoutQuietEvery; while it changes, once its changes settle, CheckoutSettled); the biggest
+// new file read whole; the most a diff is read for (a checkout changing more than that isn't counted line by line); the
+// longest line kept; the most lines a changes view is sent, the files past that listed with their counts only; and the
+// most new files read.
 static const NSTimeInterval kEvery = 3;
 static const unsigned long long kNewFileLargest = 1024 * 1024;
 static const NSUInteger kDiffLargest = 32 * 1024 * 1024, kLineLongest = 2000, kViewLines = 30000, kNewFiles = 500;
+
+BOOL ChangesCountDue(BOOL watched, BOOL changed, BOOL editsMoved, NSTimeInterval since, NSTimeInterval sinceChange,
+                     NSTimeInterval sinceFirstUnread, NSTimeInterval quietEvery) {
+    if (!watched) return since >= kEvery || editsMoved;
+    return (changed && since >= kEvery && CheckoutSettled(sinceChange, sinceFirstUnread)) || since >= quietEvery;
+}
 
 // A parsed diff line's LineKey (ParseDiff keeps the whole text's), or nil for a blank one.
 static NSNumber *KeyOf(NSArray *line) {
@@ -144,8 +151,9 @@ static NSDictionary *NewFile(NSString *root, NSString *path) {
 // What git says, or nil when it fails or says too much.
 static NSString *Git(NSString *root, NSArray *arguments) {
     // Your git settings can't change how a diff names its files (with other prefixes, or none) or which files it covers.
-    NSMutableArray *all = [@[@"--no-optional-locks", @"-c", @"core.quotePath=false", @"-c", @"diff.noprefix=false",
-                             @"-c", @"diff.mnemonicPrefix=false", @"-c", @"diff.relative=false", @"-C", root] mutableCopy];
+    NSMutableArray *all = [@[@"-c", @"core.quotePath=false", @"-c", @"diff.noprefix=false", @"-c",
+                             @"diff.mnemonicPrefix=false", @"-c", @"diff.relative=false"] mutableCopy];
+    [all addObjectsFromArray:GitReading(root)];
     [all addObjectsFromArray:arguments];
     NSDictionary *run = RunGit(all);
     if (!run || [run[@"status"] intValue] != 0 || [run[@"out"] length] > kDiffLargest) return nil;
@@ -437,8 +445,11 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *results;
 @property (strong) NSMutableDictionary<NSString *, NSString *> *sources;
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *lookedAt;
-// Each checkout's editors' lines edited there as its last count was started with, so new ones are counted at once.
+// Each checkout's editors' lines edited there as its last count was started with, so new ones are counted soon after.
 @property (strong) NSMutableDictionary<NSString *, NSString *> *ownersSeen;
+// While a watched checkout has changes its last count didn't see, when they were first seen (since), and its editors'
+// lines as last looked at (edits) and when those last moved (at), so it's counted once they settle (CheckoutSettled).
+@property (strong) NSMutableDictionary<NSString *, NSDictionary *> *settling;
 @property (strong) NSMutableSet<NSString *> *busy;
 @property (assign) NSInteger version;
 // What each session edited, as its agent said it this refresh (editsOf:), by session.
@@ -465,6 +476,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     self.sources = [NSMutableDictionary dictionary];
     self.lookedAt = [NSMutableDictionary dictionary];
     self.ownersSeen = [NSMutableDictionary dictionary];
+    self.settling = [NSMutableDictionary dictionary];
     self.busy = [NSMutableSet set];
     self.rows = [NSMutableDictionary dictionary];
     self.outgoing = [NSMutableDictionary dictionary];
@@ -577,6 +589,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
             [self.sources removeObjectForKey:root];
             [self.ownersSeen removeObjectForKey:root];
             [self.changesSeen removeObjectForKey:root];
+            [self.settling removeObjectForKey:root];
         }
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
     // A checkout's commits not on GitHub yet are read ahead, while it has some (as a row's ↑N counts them).
@@ -600,7 +613,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
     }
     for (NSString *root in pending) {
         if ([self.busy containsObject:root]) continue;
-        // New edits are counted at once, rather than a few seconds on, as they say whose lines are whose (they come in
+        // New edits are counted even when git has nothing new to say, as they say whose lines are whose (they come in
         // after the checkout's first count, as transcripts are read). Whether there are any is told by how many lines
         // each editor's edits put in or took out in this checkout, which an edit's result can change after its request
         // came, rather than by working out whose each line is every second (ownersAt).
@@ -610,11 +623,25 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
                                                          (unsigned long)[self linesOf:row in:root]]];
         NSString *editsAt = [[counted sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"\n"];
         NSTimeInterval since = now - [self.lookedAt[root] doubleValue];
-        // Nor while nothing in it has changed, as macOS tells it: git would say what it said last time.
         NSArray *changes = @[@(CheckoutFileChanges(root)), @(CheckoutRefChanges(root))];
-        BOOL quiet = CheckoutWatched(root) && [self.changesSeen[root] isEqualToArray:changes]
-            && since < CheckoutQuietEvery(root);
-        if ((since < kEvery || quiet) && [editsAt isEqualToString:self.ownersSeen[root]]) continue;
+        BOOL editsMoved = ![editsAt isEqualToString:self.ownersSeen[root]];
+        BOOL changed = editsMoved || ![self.changesSeen[root] isEqualToArray:changes];
+        BOOL watched = CheckoutWatched(root);
+        NSTimeInterval editedAt = 0;
+        if (watched) {
+            // Watched, it isn't counted while nothing in it has changed, as macOS tells it, nor its editors' lines: git
+            // would say what it said last time. A burst of changes is counted once it settles, rather than at every
+            // look while an agent writes; and every half hour or so anyway, in case an event was missed. When its
+            // editors' lines last moved is known only from a look that saw them move.
+            NSDictionary *was = self.settling[root];
+            editedAt = !was ? 0 : [was[@"edits"] isEqualToString:editsAt] ? [was[@"at"] doubleValue] : now;
+            if (changed)
+                self.settling[root] = @{@"since": was[@"since"] ?: @(now), @"edits": editsAt, @"at": @(editedAt)};
+            else [self.settling removeObjectForKey:root];
+        }
+        if (!ChangesCountDue(watched, changed, editsMoved, since, now - MAX(CheckoutChangedAt(root), editedAt),
+                             now - [self.settling[root][@"since"] doubleValue], CheckoutQuietEvery(root)))
+            continue;
         // The files its sessions edited in this checkout, each with whose edits and their lines, newest edit first:
         // copied, as they're read on the queue.
         NSDictionary *byPath = [self ownersAt:root rows:editors[root] ?: @[]];
@@ -622,6 +649,7 @@ static BOOL Complete(NSArray *files, BOOL allInDoubt, NSSet *doubts) {
         self.lookedAt[root] = @(now);
         self.changesSeen[root] = changes;
         self.ownersSeen[root] = editsAt;
+        [self.settling removeObjectForKey:root];
         [self.busy addObject:root];
         dispatch_async(self.queue, ^{
             // What it would be worked out from: the commit, what's staged, each changed file's size and time,

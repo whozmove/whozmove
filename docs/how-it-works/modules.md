@@ -56,9 +56,10 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
 - **`modules/<name>/`** is one module: `app/` (its native code), `page/` (its scripts and styles), `module.json` (its
   page files in order, for tools/page.sh, and its own pages, if it has any: `pages`), `tests/` (its `test.sh`, which
   tests/all.sh runs, and what it compares with) and `README.md` (its pieces, the facts about its program, its
-  messages, its rules). What the tests share is in tests/lib.sh: the app built once per run, `in_minutes`, and
-  `page_cases`, which runs a file of the page's cases as tests/panel.sh runs the core's, or a module page's with that
-  page's scripts (tests/page-harness.js has their stand-ins and helpers). What a module tells the sessions
+  messages, its rules). What the tests share is in tests/lib.sh: a throwaway folder and its clean-up, the app built
+  once per run, stand-in processes, `in_minutes`, and `page_cases`, which runs a file of the page's cases as
+  tests/panel.sh runs the core's, or a module page's with that page's scripts (tests/page-harness.js has their
+  stand-ins and helpers). What a module tells the sessions
   themselves, it keeps as Claude Code skills, each in a folder of its own, `plugin/skills/<name>/` with its `SKILL.md`:
   the Claude Code module's plugin carries every module's (modules/claude-code/plugin.sh), where sessions find each as
   `whozmove:<name>`, so two modules' skills never share a name (a build stops, naming both).
@@ -146,8 +147,8 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
     a line it adds to your words, and what the start carries for its module, handed to it natively once the start is a
     session (Module's `started:with:`); and where it starts: where the part would have it start (`where`, followed
     while you haven't picked where yourself), the line under the box in the card's own line's place (`under`), a
-    warning in the busy notice's place (`warn`), Start held while it finds out where (`waits`), and keys in the box
-    (`boxKeys`), with the card's `api.place()`,
+    warning in the busy notice's place (`warn`), Start held while it finds out where (`waits`), keys in the box
+    (`boxKeys`), and what Start would also do, a line of text under the card's line (`note`), with the card's `api.place()`,
     `useHere()` and `start()`. The ticket on the card, for its other parts, is `core.cardTicket()`, the tickets
     module's;
   - presses, typing and Return in its boxes, the boxes that take the keyboard, the cards that take it once pressed and
@@ -169,6 +170,9 @@ and a row's details' step and the panel's header are their parts' (`parts/detail
     after each time it does, its lines, its words for what lists the sessions beside it and where it's changed, as
     the seats are only on the usage card, and whether Usage Gear is off (`core.gear`: `facts`, `off`, `changed`,
     `line`, `whyLine` and `words`, with `words.where`);
+  - a session's chat as Side Chat keeps and draws it, for the views that show it (One Task's talk under a task): its
+    conversation and its box drawn into the elements a view gives, with the words that open yours there, everything
+    inside Side Chat's (`core.sessionChat.draw(s, { lines, box, opening })`);
   - a plan at a glance as the plans module draws it, for the places that show a plan (the reader, One Task), each
     passing the text it has (`core.plans`: `readerHTML`, `cardLines`, `taskHTML`, `picks` for what a send-back
     carries, and `folded`, whether a plan is shown folded beside the list);

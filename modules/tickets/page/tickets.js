@@ -6,10 +6,11 @@
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 // The trackers and how each one's sign-in stands, as the app last said; the card's ticket, picked or pasted; its list,
-// while it's open; whether Copy What to Ask was just pressed; the asks waiting for an answer, by number; and when each
-// row's ticket was last asked to be read again, as its card opened.
+// while it's open; whether Copy What to Ask was just pressed; the asks waiting for an answer, by number; when each
+// row's ticket was last asked to be read again, as its card opened; and, for the card's ticket in its project, whether
+// Start would also let that project's conversations read your tickets, as asked and answered: { k, asked, said }.
 moduleState({ ticketTrackers: [], ticketPick: null, ticketList: null, ticketCopied: false, ticketAsks: 0,
-              ticketFinding: null, ticketLooked: {} });
+              ticketFinding: null, ticketLooked: {}, ticketReads: null });
 
 let ticketApi = null, ticketTyping = null;
 // How long the card's search waits for a pause in your typing, and how soon a row's card asks to read again.
@@ -93,10 +94,28 @@ core.startCardParts.push({
     if (!p) return null;
     return p.create ? { tracker: p.tracker, site: p.site, create: true } : { tracker: p.tracker, site: p.site, key: p.key };
   },
+  // With a ticket on the card, what Start would also do: let the project's conversations read your tickets, while
+  // it reads none yet. None for Create a ticket: Start gives it no ticket yet, and the row's Create Ticket card says it
+  // then. Asked of the app again when the card's folder or ticket changes, or the app says reading changed.
+  note(card, api) {
+    const t = core.cardTicket();
+    if (!t || !card?.folder) {
+      state.ticketReads = null;
+      return '';
+    }
+    ticketApi = api;
+    const k = [card.folder, t.tracker, t.site, t.key].join('\n');
+    if (state.ticketReads?.k !== k) {
+      state.ticketReads = { k, asked: ++state.ticketAsks, said: null };
+      native({ type: 'ticketReadsAsk', folder: card.folder, asked: state.ticketReads.asked });
+    }
+    return ticketReadsLine(state.ticketReads.said);
+  },
   sent: () => {
     state.ticketPick = null;
     state.ticketList = null;
     state.ticketFinding = null;
+    state.ticketReads = null;
   },
   press(t, card, api) {
     if (t.closest('.tk-x')) {
@@ -165,6 +184,20 @@ core.startCardParts.push({
     return false;
   },
 });
+
+// A project's reading changed (turned on or off, or a ticket given there): the card's line is asked for again.
+window.ticketReadsChanged = () => {
+  if (!state.ticketReads) return;
+  state.ticketReads.k = null;
+  ticketRedraw(null, false);
+};
+
+// Whether Start would also let the card's project read your tickets: for the last ask only.
+window.ticketReadsSaid = (asked, said) => {
+  if (!state.ticketReads || asked !== state.ticketReads.asked) return;
+  state.ticketReads.said = said || {};
+  ticketRedraw(null, false);
+};
 
 // What the app found for the list's words: for the last search asked only.
 window.ticketsFound = (asked, said) => {

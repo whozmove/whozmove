@@ -348,5 +348,7 @@ curve, never its size first and then its place (a chat becoming the held row, `c
 without end in the open panel (the working words' shine, the turning ring, words breathing) animates only `transform`
 and `opacity`, which the graphics chip moves without the page being painted again: an endless `background-position` on
 clipped text, an animated `box-shadow` or a moving SVG group's `transform` has WebKit paint the whole page every frame,
-so one moving row costs as much as many. The folded panel's eyes are the one exception, an SVG group that moves only
+so one moving row costs as much as many. Even `transform` and `opacity` are painted again every frame inside a scroller
+under sticky bars (a side chat in One Task's view), so the working line is drawn still there (`workLineHTML`'s
+`still`). The folded panel's eyes are the one exception, an SVG group that moves only
 while they can be seen and holds still while the panel is open (`.cat-drift`).

@@ -1,29 +1,35 @@
 Real: its session s-real
+  speaks for its own row: yes
   task-answer: gone: no task offline from this session waits (it was never sent, or went with the session's process or conversation): send it again with ask-panel.sh task if it's still needed
   inbox: refused: this project keeps no team, so there's no inbox here
   message: refused: a message goes to your team's lead: --to lead
   ticket: refused: this session has no ticket. The user gives it one on the new conversation card, or ask with ask-panel.sh ticket-use <key or link>, which they answer on its row
 Inner: its session s-inner
+  speaks for its own row: no: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
   task-answer: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
   inbox: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
   message: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
   ticket: refused: this runs inside Real's session, so it can't ask as another: start it in a terminal of its own
 Other: its session s-other
+  speaks for its own row: no: this conversation is open in another process too (pid): close the other copy, then ask again
   task-answer: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   inbox: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   message: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   ticket: refused: this conversation is open in another process too (pid): close the other copy, then ask again
 Twin: its session s-other
+  speaks for its own row: no: this conversation is open in another process too (pid): close the other copy, then ask again
   task-answer: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   inbox: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   message: refused: this conversation is open in another process too (pid): close the other copy, then ask again
   ticket: refused: this conversation is open in another process too (pid): close the other copy, then ask again
 Elsewhere: its session s-gone
+  speaks for its own row: no: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
   task-answer: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
   inbox: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
   message: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
   ticket: refused: this process works in T/askers/elsewhere, not where Gone was seen working (T/askers/shop): ask from that session's own Claude Code
 Forger: its session s-real, but it can't ask: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
+  speaks for its own row: no: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
   task-answer: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
   inbox: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask
   message: refused: it isn't Claude Code's own program, signed by Anthropic: only Claude Code itself can ask

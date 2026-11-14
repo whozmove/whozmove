@@ -6,7 +6,9 @@
 # waits, and when the switch ends; then ask-panel.sh over a real socket, run from inside Asker's process and from
 # outside any session; and the build in place (Whozmove --print-deploys), from sample runs in the repo and its
 # worktree, where nothing runs; and real runs in them (Whozmove --print-builds-up), each with its own port, and kept
-# from running once what the command runs has changed since it was confirmed.
+# from running once what the command runs has changed since it was confirmed, and a confirmation macOS refuses to save.
+# Where a Unix socket, or a save as Deploy makes them, is refused here (Claude Code's sandbox), it gives up at once,
+# saying why.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -15,14 +17,13 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/deploy/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout. The socket
-# goes in a folder of its own with a short path, as a socket's path can't be longer than 103 bytes.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-deploy.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-S=$(mktemp -d /tmp/wz-ask.XXXXXX 2>/dev/null || mktemp -d "${TMPDIR:-/tmp}/wz-ask.XXXXXX") || exit 1
-# Stand-in processes are kept in $T/pids so they're stopped however this ends.
-trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T" "$S"' EXIT
 . tests/lib.sh
+# Stand-in processes are kept in $T/pids so they're stopped however this ends. The socket goes in a folder of its own
+# with a short path, as a socket's path can't be longer than 103 bytes; T is cleaned up even if that one can't be made.
+T=$(throwaway deploy) || exit 1
+leave_nothing "$T"
+S=$(throwaway --short ask) || exit 1
+leave_nothing "$T" "$S"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 # Its one record starts with what goes over the panel's ask socket: where one can't be made or reached here (Claude
@@ -30,6 +31,14 @@ APP=$(built_app "$T") || exit 1
 why=$(sockets_refused "$S")
 if [ -n "$why" ]; then
   echo "Let It Deploy: couldn't run here, as $why"
+  exit 1
+fi
+# The same where Deploy's own saves are refused in a throwaway home (Claude Code's sandbox refuses their temporary copy):
+# its print runs say so in one line and stop, which --print-deploy-asks given nothing else only checks.
+why=$(HOME="$T" "$APP" --print-deploy-asks 2>&1)
+if [ -n "$why" ]; then
+  said="Deploy's saves are refused here: "
+  echo "Let It Deploy: couldn't run here, as Deploy's saves are refused (${why#"$said"})"
   exit 1
 fi
 
@@ -184,7 +193,8 @@ echo "   whose program isn't installed, in a checkout with no packages and then 
 echo "   First, with a stand-in npm; one that ends"
 echo "   by itself once up; one its shell leaves running, which Stop Deploy stops by its pid; Restart; a press kept while"
 echo "   an agent works there; and the port checked before a press: one of Deploy's own builds on it (an older command's,"
-echo "   a server's that picks its own port), or a program it didn't start"
+echo "   a server's that picks its own port), or a program it didn't start; last, a command holding a made-up token,"
+echo "   confirmed once more where macOS refuses the save"
 # A program Deploy didn't start, on base+7: the test's own server, started from this script (which stands in for the
 # session that started it), stopped as it ends.
 python3 -m http.server --bind 127.0.0.1 $((BASE + 7)) >/dev/null 2>&1 &

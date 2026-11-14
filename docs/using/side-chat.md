@@ -20,6 +20,11 @@ way only where a question can be asked: while a copy is still answering, Return 
 where Ask can't go, Send is the way. Esc or its ✕ closes it, keeping what you wrote. Side Chat on another row turns
 the chat to that session's, each keeping its own conversation and what you'd started writing.
 
+The same chat shows under a task in [One Task](one-task.md#talk-with-the-agent), for the session that handed it to
+you: what you send or ask from either place shows in both, and what you'd started writing goes with it. Words sent from
+there open with a few words naming the task and its step, shown quietly over yours here; Esc there leaves the box, and
+One Task stays open.
+
 ## How your words go in
 
 - **Send says when your words go in:** **Send After This Step** while the session works, **Send After Its Turn** when
@@ -46,6 +51,8 @@ Every "can't" says so before you send, with the way forward in Send's place:
   paste", and Whozmove no longer sends them itself.
 - **Close the Other Copy** for a conversation open in two terminals, at idle.
 - **Open Again** for a session that has ended.
+- **Open Accessibility Settings** for a Claude Desktop conversation, when Whozmove doesn't have the Accessibility
+  permission to type into it: your words are back in the box, and the button opens that pane in System Settings.
 - A session started before this version of Whozmove has no hook to take words between steps: they go in when its turn
   ends, by themselves into a terminal that isn't the app in front, else for your **Send Now**.
 - Stopped with Esc before its step ended, a session never read them: they go in once it's idle, or say "Wren stopped
@@ -106,7 +113,8 @@ thinking. Then the answer, with **Add to Message** and **Copy**. One question at
 Its reply shows under its name, a command in it on a line of its own with **Copy** (copied, never run). While the chat
 isn't open, a reply you haven't seen lights that row's bar in your move's colour, the same bar at the same size, and
 comes out beside the folded panel and counts at the panel's edge, as any reply does, until you've seen it, in the chat
-or the session's tab.
+(here or under a task in One Task) or the session's tab. A reply or a side answer that comes in while the chat is in
+front is said to VoiceOver.
 
 What you send in a side chat, and how far each got, is kept in Whozmove's folder, which only you can read, until the
 session's process ends; replies are only held in memory.

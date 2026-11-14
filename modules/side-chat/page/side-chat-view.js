@@ -39,7 +39,9 @@ function sideChatLinesHTML(chat, s, name, asks, now, copied = {}) {
     if (aside) return (aside.at === forgot ? `<p class="sc-forgot">${esc(sideChatForgotLine)}</p>` : '')
       + sideChatAsideHTML(aside, s, chat, name, copied, asides.some((one) => one.state === 'asking'));
     const st = sideChatSaid(said, s, chat, name, asks, now);
-    const you = `<div class="sc-you${st.held ? ' held' : ''}"><p>${esc(said.words)}</p>`
+    const about = sideChatAboutWords(said);
+    const you = `<div class="sc-you${st.held ? ' held' : ''}">`
+      + `${about ? `<span class="sc-about">${esc(about)}</span>` : ''}<p>${esc(said.words)}</p>`
       + (st.words || st.acts.length ? `<span class="sc-said${st.tone ? ` ${st.tone}` : ''}">${esc(st.words)}`
         + `${st.acts.map((act) => sideChatActHTML(act, said.at)).join('')}</span>` : '')
       + '</div>';
@@ -63,7 +65,9 @@ function sideChatAsideHTML(aside, s, chat, name, copied = {}, busy = false) {
   const st = sideChatAsideSaid(aside, s, chat, name, busy), label = esc(sideChatAsideLabel(name));
   const acts = st.acts.map((act) => sideChatActHTML(act, aside.at)).join('');
   const said = (look = '') => (st.words || acts ? `<span class="sc-said${look}">${esc(st.words)}${acts}</span>` : '');
-  const you = (under = '') => `<div class="sc-you sc-aside" role="group" aria-label="${label}"><p><span `
+  const about = sideChatAboutWords(aside);
+  const you = (under = '') => `<div class="sc-you sc-aside" role="group" aria-label="${label}">`
+    + `${about ? `<span class="sc-about">${esc(about)}</span>` : ''}<p><span `
     + `class="sc-mark">Without interrupting</span> ${esc(aside.question)}</p>${under}</div>`;
   const reply = (inner) => `${you()}<div class="sc-reply sc-aside" role="group" aria-label="${label}"><b>`
     + `${esc(sideChatCopyName(name))}</b>${inner}</div>`;
@@ -81,8 +85,10 @@ function sideChatAsideHTML(aside, s, chat, name, copied = {}, busy = false) {
 // what to do. Send's own button says when your words go in (sideChatSendWord). The way you chose last (`way`, from
 // sideChatWayNow) is the dark button, and Return goes that way: Ask Without Interrupting is dark only when it's chosen
 // and can go, and Send's place whenever it isn't (sideChatUnder moves it as you choose, without drawing this again).
-function sideChatBoxHTML(s, chat, name, before, askBefore = sideChatAskBefore(s, chat, name), way = 'send') {
-  const room = sideChatRoom(sideChatOpening(s, chat)), cant = before?.way, darkSend = way === 'send',
+// `opening`: the words that open yours where it's drawn, which leave your own words less room.
+function sideChatBoxHTML(s, chat, name, before, askBefore = sideChatAskBefore(s, chat, name), way = 'send',
+                         opening = '') {
+  const room = sideChatRoom(sideChatOpening(s, chat, opening)), cant = before?.way, darkSend = way === 'send',
     darkAsk = way === 'ask' && !askBefore;
   const ask = askBefore?.gone ? ''
     : askBefore?.way ? `<button type="button" class="button small" data-sc="${askBefore.act}"`
@@ -105,9 +111,10 @@ function sideChatBoxHTML(s, chat, name, before, askBefore = sideChatAskBefore(s,
 // else, while Return asks without interrupting (`way`, from sideChatWayNow), what it will ask, or why it can't just
 // now, and with nothing written yet why Send's place can't send (Copy and Go's why among them); else why nothing can
 // go in from here, or how they'll go; else exactly what will go in; and, with nothing written yet, why nothing can be
-// asked without interrupting (but while a side question is answered, which its line in the chat says).
+// asked without interrupting (but while a side question is answered, which its line in the chat says). `opening`: the
+// words that open yours where it's drawn, said before them in what goes in and what's asked.
 function sideChatUnderHTML(s, chat, name, words, back, before, askBefore = sideChatAskBefore(s, chat, name),
-                           refused = '', way = 'send') {
+                           refused = '', way = 'send', opening = '') {
   if (refused) return `<span class="sc-why">${esc(refused)}.</span>`;
   if (back) return `<span class="sc-why">${esc(back.why)} Your words are back in the box.</span>`
     + (back.way ? ` <button type="button" class="sc-act" data-sc="${back.act}">${esc(back.way)}</button>` : '');
@@ -115,16 +122,22 @@ function sideChatUnderHTML(s, chat, name, words, back, before, askBefore = sideC
   if (way === 'ask') {
     const said = (words || '').trim();
     if (said && askBefore?.why) return `<span class="sc-why">${esc(askBefore.why)}.</span>`;
-    if (said) return esc(`Asks without interrupting: ${said}`);
+    if (said) return esc(`Asks without interrupting: ${opening}${said}`);
     return before?.why ? `<span class="sc-why">${esc(before.why)}</span>` : '';
   }
   if (before?.why) return `<span class="sc-why">${esc(before.why)}</span>`;
   if (!(words || '').trim() && askBefore?.why && askBefore.act !== 'askStop') {
     return `<span class="sc-why">${esc(askBefore.why)}.</span>`;
   }
-  const goes = sideChatGoes(s, chat, words);
+  const goes = sideChatGoes(s, chat, words, opening);
   return `${before?.note ? `<span class="sc-note">${esc(before.note)}.</span> ` : ''}${esc(goes)}`;
 }
+
+// The same live line ending the conversation where it's drawn in another view (sideChatHostedLive), with its press:
+// '' when there's nothing to say.
+const sideChatHostedLiveHTML = (live, at = '') => (!live ? '' : `<div class="sc-live sc-live-end${live.works
+  ? ' works' : ''}"><span class="sc-dot"></span><span class="sc-now">${esc(live.words)}</span>`
+  + `${live.acts.map((act) => sideChatActHTML(act, at)).join('')}</div>`);
 
 // Side Chat, the bar at a row's far edge (the row part's edge slot): a button with no words, named for a screen
 // reader. While a reply waits it lights the bar in your move's colour (`lit`), and while its chat is the one open it

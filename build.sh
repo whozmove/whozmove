@@ -36,6 +36,10 @@ if [ "$(as_number "$this_mac")" -lt "$(as_number "$oldest")" ]; then
   echo "https://github.com/whozmove/whozmove/releases/tag/v0.2.0"
   exit 1
 fi
+# Who signs it (tools/signing.sh): you, with your Developer ID from Whozmove's signing keychain, when the build is
+# yours or Deploy's; no one, ad hoc, for an agent's and on a Mac with no signing keychain. A signing keychain with no
+# identity that works stops it here, before anything is built.
+identity=$(signing_identity) || { status=$?; [ $status = 2 ] && { echo "$identity"; exit 1; }; identity=; }
 # Whozmove's own folder (AppDir in app/shared/Files.m): the panel's pid, and the deploy commands you've saved (deploy.json),
 # which say whether an agent's build leaves putting it in place to Deploy.
 folder="$HOME/Library/Application Support/$name"
@@ -82,8 +86,22 @@ with open(sys.argv[1], "w") as f:
     json.dump(info, f, indent=1, sort_keys=True)
 PY
 
-# Last, with build.json in it (tools/bundle.sh).
-sign_bundle "$new"
+# Last, with build.json in it (tools/bundle.sh). Signed by you, macOS asks for the signing keychain's password each
+# time codesign uses the key, a few times for the two programs in it, so it's said first; refused or cancelled,
+# nothing goes in. The keychain is locked again as soon as signing ends, however it ends (tools/signing.sh).
+if [ -n "$identity" ]; then
+  trap 'lock_signing; rm -rf "$work"' EXIT
+  echo "Signing with your Developer ID: macOS asks for your signing keychain's password a few times now, as it signs"
+  echo "Betterleaks and Whozmove. Press Allow each time, never Always Allow."
+  if ! sign_bundle "$new" "$identity" "$signing_keychain"; then
+    echo "Signing wasn't allowed, so nothing was put in place and the app you have keeps running: Deploy again, or run"
+    echo "./build.sh again, to try again."
+    exit 1
+  fi
+  lock_signing
+else
+  sign_bundle "$new"
+fi
 
 # Whether to stop at compiling and leave putting the build in place to Deploy, in the panel: when an agent runs this
 # (Claude Code marks the commands an agent runs with CLAUDECODE), the panel is running with Deploy's button showing, and
@@ -116,6 +134,13 @@ if leaves_it_to_deploy; then
   [ "$now" = yes ] && echo "--now is for running it yourself; leaving it to Deploy in Whozmove instead."
   echo "Built, not put in place: press Deploy on this session's row in Whozmove, or run ./build.sh in a terminal" \
        "outside Claude Code."
+  exit 0
+fi
+# On a Mac where your builds are signed by you, an agent's build (ad hoc) never goes in, whatever Deploy's set-up: in
+# place, it would match none of the grants your signed builds share.
+if [ -n "${CLAUDECODE:-}" ] && [ -e "$signing_keychain" ]; then
+  echo "Built, not put in place: on this Mac, builds signed by you go in, through Deploy in Whozmove or ./build.sh in" \
+       "a terminal outside Claude Code."
   exit 0
 fi
 

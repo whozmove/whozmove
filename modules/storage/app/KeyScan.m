@@ -20,8 +20,8 @@
 
 NSArray<NSString *> *const kKeyGroups = @[@"commit", @"pushed", @"claude", @"ai", @"readable", @"files"];
 
-// How long one run of Betterleaks may take, in seconds (runFor's start); how much text one run is fed; how many files
-// one run is given; and how many files of one checkout are looked at, at most.
+// How long one run of Betterleaks may take, in seconds (runFor's start); how much one run reads, fed as text or in
+// files; how many files one run is given; and how many files of one checkout are looked at, at most.
 static const NSTimeInterval kRunFor = 300;
 static const NSUInteger kFeedAtOnce = 16 * 1024 * 1024, kFilesAtOnce = 200, kMostFiles = 50000;
 // How large a record kept as plain text (a long paste, a tool's long output, a copy of an edited file) may be to be
@@ -817,7 +817,8 @@ static NSString *WhyItEnded(NSDictionary *ran, NSString *path, NSTimeInterval se
     [NSFileManager.defaultManager createDirectoryAtPath:empty withIntermediateDirectories:YES
                                              attributes:@{NSFilePosixPermissions: @0700} error:nil];
     NSMutableData *rules = [NSMutableData data];
-    NSDictionary *ran = RunConversation(self.scanner, @[@"config", @"show", @"--no-color", @"--log-level=error"],
+    NSDictionary *ran = RunConversation(self.scanner, @[@"config", @"show", @"--no-color", @"--log-level=error",
+                                                        kBetterleaksMatcher],
                                         self.environment, empty, NSData.data, ^BOOL(NSData *line) {
         [rules appendData:line];
         [rules appendBytes:"\n" length:1];
@@ -898,14 +899,40 @@ static NSString *WhyItEnded(NSDictionary *ran, NSString *path, NSTimeInterval se
     return finished;
 }
 
-// Files, a few hundred to a run: each finding, with the file and its line, read again for its last 4 characters.
+// The files, in their order, a run's worth at a time: kFilesAtOnce files, or kFeedAtOnce bytes of what Betterleaks
+// reads, whichever comes first, so a run of large files stays as short as a run of fed text. A file is counted at its
+// own size, not where a link leads (lstat), and one larger than Betterleaks looks in at its limit at most, which it
+// skips unread or reads only up to, as counting a little too much costs only another run. Every run takes at least
+// one file, so a large one never stops the rest.
+static NSArray<NSArray<NSString *> *> *FileRuns(NSArray<NSString *> *paths) {
+    NSMutableArray *runs = [NSMutableArray array];
+    NSMutableArray *run = [NSMutableArray array];
+    unsigned long long bytes = 0;
+    for (NSString *path in paths) {
+        struct stat info;
+        unsigned long long size =
+            lstat(path.fileSystemRepresentation, &info) == 0 ? (unsigned long long)info.st_size : 0;
+        size = MIN(size, kBetterleaksLargestFile);
+        if (run.count && (run.count == kFilesAtOnce || bytes + size > kFeedAtOnce)) {
+            [runs addObject:run];
+            run = [NSMutableArray array];
+            bytes = 0;
+        }
+        [run addObject:path];
+        bytes += size;
+    }
+    if (run.count) [runs addObject:run];
+    return runs;
+}
+
+// Files, a few hundred to a run (FileRuns): each finding, with the file and its line, read again for its last 4
+// characters.
 - (void)scanFiles:(NSArray<NSString *> *)all secret:(NSString *)secret what:(NSString *)what
              each:(void (^)(NSDictionary *finding, NSString *path, NSInteger line, NSString *last))each {
     NSArray *paths = [all filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *path, id _) {
         return !OnlyInCloud(path);
     }]];
-    for (NSUInteger from = 0; from < paths.count; from += kFilesAtOnce) {
-        NSArray *some = [paths subarrayWithRange:NSMakeRange(from, MIN(kFilesAtOnce, paths.count - from))];
+    for (NSArray *some in FileRuns(paths)) {
         BOOL ran = [self run:@"fs" targets:some range:nil feed:nil secret:secret each:^(NSDictionary *finding) {
             NSDictionary *at = AsRecord(finding[@"location"]);
             NSString *path = AsText(at[@"path"]);

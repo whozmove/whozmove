@@ -152,6 +152,11 @@ NSString *TicketAnswer(TicketBinding *bound, TicketOffer *offer, NSString *decli
     if (problem.end == TrackerEndSignIn)
         return [NSString stringWithFormat:@"can't now: %@ can't be read until the user signs in with %@ again, on "
                 @"Whozmove's panel", bound.key, signIn ?: bound.tracker];
+    // A read that failed: said as a read of your tickets says it, naming the site, with the tracker's why, and when to
+    // ask again.
+    if (problem.end == TrackerEndFailed && bound.site.length)
+        return [NSString stringWithFormat:@"can't now: Whozmove couldn't read %@ on %@ (%@): ask again in a minute",
+                bound.key, bound.site, problem.why.length ? problem.why : @"no reason given"];
     return [NSString stringWithFormat:@"can't now: couldn't read %@: %@", bound.key, problem.why ?: @"no reason given"];
 }
 

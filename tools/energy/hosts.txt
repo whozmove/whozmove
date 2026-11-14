@@ -1,0 +1,12 @@
+# The apps agents work in, which tools/energy.sh week counts to tell busy hours from quiet ones: each app's bundle id,
+# and the file of the module that already names it, so a module's id is written in one place and tests/energy-tool.sh
+# fails if this one drifts from it. Warp, kitty and WezTerm have no module, so this list is their only home.
+com.mitchellh.ghostty	modules/ghostty/app/GhosttyFacts.h
+com.googlecode.iterm2	modules/iterm2/app/ITerm2Facts.h
+com.apple.Terminal	modules/terminal-app/app/TerminalApp.m
+com.anthropic.claudefordesktop	modules/claude-desktop/app/ClaudeDesktopFacts.m
+com.microsoft.VSCode	modules/changes/app/Editors.m
+com.todesktop.230313mzl4w4u92	modules/changes/app/Editors.m
+dev.warp.Warp-Stable
+net.kovidgoyal.kitty
+com.github.wez.wezterm

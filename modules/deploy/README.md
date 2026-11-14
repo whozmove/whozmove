@@ -51,7 +51,9 @@ a block of free ports: side by side, on every address, on a port of their own, o
 leaves running, which Stop Deploy stops by its pid, a process that joins its group after its shell has ended, which is
 never noted or stopped, and one that ignores being told to end, made to 2 seconds later; and Install First, with the
 install each lock file gets, and Install and Deploy run with a stand-in npm in the throwaway home, never while an agent
-works there. tests/rows.sh checks what
+works there; and a command confirmed where macOS refuses the save, which panel.log says wasn't saved, and why, and
+which doesn't run. Where Deploy's own saves are refused in a throwaway home (Claude Code's sandbox), its print runs say
+so in one line and stop, and the test gives up at once, saying why. tests/rows.sh checks what
 the card is told a command runs for sample projects: npm's start, bun's bare script names, scripts that run other
 runners, Makefiles with includes, GNUmakefile first, files run, runners and make pointed elsewhere, and a package.json
 that's a pipe, never read.
@@ -76,7 +78,9 @@ reader's to ask git, in the project's main checkout, which has a removed worktre
   (`{sessionId, command, deployNow}`), `checkDeployCommand`
   (`{sessionId, command}`: a command on the set-up card, about to be confirmed) and `stepMenu` (`{step: "deploy",
   sessionId, x, y}`: its menu).
-- The app calls `setDeploys({projects, folders})`, `openDeploySetup(sid, then)` and `deployChecked(sid, {command,
+- The app calls `setDeploys({projects, folders})`, `openDeploySetup(sid, then, command, refused)` (`command` and
+  `refused` only when macOS refused to save the one just confirmed: the card shows it in place of the saved one, and
+  "Not saved: " and macOS's reason until it closes or saves) and `deployChecked(sid, {command,
   production, runs, cut, files, unsure, others})`. A folder has `port`, the one a deploy there gets in $PORT; its run has `by` when a
   session asked for it, and `port` when it was given one; and a folder has `asked`, `{by, waits}`, while a deploy a session asked for waits there: the row's note says so (`deployNote`).
 

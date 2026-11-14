@@ -61,6 +61,7 @@ NSString *CommandLogged(NSString *field, NSString *value);
 // Why it didn't go through, as the panel says it.
 @property (copy) NSString *why;
 @property (copy) NSString *way;  // the words of a button past its terminal's refusal (TypingHost's wayPastIn:), if any
+@property (copy) NSString *go;   // what that button does on the page instead, for a reason with no way past it there
 // For a compaction going in by itself (Compact at Breaks, SessionCompacting), with nobody's press: whether it still may,
 // asked again before each key, and what's told how it ended. Nil for one sent from the Compact card.
 @property (copy) BOOL (^stillMay)(void);

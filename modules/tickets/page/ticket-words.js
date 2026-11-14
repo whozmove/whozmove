@@ -46,6 +46,13 @@ function ticketStartLine(pick) {
     + '(the whozmove:working-a-ticket skill says how).';
 }
 
+// What a press would also do, for a project whose conversations read none of your tickets yet (`reads`, as the app
+// says it: {project, tracker}): let them, once it's given this ticket. Text, for the card to escape; '' for none.
+function ticketReadsLine(reads) {
+  return reads?.project && reads.tracker
+    ? `Also lets conversations in ${reads.project} read your ${reads.tracker} tickets through Whozmove.` : '';
+}
+
 // The first address in your words, as you paste a ticket's link in them: the app says whether it's a ticket.
 function ticketLinkIn(text) {
   const found = /https:\/\/[^\s<>"']+/.exec(String(text ?? ''));
@@ -244,7 +251,8 @@ function ticketCardHTML(t, who, now) {
 
 // The card on the row asking you to give it a ticket it asked for (ticket-use), or the one it had before Whozmove
 // started again: the ticket as read (its key, where it stands and its title), or "Reading it…", or why it couldn't be;
-// then Use It or Not Now, either way. Nothing is given until you press Use It.
+// that Use It also lets its project's conversations read your tickets, while it reads none yet; then Use It or Not Now,
+// either way. Nothing is given until you press Use It.
 function ticketUseHTML(sid, o, who) {
   if (!o?.key) return '';
   const title = o.again ? `Work on ${o.key} here again?` : o.instead ? `Work on ${o.key} instead?`
@@ -257,8 +265,10 @@ function ticketUseHTML(sid, o, who) {
   const read = o.state ? `${esc(o.key)} · ${esc(o.state.name)}${o.title ? `: ${esc(o.title)}` : ''}`
     : p ? `Couldn’t read the ticket${p.why ? `: ${esc(ticketReason(p.why, [o.tracker, who]))}` : ' just now'}.`
     : 'Reading it…';
+  const also = ticketReadsLine(o.reads);
   return `<div class="perm tk-use" data-tkuse="${esc(sid)}" data-key="${esc(o.key)}"><div class="q-top"><span class="card-title">${esc(title)}`
     + `</span></div><div class="q-help">${read}</div><div class="q-help">${help}</div>`
+    + (also ? `<div class="q-help">${esc(also)}</div>` : '')
     + '<div class="perm-actions"><button data-act="notNow">Not Now</button>'
     + '<button class="perm-allow" data-act="use">Use It</button></div></div>';
 }
@@ -322,7 +332,8 @@ const ticketDraftState = (d) => `${d.checked ? 'checked' : 'unchecked'}:${d.crea
 // The card on the row asking you to create the new ticket the session drafted (ticket-draft). First, when it was
 // drafted again, or the session has a ticket the new one would take the place of, it says so; then its title, where it
 // goes (the group, by what its tracker calls it, and its site when you're signed in to more than one: `sites`), its
-// type, priority and parent, and its whole description. While its tracker checks where it can go, "Checking it with
+// type, priority and parent, its whole description, and, while its project reads none of your tickets yet, that
+// Create Ticket also lets its conversations read them. While its tracker checks where it can go, "Checking it with
 // …"; while it's made, "Creating it…". When the check couldn't be done, why, with Try Again (`check`); when making it
 // couldn't, why, with Try Again (`create`), or, when it may have been made all the same, where to look first, with
 // Create Again; Sign In Again or Allow when the sign-in stopped it; and Not Yet. Nothing is made until you press
@@ -363,5 +374,6 @@ function ticketDraftHTML(sid, d, who, sites) {
     + (d.description ? `<div class="q-help">Its description:</div><div class="tk-note">${esc(d.description)}</div>` : '')
     + (d.creating ? '' : '<div class="q-help">To change anything, say so in the conversation, and it shows here '
       + 'again.</div>')
+    + (ticketReadsLine(d.reads) && !d.creating ? `<div class="q-help">${esc(ticketReadsLine(d.reads))}</div>` : '')
     + `${foot}</div>`;
 }

@@ -92,10 +92,12 @@ APP_LINE='s|.*NSString \*base = \[Home() stringByAppendingPathComponent:@"'
 APP_LINE+='\(Library/Application Support/[^"]*\)"].*|\1|p'
 APPDIR=$(find "$REPO/app" "$REPO/modules" -name '*.m' -exec sed -n "$APP_LINE" {} + 2>/dev/null | sort -u)
 EXE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$REPO/app/Info.plist")
-# In /tmp: the panel's socket is in Whozmove's folder there, and a socket's path can't be longer than 103 bytes.
-T=$(mktemp -d /tmp/wz-real.XXXXXX) || exit 1
+. "$REPO/tests/lib.sh"
+# In /tmp rather than $TMPDIR: the panel's socket is in Whozmove's folder there, and a socket's path can't be longer
+# than 103 bytes. Where /tmp is refused, its own temporary folder.
+T=$(throwaway --short real) || exit 1
 T=$(cd "$T" && pwd -P) || exit 1
-trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
+leave_nothing "$T"
 H="$T/home"
 D="$H/$APPDIR"
 P="$H/project"
@@ -112,7 +114,6 @@ ending() {
   echo "$1"
   exit "$2"
 }
-. "$REPO/tests/lib.sh"
 APP=$(built_app "$T") || ending "couldn't check: the app didn't compile" 3
 clang -o "$T/$EXE" "$REPO/$HERE/stand-in-app.c" || ending "couldn't check: the stand-in for the panel didn't compile" 3
 if [ $stand_in = yes ]; then

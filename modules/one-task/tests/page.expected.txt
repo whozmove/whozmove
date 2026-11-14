@@ -149,8 +149,7 @@ the task you were on, gone from the line unanswered: its row missing from a read
 …its row still missing, the app still keeping it: wait and see: null
 …the app no longer keeping it (its session ended): the foot says it no longer waits: ["gone","“Search box” no longer waits."]
 …a comment typed, then the task gone: the foot offers its words to copy: ["“Search box” no longer waits.","Make it wider"]
-…words in its talk box too: both, Comment's first: ["“Search box” no longer waits.","Make it wider\n\nWhich file?"]
-…the words it offers, for a task set aside too: Comment's and the talk box's, either alone, or none: ["Wider\n\nWhich file?","Wider","Which file?","",""]
+…the words it offers, for a task set aside too: its Comment's, trimmed, or none (the talk's stay in its chat): ["Wider","",""]
 …One Task turned off, or its session turned away: it still waits, so nothing is said: ["drop","drop"]
 back to a task, as you left it, and after a restart, with nothing of what you'd done on it kept: ["Back to “Search box”, as you left it.","Back to “Search box”."]
 which task One Task opens on: the one you were last on, read and still waiting: older
@@ -191,57 +190,28 @@ nothing waits: null
 what's new to the line: the newest to come, which a task joining moves on: [true,true]
 …and one answered or gone never moves it back: true
 
-== The talk about a task
-to the session that sent it: ["storefront",false,false,"shop"]
-the lead's pick: to its member, before the talk begins: ["Wren",false,false,"wren"]
-…or to the lead, chosen: ["Atlas",true,false,"lead"]
-…its member not listed: the lead: ["Atlas",true,false,"lead"]
-once begun, the session it began with, whatever is chosen: ["Wren",false,false,"wren"]
-…the pick now for another member: ["Moss",false,true,null]
-…its session gone: ["The session",false,true,null]
-…a task not the lead's pick, its talk naming another session: nowhere: ["Atlas",false,true,null]
-what opens the words, to the member, and the room left of 600: ["About the task Atlas gave me on your work: ",557]
-held: while it works: ["Goes to storefront when it finishes","takeBack"]
-held: behind its own request, what it asks, with Show It: ["storefront asks first: Wants to run a command. Answer it on its row, and your words go after","show","takeBack"]
-…its request not worded: ["storefront asks first. Answer it on its row, and your words go after","show","takeBack"]
-held: idle, its tab the one you're in: ["storefront’s tab is in front","sayNow","takeBack"]
-held: idle, in Claude Desktop: ["storefront has finished","sayNow","takeBack"]
-held: idle, its terminal the app in front, on another tab: ["Ghostty is in front","sayNow","takeBack"]
-held: idle, about to go in: ["Going in…","takeBack"]
-held: its session not on the task now: ["Not sent: storefront isn’t on this task now","there","takeBack"]
-going in, typed, in Claude Desktop, taken: [["Going in…"],["Typed in · just now"],["Sent in Claude Desktop · just now"],["Sent"]]
-not taken, and finished without a reply: [["Typed in, but storefront hasn’t sent it","there"],["storefront finished without a reply","there"]]
-a reason with its own full stop, and without: ["It has ended.","Ghostty is busy.","It didn’t go in."]
-back in the box: none of it went in, into a terminal, Claude Desktop without Accessibility, and somewhere unnamed: [{"why":"Can’t type into Ghostty. Its conversation is open in another terminal too.","way":null,"permission":false},{"why":"Can’t type into Claude Desktop. Whozmove needs the Accessibility permission for this.","way":"Open Accessibility Settings","permission":true},{"why":"Can’t type it in. It isn’t running: press its row to open it again.","way":null,"permission":false}]
-…stopped part-way, with the terminal's way past it: {"why":"Stopped part-way in Ghostty. Ghostty asks for your OK.","way":"Allow","permission":false}
-where it runs: Claude Desktop, a terminal the app names, and one it doesn't: ["in Claude Desktop","its session in Ghostty","its session"]
-a next step coming in as you write: said, and Send names it; the step you began on; a task with no step: [{"note":"Step 3 came in.","send":"Send about step 3"},null,{"note":"It was sent again.","send":"Send"},null]
-its live line while it works on your words: ["Reading search.ts","storefront is reading your words","",""]
-a reply, a long one whole, and one its agent cut at the most it gives: [{"parts":[{"prose":"Behind the magnifier."}],"cut":false},[3000,false],[1,true]]
-a reply with no code; a fenced command; a heredoc; two blocks; inline code, as the app cuts them: [{"parts":[{"prose":"It is behind the magnifier."}],"cut":false},{"parts":[{"prose":"Paste it into a terminal:"},{"code":"npm run build -- --watch","lang":"bash","n":1},{"prose":"Then reload."}],"cut":false},{"parts":[{"prose":"Run:"},{"code":"python3 - <<'EOF'\nimport json\nprint(\"<ok>\")\nEOF","lang":"","n":1}],"cut":false},{"parts":[{"prose":"First:"},{"code":"make","lang":"sh","n":1},{"prose":"then:"},{"code":"make test","lang":"","n":3}],"cut":false},{"parts":[{"prose":"Use `make test` there."}],"cut":false}]
-…a long reply with code: every part, each block whole, in order: [["prose 400","code 3000 #1","prose 300","code 5 #3"],false]
-…as VoiceOver says it: Paste it: A command to copy. Then reload.
-a reply with a heredoc, drawn: one line with Copy, the prose as prose, everything escaped: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session</span></div><div class="ot-talk-lines"><div class="ot-you"><p>Where is the search box?</p></div><div class="ot-reply"><b>storefront</b><div class="ot-reply-text"><p>Paste it into a terminal:</p><div class="ot-code"><button type="button" class="ot-code-line" data-talk="code" data-at="1999999820000" data-part="1" aria-expanded="false" title="Show it whole"><pre class="perm-detail cut capped" style="--lines:1">python3 - &lt;&lt;&#39;EOF&#39; …</pre></button><button type="button" class="button small" data-talk="copyCode" data-at="1999999820000" data-part="1">Copy</button></div><p>Use <code>make</code> after.</p></div></div></div></div>
-…pressed, shown whole: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session</span></div><div class="ot-talk-lines"><div class="ot-you"><p>Where is the search box?</p></div><div class="ot-reply"><b>storefront</b><div class="ot-reply-text"><p>Paste it into a terminal:</p><div class="ot-code open"><button type="button" class="ot-code-line" data-talk="code" data-at="1999999820000" data-part="1" aria-expanded="true" title="Show one line"><pre class="perm-detail" style="--lines:1"><span class="ot-word-whole">python3</span> <span class="ot-word-whole">-</span> <span class="ot-word-whole">&lt;&lt;&#39;EOF&#39;</span>
-<span class="ot-word-whole">import</span> <span class="ot-word-whole">json</span>
-<span class="ot-word-whole">print(&quot;&lt;ok&gt;&quot;)</span>
-<span class="ot-word-whole">EOF</span></pre></button><button type="button" class="button small" data-talk="copyCode" data-at="1999999820000" data-part="1">Copy</button></div><p>Use <code>make</code> after.</p></div></div></div></div>
-…its Copy just pressed: "Copied" on the button itself: <div class="ot-code"><button type="button" class="ot-code-line" data-talk="code" data-at="1999999820000" data-part="1" aria-expanded="false" title="Show it whole"><pre class="perm-detail cut capped" style="--lines:1">npm run build -- --watch</pre></button><button type="button" class="button small" data-talk="copyCode" data-at="1999999820000" data-part="1">Copied</button></div>
-a command shown whole wraps only between words: "--env=staging" stays one, a word past a line may break: <span class="ot-word-whole">npm</span> <span class="ot-word-whole">run</span> <span class="ot-word-whole">deploy</span> <span class="ot-word-whole">--</span> <span class="ot-word-whole">--env=staging</span> <span class="ot-word-whole">--region=eu-west-1</span> <span class="ot-word-whole">&lt;x&gt;</span> kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk
-the line under the header: a reply not seen yet: ["storefront answered you about Search","soon"]
-…once seen in One Task: null
-the talk drawn: your words, its reply in Markdown, everything escaped: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session</span></div><div class="ot-talk-lines"><div class="ot-you"><p>Where is the search box?</p></div><div class="ot-reply"><b>storefront</b><div class="ot-reply-text"><p>It’s <strong>behind</strong> the &lt;b&gt;magnifier&lt;/b&gt;.</p></div></div></div></div>
-…before anything is said, the lead's pick to choose for: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with Wren</span><span class="ot-where">its session</span><span class="ot-to" role="group" aria-label="Who your words go to"><button type="button" data-talk-to="member" aria-pressed="true">Wren</button><button type="button" data-talk-to="lead" aria-pressed="false">Atlas</button></span></div><p class="ot-talk-empty">Ask Wren what this is about, or what to press. It answers here.</p><div class="ot-talk-lines"></div></div>
-…held, with Take Back: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session</span></div><div class="ot-talk-lines"><div class="ot-you held"><p>Where is the search box?</p><span class="ot-said held">Goes to storefront when it finishes <button type="button" class="ot-talk-act" data-talk="takeBack" data-at="1999999820000">Take Back</button></span></div></div></div>
-…held for the tab you're in, Send Now beside Take Back; words back in the box not drawn; in Ghostty: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session in Ghostty</span></div><div class="ot-talk-lines"><div class="ot-you held"><p>Where is the search box?</p><span class="ot-said held">storefront’s tab is in front <button type="button" class="ot-talk-act" data-talk="sayNow" data-at="1999999820000">Send Now</button> <button type="button" class="ot-talk-act" data-talk="takeBack" data-at="1999999820000">Take Back</button></span></div></div></div>
-…a reply its agent cut, and one from before Whozmove restarted: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session</span></div><div class="ot-talk-lines"><div class="ot-you"><p>Where is the search box?</p></div><div class="ot-reply"><b>storefront</b><div class="ot-reply-text"><p>y…</p></div><span class="ot-said">The rest is in storefront’s session <button type="button" class="ot-talk-act" data-talk="there">Take Me There</button></span></div><div class="ot-you"><p>Where is the search box?</p></div><div class="ot-reply"><b>storefront</b><span class="ot-said">storefront answered in its session <button type="button" class="ot-talk-act" data-talk="there">Take Me There</button></span></div></div></div>
+== The talk about a task: its session's own chat, Side Chat's, under the task
+with the session that sent it: ["storefront",false,"shop"]
+the lead's pick: with its member: ["Wren",false,"wren"]
+…or with the lead, chosen, at any time: ["Atlas",true,"lead"]
+…its member not listed: the lead: ["Atlas",true,"lead"]
+the words that open yours, as the app makes them: to the member, none of the lead's: About the task Atlas gave me on your work: 
+…to the lead, chosen: About your task “Search box”: 
+…to the session that sent it: About your task “Search box”: 
+where it runs, as the talk's head says it: Claude Desktop, a terminal, unknown: ["in Claude Desktop","its session in Ghostty","its session"]
+the talk drawn: whom it's with and where, then the place its chat is drawn in: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with storefront</span><span class="ot-where">its session in Ghostty</span></div><div class="ot-talk-chat"></div></div>
+…the lead's pick: the member or the lead to choose, at any time: <div class="ot-talk"><div class="ot-talk-head"><span class="caps">Talk with Wren</span><span class="ot-where">its session</span></div><span class="ot-to" role="group" aria-label="Who your words go to"><button type="button" data-talk-to="member" aria-pressed="true">Wren</button><button type="button" data-talk-to="lead" aria-pressed="false">Atlas</button></span><div class="ot-talk-chat"></div></div>
+with Side Chat: the talk shows: true
+…without it: no talk: null
+drawn by Side Chat: the session that sent it, the lead's pick's member, then the lead chosen; none taken back: [["shop","the place under the task","About your task “Search box”: "],["wren","the place under the task","About the task Atlas gave me on your work: "],["lead","the place under the task","About your task “Search box”: "]]
+…the talk turned off on One Task's page: none: null
+One Task's page names nothing of Side Chat's: []
 
 == How One Task works, as its page under Tools sets it
 say why each is here, for each in line: ["highest: Highest on its ticket, waited longest, 2m","j12: P1 in Atlas’s queue, waited longest, 5m","no-ticket-old: No ticket, waited longest, 1h","no-ticket-new: No ticket, waited 1m"]
 …drawn: over the task, and what's after it: ["<p class=\"ot-why-here\"><b>Here first:</b> Highest on its ticket, waited longest, 2m.</p>","<div class=\"ot-part ot-after\"><span class=\"caps\">After this</span><ol><li>Search box <i>· P1 in Atlas’s queue, waited longest, 5m</i></li><li>no-ticket-old <i>· No ticket, waited longest, 1h</i></li><li>no-ticket-new <i>· No ticket, waited 1m</i></li></ol></div>"]
 tasks to do now not waiting for your Go: one you've read gives way to one ahead; pointed at, it stays: [["task:app:crash",null],["task:shop:search",null]]
 …a card ranked higher but not to do now: the one you've read stays: ["task:lowest:reading",null]
-held words waiting for your Send Now: idle, and while it works: [["Waits for your Send Now","sayNow","takeBack"],["Waits for your Send Now, once storefront finishes","takeBack"]]
 sessions turned away: one, two, and one not listed: ["1 session can’t hand you tasks: storefront","2 sessions can’t hand you tasks: storefront, rq",""]
 a pick, its looks by letter: each letter in its own column before its label, ticks as two may be mixed: <div class="options ot-choices"><button type="button" class="option" data-pick="A" role="checkbox" aria-checked="false"><span class="tickbox"></span><b class="ot-letter">A</b><span class="ot-ch">Table</span><span class="tag new">Recommended</span></button><button type="button" class="option" data-pick="B" role="checkbox" aria-checked="false"><span class="tickbox"></span><b class="ot-letter">B</b><span class="ot-ch">Cards</span></button><button type="button" class="option" data-pick="More Options" role="radio" aria-checked="false"><span class="tickbox round"></span><span class="ot-ch">More options<em>Ask for other looks</em></span></button><button type="button" class="option" data-pick="Comment" role="radio" aria-checked="false"><span class="tickbox round"></span><span class="ot-ch">Comment<em>Answer in your own words</em></span></button></div>
 …a question with words for its choices: round buttons, no letters: <div class="options ot-choices"><button type="button" class="option" data-pick="yes" role="radio" aria-checked="false"><span class="tickbox round"></span><span class="ot-ch">Yes, both</span><span class="tag new">Recommended</span></button><button type="button" class="option" data-pick="no" role="radio" aria-checked="false"><span class="tickbox round"></span><span class="ot-ch">Not like that</span></button><button type="button" class="option" data-pick="Comment" role="radio" aria-checked="false"><span class="tickbox round"></span><span class="ot-ch">Comment<em>Answer in your own words</em></span></button></div>

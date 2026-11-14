@@ -6,9 +6,13 @@
 # read of a project's priorities, as Jira does for a type you may not create; in `slowtype`, a read leaves the ticket's
 # type out, as a view smaller than the full one does, and it asks to slow down only for the search by key that a read
 # then makes for it. In `silent`, Jira turns every move away saying
-# nothing; in `busy`, Jira answers every move with a 500 that gives reasons all the same.
+# nothing; in `busy`, Jira answers every move with a 500 that gives reasons all the same (`every` changes nothing: it
+# gives a talk about every ticket a home of its own).
+# Assumed until a live read confirms them (JiraFacts says so too): that a search takes `project IS NOT EMPTY` and
+# pages by `nextPageToken`, and that getJiraIssue with `expand: "changelog"` gives a ticket's history as Jira's own API
+# does.
 #   python3 -I stand-in.py <port file> <log file> [blocked | slow | slowtype | expired | noscope | nolist | drop |
-#   silent | busy]
+#   silent | busy | every]
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 import base64, hashlib, json, sys, urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -57,7 +61,9 @@ def refused(key, reason, field="global0"):
 # An issue as v2 gives it. In its full view: the priority's id, the category's key, the type, project, parent, a done
 # one's resolution, its comments, and custom fields by name. In any smaller view, or for a list of fields, which
 # overrides the view: the priority and category by name, no project, parent or resolution, and a type only in a search.
-SPRINTS = [{"id": 7, "name": "Sprint 13", "state": "closed"}, {"id": 8, "name": "Sprint 14", "state": "active"}]
+SPRINTS = [{"id": 7, "name": "Sprint 13", "state": "closed"},
+           {"id": 8, "name": "Sprint 14", "state": "active", "startDate": "2030-01-06T06:30:00.000Z",
+            "endDate": "2030-01-12T18:29:00.000Z"}]
 
 # A ticket's description, as the full view gives it: Markdown text, with markup to stay as text; or, in mode adf,
 # Atlassian's document format; or, in mode longabout, longer than Whozmove hands a session.
@@ -82,14 +88,27 @@ def description():
     return ("Made-up description: the **Login** button does nothing on Safari 17.\n\n"
             "1. Open the checkout\n2. Press <b>Pay</b> & see <script>nothing</script>")
 
+# The made-up project's other tickets, each its title, its state and its priority's id; PAY-142 is the one above, in
+# whatever state it's been moved to.
+OTHERS = {"PAY-143": ("Receipts show the wrong currency", "To Do", "3"), "PAY-144": ("Refunds take a week", "In Review", "1"),
+          "PAY-145": ("Card form forgets the name", "To Do", "4"), "PAY-146": ("Old promo banner", "Done", "5"),
+          "PAY-147": ("Split payments", "In Progress", "2")}
+
 def issue(key="PAY-142", searched=False, args=None):
     full = (args or {}).get("view") == "full" and "fields" not in (args or {})
-    priority = LATER if key == "PAY-151" else {"id": "2", "name": "High"}
-    fields = {"summary": "Login button does nothing on Safari", "status": issue_status(state["issue"], full),
+    title, status, priority_id = OTHERS.get(key, ("Login button does nothing on Safari", state["issue"], "2"))
+    priority = LATER if key == "PAY-151" else dict(zip(("id", "name"), PRIORITIES[int(priority_id) - 1]))
+    fields = {"summary": title, "status": issue_status(status, full),
               "priority": priority if full else {"name": priority["name"]},
-              "assignee": {"displayName": "Sam Rivera"}, "labels": []}
+              "assignee": {"accountId": "made-up-sam", "displayName": "Sam Rivera"},
+              "labels": ["checkout"] if key == "PAY-142" else [], "updated": "2030-01-08T09:15:00.000+0000"}
     if full:
         fields.update({
+            "reporter": {"accountId": "made-up-ana", "displayName": "Ana Lima"},
+            "issuelinks": [{"id": "1", "type": {"name": "Blocks", "inward": "is blocked by", "outward": "blocks"},
+                            "inwardIssue": {"key": "PAY-145", "fields": {"summary": OTHERS["PAY-145"][0],
+                                                                         "issuetype": {"name": "Task"}}}}]
+                          if key == "PAY-142" else [],
             "issuetype": {"id": "10004", "name": "Bug", "description": "A problem.", "subtask": False, "hierarchyLevel": 0},
             "project": {"id": "10000", "key": "PAY", "name": "Payments"},
             "parent": {"id": "10100", "key": "PAY-100", "fields": {
@@ -101,13 +120,34 @@ def issue(key="PAY-142", searched=False, args=None):
                         "maxResults": 1, "startAt": 0, "total": 1},
             "description": description(),
             "customFields": {"Sprint": {"id": "customfield_10020", "value": SPRINTS}}})
+        if (args or {}).get("expand") == "changelog":
+            read_changelog = [
+                {"id": "2", "author": {"accountId": "made-up-sam", "displayName": "Sam Rivera"}, "created": "2030-01-07T10:00:00.000+0000",
+                 "items": [{"field": "status", "fromString": "To Do", "toString": "In Progress"}]},
+                {"id": "1", "author": {"accountId": "made-up-ana", "displayName": "Ana Lima"}, "created": "2030-01-06T08:00:00.000+0000",
+                 "items": [{"field": "priority", "fromString": "Medium", "toString": "High"}]}]
+            return {"id": "10142", "key": key, "fields": fields, "changelog": {"histories": read_changelog}}
         if state["issue"] == "Done":
             fields["resolution"] = {"id": "10000", "name": "Done", "description": "Work on it is complete."}
     else:
         fields["customfield_10020"] = SPRINTS
         if searched:
             fields["issuetype"] = {"name": "Bug"}
-    return {"id": "10142", "key": key, "fields": fields}
+    return {"id": str(10000 + int(key.split("-")[1])), "key": key, "fields": fields}
+
+# Every ticket you can see, as a search for every one gives them: PAY-142 to PAY-147, the most recently changed first;
+# `updated >= -Nm`, only PAY-142. Five a page, the next page by its token.
+def every(jql, args):
+    keys = ["PAY-142"] + sorted(OTHERS)
+    if jql.startswith("updated >= -"):
+        keys = keys[:1]
+    start = int(args.get("nextPageToken", "0") or 0)
+    page = keys[start:start + int(args.get("maxResults", 5))]
+    more = start + len(page) < len(keys)
+    answer = {"isLast": not more, "issues": [issue(k, searched=True, args=args) for k in page]}
+    if more:
+        answer["nextPageToken"] = str(start + len(page))
+    return answer
 
 def tool(name, args):
     if name == "getAccessibleAtlassianResources":
@@ -120,7 +160,10 @@ def tool(name, args):
     if args.get("cloudId") != SITE:
         return {"error": True, "message": "Unknown site", "statusCode": 404}
     if name == "searchJiraIssuesUsingJql":
-        found = [issue(searched=True, args=args)] if "login" in args.get("jql", "").lower() or "PAY-142" in args.get("jql", "") else []
+        jql = args.get("jql", "")
+        if jql.startswith("project IS NOT EMPTY") or jql.startswith("updated >= -"):
+            return {"data": {"appliedContentFormat": "markdown", **every(jql, args)}}
+        found = [issue(searched=True, args=args)] if "login" in jql.lower() or "PAY-142" in jql else []
         return {"data": {"appliedContentFormat": "markdown", "isLast": True, "issues": found}}
     if name == "getJiraIssue":
         if args.get("issueIdOrKey") != "PAY-142" and args.get("issueIdOrKey") != "PAY-151":

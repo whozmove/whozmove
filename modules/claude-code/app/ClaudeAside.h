@@ -9,6 +9,9 @@
 // `checker` is the program the copy's hook runs before each tool (Whozmove's own, kClaudeAsideCheckFlag); `program`,
 // for --print-aside alone, a stand-in every copy runs in Claude Code's place (nil: Claude Code, found as below).
 - (instancetype)initWithChecker:(NSString *)checker program:(NSString *)program;
+// How long an ask waits for its answer after an early empty result (ClaudeAsideEarlyResult) before "Didn't answer",
+// its copy then ended: 60 s; --print-aside's shorter.
+@property (assign) NSTimeInterval afterEarly;
 // Asks, off the main thread, in the session's folder: into the session's copy when one is open, waiting, with the same
 // model and effort, and the session hasn't moved since it opened (`mark`, ClaudeAsideMoved); else in a fresh copy, the
 // open one ended, whose first message carries `earlier` (the session's earlier side questions with their answers,
@@ -51,6 +54,15 @@ NSDictionary *ClaudeAsideAnswer(NSArray<NSData *> *lines, BOOL timedOut, BOOL st
 // "Searching for “total”", a pattern only when it names no path; "Finding files *.ts"; "Running git log", git's own
 // command, never Claude's words for it); "Working" for any other tool.
 NSString *ClaudeAsideStep(NSDictionary *line, NSString *folder);
+// Whether a `result` line is a copy's early one rather than the ask's answer: it came before the copy said anything for
+// the ask (`said`, an `assistant` line since the ask's message), it used nothing (no usage above 0), and it says
+// nothing ClaudeAsideAnswer would tell (only noAnswer). Seen live within a second of a fresh copy's start, with the
+// real answer a few seconds after (2.1.319); never against a stand-in API.
+BOOL ClaudeAsideEarlyResult(NSDictionary *result, BOOL said);
+// What panel.log keeps of such a result: its shape, never its words: whether the copy was kept or fresh (`kept`), its
+// Claude Code `version`, the seconds since the ask, the subtype, is_error, num_turns, duration_ms, the API's status and
+// how many characters it said.
+NSString *ClaudeAsideResultShape(NSDictionary *result, double seconds, BOOL kept, NSString *version);
 // Whether a copy of Claude Code `version` is asked for its thinking's summaries: a version they were checked with
 // (ClaudeAsideThinkingVersions), and not one that turned the flag down (`refused`).
 BOOL ClaudeAsideThinks(NSString *version, NSSet<NSString *> *refused);

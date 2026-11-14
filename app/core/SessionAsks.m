@@ -104,9 +104,9 @@ static NSString *const kClosing = @"starting: Whozmove is closing: ask again onc
     if (!row)
         return [@"refused: " stringByAppendingString:
                     notAsker ?: @"this doesn't run in one of the sessions Whozmove lists"];
-    // One that only shows you something goes in the session's name with no switch to bind it to its process, so its
-    // agent checks, at the ask, that the process speaking is that session's only one, where it was seen working.
-    NSString *notNow = ask.showsOnly ? [[self.core agentOf:row] whyNot:row speakFrom:process] : nil;
+    // One that only shows you something goes in the session's name with no switch to bind it to its process, so the
+    // core checks, at the ask, that the process speaking is that session's only one, where it was seen working.
+    NSString *notNow = ask.showsOnly ? [self.core whyNot:row asksFrom:pid] : nil;
     if (notNow) {
         PanelLog(@"%@ asked %@: refused: %@", row.sessionId, word, notNow);
         return [@"refused: " stringByAppendingString:notNow];

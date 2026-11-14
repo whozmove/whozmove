@@ -366,22 +366,17 @@ show('…back in the line, but you\'d started on the one in front since: forgott
 show('…its row still missing, the app still keeping it: wait and see', taskLeft(tLeftOf, [tOn[1]], tNow()));
 show('…the app no longer keeping it (its session ended): the foot says it no longer waits',
      [taskLeft(tLeftOf, [tOn[1]], tNow({ waiting: new Set() })), taskAsideGone('Search box', null)]);
-const tGoneWith = (talk) => {
+const tGoneWith = () => {
   const tasksBefore = state.tasks, ot = { left: { ...tLeftOf, title: 'Search box',
     ui: { ...oneTaskUi(), chosen: ['Comment'], note: 'Make it wider ' } } };
   state.tasks = [];
-  if (talk) state.talkDrafts[tLeftOf.key] = talk;
   oneTaskLeft(ot, []);
-  delete state.talkDrafts[tLeftOf.key];
   state.tasks = tasksBefore;
   return [ot.said, ot.kept];
 };
 show('…a comment typed, then the task gone: the foot offers its words to copy', tGoneWith());
-show('…words in its talk box too: both, Comment\'s first', tGoneWith('Which file? '));
-show('…the words it offers, for a task set aside too: Comment\'s and the talk box\'s, either alone, or none',
-     [taskKeptWords(' Which file?', { note: 'Wider' }), taskKeptWords('', { note: ' Wider ' }),
-      taskKeptWords('Which file?', { note: ' ' }), taskKeptWords(undefined, { note: '' }),
-      taskKeptWords('', undefined)]);
+show('…the words it offers, for a task set aside too: its Comment\'s, trimmed, or none (the talk\'s stay in its chat)',
+     [taskKeptWords({ note: ' Wider ' }), taskKeptWords({ note: ' ' }), taskKeptWords(undefined)]);
 show('…One Task turned off, or its session turned away: it still waits, so nothing is said',
      [taskLeft(tLeftOf, [], tNow({ on: false, waiting: new Set() })),
       taskLeft(tLeftOf, [], tNow({ turnedAway: ['shop'], waiting: new Set() }))]);
@@ -473,111 +468,54 @@ show('what\'s new to the line: the newest to come, which a task joining moves on
                                                                                 taskNewest(tNewer, min(4)) === min(1)]);
 show('…and one answered or gone never moves it back', taskNewest([], min(1)) === min(1));
 
-section('The talk about a task');
-const tTalkSay = (state, more = {}) => ({ at: min(3), words: 'Where is the search box?', state, ...more });
+section('The talk about a task: its session\'s own chat, Side Chat\'s, under the task');
 const tTalked = (talk) => taskLine([{ ...tSent('shop', 'Search', min(9)), talk }], [tShop])[0];
 const tPickedTalk = (talk, sessions = [tShop, tLead, tWren]) => taskLine([{ ...tPicked0, talk }], sessions, {})[0];
-const tTo = (to) => [to.name, to.lead, to.gone, to.s?.sessionId ?? null];
-show('to the session that sent it', tTo(talkTo(tTalked(undefined), [tShop], false)));
-show('the lead\'s pick: to its member, before the talk begins', tTo(talkTo(tPickedTalk(undefined), [tLead, tWren], false)));
-show('…or to the lead, chosen', tTo(talkTo(tPickedTalk(undefined), [tLead, tWren], true)));
+const tTo = (to) => [to.name, to.lead, to.s?.sessionId ?? null];
+show('with the session that sent it', tTo(talkTo(tTalked(undefined), [tShop], false)));
+show('the lead\'s pick: with its member', tTo(talkTo(tPickedTalk(undefined), [tLead, tWren], false)));
+show('…or with the lead, chosen, at any time', tTo(talkTo(tPickedTalk(undefined), [tLead, tWren], true)));
 show('…its member not listed: the lead', tTo(talkTo(tPickedTalk(undefined, [tLead]), [tLead], false)));
-show('once begun, the session it began with, whatever is chosen', tTo(talkTo(tPickedTalk({ to: 'wren' }), [tLead, tWren],
-                                                                             true)));
-show('…the pick now for another member', tTo(talkTo({ ...tPickedTalk({ to: 'moss' }) },
-                                                    [tLead, tWren, session({ sessionId: 'moss', name: 'Moss' })], false)));
-show('…its session gone', tTo(talkTo(tTalked({ to: 'gone' }), [tShop], false)));
-show('…a task not the lead\'s pick, its talk naming another session: nowhere',
-     tTo(talkTo(tTalked({ to: 'lead' }), [tShop, tLead], false)));
-const tOpening = talkOpening(tPickedTalk({ lead: 'About your task “Search box”: ',
-                                           leadForMember: 'About the task Atlas gave me on your work: ' }),
-                             talkTo(tPickedTalk(undefined), [tLead, tWren], false));
-show('what opens the words, to the member, and the room left of 600', [tOpening, talkRoom(tOpening)]);
+const tOpenings = { lead: 'About your task “Search box”: ', leadForMember: 'About the task Atlas gave me on your work: ' };
+show('the words that open yours, as the app makes them: to the member, none of the lead\'s',
+     talkOpening(tPickedTalk(tOpenings), talkTo(tPickedTalk(undefined), [tLead, tWren], false)));
+show('…to the lead, chosen', talkOpening(tPickedTalk(tOpenings), talkTo(tPickedTalk(undefined), [tLead, tWren], true)));
+show('…to the session that sent it', talkOpening(tTalked(tOpenings), talkTo(tTalked(undefined), [tShop], false)));
 const tIdle = session({ sessionId: 'shop', name: 'storefront', status: 'idle' });
-const tBusy = { ...tIdle, status: 'busy', activity: 'Reading search.ts' };
-const tAsking = { ...tIdle, ask: { id: 'a2', tool: 'Bash', input: { command: 'npm run build' } } };
-const tInFront = { ...tIdle, focused: true };
 const tDesktop = { ...tIdle, entrypoint: 'claude-desktop' };
-const tState = (said, s, asks, front, waits) => {
-  const st = talkState(said, s, 'storefront', asks, front, waits);
-  return [st.words, ...st.acts.map((a) => a.act)];
-};
-show('held: while it works', tState(tTalkSay('held'), tBusy));
-show('held: behind its own request, what it asks, with Show It', tState(tTalkSay('held'), tAsking,
-                                                                        core.agent.askLine(tAsking.ask)));
-show('…its request not worded', tState(tTalkSay('held'), tAsking, ''));
-show('held: idle, its tab the one you\'re in', tState(tTalkSay('held'), tInFront));
-show('held: idle, in Claude Desktop', tState(tTalkSay('held'), tDesktop));
-show('held: idle, its terminal the app in front, on another tab', tState(tTalkSay('held'), tIdle, '', 'Ghostty'));
-show('held: idle, about to go in', tState(tTalkSay('held'), tIdle));
-show('held: its session not on the task now', tState(tTalkSay('held'), undefined));
-show('going in, typed, in Claude Desktop, taken', [tState(tTalkSay('typing'), tIdle), tState(tTalkSay('typed'), tIdle),
-                                                   tState(tTalkSay('typed'), tDesktop), tState(tTalkSay('sent'), tIdle)]);
-show('not taken, and finished without a reply', [tState(tTalkSay('notTaken'), tIdle),
-                                                 tState(tTalkSay('noReply'), tIdle)]);
-show('a reason with its own full stop, and without', [talkWhy('It has ended.'), talkWhy('Ghostty is busy'), talkWhy('')]);
-show('back in the box: none of it went in, into a terminal, Claude Desktop without Accessibility, and somewhere unnamed',
-     [talkBackWords(tTalkSay('refused', { why: 'Its conversation is open in another terminal too', where: 'Ghostty' })),
-      talkBackWords(tTalkSay('refused', { why: 'Whozmove needs the Accessibility permission for this',
-                                          where: 'Claude Desktop', way: 'Open Accessibility Settings',
-                                          permission: true })),
-      talkBackWords(tTalkSay('refused', { why: 'It isn’t running: press its row to open it again' }))]);
-show('…stopped part-way, with the terminal\'s way past it',
-     talkBackWords(tTalkSay('stopped', { why: 'Ghostty asks for your OK', where: 'Ghostty', way: 'Allow' })));
-show('where it runs: Claude Desktop, a terminal the app names, and one it doesn\'t',
+show('where it runs, as the talk\'s head says it: Claude Desktop, a terminal, unknown',
      [talkWhere(tDesktop, { shop: 'Ghostty' }), talkWhere(tIdle, { shop: 'Ghostty' }), talkWhere(tIdle, {})]);
-const tStep = (n, sent) => ({ ...tTalked(undefined), sent, task: { ...tTalked(undefined).task, step: { n, of: 3 } } });
-show('a next step coming in as you write: said, and Send names it; the step you began on; a task with no step',
-     [talkNewStep(tStep(3, 200), 100), talkNewStep(tStep(2, 100), 100),
-      talkNewStep({ ...tTalked(undefined), sent: 200 }, 100), talkNewStep(tStep(3, 200), undefined)]);
-show('its live line while it works on your words', [talkLive([tTalkSay('sent')], tBusy, 'storefront'),
-  talkLive([tTalkSay('sent')], { ...tBusy, activity: '' }, 'storefront'), talkLive([tTalkSay('held')], tBusy, 'storefront'),
-  talkLive([tTalkSay('replied')], tBusy, 'storefront')]);
-show('a reply, a long one whole, and one its agent cut at the most it gives',
-     [talkReply([{ prose: 'Behind the magnifier.' }]),
-      ((r) => [r.parts[0].prose.length, r.cut])(talkReply([{ prose: 'x'.repeat(3000) }])),
-      ((r) => [r.parts.length, r.cut])(talkReply([{ prose: 'x'.repeat(9000) }, { cut: true }]))]);
-const tCmd = { code: 'npm run build -- --watch', lang: 'bash' };
-const tHeredoc = { code: "python3 - <<'EOF'\nimport json\nprint(\"<ok>\")\nEOF", lang: '' };
-show('a reply with no code; a fenced command; a heredoc; two blocks; inline code, as the app cuts them', [
-  talkReply([{ prose: 'It is behind the magnifier.' }]),
-  talkReply([{ prose: 'Paste it into a terminal:' }, tCmd, { prose: 'Then reload.' }]),
-  talkReply([{ prose: 'Run:' }, tHeredoc]),
-  talkReply([{ prose: 'First:' }, { code: 'make', lang: 'sh' }, { prose: 'then:' }, { code: 'make test', lang: '' }]),
-  talkReply([{ prose: 'Use `make test` there.' }])]);
-show('…a long reply with code: every part, each block whole, in order',
-     ((r) => [r.parts.map((p) => (p.code !== undefined ? `code ${p.code.length} #${p.n}` : `prose ${p.prose.length}`)),
-              r.cut])(talkReply([{ prose: 'a'.repeat(400) }, { code: 'c'.repeat(3000), lang: '' },
-                                 { prose: 'b'.repeat(300) }, { code: 'after', lang: '' }])));
-show('…as VoiceOver says it', talkReplyWords(talkReply([{ prose: 'Paste it:' }, tCmd, { prose: 'Then reload.' }])));
-const tCoded = tTalked({ to: 'shop', says: [tTalkSay('replied', { repliedAt: min(1), reply: [
-  { prose: 'Paste it into a terminal:' }, tHeredoc, { prose: 'Use `make` after.' }] })] });
-show('a reply with a heredoc, drawn: one line with Copy, the prose as prose, everything escaped',
-     taskTalkHTML(tCoded, talkTo(tCoded, [tShop], false)));
-show('…pressed, shown whole', taskTalkHTML(tCoded, talkTo(tCoded, [tShop], false),
-                                          { [taskCodeKey(tCoded, min(3), 1)]: true }));
-show('…its Copy just pressed: "Copied" on the button itself', taskCodeHTML({ ...tCmd, n: 1 }, min(3), false, true));
-show('a command shown whole wraps only between words: "--env=staging" stays one, a word past a line may break',
-     taskCodeWords(`npm run deploy -- --env=staging --region=eu-west-1 <x> ${'k'.repeat(60)}`));
-const tReplied = tTalked({ to: 'shop', says: [tTalkSay('replied', { repliedAt: min(1),
-  reply: [{ prose: 'It’s **behind** the <b>magnifier</b>.' }] })] });
-show('the line under the header: a reply not seen yet', talkNotice([tReplied], [tShop], {}) && [
-  talkNotice([tReplied], [tShop], {}).text, talkNotice([tReplied], [tShop], {}).level]);
-show('…once seen in One Task', talkNotice([tReplied], [tShop], { [tReplied.key]: min(1) }));
-show('the talk drawn: your words, its reply in Markdown, everything escaped',
-     taskTalkHTML(tReplied, talkTo(tReplied, [tShop], false)));
-show('…before anything is said, the lead\'s pick to choose for',
+show('the talk drawn: whom it\'s with and where, then the place its chat is drawn in',
+     taskTalkHTML(tTalked({ terminals: { shop: 'Ghostty' } }), talkTo(tTalked(undefined), [tShop], false)));
+show('…the lead\'s pick: the member or the lead to choose, at any time',
      taskTalkHTML(tPickedTalk(undefined), talkTo(tPickedTalk(undefined), [tLead, tWren], false)));
-show('…held, with Take Back', taskTalkHTML(tTalked({ to: 'shop', says: [tTalkSay('held')] }),
-                                         { s: tBusy, name: 'storefront', lead: false, gone: false }));
-show('…held for the tab you\'re in, Send Now beside Take Back; words back in the box not drawn; in Ghostty',
-     taskTalkHTML(tTalked({ to: 'shop', terminals: { shop: 'Ghostty' },
-                            says: [tTalkSay('held'), tTalkSay('refused', { at: min(2), why: 'x' })] }),
-                  { s: tInFront, name: 'storefront', lead: false, gone: false }));
-show('…a reply its agent cut, and one from before Whozmove restarted',
-     taskTalkHTML(tTalked({ to: 'shop', says: [tTalkSay('replied', { reply: [{ prose: 'y…' }, { cut: true }] }),
-                                               tTalkSay('replied', { at: min(2) })] }),
-                  { s: tIdle, name: 'storefront', lead: false, gone: false }));
+show('with Side Chat: the talk shows', !!oneTaskTalkTo(tTalked(undefined)));
+const tChatBefore = core.sessionChat;
+core.sessionChat = null;
+show('…without it: no talk', oneTaskTalkTo(tTalked(undefined)));
+core.sessionChat = tChatBefore;
+// What One Task hands Side Chat to draw: the session the talk is with, the place under the task, and the words that open
+// yours for this task; nothing for a task its session took back.
+const tDrawn = [], tTalkPage = { querySelector: (sel) => (sel === '.ot-talk-chat' ? 'the place under the task' : null) };
+core.sessionChat = { draw: (s, place) => tDrawn.push([s.sessionId, place.lines, place.opening]) };
+oneTaskTalkDraw(tTalked(tOpenings), tTalkPage);
+const tPickedNow = tPickedTalk(tOpenings);
+oneTaskTalkDraw(tPickedNow, tTalkPage);
+state.talkLead[tPickedNow.key] = true;
+oneTaskTalkDraw(tPickedNow, tTalkPage);
+delete state.talkLead[tPickedNow.key];
+oneTaskTalkDraw({ ...tTalked(tOpenings), takenBack: 'answered' }, tTalkPage);
+show('drawn by Side Chat: the session that sent it, the lead\'s pick\'s member, then the lead chosen; none taken back',
+     tDrawn);
+core.sessionChat = tChatBefore;
+const tRulesBefore = state.tasksRules;
+state.tasksRules = { ...state.tasksRules, talk: false };
+show('…the talk turned off on One Task\'s page: none', oneTaskTalkTo(tTalked(undefined)));
+state.tasksRules = tRulesBefore;
+// One Task shows the chat Side Chat lends it, and never reaches inside it: none of its files names a class or attribute
+// of Side Chat's.
+show('One Task\'s page names nothing of Side Chat\'s', ['one-task.js', 'one-task-view.js', 'order.js', 'one-task.css']
+  .filter((file) => /\bsc-|data-sc\b|\[data-sc[-=\]]/.test(read(`modules/one-task/page/${file}`))));
 
 section('How One Task works, as its page under Tools sets it');
 const tRules = [tSent('shop', 'no-ticket-old', min(90)),
@@ -594,8 +532,6 @@ show('tasks to do now not waiting for your Go: one you\'ve read gives way to one
 const tHigher = taskLine([tSent('lowest', 'reading', min(20)), tSent('medium', 'higher', min(1))], tTwo);
 show('…a card ranked higher but not to do now: the one you\'ve read stays', tFront(tHigher,
   { key: 'task:lowest:reading', seen: tSeen('task:lowest:reading'), waitForGo: false }));
-show('held words waiting for your Send Now: idle, and while it works', [
-  tState(tTalkSay('held'), tIdle, '', '', true), tState(tTalkSay('held'), tBusy, '', '', true)]);
 show('sessions turned away: one, two, and one not listed', [taskTurnedAwayWords(['shop'], tSessions),
   taskTurnedAwayWords(['shop', 'cli'], tSessions), taskTurnedAwayWords(['gone'], tSessions)]);
 show('a pick, its looks by letter: each letter in its own column before its label, ticks as two may be mixed',

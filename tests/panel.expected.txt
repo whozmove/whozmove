@@ -572,10 +572,12 @@ the model picked, going in, Claude asking in the terminal: Claude is asking in t
 "Switch model?" on its row, with Don't ask again: Switch to Opus 5.5? / Claude re-reads 152k tokens on your next message, which uses more of your limit. / Don't ask again
 "Switch model?" with Don't ask again ticked: <div class="perm switch-ask" data-switch="a1" data-stage="switch"><div class="card-title">Switch to Opus 5.5?</div><div class="perm-why">Claude re-reads 152k tokens on your next message, which uses more of your limit.</div><div class="never" role="checkbox" aria-checked="true"><span class="tickbox"></span>Don't ask again</div><div class="perm-actions"><button class="cancel">Keep Sonnet 5.5</button><button class="go perm-allow">Switch</button></div></div>
 a step's note with the button past its reason: <div class="step-note notice inline warn">It shares its iTerm2 window, and iTerm2&#39;s Python API is off: ask there <button class="button small note-way" data-way="n1">Turn On iTerm2&#39;s Python API…</button></div>
-a step's note with Take me there: <div class="step-note notice inline warn">It&#39;s open elsewhere too: change its mode in the terminal <button class="button small note-way" data-way="n2">Take me there<svg class="out-icon" width="10" height="10" viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 1.5H2.5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.8"/><path d="M6 6l4.8-4.8M7.6 1.2h3.2v3.2"/></svg></button></div>
+a step's note with Take Me There: <div class="step-note notice inline warn">It&#39;s open elsewhere too: change its mode in the terminal <button class="button small note-way" data-way="n2">Take Me There<svg class="out-icon" width="10" height="10" viewBox="0 0 12 12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 1.5H2.5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V5.8"/><path d="M6 6l4.8-4.8M7.6 1.2h3.2v3.2"/></svg></button></div>
 …pressed as it comes: nothing yet, as it has only just shown: {"sent":[]}
 …pressed once it has been seen: the app is asked to open the session, and the note goes: {"sent":["open n2"],"note":false}
 a switch's note pressed: the app is asked for the row's mode menu, under its label: ["pick mode n3 at 116,64"]
+a pick's note needing Accessibility: its button has the mark for leaving the panel, and Open the Menu's hasn't: {"accessibility":true,"menu":false}
+a pick's note needing Accessibility pressed: the app is asked to open its pane, and the note goes: {"sent":["accessibilitySettings"],"note":false}
 a terminal's way past pressed: the app takes it, and the note stays for how it went: {"sent":["wayPast n4"],"way":null}
 a terminal session that's the one you're on says where it's open: true
 a terminal session that has ended says where a press opens it again: Stopped: click to carry it on in iTerm2
@@ -879,6 +881,9 @@ cp tool $(PREFIX)/</pre><div class="q-help">Before each run, Deploy checks that 
 <div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="card-title">Run this every time you press Deploy?</span></div><pre class="perm-detail">npm run build</pre><div class="q-help">That runs:</div><pre class="perm-detail">build: tsc</pre><div class="q-help">Before each run, Deploy checks that package.json is as you confirmed, and asks you again if not.</div><div class="q-help">Not checked: what tsc does and other files npm, pnpm, yarn or bun may read.</div><div class="q-help" title="/work/app">In app, on this Mac. Nothing else is sent anywhere.</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
 -- confirming in a worktree: the port it gets in $PORT there, as a command confirmed here runs with one
 <div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="card-title">Run this every time you press Deploy?</span></div><pre class="perm-detail">npm run dev</pre><div class="q-help">That runs:</div><pre class="perm-detail">next dev</pre><div class="q-help" title="/work/app-cart">In app-cart, on this Mac. Nothing else is sent anywhere.</div><div class="q-help">If it starts a server, it gets port 3001 in $PORT here, and each checkout of app its own, so their builds can run side by side.</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
+-- opened again with the command macOS refused to save: why, in its words (escaped), on both steps
+<div class="perm deploy-setup" data-setup="d6" data-step="1"><div class="q-top"><span class="card-title">Set up Deploy for app</span><button class="icon-button small q-close" title="Close">×</button></div><div class="q-help" title="/work/app">What should Deploy run on this Mac? It runs in app, through your login shell: a command that does its job and finishes, or a server that keeps running.</div><input class="field q-type d-cmd" placeholder="A command, or a server" maxlength="1000" value="make install"><div class="c-note notice inline warn">Not saved: The file “deploy.json” couldn’t be saved &lt;because&gt; the volume is full</div><div class="perm-actions"><button class="d-cancel">Cancel</button><button class="perm-allow d-next">Use this</button></div></div>
+<div class="perm deploy-setup" data-setup="d6" data-step="2"><div class="q-top"><span class="card-title">Run this every time you press Deploy?</span></div><pre class="perm-detail">make install</pre><div class="q-help">That runs:</div><pre class="perm-detail">cc -o tool main.c</pre><div class="q-help" title="/work/app">In app, on this Mac. Nothing else is sent anywhere.</div><div class="c-note notice inline warn">Not saved: The file “deploy.json” couldn’t be saved because the volume is full</div><div class="perm-actions"><button class="d-back">Back</button><button class="perm-allow d-yes">Yes, use it</button></div></div>
 the app's answer moves the card on to confirming: 2
 …and the new step waits before it takes a press: true
 …not when the command was changed after it was asked about: 1
@@ -1533,3 +1538,29 @@ a held card in the view, then Return: left to the card: [false,false]
 a held card in the view, then Esc: the card lets go of its keys, and the view stays: [true,false,false,true]
 …then Esc again: the view closes: [true,true,["collapse"]]
 pressed in it, then another app takes the keyboard: the view has none: [false,false]
+
+== A question card pressed three ways: each holds the keys (keyboard.js)
+pressed on the card (its row): the card holds the keys, and shows it: [true,"quiz1",true]
+…and the panel asks for the keyboard: [["keyboard on"],true]
+Esc in the box (the row given back, the box no longer focused): the card still holds the keys, and the panel keeps the keyboard: [true,false,true,["keyboard on"]]
+…then Esc on the card: it lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+pressed on its Type an answer option: the card holds the keys, and shows it: [true,"quiz1",true]
+…and the panel asks for the keyboard: [["keyboard on"],true]
+Esc in the box (the row given back, the box no longer focused): the card still holds the keys, and the panel keeps the keyboard: [true,false,true,["keyboard on"]]
+…then Esc on the card: it lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+pressed straight into its box: the card holds the keys, and shows it: [true,"quiz1",true]
+…and the panel asks for the keyboard: [["keyboard on"],true]
+Esc in the box (the row given back, the box no longer focused): the card still holds the keys, and the panel keeps the keyboard: [true,false,true,["keyboard on"]]
+…then Esc on the card: it lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+pressed straight into a free-text answer's box: the card holds the keys, and shows it: [true,"quiz1",true,["keyboard on"]]
+Esc in it: the box is left, keeping what's typed, and the card still holds the keys: [true,false,"Postgres, for now",true,true,["keyboard on"]]
+…then Esc again: the card lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+pressed straight into a number question's box: the card holds the keys, and shows it: [true,"quiz1",true,["keyboard on"]]
+Esc in it: the box is left, keeping what's typed, and the card still holds the keys: [true,false,"12",true,true,["keyboard on"]]
+…then Esc again: the card lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+pressed straight into the number box of one of several questions: the card holds the keys, and shows it: [true,"quiz1",true,["keyboard on"]]
+Esc in it: the box is left, keeping what's typed, and the card still holds the keys: [true,false,"3",true,true,["keyboard on"]]
+…then Esc again: the card lets go, and the keyboard goes back: [null,null,false,["keyboard on","keyboard off"]]
+Esc in a box in no card while a card holds the keys: that box is left alone, and the card still holds them: [false,true]
+pressed into a box in no card that answers to keys (a Deploy command): no card held, the box still asks for the keyboard: [null,null,["keyboard on"]]
+a digit typed in the box of a held card: left to the box, nothing answered or held for it: [false,true,false,[]]

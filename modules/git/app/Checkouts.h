@@ -5,9 +5,10 @@
 @class Row;
 
 // Whether a checkout's git status is due a read, `since` seconds after its last: every 20s, and 2s after a session's
-// activity there (`activeSince`), when it isn't `watched`; watched, on that schedule only once something in it has
-// `changed`, and every `quietEvery` seconds anyway. Plain, for the tests.
-BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery);
+// activity there (`activeSince`), when it isn't `watched`; watched, once what changed in it since its last read has
+// `settled` (CheckoutSettled), and 20s on while no session is at work there (a dev server writing in an idle agent's
+// folder), and every `quietEvery` seconds anyway. Plain, for the tests.
+BOOL CheckoutReadDue(BOOL watched, BOOL settled, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery);
 
 // Whether a checkout's branch can have a pull request of its own, to look up and keep: a branch, and not the repo's
 // base branch (`base`, its default, as last read), which pull requests go into rather than come from, and the next

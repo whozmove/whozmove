@@ -8,8 +8,8 @@ not listed: The session
 == Before you send: why nothing can go in, or how it will
 working, with the hook: nothing to say: null
 idle in a terminal it can type into: nothing to say: null
-its session has ended: {"why":"Wren’s session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
-not listed any more: {"why":"Wren’s session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
+its session has ended: {"why":"Its session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
+not listed any more: {"why":"Its session has ended: open it again, and your words can go in","way":"Open Wren Again","act":"openAgain"}
 idle in Terminal: {"why":"Whozmove can’t type into Terminal: Copy and Go copies your words and brings Wren’s window forward","way":"Copy and Go","act":"copyAndGo"}
 working in Terminal: the hook hands words in, nothing typed: null
 idle, open in two places: {"why":"Wren is open in two places: close the other copy, and your words can go in","way":"Close the Other Copy","act":"closeCopy"}
@@ -40,7 +40,7 @@ its turn ended, in a terminal Whozmove can't type into: Whozmove can’t type in
 …while it works, started before this update: Whozmove can’t type into Terminal: once Wren’s turn ends, copy your words and paste them there (held) [wait] · Take Back
 …copied with Copy and Go: Copied for you to paste · 1m
 its turn ended in Claude Desktop: Waits for your Send Now, which brings Claude Desktop forward (held) [wait] · Take Back | Send Now
-its session ended while they waited: Wren’s session has ended (held) [no] · Take Back
+its session ended while they waited: Its session has ended (held) [no] · Take Back
 handed to its hook: Going to Wren… [wait] · Take Back
 Take Back pressed once they were on their way: Already on its way to Wren [wait]
 typed at its prompt: Going in… [wait]
@@ -134,7 +134,7 @@ the box while it works: <div class="sc-box"><div class="sc-box-row"><input class
 the box in Terminal at idle: <div class="sc-box"><div class="sc-box-row"><input class="field small q-type sc-field" maxlength="600" placeholder="Message Wren, or ask without interrupting…" aria-label="Your words to Wren"><button type="button" class="button small" data-sc="ask" disabled title="A copy of Wren answers here. Wren won’t see this or stop" aria-keyshortcuts="Alt+Enter">Ask Without Interrupting</button><button type="button" class="button small main" data-sc="copyAndGo" disabled>Copy and Go</button></div><span class="sc-goes"></span></div>
 under the box: what goes in: Goes in as: The user sent this from Whozmove while you were working: Do &lt;it&gt; now.
 under the box: how they'll go, with no hook: <span class="sc-note">Your words go in when Wren’s turn ends.</span> Goes in as: Hi.
-under the box: why nothing can go in: <span class="sc-why">Wren’s session has ended: open it again, and your words can go in</span>
+under the box: why nothing can go in: <span class="sc-why">Its session has ended: open it again, and your words can go in</span>
 under the box: words back in it: <span class="sc-why">Wren’s session ended before this went in. Your words are back in the box.</span> <button type="button" class="sc-act" data-sc="openAgain">Open Wren Again</button>
 Side Chat, the bar at a row's far edge: no words, named for a screen reader: <button type="button" class="sc-edge" data-sc-open="wren" aria-label="Side Chat with Wren" aria-pressed="false"></button>
 …with a reply waiting: it lights the bar in your move's colour: <button type="button" class="sc-edge lit" data-sc-open="wren" aria-label="Side Chat with Wren, a reply waiting" aria-pressed="false"></button>
@@ -264,3 +264,39 @@ under the box, nothing written: why nothing can be asked: <span class="sc-why">N
 …Ask the dark button, nothing written: nothing: 
 …a press that couldn't act just now: why, first: <span class="sc-why">Nothing to ask about yet: Wren hasn’t said anything.</span>
 a failed question while another is answered: no Ask Again: <div class="sc-lines"><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p></div><div class="sc-reply sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><b>A copy of Wren</b><span class="sc-said ended">Took too long<button type="button" class="sc-act" data-sc="waitTurn" data-at="1999999460000">Send After This Step</button></span></div><div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><p><span class="sc-mark">Without interrupting</span> Why that file?</p></div><div class="sc-reply sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><b>A copy of Wren</b><div class="sc-aside-work" data-at="1999999940000"></div></div></div>
+
+== Drawn in another view, with words that open yours there
+the words that open yours: the hook's while it works, then the view's: The user sent this from Whozmove while you were working: About your task “Search box” (step 2 of 3): 
+…idle: the view's alone: About your task “Search box” (step 2 of 3): 
+room for your own words after both: 499
+under the box: what goes in, whole: Goes in as: The user sent this from Whozmove while you were working: About your task “Search box” (step 2 of 3): Where is it?
+…Ask the dark button: what the copy is asked, whole: Asks without interrupting: About your task “Search box” (step 2 of 3): Where is it?
+the box: its field holds only what fits after them: maxlength="499"
+…and keeps its own words, naming nothing of the view's: placeholder="Message Wren, or ask without interrupting…"
+words sent from there, in the chat: what they were about, quietly over them: <div class="sc-lines"><div class="sc-you"><span class="sc-about">About your task “Search box” (step 2 of 3)</span><p>Where is it?</p><span class="sc-said read">Read between steps · 2m</span></div></div>
+…what they were about, without the colon: About your task “Search box” (step 2 of 3)
+…from the chat's own window: nothing over them: 
+
+== What VoiceOver is told, wherever the chat is drawn
+the newest that came: a reply, its command as words: {"at":1999999940000,"words":"Wren: Done. A command to copy."}
+…a side answer, by the copy: {"at":1999999880000,"words":"A copy of Wren: It holds the cart."}
+…nothing after the newest: null
+when the newest came: true
+…an empty chat: 0
+
+== Words Claude Desktop couldn't take for want of the Accessibility permission
+why, with its pane as the way: {"why":"Can’t type into Claude Desktop. Whozmove needs the Accessibility permission for this.","way":"Open Accessibility Settings","act":"accessibility"}
+…words that couldn't go from where the chat was drawn: why, nothing to press: {"why":"Too long to go with what it's about: shorten it and send it again.","way":null,"act":null}
+
+== A side question asked from another view
+what it was about, quietly over it, as over your words: <div class="sc-you sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><span class="sc-about">About your task “Search box” (step 2 of 3)</span><p><span class="sc-mark">Without interrupting</span> Why that file?</p></div><div class="sc-reply sc-aside" role="group" aria-label="Asked without interrupting: Wren didn’t see this"><b>A copy of Wren</b><span class="sc-said ended">Took too long<button type="button" class="sc-act" data-sc="askAgain" data-at="1999999760000">Ask Again</button><button type="button" class="sc-act" data-sc="waitTurn" data-at="1999999760000">Send After This Step</button></span></div>
+
+== Drawn in another view: what Send waits on, ending the conversation
+while it asks for your OK: what it asks, with Show It: <div class="sc-live sc-live-end works"><span class="sc-dot"></span><span class="sc-now">Wants to run a command</span><button type="button" class="sc-act" data-sc="show" data-at="">Show It</button></div>
+…its session ended: nothing here (under the box says so, with Open Again): null
+…working, or idle: nothing (the step line, or the box, says it): [null,null]
+
+== Drawn in another view: the working lines still, with no band of light
+the session's line: its step's words plain, the label still, the time ticking: [false,true,true,true]
+…a side question's line the same: [false,true]
+…in Side Chat's own window, the band as on the row: true

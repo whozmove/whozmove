@@ -1,9 +1,11 @@
-# Makes a release from a pushed version tag (v0.2.0): tools/release.sh builds the app for Apple silicon, checks it and
-# zips it, all the tests run on the program unpacked from that zip, and a draft release gets the zip, with the
-# CHANGELOG's section for the version as its notes, to be published by hand. Run by hand (Actions ▸ Release ▸ Run
-# workflow), on a branch or a tag, it makes a trial zip at the version app/Info.plist says, kept with the run, and
-# makes no release. A tag the release refuses, or whose tests fail, is deleted, fixed and pushed again; a draft release
-# left by an earlier run of the same tag is deleted first.
+# Makes a release from a pushed version tag (v0.2.0): tools/release.sh builds the app for Apple silicon, signs it with
+# the Developer ID, checks it, has Apple notarise it and zips it, all the tests run on the program unpacked from that
+# zip, and a draft release gets the zip, with the CHANGELOG's section for the version as its notes, to be published by
+# hand. Run by hand (Actions ▸ Release ▸ Run workflow), it makes a trial zip at the version app/Info.plist says, signed
+# and notarised the same way, kept with the run, and makes no release. The signing certificate and the notarising key
+# are the release environment's secrets, which it gives only to runs from main or a v* tag, so a run by hand works on
+# main and on tags only. A tag the release refuses, or whose tests fail, is deleted, fixed and pushed again; a draft
+# release left by an earlier run of the same tag is deleted first.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 name: Release
 on:
@@ -16,6 +18,7 @@ permissions:
 jobs:
   release:
     runs-on: macos-latest
+    environment: release
     permissions:
       # To make the draft release. Only the last step, which runs for a pushed tag, is given the token.
       contents: write
@@ -32,8 +35,38 @@ jobs:
         with:
           path: ~/Library/Caches/Whozmove-build
           key: betterleaks-${{ hashFiles('tools/betterleaks.txt') }}
+      # The certificate, in a keychain made for this run in its temporary folder, with a password made here and never
+      # kept: its key can't be exported (-x), only codesign may use it (-T), and the partition list lets Apple's tools
+      # use it with no one to answer a box. The keychain stays unlocked for the job's length. The notarising key goes
+      # beside it. Both are deleted straight after the build, before the tests run anything. The .p12 is read only by
+      # macOS's own security tool, which takes the older cipher Keychain Access exports it with; OpenSSL 3 refuses it.
+      - name: Put the signing certificate and the notarising key in place
+        env:
+          DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+        run: |
+          keychain=$RUNNER_TEMP/signing.keychain-db
+          password=$(openssl rand -hex 24)
+          echo "::add-mask::$password"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -t 7200 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$DEVELOPER_ID_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -f pkcs12 -P "$DEVELOPER_ID_P12_PASSWORD" \
+            -T /usr/bin/codesign -x >/dev/null
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          printf '%s' "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          echo "WHOZMOVE_SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+          echo "NOTARY_KEY_PATH=$RUNNER_TEMP/notary.p8" >> "$GITHUB_ENV"
       - name: Build, check and zip
         id: zip
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = push ]; then
             version=${GITHUB_REF_NAME#v}
@@ -59,6 +92,11 @@ jobs:
             echo "  sha256 \"$sha\""
             echo '```'
           } >>"$GITHUB_STEP_SUMMARY"
+      - name: Take the signing certificate and the notarising key away
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/notary.p8" "$RUNNER_TEMP/certificate.p12"
       - name: Tests, on the program from the zip
         run: WHOZMOVE_APP="$PWD/dist/check/Whozmove.app/Contents/MacOS/Whozmove" tests/all.sh
       - name: Keep the trial zip with the run

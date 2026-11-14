@@ -14,9 +14,9 @@ static NSArray<NSString *> *ReadKeys(void) {
              @"newFiles", @"filesStaged", @"filesPartly", @"filesUnstaged", @"headAt"];
 }
 
-BOOL CheckoutReadDue(BOOL watched, BOOL changed, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery) {
+BOOL CheckoutReadDue(BOOL watched, BOOL settled, NSTimeInterval since, BOOL activeSince, NSTimeInterval quietEvery) {
     BOOL timely = since >= 20 || (activeSince && since >= 2);
-    return watched ? (changed && timely) || since >= quietEvery : timely;
+    return watched ? (settled && (activeSince || since >= 20)) || since >= quietEvery : timely;
 }
 
 BOOL BranchHasOwnPR(NSString *branch, NSString *base) {
@@ -38,6 +38,8 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
 // {at, remoteNames, baseBranch}.
 @property (strong) NSMutableDictionary<NSString *, NSArray<NSNumber *> *> *seen;
 @property (strong) NSMutableDictionary<NSString *, NSNumber *> *listedAt;  // when each was last listed
+// When each was first seen to have changed since its last read started, until its next read starts (CheckoutSettled).
+@property (strong) NSMutableDictionary<NSString *, NSNumber *> *unreadSince;
 @property (strong) NSMutableDictionary<NSString *, NSDictionary *> *repos;
 @property (strong) dispatch_queue_t queue;
 @end
@@ -51,6 +53,7 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
     self.dueNow = [NSMutableSet set];
     self.seen = [NSMutableDictionary dictionary];
     self.listedAt = [NSMutableDictionary dictionary];
+    self.unreadSince = [NSMutableDictionary dictionary];
     self.repos = [NSMutableDictionary dictionary];
     self.queue = dispatch_queue_create("whozmove.checkouts", DISPATCH_QUEUE_SERIAL);
     self.looksUpPRs = YES;
@@ -69,12 +72,15 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
     return self.reading.count > 0;
 }
 
-// Keeps each listed checkout's real state fresh, for the row's next steps. Git status is read every 20s, and within 2s
-// of any activity by a session working there (a tool call, Claude stopping), so a commit an agent just made isn't shown
-// against the uncommitted changes from before it; but once macOS tells its changes (CheckoutWatch), only after
-// something in it has changed since its last read, and every 5 minutes or so anyway, in case an event was missed
-// (CheckoutReadDue). While the next steps are on (Show Next Steps), the branch's PR (state, checks, reviews) is read
-// every 60s, or as soon as the branch changes, once the branch is on GitHub: one never pushed has none.
+// Keeps each listed checkout's real state fresh, for the row's next steps. Once macOS tells its changes
+// (CheckoutWatch), git status is read only after something in it has changed since its last read, once those changes
+// settle: 2s after the latest, or 10s after the first, while an agent keeps writing (CheckoutSettled), and 20s on while
+// no session is at work there (CheckoutReadDue). A commit an agent just made moves its refs, so it's read 2s on, and
+// isn't shown against the uncommitted changes from before it. And every half hour or so anyway, in case an event was
+// missed (CheckoutQuietEvery). A checkout macOS doesn't tell of is read every 20s, and within 2s of any activity by a
+// session working there (a tool call, Claude stopping). While the next steps are on (Show Next Steps), the branch's PR
+// (state, checks, reviews) is read every 60s, or as soon as the branch changes, once the branch is on GitHub: one never
+// pushed has none.
 - (void)refreshFor:(NSArray<Row *> *)sessions {
     NSString *gh = GhPath();
     NSTimeInterval now = NSDate.date.timeIntervalSince1970;
@@ -97,6 +103,7 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
             [self.listedAt removeObjectForKey:root];
             [self.known removeObjectForKey:root];
             [self.seen removeObjectForKey:root];
+            [self.unreadSince removeObjectForKey:root];
         }
     BOOL prs = self.looksUpPRs;
     for (NSString *root in branches) {
@@ -115,7 +122,11 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
         BOOL watched = CheckoutWatched(root);
         NSArray *counts = @[@(CheckoutFileChanges(root)), @(CheckoutRefChanges(root))];
         BOOL changed = ![self.seen[root] isEqualToArray:counts];
-        BOOL treeDue = CheckoutReadDue(watched, changed, now - checkedAt, [activity[root] doubleValue] > checkedAt,
+        if (!changed) [self.unreadSince removeObjectForKey:root];
+        else if (!self.unreadSince[root]) self.unreadSince[root] = @(now);
+        BOOL settled = changed && CheckoutSettled(now - CheckoutChangedAt(root),
+                                                  now - self.unreadSince[root].doubleValue);
+        BOOL treeDue = CheckoutReadDue(watched, settled, now - checkedAt, [activity[root] doubleValue] > checkedAt,
                                        CheckoutQuietEvery(root))
             || [self.dueNow containsObject:root];
         // The branch's PR is only for the next steps, so it isn't looked up while they're off, nor on the repo's base
@@ -126,11 +137,12 @@ BOOL BranchPRDue(NSString *branch, NSString *base, NSString *lookedUp, NSTimeInt
         [self.reading addObject:root];
         if (treeDue) {
             [self.dueNow removeObject:root];
+            [self.unreadSince removeObjectForKey:root];
             self.seen[root] = counts;
         }
         // The repo's remotes and base branch, as last read, while nothing they come from has changed since, as macOS
-        // tells it; asked again by a read that comes with nothing changed, the one every few minutes in case an event
-        // was missed, and kept only from a read whose checkout was watched as it started.
+        // tells it; asked again by a read that comes with nothing changed, the one every half hour or so in case an
+        // event was missed, and kept only from a read whose checkout was watched as it started.
         NSString *repo = ProjectRoot(root) ?: root;
         NSUInteger repoAt = CheckoutRepoChanges(root);
         NSDictionary *kept = watched && changed && [self.repos[repo][@"at"] isEqual:@(repoAt)] ? self.repos[repo] : nil;

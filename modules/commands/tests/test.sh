@@ -12,11 +12,9 @@ cd "$(dirname "$0")/../../.." || exit 1
 HERE=modules/commands/tests
 . tests/lib.sh
 . tests/compare.sh
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/wz-commands.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
+T=$(throwaway commands) || exit 1
 # The stand-in's process is kept in $T/pids so it's stopped however this ends.
-trap 'kill $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
+leave_nothing "$T"
 APP=$(built_app "$T") || exit 1
 
 # Compacter: a stand-in session, as Claude Code's registry lists it, idle in a folder of its own, its process a sleep

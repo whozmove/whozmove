@@ -41,6 +41,19 @@ Stopped, whatever it said: {"state":"stopped"}
 A line that isn't JSON is passed over: "answered"
 A long answer: 16,384 characters kept: 16384
 
+== A result before its answer: not the ask's (seen live, never against the stand-in API)
+Before anything is said, using nothing, saying nothing: early: true
+…its usage all 0: early: true
+…an error with words the answer can't tell: early: true
+…after it has said something for the ask: its answer: false
+…having used tokens: its answer: false
+…with words: its answer: false
+…an error the API sent back: its answer: false
+…the plan's limit: its answer: false
+…not a result: no: false
+What panel.log keeps of one: its shape, never its words: "a fresh copy of Claude Code 2.1.319, 0.8 s after the ask: success, is_error no, 0 turns, 41 ms, status none, 10 characters"
+…a kept copy's, its version unknown: "a kept copy of Claude Code ?, 12.5 s after the ask: success, is_error no, 0 turns, 41 ms, status none, 0 characters"
+
 == The steps it says as it answers
 Thinking, its words not passed on: "Thinking"
 …its summary's first line, without its markdown: "Looking at how the cart totals"
@@ -192,6 +205,9 @@ A checked version that turns the flag down: its steps, and its answer, asked aga
 …the next question, from then on: without it, at once: ["turned it down","without","without"]
 A checked version that takes it: its thinking's summary, as a step: [["Looking at the cart","Reading cart.ts"],"answered","It holds the cart."]
 …its runs: ["with the flag"]
+A copy that writes an early empty result before each answer: each answer on its own question, in one copy: [[["answered","Answer 1"],["answered","Answer 2"]],{"open after both":true,"open after the first":true}]
+…one that begins answering at once and answers after the wait: its answer, the wait over once it spoke: [[["answered","Answer 1"],["answered","Answer 2"]],{"open after both":true,"open after the first":true}]
+…one whose early result is all it writes: "Didn't answer" once the wait is up, its copy ended, the next question in a fresh one: [[["noAnswer",null],["noAnswer",null]],{"open after both":false,"open after the first":false}]
 A version not checked: never given it: ["without"]
 
 == Its process, kept out of Claude Code's registry while it runs

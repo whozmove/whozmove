@@ -223,6 +223,17 @@ NSDictionary<NSString *, NSString *> *GitReadOnlyEnvironment(NSDictionary<NSStri
     return environment;
 }
 
+// One of ReadOnlySettings' entries as git's -c takes it, so a setting kept there has that one place.
+static NSString *ReadOnlySetting(NSString *key) {
+    for (NSArray<NSString *> *setting in ReadOnlySettings())
+        if ([setting[0] isEqual:key]) return [NSString stringWithFormat:@"%@=%@", setting[0], setting[1]];
+    return nil;
+}
+
+NSArray<NSString *> *GitReading(NSString *root) {
+    return @[@"--no-optional-locks", @"-c", ReadOnlySetting(@"core.fsmonitor"), @"-C", root];
+}
+
 // The branch and worktree of the checkout that holds `cwd`, read straight from its .git, without running git:
 // {branch or detached, root, worktree, worktreeOf, mainRoot}, or nil outside a repo. Asked for every row every second,
 // so its .git pointer and HEAD are read again only once they've changed.
@@ -392,8 +403,8 @@ BOOL BranchOnRemote(NSString *root, NSString *branch) {
 // hardly ever change, or nil to ask git; they're given back in the state as `remoteNames`, to keep, unless git couldn't
 // say them. Blocking.
 NSDictionary *FetchCheckoutState(NSString *root, NSString *remoteNames) {
-    NSDictionary *run = RunGit(@[@"--no-optional-locks", @"-C", root, @"status", @"--porcelain=v2", @"-z", @"--branch",
-                                 @"--untracked-files=no"]);
+    NSArray *status = @[@"status", @"--porcelain=v2", @"-z", @"--branch", @"--untracked-files=no"];
+    NSDictionary *run = RunGit([GitReading(root) arrayByAddingObjectsFromArray:status]);
     if (!run || [run[@"status"] intValue] != 0) return nil;
     // A name that isn't UTF-8 (one from another system) reads as Latin-1, rather than losing the whole checkout.
     NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding]
@@ -446,7 +457,7 @@ NSDictionary *FetchCheckoutState(NSString *root, NSString *remoteNames) {
 }
 
 NSString *RemoteNames(NSString *root) {
-    NSDictionary *remote = RunGit(@[@"--no-optional-locks", @"-C", root, @"remote"]);
+    NSDictionary *remote = RunGit([GitReading(root) arrayByAddingObject:@"remote"]);
     if (!remote || [remote[@"status"] intValue] != 0) return nil;
     return [[NSString alloc] initWithData:remote[@"out"] encoding:NSUTF8StringEncoding];
 }
@@ -454,7 +465,7 @@ NSString *RemoteNames(NSString *root) {
 // What git answers in a checkout, trimmed, or nil when it says no (exits 1, as `--verify --quiet` does for a ref that
 // isn't there) or fails; `failed` (if given) is set when it couldn't answer at all, there or in its answer.
 static NSString *Answer(NSString *root, NSArray<NSString *> *arguments, BOOL *failed) {
-    NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
+    NSMutableArray *all = [GitReading(root) mutableCopy];
     [all addObjectsFromArray:arguments];
     NSDictionary *run = RunGit(all);
     int status = run ? [run[@"status"] intValue] : -1;
@@ -481,7 +492,7 @@ NSArray<NSString *> *BaseBranch(NSString *root) {
 // it, so it starts with everything there, committed here or not yet on GitHub. Blocking.
 NSString *LocalBaseBranch(NSString *root) {
     NSString *(^git)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
-        NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
+        NSMutableArray *all = [GitReading(root) mutableCopy];
         [all addObjectsFromArray:arguments];
         NSDictionary *run = RunGit(all);
         if (!run || [run[@"status"] intValue] != 0) return nil;
@@ -509,7 +520,7 @@ NSString *LocalBaseBranch(NSString *root) {
 NSDictionary *FetchChangeCounts(NSString *root, NSArray<NSString *> *baseBranch) {
     // What git prints, as it prints it (a name that isn't UTF-8 read as Latin-1), or nil when it fails.
     NSString *(^output)(NSArray<NSString *> *) = ^NSString *(NSArray<NSString *> *arguments) {
-        NSMutableArray *all = [@[@"--no-optional-locks", @"-C", root] mutableCopy];
+        NSMutableArray *all = [GitReading(root) mutableCopy];
         [all addObjectsFromArray:arguments];
         NSDictionary *run = RunGit(all);
         if (!run || [run[@"status"] intValue] != 0) return nil;
@@ -544,8 +555,9 @@ NSDictionary *FetchChangeCounts(NSString *root, NSArray<NSString *> *baseBranch)
 // The branches GitHub's copy of a checkout's repo has, as this Mac last fetched them (origin's), by name, sorted, or nil
 // when git can't say. Blocking.
 NSArray<NSString *> *RemoteBranches(NSString *root) {
-    NSDictionary *run = RunGit(@[@"--no-optional-locks", @"-C", root, @"for-each-ref", @"--format=%(refname:short)",
-                                 @"refs/remotes/origin"]);
+    NSDictionary *run = RunGit([GitReading(root) arrayByAddingObjectsFromArray:@[@"for-each-ref",
+                                                                                 @"--format=%(refname:short)",
+                                                                                 @"refs/remotes/origin"]]);
     if (!run || [run[@"status"] intValue] != 0) return nil;
     NSString *text = [[NSString alloc] initWithData:run[@"out"] encoding:NSUTF8StringEncoding] ?: @"";
     NSMutableArray<NSString *> *names = [NSMutableArray array];

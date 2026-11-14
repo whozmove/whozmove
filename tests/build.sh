@@ -24,13 +24,11 @@ export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$REPO/app/Info.plist"; }
 NAME=$(plist CFBundleName); EXE=$(plist CFBundleExecutable); ID=$(plist CFBundleIdentifier)
 [ -n "$NAME" ] && [ -n "$EXE" ] && [ -n "$ID" ] || { echo "Couldn't read app/Info.plist"; exit 1; }
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-build.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
+# Stops here if there's no temporary folder, before anything is made or started.
+T=$(throwaway build) || exit 1
 # Stand-in processes are started detached, their pids kept in $T/pids so they're stopped however this ends (with
 # SIGKILL, as one of them ignores being asked).
 trap 'kill -9 $(cat "$T/pids" 2>/dev/null) 2>/dev/null; rm -rf "$T"' EXIT
-detached() { local pid; pid=$("$@" >/dev/null 2>&1 & echo $!); echo $pid >> "$T/pids"; echo $pid; }
 D="$T/Library/Application Support/$NAME"
 APP="$T/Applications/$NAME.app"
 # Where launchd says a login item's file is, made up (not the usual place, so the file it names is seen to be the one
@@ -113,13 +111,33 @@ print(" ".join(f"{k}={b[k]}" for k in sorted(b) if k not in ("builtAt", "commit"
 PY
 }
 installed() { echo "installed: $(recorded "$APP")"; }
+# The entitlements the signed program or bundle $2 asks for, each with its value, after the words $1.
+entitlements() {
+  codesign --display --entitlements - --xml "$2" 2>/dev/null >"$T/entitlements.plist"
+  python3 - "$1" "$T/entitlements.plist" <<'PY'
+import plistlib, sys
+try:
+    asked = plistlib.load(open(sys.argv[2], "rb"))
+except (OSError, plistlib.InvalidFileException, ValueError):
+    asked = {}
+print(sys.argv[1] + ":", ", ".join(f"{k} = {asked[k]}" for k in sorted(asked)) or "none")
+PY
+}
+# Whether the program $1 is signed to run with the hardened runtime.
+hardened() { grep -q '^CodeDirectory .*flags=0x[0-9a-f]*([^)]*runtime' <<<"$(codesign --display --verbose "$1" 2>&1)"; }
 # The hooks the app in place carries, and whether its signature covers them: a copy of it checks out, until a hook in
-# it is changed. And the script a session asks the panel with, ready to run.
+# it is changed. And the script a session asks the panel with, ready to run. How it's signed: with the hardened
+# runtime, Betterleaks inside too, and the entitlements it asks for, each with its value.
 carried() {
   local hooks=Contents/Resources/plugin
   echo "it carries the hooks: $(plutil -extract version raw -o - "$APP/$hooks/.claude-plugin/plugin.json")"
   [ -x "$APP/Contents/Resources/ask-panel.sh" ] && echo "and ask-panel.sh" || echo "but not ask-panel.sh"
   codesign --verify --strict "$APP" 2>/dev/null && echo "its signature checks out" || echo "its signature is broken"
+  hardened "$APP" && echo "it runs with the hardened runtime" || echo "it runs without the hardened runtime"
+  hardened "$APP/Contents/Helpers/betterleaks" && echo "and so does Betterleaks inside" \
+    || echo "but Betterleaks inside doesn't"
+  entitlements "its entitlements" "$APP"
+  entitlements "Betterleaks' entitlements" "$APP/Contents/Helpers/betterleaks"
   rm -rf "$T/changed.app"
   cp -R "$APP" "$T/changed.app"
   codesign --verify --strict "$T/changed.app" 2>/dev/null && echo "an unchanged copy checks out" \
@@ -284,6 +302,23 @@ changed > /dev/null
 sleep 1
 run_in "$T/repo" PATH="$T/older:$T/bin:$PATH" ./build.sh; echo "exit=$?"
 changed
+
+# A signing keychain (tools/signing.sh) stands in as a plain file in the throwaway home: the build only asks whether
+# it's there and what it holds, and making a real one would add it to the keychains macOS searches for you.
+mkdir -p "$T/Library/Keychains"
+echo "not a keychain" > "$T/Library/Keychains/whozmove-signing.keychain-db"
+
+echo "== 13 with a signing keychain here, an agent's build is ad hoc and never goes in, with no deploy command saved"
+unsaved
+sleep 1
+run_in "$T/repo" CLAUDECODE=1 ./build.sh; echo "exit=$?"
+changed
+
+echo "== 14 you, with a signing keychain that holds no certificate that works: nothing is built, and nothing goes in"
+sleep 1
+run_in "$T/repo" ./build.sh; echo "exit=$?"
+changed
+rm -f "$T/Library/Keychains/whozmove-signing.keychain-db"
 }
 
 # What changes from run to run made stable: the throwaway folder becomes T, build.sh's work folder <work>, the hooks'

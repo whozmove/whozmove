@@ -30,8 +30,6 @@ Only a team's chief may hand tasks: Other, leading none, sends one: refused: the
 …and Asker, the lead, sends a pick for Wren: refused: teams aren't shown in this Whozmove, so a pick can't reach One Task: the user can tick Working on Whozmove ▸ Show Teams (holding ⌥ as they open the pawn menu)
 Its queue names it: task-answer says: waiting: j12 hasn't been answered yet
 …an id its queue names that Asker never sent: gone: your team file's queue names unsent, a pick you haven't sent: send it with ask-panel.sh task --pick-for
-…the talk's words to Wren go to: Other
-…once Wren has left the team: (nobody)
 Gone sends a task: sent: passkeys, step 1 of 2. Ask for the answer with ask-panel.sh task-answer passkeys --wait
 Once Gone's process has ended, its record is there: no
 …and Asker's: yes

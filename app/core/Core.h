@@ -41,6 +41,11 @@
 // The same for a session asking the panel something in its own name: refused, with why, when it runs inside another
 // listed session's commands, or its agent wouldn't let it ask (Agent's whyNotAsker:).
 - (Row *)sessionOfProcess:(pid_t)pid found:(pid_t *)found why:(NSString **)why;
+// Why a process can't speak in `row`'s name, or nil when it can: that walk finds `row` from it, and the session's
+// agent says the process it was found under is that session's only one, where it was seen working (Agent's
+// whyNot:speakFrom:). An ask that only shows you something is checked so (SessionAsks), and so is a session's own
+// process before a module trusts where it works.
+- (NSString *)whyNot:(Row *)row asksFrom:(pid_t)pid;
 // The hosts sessions run in (the modules that adopt Host), in the modules' order.
 @property (readonly) NSArray<id<Host>> *hosts;
 // The host with this app id, or nil.

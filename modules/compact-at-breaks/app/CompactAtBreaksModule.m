@@ -166,7 +166,9 @@ static int PrintCompactForYou(void) {
     return @[entry];
 }
 
-// What's known of a session beside its row, now.
+// What's known of a session beside its row, now. Its terminal is the one it runs in that the panel types into (Send's
+// terminalOf:, as whyNotControl: asks), as hostHolding: finds only an app that keeps a session as its own
+// conversation, Claude Desktop.
 - (ForYouFacts)factsFor:(Row *)row now:(double)now atTheMac:(BOOL)atTheMac panelInUse:(BOOL)inUse {
     BOOL desktop = [self.core.send conversationHostOf:row] != nil;
     NSString *front = NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier;
@@ -174,7 +176,7 @@ static int PrintCompactForYou(void) {
     return (ForYouFacts){
         .now = now, .startedAt = self.startedAt, .lastDone = self.done[row.sessionId].doubleValue,
         .oneGoingIn = compacting.compactingAny, .desktop = desktop, .atTheMac = atTheMac,
-        .byThemselves = WordsGoByThemselves(row.focused, desktop, [self.core hostHolding:row].appId, front),
+        .byThemselves = WordsGoByThemselves(row.focused, desktop, [self.core.send terminalOf:row].appId, front),
         .panelInUse = inUse,
     };
 }
@@ -231,9 +233,11 @@ static int PrintCompactForYou(void) {
 
 // Why Whozmove can't look for the session's tab without asking you: macOS hasn't let it control the terminal yet. Its
 // tab is looked for only once it has, as looking would have macOS ask, with nobody's press, over the app you're in;
-// a press on the Compact card asks.
+// a press on the Compact card asks. A session in no terminal the panel types into is left to the commands module's
+// check, which says why.
 - (NSString *)whyNotControl:(Row *)row {
-    id<Host> host = [self.core hostHolding:row];
+    id<Host> host = [self.core.send terminalOf:row];
+    if (!host) return nil;
     NSString *name = host.name.length ? host.name : @"its terminal";
     pid_t pid = host.appId.length
         ? [NSRunningApplication runningApplicationsWithBundleIdentifier:host.appId].firstObject.processIdentifier : 0;

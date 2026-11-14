@@ -42,15 +42,16 @@ function sideChatSendWord(s, chat) {
   return 'Send';
 }
 
-// The words that open yours, shown before you send: only while it works and its hook hands them in. Typed at its
-// prompt, your words go in alone. And how many characters your own may have after them.
-const sideChatOpening = (s, chat) => (sideChatWorks(s) && chat?.hook ? chat.frame || '' : '');
+// The words that open yours, shown before you send: while it works and its hook hands them in, the hook's (typed at
+// its prompt, your words go in without them); then those of the view the chat is drawn in, if it names what they're
+// about (`opening`). And how many characters your own may have after them.
+const sideChatOpening = (s, chat, opening = '') => (sideChatWorks(s) && chat?.hook ? chat.frame || '' : '') + opening;
 const sideChatRoom = (opening) => Math.max(0, SIDE_CHAT_MOST - opening.length);
 
 // What's said before you press, under the box: why nothing can go in from here, with the way forward in Send's place
 // ({ why, way, act }), or a note on how they'll go ({ note }), or null when there's nothing to say.
 function sideChatBefore(s, chat, name) {
-  if (sideChatEnded(s)) return { why: `${name}’s session has ended: open it again, and your words can go in`,
+  if (sideChatEnded(s)) return { why: 'Its session has ended: open it again, and your words can go in',
                                             way: `Open ${name} Again`, act: 'openAgain' };
   const works = sideChatWorks(s), idleWay = chat?.idleWay;
   if (!works && idleWay?.kind === 'cantType') return { why: `Whozmove can’t type into ${idleWay.host}: Copy and Go `
@@ -68,10 +69,10 @@ function sideChatBefore(s, chat, name) {
 
 // The line under the box while you write: exactly what will go in, the words that open yours included, and how much
 // room is left once it's nearly full. Nothing while the box is empty.
-function sideChatGoes(s, chat, words) {
+function sideChatGoes(s, chat, words, about = '') {
   const said = (words || '').trim();
   if (!said) return '';
-  const opening = sideChatOpening(s, chat), left = sideChatRoom(opening) - said.length;
+  const opening = sideChatOpening(s, chat, about), left = sideChatRoom(opening) - said.length;
   return `Goes in as: ${opening}${said}${left < 60 ? ` · ${Math.max(0, left)} characters left` : ''}`;
 }
 
@@ -88,7 +89,7 @@ function sideChatSaid(said, s, chat, name, asks, now) {
   const desktop = sideChatDesktop(s), when = sideChatWhen(now - (said.doneAt || said.at));
   switch (said.state) {
     case 'held':
-      if (sideChatEnded(s)) return { words: `${name}’s session has ended`, tone: 'no', held: true,
+      if (sideChatEnded(s)) return { words: 'Its session has ended', tone: 'no', held: true,
                                                 acts: [back] };
       if (s.ask) return { words: `${name} asks first${asks ? `: ${asks}` : ''}. Answer it on its row, and your words `
         + 'go after', tone: 'wait', held: true, acts: [{ act: 'show', word: 'Show It' }, back] };
@@ -136,16 +137,37 @@ function sideChatSaid(said, s, chat, name, asks, now) {
 // Words the app put back in your box, as the line under it says why ({ why, way, act }): its session ended before they
 // went in, Whozmove restarted, or they couldn't be typed in (the terminal's own reason, and its way past, if any). Words
 // you took back need no why: null.
-const SIDE_CHAT_BACK = ['takenBack', 'ended', 'restarted', 'refused'];
+const SIDE_CHAT_BACK = ['takenBack', 'ended', 'restarted', 'refused', 'notSent'];
 function sideChatBack(said, name) {
   if (said.state === 'takenBack') return null;
   if (said.state === 'ended') return { why: `${name}’s session ended before this went in.`, way: `Open ${name} Again`,
                                        act: 'openAgain' };
   if (said.state === 'restarted') return { why: 'Whozmove restarted before this went in.', way: null, act: null };
+  if (said.state === 'notSent') return { why: `${said.why || 'It couldn’t go from here'}.`, way: null, act: null };
   const why = /[.!?]$/.test(said.why || '') ? said.why : `${said.why || 'It didn’t go in'}.`;
   return { why: `Can’t type${said.where ? ` into ${said.where}` : ' it in'}. ${why}`, way: said.way || null,
-           act: said.way ? 'wayPast' : null };
+           act: !said.way ? null : said.permission ? 'accessibility' : 'wayPast' };
 }
+
+// Over words or a side question sent from a view that named what they're about (`opening`, One Task's task and step),
+// those words, quietly, without the colon that led into yours; nothing for those sent from the chat's own window.
+const sideChatAboutWords = (said) => (said?.opening || '').replace(/:?\s*$/, '');
+
+// What VoiceOver is told where the chat is drawn: the newest reply or side answer that came after `since`, by who said
+// it ("Wren: …", "A copy of Wren: …"), a code block as "A command to copy."; null when nothing new came.
+function sideChatSayAloud(chat, since, name) {
+  const came = (chat?.says || []).filter((said) => said.state === 'replied' && (said.repliedAt || 0) > since)
+    .map((said) => ({ at: said.repliedAt, who: name, parts: said.reply }))
+    .concat((chat?.asides || []).filter((aside) => aside.state === 'answered' && (aside.answeredAt || 0) > since)
+      .map((aside) => ({ at: aside.answeredAt, who: sideChatCopyName(name), parts: aside.answer })));
+  const newest = came.sort((a, b) => b.at - a.at)[0];
+  if (!newest) return null;
+  const words = sideChatReply(newest.parts).map((part) => (part.code !== undefined ? 'A command to copy.' : part.prose));
+  return { at: newest.at, words: `${newest.who}: ${words.join(' ')}` };
+}
+// When the newest reply or side answer in a chat came, or 0.
+const sideChatNewest = (chat) => Math.max(0, ...(chat?.says || []).map((said) => said.repliedAt || 0),
+                                          ...(chat?.asides || []).map((aside) => aside.answeredAt || 0));
 
 // What the conversation draws: your words that are still in it, those put back in the box left out.
 const sideChatShown = (says) => (says || []).filter((said) => !SIDE_CHAT_BACK.includes(said.state));
@@ -223,6 +245,14 @@ function sideChatLive(s, name, asks) {
   return { words: 'Waiting for you', works: false };
 }
 
+// Drawn in another view (core.sessionChat), the chat has no head of its own: while the session asks for your OK, the
+// same words its head says (sideChatLive) end the conversation, with Show It for its request, so what Send waits on is
+// in sight there too. Null otherwise: an ended session is said under the box, with Open Again.
+function sideChatHostedLive(s, name, asks) {
+  if (sideChatEnded(s) || !s?.ask) return null;
+  return { ...sideChatLive(s, name, asks), acts: [{ act: 'show', word: 'Show It' }] };
+}
+
 // Whether the conversation ends with the line its row shows while it works (the row part's workLineHTML): "Thinking"
 // until its first step, then each step as it runs, or that it's compacting, timed. Not while it asks for your OK,
 // which its head says, as its row does in that line's place.
@@ -239,9 +269,9 @@ const sideChatCopyName = (name) => `A copy of ${name}`;
 // While a side question is being asked, its answer's place has the same line under the copy's name, at the chat's
 // full width (its own label left out: side-chat.css), one line, a long step ending in "…": "Thinking" until its agent
 // says its first step, then each step (its `step`), its time from your press. Drawn again only when what it says
-// changes, as the session's own is (sideChatWorkKey).
-const sideChatAsideWorkHTML = (aside, name, now) => workLineHTML({ activity: aside.step || '', lastPromptAt: aside.at },
-                                                                 now, { label: sideChatCopyName(name) });
+// changes, as the session's own is (sideChatWorkKey). `still` where the chat is drawn in another view: no shine.
+const sideChatAsideWorkHTML = (aside, name, now, still = false) => workLineHTML(
+  { activity: aside.step || '', lastPromptAt: aside.at }, now, { label: sideChatCopyName(name), still });
 const sideChatAsideWorkKey = (aside, name) => (aside?.state === 'asking'
   ? sideChatAsideWorkHTML(aside, name, 0).replace(/ style="[^"]*"/g, '') : '');
 

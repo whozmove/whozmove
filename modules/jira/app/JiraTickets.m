@@ -34,21 +34,53 @@ static NSString *NameOf(id value) {
 
 // The sprint the issue is in now: a field whose value is a list of sprints ({name, state}), the active one first, else
 // the next one coming. Jira keeps it in a custom field whose id differs from site to site, so it's found by its shape.
-static NSString *SprintIn(NSDictionary *fields) {
+// Its record, with its dates where Jira gives them.
+static NSDictionary *SprintRecordIn(NSDictionary *fields) {
     NSMutableArray *values = [NSMutableArray arrayWithArray:fields.allValues];
     [values addObjectsFromArray:AsRecord(fields[@"customFields"]).allValues ?: @[]];
-    NSString *coming = nil;
+    NSDictionary *coming = nil;
     for (id value in values) {
         NSArray *list = AsList(value) ?: AsList(AsRecord(value)[@"value"]);
         for (id item in list) {
             NSDictionary *sprint = AsRecord(item);
             NSString *state = AsText(sprint[@"state"]).lowercaseString, *name = AsText(sprint[@"name"]);
             if (!name.length || !state) continue;
-            if ([state isEqualToString:@"active"]) return name;
-            if ([state isEqualToString:@"future"]) coming = coming ?: name;
+            if ([state isEqualToString:@"active"]) return sprint;
+            if ([state isEqualToString:@"future"]) coming = coming ?: sprint;
         }
     }
     return coming;
+}
+
+// Someone on an issue, by their account's id and the name Jira shows; nil for no one.
+static TicketPerson *PersonIn(id value) {
+    NSDictionary *record = AsRecord(value);
+    NSString *personId = AsText(record[@"accountId"]), *name = AsText(record[@"displayName"]);
+    if (!personId.length && !name.length) return nil;
+    TicketPerson *person = [TicketPerson new];
+    person.personId = personId;
+    person.name = name;
+    return person;
+}
+
+// The issues it's linked to, each with how, in Jira's words for that link from this end: an inward one ("is blocked
+// by") or an outward one ("blocks").
+static NSArray<TicketRef *> *LinksIn(id value) {
+    NSMutableArray *links = [NSMutableArray array];
+    for (id item in AsList(value)) {
+        NSDictionary *link = AsRecord(item), *type = AsRecord(link[@"type"]);
+        BOOL inward = AsRecord(link[@"inwardIssue"]) != nil;
+        NSDictionary *other = AsRecord(link[inward ? @"inwardIssue" : @"outwardIssue"]);
+        NSString *key = AsText(other[@"key"]), *how = AsText(type[inward ? @"inward" : @"outward"]);
+        if (!JiraIsKey(key) || !how.length) continue;
+        TicketRef *ref = [TicketRef new];
+        ref.key = key;
+        ref.how = how;
+        ref.title = AsText(AsRecord(other[@"fields"])[@"summary"]);
+        ref.type = NameOf(AsRecord(other[@"fields"])[@"issuetype"]);
+        [links addObject:ref];
+    }
+    return links;
 }
 
 // An issue's options in its own fields that take one from a list: each custom field whose value is one option, {id,
@@ -126,6 +158,13 @@ Ticket *JiraTicketFrom(NSDictionary *issue, NSString *site) {
                                                  NameOf(fields[@"resolution"]))];
     ticket.priority = NameOf(fields[@"priority"]);
     ticket.assignee = NameOf(fields[@"assignee"]);
+    ticket.assignedTo = PersonIn(fields[@"assignee"]);
+    ticket.reporter = PersonIn(fields[@"reporter"]);
+    NSMutableArray *labels = [NSMutableArray array];
+    for (id label in AsList(fields[@"labels"])) if (AsText(label).length) [labels addObject:label];
+    ticket.labels = labels;
+    ticket.links = LinksIn(fields[@"issuelinks"]);
+    ticket.updated = AsText(fields[@"updated"]);
     ticket.about = AboutIn(fields[@"description"]);
     NSDictionary *parent = AsRecord(fields[@"parent"]);
     if (JiraIsKey(AsText(parent[@"key"]))) {
@@ -144,11 +183,51 @@ Ticket *JiraTicketFrom(NSDictionary *issue, NSString *site) {
         group.groupId = projectKey;
         group.name = AsText(project[@"name"]) ?: projectKey;
         group.kind = @"project";
-        group.sprint = SprintIn(fields);
+        NSDictionary *sprint = SprintRecordIn(fields);
+        group.sprint = AsText(sprint[@"name"]);
+        group.sprintStarts = AsText(sprint[@"startDate"]);
+        group.sprintEnds = AsText(sprint[@"endDate"]);
         ticket.groups = @[group];
     }
     ticket.values = JiraValuesIn(fields);
     return ticket;
+}
+
+NSArray<TicketMoveMade *> *JiraMovesIn(NSDictionary *issue) {
+    NSDictionary *changelog = AsRecord(issue[@"changelog"]);
+    // No history in the answer isn't no moves: it's left unsaid.
+    if (!AsList(changelog[@"histories"])) return nil;
+    NSMutableArray *moves = [NSMutableArray array];
+    for (id item in AsList(changelog[@"histories"])) {
+        NSDictionary *history = AsRecord(item);
+        for (id change in AsList(history[@"items"])) {
+            NSDictionary *record = AsRecord(change);
+            if (![AsText(record[@"field"]) isEqualToString:kJiraStatusField]) continue;
+            TicketMoveMade *move = [TicketMoveMade new];
+            move.from = AsText(record[@"fromString"]);
+            move.to = AsText(record[@"toString"]);
+            move.at = AsText(history[@"created"]);
+            move.by = PersonIn(history[@"author"]);
+            if (move.to.length) [moves addObject:move];
+        }
+    }
+    // Oldest first, whichever way Jira listed them: by when, as Jira writes a time, which sorts as text.
+    [moves sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(TicketMoveMade *a, TicketMoveMade *b) {
+        return [a.at ?: @"" compare:b.at ?: @""];
+    }];
+    return moves;
+}
+
+BOOL JiraIsLastPage(id answer) {
+    NSDictionary *record = AsRecord(answer), *data = AsRecord(record[@"data"]) ?: record;
+    return [data[@"isLast"] isEqual:@YES];
+}
+
+NSString *JiraNextPageIn(id answer) {
+    NSDictionary *record = AsRecord(answer), *data = AsRecord(record[@"data"]) ?: record;
+    if ([data[@"isLast"] isEqual:@YES]) return nil;
+    NSString *next = AsText(data[@"nextPageToken"]) ?: AsText(AsRecord(data[@"issues"])[@"nextPageToken"]);
+    return next.length ? next : nil;
 }
 
 // A field's schema type in Jira, and whether it takes a list ("array", its items' type then the one that counts).

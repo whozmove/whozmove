@@ -438,3 +438,62 @@ show('…a press that couldn\'t act just now: why, first', sideChatUnderHTML(idl
   sideChatAskBefore(idle, chat({ askWhyNot: { why: 'notStarted' } }), 'Wren').why));
 show('a failed question while another is answered: no Ask Again', sideChatLinesHTML(chat({
   asides: [aside('tooSlow', { at: min(9) }), aside('asking', { at: min(1) })] }), working, 'Wren', '', NOW));
+
+section('Drawn in another view, with words that open yours there');
+const TASK_LINE = 'About your task “Search box” (step 2 of 3): ';
+show('the words that open yours: the hook\'s while it works, then the view\'s',
+     sideChatOpening(working, chat(), TASK_LINE));
+show('…idle: the view\'s alone', sideChatOpening(idle, chat(), TASK_LINE));
+show('room for your own words after both', sideChatRoom(sideChatOpening(working, chat(), TASK_LINE)));
+show('under the box: what goes in, whole', sideChatUnderHTML(working, chat(), 'Wren', 'Where is it?', null, null, null,
+  '', 'send', TASK_LINE));
+show('…Ask the dark button: what the copy is asked, whole', sideChatUnderHTML(working, chat(), 'Wren', 'Where is it?',
+  null, null, null, '', 'ask', TASK_LINE));
+show('the box: its field holds only what fits after them', sideChatBoxHTML(working, chat(), 'Wren', null, null, 'send',
+  TASK_LINE).match(/maxlength="\d+"/)[0]);
+show('…and keeps its own words, naming nothing of the view\'s', sideChatBoxHTML(working, chat(), 'Wren', null, null,
+  'send', TASK_LINE).match(/placeholder="[^"]*"/)[0]);
+show('words sent from there, in the chat: what they were about, quietly over them', sideChatLinesHTML(chat({
+  says: [said('read', { how: 'step', doneAt: min(2), opening: TASK_LINE, line: `${TASK_LINE}Where is it?`,
+                        words: 'Where is it?' })] }), working, 'Wren', '', NOW));
+show('…what they were about, without the colon', sideChatAboutWords({ opening: TASK_LINE }));
+show('…from the chat\'s own window: nothing over them', sideChatAboutWords(said('read')));
+
+section('What VoiceOver is told, wherever the chat is drawn');
+const toldReply = min(1), toldAnswer = min(2);
+const told = chat({ says: [said('replied', { repliedAt: toldReply, reply: [{ prose: 'Done.' }, { code: 'npm test', lang: 'sh' }] })],
+                    asides: [aside('answered', { answeredAt: toldAnswer, answer: [{ prose: 'It holds the cart.' }] })] });
+show('the newest that came: a reply, its command as words', sideChatSayAloud(told, 0, 'Wren'));
+show('…a side answer, by the copy', sideChatSayAloud(chat({ asides: told.asides }), 0, 'Wren'));
+show('…nothing after the newest', sideChatSayAloud(told, NOW, 'Wren'));
+show('when the newest came', sideChatNewest(told) === toldReply);
+show('…an empty chat', sideChatNewest(chat()));
+
+section('Words Claude Desktop couldn\'t take for want of the Accessibility permission');
+show('why, with its pane as the way', sideChatBack(said('refused', {
+  why: 'Whozmove needs the Accessibility permission for this', way: 'Open Accessibility Settings', permission: true,
+  where: 'Claude Desktop' }), 'Wren'));
+show('…words that couldn\'t go from where the chat was drawn: why, nothing to press', sideChatBack(said('notSent', {
+  why: 'Too long to go with what it\'s about: shorten it and send it again' }), 'Wren'));
+
+section('A side question asked from another view');
+show('what it was about, quietly over it, as over your words', sideChatAsideHTML(aside('tooSlow', {
+  opening: TASK_LINE }), working, chat(), 'Wren'));
+
+section('Drawn in another view: what Send waits on, ending the conversation');
+show('while it asks for your OK: what it asks, with Show It', sideChatHostedLiveHTML(sideChatHostedLive(asking, 'Wren',
+  'Wants to run a command')));
+show('…its session ended: nothing here (under the box says so, with Open Again)', sideChatHostedLive(ended, 'Wren', ''));
+show('…working, or idle: nothing (the step line, or the box, says it)', [sideChatHostedLive(working, 'Wren', ''),
+  sideChatHostedLive(idle, 'Wren', '')]);
+
+section('Drawn in another view: the working lines still, with no band of light');
+const tStillWork = workLineHTML(working, NOW, { label: 'Wren', still: true });
+show('the session\'s line: its step\'s words plain, the label still, the time ticking',
+     [tStillWork.includes('shining') || tStillWork.includes('glint'), tStillWork.includes('class="claude work still"'),
+      tStillWork.includes('data-since'), tStillWork.includes('Running tests')]);
+const tStillAside = sideChatAsideWorkHTML(aside('asking', { step: 'Reading cart.ts' }), 'Wren', NOW, true);
+show('…a side question\'s line the same', [tStillAside.includes('shining') || tStillAside.includes('glint'),
+                                          tStillAside.includes('Reading cart.ts')]);
+show('…in Side Chat\'s own window, the band as on the row',
+     sideChatAsideWorkHTML(aside('asking', { step: 'Reading cart.ts' }), 'Wren', NOW).includes('glint'));

@@ -2,7 +2,7 @@
 // conversation card in every state, the line a start adds to your words, a link found in your words, a row's tag and
 // the card pointing at it shows, each as a ticket is read, can't be read or is waited for, with its last move and a
 // step marked as a person's, the card asking to use a ticket, the card asking to move it, and the card asking to create
-// one, in each of its states (ticket-words.js). Made-up tickets on a made-up site; nothing is drawn.
+// one, in each of its states, with the line saying a press also lets a project read your tickets (ticket-words.js). Made-up tickets on a made-up site; nothing is drawn.
 // Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 
 load('tests/page-harness.js');  // the stand-ins, the page's scripts and the helpers below use
@@ -139,6 +139,24 @@ show('…a key kept', ticketReason('PAY-142 is In Review already'));
 show('…macOS kept', ticketReason('macOS asks first'));
 show('…one word', ticketReason('Failed'));
 
+section('The card: what Start would also do');
+const ticketsPart = core.startCardParts.find((p) => p.name === 'tickets'), noApi = { refresh() {} };
+const noteOf = () => ticketsPart.note({ folder: '/work/acme-shop' }, noApi) || '(none)';
+state.ticketPick = create;
+show('Create a ticket: none, as Start gives it no ticket yet', noteOf());
+state.ticketPick = ticket;
+show('a ticket: none until the app says', noteOf());
+ticketReadsSaid(state.ticketReads.asked, { project: 'acme-<shop>', tracker: 'Jira' });
+show('…the app says it would', noteOf());
+ticketReadsSaid(state.ticketReads.asked - 1, {});
+show('…an older answer changes nothing', noteOf());
+ticketReadsChanged();
+show('…reading changed: asked again, none until the app says', noteOf());
+ticketReadsSaid(state.ticketReads.asked, {});
+show('…the app says it wouldn\'t', noteOf());
+state.ticketPick = null;
+show('no ticket on the card', noteOf());
+
 section('The row: Work on it here?');
 show('asked', ticketUseHTML('s1', { key: 'PAY-148', site: 'acme.atlassian.net' }));
 show('instead of its own', ticketUseHTML('s1', { key: 'PAY-150', instead: 'PAY-142' }));
@@ -156,6 +174,11 @@ show('…couldn\'t be read, no reason given', ticketUseHTML('s1', { key: 'PAY-14
 show('…couldn\'t be read, its sign-in ran out', ticketUseHTML('s1', { key: 'PAY-148', again: true,
   problem: { kind: 'signIn', why: 'You aren\'t signed in with Atlassian' } }));
 show('none', ticketUseHTML('s1', null));
+show('in a project that reads none of your tickets yet', ticketUseHTML('s1', { key: 'PAY-148',
+  site: 'acme.atlassian.net', reads: { project: 'acme-<shop>', tracker: 'Jira' } }));
+show('…the line, for another tracker', ticketReadsLine({ project: 'acme-web', tracker: 'Linear' }));
+show('…no line without a project or a tracker', [ticketReadsLine(null), ticketReadsLine({ project: 'acme-web' }),
+  ticketReadsLine({ tracker: 'Jira' })].join('|'));
 
 section('The row: Move it?');
 const move = { key: 'PAY-142', stepId: '31', name: 'Send to review', to: { name: 'In Review', kind: 'doing' },
@@ -194,6 +217,10 @@ show('asked', ticketDraftHTML('s1', draft, 'Atlassian'));
 show('with only what it needs', ticketDraftHTML('s1', { ...draft, priority: undefined, parent: undefined,
   description: undefined }, 'Atlassian'));
 show('a group of a kind it has no word for', ticketDraftHTML('s1', { ...draft, groupKind: undefined }, 'Atlassian'));
+show('in a project that reads none of your tickets yet', ticketDraftHTML('s1', { ...draft,
+  reads: { project: 'acme-shop', tracker: 'Jira' } }, 'Atlassian'));
+show('…while it\'s created, which says no more of it', ticketDraftHTML('s1', { ...draft, creating: true,
+  reads: { project: 'acme-shop', tracker: 'Jira' } }, 'Atlassian'));
 show('signed in to two sites, so it names the one', ticketDraftHTML('s1', draft, 'Atlassian', 2));
 show('drafted again, beside the ticket it has', ticketDraftHTML('s1', { ...draft, again: true, instead: 'PAY-142' },
   'Atlassian'));

@@ -22,15 +22,14 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
   step, under the same id, keeping its place in the line, and read once you've read it, `TaskRecordSeen`), up to a ceiling against runaway scripts
   (`TaskMostWaiting`, said in docs/reference/task.md); your answer, and which answers its
   kind has; a comment, which keeps it waiting; Can't Now; the lead's picks (`TaskRecordPick`); what
-  task-answer says; and the talk about a task: the words that open yours in the session (`TaskTalkLead`,
-  `TaskTalkLine`), what you said, held until it can go in and how far it got (`TaskRecordSay`, `TaskRecordTalkState`,
-  `TaskRecordTakeBack`), kept with the task through its next steps and gone with it.
+  task-answer says; and the words that open yours in the talk about a task (`TaskTalkLead`, the lead named only by a
+  short plain name, `TaskTalkName`).
 - The rest of `app/OneTaskModule.m`: what waits sent to the page (`setTasks`), your answers taken back at the step you
   saw, as it was sent then (`taskAnswer`, `taskPutBack`), a task its session takes back (ask-panel.sh task-withdraw,
   `TaskRecordTakeBackTask`) kept without its buttons until the page lets it go (`taskLetGo`), a command copied and a
   link opened from the task as it was checked (`taskCopy`, `taskOpen`), how it works as its page under Tools sets it
-  (`oneTaskWho`, any session or only a team's lead, by `team.leads`; `oneTaskWhy`; `oneTaskWaitForGo`; `oneTaskTalk`;
-  `oneTaskHeld`), each default as One Task recommends, told to the page with what waits, and shown on One Task's page
+  (`oneTaskWho`, any session or only a team's lead, by `team.leads`; `oneTaskWhy`; `oneTaskWaitForGo`; `oneTaskTalk`),
+  each default as One Task recommends, told to the page with what waits, and shown on One Task's page
   under Tools (`appEntries`: a tool, `one-task`, order 205, its switch and three groups of choices, with Use the
   Recommended Settings), which its row in Settings opens; on unless you turn it off, and One Task in the pawn menu
   while something waits, with how many as the page counts them (`oneTaskWaiting`), which opens it (`openOneTask`). And
@@ -38,16 +37,9 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
   lead's own record as tasks of their own (`pick`), apart from that ceiling, only for a member whose own row still
   places it on the team, sent again only when the task itself changes, and waiting until answered whatever the lead
   sends next (`pickTasks` remembers each by id); shown once the `team.queue` of its row names them, from when it first
-  named each (`TaskRecordQueue`, `placePicks`, `shownAt`). And the talk: your words about a task (`taskSay`) to the
-  session it's about, found here (the one that sent it, or the lead's pick's member, its `for`, unless you chose the
-  lead), never from what the page says; held in the record and typed in through the core's Send (`say:`) once the
-  session can take them, by themselves only into a terminal that isn't the app in front at all
-  (`TaskTalkGoesByItself`; else `taskSayNow`, your press); taken back before they go in (`taskTakeBack`); refused, with
-  why and the way past it, when none of it can go in, and then put on the clipboard as they'd go in for you to paste
-  yourself (`taskTalkCopy`), or Accessibility's pane opened (`taskTalkPermission`); taken once the session's own record
-  shows them, and its reply read as its turn ends, the whole reply to that very line (the agent's
-  `replyTo:of:since:done:`), cut into prose and code (`TaskReplyParts`) and held in memory only, read again once after
-  Whozmove restarts; a code block copied from it by its place (`taskReplyCopy`), never run.
+  named each (`TaskRecordQueue`, `placePicks`, `shownAt`). And for the talk, told with each task (`talkOf:`): the words
+  that open yours there (`lead`, and for the lead's pick, the member's own, `leadForMember`) and the terminal each
+  session it may be with runs in (`terminals`); the talk itself is Side Chat's.
 - `page/order.js`: its rules, as plain functions: what waits and in what order (the tasks, by the priority of the
   ticket their session works on, its place in its tracker's own list (`taskPlace`, from the row's `ticket.bound`:
   `priorityAt` of `priorities`), the most pressing first, two trackers compared from the top; a lead's pick whose
@@ -58,11 +50,12 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
   and its answer goes to ("Atlas's pick, for Wren", or "Atlas" alone for a pick about the lead's own work, told
   apart by session: `taskMember`), the one in front, each kind's answers (`taskChoices`), its buttons and the answer
   each gives, and the line that says a task waits; what each session's row says waits (`taskAsks`: its first task
-  but a lead's pick, one put back or one taken back, and how many more). And the talk's: whom your words go to (`talkTo`), what opens them and
-  how much room is left (`talkOpening`, `talkRoom`), what's said under them as they go (`talkState`, `talkLive`), why
-  words are back in the box (`talkBackWords`), a next step coming in as you write (`talkNewStep`), a reply whole, in
-  place, its code blocks too (`talkReply`, `talkReplyWords`), and the line that says a session
-  answered you (`talkNotice`). The talk is drawn under the task (`taskTalkHTML`), with its box at the view's foot, kept by task.
+  but a lead's pick, one put back or one taken back, and how many more). And the talk's: whom it's with (`talkTo`, the
+  member or the lead for a lead's pick, at any time), the words that open yours there (`talkOpening`) and where it runs
+  (`talkWhere`). The talk is drawn under the task (`taskTalkHTML`): whom it's with, then the place its session's own
+  chat goes, which Side Chat draws there and its box at the view's foot (`core.sessionChat.draw`, `oneTaskTalkDraw`),
+  with the words that open yours for the task in front; without Side Chat, or with the talk off, there's none. One Task
+  never names Side Chat's classes or attributes (its page cases check), and styles only its own elements.
 - `page/one-task.js`, `page/one-task-view.js` and `page/one-task.css`: the reader's mode beside the list. A task in
   one shape, with the kit's pieces: its title, step and one line on why, then each part a label over slim lines (a
   plan's own short view, drawn by the plans module through `core.plans.taskHTML`, or as written without it; its
@@ -115,9 +108,10 @@ answer. Only tasks: a session's own request, question or plan stays on its row i
 - Every part a task has shows (its steps to tick, its command, its choices), so no button acts on something you
   can't see.
 - What panel.log keeps: each task sent and each answer's word, never what you typed with it, nor each ask that finds
-  no answer yet; that words about a task went to a session, and how far they got, never the words.
-- The talk types only what you wrote and pressed Send on, after words naming the task that you see before you send,
-  and only when Send says it's safe; held words never type into the terminal in front, nor bring Claude Desktop forward.
-  The line a member gets about its lead's pick names none of the lead's words, and the lead only by a short plain
-  name. Words go only to the session that sent the task, or the member the lead's pick is for now: a record naming
-  any other session takes none.
+  no answer yet.
+- The talk is its session's own chat, Side Chat's, which sends your words by its own rules; One Task decides only
+  whose chat it shows and the words that open yours there, which you see before you send. Whose: the session that sent
+  the task, or for the lead's pick, the member the app still sends it for, or the lead you chose; the page decides it,
+  from the task as the app sent it, never from anything else on the page. That reaches no further than the
+  row's own Side Chat, which any listed session has. The words that open yours name the task as kept, and for a
+  member, none of the lead's words and the lead only by a short plain name (`TaskTalkLead`).

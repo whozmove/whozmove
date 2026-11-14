@@ -34,19 +34,16 @@
 static const NSUInteger kMostTask = 12000;
 // How long a session's row may be missing from the list before its tasks go: one read can miss a row now and then.
 static const NSTimeInterval kRowGoneAfter = 60;
-// How long words typed into a session may go without its own record showing it took them before the talk says so.
-static const double kTakenWithinMs = 5000;
 // Settings' switch, on unless you turn it off: while it's off nothing shows, and a session that sends a task is told.
 static NSString *const kOneTaskOn = @"oneTask";
 // How One Task works, as its page on the panel's back sets it: who may hand you tasks (any session, or only a team's
-// lead), whether each task says why it's where it is, whether a task to do now waits for your Go, whether the talk is
-// under each task, and whether words written while a session works go in by themselves or wait for Send Now. The order
-// itself isn't a choice: each ticket's own priority (the page's order.js). Each default is what One Task
-// recommends.
+// lead), whether each task says why it's where it is, whether a task to do now waits for your Go, and whether the talk
+// (its session's own chat) is under each task. The order itself isn't a choice: each ticket's own priority (the page's
+// order.js). Each default is what One Task recommends.
 static NSString *const kWho = @"oneTaskWho", *const kWhy = @"oneTaskWhy", *const kWaitForGo = @"oneTaskWaitForGo",
-                *const kTalk = @"oneTaskTalk", *const kHeld = @"oneTaskHeld";
+                *const kTalk = @"oneTaskTalk";
 static NSDictionary *OneTaskDefaults(void) {
-    return @{kWho: @"any", kWhy: @NO, kWaitForGo: @YES, kTalk: @YES, kHeld: @"self"};
+    return @{kWho: @"any", kWhy: @NO, kWaitForGo: @YES, kTalk: @YES};
 }
 // One Task's page under Tools, as the panel's back names it.
 static NSString *const kPageId = @"one-task";
@@ -55,10 +52,6 @@ static NSString *Chosen(NSString *key) {
     return value ?: OneTaskDefaults()[key];
 }
 static NSString *const kOff = @"refused: One Task is off: the user can turn it on in Settings ▸ One Task";
-// The way past "Whozmove needs the Accessibility permission", on the talk's button, and where it goes.
-static NSString *const kAccessibilityWay = @"Open Accessibility Settings";
-static NSString *const kAccessibilitySettings = @"x-apple.systempreferences:com.apple.preference.security?"
-                                                 "Privacy_Accessibility";
 
 @interface OneTaskModule : NSObject <Module>
 @property (weak) Core *core;
@@ -70,13 +63,8 @@ static NSString *const kAccessibilitySettings = @"x-apple.systempreferences:com.
 @property (copy) NSString *told;
 // The pawn menu's One Task, shown while something waits.
 @property (strong) NSMenuItem *menuItem;
-// The rows as last listed, by session: where the talk's words go, and how far they've got.
+// The rows as last listed, by session: where each task's session runs, and the lead's name for its member.
 @property (copy) NSDictionary<NSString *, Row *> *listed;
-// The replies to your words, by "session task at", read from the session as its turn ended and cut into prose and code
-// (TaskReplyParts): held here only, never kept. Those being read now, so each is asked once at a time; and those read
-// again after Whozmove restarted, so each is read again only once.
-@property (strong) NSMutableDictionary<NSString *, NSArray *> *replies;
-@property (strong) NSMutableSet<NSString *> *reading, *readAgain;
 // Set by the print run for the state with teams not shown, so its tests never depend on this Mac's own settings.
 @property (assign) BOOL printTeamsOff;
 @end
@@ -119,9 +107,6 @@ static BOOL ProcessStill(NSDictionary *record) {
     if (!(self = [super init])) return nil;
     self.core = core;
     self.missingSince = [NSMutableDictionary dictionary];
-    self.replies = [NSMutableDictionary dictionary];
-    self.reading = [NSMutableSet set];
-    self.readAgain = [NSMutableSet set];
     NSMutableDictionary *defaults = [OneTaskDefaults() mutableCopy];
     defaults[kOneTaskOn] = @YES;
     [NSUserDefaults.standardUserDefaults registerDefaults:defaults];
@@ -190,7 +175,6 @@ static BOOL ProcessStill(NSDictionary *record) {
     for (Row *row in rows)
         if (row.sessionId) bySession[row.sessionId] = row;
     self.listed = bySession;
-    [self talkOn];
     [self tell];
 }
 
@@ -250,21 +234,9 @@ static BOOL ProcessStill(NSDictionary *record) {
 
 #pragma mark - The talk about a task
 
-// Where words about a task go: the session that sent it, or for the lead's pick, its member (its `for`, a session that
-// counted as that member when the pick was sent) unless you chose the lead; once the talk has begun, the session it
-// began with. Nil while that session isn't listed. Never a session the page or a task names: a record whose talk names
-// any other session takes no words at all.
-- (Row *)talkRowFor:(NSDictionary *)entry of:(NSString *)sessionId toLead:(BOOL)toLead {
-    BOOL isPick = [entry[@"pick"] boolValue];
-    NSString *member = isPick ? AsText(entry[@"for"]) : nil;
-    NSString *to = AsText(AsRecord(entry[@"talk"])[@"to"]);
-    if (!to) to = member && !toLead ? member : sessionId;
-    // Only the session itself, or the member the pick is for now, and while its own row still places it on the lead's
-    // team: a talk with a member it's no longer for, or that has left the team, stops there.
-    if (![to isEqual:sessionId] && !(member && [to isEqual:member])) return nil;
-    if (![to isEqual:sessionId] && self.listed[sessionId] && ![self stillOnTeam:to of:self.listed[sessionId]]) return nil;
-    return PlainSessionId(to) ? self.listed[to] : nil;
-}
+// The talk under a task is its session's own chat, Side Chat's, which the page draws there (core.sessionChat) and which
+// sends your words as Side Chat sends any. What the page is told for it: the words that open yours for this task, and
+// where each session it may be with runs.
 
 // The terminal a session runs in, by name, as the talk says where it is ("Ghostty"), or nil.
 - (NSString *)terminalNameOf:(Row *)row {
@@ -277,245 +249,18 @@ static BOOL ProcessStill(NSDictionary *record) {
     return AsText(lead.team[@"name"]) ?: lead.name ?: @"";
 }
 
-- (NSDictionary *)entryOf:(NSString *)taskId in:(NSString *)sessionId {
-    for (NSDictionary *each in TaskRecordWaiting([self recordOf:sessionId]))
-        if ([each[@"task"][@"id"] isEqual:taskId]) return each;
-    return nil;
-}
-
-// Your words about the task the page names (as you saw it): held in its record, then typed in at once if the session
-// can take them now, as you pressed Send.
-- (void)say:(NSDictionary *)message {
-    if (!SwitchedOn(kTalk)) return;
-    NSDictionary *task = [self taskOf:message];
-    NSString *sessionId = AsText(message[@"sessionId"]), *words = AsText(message[@"words"]);
-    if (!task || words.length > TaskMostTalkLine) return;
-    NSDictionary *entry = [self entryOf:task[@"id"] in:sessionId];
-    BOOL toLead = [entry[@"pick"] boolValue] && [AsText(message[@"to"]) isEqual:@"lead"];
-    Row *row = [self talkRowFor:entry of:sessionId toLead:toLead];
-    if (!row) return;
-    BOOL member = ![row.sessionId isEqual:sessionId];
-    NSString *line = TaskTalkLine(task, member ? [self leadNameOf:sessionId] : nil, words), *why = nil;
-    if (!line) return;
-    NSDictionary *record = [self recordOf:sessionId];
-    NSDictionary *next = TaskRecordSay(record, task[@"id"], words, line, row.sessionId,
-                                       !member && [entry[@"pick"] boolValue], Now(), &why);
-    if (!next || ![self keep:next of:sessionId]) return;
-    PanelLog(@"one-task: words about %@'s %@ for %@", sessionId, Clip(task[@"id"], 64), row.sessionId);
-    NSDictionary *said = AsList(AsRecord([self entryOf:task[@"id"] in:sessionId][@"talk"])[@"says"]).lastObject;
-    [self tryToSay:said about:task[@"id"] of:sessionId pressed:YES];
-}
-
-// Your words as they'd go in, put on the clipboard (Copy and Go): the page then takes you to the session.
-- (void)copyTalk:(NSDictionary *)message {
-    NSDictionary *task = [self taskOf:message];
-    NSString *sessionId = AsText(message[@"sessionId"]), *words = AsText(message[@"words"]);
-    if (!task || words.length > TaskMostTalkLine) return;
-    NSDictionary *entry = [self entryOf:task[@"id"] in:sessionId];
-    BOOL toLead = [entry[@"pick"] boolValue] && [AsText(message[@"to"]) isEqual:@"lead"];
-    Row *row = [self talkRowFor:entry of:sessionId toLead:toLead];
-    if (!row) return;
-    BOOL member = ![row.sessionId isEqual:sessionId];
-    NSString *line = TaskTalkLine(task, member ? [self leadNameOf:sessionId] : nil, words);
-    if (!line) return;
-    [NSPasteboard.generalPasteboard clearContents];
-    [NSPasteboard.generalPasteboard setString:line forType:NSPasteboardTypeString];
-    PanelLog(@"one-task: words about %@'s %@ copied for %@", sessionId, Clip(task[@"id"], 64), row.sessionId);
-}
-
-// Whether words can go into a session now, as far as its row tells: idle at its prompt with nothing asked of you and
-// nothing else from the panel going in. Send checks again, and before each key.
-- (BOOL)takesWords:(Row *)row {
-    return row && ([row.status isEqual:@"idle"] || [row.status isEqual:@"shell"]) && !row.ask
-        && ![self.core.send typingInto:row.sessionId];
-}
-
-// Held words go in once the session can take them: at once for your press, and by themselves only into a terminal
-// that isn't the app in front at all (Send's ReachGoesByItself: the tab it shows may have changed since it last said),
-// asked again before each key (Send's stillAway:), so nothing types where you're typing, and Claude Desktop never comes
-// forward without your press. When none of it can go in, it's
-// `refused`, with why and the way past it (the terminal's own, or Accessibility's), and you can copy it and go there;
-// while another change from the panel is still going in, words that go by themselves wait for it.
-- (void)tryToSay:(NSDictionary *)said about:(NSString *)taskId of:(NSString *)sessionId pressed:(BOOL)pressed {
-    if (![said[@"state"] isEqual:@"held"]) return;
-    NSDictionary *entry = [self entryOf:taskId in:sessionId];
-    Row *row = [self talkRowFor:entry of:sessionId toLead:NO];
-    if (![self takesWords:row]) return;
-    BOOL desktop = !![self.core.send conversationHostOf:row];
-    // Words that wait for your Send Now never go in by themselves.
-    if (!pressed && [Chosen(kHeld) isEqual:@"wait"]) return;
-    SessionReach *reach = [self.core.send reachOf:row];
-    if (!pressed && !ReachGoesByItself(reach, row.focused,
-                                       NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier)) return;
-    double at = AsNumber(said[@"at"]).doubleValue;
-    NSString *where = desktop ? @"Claude Desktop" : [self terminalNameOf:row];
-    NSString *refused = WhyNoWords(reach, @"sent from here", @"say it there");
-    if (refused && !pressed && [refused isEqual:kStillChanging]) return;
-    if (refused) {
-        NSString *way = WayPast(reach, refused) ?: (reach.desktop && !reach.mayControl ? kAccessibilityWay : nil);
-        [self keep:TaskRecordTalkState([self recordOf:sessionId], taskId, at,
-                                       @{@"state": @"refused", @"why": refused, @"way": way ?: NSNull.null,
-                                         @"permission": @(way == kAccessibilityWay), @"where": where ?: NSNull.null})
-                 of:sessionId];
-        PanelLog(@"one-task: words about %@'s %@ not typed in", sessionId, Clip(taskId, 64));
-        return;
-    }
-    [self keep:TaskRecordTalkState([self recordOf:sessionId], taskId, at, @{@"state": @"typing"}) of:sessionId];
-    __weak typeof(self) weakSelf = self;
-    [self.core.send say:said[@"line"] row:row reach:reach here:@"sent from here" there:@"say it there"
-                   also:pressed ? nil : [self.core.send stillAway:row] done:^(NSString *why, NSString *way) {
-        NSDictionary *record = [weakSelf recordOf:sessionId];
-        if (!record) return;
-        NSDictionary *change = why ? @{@"state": @"stopped", @"why": why, @"way": way ?: NSNull.null,
-                                       @"where": where ?: NSNull.null}
-                                   : @{@"state": @"typed", @"typedAt": @(Now())};
-        [weakSelf keep:TaskRecordTalkState(record, taskId, at, change) of:sessionId];
-        PanelLog(@"one-task: words about %@'s %@ %@", sessionId, Clip(taskId, 64), why ? @"stopped" : @"typed in");
-    }];
-}
-
-// What a reply to words said at `at` about a task is held by.
-static NSString *ReplyKey(NSString *sessionId, NSString *taskId, double at) {
-    return [NSString stringWithFormat:@"%@ %@ %.0f", sessionId, taskId, at];
-}
-
-// Words a session's own record shows it took, since `since`: the line they were typed as, as its hook keeps a prompt
-// (on one line, its spaces run together, cut with "…").
-static BOOL TookLine(Row *row, NSString *line, double since) {
-    NSString *(^squeeze)(NSString *) = ^NSString *(NSString *text) {
-        NSArray *words = [text componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-        return [[words filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"length > 0"]]
-                componentsJoinedByString:@" "];
-    };
-    NSString *prompt = row.lastPrompt ?: @"";
-    if (row.lastPromptAt.doubleValue < since - 2000) return NO;
-    if ([prompt hasSuffix:@"…"]) prompt = [prompt substringToIndex:prompt.length - 1];
-    NSString *took = squeeze(prompt);
-    return took.length && [squeeze(line) hasPrefix:took];
-}
-
-// The talk moves on as the rows do: held words go in once they can, typed ones are taken (the session's own record
-// shows them) or not, and a taken one's reply is read as the session's turn ends.
-- (void)talkOn {
-    double now = Now();
-    for (NSString *sessionId in self.allRecords.allKeys)
-        for (NSDictionary *entry in TaskRecordWaiting(self.allRecords[sessionId])) {
-            NSArray *says = AsList(AsRecord(entry[@"talk"])[@"says"]);
-            // Words about a task taken back go with it, never typed in.
-            if (!says.count || entry[@"takenBack"]) continue;
-            NSString *taskId = entry[@"task"][@"id"];
-            Row *row = [self talkRowFor:entry of:sessionId toLead:NO];
-            for (NSDictionary *said in says) {
-                NSString *state = said[@"state"];
-                double at = AsNumber(said[@"at"]).doubleValue, typedAt = AsNumber(said[@"typedAt"]).doubleValue;
-                NSDictionary *change = nil;
-                if ([state isEqual:@"held"]) {
-                    [self tryToSay:said about:taskId of:sessionId pressed:NO];
-                    break;  // one at a time, in order
-                }
-                if (([state isEqual:@"typed"] || [state isEqual:@"notTaken"]) && row) {
-                    if (TookLine(row, said[@"line"], typedAt))
-                        change = @{@"state": @"sent", @"sentAt": row.lastPromptAt ?: @(now)};
-                    else if ([state isEqual:@"typed"] && now - typedAt > kTakenWithinMs)
-                        change = @{@"state": @"notTaken"};
-                } else if ([state isEqual:@"sent"] && row && [self takesWords:row]
-                           && row.lastReplyAt.doubleValue > AsNumber(said[@"sentAt"]).doubleValue) {
-                    [self readReplyTo:said about:taskId of:sessionId row:row];
-                } else if ([state isEqual:@"replied"] && row && !self.replies[ReplyKey(sessionId, taskId, at)]
-                           && ![self.readAgain containsObject:ReplyKey(sessionId, taskId, at)]) {
-                    // Read before Whozmove restarted: read again, once, as nothing of it was kept.
-                    [self.readAgain addObject:ReplyKey(sessionId, taskId, at)];
-                    [self readReplyTo:said about:taskId of:sessionId row:row];
-                }
-                if (change) {
-                    NSDictionary *record = self.allRecords[sessionId];
-                    [self keep:TaskRecordTalkState(record, taskId, at, change) of:sessionId];
-                }
-            }
-        }
-}
-
-// What the session answered your words: its whole reply in the turn whose prompt is exactly the line typed in, read by
-// its agent off the main thread (AgentWork's replyTo:, 16 KB at most), cut into prose and code, and held in memory
-// only. Words sent are `replied` once it has one, or `noReply` when that turn ended without words.
-- (void)readReplyTo:(NSDictionary *)said about:(NSString *)taskId of:(NSString *)sessionId row:(Row *)row {
-    double at = AsNumber(said[@"at"]).doubleValue;
-    NSString *key = ReplyKey(sessionId, taskId, at);
-    if ([self.reading containsObject:key]) return;
-    id<Agent> agent = [self.core agentOf:row];
-    NSNumber *ended = row.lastReplyAt ?: @(Now());
-    __weak typeof(self) weakSelf = self;
-    void (^took)(NSString *) = ^(NSString *reply) {
-        [weakSelf.reading removeObject:key];
-        NSArray *parts = TaskReplyParts(reply);
-        if (parts.count) weakSelf.replies[key] = parts;
-        NSDictionary *record = weakSelf.allRecords[sessionId];
-        NSString *now = AsText(AsRecord([weakSelf saidAt:at about:taskId in:record])[@"state"]);
-        if ([now isEqual:@"sent"])
-            [weakSelf keep:TaskRecordTalkState(record, taskId, at, @{@"state": parts.count ? @"replied" : @"noReply",
-                                                                     @"repliedAt": ended}) of:sessionId];
-        else [weakSelf tell];
-    };
-    if (![agent conformsToProtocol:@protocol(AgentWork)]) {
-        took(nil);
-        return;
-    }
-    [self.reading addObject:key];
-    // Typed in just before it was taken: a little before, for the session's own clock.
-    double since = (AsNumber(said[@"typedAt"]).doubleValue ?: AsNumber(said[@"sentAt"]).doubleValue) - 2000;
-    [(id<AgentWork>)agent replyTo:said[@"line"] of:row.sessionId since:since done:took];
-}
-
-// What's said at `at` about `taskId` in `record`, as kept now.
-- (NSDictionary *)saidAt:(double)at about:(NSString *)taskId in:(NSDictionary *)record {
-    for (NSDictionary *entry in TaskRecordWaiting(record))
-        if ([entry[@"task"][@"id"] isEqual:taskId])
-            for (NSDictionary *said in AsList(AsRecord(entry[@"talk"])[@"says"]))
-                if (AsNumber(said[@"at"]).doubleValue == at) return said;
-    return nil;
-}
-
-// A code block of a reply you asked about, put on the clipboard (the reply's Copy): exactly what was between its
-// fences, from the reply as the app read it, never anything the page says. Nothing in it is ever run.
-- (void)copyReplyPart:(NSDictionary *)message {
-    NSDictionary *task = [self taskOf:message];
-    NSString *sessionId = AsText(message[@"sessionId"]);
-    NSArray *parts = task ? self.replies[ReplyKey(sessionId, task[@"id"], AsNumber(message[@"at"]).doubleValue)] : nil;
-    NSInteger n = AsNumber(message[@"part"]).integerValue;
-    NSString *code = n >= 0 && n < (NSInteger)parts.count ? AsText(AsRecord(parts[(NSUInteger)n])[@"code"]) : nil;
-    if (!code) return;
-    [NSPasteboard.generalPasteboard clearContents];
-    [NSPasteboard.generalPasteboard setString:code forType:NSPasteboardTypeString];
-    PanelLog(@"one-task: a block of %@'s reply about %@ copied", sessionId, Clip(task[@"id"], 64));
-}
-
-// The talk as the page shows it: what's kept, each reply read (only while the app runs), where it goes, and the
-// lines that open the words, so the box shows exactly what will go in.
+// What the page is told of a task's talk: the words that open yours (`lead`; for the lead's pick, the member's own,
+// `leadForMember`, which name the lead only by a short plain name and none of its words), and the terminal each session
+// the talk may be with runs in (`terminals`).
 - (NSDictionary *)talkOf:(NSDictionary *)entry in:(NSString *)sessionId {
-    NSMutableDictionary *talk = [AsRecord(entry[@"talk"]) mutableCopy] ?: [NSMutableDictionary dictionary];
-    NSMutableArray *says = [NSMutableArray array];
-    for (NSDictionary *said in AsList(talk[@"says"])) {
-        NSMutableDictionary *one = [said mutableCopy];
-        [one removeObjectForKey:@"line"];
-        NSArray *reply = self.replies[ReplyKey(sessionId, entry[@"task"][@"id"], AsNumber(said[@"at"]).doubleValue)];
-        if (reply) one[@"reply"] = reply;
-        [says addObject:one];
-    }
-    talk[@"says"] = says;
+    NSMutableDictionary *talk = [NSMutableDictionary dictionary];
     talk[@"lead"] = TaskTalkLead(entry[@"task"], nil);
-    // The terminal each session the talk may be with runs in, for where its heading says it is, and those of them
-    // whose terminal is the app in front, where held words wait for your press (Send's ReachTerminalInFront).
     NSMutableDictionary *terminals = [NSMutableDictionary dictionary];
-    NSMutableArray *inFront = [NSMutableArray array];
-    NSString *front = NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier;
     for (NSString *one in @[sessionId, AsText(entry[@"for"]) ?: @""]) {
-        Row *row = one.length ? self.listed[one] : nil;
-        NSString *name = [self terminalNameOf:row];
+        NSString *name = one.length ? [self terminalNameOf:self.listed[one]] : nil;
         if (name) terminals[one] = name;
-        if (name && ReachTerminalInFront([self.core.send reachOf:row], front)) [inFront addObject:one];
     }
     talk[@"terminals"] = terminals;
-    talk[@"inFront"] = inFront;
     if ([entry[@"pick"] boolValue])
         talk[@"leadForMember"] = TaskTalkLead(entry[@"task"], [self leadNameOf:sessionId]);
     return talk;
@@ -553,7 +298,7 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
     // The kinds' words come with them, from the task's contract (TaskKindWords), the one copy there is; and the rules
     // its page on the back sets, which the page orders, explains and holds by, with the sessions they turn away.
     NSDictionary *rules = @{@"why": @(SwitchedOn(kWhy)), @"waitForGo": @(SwitchedOn(kWaitForGo)),
-                            @"talk": @(SwitchedOn(kTalk)), @"held": Chosen(kHeld), @"turnedAway": turnedAway};
+                            @"talk": @(SwitchedOn(kTalk)), @"turnedAway": turnedAway};
     NSData *json = [NSJSONSerialization dataWithJSONObject:@[tasks, @(on), rules] options:NSJSONWritingSortedKeys
                                                      error:nil];
     NSString *told = json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : nil;
@@ -613,27 +358,6 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
             weakSelf.menuItem.title = count > 1 ? [NSString stringWithFormat:@"One Task · %ld", (long)count]
                                                 : @"One Task";
         },
-        // Your words about a task, to the session it's about (taskSay), and held words taken back before they go in
-        // (taskTakeBack) or sent now, by your press, into the tab you're in or Claude Desktop (taskSayNow): each by
-        // the task as you saw it, and what's said by when it was.
-        @"taskSay": ^(NSDictionary *message) { [weakSelf say:message]; },
-        @"taskTakeBack": ^(NSDictionary *message) {
-            NSDictionary *task = [weakSelf taskOf:message];
-            NSString *sessionId = message[@"sessionId"];
-            if (task) [weakSelf keep:TaskRecordTakeBack([weakSelf recordOf:sessionId], task[@"id"],
-                                                        AsNumber(message[@"at"]).doubleValue) of:sessionId];
-        },
-        @"taskSayNow": ^(NSDictionary *message) {
-            NSDictionary *task = [weakSelf taskOf:message];
-            NSString *sessionId = message[@"sessionId"];
-            double at = AsNumber(message[@"at"]).doubleValue;
-            for (NSDictionary *said in AsList(AsRecord([weakSelf entryOf:task[@"id"] in:sessionId][@"talk"])[@"says"]))
-                if (task && AsNumber(said[@"at"]).doubleValue == at)
-                    [weakSelf tryToSay:said about:task[@"id"] of:sessionId pressed:YES];
-        },
-        // Words that can't be typed in, put on the clipboard for you to paste in the session yourself: the line as the
-        // app makes it from your words, for the session the talk is with, never anything the page says goes in.
-        @"taskTalkCopy": ^(NSDictionary *message) { [weakSelf copyTalk:message]; },
         // Your own words about a task taken back while you were away (Copy Your Words): on one line, never run.
         @"taskWordsCopy": ^(NSDictionary *message) {
             NSString *words = PlainOneLine(AsText(message[@"words"]), TaskMostTalkLine);
@@ -641,10 +365,6 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
             [NSPasteboard.generalPasteboard clearContents];
             [NSPasteboard.generalPasteboard setString:words forType:NSPasteboardTypeString];
         },
-        // A code block of a session's reply, by its place among the reply's parts: copied, never run.
-        @"taskReplyCopy": ^(NSDictionary *message) { [weakSelf copyReplyPart:message]; },
-        // The way past "Whozmove needs the Accessibility permission": its pane in System Settings, by your press.
-        @"taskTalkPermission": ^(NSDictionary *message) { OpenLink(kAccessibilitySettings); },
         // A task taken back, let go by the page once you've moved on from it (or at once, when it isn't the one in
         // front): it leaves the record.
         @"taskLetGo": ^(NSDictionary *message) {
@@ -749,15 +469,9 @@ static BOOL TookLine(Row *row, NSString *line, double since) {
         toggle(kWaitForGo, @"To-do-now tasks wait for your Go", @"A task you've read stays until you leave it; one to "
                "do now asks from the top, and you come back to where you were.", YES)] foot:nil order:30];
 
-    AppChoice *held = [AppChoice choiceWithKey:kHeld title:@"Words you write while it works" choices:^NSArray * {
-        return @[@{@"id": @"self", @"name": @"Words go in once it's free", @"help": @"Written while it works, they go in "
-                   "by themselves when it's done, never into the tab you're in. Recommended."},
-                 @{@"id": @"wait", @"name": @"Words wait for Send Now", @"help": @"Nothing goes in until you press Send "
-                   "Now."}];
-    } picked:^NSString * { return Chosen(kHeld); } pick:^(NSString *choice) { choose(kHeld, choice); }];
-    held.shown = ^BOOL { return SwitchedOn(kTalk); };
     AppGroup *talk = [AppGroup groupWithTitle:@"Talking with the agent" rows:@[
-        toggle(kTalk, @"Talk under each task", @"A box under the task asks its session what it's about.", NO), held]
+        toggle(kTalk, @"Talk under each task", @"Under the task, the chat with its session: send it words while it "
+               "works, or ask without interrupting.", NO)]
                                          foot:nil order:40];
 
     AppGroup *after = [AppGroup groupWithTitle:nil rows:@[] foot:@"A change applies to what comes next: the task you "
@@ -1042,11 +756,6 @@ static int PrintTaskAsks(Core *core, NSArray<NSString *> *arguments) {
     [NSUserDefaults.standardUserDefaults removeObjectForKey:kWho];
     say(@"Its queue names it: task-answer says", ask(pickAnswer, asker.pid));
     say(@"…an id its queue names that Asker never sent", ask(@{@"ask": @"task-answer", @"id": @"unsent"}, asker.pid));
-    say(@"…the talk's words to Wren go to", [module talkRowFor:[module entryOf:@"j12" in:asker.sessionId]
-                                                            of:asker.sessionId toLead:NO].name ?: @"(nobody)");
-    other.team = @{@"inFolderOf": @"Atlas"};
-    say(@"…once Wren has left the team", [module talkRowFor:[module entryOf:@"j12" in:asker.sessionId]
-                                                         of:asker.sessionId toLead:NO].name ?: @"(nobody)");
     asker.team = other.team = nil;
     say(@"Gone sends a task", ask(sending(passkeys), gone.pid));
     pid_t found = 0;

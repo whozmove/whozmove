@@ -36,6 +36,10 @@ NSString *GitReadOnlyNotCommit(NSArray<NSString *> *arguments, NSString *folder)
 // removed and the one added: empty when it prints none, nil when git can't say. A file at a commit (HEAD:src/app.js)
 // that show prints isn't among them: it's named in its word; diff and log are asked about the very words given.
 NSArray<NSString *> *GitReadOnlyShownFiles(NSArray<NSString *> *arguments, NSString *folder);
+// The start of a git command that only reads `root`: without optional locks, so it writes nothing there (a plain `git
+// status` refreshes the index), and without the program a repo's settings may name to watch its files (core.fsmonitor),
+// which would run at every read and write files of its own there, each read then counting as a change (CheckoutWatch).
+NSArray<NSString *> *GitReading(NSString *root);
 NSDictionary *GitInfo(NSString *cwd);
 // The project a folder is in: its repo's main checkout, for a worktree too, as its .git says; nil outside a repo.
 NSString *ProjectRoot(NSString *folder);

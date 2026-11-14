@@ -320,7 +320,9 @@ Betterleaks:
   given its own default rules, written once a version into Keys' folder as it shows them in an empty folder), never
   checking a key online, and with a time limit. It runs with one thread and in macOS's background band, as Keys'
   queue does, so a look never takes more than a core, and waits behind whatever you're doing, however long that
-  makes it.
+  makes it. Every run matches with Go's own regular expressions (`--regex-engine=stdlib`, KeyFacts'
+  kBetterleaksMatcher): its default compiles a matcher into memory as it looks, which the hardened runtime it's signed
+  with stops at once. Files go to it up to 200 or 16 MB a run, whichever comes first.
 - AI tools' records share Betterleaks' runs, up to 16 MB of them a run, so it starts once for many records rather
   than once for each. A record is kept as read only once every run its lines were in has finished; a run that doesn't
   finish is run again in halves, down to one record a run, so only a record it can't get through is left as the last

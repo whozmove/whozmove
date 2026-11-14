@@ -23,15 +23,28 @@ NSString *TicketKindWord(TicketKind kind);
 @property (readonly) TicketKind kind;
 @end
 
-// Another ticket named by this one: its parent (an epic, a project's issue, a task it's a subtask of).
+// Another ticket named by this one: its parent (an epic, a project's issue, a task it's a subtask of), or one it's
+// linked to, with how, in the tracker's own words for the link ("is blocked by", "relates to").
 @interface TicketRef : NSObject
-@property (copy) NSString *key, *title, *type;
+@property (copy) NSString *key, *title, *type, *how;
+@end
+
+// Someone on a ticket (who reported it, who it's assigned to, who moved it): the tracker's own id for their account, and
+// their name as it shows it.
+@interface TicketPerson : NSObject
+@property (copy) NSString *personId, *name;
 @end
 
 // A board, team or project the ticket is on (one person can be on many, and a ticket on several), with the sprint or
-// cycle it's in there, if any.
+// cycle it's in there, if any, and when that starts and ends, as the tracker writes a time (ISO 8601).
 @interface TicketGroup : NSObject
-@property (copy) NSString *groupId, *name, *kind, *sprint;
+@property (copy) NSString *groupId, *name, *kind, *sprint, *sprintStarts, *sprintEnds;
+@end
+
+// A move the ticket was given: from where to where, by its states' names, who made it and when (ISO 8601).
+@interface TicketMoveMade : NSObject
+@property (copy) NSString *from, *to, *at;
+@property (strong) TicketPerson *by;
 @end
 
 // A field a step or a new ticket needs: its id as the tracker reads it, its name as people see it, its kind (`text`, a
@@ -63,6 +76,14 @@ NSString *TicketKindWord(TicketKind kind);
 @property (strong) TicketRef *parent;
 @property (copy) NSArray<TicketGroup *> *groups;
 @property (copy) NSString *priority, *assignee;
+// Who reported it and who it's assigned to, by their accounts (`assignee` is the second's name alone); its labels; the
+// other tickets it's linked to, each with how; and when it was last changed, as its tracker writes a time (ISO 8601).
+@property (strong) TicketPerson *reporter, *assignedTo;
+@property (copy) NSArray<NSString *> *labels;
+@property (copy) NSArray<TicketRef *> *links;
+@property (copy) NSString *updated;
+// The moves it was given, oldest first, when it was read whole (Tracker's readWhole:): nil otherwise.
+@property (copy) NSArray<TicketMoveMade *> *moves;
 // Where its priority stands in its tracker's own list of priorities, the most pressing first (0 the top), and how many
 // that list has, so tickets from trackers that name their priorities differently can be put in one order: each nil when
 // its tracker gives no order, or hasn't read it yet.
@@ -78,6 +99,10 @@ NSString *TicketKindWord(TicketKind kind);
 // The ticket as JSON (for the page and for a session's ask): every word the tracker gave, as it gave it, for whoever
 // shows it to escape. Never its description (`about`).
 - (NSDictionary *)json;
+// The same, with who reported it and who has it by their accounts, its labels, its links, when it changed, its
+// sprint's dates and its moves: only for a session reading your tickets (`ask-panel.sh tickets`), never a row or the
+// page.
+- (NSDictionary *)jsonWhole;
 @end
 
 // How a tracker's answer ended, when it isn't what was asked: a sign-in is wanted (none, or run out), macOS asks you
@@ -107,5 +132,7 @@ typedef NS_ENUM(NSInteger, TrackerEnd) {
 @property (readonly, copy) NSString *why;
 @property (strong) NSDate *retryAt;
 @property (copy) NSString *trackerSays;
+// A list it left some out of, cut at the most its tracker reads at once.
+@property BOOL more;
 @property (readonly) BOOL ok;
 @end

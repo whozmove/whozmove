@@ -85,17 +85,18 @@ Checkout"), and × dismisses them without answering:
 - **A typed answer:** its box, then **Skip** or **Submit**.
 
 On any question with options, **Type an answer** becomes the box itself, in its own row: Return sends what you typed,
-and Esc gives the row back, keeping your words, which the row then shows. On a question with one pick, the last thing
-you press wins: a pick replaces words you typed, and typing replaces the pick.
+and Esc gives the row back, keeping your words, which the row then shows; the card keeps the keys (its edge says so)
+until you press Esc again. On a question with one pick, the last thing you press wins: a pick replaces words you typed,
+and typing replaces the pick.
 
 Every option shows its name with what it means under it, and what a question is about (its subject, "Pick any") is a
 small label above it.
 
-Once you've clicked the card, the keys work on it too, rather than reaching Claude's own copy of the question in the
-terminal: on one pick, 1 to 9 answers with that option (the number after the last opens the box to type in, and Return
-sends what you typed); on several picks, 1 to 9 tick and untick; on several questions, 1 to 9 pick on the one in view,
-← and → move between them, as in Claude Code's own box, and Return presses Next (Submit, on the last). Elsewhere,
-Return submits.
+Once you've clicked the card, or left its box with Esc, the keys work on it too, rather than reaching Claude's own copy
+of the question in the terminal: on one pick, 1 to 9 answers with that option (the number after the last opens the box
+to type in, and Return sends what you typed); on several picks, 1 to 9 tick and untick; on several questions, 1 to 9
+pick on the one in view, ← and → move between them, as in Claude Code's own box, and Return presses Next (Submit, on
+the last). Elsewhere, Return submits.
 
 Whozmove's Claude Code plugin gives every session a skill for writing its questions (`whozmove:asking-questions`), so
 they read at a glance: one thing to decide in under 70 characters, two to four options, each named in four words or

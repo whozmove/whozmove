@@ -1,7 +1,8 @@
 /* Controls that more than one part of the panel draws, each styled once here: the switch, which Spotify's lyrics and
    the apps' settings on the panel's back show, a box to tick, tabs, a button, the shine on words while something is at
    work (the back's page loads this file too), and a one-line message with the one thing it asks of you (the usage
-   card's page loads it too). Their colours and corners are tokens.css's.
+   card's page loads it too), and what VoiceOver is told out of sight (said-aloud). Their colours and corners are
+   tokens.css's.
    Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later */
 
 /* A switch: its track, blue while it's on, and its knob, which slides across (SWITCH, in scripts/util.js). It's on
@@ -247,3 +248,7 @@ stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .bar.normal > i { background: var(--level-normal); }
 .bar.warning > i { background: var(--level-warning); }
 .bar.limit > i { background: var(--level-limit); }
+
+/* What VoiceOver is told and nobody sees: a live line's words (a new notice, a task as it comes in, a reply in a side
+   chat), kept on the page out of sight. */
+.said-aloud { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

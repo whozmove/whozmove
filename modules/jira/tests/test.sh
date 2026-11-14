@@ -6,7 +6,9 @@
 # and a sign-in that has run out, that other apps can read, that something changed since this build kept it, or that
 # reads only; a ticket's place among its project's priorities, the list read once a project, again only for a priority
 # not among it, and not at all; a ticket's description as Markdown, as Atlassian's document format and cut when long,
-# never in panel.log; and a read failing each way, logged by how it failed, with no word of its answer. Each in a throwaway home, so nothing reaches Atlassian or your Keychain, and nothing
+# never in panel.log; a read failing each way, logged by how it failed, with no word of its answer; and every ticket
+# you can see, a page at a time, those changed lately, and a ticket read whole with its moves. Each in a throwaway home, so nothing reaches Atlassian or
+# your Keychain, and nothing
 # opens. Compared with jira.expected.txt.
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
@@ -81,6 +83,9 @@ out=$(
   talk failreads "signin" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" "read PAY-142" \
     "read PAY-142" "log" "hows"
   talk longabout "signin" "read PAY-142" "log"
+  # Every ticket you can see: a search a page at a time, each placed among its priorities, with its people, labels,
+  # links and sprint's dates; only those changed lately; and a ticket read whole, with who moved it.
+  talk every "signin" "every" "every changed" "whole PAY-142" "whole PAY-999"
   talk blocked "signin" "state"
   # A project's priorities that can't be read: its ticket reads all the same, with its priority's word and no place;
   # and the fields its tickets take one option of can't be read either, which says so.

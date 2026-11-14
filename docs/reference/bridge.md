@@ -6,6 +6,8 @@ fit](../how-it-works/architecture.md) describes them.
 
 Bridge, page → native (`type`): `height` (`{value, under}`: the height the panel asks for, and how tall the lines under the header are, which it always keeps room for), `open` (with `carryOn` on a row's own press, when a module's words for a conversation opened again go in; never on Take me there or another press only to look), `pick`, `compact`, `wayPast` (the button past a terminal's reason, on
 the Compact card or a step's note, `{sessionId}`: `Send` asks the session's host to take it), `switchAnswer`,
+`accessibilitySettings` (`{}`, Accessibility's pane in System Settings, by your press on a pick's note when Claude
+Desktop needs Whozmove allowed there),
 `answerAsk`, `approveShownPlan` (`{sessionId, id, digest}`: your press on Approve under a plan beside the list, for
 the request and the digest of the text drawn with it, never the request as it is at the press; the app checks it
 again, and the rows say how it went: the ask's `approval`, or the row's `answeredFor`, yours), `typePlanNotes`
@@ -62,7 +64,9 @@ session, as `{tickets: {tracker, site, key}}`, or `{tickets: {tracker, site, cre
 `ticketRoute` (`{asked, folder, tracker, site, key}`: where the card's ticket starts in its project) and
 `ticketRouteSet` (`{folder, way: {kind, field}}`: the guide's Start, the project's way kept) and `ticketRouteSignIn`
 (`{tracker}`: Sign In on the card's line), the tickets module's: `ticketSearch` (`{words, asked}`: the card's search, as you pause typing), `ticketFind`
-(`{text, asked}`: a key or link written or pasted, read for the card's chip), `ticketSignIn`, `ticketCancelSignIn` and
+(`{text, asked}`: a key or link written or pasted, read for the card's chip), `ticketReadsAsk` (`{folder, asked}`:
+the card's project, with a ticket on the card, asked whether Start would also let its conversations read your
+tickets), `ticketSignIn`, `ticketCancelSignIn` and
 `ticketCopyAsk` (`{tracker}`: signing in with its page in your browser, or Allow while macOS asks first; ending that;
 what to ask an admin, copied), `ticketAnswer` (`{sessionId, act}`: Use It or Not Now, `use` or `notNow`, on a row's
 "Work on PAY-148 here?"), `ticketRead` (`{sessionId, now}`: its tag's card opened, or Try Again; `now` for Try Now,
@@ -104,16 +108,8 @@ once you're not on it), `taskPutBack` (`{sessionId, id, sent}`, Can't
 Now), `taskSeen` (`{sessionId, id, sent}`, you've come to a task you've read: kept with it as `seenAt`, the newest,
 through its next steps and a restart), `taskCopy` (`{sessionId, id, sent}`, its command put on the clipboard), `taskOpen` (`{sessionId, id, sent, at}`,
 the link or page attached at `at`, in your browser; the app takes each from the task as it was checked, never from the
-page), `taskSay` (`{sessionId, id, sent, to, words}`, your words about the task in front, to the session it's about:
-`to` is `lead` to ask the lead rather than its member, before the talk begins; the app finds the session
-itself, and types them in after the words that name the task, once the session can take them), `taskTakeBack`
-(`{sessionId, id, sent, at}`, words said at `at` taken back before they go in) and `taskSayNow` (`{sessionId, id, sent,
-at}`, held words sent now by your press, into the tab you're in or Claude Desktop), `taskTalkCopy` (`{sessionId, id,
-sent, to, words}`, words that couldn't go in, put on the clipboard as the app would type them, for you to paste in the
-session yourself), `taskWordsCopy` (`{words}`, your own words about a task taken back while you were away, Copy
-Your Words, on one line, never run), `taskReplyCopy` (`{sessionId, id, sent, at, part}`, a code block of the reply to words said at
-`at`, by its place among the reply's parts, copied exactly as the app read it, never run) and `taskTalkPermission` (`{}`, Accessibility's pane in System Settings, by your press on the way
-past "Whozmove needs the Accessibility permission"), `oneTaskWaiting` (`{count}`, how many wait, for the pawn menu's One Task), side chat's `sideChatSend` (`{sessionId, words, aside}`, your words to a session, going in between its steps while it works, or typed in while it's idle; `aside`, when a side question the copy couldn't answer is sent this way with Send's words, the time it was asked), `sideChatTakeBack` (`{sessionId, at}`, words sent at `at` taken back before they go in), `sideChatSendNow` (`{sessionId, at}`, held words sent now by your press, or words it stopped before reading sent again), `sideChatCopy` (`{sessionId, words}` or `{sessionId, at}`, words put on the clipboard as they'd go in, Copy and Go, never run), `sideChatReplyCopy` (`{sessionId, at, part}`, a code block of the reply to words sent at `at`, copied exactly as the app read it, never run), `sideChatPutBack` (`{sessionId, at}`, words the page has put back in your box, let go of so they're put back once), `sideChatAsk` (`{sessionId, question}`, a question asked on the side, which a copy of the session's conversation answers), `sideChatAskStop` (`{sessionId, at}`, the side question asked at `at` stopped), `sideChatAsideCopy` (`{sessionId, at, what, part}`, a side question's answer, its question or one of its answer's code blocks, `what` answer, question or code, copied as the app read it, never run), `sideChatCopySignIn` (`{sessionId}`, the command that signs Claude Code in, copied) and `sideChatGetAgent` (`{sessionId}`, where to get the session's agent, opened in your browser), and notifications'
+page), `taskWordsCopy` (`{words}`, your own words about a task taken back while you were away, Copy
+Your Words, on one line, never run), `oneTaskWaiting` (`{count}`, how many wait, for the pawn menu's One Task), side chat's `sideChatSend` (`{sessionId, words, aside, opening}`, your words to a session, going in between its steps while it works, or typed in while it's idle; `aside`, when a side question the copy couldn't answer is sent this way with Send's words, the time it was asked; `opening`, the words that open yours where the chat is drawn, One Task's task and step, checked as one plain line, or nothing goes), `sideChatTakeBack` (`{sessionId, at}`, words sent at `at` taken back before they go in), `sideChatSendNow` (`{sessionId, at}`, held words sent now by your press, or words it stopped before reading sent again), `sideChatCopy` (`{sessionId, words, opening}` or `{sessionId, at}`, words put on the clipboard as they'd go in, Copy and Go, never run), `sideChatReplyCopy` (`{sessionId, at, part}`, a code block of the reply to words sent at `at`, copied exactly as the app read it, never run), `sideChatPutBack` (`{sessionId, at}`, words the page has put back in your box, let go of so they're put back once), `sideChatAsk` (`{sessionId, question, opening}`, a question asked on the side, which a copy of the session's conversation answers, after `opening` when there is one), `sideChatAskStop` (`{sessionId, at}`, the side question asked at `at` stopped), `sideChatAsideCopy` (`{sessionId, at, what, part}`, a side question's answer, its question or one of its answer's code blocks, `what` answer, question or code, copied as the app read it, never run), `sideChatCopySignIn` (`{sessionId}`, the command that signs Claude Code in, copied) and `sideChatGetAgent` (`{sessionId}`, where to get the session's agent, opened in your browser), `sideChatAccessibility` (`{}`, Accessibility's pane in System Settings, by your press on the way past words Claude Desktop couldn't take), and notifications'
 `noticeAwayHere` (`{id, since, awayFor}`, a page sender's notice put away by its ×, and for how many seconds at most,
 0 for only while it's said the same way), `besideSeen` (`{seen}`, what of each
 notice has come out beside the folded panel, by its id, what made it new then, kept for a restart), and Sessions'
@@ -132,7 +128,7 @@ list side), `turnToApps` (Settings… in the pawn menu: the panel turns over, an
 `setConversationShown(on)` (Settings' Show Conversation Text: off, rows show no one's words),
 `toggleCollapsed`, `stepNote` (with `quiet` when
 it says how something went that worked, and `way`, the button past a terminal's reason, when there is one, or with
-`go`, a button that does something on the page instead: `open`, Take me there, opening the session, or a module's own
+`go`, a button that does something on the page instead: `open`, Take Me There, opening the session, or a module's own
 in `core.noteWays`, as the commands module's `modeMenu` opens the mode menu again),
 `setRunningBuild` and `setSwitches` (the bridge's, in `parts/bridge/page/app-calls.js`, but for `turnToApps`, in
 `input.js`); `foldFromSide(x, y)`
@@ -157,7 +153,9 @@ sign-in, `[{name, signInName, signIn, sites, why}]`, `signIn` one of `out`, `sig
 `allow`), `ticketsFound(asked, {tickets, end, why})` (what the card's search found, each ticket as a row's
 `ticket.bound` has it, or why not: `end` one of `signIn`, `slow` or `failed`) and `ticketPicked(asked, said)` (`{ticket}`,
 `{none}` for no tracker's key or link, or `{key, end, site}`, `end` one of `signIn`, `site`, `elsewhere`, `notFound` or
-`failed`) (`tickets.js`), `ticketRouted({asked, key, git, project, name, way, place, guide, problem})` (where the
+`failed`), `ticketReadsSaid(asked, said)` (`{project, tracker}` when Start would also let that project's
+conversations read your tickets, else `{}`) and `ticketReadsChanged()` (a project's reading changed: the card asks
+again) (`tickets.js`), `ticketRouted({asked, key, git, project, name, way, place, guide, problem})` (where the
 card's ticket starts by its project's way, or the guide's choices, told again once its fields are read) and
 `ticketRouteAgain()` (signed in: the card asks afresh) (`routing.js`),
 `setPRBranches(sid, {base, branches})` (`git-steps.js`),
@@ -179,21 +177,18 @@ button, pressedWord, busy, closes, done, tag, answersYou, session, outFor}]`, `l
 sender and its key, where the panel is, `{shown, parked, quiet}`: not hidden from the menu bar, flicked off the
 screen's edge, and quiet hours (only what's urgent said), and the page senders' notices put away, `{id: since}` or `{id: {since, at, awayFor}}`) (`notices.js`), `setTasks` (the tasks sessions sent that wait, `[{sessionId, task, at, sent, back, pick, for, talk, takenBack, pickAt, pickPriority, shownAt, seenAt}]`,
 whether One Task is on, the kinds' words by kind, from the task's contract (TaskKindWords), and how it works, as
-its page under Tools sets it: `{why, waitForGo, talk, held, turnedAway}`, whether each task says why it's where it
+its page under Tools sets it: `{why, waitForGo, talk, turnedAway}`, whether each task says why it's where it
 is, whether a task to do now waits for your Go,
-whether the talk is under each task, whether words written while a session works go in by themselves (`self`) or
-wait for Send Now (`wait`), and the sessions that may not hand you tasks now, what they sent waiting unseen, `pickAt` a pick's place in its lead's
+whether the talk (its session's side chat) is under each task, and the sessions that may not hand you tasks now, what they sent waiting unseen, `pickAt` a pick's place in its lead's
 queue, `pickPriority` how pressing its job is there (`critical`, `p0`, `p1` or `p2`), `shownAt` when the queue
 first named it, `takenBack` why its session took it back
 (`answered`, `parked` or `dropped`), shown without its buttons until you move on, `talk` being
-what you asked the session about it: `{to, toLead, says, lead, leadForMember, terminals}`, each of `says` `{at, words,
-state, why, way, permission, where, reply}` (`permission` when `way` is Accessibility's, `where` the terminal or Claude
-Desktop it couldn't type into), `terminals` the terminal each session it may be with runs in, by session, and `inFront` those whose terminal is the
-app in front, where held words wait for your press, `reply` read from the session as its turn ended, the whole reply to the very line typed in, cut into its parts, each
-`{prose}` or `{code, lang}` (a code fence, as written between its fences), and `lead` the words that open yours, `pick` for a lead's pick
+what the talk under it needs: `{lead, leadForMember, terminals}`, `lead` the words that open yours, `leadForMember`
+the member's own for a lead's pick, and `terminals` the terminal each session it may be with runs in, by session,
+`pick` for a lead's pick
 and `for` the member's session it's for,
 and whether One Task is on) and `openOneTask` (the pawn menu's One Task, once the panel is up on its list side)
-(`one-task.js`), `setSideChats` (each listed session's side chat, by session: `{says, asides, askWhyNot, agent, hook, frame, front, idleWay}`, your words and how far each got, each reply read, your questions on the side and their answers, held in memory only, why nothing can be asked on the side now, the name of the agent they're asked through, whether its agent's hook hands words in between its steps, the words that open yours while it works, its terminal when that's the app in front, and why nothing can be typed into it while it's idle) (`side-chat.js`), `setNowPlaying` (the song Spotify is playing, or null) and `setLyrics` (what's known of its lyrics:
+(`one-task.js`), `setSideChats` (each listed session's side chat, by session: `{says, asides, askWhyNot, agent, hook, frame, front, idleWay}`, your words and how far each got (each with the whole `line` it went in as and, sent from a view that names what they're about, its `opening`), each reply read, your questions on the side and their answers, held in memory only, why nothing can be asked on the side now, the name of the agent they're asked through, whether its agent's hook hands words in between its steps, the words that open yours while it works, its terminal when that's the app in front, and why nothing can be typed into it while it's idle) (`side-chat.js`), `setNowPlaying` (the song Spotify is playing, or null) and `setLyrics` (what's known of its lyrics:
 `{state}`, and for a song's `track`, with `lrc` or `plain` once found, or `none` or `failed` when there are none to be
 had) (`spotify.js`), `setGear(facts, pressed, off)` (your gear, as on the usage card's page below, sent to both at once)
 (`gear.js`),

@@ -168,45 +168,13 @@ A question that takes several, two: a,b: fits
 Seen: Seen: fits
 Seen: Comment: fits
 A try: : doesn't fit
-== The talk about a task
-The line, to the session that sent it: About your task “Search as you type” (step 2 of 3, On a phone): Where's the search box?
-…a task with no step: About your task “Release notes”: Which version?
-…to the member the lead's pick is for, none of the lead's words: About the task Atlas gave me on your work (step 2 of 3): Where's the search box?
-…a lead with a long name: About the task your lead gave me on your work (step 2 of 3): Where?
-…a lead named with a sentence: About the task your lead gave me on your work (step 2 of 3): Where?
-…a lead's name with a quote in it: About the task your lead gave me on your work (step 2 of 3): Where?
-…a lead's name of 24 plain characters: About the task Atlas-2 North West Board gave me on your work (step 2 of 3): Where?
-…on three lines: About your task “Search as you type” (step 2 of 3, On a phone): Where is it? I see a menu. No box.
-…starting with a command: About your task “Search as you type” (step 2 of 3, On a phone): /clear
-…ending with a backslash: About your task “Search as you type” (step 2 of 3, On a phone): See C:
-…with a control character and a turning one: About your task “Search as you type” (step 2 of 3, On a phone): Look[2J here now
-…only spaces: (null)
-…words that fill it to 600: 600
-…one more: (null)
-A reply with no code: [{"prose":"It's behind the magnifier.\n\nPress it once."}]
-…a fenced command between prose: [{"prose":"Paste it into a terminal:"},{"code":"npm run build -- --watch","lang":"bash"},{"prose":"Then reload."}]
-…a heredoc, its lines and quotes as written: [{"prose":"Run:"},{"code":"python3 - <<'EOF'\nimport json\nprint(\"ok\")\nEOF","lang":""}]
-…two blocks, one with ~~~: [{"prose":"First:"},{"code":"make","lang":"sh"},{"prose":"then:"},{"code":"make test","lang":""}]
-…inline code stays prose: [{"prose":"Use `make test` there."}]
-…a fence left open runs to the end: [{"prose":"Try:"},{"code":"ls -la\ncd x","lang":""}]
-…one its agent cut at the most it gives, and one just as long that ends on its own: cut, whole
-…a closing fence of four, and ``` inside another fence: [{"code":"```js\nx\n```","lang":"md"},{"prose":"Done."}]
-…nothing: []
-Held words, its terminal behind another app: goes by itself
-…its terminal in front, on another tab as far as it last said: waits for your press
-…the session you're on: waits for your press
-…in Claude Desktop: waits for your press
-…its terminal unknown: waits for your press
-…nothing in front: goes by itself
-Words held: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"}],"to":"s-wren","toLead":false}
-…words for another session, once the talk is with one: the talk is with another session
-…two at the same moment, kept apart: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-…the second taken back: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"}],"to":"s-wren","toLead":false}
-…the first going in, taken back: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"typing","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-…stopped, with why: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"stopped","why":"it's working","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-…held again, its why gone: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-…none of it could go in, with why and where: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"refused","where":"Ghostty","why":"It's open twice","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-…taken back: {"says":[{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-Its next step: the talk stays: {"says":[{"at":9100,"line":"About your task “Search as you type” (step 2 of 3, On a phone): Where?","state":"held","words":"Where?"},{"at":9101,"line":"About your task “Search as you type” (step 2 of 3, On a phone): And?","state":"held","words":"And?"}],"to":"s-wren","toLead":false}
-Twelve more: the last ten kept: {"says":[{"at":9402,"line":"l","state":"held","words":"Q2"},{"at":9403,"line":"l","state":"held","words":"Q3"},{"at":9404,"line":"l","state":"held","words":"Q4"},{"at":9405,"line":"l","state":"held","words":"Q5"},{"at":9406,"line":"l","state":"held","words":"Q6"},{"at":9407,"line":"l","state":"held","words":"Q7"},{"at":9408,"line":"l","state":"held","words":"Q8"},{"at":9409,"line":"l","state":"held","words":"Q9"},{"at":9410,"line":"l","state":"held","words":"Q10"},{"at":9411,"line":"l","state":"held","words":"Q11"}],"to":"s-wren","toLead":false}
-Answered: the talk goes with the task: (no task)
+== The words that open yours in the talk about a task
+To the session that sent it: About your task “Search as you type” (step 2 of 3, On a phone): 
+…a task with no step: About your task “Release notes”: 
+…to the member the lead's pick is for, none of the lead's words: About the task Atlas gave me on your work (step 2 of 3): 
+…a lead with a long name: About the task your lead gave me on your work (step 2 of 3): 
+…a lead named with a sentence: About the task your lead gave me on your work (step 2 of 3): 
+…a lead's name with a quote in it: About the task your lead gave me on your work (step 2 of 3): 
+…a lead's name of 24 plain characters: About the task Atlas-2 North West Board gave me on your work (step 2 of 3): 
+…the longest title and step name a task may have: how long: 198
+Its next step: the words name the step it's on now: About your task “Search as you type” (step 3 of 3): 

@@ -1126,8 +1126,8 @@ delete state.stepNotes.n1;
 {
   // A note whose reason has no way past it in the terminal: its button does something on the page instead (`go`).
   state.stepNotes.n2 = { text: 'It\'s open elsewhere too: change its mode in the terminal', quiet: false,
-                         way: 'Take me there', go: 'open', at: Date.now() };
-  show("a step's note with Take me there",
+                         way: 'Take Me There', go: 'open', at: Date.now() };
+  show("a step's note with Take Me There",
        /<div class="step-note[^"]*">[^]*?<\/div>/.exec(rowHTML(session({ sessionId: 'n2' }), 'idle', NOW))?.[0]);
   const sent = [], last = state.last, draw = render, rows = list.querySelectorAll;
   render = () => {};
@@ -1135,6 +1135,9 @@ delete state.stepNotes.n1;
   state.last = { sessions: [session({ sessionId: 'n2' }), session({ sessionId: 'n3' }), session({ sessionId: 'n4' })],
                  now: NOW };
   const pressWay = (sid) => pressNoteWay({ dataset: { way: sid } }, { preventDefault() {} });
+  // Whether a row's note button has the mark for what takes you out of the panel.
+  const markedOut = (sid) => /<button class="button small note-way"[^]*?<\/button>/
+    .exec(rowHTML(session({ sessionId: sid }), 'idle', NOW))?.[0].includes('class="out-icon"');
   pressWay('n2');
   show('…pressed as it comes: nothing yet, as it has only just shown', { sent: sent.map((m) => m.type) });
   state.stepNotes.n2.at -= 5000;
@@ -1147,9 +1150,19 @@ delete state.stepNotes.n1;
                                    getBoundingClientRect: () => ({ left: 120, bottom: 60 }) }];
   state.stepNotes.n3 = { text: 'Let It Deploy couldn\'t be changed: try again', way: 'Open the Menu', go: 'modeMenu',
                          at: Date.now() - 5000 };
+  const menuOut = markedOut('n3');
   pressWay('n3');
   show("a switch's note pressed: the app is asked for the row's mode menu, under its label",
        sent.map((m) => `${m.type} ${m.field} ${m.sessionId} at ${m.x},${m.y}`));
+  // A pick into Claude Desktop that needs Whozmove allowed in Accessibility: its note opens that pane.
+  sent.length = 0;
+  state.stepNotes.n3 = { text: 'Allow Whozmove in Accessibility, then try again', way: 'Open Accessibility Settings',
+                         go: 'accessibility', at: Date.now() - 5000 };
+  show("a pick's note needing Accessibility: its button has the mark for leaving the panel, and Open the Menu's hasn't",
+       { accessibility: markedOut('n3'), menu: menuOut });
+  pressWay('n3');
+  show("a pick's note needing Accessibility pressed: the app is asked to open its pane, and the note goes",
+       { sent: sent.map((m) => m.type), note: !!state.stepNotes.n3 });
   // And the terminal's way past, as before.
   sent.length = 0;
   state.stepNotes.n4 = { text: 'It shares its iTerm2 window', way: "Turn On iTerm2's Python API…",
@@ -1576,6 +1589,12 @@ print('-- confirming in a worktree: the port it gets in $PORT there, as a comman
 print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'npm run dev', then: 'deploy', checked: {
   command: 'npm run dev', production: false, runs: 'next dev' } },
                 dep({ folder: '/work/app-cart', port: 3001 })));
+print('-- opened again with the command macOS refused to save: why, in its words (escaped), on both steps');
+print(setupHTML(session({ sessionId: 'd6' }), { step: 1, text: 'make install', then: 'deploy',
+  refused: 'The file “deploy.json” couldn’t be saved <because> the volume is full' }, dep({})));
+print(setupHTML(session({ sessionId: 'd6' }), { step: 2, text: 'make install', then: 'deploy',
+  refused: 'The file “deploy.json” couldn’t be saved because the volume is full', checked: {
+  command: 'make install', production: false, runs: 'cc -o tool main.c' } }, dep({})));
 // The app's answer about a command (deployChecked in deploy-row.js) moves the card on only while it still shows that
 // command.
 const drawn = render;
@@ -2842,5 +2861,140 @@ section('Esc closes the view beside the list (keyboard.js)');
   state.viewKeys = null;
   render = draw;
   reader.contains = contains;
+  delete window.webkit;
+}
+
+section('A question card pressed three ways: each holds the keys (keyboard.js)');
+// A question on a row, got into three ways: pressed on the card, on its Type an answer option (a button that takes the
+// keys), or straight into its box. Each holds the card, so Esc in the box (which gives the row back and takes the box
+// away) leaves the keys on the card, and the next Esc, on the card, lets go of them. A card's other boxes, where no
+// module takes Esc, hold it too, and Esc in one leaves the box, keeping what's typed, with the card still held.
+{
+  const sent = [], keyboardMessages = () => sent.filter((t) => t === 'keyboard on' || t === 'keyboard off');
+  window.webkit = { messageHandlers: { panel: { postMessage: (msg) => sent.push(msg.type === 'keyboard'
+    ? `keyboard ${msg.on ? 'on' : 'off'}` : msg.type) } } };
+  const draw = render, timer = setTimeout;
+  const had = { last: state.last, active: document.activeElement,
+                list: { contains: list.contains, querySelectorAll: list.querySelectorAll } };
+  render = () => {};
+  setTimeout = (f) => { f(); return 0; };  // wantKeyboard's wait, run at once
+  const questionKeys = core.keyCards.find((k) => k.card.startsWith('.perm[data-ask]'));
+  const row = { dataset: { id: 'q1' } }, edge = new Set(), inCard = new Set();
+  const card = {
+    dataset: { ask: 'quiz1' }, matches: () => false, contains: (el) => inCard.has(el),
+    classList: { add: (c) => edge.add(c), remove: (c) => edge.delete(c), contains: (c) => edge.has(c) },
+    closest: (sel) => (sel === '.row[data-id]' ? row : sel === questionKeys.card ? card : sel === '.perm' ? card
+                                                                                                       : null),
+    querySelector: () => null,
+  };
+  const typeOption = { disabled: false, matches: (sel) => sel.includes('.ask-type-opt') };
+  const box = { value: '', matches: (sel) => sel === '.perm.quiz .ask-row-box',
+                closest: (sel) => (sel === textBoxes() ? box : sel === 'button' ? null : card.closest(sel)) };
+  inCard.add(box);
+  const cardPress = { closest: (sel) => (sel === 'button' ? null : card.closest(sel)) };
+  const optionPress = { closest: (sel) => (sel === 'button' ? typeOption : card.closest(sel)) };
+  const pageBody = { closest: () => null };  // where an Esc goes once no box has the focus
+  const deployBox = { value: '', blurred: false, matches: () => false, blur() { this.blurred = true; },
+                      closest: (sel) => (sel === textBoxes() ? deployBox : null) };
+  Object.assign(list, { contains: (c) => c === card,
+                        querySelectorAll: (sel) => (sel === questionKeys.card ? [card] : sel === '.has-keys'
+                          ? [card].filter((c) => c.classList.contains('has-keys')) : []) });
+  const ask = { id: 'quiz1', tool: 'AskUserQuestion', truncated: false, input: { questions: [
+    { question: 'Which database?', header: 'Database', options: [{ label: 'Postgres' }, { label: 'SQLite' }] }] } };
+  state.last = { sessions: [session({ sessionId: 'q1', ask })] };
+  const press = (target) => {
+    sent.length = 0;
+    state.keyCard = null;
+    state.keyboardWanted = false;
+    pressTakesKeys({ button: 0, target });
+    showHeldCard();
+  };
+  // As on the page: the list hands an Esc in a box to its module first (core.escapes, input.js), which keeps it from
+  // the rest, and only an Esc no module took goes on to the panel's own (keyOnHeldCard, then escClosesView).
+  const escIn = (target) => {
+    const e = { key: 'Escape', target, isComposing: false, keyCode: 27, defaultPrevented: false,
+                preventDefault() { this.defaultPrevented = true; } };
+    const taken = target.closest(textBoxes()) && core.escapes.find(([sel]) => target.matches(sel));
+    if (taken) return taken[1](target, e);
+    keyOnHeldCard(e);
+    escClosesView(e);
+  };
+
+  const ways = [['on the card (its row)', cardPress], ['on its Type an answer option', optionPress],
+                ['straight into its box', box]];
+  for (const [how, target] of ways) {
+    press(target);
+    show(`pressed ${how}: the card holds the keys, and shows it`,
+         [heldCard() === card, state.keyCard?.id, edge.has('has-keys')]);
+    show('…and the panel asks for the keyboard', [keyboardMessages(), keepsKeyboard()]);
+    document.activeElement = box;  // the box has the focus, as it does once typed in
+    escIn(box);
+    document.activeElement = null;  // Esc gave the row back: the box is gone, and the focus with it
+    wantKeyboard(false);
+    show('Esc in the box (the row given back, the box no longer focused): the card still holds the keys, and the '
+         + 'panel keeps the keyboard',
+         [heldCard() === card, document.activeElement === box, keepsKeyboard(), keyboardMessages()]);
+    escIn(cardPress);
+    wantKeyboard(false);
+    show('…then Esc on the card: it lets go, and the keyboard goes back',
+         [state.keyCard, heldCard(), keepsKeyboard(), keyboardMessages()]);
+  }
+
+  // The card's other boxes, where no module takes Esc: a free-text question's answer, a number question's, and the
+  // number of one of several questions. Each made up as typed in.
+  const otherBox = (words) => {
+    const b = { value: words, blurred: false, matches: () => false,
+                blur() { b.blurred = true; if (document.activeElement === b) document.activeElement = null; },
+                closest: (sel) => (sel === textBoxes() ? b : sel === 'button' ? null : card.closest(sel)) };
+    inCard.add(b);
+    return b;
+  };
+  const boxes = [['a free-text answer\'s box', otherBox('Postgres, for now')],
+                 ['a number question\'s box', otherBox('12')],
+                 ['the number box of one of several questions', otherBox('3')]];
+  for (const [what, b] of boxes) {
+    press(b);
+    document.activeElement = b;  // focused by the press
+    show(`pressed straight into ${what}: the card holds the keys, and shows it`,
+         [heldCard() === card, state.keyCard?.id, edge.has('has-keys'), keyboardMessages()]);
+    escIn(b);
+    wantKeyboard(false);
+    show('Esc in it: the box is left, keeping what\'s typed, and the card still holds the keys',
+         [b.blurred, document.activeElement === b, b.value, heldCard() === card, keepsKeyboard(), keyboardMessages()]);
+    escIn(pageBody);
+    wantKeyboard(false);
+    show('…then Esc again: the card lets go, and the keyboard goes back',
+         [state.keyCard, heldCard(), keepsKeyboard(), keyboardMessages()]);
+  }
+
+  // Esc in a box outside the held card is left to that box: the card isn't what it leaves.
+  press(cardPress);
+  escIn(deployBox);
+  show('Esc in a box in no card while a card holds the keys: that box is left alone, and the card still holds them',
+       [deployBox.blurred, heldCard() === card]);
+
+  document.activeElement = deployBox;  // focused by the press, as a box is, before the list is drawn again
+  press(deployBox);
+  document.activeElement = null;
+  show('pressed into a box in no card that answers to keys (a Deploy command): no card held, the box still asks for '
+       + 'the keyboard',
+       [state.keyCard, heldCard(), keyboardMessages()]);
+
+  // Digits typed in the box while the card is held are the words of the answer, not picks: the card leaves them.
+  press(box);
+  document.activeElement = box;
+  const digit = { key: '2', target: box, prevented: false, preventDefault() { this.prevented = true; } };
+  sent.length = 0;
+  keyOnHeldCard(digit);
+  show('a digit typed in the box of a held card: left to the box, nothing answered or held for it',
+       [digit.prevented, heldCard() === card, !!state.answering.quiz1, sent]);
+
+  render = draw;
+  setTimeout = timer;
+  Object.assign(list, had.list);
+  state.last = had.last;
+  state.keyCard = null;
+  state.keyboardWanted = false;
+  document.activeElement = had.active;
   delete window.webkit;
 }

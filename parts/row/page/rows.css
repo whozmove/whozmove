@@ -93,6 +93,8 @@
 .you .who, .claude .who { flex: none; width: 42px; color: var(--faint); }
 /* While Claude works, its label is the panel's working cream, fading gently in and out. */
 .claude.work .who { color: var(--busy); animation: breathe 2.8s ease-in-out infinite; }
+/* Still (workLineHTML's `still`): the label doesn't breathe, as its words don't shine. */
+.claude.work.still .who { animation: none; }
 /* Another session's name, where "You" would be: as wide as it needs, up to a point. */
 .you .who.from { width: auto; min-width: 42px; max-width: 96px; box-sizing: border-box; padding-right: 6px;
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }

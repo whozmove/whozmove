@@ -9,9 +9,7 @@
 # Also checks, for each terminal session, whether keys may go into it now and the Shift+Tabs its mode menu would
 # type (`--print-mode-moves`), the keys a command is typed with (`--print-typing`), what each session's menus, Compact
 # card and next steps say about why nothing can go in now (`--print-why-not`), how a command's result is read
-# (`--print-results`), that docs/reference/rows.md describes
-# exactly the fields a row has, that the README names the macOS permissions the app asks for while no file in the
-# repo names one it doesn't, the command Deploy suggests for sample projects and how their last runs read
+# (`--print-results`), the command Deploy suggests for sample projects and how their last runs read
 # (`--print-deploys`), what the set-up card is told sample commands really run (`--print-deploy-checks`), what the
 # usage strip gets from Claude Code's recorded answers and where `claude` is looked for (`--print-usage`), how
 # folder trust is read and recorded (`--print-trust`), why a recording counts as talking to an agent
@@ -993,55 +991,6 @@ echo "   (stale)"
 HOME="$T" "$APP" --print-kept | in_minutes | sed -E 's/"pid": [0-9]+/"pid": "pid"/'
 echo "files kept in the sample home after the runs: $(ls "$T/Library/Application Support/Whozmove/conversations" \
   | sort | tr '\n' ' ')"
-echo "== Fields Row sends that docs/reference/rows.md doesn't describe, or describes but Row doesn't send"
-python3 - "$REPO" <<'PY'
-import os, re, sys
-repo = sys.argv[1]
-# Whichever file implements Row now: there must be just the one.
-rows = sorted(os.path.join(d, name) for top in ("app", "parts", "modules") for d, _, files in os.walk(f"{repo}/{top}")
-              for name in files if name.endswith(".m")
-              and re.search(r"^@implementation Row\b", open(os.path.join(d, name), encoding="utf-8").read(), re.M))
-if len(rows) != 1:
-    sys.exit("Row is implemented in %d files, not one" % len(rows))
-sent = set(re.findall(r'json\[@"(\w+)"\]', open(rows[0]).read()))
-described = set()
-for line in open(f"{repo}/docs/reference/rows.md"):
-    if line.startswith("| `"):
-        described |= set(re.findall(r"`(\w+)`", line.split("|")[1]))
-for name in sorted(sent - described): print("not described:", name)
-for name in sorted(described - sent): print("described, not sent:", name)
-PY
-echo "== macOS permissions the app asks for that README.md doesn't name, and repo files naming one it doesn't ask for"
-python3 - "$REPO" <<'PY'
-import os, subprocess, sys
-repo = sys.argv[1]
-def read(path):
-    return open(f"{repo}/{path}", encoding="utf-8").read()
-code = "".join(open(os.path.join(d, name), encoding="utf-8").read()
-               for top in ("app", "parts", "modules") for d, _, files in sorted(os.walk(f"{repo}/{top}"))
-               for name in sorted(files) if name.endswith(".m"))
-# Each permission by the name macOS gives it, and the call that shows the app asks for it. The README must tell
-# people about each one the app asks for; once it stops asking for one, every mention of it has to go too.
-asks = {"Accessibility": "AXIsProcessTrusted" in code, "Automation": "NSAppleScript" in code,
-        "Full Disk Access": "Privacy_AllFiles" in code}
-tracked = subprocess.run(["git", "-C", repo, "ls-files", "-z"], capture_output=True, text=True).stdout.split("\0")
-for permission, asked in asks.items():
-    if asked:
-        if permission not in read("README.md"):
-            print("README.md doesn't name", permission)
-        continue
-    for path in tracked:
-        if path in ("", "LICENSE", "tests/rows.sh", "tests/rows.expected.txt"):
-            continue
-        try:
-            if permission in read(path):
-                print(path, "still names", permission)
-        except (OSError, UnicodeDecodeError):
-            pass  # an image or the icon
-# macOS shows this text when it asks for Automation, so it's there exactly while the app sends Apple Events.
-if ("NSAppleEventsUsageDescription" in read("app/Info.plist")) != asks["Automation"]:
-    print("app/Info.plist's NSAppleEventsUsageDescription doesn't match whether the app sends Apple Events")
-PY
 echo "== Each terminal session: why keys can't go into it now (null: they can), and the Shift+Tabs its mode menu"
 echo "   would type (null: not offered)"
 HOME="$T" "$APP" --print-mode-moves

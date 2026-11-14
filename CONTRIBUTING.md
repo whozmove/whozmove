@@ -83,11 +83,15 @@ plan and change is held to these ten principles. Each one's why, with an example
 ```bash
 ./build.sh            # compiles (clang -Wall), signs, puts ~/Applications/Whozmove.app in place, restarts it (it
                       # brings its hooks up to date as it starts); an agent's only compiles, once Deploy is set up
-                      # for Whozmove (see below)
+                      # for Whozmove (see below), or once you sign your own builds; it signs with your Developer ID,
+                      # asking your signing keychain's password, once that's set up (docs/guides/signing.md)
 ./build.sh --now      # the same, as Deploy runs it (from an agent, it still only compiles)
 ./install.sh          # ./build.sh, then opens the app, which sets itself up as it opens (its hooks, Open at Login);
                       # --uninstall takes the app, its login item and its hooks out
-tools/release.sh X.Y.Z # builds, checks and zips a release into dist/, publishing nothing; --trial, a zip to try
+tools/release.sh X.Y.Z --trial # builds, signs, checks and zips a release to try into dist/, publishing nothing; a
+                      # release itself is made only by the release workflow, signed with the Developer ID and notarised
+tools/energy.sh now 5 # what the running Whozmove costs over 5 minutes, read-only (also launch, week):
+                      # docs/how-it-works/energy.md
 tests/all.sh          # every test, the app built once for all of them (~80s)
 ```
 
@@ -165,8 +169,15 @@ Each rule is here whole, or as its headline with a link to the rest, where it ap
   commands: [the commands module's rules](modules/commands/README.md#rules).
 - **Folder trust is recorded only for a folder you trusted on the card**: [the Claude Code module's
   rules](modules/claude-code/README.md#rules).
-- **Builds keep their Accessibility grant** because every bundle is signed with the bundle id as its designated
-  requirement (`sign_bundle` in tools/bundle.sh). Don't change the signing line without knowing that.
+- **Builds keep their Accessibility grant** because each is signed the same way every time (`sign_bundle` in
+  tools/bundle.sh): releases, and your own builds once you've set it up, with the developer's Developer ID and macOS's
+  own rule for it, which names the team; others ad hoc, with the bundle id as their designated requirement. Every
+  program in the bundle runs with the hardened runtime. What the
+  runtime holds back that Whozmove needs is an entitlement in `tools/Whozmove.entitlements`, added only with the code
+  that uses it; get-task-allow, allow-dyld-environment-variables, disable-library-validation,
+  allow-unsigned-executable-memory and allow-jit never go in. A signing key signs only after asking for its keychain's
+  password, and an agent's build is never signed with it: [Signing your own builds](docs/guides/signing.md). Don't
+  change the signing lines without knowing all that.
 - **The app never loads its own login item into launchd**: [the install module's
   rules](modules/install/README.md#rules).
 - **A build restarts only the app it replaced.** `swap-in.sh --restart` restarts the login item only if it runs
@@ -253,7 +264,7 @@ For a new motion idea, open an issue describing it before building it.
   tried it, and a checklist of the rules above. CI builds with every warning an error and runs `tests/all.sh`;
   both must pass.
 - Leave README.md as it is but for two parts, which change with the change that makes them untrue: the macOS
-  permissions under Install, when the app starts or stops asking for one (`tests/rows.sh` checks that the README names
+  permissions under Install, when the app starts or stops asking for one (`tests/checks.sh` checks that the README names
   each one it asks for, and no other), and Privacy, when the change sends, keeps or reads something new. In the pull
   request, say if you think your change belongs on the front page, and why, and if it makes anything else the README
   says, or one of its pictures, no longer true. A front-page feature is one that would make someone install

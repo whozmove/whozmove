@@ -8,11 +8,12 @@ chose.
 ## Its pieces
 
 - `app/ChangesModule.m`: its face for the core (contracts/Module.h): each row's numbers, the view the page asks for, a
-  file opened, Open Files With in Settings, and the print mode the tests check.
+  file opened, Open Files With in Settings, and the print modes the tests check.
 - `app/Changes.m`: the counting, off the main thread: git's diffs, matched line by line with what each session edited,
   as its agent says (AgentWork's editsOf:). A checkout is looked at again every 3s at most, once something in it has
-  changed (`CheckoutWatch`, in app/shared), or a session's edits there have; and the commits not on GitHub once its
-  HEAD or refs have moved, each commit's diff read once while it's listed.
+  changed (`CheckoutWatch`, in app/shared), or a session's edits there have, and those changes have settled: 2s after
+  the latest, or 10s after the first while an agent keeps writing (`CheckoutSettled`, `ChangesCountDue`); and the
+  commits not on GitHub once its HEAD or refs have moved, each commit's diff read once while it's listed.
 - `app/Editors.m`: the editors it knows, the ones on this Mac (asked again every half minute), the one you chose,
   kept, and with none on this Mac, the one to get. Other modules open a file at a line in it through the module's
   `FilesAtLines` (contracts/Module.h), as Keys does; which files they open is theirs to check, as which of its changes
@@ -24,7 +25,9 @@ chose.
   part's parts/row/page/rows.css.
 
 tests/rows.sh checks each tab on a checkout with a file staged and changed again, files git doesn't track, and a
-commit not on its upstream (`--print-changes`), and tests/panel.sh the page's part.
+commit not on its upstream (`--print-changes`), and tests/panel.sh the page's part. Its own `tests/test.sh` checks when
+a checkout's changes are due a count for sample states (`--print-count-due`, `ChangesCountDue`, compared with
+`count-due.expected.txt`).
 
 ## Between the page and the app
 

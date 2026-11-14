@@ -24,6 +24,8 @@ static NSMutableDictionary<NSString *, NSDate *> *askedAt;
 static NSSet<NSString *> *watching;
 static NSDictionary<NSString *, NSDictionary *> *folders;
 static NSMutableDictionary<NSString *, NSNumber *> *fileCounts, *refCounts, *repoCounts;
+// When each checkout's files or refs last seemed to change (CheckoutChangedAt), in seconds since 1970.
+static NSMutableDictionary<NSString *, NSNumber *> *changedAt;
 
 // Whether `path` is `folder` or inside it.
 static BOOL Inside(NSString *path, NSString *folder) {
@@ -45,16 +47,17 @@ static BOOL Noise(NSArray<NSString *> *parts) {
         || [parts.lastObject hasSuffix:@".lock"];
 }
 
-// What a repo's checkouts share in its git folder: its branches and GitHub's copies of them, and its config.
+// What a repo's checkouts share in its git folder: its branches and GitHub's copies of them (in refs and packed-refs,
+// or all in reftable, git's newer store for them), its config, and its own list of files to ignore (info/exclude).
 static BOOL Shared(NSArray<NSString *> *parts) {
-    return parts.count && [@[@"refs", @"packed-refs", @"config"] containsObject:parts[0]];
+    return parts.count && [@[@"refs", @"packed-refs", @"reftable", @"config", @"info"] containsObject:parts[0]];
 }
 
 // Which of a repo's checkouts a change in what they share is theirs, `parts` being within the shared git folder
 // `common`: a branch that moved (refs/heads/<name>) is the checkouts on it, and every one's when it's the local base
-// branch they count their work from (BaseBranchInFiles); GitHub's copies (refs/remotes), the packed refs and the config
-// are every one's (@""); the rest (tags, the stash, notes) no one's (nil). `base` is set when the change can have moved
-// or made or removed the base, which what the checkouts keep of the repo goes by.
+// branch they count their work from (BaseBranchInFiles); GitHub's copies (refs/remotes), the packed refs, the reftable,
+// the config and the ignore list are every one's (@""); the rest (tags, the stash, notes) no one's (nil). `base` is set
+// when the change can have moved or made or removed the base, which what the checkouts keep of the repo goes by.
 static NSString *SharedReach(NSArray<NSString *> *parts, NSString *common, BOOL *base) {
     *base = NO;
     if (!Shared(parts) || [parts.lastObject hasSuffix:@".lock"]) return nil;
@@ -85,7 +88,9 @@ static NSString *BranchAt(NSString *own) {
 }
 
 static void Bump(NSMutableDictionary<NSString *, NSNumber *> *counts, NSString *key) {
-    if (key.length) counts[key] = @(counts[key].unsignedIntegerValue + 1);
+    if (!key.length) return;
+    counts[key] = @(counts[key].unsignedIntegerValue + 1);
+    if (counts != repoCounts) changedAt[key] = @(NSDate.date.timeIntervalSince1970);
 }
 
 // A submodule's changes show in the git status of the checkouts it's in (whose git folders hold its own), as changes
@@ -272,6 +277,7 @@ static void Setup(void) {
     fileCounts = [NSMutableDictionary dictionary];
     refCounts = [NSMutableDictionary dictionary];
     repoCounts = [NSMutableDictionary dictionary];
+    changedAt = [NSMutableDictionary dictionary];
     watching = [NSSet set];
 }
 
@@ -305,8 +311,20 @@ NSUInteger CheckoutRefChanges(NSString *root) {
     return root ? refCounts[root].unsignedIntegerValue : 0;
 }
 
+const NSTimeInterval kCheckoutQuietLeast = 1800, kCheckoutQuietSpread = 600;
+
 NSTimeInterval CheckoutQuietEvery(NSString *root) {
-    return 270 + (root.hash % 60);
+    return kCheckoutQuietLeast + (root.hash % (NSUInteger)kCheckoutQuietSpread);
+}
+
+NSTimeInterval CheckoutChangedAt(NSString *root) {
+    return root ? changedAt[root].doubleValue : 0;
+}
+
+const NSTimeInterval kCheckoutSettle = 2, kCheckoutSettleMost = 10;
+
+BOOL CheckoutSettled(NSTimeInterval sinceChange, NSTimeInterval sinceFirstUnread) {
+    return sinceChange >= kCheckoutSettle || sinceFirstUnread >= kCheckoutSettleMost;
 }
 
 NSUInteger CheckoutRepoChanges(NSString *root) {

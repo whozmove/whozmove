@@ -114,8 +114,13 @@ ended one's, and its hooks plugin, put into Claude Code and kept up to date ther
   session ends, compacts (`compactedAt`, Transcripts.m) or stops running, once any answer under way is done
   (`endAsidesOf:`, ClaudeCode.m), and every copy as Whozmove quits. Its process is kept out of everything read from
   the registry while it runs (`NoteAsideProcess`, ClaudeSessions.m) and ended by its checked pid on Stop; its
-  stream-json read for each answer and how it ended (`ClaudeAsideAnswer`); its environment carries the checker and
-  git's settings (`ClaudeAsideEnvironment`).
+  stream-json read for each answer and how it ended (`ClaudeAsideAnswer`); a `result` that comes before the copy has
+  said anything for the ask, using nothing and saying nothing, isn't its answer (`ClaudeAsideEarlyResult`): the ask
+  stays open and the copy busy, so a later answer never lands on the next question, its shape (never its words) goes
+  in panel.log with the copy's version and whether it was kept (`ClaudeAsideResultShape`), it leaves the lines kept
+  for the answer, and with nothing more said within a minute (`afterEarly`) it's "Didn't answer" and the copy ends, so
+  the next question starts a fresh one; once the copy says anything, its usual five minutes apply; its
+  environment carries the checker and git's settings (`ClaudeAsideEnvironment`).
 - `app/AsideReads.m`: what a side question's copy may read and run, decided before each tool it reaches for by
   Whozmove's own checker (`--helper-aside-check`, a helper run of the app's own, which the copy's hook runs): Read,
   Grep and Glob inside the session's folder, by real paths, never a file where keys are kept (Claude Code's own, and

@@ -4,9 +4,10 @@
 # kind of change is told for (Whozmove --print-watched, compared with watched.expected.txt), so git runs only for the
 # checkouts that changed. A throwaway repo, shop, with a worktree its repo lists (shop-try), a submodule inside it
 # (parts), and shop listed by a link to it (shop-link), as a session's folder can be; each change is made in turn, and
-# what macOS tells of it is noted. Then whether sample branches are on a remote, loose and packed, and when a
-# checkout's git status is due a read. Then what wakes a session waiting on a pull request (Whozmove --print-pr-wakes,
-# from a made-up answer of gh's, compared with pr-wakes.expected.txt).
+# what macOS tells of it is noted. Then whether sample branches are on a remote, loose and packed, when a checkout's git
+# status is due a read, how long a quiet one is left, and when a burst of changes has settled. Then what wakes a session
+# waiting on a pull request (Whozmove --print-pr-wakes, from a made-up answer of gh's, compared with
+# pr-wakes.expected.txt).
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Prints the difference and exits 1 if anything changed.
@@ -15,11 +16,9 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/git/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-git.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-trap 'rm -rf "$T"' EXIT
 . tests/lib.sh
+T=$(throwaway git) || exit 1
+leave_nothing "$T"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 

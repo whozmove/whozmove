@@ -31,12 +31,13 @@ tracker, by their ids.
     one the guide offered, its options matched to the project's folders as it's set.
   - `ticketRouteSignIn` (`{tracker}`), Sign In on a line whose ticket couldn't be read for want of one: the tracker's
     own sign-in, then `ticketRouteAgain()`, and the card asks afresh.
-  - Settings ▸ Tickets (`settingEntries`), once a project's way is set, opening its page (`appEntries`, a tool, with
+  - Settings ▸ Tickets (`settingEntries`), once a project's way is set or another module has something for it, opening its page (`appEntries`, a tool, with
     the ticket mark on its tile): a heading marked Important over a row for each project (AppPage), saying its way,
     opening the project's page: its way, picked only after its before and after (AppChoice's `confirm`),
     and for a way by a field, each option's folder, one row each picked from the Mac's menu (AppChoice's `menu`), one
-    that has gone said so; a project whose folder isn't there any
-    more is said too, with Forget It, its way written back as it was until then.
+    that has gone said so, then the groups other modules add for that project (contracts/Module.h's
+    `ProjectSettings`: the tickets module's Reading your tickets through Whozmove), whose projects are listed too, way set or not; a
+    project whose folder isn't there any more is said too, with Forget It, its way written back as it was until then.
 - `app/TicketRoutingPrints.m`: `--print-ticket-routing`, for the tests.
 - `page/routing.js`: its card part (`core.startCardParts`): `where`, `waits` (Start waits while a field's option is
   read), `under` (the guide, or the line), `warn` (another ticket's conversation where it would start), its presses,

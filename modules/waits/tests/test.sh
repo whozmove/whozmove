@@ -15,13 +15,13 @@
 cd "$(dirname "$0")/../../.." || exit 1
 . tests/sandboxed.sh "$@"
 HERE=modules/waits/tests
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout. The socket
-# goes in a folder of its own with a short path, as a socket's path can't be longer than 103 bytes.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-waits.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-S=$(mktemp -d /tmp/wz-wait.XXXXXX 2>/dev/null || mktemp -d "${TMPDIR:-/tmp}/wz-wait.XXXXXX") || exit 1
-trap 'rm -rf "$T" "$S"' EXIT
 . tests/lib.sh
+# The socket goes in a folder of its own with a short path, as a socket's path can't be longer than 103 bytes; T is
+# cleaned up even if that one can't be made.
+T=$(throwaway waits) || exit 1
+leave_nothing "$T"
+S=$(throwaway --short wait) || exit 1
+leave_nothing "$T" "$S"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 failed=0

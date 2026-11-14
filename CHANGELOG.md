@@ -7,6 +7,9 @@
 - **Needs macOS 15 or later.** On macOS 12 to 14, 0.2.0 is the last version: keep the one you have, or download it
   from its release on GitHub. Homebrew won't install a newer one there, and the × on 0.2.0's line saying one is out
   puts that version away. Built from source on an older Mac, `./build.sh` says so and changes nothing.
+- **Opens without Open Anyway.** Whozmove is signed by its developer and notarised by Apple, so macOS only asks, the
+  first time, whether to open an app downloaded from the internet. Built from source, `./build.sh` can sign your own
+  builds with your Developer ID ([Signing your own builds](docs/guides/signing.md)).
 
 ### The panel
 
@@ -83,7 +86,8 @@
   Send says when your words go in: **Send After This Step**, **Send After Its Turn** or **Send After You Answer**. The
   one you pressed last is the dark button, and Return goes that way until you press the other; ⌥Return goes the other
   way. While the session works, the chat ends with what it's doing right now, as its row says it, until its reply takes
-  that line's place.
+  that line's place. The same chat shows under a task in One Task, and a Claude Desktop conversation Whozmove can't type
+  into without the Accessibility permission offers **Open Accessibility Settings**.
 - **Up next beside the list, while a session is your team's chief:** every session working now and what waits behind
   your gear, in the chief's order, by goal, from **Up next** at the end of the chief's line. It needs **Show Teams**
   ticked in Working on Whozmove ▸.
@@ -133,10 +137,11 @@
   A session's own request for your OK, its question or its plan stays on its row in the list only. A session's task
   also shows on its row, as a short line in a bubble coloured by its ticket's priority, red for one to do now, amber,
   and grey for its tracker's lowest; press it to open One Task at that task.
-- **Talk with the agent in One Task.** Under a task, ask the session that sent it what it's about or what to press:
-  your words go into its prompt once it's free, and its reply shows under the task, all of it, with a command or code
-  in it on a line of its own and a Copy button beside it. For a team chief's pick, your words go to the member it's
-  for, opened with a line naming the chief and the step, never the chief's own words.
+- **Talk with the agent in One Task.** Under a task is the side chat with the session that sent it: send it words
+  between its steps, or **Ask Without Interrupting** what the task is about or what to press, and its replies and
+  answers show under the task, the same as in that session's side chat. Your words open with a line naming the task and
+  its step. For a team chief's pick, the chat is the member's, its words opened with a line naming the chief and the
+  step, never the chief's own words; **Wren · Atlas** switches to the chief's at any time.
 - **Stop near an edge, and the row goes the rest of the way.** Stop scrolling with the row you're on close to the top
   or bottom edge it's heading for, and once your scroll has come to rest the list goes on the last bit by itself, so
   the row clicks onto the edge. Scroll it away from an edge and it stays where you leave it; scrolling again takes over
@@ -252,6 +257,17 @@
   by first"), with **Open in Jira** to put it right there. A step that's a person's, such as QA's sign-off, is marked
   on the ticket's card, and the card says the ticket's last move.
 
+- **Conversations read your Jira tickets.** Once a conversation in a project has worked one of your tickets (Use It,
+  Start with a ticket or Create Ticket, each saying so first), every conversation in that project and its worktrees
+  reads the tickets you can see, through Whozmove, with nothing to
+  answer: each with its priority's place, its parent, its sprint, who reported it and who has
+  it, its labels and links, only those changed since its last read if it likes, and one whole with its description and
+  who moved it when. It only reads: nothing changes in Jira, and no conversation holds your sign-in. Other projects
+  read none through Whozmove until you turn reading on for them: under Reading your tickets through Whozmove on a
+  project's page in Settings ▸ Tickets, **Conversations Read Your Jira Tickets** turns it on and **They Read None**
+  off, showing before and after first. Other Jira tools in Claude Code or Claude Desktop read with their own sign-in,
+  not through Whozmove, as that page says.
+
 - **Create a Jira ticket, talked through first.** Pick **Create a ticket** on the new conversation card's Ticket chip,
   write a line and Start: Claude asks what it needs, then its row asks "Create this ticket?" with the title, project,
   type, priority and whole description, for **Create Ticket** or **Not Yet**. Nothing is made in Jira before your press,
@@ -363,6 +379,9 @@
   can't follow. If any of that has changed in a checkout since you confirmed it, by a branch or an agent, Deploy
   doesn't run it there: the set-up card shows what it runs now, for you to confirm again. A command you confirmed
   before needs confirming once more.
+- **Deploy says when a command can't be saved.** If macOS refuses to save the command you confirmed (your Mac is out
+  of space, say), the row says "Not saved" and why, and the set-up card opens again with it, saying why for as long as
+  it's open, rather than looking saved.
 
 ### Usage and Spotify
 
@@ -488,17 +507,18 @@
 - **No empty sliver for the effort or model.** On a crowded bottom line, one with no room for even a letter goes
   whole, with its "·", rather than leaving a sliver beside it; the mode always shows.
 - **Uses much less energy with many sessions open.** Whozmove runs git for a checkout only once something in it has
-  changed, as macOS tells it, rather than every few seconds for every one; reads each commit waiting to go once,
-  rather than again each time a branch moves; asks GitHub for a branch's pull request only once the branch is on
-  GitHub, and never for the default branch, which pull requests go into; reads each session's records again only once
-  they've changed, rather than every second; looks at how its plugin stands in Claude Code when Claude Code's own
-  records of its plugins change, and hourly, rather than starting Claude Code every 5 minutes, so the plugin turned off
-  or taken out there shows on the line within seconds; moves the band of light across what Claude is doing and the ring
-  round a waiting dot as layers, so the panel isn't drawn again on every frame for them, and holds the folded panel's
-  eyes still while it's open; and sets just the times in its list when nothing else in it has changed, rather than
-  drawing the whole list again every second, and leaves the list as it is while the panel is hidden or the screen is
-  asleep or locked, drawing it as it is then the moment the panel can be seen again. What each row says, and how soon it
-  says it, stay as they were.
+  changed, as macOS tells it, rather than every few seconds for every one; reads each commit waiting to go once, rather
+  than again each time a branch moves; asks GitHub for a branch's pull request only once the branch is on GitHub, and
+  never for the default branch, which pull requests go into; reads each session's records again only once they've
+  changed, rather than every second; looks at how its plugin stands in Claude Code when Claude Code's own records of its
+  plugins change, and hourly, rather than starting Claude Code every 5 minutes, so the plugin turned off or taken out
+  there shows on the line within seconds; moves the band of light across what Claude is doing and the ring round a
+  waiting dot as layers, so the panel isn't drawn again on every frame for them, and holds the folded panel's eyes still
+  while it's open; and sets just the times in its list when nothing else in it has changed, rather than drawing the
+  whole list again every second, and leaves the list as it is while the panel is hidden or the screen is asleep or
+  locked, drawing it as it is then the moment the panel can be seen again. What each row says, and how soon, stay as
+  they were, but for the counts in a checkout whose files keep changing, which catch up once its edits pause for 2
+  seconds, or every 10 seconds while they don't.
 - A session's row brings its terminal tab forward, with the keyboard, when another app's window is above it, over it
   or beside it, without that app being in front, as Arc's single-page windows can be. Before, a press on the row of the
   session the tab showed did nothing.
@@ -527,8 +547,9 @@
 - A reply you've already seen beside the folded panel no longer comes out again after a request in its session has
   come and gone.
 - A model, effort or mode pick that can't go in says why on its row, with the button past it when its terminal has
-  one, or Take me there when it has to be changed in the session itself, and a compaction that stopped part-way says
-  why on its card. Before, most of them only beeped.
+  one, Take Me There when it has to be changed in the session itself, or Open Accessibility Settings when Claude
+  Desktop needs Whozmove allowed there, and a compaction that stopped part-way says why on its card. Before, most of
+  them only beeped.
 - Resting the pointer on the folded panel while a line under the header shows no longer draws a rule between the
   panel's head and that line, so it looks as it does when the panel is open.
 - Resting the pointer on the folded panel, the line under the header and a card at the list's top come in with the
@@ -540,6 +561,8 @@
   folded, and with the panel folded, the list your pointer had brought out folded away, the card with it.
 - The open usage card stays in sight as the pointer moves on and off it. Before, a card that was already open when
   Whozmove opened could vanish and come back each time the pointer crossed its edge.
+- Clicking straight into a question's box to type an answer keeps the keys on its card, as clicking the card does: Esc
+  leaves the box, keeping what you typed, and Esc again gives the keys back to the app you were in.
 
 ## 0.2.0 - 2026-10-21
 

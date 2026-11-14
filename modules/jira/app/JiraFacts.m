@@ -54,6 +54,16 @@ const NSInteger kJiraSearchMost = 5;
 NSString *const kJiraReadView = @"full";
 const NSInteger kJiraAboutMost = 20000;
 NSString *const kJiraAboutCut = @"(Cut short here: the rest is on the ticket's own page.)";
+const NSInteger kJiraEveryMost = 200;
+NSString *const kJiraHistoryExpand = @"changelog";
+NSString *const kJiraStatusField = @"status";
+
+NSString *JiraEveryJQL(NSDate *since) {
+    // A minute more than asked, rounded up, so nothing changed on the edge is missed.
+    if (since) return [NSString stringWithFormat:@"updated >= -%ldm ORDER BY updated DESC",
+                       (long)MAX(1, ceil(-since.timeIntervalSinceNow / 60) + 1)];
+    return @"project IS NOT EMPTY ORDER BY updated DESC";
+}
 
 NSURLSession *JiraSession(NSTimeInterval timeout) {
     NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;

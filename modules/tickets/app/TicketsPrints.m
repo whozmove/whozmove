@@ -12,6 +12,7 @@
 #import "Row.h"
 #import "Files.h"
 #import "Processes.h"
+#import "Git.h"
 #import "TicketBindings.h"
 
 // A made-up tracker: keys like ABC-1, links https://<site>/t/<key> on a .example site, three tickets that read, and
@@ -116,6 +117,40 @@ static TicketField *Field(NSString *fieldId, NSString *name, BOOL required, NSAr
 }
 - (void)search:(NSString *)words done:(TicketsDone)done {
     done(@[[self ticket:@"ABC-1" site:@"one.example"]], [TrackerAnswer done]);
+}
+// Every ticket you can see: ABC-1 to ABC-3, or only ABC-3 changed since; told to end otherwise as a read is.
+- (void)everyTicketSince:(NSDate *)since done:(TicketsDone)done {
+    TrackerEnd end = self.nextEnd;
+    self.nextEnd = TrackerEndDone;
+    if (self.signInState != TrackerSignedIn) end = TrackerEndSignIn;
+    if (end != TrackerEndDone)
+        return done(@[], [TrackerAnswer end:end why:end == TrackerEndSignIn ? @"Sign in first" : @"Couldn't reach it"]);
+    NSMutableArray *found = [NSMutableArray array];
+    for (NSString *key in since ? @[@"ABC-3"] : @[@"ABC-1", @"ABC-2", @"ABC-3"]) {
+        Ticket *ticket = [self ticket:key site:@"one.example"];
+        TicketPerson *reporter = [TicketPerson new];
+        reporter.personId = @"made-up-1";
+        reporter.name = @"Made-up reporter";
+        ticket.reporter = reporter;
+        ticket.updated = @"2030-01-08T09:15:00Z";
+        [found addObject:ticket];
+    }
+    TrackerAnswer *answer = [TrackerAnswer done];
+    answer.more = !since;
+    done(found, answer);
+}
+- (void)readWhole:(NSString *)key site:(NSString *)site done:(TicketDone)done {
+    [self read:key site:site done:^(Ticket *ticket, TrackerAnswer *answer) {
+        TicketMoveMade *move = [TicketMoveMade new];
+        move.from = @"Ready";
+        move.to = @"Doing";
+        move.at = @"2030-01-07T10:00:00Z";
+        move.by = [TicketPerson new];
+        move.by.personId = @"made-up-2";
+        move.by.name = @"Made-up mover";
+        ticket.moves = ticket ? @[move] : nil;
+        done(ticket, answer);
+    }];
 }
 - (void)read:(NSString *)key site:(NSString *)site done:(TicketDone)done {
     TrackerEnd end = self.nextEnd;
@@ -226,6 +261,9 @@ static int PrintTickets(Core *core, NSArray<NSString *> *steps) {
         fprintf(stderr, "--print-tickets runs only in a throwaway home\n");
         return 2;
     }
+    // The sessions here run in this process, which works in no project until a step puts it in one (process-in), so a
+    // session given a ticket marks none but the test's own.
+    chdir("/");
     SampleTracker *sample = [SampleTracker new];
     sample.signInState = TrackerSignedIn;
     sample.moved = [NSMutableDictionary dictionary];
@@ -327,12 +365,68 @@ static int PrintTickets(Core *core, NSArray<NSString *> *steps) {
             Row *row = rows[sessionId];
             NSString *word = words.count > 2 ? words[2] : @"";
             NSString *given = words.count > 3 ? words[3] : @"";
+            NSMutableDictionary *listAsked = [@{@"ask": @"tickets"} mutableCopy];
+            for (NSUInteger i = 3; i + 1 < words.count; i += 2)
+                listAsked[[words[i] isEqual:@"--since"] ? @"since" : [words[i] isEqual:@"--site"] ? @"site" : @"full"] = words[i + 1];
+            if ([word isEqual:@"tickets"] && [given isEqual:@"--since"] && [words.lastObject isEqual:@"now"])
+                listAsked[@"since"] = [[NSISO8601DateFormatter new] stringFromDate:[NSDate dateWithTimeIntervalSinceNow:-60]];
             NSString *answer = [word isEqual:@"ticket"] ? [tickets ticketFor:row]
+                : [word isEqual:@"tickets"] ? [tickets ticketsFor:row process:row.pid asked:listAsked]
                 : [word isEqual:@"ticket-use"] ? [tickets use:@{@"ask": word, @"key": given} from:row]
                 : [word isEqual:@"ticket-link"] ? [tickets use:@{@"ask": @"ticket-use", @"link64":
                       [[given dataUsingEncoding:NSUTF8StringEncoding] base64EncodedStringWithOptions:0]} from:row]
                 : @"?";
+            // When a list was read, which changes from run to run, is left out.
+            NSRegularExpression *when = [NSRegularExpression regularExpressionWithPattern:@"\"(readAt|since)\":\"[^\"]*\""
+                                                                                  options:0 error:nil];
+            if ([word isEqual:@"tickets"])
+                answer = [when stringByReplacingMatchesInString:answer options:0 range:NSMakeRange(0, answer.length)
+                                                   withTemplate:@"\"$1\":\"(when)\""];
             printf("%s\n", answer.UTF8String);
+        } else if ([verb isEqual:@"in"]) {
+            // `in <id> <folder>`: the session's record says it works there, with that folder's git, as a row has it.
+            rows[sessionId].cwd = rest;
+            rows[sessionId].git = GitInfo(rest);
+        } else if ([verb isEqual:@"reads-said"]) {
+            // `reads-said <folder>`: what the new conversation card's line says Start there would also do.
+            printf("%s\n", Line([tickets readsSaidFor:sessionId]).UTF8String);
+        } else if ([verb isEqual:@"process-in"]) {
+            // `process-in <folder>`: this process, which every session here runs in, works there, as macOS says.
+            printf("%s\n", chdir(sessionId.fileSystemRepresentation) == 0 ? "moved" : "no such folder");
+        } else if ([verb isEqual:@"off"] || [verb isEqual:@"on"]) {
+            // `off <folder>`, `on <folder>`: your press of that project's switch in Settings ▸ Tickets.
+            [tickets setReads:[verb isEqual:@"on"] for:sessionId];
+            printf("%s reads %s\n", sessionId.lastPathComponent.UTF8String, [tickets reads:sessionId] ? "your tickets" : "none");
+        } else if ([verb isEqual:@"settings"]) {
+            // `settings <folder>`: what the project's page in Settings ▸ Tickets has of the tickets module's, each choice
+            // ticked or not, with what picking the other would say first; and the projects it has a page for.
+            printf("projects: %s\n", Line([tickets projectsWithSettings]).UTF8String);
+            for (AppGroup *group in [tickets settingsForProject:sessionId])
+                for (AppChoice *choice in group.rows) {
+                    printf("%s (%s), its foot: %s\n", group.title.UTF8String, choice.title.UTF8String,
+                           (group.foot ?: @"none").UTF8String);
+                    for (NSDictionary *each in choice.choices())
+                        printf("  [%s] %s: %s\n", [each[@"id"] isEqual:choice.picked()] ? "x" : " ",
+                               [each[@"name"] UTF8String], [each[@"help"] UTF8String]);
+                    for (NSDictionary *each in choice.choices()) {
+                        NSDictionary *first = choice.confirm(each[@"id"]);
+                        if (first) printf("  picking %s first says: before %s; after %s; %s\n", [each[@"id"] UTF8String],
+                                          [first[@"before"] UTF8String], [first[@"after"] UTF8String],
+                                          [first[@"keep"] UTF8String]);
+                    }
+                }
+        } else if ([verb isEqual:@"pick-reads"]) {
+            // `pick-reads <folder> on|off`: Change pressed after the before and after, as the back's choice makes it.
+            for (AppGroup *group in [tickets settingsForProject:sessionId])
+                for (AppChoice *choice in group.rows) choice.pick(rest);
+            printf("%s reads %s\n", sessionId.lastPathComponent.UTF8String, [tickets reads:sessionId] ? "your tickets" : "none");
+        } else if ([verb isEqual:@"reading"]) {
+            // What's kept of which projects read no tickets, and who may read the file.
+            NSString *path = AppDir(@"ticket-reading.json");
+            NSDictionary *kept = AsRecord(ReadJSON(path));
+            NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
+            printf("%s (%o)\n", kept ? Line(kept).UTF8String : "none",
+                   (unsigned)[attributes[NSFilePosixPermissions] unsignedShortValue]);
         } else if ([verb isEqual:@"move"] || [verb isEqual:@"stop"]) {
             Row *row = rows[sessionId];
             NSString *stepId = words.count > 2 ? words[2] : @"";

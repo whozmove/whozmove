@@ -1,0 +1,4 @@
+# A helper tests/lib.sh has, still defined again in a test of its own. tests/checks.sh fails on one this doesn't list;
+# once the test uses lib.sh's, tests/checks.sh --update takes its line off: nothing is ever added that way.
+tests/rows.sh  detached
+tests/rows.sh  pause

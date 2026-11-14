@@ -130,6 +130,18 @@ static const NSTimeInterval kAppsKnownFor = 30;
     return row;
 }
 
+- (NSString *)whyNot:(Row *)row asksFrom:(pid_t)pid {
+    pid_t process = 0;
+    NSString *why = nil;
+    Row *found = [self sessionOfProcess:pid found:&process why:&why];
+    if (!found) return why ?: @"this doesn't run in one of the sessions Whozmove lists";
+    if (!row.sessionId || ![found.sessionId isEqual:row.sessionId])
+        return [NSString stringWithFormat:@"this runs in %@'s session, not this one", found.name.length ? found.name
+                                                                                                   : @"another"];
+    id<Agent> agent = [self agentOf:row];
+    return agent ? [agent whyNot:row speakFrom:process] : @"no agent of Whozmove's knows this session";
+}
+
 - (id<Host>)hostFor:(NSString *)appId {
     for (id<Host> host in self.hosts)
         if ([host.appId isEqualToString:appId]) return host;

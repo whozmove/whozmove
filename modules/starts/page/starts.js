@@ -383,6 +383,9 @@ function startCardHTML(card, sessions) {
   // The line under the box: a part's own while it has one and you haven't picked where yourself (a guide, or why it
   // starts where it does), else the card's.
   const under = (!card.list && !card.chosen && partsSay('under', card)[0]) || underHTML(card);
+  // What a press of Start would also do, as the parts say it, under that line: drawn as text, while no list is open.
+  const notes = card.list ? [] : partsSay('note', card);
+  const note = notes.length ? `<div class="st-note" data-k="note">${esc(notes.join(' '))}</div>` : '';
   const app = startApp(card), empty = !hasWords(card);
   const placeholder = partsSay('placeholder', card)[0] || 'What should Claude do? @ for a project, # for a worktree';
   const button = '<span class="split-button main">'
@@ -398,7 +401,7 @@ function startCardHTML(card, sessions) {
         <div class="you"><span class="who">You</span><textarea class="field small c-box" id="${esc(card.id)}-words"
           rows="2"
           spellcheck="false" aria-label="What should Claude do?" placeholder="${esc(placeholder)}">${esc(card.text)}</textarea></div>
-        ${chipsHTML(card)}${listHTML(card)}${card.list ? '' : partsSay('list', card).join('')}${under}
+        ${chipsHTML(card)}${listHTML(card)}${card.list ? '' : partsSay('list', card).join('')}${under}${note}
         ${busy ? `<div class="notice warn c-busy" data-k="busy"><span class="notice-text">${esc(busy)}</span>`
           + `${useNew}</div>` : ''}
         ${help && way ? `<div class="notice warn c-busy" data-k="help"><span class="notice-text">${esc(help)}</span>`
@@ -547,7 +550,7 @@ function focusStart() {
 // part that opened or closed slides to its new place with the card's edge, measured where it was and where it lands,
 // so nothing jumps; a part that's gone fades where it was. The list follows your typing. The box with your words isn't
 // touched.
-const CARD_PARTS = ['.c-list', '.st-plist', '.c-under', '.c-busy', '.c-help', '.st-foot'];
+const CARD_PARTS = ['.c-list', '.st-plist', '.c-under', '.st-note', '.c-busy', '.c-help', '.st-foot'];
 function refreshStartCard() {
   const el = dockCard(), card = state.dock;
   if (!el || !card) return;
@@ -749,7 +752,8 @@ function handOverStart(el, start) {
     who.classList.add('said');
     motions.push(animateStart(who, [{ maxWidth: '0px', opacity: 0 }, { maxWidth: '42px', opacity: 1 }], 300, { fill: 'forwards' }));
   } else motions.push(foldPart(you, 300));
-  for (const part of main.querySelectorAll(':scope > .c-list, :scope > .c-under, :scope > .c-busy, :scope > .c-help, '
+  for (const part of main.querySelectorAll(':scope > .c-list, :scope > .c-under, :scope > .st-note, :scope > .c-busy, '
+                                         + ':scope > .c-help, '
                                          + ':scope > .st-foot'))
     motions.push(foldPart(part, 320, 0.4));
   motions.push(animateStart(el.querySelector('.name'), [{ color: muted }, { color: text }],

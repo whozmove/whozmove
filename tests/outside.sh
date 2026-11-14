@@ -21,8 +21,9 @@
 # Copyright (C) 2026 Satyaraj · SPDX-License-Identifier: GPL-3.0-or-later
 cd "$(dirname "$0")/.." || exit 1
 . tests/sandboxed.sh "$@"
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-outside.XXXXXX") || exit 1
-trap 'rm -rf "$T"' EXIT
+. tests/lib.sh
+T=$(throwaway outside) || exit 1
+leave_nothing "$T"
 python3 -I - "$T" "${1:-}" <<'PY'
 import ast, importlib.util, os, re, subprocess, sys, sysconfig
 T, update = sys.argv[1], sys.argv[2] == "--update"
@@ -58,6 +59,9 @@ OWN_DOOR = re.compile(r"\bNSTask\b|\bposix_spawnp?\(|\bpopen\(|\bsystem\(|\bexec
 DOWNLOADS = re.compile(r"(?:^|[\s;|&(`$\"'])(?:curl|wget)\s|\bgh release download\b|\bgit\s+clone\b"
                        r"|\b(?:brew|pip3?|npm|gem|cargo|go) install\b")
 PY_DOWNLOADS = re.compile(r"""["'](?:curl|wget)["']|["']git["']\s*,\s*["']clone["']|["']git\s+clone\b""")
+# Apple's own tools a script reaches Apple's servers with: its notary service and the ticket it staples, and a secure
+# timestamp while signing (codesign's --timestamp, but not --timestamp=none, which asks no server).
+APPLE_SERVICES = re.compile(r"\bnotarytool\b|\bstapler\b|--timestamp\b(?!=)")
 # In a test's script, a line that only writes text out (echo, printf or cat, with nothing run inside it) is a sample
 # the test makes (a shell history that clones a repository), not a command, unless it's piped into something that runs
 # it; so is a heredoc written into a file.
@@ -170,6 +174,8 @@ def look(root, paths, all_paths):
                                 "through app/shared/Processes.m, and loads only Apple's frameworks" % (path, at))
             if script and kind != "python" and not line.lstrip().startswith("#") and DOWNLOADS.search(line):
                 seen(("downloads", path), path, at)
+            if script and kind != "python" and not line.lstrip().startswith("#") and APPLE_SERVICES.search(line):
+                seen(("network", path), path, at)
             if NOT_OURS.search(line) or (path.endswith((".js", ".css")) and len(line) > 2000):
                 seen(("not-ours", path), path, at)
             for never, does in NEVER:

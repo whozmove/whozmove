@@ -380,6 +380,15 @@ typedef NS_ENUM(NSInteger, CompactEnd) {
 - (void)getWhozmoveAgain;
 @end
 
+// What a module adds to a project's page in Settings ▸ Tickets (the ticket-routing module's), under how its tickets
+// open: its groups for that project, and the projects it has something for, so their pages are listed too, whether or
+// not their tickets' way is set. Projects are their repos' main folders, as real paths. The core finds them
+// (modulesThat:).
+@protocol ProjectSettings <NSObject>
+- (NSArray<NSString *> *)projectsWithSettings;
+- (NSArray<AppGroup *> *)settingsForProject:(NSString *)project;
+@end
+
 // Each team in the team file as a whole, for a module that shows all of one (the team board), which the team module
 // keeps: [{project, lead, chief, goals, queue, jobs}], plain data (docs/reference/team.md, "Each team as a whole"),
 // the chief being the session you talk to, else the lead. Each job under way says where it is (`underWay`: `you`,

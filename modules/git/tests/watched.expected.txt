@@ -1,43 +1,43 @@
 {
   "due" : [
     [
-      "not watched, unchanged, 3s, active since",
+      "not watched, 3s, active since",
       true
     ],
     [
-      "not watched, unchanged, 3s, quiet",
+      "not watched, 3s, quiet",
       false
     ],
     [
-      "not watched, unchanged, 21s, quiet",
+      "not watched, 21s, quiet",
       true
     ],
     [
-      "watched, unchanged, 21s, active since",
+      "watched, unsettled, 21s, active since",
       false
     ],
     [
-      "watched, changed, 1s, active since",
-      false
-    ],
-    [
-      "watched, changed, 3s, active since",
+      "watched, settled, 1s, active since",
       true
     ],
     [
-      "watched, changed, 3s, quiet",
+      "watched, settled, 3s, quiet",
       false
     ],
     [
-      "watched, changed, 21s, quiet",
+      "watched, settled, 21s, quiet",
       true
     ],
     [
-      "watched, unchanged, 299s, quiet",
+      "watched, unsettled, 3s, active since",
       false
     ],
     [
-      "watched, unchanged, 301s, quiet",
+      "watched, unsettled, 1799s, quiet",
+      false
+    ],
+    [
+      "watched, unsettled, 1801s, quiet",
       true
     ]
   ],
@@ -63,6 +63,54 @@
       true
     ]
   ],
+  "quietEvery" : {
+    "each within" : [
+      [
+        "shop-link",
+        true
+      ],
+      [
+        "shop-try",
+        true
+      ],
+      [
+        "parts",
+        true
+      ]
+    ],
+    "least" : 1800,
+    "spread" : 600
+  },
+  "settle" : {
+    "after" : 2,
+    "most" : 10,
+    "samples" : [
+      [
+        "0s since the latest, 0s since the first",
+        false
+      ],
+      [
+        "1s since the latest, 1s since the first",
+        false
+      ],
+      [
+        "1.9s since the latest, 9.9s since the first",
+        false
+      ],
+      [
+        "2s since the latest, 2s since the first",
+        true
+      ],
+      [
+        "1s since the latest, 10s since the first",
+        true
+      ],
+      [
+        "0.5s since the latest, 12s since the first",
+        true
+      ]
+    ]
+  },
   "steps" : [
     [
       "nothing",

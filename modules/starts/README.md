@@ -39,7 +39,8 @@ New Conversation in the pawn menu, and ⌃⌥N's switch in Settings on the panel
   folders; or its own), followed only while you haven't picked where yourself and let go of, back to where it was,
   once the part has none; the line under the box in the card's own line's place (`under`); a warning in the busy
   notice's place, its Use a new worktree giving the worktree it names (`warn`); Start held while it finds out where
-  (`waits`); and keys in the box (`boxKeys`). The
+  (`waits`); keys in the box (`boxKeys`); and what Start would also do, a line of text under the card's line, drawn
+  escaped (`note`). The
   card never names one: tickets' is the Ticket chip, and ticket routing's says where a ticket starts.
 - `tests/test.sh`: what sample starts would run, a terminal tab's command and Claude Desktop's link (`--print-starts`,
   `starts.expected.txt`), what a sample repo has and worktrees checked and made in it, or refused without Apple's

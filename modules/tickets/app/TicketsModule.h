@@ -27,6 +27,18 @@
 - (NSNumber *)draftAskedAt:(NSString *)sessionId;
 // When the move waiting on a session's row was asked, as its card has it (`at`, in milliseconds); nil for none.
 - (NSNumber *)moveAskedAt:(NSString *)sessionId;
+// A session's read of your tickets (tickets, with since and full), for the project its process (`process`) works in;
+// and whether a project's conversations read them: once one there has worked one of your tickets, or by your press of
+// its choice in Settings ▸ Tickets.
+- (NSString *)ticketsFor:(Row *)row process:(pid_t)process asked:(NSDictionary *)asked;
+- (BOOL)reads:(NSString *)project;
+- (void)setReads:(BOOL)on for:(NSString *)project;
+// What the new conversation card's line says Start would also do in `folder`: {project, tracker} while its project
+// reads none of your tickets yet and isn't turned off, else {} (ticketReadsAsk's answer).
+- (NSDictionary *)readsSaidFor:(NSString *)folder;
+// What it adds to a project's page in Settings ▸ Tickets (contracts/Module.h's ProjectSettings).
+- (NSArray<NSString *> *)projectsWithSettings;
+- (NSArray<AppGroup *> *)settingsForProject:(NSString *)project;
 // Reads a session's ticket again, unless it was tried less than `after` seconds ago, or its tracker asked to wait
 // (unless `now`): Try Again on its card reads it at once.
 - (void)read:(NSString *)sessionId after:(NSTimeInterval)after ignoringWait:(BOOL)now;

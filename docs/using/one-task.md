@@ -100,8 +100,7 @@ are:
   is first ("Highest on its ticket, waited longest, 5m"), and lists what's after it by name, each with why. **To-do-now
   tasks wait for your Go** (New, on) keeps the task you've read in front, as below; off, one to do now takes the front
   at once.
-- **Talking with the agent:** the talk under each task, on or off, and whether words written while the session works
-  go in by themselves once it's free, or wait for **Send Now**.
+- **Talking with the agent:** the talk under each task, on or off. How your words go in is [Side Chat](side-chat.md)'s.
 - **Quiet hours:** at night only what's urgent is said, for everything Whozmove says, not only tasks: of tasks, only
   those to do now (see [What needs you](notifications.md#quiet-hours)). It isn't dimmed while One Task is off.
 
@@ -125,49 +124,39 @@ foot says to pick again on what you see now. If it goes while you're on it, as w
   says how many of those after this one are to do now ("3 more after this, 1 to do now"), and a task's step bar is in
   red for one to do now.
 - **Go** sets the task you're on aside, with everything you'd done on it: the choice you picked, what you ticked and
-  typed, the talk's words, where you'd scrolled. Your keys stay free until you click in the one to do now. While you're
-  on it, the strip says **‹ Back to** the task you left.
+  typed, where you'd scrolled; what you'd written in its talk stays in that session's chat. Your keys stay free until
+  you click in the one to do now. While you're on it, the strip says **‹ Back to** the task you left.
 - **Answer it**, and you're back on the task you left exactly as you left it, the next one to do now first if there
   are two. The foot says "Back to …, as you left it", or, if its session updated it meanwhile, that it did, with your
   comment kept and any choice you'd picked let go.
 - **Taken back meanwhile:** if the task you set aside was taken back by its session while you were away, you aren't
-  brought back to it. The foot says so, with what you'd typed in its Comment box and its talk box, and
-  **Copy Your Words**. The same goes for the task you're on, if it stops waiting while it's in front of you.
+  brought back to it. The foot says so, with what you'd typed in its Comment box, and **Copy Your Words**. The same goes for the task you're on, if it stops waiting while it's in front of you.
 
 ## Talk with the agent
 
-Under a task, you can ask the session that handed it to you what it's about, or what to press, without leaving One
-Task. **Talk with Wren** says whom you're talking to; the box at the foot of One Task, "Ask Wren about this…", is where
-you write. Under the box, before you send, a line shows exactly what will go in: your words after a few words naming
-the task, as "About your task “Search as you type” (step 2 of 3, On a phone): …". Return sends; Esc leaves the box.
+Under a task is the chat with the session that handed it to you, the same chat as that session's
+[Side Chat](side-chat.md): what you said to it from either place, its replies, and what you asked without interrupting.
+**Talk with Wren** says whom it's with and where it runs; the box at the foot of One Task is where you write. Under the
+box, before you send, a line shows exactly what will go in: your words after a few words naming the task, as "About your
+task “Search as you type” (step 2 of 3, On a phone): …". In Wren's Side Chat, those words show quietly over yours.
 
-- **Whom it goes to.** The session that sent the task. For a team chief's pick of a member's work, the member, who did
+- **Whom it's with.** The session that sent the task. For a team chief's pick of a member's work, the member, who did
   the work, with your words opened by "About the task Atlas gave me on your work (step 2 of 3)": the chief and the
-  step, never the chief's own words, so one session's words never steer another. Before you've asked anything,
-  **Wren · Atlas** beside the heading lets you ask the chief instead. Once you've asked, the talk stays with that
-  session.
-- **When it goes in.** Only while the session sits idle at its prompt, with nothing asked of you, as everything the
-  panel types. While it works, your words wait under the task: "Goes to Wren when it finishes", with **Take Back**.
-  They go in by themselves once it's done, unless its terminal is the app in front, or it's a Claude Desktop
-  conversation, which comes forward only when you press: then **Send Now**, beside Take Back. A request of its own comes first:
-  "Wren asks first: Wants to run a command. Answer it on its row, and your words go after", with **Show It**, which
-  brings that row into view.
-- **How far it got.** "Typed in", then "Sent" once the session's own record shows it took your words, then what it's
-  doing as its row says it, then its reply, under your words. If your words were typed in but the session didn't take
-  them, or it finished without a reply, **Take Me There** opens its tab. If your words can't be typed in ("Can't type
-  into Ghostty", and why) or typing stopped part-way, they're back in the box: the line under it gives the way past
-  the reason when there is one (Open Accessibility Settings, say), and **Copy and Go** puts them on the clipboard as
-  they'd go in and takes you to the session, to paste them there yourself.
-- **While you write.** The line under the box shows all of what will go in. If the task's next step comes in as you
-  write, it says so, and Send says **Send about step 3**.
-- **The reply.** All of it, in place under your words, however long. Only a reply too long for Whozmove to read whole
-  (16,384 characters) says the rest is in the session, with Take Me There. A command or code it gives shows on a line
-  of its own, whole when you press it, with **Copy**, which copies exactly that code and none of the words around it,
-  however long it is. Nothing in it is ever run. While One Task is out of sight, the line under the header says "Wren
-  answered you about Search as you type", with **Open**; beside the folded panel, the reply comes out as the session's
-  own, as every reply does.
-- **What's kept.** The last ten things you asked about a task, with the task, until it's answered or its session ends.
-  Replies are read from the session again; Whozmove keeps none. With each task, when you last read it, so it stays in
-  front through a restart; never what you'd typed on it, which a restart lets go.
+  step, never the chief's own words, so one session's words never steer another. **Wren · Atlas**, under the heading,
+  switches to the chief's chat, and back, at any time.
+- **While it asks for your OK,** the talk ends with what it asks ("Wants to run a command"), with **Show It**, which
+  brings its request into view.
+- **Send** works as it does in Side Chat: while the session works, your words go in as its current step ends (**Send
+  After This Step**), and they go in at once while it's idle. Take Back, Send Now and every reason they can't go in,
+  with the way past it, are Side Chat's.
+- **Ask Without Interrupting** asks a copy of the session, which answers here, and the session never sees it. The
+  question opens with the same words naming the task, so the copy knows which one you mean. It's the same side
+  conversation as Side Chat's, so a follow-up remembers what you asked in either place.
+- **Answered, or taken back.** Answering the task, or its session taking it back, leaves your words as they are: they
+  were to the session, so held words still go in, with Take Back in the chat.
+- **Esc** leaves the box; One Task stays open. A reply that comes in while you're here is said to VoiceOver, and counts
+  as seen, so the session's Side Chat doesn't light up for it.
+- **What's kept** is the chat's, as Side Chat keeps it, per session, whichever task it was about. With each task, when
+  you last read it, so it stays in front through a restart; never what you'd typed on it, which a restart lets go.
 
 [Back to Using Whozmove](README.md)

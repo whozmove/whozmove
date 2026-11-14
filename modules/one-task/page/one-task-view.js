@@ -28,14 +28,11 @@ function taskWhereHTML(item) {
 // The foot: where your last answer went (said to VoiceOver as it comes), how many more wait after this one, never
 // which, and out of sight, what VoiceOver says of each task as it comes in. Put in once as the view opens; what it
 // says changes in place (one-task.js), so its line can fade.
-const TASK_FOOT = '<div class="ot-talkbox" hidden><div class="ot-talk-row">'
-  + '<input class="field small q-type ot-talk-field" aria-label="Ask about this task">'
-  + '<button type="button" class="button small main" data-talk="send" disabled>Send</button></div>'
-  + '<span class="ot-talk-goes"></span></div>'
+const TASK_FOOT = '<div class="ot-talkbox" hidden></div>'
   + '<div class="ot-foot-line"><span class="notice inline turn ot-sent" role="status"></span>'
   + '<span class="ot-more"></span></div><div class="ot-kept-row" hidden><span class="ot-kept"></span>'
   + '<button type="button" class="button small" data-talk="copyKept">Copy Your Words</button></div>'
-  + '<span class="ot-say" aria-live="polite"></span>';
+  + '<span class="ot-say said-aloud" aria-live="polite"></span>';
 
 // With Say Why (One Task's page): over the task, why it's first; under it, what's after it by name, each with why.
 function taskWhyHTML(item, items, now) {
@@ -168,70 +165,21 @@ function taskBodyHTML(item, ui, to) {
       + task.attach.map((a, i) => taskAttachHTML(a, i, item)).join('') + '</div></div>' : '')
     + '</div>'
     + `<div class="ot-act"><div class="ot-buttons">${buttons}</div></div>`
-    + (to ? taskTalkHTML(item, to, ui.open, ui.copied) : '')
+    + (to ? taskTalkHTML(item, to) : '')
     + '</div>';
 }
 
-// The talk under the task: whom your words go to and where it runs, with the member and the lead to choose between for
-// the lead's pick until the talk begins; then what you said, each with how far it's got and its presses, and each
-// reply, all of it in place, its prose's Markdown drawn (everything escaped), and each code block
-// on a line of its own (taskCodeHTML); and while the session works on your words, its live line. Before anything is
-// said, what it's for. Words back in your box aren't drawn. `open`: the code blocks shown whole, and `copied`, those
-// whose Copy was just pressed, each by taskCodeKey.
-function taskTalkHTML(item, to, open = {}, copied = {}) {
-  const says = (item.talk?.says || []).filter((said) => !['refused', 'stopped'].includes(said.state));
-  const name = to.name, asks = to.s?.ask ? core.agent.askLine?.(to.s.ask) || '' : '';
+// The talk under the task: whom it's with and where it runs, one line; for the lead's pick, the member and the lead to
+// choose between on a line of their own under it, each its own session's chat, by its full name; then the place its
+// chat is drawn in (core.sessionChat, Side Chat's, which
+// draws everything in it), its box at the view's foot.
+function taskTalkHTML(item, to) {
   const member = taskMember(item);
-  const choose = member && !item.talk?.to
+  const choose = member
     ? '<span class="ot-to" role="group" aria-label="Who your words go to">' + [[member, 'member'], [item.s, 'lead']]
       .map(([s, who]) => `<button type="button" data-talk-to="${who}" aria-pressed="${to.s === s}">`
         + `${esc(taskWho(s))}</button>`).join('') + '</span>' : '';
-  const head = `<div class="ot-talk-head"><span class="caps">Talk with ${esc(name)}</span>`
-    + `<span class="ot-where">${esc(to.gone ? 'not on this task now' : talkWhere(to.s, item.talk?.terminals))}</span>`
-    + `${choose}</div>`;
-  const lines = says.map((said) => {
-    const front = item.talk?.inFront?.includes(to.s?.sessionId) ? item.talk.terminals?.[to.s.sessionId] : '';
-    const st = talkState(said, to.s, name, asks, front, !!to.waits);
-    const press = st.acts.map((a) => ` <button type="button" class="ot-talk-act" data-talk="${a.act}" `
-      + `data-at="${said.at}">${esc(a.word)}</button>`).join('');
-    const you = `<div class="ot-you${st.held ? ' held' : ''}"><p>${esc(said.words)}</p>`
-      + (st.words || press ? `<span class="ot-said${st.held ? ' held' : ''}">${esc(st.words)}${press}</span>` : '')
-      + '</div>';
-    if (said.state !== 'replied') return you;
-    const reply = said.reply ? talkReply(said.reply) : null;
-    return you + `<div class="ot-reply"><b>${esc(name)}</b>`
-      + (reply ? `<div class="ot-reply-text">${reply.parts.map((p) => (p.code !== undefined
-        ? taskCodeHTML(p, said.at, !!open[taskCodeKey(item, said.at, p.n)], !!copied[taskCodeKey(item, said.at, p.n)])
-        : markdownHTML(p.prose))).join('')}</div>`
-        : '')
-      + (!reply || reply.cut ? `<span class="ot-said">${reply ? `The rest is in ${esc(name)}’s session`
-        : `${esc(name)} answered in its session`} <button type="button" class="ot-talk-act" data-talk="there">`
-        + 'Take Me There</button></span>' : '')
-      + '</div>';
-  }).join('');
-  const live = talkLive(says, to.s, name);
-  const empty = says.length ? '' : `<p class="ot-talk-empty">Ask ${esc(name)} what this is about, or what to press. `
-    + 'It answers here.</p>';
-  return `<div class="ot-talk">${head}${empty}<div class="ot-talk-lines">${lines}`
-    + `${live ? `<p class="ot-live">${esc(live)}</p>` : ''}</div></div>`;
+  const head = `<div class="ot-talk-head"><span class="caps">Talk with ${esc(to.name)}</span>`
+    + `<span class="ot-where">${esc(talkWhere(to.s, item.talk?.terminals))}</span></div>`;
+  return `<div class="ot-talk">${head}${choose}<div class="ot-talk-chat"></div></div>`;
 }
-
-// A code block in a reply: one line, cut where it runs out of room, as a card shows a command (the kit's .perm-detail),
-// with a press on it showing it whole; and Copy, which copies exactly what's between its fences, from the reply as the
-// app read it, saying Copied a moment once pressed (`copied`). Nothing in it is ever run.
-const taskCodeKey = (item, at, n) => `${item.key} ${at} ${n}`;
-function taskCodeHTML(part, at, open, copied = false) {
-  const lines = part.code.split('\n'), more = lines.length > 1;
-  return `<div class="ot-code${open ? ' open' : ''}"><button type="button" class="ot-code-line" data-talk="code" `
-    + `data-at="${at}" data-part="${part.n}" aria-expanded="${open}" title="${open ? 'Show one line' : 'Show it whole'}">`
-    + `<pre class="perm-detail${open ? '' : ' cut capped'}" style="--lines:1">${open ? taskCodeWords(part.code)
-      : esc(`${lines[0]}${more ? ' …' : ''}`)}</pre></button>`
-    + `<button type="button" class="button small" data-talk="copyCode" data-at="${at}" data-part="${part.n}">`
-    + `${copied ? 'Copied' : 'Copy'}</button></div>`;
-}
-
-// A command shown whole, escaped, wrapping only between its words: each word kept on one line ("--env=staging" never
-// split after its "--"), but one longer than a line (TASK_CODE_WORD characters) left to break where it must.
-const TASK_CODE_WORD = 48;
-const taskCodeWords = (code) => code.split(/(\s+)/).map((w) => (!w || /^\s+$/.test(w) || w.length > TASK_CODE_WORD
-  ? esc(w) : `<span class="ot-word-whole">${esc(w)}</span>`)).join('');

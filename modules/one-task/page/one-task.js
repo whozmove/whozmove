@@ -14,7 +14,7 @@ moduleState({
   tasksBack: {},    // what you've put back here with Can't Now, by taskStepKey, until the app's list says so
   tasksNewest: 0,   // when the newest of what waits came, never going back (taskNewest), for the line's ×
   tasksCount: -1,   // how many wait, as the app was last told, for the pawn menu's One Task
-  tasksWant: null,  // the task a reply's notice or a row's task line opened One Task at, in front until you move on
+  tasksWant: null,  // the task a row's task line opened One Task at, in front until you move on
   tasksLetGo: {},   // tasks taken back that the app was told to let go, by key, at the send they were taken back on
   tasksGone: {},    // those tasks as they were taken back, by key, for what the foot says of one you'd set aside
   tasksSeen: {},    // the tasks you've read, by key: in front TASK_SEEN_MS with One Task open, or pressed; a task's,
@@ -22,21 +22,16 @@ moduleState({
   tasksLastOn: null, // the task you were last on in One Task ({key, step, ui, title, task, sid}), kept while it's
                      // closed
   tasksGoUrgent: false, // One Task opened from the to-do-now line under the header: straight to the first of them
-  tasksRules: { why: false, waitForGo: true, talk: true, held: 'self', turnedAway: [] },
+  tasksRules: { why: false, waitForGo: true, talk: true, turnedAway: [] },
                     // how One Task works, as its page on the back sets it (setTasks)
-  talkDrafts: {},   // what you've written in the talk's box, by task, kept through its next steps
-  talkLead: {},     // the lead's picks whose talk you chose to have with the lead, by task, before it begins
-  talkSeen: {},     // when you last saw each task's talk in One Task, by task, for the reply's notice
-  talkBack: {},     // why words that couldn't go in are back in the box, by task: { why, way, permission }
-  talkTaken: {},    // those words, by task and when they were said, once put back, so they're put back only once
-  talkBegan: {},    // the step (its `sent`) you began writing in the talk's box on, by task, for a next step coming in
+  talkLead: {},     // the lead's picks whose talk you chose to have with the lead, by task
   taskAskKeys: {},  // session id -> the task step its row's ask line last said, so a line saying another is seen first
   taskCopied: {},   // session id -> when its row's command was copied, for the tick on its button a moment after
 });
 
 // As wide as the task's column, with nothing down its side.
 const ONE_TASK_WIDTH = 420;
-// How long the foot says where your answer went, and a reply's Copy says Copied (and a row's Copy shows its tick).
+// How long the foot says where your answer went, and a row's Copy shows its tick.
 const ONE_TASK_SAID_MS = 4000;
 const ONE_TASK_COPIED_MS = 2000;
 
@@ -86,7 +81,7 @@ function oneTaskHolding() {
     || (!!pointed && view.contains(pointed)));
 }
 
-const oneTaskUi = () => ({ first: false, chosen: [], ticks: {}, note: '', open: {}, copied: {} });
+const oneTaskUi = () => ({ first: false, chosen: [], ticks: {}, note: '' });
 
 // ---- Drawing ----
 
@@ -97,7 +92,7 @@ function drawOneTask() {
   oneTaskTell(items);
   // While one slides out, what's there stays as it was, head and foot too, until the next has come in.
   if (ot.sliding) return;
-  // A reply's notice or a row's task line opened it at a task: that one stays in front until you move on.
+  // A row's task line opened it at a task: that one stays in front until you move on.
   if (state.tasksWant && !items.some((item) => item.key === state.tasksWant)) state.tasksWant = null;
   const wanted = state.tasksWant && (ot.key === undefined || ot.key === state.tasksWant) ? state.tasksWant : null;
   if (ot.left) oneTaskLeft(ot, items);
@@ -115,9 +110,10 @@ function drawOneTask() {
     const last = state.tasksLastOn;
     if (how === 'task' && ot.key && last?.key === ot.key && !items.some((item) => item.key === ot.key)
         && !state.tasksSent[ot.step] && !state.tasksGone[ot.key]) ot.left = last;
-    // A reword while you type in its box: the box is drawn again, the cursor put back in it.
+    // A reword while you type in its Comment box: the box is drawn again, the cursor put back in it. The talk's box is
+    // its session's chat's, which keeps its own.
     const on = how === 'step' && document.activeElement?.closest?.('#reader') ? document.activeElement : null;
-    const typing = on?.matches('.ot-talk-field') ? 'talk' : on?.matches('.ot-note') ? 'note' : null;
+    const typing = on?.matches('.ot-note') ? 'note' : null;
     const before = ot.ui, ui = back ? taskKeptUi(back.ui, back.task, front.task)
       : how === 'step' ? taskKeptUi(before, ot.task, front.task) : oneTaskUi();
     Object.assign(ot, { key, step, task: front?.task, ui, shownAt: now, restore: null, touched: false,
@@ -172,11 +168,11 @@ function oneTaskOpening(items) {
 
 // The task in front: one a press has just brought in (Go, ‹ Back, Open from the to-do-now line); else the one you're
 // on, if you've seen it or are pointing at it or typing in it, as a task you've seen is yours until you leave it; else
-// the one a reply's notice opened at; while you're on those to do now with a task set aside, the next of them ahead of
+// the one a row's task line opened at; while you're on those to do now with a task set aside, the next of them ahead of
 // it, and then the one you set aside; else the line's first.
 // Back on the task you set aside: as you left it, or with as much as taskKeptUi keeps when it changed meanwhile; or,
 // when it no longer waits (taken back by its session, say), the foot says so, with what you'd typed in its Comment
-// box and talk box to copy (taskKeptWords), until you move on.
+// box to copy (taskKeptWords), until you move on.
 function oneTaskChoose(items, ot, wanted) {
   const aside = ot.aside;
   const { front, gone } = taskChooseFront(items, { next: ot.next, key: ot.key, held: oneTaskHolding(),
@@ -189,7 +185,7 @@ function oneTaskChoose(items, ot, wanted) {
   } else if (aside && gone) {
     const now = Date.now();
     Object.assign(ot, { aside: null, said: taskAsideGone(aside.title, gone), saidAt: now, quietAt: now,
-                        saidStays: true, kept: taskKeptWords(state.talkDrafts[aside.key], aside.ui),
+                        saidStays: true, kept: taskKeptWords(aside.ui),
                         stayOn: front?.key ?? null });
   }
   return front;
@@ -197,7 +193,7 @@ function oneTaskChoose(items, ot, wanted) {
 
 // The task you were on, gone from the line without your answer (`ot.left`), as order.js's taskLeft decides: back in
 // front, as you left it, once its session's row is back; or the foot says it no longer waits, with what you'd written
-// in its Comment box and talk box to copy, until you move on; or forgotten.
+// in its Comment box to copy, until you move on; or forgotten.
 function oneTaskLeft(ot, items) {
   const left = ot.left, now = Date.now();
   const what = taskLeft(left, items, { on: state.tasksOn, turnedAway: state.tasksRules.turnedAway || [],
@@ -206,7 +202,7 @@ function oneTaskLeft(ot, items) {
   ot.left = null;
   if (what === 'back') Object.assign(ot, { next: left.key, restore: left });
   if (what === 'gone') Object.assign(ot, { said: taskAsideGone(left.title, null), saidAt: now, quietAt: now,
-                                           saidStays: true, kept: taskKeptWords(state.talkDrafts[left.key], left.ui),
+                                           saidStays: true, kept: taskKeptWords(left.ui),
                                            stayOn: ot.key });
 }
 
@@ -233,7 +229,7 @@ function oneTaskUrgent(act) {
       const on = document.activeElement?.closest?.('#reader') ? document.activeElement : null;
       ot.aside = { key: current.key, step: ot.step, ui: ot.ui, title: current.task.title, task: current.task,
                    scroll: reader.querySelector('.r-body')?.scrollTop || 0,
-                   focus: on?.matches('.ot-talk-field') ? 'talk' : on?.matches('.ot-note') ? 'note' : null };
+                   focus: on?.matches('.ot-note') ? 'note' : null };
       on?.blur();
       wantKeyboard(false);
     }
@@ -250,7 +246,6 @@ function oneTaskFrame(front, items, now) {
   const ot = state.reading.ot, foot = reader.querySelector('.r-answer');
   if (ot.said && !ot.saidStays && now - ot.saidAt > ONE_TASK_SAID_MS) ot.said = '';
   putHTML(foot, TASK_FOOT);
-  if (front?.task) oneTaskTalkSeen(front);
   const sent = foot.querySelector('.ot-sent');
   if (ot.said) setText(sent, ot.said);
   sent.classList.toggle('shown', !!ot.said);
@@ -260,43 +255,26 @@ function oneTaskFrame(front, items, now) {
   const kept = foot.querySelector('.ot-kept-row');
   kept.hidden = !ot.kept;
   if (ot.kept) setText(kept.querySelector('.ot-kept'), ot.kept);
-  oneTaskTalkBox(foot.querySelector('.ot-talkbox'), front);
   return putHTML(reader.querySelector('.r-head'), taskHeadHTML(front, now));
 }
 
-// Whom the talk about a task is with, as it's drawn and as your words are sent.
-// None while the talk is off (One Task's page); `waits` while words written as it works wait for your Send Now.
-const oneTaskTalkTo = (item) => (!state.tasksRules.talk ? null
-  : { ...talkTo(item, state.last.sessions || [], !!state.talkLead[item.key]), waits: state.tasksRules.held === 'wait' });
+// Whom the talk about a task is with, as it's drawn: none while the talk is off (One Task's page), or without a chat
+// to show (core.sessionChat, Side Chat's).
+const oneTaskTalkTo = (item) => (!state.tasksRules.talk || !core.sessionChat ? null
+  : talkTo(item, state.last.sessions || [], !!state.talkLead[item.key]));
 
-// The talk's box at the foot, for the task in front: what you've written about it (kept by task), how much more fits
-// with the words that open it, and under it exactly what will go in, or why nothing can, with the way forward: the way
-// past the reason and Copy and Go, or Take Me There. A next step that came in as you wrote is said, and Send names it.
-function oneTaskTalkBox(box, item) {
-  if (!box) return;
-  box.hidden = !item?.task || !!item.takenBack || !state.tasksRules.talk;
-  if (box.hidden) return;
-  const field = box.querySelector('.ot-talk-field'), send = box.querySelector('[data-talk="send"]');
-  const to = oneTaskTalkTo(item), opening = talkOpening(item, to), back = state.talkBack[item.key];
-  if (field.dataset.key !== item.key) {
-    field.dataset.key = item.key;
-    field.value = state.talkDrafts[item.key] || '';
+// The talk under the task in front: its session's own chat, Side Chat's, drawn into the talk's place under the task
+// and its box at the foot, with the words that open yours for this task. Drawn with every drawing, as the chat changes
+// apart from the task; with no task in front, taken back, the talk off or no chat, the box is emptied and hidden.
+function oneTaskTalkDraw(item, page) {
+  const box = reader.querySelector('.r-answer .ot-talkbox');
+  const to = item?.task && !item.takenBack ? oneTaskTalkTo(item) : null;
+  if (box) {
+    box.hidden = !to?.s;
+    if (box.hidden) box.innerHTML = '';
   }
-  field.maxLength = talkRoom(opening);
-  field.placeholder = `Ask ${to.name} about this…`;
-  field.setAttribute('aria-label', field.placeholder);
-  field.disabled = to.gone;
-  const words = field.value.trim(), step = words ? talkNewStep(item, state.talkBegan[item.key]) : null;
-  send.disabled = to.gone || !words;
-  setText(send, step?.send || 'Send');
-  const goes = box.querySelector('.ot-talk-goes');
-  const act = (talk, word) => ` <button type="button" class="ot-talk-act" data-talk="${talk}">${esc(word)}</button>`;
-  goes.classList.toggle('why', to.gone || !!back || !!step);
-  putHTML(goes, to.gone ? `${esc(to.name)} isn’t on this task now: answer it above, or${act('there', 'Take Me There')}`
-    : back ? `${esc(back.why)} Your words are back in the box.${back.way ? act('way', back.way) : ''}`
-      + `${words ? act('copy', 'Copy and Go') : ''}`
-      : `${step ? `${esc(step.note)} ` : ''}Goes to ${esc(to.name)} as: `
-        + `${words ? `${esc(opening)}${esc(words)}` : `${esc(opening.replace(/ $/, '\u00a0'))}…`}`);
+  if (!to?.s) return;
+  core.sessionChat.draw(to.s, { lines: page.querySelector('.ot-talk-chat'), box, opening: talkOpening(item, to) });
 }
 
 // Whether the answer is stuck at the view's foot, with the task going on out of sight under it: only then does it take
@@ -312,9 +290,11 @@ function oneTaskStuck() {
 // The one in front, drawn into its page; whether anything changed. It keeps what you've typed in its box.
 function oneTaskPage(page, item) {
   if (!page) return false;
-  if (!item) return putHTML(page, state.tasksOn ? TASK_NOTHING : TASK_OFF);
+  if (!item) {
+    oneTaskTalkDraw(null, page);
+    return putHTML(page, state.tasksOn ? TASK_NOTHING : TASK_OFF);
+  }
   const ot = state.reading.ot, ui = ot.ui, typing = document.activeElement?.closest?.('.ot-note');
-  oneTaskTalkSeen(item);
   const items = oneTaskItems(), rules = state.tasksRules, now = Date.now();
   const strip = taskStripHTML(ot.aside ? [] : taskUrgentOthers(items, item.key), ot.aside);
   const why = rules.why ? taskWhyHTML(item, items, now) : '';
@@ -322,9 +302,12 @@ function oneTaskPage(page, item) {
   const after = (rules.why ? taskAfterHTML(item, items, now) : '')
     + (away ? `<p class="ot-hint ot-away">${esc(away)}. Only a team’s chief may, as One Task’s page under Tools `
       + 'says.</p>' : '');
-  const body = taskBodyHTML(item, ui, oneTaskTalkTo(item)).replace(/<\/div>$/, `${after}</div>`)
+  // A task its session took back has no talk: there's nothing left to talk about here.
+  const body = taskBodyHTML(item, ui, item.takenBack ? null : oneTaskTalkTo(item)).replace(/<\/div>$/, `${after}</div>`)
     .replace('<div class="ot-body">', `<div class="ot-body">${why}`);
-  if (!putHTML(page, strip + body)) return false;
+  const changed = oneTaskKeepingTalk(page, () => putHTML(page, strip + body));
+  oneTaskTalkDraw(item, page);
+  if (!changed) return false;
   const box = page.querySelector('.ot-note');
   if (box) {
     box.value = ui.note;
@@ -332,6 +315,28 @@ function oneTaskPage(page, item) {
     if (typing) box.focus({ preventScroll: true });
   }
   return true;
+}
+
+// The task drawn again (a pick, a tick, its why line's minutes): the talk's place is kept as it was, moved into the
+// page drawn anew, so the chat in it isn't built again, a selection in a reply stays, and a reply that comes in the
+// same moment is still said to VoiceOver. What `draw` returns.
+function oneTaskKeepingTalk(page, draw) {
+  const talk = page.querySelector('.ot-talk-chat'), sel = window.getSelection?.();
+  const range = sel?.rangeCount && talk?.contains(sel.anchorNode) ? sel.getRangeAt(0) : null;
+  const kept = range && { start: range.startContainer, startAt: range.startOffset, end: range.endContainer,
+                          endAt: range.endOffset };
+  const changed = draw();
+  const fresh = changed && talk ? page.querySelector('.ot-talk-chat') : null;
+  if (!fresh || fresh === talk) return changed;
+  fresh.replaceWith(talk);
+  if (kept) {
+    const again = document.createRange();
+    again.setStart(kept.start, kept.startAt);
+    again.setEnd(kept.end, kept.endAt);
+    sel.removeAllRanges();
+    sel.addRange(again);
+  }
+  return changed;
 }
 
 // The one in front changed: a new task slides in from the side as the one before slides out, and once it's in, the
@@ -357,8 +362,7 @@ function oneTaskSwap(body, how) {
     ot.restoring = null;
     if (back) {
       body.scrollTop = back.scroll || 0;
-      const box = back.focus === 'talk' ? reader.querySelector('.ot-talk-field')
-        : back.focus === 'note' ? reader.querySelector('.ot-note') : null;
+      const box = back.focus === 'note' ? reader.querySelector('.ot-note') : null;
       if (box) {
         wantKeyboard(true);
         box.focus({ preventScroll: true });
@@ -498,10 +502,8 @@ function oneTaskAct(act) {
     // Answered, it's done with: a next step sent after your answer is new to you.
     delete state.tasksSeen[ot.key];
     Object.assign(ui, { chosen: [], note: '' });
-    // Words still waiting to go in go with the task, and the foot says so.
-    const held = (item.talk?.says || []).some((said) => said.state === 'held');
-    Object.assign(ot, { said: `${taskSaid(item, answer, note)}${held
-      ? ' Your question in the talk wasn’t sent, as the task is answered.' : ''}`, saidAt: Date.now() });
+    // Words still waiting to go in to its session stay its chat's, which holds them as it holds any, with Take Back.
+    Object.assign(ot, { said: taskSaid(item, answer, note), saidAt: Date.now() });
     wantKeyboard(false);
   }
   drawReader();
@@ -521,40 +523,9 @@ function oneTaskOpen(i) {
   else if (opens === 'web') native({ type: 'taskOpen', sessionId: item.sid, id: item.task.id, sent: item.sent, at: i });
 }
 
-// What's new in the talk about the task in front, as it's shown: a reply (said to VoiceOver, and no longer new for the
-// line under the header), and words that couldn't go in or stopped part-way, put back in the box once with why, unless
-// you've written there since. Before the box is drawn, so they're never shown twice.
-function oneTaskTalkSeen(item) {
-  const says = item.talk?.says || [], to = oneTaskTalkTo(item);
-  if (!to) return;
-  const replied = Math.max(0, ...says.map((said) => said.repliedAt || 0));
-  if (replied > (state.talkSeen[item.key] || 0)) {
-    state.talkSeen[item.key] = replied;
-    const last = says.find((said) => said.repliedAt === replied);
-    if (last?.reply) setText(reader.querySelector('.ot-say'), `${to.name}: ${talkReplyWords(talkReply(last.reply))}`);
-  }
-  for (const said of says) {
-    const taken = `${item.key} ${said.at}`;
-    if (!['refused', 'stopped'].includes(said.state) || state.talkTaken[taken]) continue;
-    state.talkTaken[taken] = true;
-    if (!state.talkDrafts[item.key]) {
-      state.talkDrafts[item.key] = said.words;
-      state.talkBegan[item.key] = item.sent;
-    }
-    state.talkBack[item.key] = talkBackWords(said);
-    const field = reader.querySelector('.ot-talk-field');
-    if (field?.dataset.key === item.key && !field.value) field.value = state.talkDrafts[item.key];
-    native({ type: 'taskTakeBack', sessionId: item.sid, id: item.task.id, sent: item.sent, at: said.at });
-  }
-}
-
-// A press in the talk: your words sent; Take Back, which puts held words back in the box; Send Now; Show It, the
-// session's own request on its row; Take Me There; the way past why words couldn't go in (the terminal's, or
-// Accessibility's in System Settings); Copy and Go, your words as they'd go in on the clipboard and their session in
-// front; a code block in a reply shown whole or on one line again, and its Copy (by its place in the reply the app
-// read, never its words from here); or, before the talk begins, the member or the lead for the lead's pick.
-function oneTaskTalk(act, b) {
-  // Your words about a task taken back while you were away: copied, whatever's in front now.
+// A press about the talk: your words about a task taken back while you were away, copied, whatever's in front now; or
+// for the lead's pick, the member or the lead to talk with, at any time, as each is its own session's chat.
+function oneTaskTalk(act) {
   if (act === 'copyKept') {
     const ot = state.reading?.ot;
     if (!ot?.kept) return;
@@ -563,79 +534,10 @@ function oneTaskTalk(act, b) {
                         kept: '', stayOn: ot.key ?? null });
     return drawReader();
   }
-  const item = act === 'send' || act === 'copy' ? oneTaskInFront() : oneTaskPressed();
-  if (!item?.task) return;
-  const to = oneTaskTalkTo(item), at = Number(b?.dataset.at), msg = { sessionId: item.sid, id: item.task.id,
-                                                                      sent: item.sent };
-  if (!to) return;
-  if (act === 'send') {
-    const field = reader.querySelector('.ot-talk-field'), words = field?.value.trim();
-    if (!words || to.gone) return;
-    native({ type: 'taskSay', ...msg, to: to.lead ? 'lead' : 'member', words });
-    field.value = '';
-    oneTaskTalkCleared(item.key);
-  } else if (act === 'copy') {
-    const field = reader.querySelector('.ot-talk-field'), words = field?.value.trim();
-    if (!words || to.gone) return;
-    native({ type: 'taskTalkCopy', ...msg, to: to.lead ? 'lead' : 'member', words });
-    field.value = '';
-    oneTaskTalkCleared(item.key);
-    const now = Date.now();
-    Object.assign(state.reading.ot, { said: `Copied: paste it in ${to.name}’s session.`, saidAt: now, quietAt: now });
-    openSession(to.s);
-  } else if (act === 'code') {
-    const key = taskCodeKey(item, at, Number(b?.dataset.part)), open = state.reading.ot.ui.open;
-    if (open[key]) delete open[key];
-    else open[key] = true;
-  } else if (act === 'copyCode') {
-    native({ type: 'taskReplyCopy', ...msg, at, part: Number(b?.dataset.part) });
-    // The Copy pressed says Copied a moment, where you're looking, and the foot says it whole, quietly.
-    const ot = state.reading.ot, key = taskCodeKey(item, at, Number(b?.dataset.part)), now = Date.now();
-    ot.ui.copied[key] = now;
-    Object.assign(ot, { said: 'Copied. Nothing was run.', saidAt: now, quietAt: now });
-    setTimeout(() => {
-      if (ot.ui.copied[key] !== now) return;
-      delete ot.ui.copied[key];
-      if (state.reading?.ot === ot && oneTaskReading()) drawReader();
-    }, ONE_TASK_COPIED_MS);
-  } else if (act === 'show') {
-    if (to.s?.ask) waitingBring({ id: to.s.ask.id, sid: to.s.sessionId });
-  } else if (act === 'takeBack') {
-    const said = (item.talk?.says || []).find((one) => one.at === at);
-    if (!said) return;
-    native({ type: 'taskTakeBack', ...msg, at });
-    const draft = state.talkDrafts[item.key];
-    state.talkDrafts[item.key] = draft ? `${draft} ${said.words}` : said.words;
-    if (!draft) state.talkBegan[item.key] = item.sent;
-    const field = reader.querySelector('.ot-talk-field');
-    if (field?.dataset.key === item.key) field.value = state.talkDrafts[item.key];
-  } else if (act === 'sayNow') {
-    native({ type: 'taskSayNow', ...msg, at });
-  } else if (act === 'there') {
-    openSession(to.s || to.was || taskThere(item));
-  } else if (act === 'way') {
-    const back = state.talkBack[item.key];
-    if (back?.permission) native({ type: 'taskTalkPermission' });
-    else if (to.s) native({ type: 'wayPast', sessionId: to.s.sessionId });
-    delete state.talkBack[item.key];
-  } else if (act === 'member' || act === 'lead') {
-    state.talkLead[item.key] = act === 'lead';
-  }
+  const item = oneTaskPressed();
+  if (!item?.task || !oneTaskTalkTo(item)) return;
+  if (act === 'member' || act === 'lead') state.talkLead[item.key] = act === 'lead';
   drawReader();
-}
-
-// The talk's box emptied, its words sent or copied: nothing back in it, and no step it began on.
-function oneTaskTalkCleared(key) {
-  delete state.talkDrafts[key];
-  delete state.talkBack[key];
-  delete state.talkBegan[key];
-}
-
-// The task in front as it's drawn, for the box at the foot: a press there sends words you've written and seen, so it
-// counts whenever the task is still the one in front.
-function oneTaskInFront() {
-  const ot = state.reading?.ot;
-  return ot ? oneTaskItems().find((one) => one.key === ot.key) || null : null;
 }
 
 // Send waits for a comment's words: there's nothing to send without them.
@@ -691,52 +593,31 @@ core.readerPresses.push(
     }
   }],
   ['.ot-body [data-att]', (b) => oneTaskOpen(Number(b.dataset.att))],
-  ['.k-one-task [data-talk]', (b) => { if (!b.disabled) oneTaskTalk(b.dataset.talk, b); }],
+  ['.k-one-task [data-talk]', (b) => { if (!b.disabled) oneTaskTalk(b.dataset.talk); }],
   ['.k-one-task [data-urgent]', (b) => oneTaskUrgent(b.dataset.urgent)],
-  ['.ot-body [data-talk-to]', (b) => oneTaskTalk(b.dataset.talkTo, b)],
+  ['.ot-body [data-talk-to]', (b) => oneTaskTalk(b.dataset.talkTo)],
 );
 core.pointerTargets.push('#reader .ot-strip .button', '#reader .ot-back', '#reader .ot-kept-row .button',
-                         '#reader .ot-talkbox .button:not(:disabled)', '#reader .ot-body .ot-talk-act',
-                         '#reader .ot-body .ot-code button',
-                         '#reader .ot-body .ot-to button', '#reader .ot-talkbox .ot-talk-act',
+                         '#reader .ot-body .ot-to button',
                          '#reader .ot-body .button:not(:disabled)', '#reader .ot-body .icon-button',
                          '#reader .ot-body .option', '#reader .ot-body .ot-check', '#reader .ot-body button.ot-att');
 // The view scrolled: the answer takes its fill only while it's stuck at the foot.
 reader.addEventListener('scroll', (e) => {
   if (oneTaskReading() && e.target.matches?.('.r-body')) oneTaskStuck();
 }, { capture: true, passive: true });
-// What you type in a task's box is kept as you type, so drawing it again keeps it; Return sends it.
+// What you type in a task's Comment box is kept as you type, so drawing it again keeps it; Return answers. What you
+// type in its talk is its session's chat's.
 reader.addEventListener('input', (e) => {
-  // Typing in a task means you've seen it.
+  // Typing in a task, or in its talk, means you've seen it.
   if (state.reading?.ot?.key) {
     state.tasksSeen[state.reading.ot.key] = true;
     state.reading.ot.touched = true;
-  }
-  if (e.target.matches?.('.ot-talk-field') && state.reading?.ot) {
-    const key = e.target.dataset.key, item = oneTaskInFront();
-    state.talkDrafts[key] = e.target.value;
-    delete state.talkBack[key];
-    if (!e.target.value.trim()) delete state.talkBegan[key];
-    else if (!state.talkBegan[key] && item?.key === key) state.talkBegan[key] = item.sent;
-    if (item?.key === key) oneTaskTalkBox(e.target.closest('.ot-talkbox'), item);
-    return;
   }
   if (!e.target.matches?.('.ot-note') || !state.reading?.ot) return;
   state.reading.ot.ui.note = e.target.value;
   oneTaskSendable();
 });
 reader.addEventListener('keydown', (e) => {
-  if (e.target.matches?.('.ot-talk-field') && !e.isComposing && e.keyCode !== 229) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      oneTaskTalk('send');
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      e.target.blur();
-      wantKeyboard(false);
-    }
-    return;
-  }
   // In Comment's box, Return answers with your words and Esc leaves the box, keeping them.
   if (e.isComposing || e.keyCode === 229 || !e.target.matches?.('.ot-note')) return;
   if (e.key === 'Enter') {
@@ -757,7 +638,7 @@ core.readerModes.oneTask = {
   sessionless: true,
   width: () => ONE_TASK_WIDTH,
   draw: drawOneTask,
-  // Opened at a task (a reply's notice, a row's task line), named as the reader's scope: it's set here, once any other
+  // Opened at a task (a row's task line), named as the reader's scope: it's set here, once any other
   // mode's reset has gone, so it stays in front until you move on.
   shown(r) {
     r.ot = null;
@@ -787,16 +668,11 @@ core.noticeSenders.push({
     const notice = taskNotice(items, state.tasksNewest, state.tasksLastOn?.key);
     // What's to do now has its own line, first: Open goes straight to it, the task you were on set aside.
     const urgent = taskUrgentNotice(items, state.tasksLastOn?.key);
-    // A session's reply to your words about a task, until you've seen it there: Open opens One Task at that task.
-    const reply = talkNotice(items, state.last.sessions || [], state.talkSeen);
     return [...(urgent ? [{ ...urgent, press: () => {
       state.tasksGoUrgent = true;
       openReader(null, null, 'oneTask');
     } }] : []),
-      ...(notice ? [{ ...notice, press: () => openReader(null, null, 'oneTask') }] : []),
-      ...(reply ? [{ ...reply, item: undefined, press: () => {
-        openReader(null, null, 'oneTask', reply.item.key);
-      } }] : [])];
+      ...(notice ? [{ ...notice, press: () => openReader(null, null, 'oneTask') }] : [])];
   },
 });
 // The pawn menu's count follows what waits, the panel open or not.

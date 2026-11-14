@@ -9,8 +9,8 @@ from source or take it out again.
 brew install --cask whozmove/tap/whozmove
 ```
 
-Whozmove isn't signed by Apple yet, so macOS stops it the first time you open it: go to System Settings → Privacy &
-Security and press **Open Anyway**, once. Then it sets itself up as it opens, adding its hooks to Claude Code and
+Whozmove is signed by its developer and notarised by Apple, so macOS only asks, the first time you open it, whether
+to open an app downloaded from the internet. Then it sets itself up as it opens, adding its hooks to Claude Code and
 opening at every login (below). `brew upgrade` brings each new version, and Whozmove brings its hooks up to date as it
 opens.
 

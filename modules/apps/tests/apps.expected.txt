@@ -212,7 +212,7 @@
   },
   {
     "card" : false,
-    "does" : "Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields.",
+    "does" : "Where a ticket you give a new conversation starts, in each project where you've started one: its own worktree, the project's folder, or a folder for each option of one of its fields; and, for each project, what else its conversations do with tickets.",
     "for" : null,
     "groups" : [
       {
@@ -409,29 +409,10 @@
         "rows" : [
           {
             "group" : null,
-            "help" : "A box under the task asks its session what it's about.",
+            "help" : "Under the task, the chat with its session: send it words while it works, or ask without interrupting.",
             "key" : "oneTaskTalk",
             "kind" : "switch",
             "title" : "Talk under each task"
-          },
-          {
-            "choices" : [
-              {
-                "help" : "Written while it works, they go in by themselves when it's done, never into the tab you're in. Recommended.",
-                "id" : "self",
-                "name" : "Words go in once it's free"
-              },
-              {
-                "help" : "Nothing goes in until you press Send Now.",
-                "id" : "wait",
-                "name" : "Words wait for Send Now"
-              }
-            ],
-            "fixed" : null,
-            "key" : "oneTaskHeld",
-            "kind" : "choice",
-            "menu" : false,
-            "title" : "Words you write while it works"
           }
         ],
         "shown" : "always",

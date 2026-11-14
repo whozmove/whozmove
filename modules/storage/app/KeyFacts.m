@@ -4,6 +4,16 @@
 #import "KeyFacts.h"
 
 NSString *const kBetterleaksInBundle = @"Contents/Helpers/betterleaks";
+// Both versions read the `=` form. Their default, re2, is a matcher they compile into memory as they look; Whozmove
+// signs the Betterleaks it carries with the hardened runtime, which stops a program that writes code into memory and
+// runs it, so the default would end every look, and version 1's showing of its rules, as it starts.
+NSString *const kBetterleaksMatcher = @"--regex-engine=stdlib";
+const unsigned long long kBetterleaksLargestFile = 8 * 1024 * 1024;
+
+// The flag that keeps Betterleaks to kBetterleaksLargestFile, in megabytes, as both versions spell it.
+static NSString *LargestFileFlag(NSString *name) {
+    return [NSString stringWithFormat:@"--%@=%llu", name, kBetterleaksLargestFile / (1024 * 1024)];
+}
 
 static NSDictionary *Kinds(void);
 
@@ -21,23 +31,26 @@ NSInteger BetterleaksMajor(NSString *said) {
 // which git mode reads only when let. Version 1: `dir` for fs, its report one JSON list, online checks only with
 // `--validation`, a project's own .betterleaks.toml read unless `--config` names the rules, a .betterleaksignore read
 // from where it runs unless `--gitleaks-ignore-path` names another folder, and git mode's commits given as git log's.
+// Both match with Go's own regular expressions (kBetterleaksMatcher).
 NSArray<NSString *> *BetterleaksArguments(NSInteger major, NSString *mode, NSDictionary *with) {
     BOOL files = [mode isEqualToString:@"fs"], git = [mode isEqualToString:@"git"];
     if (major == 1) {
         NSMutableArray *arguments = [@[files ? @"dir" : mode, @"--no-banner", @"--no-color", @"--log-level=error",
-                                       @"--report-format=json", @"--report-path=-", @"--exit-code=0",
+                                       kBetterleaksMatcher, @"--report-format=json", @"--report-path=-",
+                                       @"--exit-code=0",
                                        [@"--config=" stringByAppendingString:with[@"rules"] ?: @""],
                                        [@"--gitleaks-ignore-path=" stringByAppendingString:with[@"empty"] ?: @""]]
                                      mutableCopy];
-        if (files || git) [arguments addObject:@"--max-target-megabytes=8"];
+        if (files || git) [arguments addObject:LargestFileFlag(@"max-target-megabytes")];
         if (git) [arguments addObject:[@"--log-opts=" stringByAppendingString:with[@"range"] ?: @""]];
         return arguments;
     }
-    NSMutableArray *arguments = [@[mode, @"--no-banner", @"--no-color", @"--log-level=error", @"--jsonl", @"--output=-",
-                                   @"--redact", @"--validate=false", @"--analyze=false", @"--exit-code=0"]
+    NSMutableArray *arguments = [@[mode, @"--no-banner", @"--no-color", @"--log-level=error", kBetterleaksMatcher,
+                                   @"--jsonl", @"--output=-", @"--redact", @"--validate=false", @"--analyze=false",
+                                   @"--exit-code=0"]
                                  mutableCopy];
-    if (files) [arguments addObject:@"--max-target-megabytes=8"];
-    if (git) [arguments addObjectsFromArray:@[@"--git-max-blob-mib=8", @"--allow-external-objects",
+    if (files) [arguments addObject:LargestFileFlag(@"max-target-megabytes")];
+    if (git) [arguments addObjectsFromArray:@[LargestFileFlag(@"git-max-blob-mib"), @"--allow-external-objects",
                                               [@"--revision=" stringByAppendingString:with[@"range"] ?: @""]]];
     return arguments;
 }

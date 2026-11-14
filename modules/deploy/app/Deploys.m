@@ -883,11 +883,15 @@ static BOOL SavedWithPorts(NSDictionary *store, NSString *project) {
     return [SavedEntry(store, project)[@"ports"] boolValue];
 }
 
-static void WriteStore(NSDictionary *store) {
+// Saves what Deploy keeps, whole and at once: why macOS refused it (out of space, say), or nil once it's saved.
+static NSString *WriteStore(NSDictionary *store) {
     NSData *json = [NSJSONSerialization dataWithJSONObject:store
                                                    options:NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys
                                                      error:nil];
-    [json writeToFile:AppDir(@"deploy.json") atomically:YES];
+    if (!json) return @"it couldn't be written as JSON";
+    NSError *refused = nil;
+    if ([json writeToFile:AppDir(@"deploy.json") options:NSDataWritingAtomic error:&refused]) return nil;
+    return refused.localizedDescription ?: @"the save didn't go through";
 }
 
 // The port each checkout's build gets in $PORT, kept in ports.json: {projects: {project: {base, folders: {folder:
@@ -1926,7 +1930,19 @@ static NSDictionary<NSString *, NSString *> *DeployEnvironment(void) {
         NSMutableDictionary *store = ReadStore();
         store[@"projects"][RealPath(project)] = @{@"command": command, @"ports": @YES, @"runsHash": TextHash(runs),
                                                   @"savedAt": @(floor(NSDate.date.timeIntervalSince1970 * 1000))};
-        WriteStore(store);
+        // Refused by macOS, nothing is kept and nothing runs: the row says why, and the card opens again with the
+        // command in it, saying why too for as long as it's open, to confirm once that's put right. The command goes
+        // back only to the page that sent it. macOS's sentence goes after "Not saved:", without its full stop.
+        NSString *refused = WriteStore(store);
+        if (refused) {
+            PanelLog(@"deploy command for %@ not saved: %@", project, refused);
+            NSString *why = [refused hasSuffix:@"."] ? [refused substringToIndex:refused.length - 1] : refused;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.page stepNote:sid text:[@"Not saved: " stringByAppendingString:why]];
+                [self.page call:@"openDeploySetup" with:@[sid, deploy ? @"deploy" : @"save", command, why]];
+            });
+            return;
+        }
         DeployPort(project, folder, YES);
         PanelLog(@"deploy command for %@ set (%lu characters)", project, (unsigned long)command.length);
         NSString *why = !deploy ? nil : wait ?: [self runIn:folder project:project expecting:nil by:nil reconfirm:NULL];

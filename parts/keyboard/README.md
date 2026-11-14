@@ -13,8 +13,9 @@ ends.
   `keptKeyboard`), passing the pointer's moves to a site (`pointBrowsersAt:moved:`, with `PassPointer`), and a menu at
   a point in the page (`popUpMenu:atPagePoint:`).
 - `page/keyboard.js`: the boxes that take the keyboard (`TEXT_BOX`, `textBoxes`, the modules' `core.textBoxes`), the
-  card that has it once pressed (`heldCard`, the modules' `core.keyCards`), in the list or a place beside it where a
-  module draws rows (`keyPlaces`, the modules' `core.keyPlaces`), asking the app for it or giving it back
+  card that has it once it or a box in it is pressed (`pressTakesKeys`, `heldCard`, the modules' `core.keyCards`), in
+  the list or a place beside it where a module draws rows (`keyPlaces`, the modules' `core.keyPlaces`), asking the app
+  for it or giving it back
   (`wantKeyboard`), whether the panel has it now (`hasKeyboard`, as notifications asks), the keys on that card (Return presses its main button, Esc lets go), and its edge
   (`showHeldCard`, after the list is drawn, and by a place beside it drawn after that); and the view beside the list
   once pressed in (`viewPressed`, `viewHasKeys`), which Esc closes (`escClosesView`), as its ✕ does (`closeReader`,
@@ -47,6 +48,9 @@ peek and the new conversation's card do, and the list (parts/list) and the reade
   the box for a fresh one.
 - **A card answered by its press doesn't take the keyboard** for that press, and one that has only just come isn't
   pressed by accident (`justShown`).
+- **A card is held however you came in:** a press on the card or straight into a box in it holds it, so an Esc in the
+  box leaves the keys on the card, and the next Esc lets go of them: its module's Esc (`core.escapes`) where it takes
+  one, else the box is left, keeping what's typed in it (`keyOnHeldCard`). A box in no such card holds none.
 - **Only the copy pressed has the keys.** A request drawn in two places (the list and a place beside it) is two cards
   with one id: the press remembers its place, so its keys answer that copy, once, and only that copy shows it has them.
 - **An edit key goes by the letter it makes with ⌘ held,** as a menu's shortcuts are matched (`EditFor`, in

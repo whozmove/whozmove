@@ -82,10 +82,14 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
 - `Whozmove --print-changes <sessionId> <scope>` prints what the changes view would be sent for that session's
   checkout in `$HOME`, one of its tabs: `unstaged`, `staged` or `outgoing`; `tests/rows.sh` checks each on a checkout
   with a file staged and changed again, files git doesn't track, and a commit not on its upstream.
+- `Whozmove --print-count-due` prints whether a checkout's changes are due a count for sample states (watched or not,
+  what changed, and how long since the last count, the latest change and the first one not counted); the changes
+  module's tests check it.
 - `Whozmove --print-watched <root>…` tells those checkouts' changes as the app does (CheckoutWatch), runs each
   `<what>\t<command>` line on its standard input, and prints which checkouts each was told for (their files, refs or
-  repo); then whether the branches on the lines after `branches` are on a remote, and when a git status read is due for
-  sample states; the git module's tests run it on a throwaway repo.
+  repo); then whether the branches on the lines after `branches` are on a remote, when a git status read is due for
+  sample states, how long each checkout is left while nothing in it seems to change (`CheckoutQuietEvery`), and when a
+  burst of changes has settled for sample times (`CheckoutSettled`); the git module's tests run it on a throwaway repo.
 - `Whozmove --print-pr-wakes <activity.json> <since>` prints what would wake a session waiting on a pull request,
   from gh's answer as the file gives it, for a wait begun at `since` (ISO 8601): the events kept from it, the wakes
   without comments and with them, and what its row says it waits on; the git module's tests run it on a made-up
@@ -119,16 +123,20 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   counted only if it started first), and Use Port; and a session's ask meeting each, the card left waiting for the
   server that picks its own, and the next free port taken and kept for the held one, with what its status says, then the same session asking again while that build is up, which
   restarts it. Last, a command holding a made-up token, which prints it and
-  fails, is set on the card, pressed, run as a session asked for it, and given in a version too long to save, and it
-  prints whether panel.log, and the run's own log, hold the token. It runs from Whozmove's folder in `$HOME`, so it
-  refuses your own; the deploy module's tests run it.
+  fails, is set on the card, pressed, run as a session asked for it, given in a version too long to save, and
+  confirmed with Deploy where macOS refuses the save (a folder in deploy.json's place, the saved file set aside and
+  put back), which prints, in its own words, whether panel.log says it wasn't saved and why, and whether anything ran;
+  and it prints whether panel.log, and the run's own log, hold the token. It runs from Whozmove's folder in `$HOME`, so it
+  refuses your own; the deploy module's tests run it. Where saves made as Deploy makes them are refused there (Claude
+  Code's sandbox refuses their temporary copy), it prints `Deploy's saves are refused here: <why>` alone and exits 3.
   `Whozmove --print-deploy-asks <socket> <seconds> [<copy>]` prints, for the sample sessions Asker and Other in
   `$HOME`, what Let It Deploy's menu line says, what the panel answers each ask (for the session's own checkout, or
   another named), what each second's look decides, how long one waits and when the switch ends, then listens at that
   socket for `ask-panel.sh` to ask from inside a session and from outside any. Then a command holding a made-up token,
   which prints it and fails, is confirmed and really run, and Asker asks for status and put-in-place: it prints whether
   each answer, and panel.log, hold the token. The deploy module's tests run it. It changes Whozmove's folder in
-  `$HOME`, so it refuses your own.
+  `$HOME`, so it refuses your own, and where Deploy's saves are refused there it says so as `--print-builds-up` does.
+  Given nothing else, it only checks that: it prints that line and exits 3, or prints nothing and exits 0.
 - `Whozmove --print-jira facts <samples>` prints what Jira's module makes of the made-up samples in that JSON file:
   keys and links read, links made from a site and key, the search each set of words makes, the kind each status
   category counts as, the scopes, the sign-in service's published pages, PKCE's challenge, which sign-in services it
@@ -136,7 +144,8 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   in that folder read as a ticket (with its description apart, as only a session is given it), steps, boards, sites, a project's types, its priorities in order with each one's
   place, or an error; `--print-jira talk <site> <steps…>` a whole
   sign-in and each call against a stand-in for Atlassian whose address `WHOZMOVE_JIRA_SERVER` gives (only 127.0.0.1,
-  and only in a throwaway home), the run itself following Atlassian's page as your browser would; and
+  and only in a throwaway home), the run itself following Atlassian's page as your browser would (`every`, every
+  ticket you can see, or `every changed`, those changed lately; `whole`, a ticket with its moves); and
   `--print-jira keychain write|open|update|newbuild|rewritten|has|quietly|read|forget` a made-up Keychain entry under
   a service of its own, for a virtual Mac (`write`, `open`, which makes the stand-in's entry one other apps can read,
   `update`, `newbuild`, which makes it one an older build kept, and `rewritten`, one something else changed since this
@@ -180,8 +189,11 @@ aren't print runs: they're the app's own jobs, which it runs as a process of its
   (`afresh`), and what the tracker was asked to take (`took`); and new tickets: a start from Create a ticket
   (`create`), a session's `ticket-draft` (`draft`, with `too-long` for a title past its length), your Create Ticket or
   Not Yet on its card (`press-draft`, with `stale` for a card drawn for the draft before), and the drafts waiting on rows
-  (`drafts`), with what the tracker was asked to make in `took`. The tickets module's tests run it; it refuses your own
-  home.
+  (`drafts`), with what the tracker was asked to make in `took`; and a read of your tickets: the folder a session's record names
+  (`in`) and the one its process works in, as macOS says (`process-in`), `ask <id> tickets` with `--since` (`now`, a
+  minute ago) and `--full`, what the new conversation card says Start in a folder would also do (`reads-said`), a project's choice pressed (`off`, `on`, `pick-reads`), its page (`settings`) and what's
+  kept of it (`reading`). The tickets module's tests run it;
+  it refuses your own home.
 - `Whozmove --print-tasks` prints what One Task makes of sample tasks as they come in (taken, with what's kept, or
   refused and why), of one session's record as tasks are sent, answered, commented on and put back, and which
   answers each kind has; `Whozmove --print-task-asks

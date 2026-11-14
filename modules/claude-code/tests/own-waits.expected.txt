@@ -1,4 +1,5 @@
 waits: ticket --wait
+waits: tickets --wait
 waits: wait
 waits: wait --comments
 waits: wait --now
@@ -41,6 +42,7 @@ not recorded as written, so not its own (no): ${CLAUDE_PLUGIN_ROOT}/scripts/ask-
 with no plugin folder known, its real path: no
 a module's waits with a word after the first that isn't a flag, kept: 1 of 3
 ask-panel.sh takes: ticket --wait
+ask-panel.sh takes: tickets --wait
 ask-panel.sh takes: wait
 ask-panel.sh takes: wait --comments
 ask-panel.sh takes: wait --now

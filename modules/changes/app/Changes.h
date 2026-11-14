@@ -10,6 +10,13 @@
 // newStart, lines: [[sign, text, key]]}]}], `sign` being "+", "-" or " ", `text` cut short past 2,000 characters and
 // `key` the whole text's LineKey (NSNull for a blank line). Plain, for the tests.
 NSArray<NSDictionary *> *ParseDiff(NSString *diff);
+// Whether a checkout's changes are due a count, `since` seconds after its last. One macOS doesn't tell of
+// (`watched` NO): every 3s, and at once when its editors' lines have moved (`editsMoved`). A watched one: once what
+// `changed` since (its files, refs or editors' lines) has settled (CheckoutSettled: `sinceChange` seconds after the
+// latest change, `sinceFirstUnread` after the first), 3s after its last at the least; and every `quietEvery` seconds
+// anyway. Plain, for the tests.
+BOOL ChangesCountDue(BOOL watched, BOOL changed, BOOL editsMoved, NSTimeInterval since, NSTimeInterval sinceChange,
+                     NSTimeInterval sinceFirstUnread, NSTimeInterval quietEvery);
 
 @interface Changes : NSObject
 // Where what each session edited comes from: its agent (AgentWork's editsOf:).

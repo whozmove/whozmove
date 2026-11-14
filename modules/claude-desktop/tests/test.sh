@@ -13,9 +13,8 @@ cd "$(dirname "$0")/../../.." || exit 1
 HERE=modules/claude-desktop/tests
 . tests/lib.sh
 . tests/compare.sh
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/wz-desktop.XXXXXX") || exit 1
-trap 'rm -rf "$T"' EXIT
+T=$(throwaway desktop) || exit 1
+leave_nothing "$T"
 APP=$(built_app "$T") || exit 1
 out=$(HOME="$T" "$APP" --print-desktop-logs 2>&1)
 compare "How the log says Claude Desktop's words" "$HERE/logs.expected.txt" "$out" "${1:-}"

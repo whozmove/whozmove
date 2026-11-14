@@ -126,63 +126,28 @@ button.ot-att.is-hover { background: var(--hover); }
 .ot-sent { flex: 1; min-width: 0; opacity: 0; overflow-wrap: anywhere; transition: opacity .2s ease; }
 .ot-sent.shown { opacity: 1; }
 .ot-more { flex: none; margin-left: auto; font-size: var(--size-small); color: var(--muted); white-space: nowrap; }
-.ot-say { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* The talk under the task: whom it's with, what you said and each reply, and the box at the foot. Your words sit on the
-   soft fill a card on a row has; a reply in the reader's colour, its name over it. */
+/* The talk under the task: whom it's with, then its session's chat, which Side Chat draws in its own look (One Task
+   styles only its own elements); its box at the foot. */
 .ot-talk { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--rule); }
-.ot-talk-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ot-talk-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.ot-talk-head .caps { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ot-where { flex: 1; min-width: 0; font-size: var(--size-small); color: var(--muted); white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis; }
-.ot-to { flex: none; display: inline-flex; gap: 1px; padding: 1px; border-radius: var(--radius-tag); background: var(--tag); }
+/* The member or the lead, on a line of its own under the head, each by its full name. */
+.ot-to { align-self: flex-start; max-width: 100%; display: inline-flex; flex-wrap: wrap; gap: 1px; padding: 1px;
+         border-radius: var(--radius-tag); background: var(--tag); }
 .ot-to button { border: 0; background: none; font: inherit; font-size: var(--size-small); color: var(--muted);
                 padding: 1px 7px; border-radius: var(--radius-tag); }
 .ot-to button[aria-pressed="true"] { background: var(--picked); color: var(--text); }
 .ot-to button.is-hover { color: var(--text); }
-.ot-talk-empty { margin: 0; font-size: var(--size-small); color: var(--muted); line-height: 1.45; }
-.ot-talk-lines { display: flex; flex-direction: column; gap: 10px; }
-.ot-you { align-self: flex-end; max-width: 86%; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-.ot-you p { margin: 0; padding: 6px 10px; border-radius: var(--radius-box); background: var(--ask-fill);
-            box-shadow: inset 0 0 0 1px var(--ask-edge); font-size: var(--size-card); line-height: 1.45;
-            color: var(--text); overflow-wrap: anywhere; }
-.ot-you.held p { background: none; box-shadow: inset 0 0 0 1px var(--edge); color: var(--muted); }
-.ot-said { font-size: var(--size-meta); color: var(--muted); }
-.ot-said.held { color: var(--turn-text); }
-.ot-talk-act { border: 0; background: none; padding: 0; font: inherit; color: var(--link); }
-.ot-talk-act.is-hover { text-decoration: underline; }
-/* Two presses side by side, apart enough to read as two. */
-.ot-talk-act + .ot-talk-act { margin-left: 8px; }
-.ot-reply { display: flex; flex-direction: column; gap: 3px; max-width: 94%; }
-.ot-reply > b { font-size: var(--size-meta); font-weight: 600; color: var(--label); }
-.ot-reply-text, .ot-glance { font-size: var(--size-card); line-height: 1.5; color: var(--reading-text);
-  overflow-wrap: anywhere; }
-/* A reply's paragraphs, lists and code, and a plan's short view drawn as it was written, with a little room between
-   them. */
-.ot-reply-text > *, .ot-glance > * { margin: 0; }
-.ot-reply-text > * + *, .ot-glance > * + * { margin-top: 6px; }
+.ot-glance { font-size: var(--size-card); line-height: 1.5; color: var(--reading-text); overflow-wrap: anywhere; }
+/* A plan's short view drawn as it was written, with a little room between its paragraphs and lists. */
+.ot-glance > * { margin: 0; }
+.ot-glance > * + * { margin-top: 6px; }
 /* A plan's short view as written: its lists set in as the reader's are (parts/pane/page/reader.css), so the choices
    sit under You decide and no marker hangs out of the column. */
 .ot-glance ul, .ot-glance ol { padding-left: 22px; }
 .ot-glance li > ul, .ot-glance li > ol { margin: 4px 0 0; }
-/* A code block in a reply, on a line of its own: the kit's command, one line until pressed, and Copy beside it. */
-.ot-code { display: flex; align-items: flex-start; gap: 6px; }
-.ot-code-line { flex: 1; min-width: 0; padding: 5px 8px; border: 0; border-radius: var(--radius-box);
-                background: var(--code-fill); font: inherit; text-align: left; }
-.ot-code-line.is-hover { background: var(--hover); }
-.ot-code-line .perm-detail { margin: 0; cursor: pointer; }
-/* Shown whole, it wraps only between words (taskCodeWords keeps each on one line), so a command reads as typed. */
-.ot-code.open .perm-detail { word-break: normal; overflow-wrap: break-word; }
-.ot-word-whole { white-space: nowrap; }
-.ot-code .button { flex: none; }
-.ot-live { margin: 0; font-size: var(--size-card); color: var(--work-text); }
-/* The box at the foot, over the line that shows what goes in. */
+/* The talk's box at the foot, its session's chat's. */
 .ot-talkbox { display: flex; flex-direction: column; gap: 4px; }
-/* The field and Send as tall as each other: the small field's height (its line, padding and edge). */
-.ot-talk-row { display: flex; align-items: center; gap: 6px; }
-.ot-talk-row .field, .ot-talk-row .button { box-sizing: border-box; height: 29px; }
-.ot-talk-row .button { padding-block: 0; }
-.ot-talk-row .q-type { margin-top: 0; }
-.ot-talk-row .field { flex: 1; min-width: 0; }
-/* Exactly what goes in, whole: it wraps onto as many lines as it takes, never cut. */
-.ot-talk-goes { font-size: var(--size-meta); color: var(--muted); overflow-wrap: anywhere; line-height: 1.4; }
-.ot-talk-goes.why { color: var(--text); }

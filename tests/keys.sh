@@ -9,11 +9,9 @@
 #   tests/keys.sh --update   run and save the output as the new expected (after a change you meant)
 cd "$(dirname "$0")/.." || exit 1
 . tests/sandboxed.sh "$@"
-# Stops here if there's no temporary folder: an empty T would make the clean-up below delete this checkout.
-T=$(mktemp -d "${TMPDIR:-/tmp}/whozmove-keys.XXXXXX") || exit 1
-T=$(cd "$T" && pwd -P) || exit 1
-trap 'rm -rf "$T"' EXIT
 . tests/lib.sh
+T=$(throwaway keys) || exit 1
+leave_nothing "$T"
 . tests/compare.sh
 APP=$(built_app "$T") || exit 1
 

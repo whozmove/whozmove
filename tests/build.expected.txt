@@ -7,6 +7,10 @@ the app in ~/Applications: replaced
 it carries the hooks: 0.2.0+<hash>
 and ask-panel.sh
 its signature checks out
+it runs with the hardened runtime
+and so does Betterleaks inside
+its entitlements: com.apple.security.automation.apple-events = True
+Betterleaks' entitlements: none
 an unchanged copy checks out
 with a hook changed, it no longer checks out
 == 2 an agent, with Whozmove's deploy command saved and the panel running: it only compiles
@@ -102,5 +106,16 @@ exit=1
 Whozmove needs macOS 15.0 or later, and this Mac has 14.6, so nothing was built or put in place.
 The last version for this Mac is 0.2.0: git checkout v0.2.0, then ./build.sh, or download it from
 https://github.com/whozmove/whozmove/releases/tag/v0.2.0
+exit=1
+the app in ~/Applications: as it was
+== 13 with a signing keychain here, an agent's build is ad hoc and never goes in, with no deploy command saved
+<work>/Whozmove.app: replacing existing signature
+Built, not put in place: on this Mac, builds signed by you go in, through Deploy in Whozmove or ./build.sh in a terminal outside Claude Code.
+exit=0
+the app in ~/Applications: as it was
+== 14 you, with a signing keychain that holds no certificate that works: nothing is built, and nothing goes in
+Whozmove's signing keychain holds no Developer ID certificate that works (not added yet, expired, or Apple's
+Developer ID - G2 certificate missing), so nothing was built: add one (tools/signing.sh add FILE), make a new
+one (docs/guides/signing.md), or take T/Library/Keychains/whozmove-signing.keychain-db out to build ad hoc again.
 exit=1
 the app in ~/Applications: as it was

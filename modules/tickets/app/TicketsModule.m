@@ -16,12 +16,14 @@
 #import "Rows.h"
 #import "Row.h"
 #import "Files.h"
+#import "Git.h"
 #import "Links.h"
 #import "Log.h"
 #import "Processes.h"
 #import "Text.h"
 #import "Tracker.h"
 #import "TicketBindings.h"
+#import "TicketReads.h"
 #import "TicketsModule.h"
 
 // How often a bound ticket is read again while its session runs, and how soon after a read an ask or a look at its
@@ -31,8 +33,13 @@ static const NSTimeInterval kReadEvery = 5 * 60, kReadAgainAfter = 60, kLookAgai
 static const NSUInteger kLongestText = 2000;
 // May Move Its Ticket, at the foot of a session's mode menu.
 static NSString *const kMoveTicket = @"moveTicket";
+// How long a read of your tickets is kept for its ask again, once read, before it's let go and read afresh.
+static const NSTimeInterval kListKept = 10 * 60;
+// The most an answer to it may be, in bytes, so it goes in one send down the ask's line: past it, the list is cut, and
+// says there's more.
+static const NSUInteger kListMostBytes = 400 * 1024;
 
-@interface TicketsModule () <BackgroundWaits>
+@interface TicketsModule () <BackgroundWaits, ProjectSettings>
 // Each session's ticket, its offer waiting on the row, and the key you said Not Now to, by session id.
 @property (strong) NSMutableDictionary<NSString *, TicketBinding *> *bound;
 @property (strong) NSMutableDictionary<NSString *, TicketOffer *> *offers;
@@ -53,6 +60,22 @@ static NSString *const kMoveTicket = @"moveTicket";
 @property (copy) NSString *keptFolder;
 // The trackers' sign-ins as the page was last told, so it's told again only when they change.
 @property (copy) NSArray *shownTrackers;
+// The projects whose conversations read no tickets, or read them, by their folders, as you turned them; those where a
+// conversation has been given one of your tickets, which read them unless you turned them off; and where that's kept
+// (AppDir/ticket-reading.json).
+@property (strong) NSMutableSet<NSString *> *readsOff, *readsOn, *worked;
+@property (copy) NSString *readsPath;
+// The sessions given a ticket whose project isn't marked yet: marked from where macOS says their process works, as
+// their rows are next listed, or as they ask.
+@property (strong) NSMutableSet<NSString *> *toMark;
+// The projects a conversation was told read none since Whozmove started, by where macOS says it works: each has its
+// page in Settings ▸ Tickets, which the refusal names, even when no row's record names that folder.
+@property (strong) NSMutableSet<NSString *> *refused;
+// The projects sessions run in now, by their repos' main folders (a worktree's main checkout), as the rows last said:
+// theirs is a page in Settings ▸ Tickets with the choice of reading tickets.
+@property (copy) NSSet<NSString *> *projectsSeen;
+// Each read of your tickets, by its session and what it asked for: {asked, reading, answer, at, project, session}.
+@property (strong) NSMutableDictionary<NSString *, NSMutableDictionary *> *lists;
 @end
 
 @implementation TicketsModule
@@ -71,6 +94,12 @@ static NSString *const kMoveTicket = @"moveTicket";
     _kept = [NSMutableDictionary dictionary];
     _unkept = [NSMutableSet set];
     _ended = [NSMutableSet set];
+    _readsOff = [NSMutableSet set];
+    _readsOn = [NSMutableSet set];
+    _worked = [NSMutableSet set];
+    _toMark = [NSMutableSet set];
+    _refused = [NSMutableSet set];
+    _lists = [NSMutableDictionary dictionary];
     return self;
 }
 
@@ -81,6 +110,11 @@ static NSString *const kMoveTicket = @"moveTicket";
 // Bindings are kept in `folder`, one file a session, only you able to read them; what's there is read once, to offer.
 - (void)keepIn:(NSString *)folder {
     self.keptFolder = folder;
+    // The projects that read no tickets, beside the bindings' folder, never in it: everything there is a session's.
+    self.readsPath = [folder.stringByDeletingLastPathComponent stringByAppendingPathComponent:@"ticket-reading.json"];
+    [self.readsOff setSet:TicketReadsKept(self.readsPath, @"off")];
+    [self.readsOn setSet:TicketReadsKept(self.readsPath, @"on")];
+    [self.worked setSet:TicketReadsKept(self.readsPath, @"worked")];
     [NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES
                                              attributes:@{NSFilePosixPermissions: @0700} error:nil];
     for (NSString *name in [NSFileManager.defaultManager contentsOfDirectoryAtPath:folder error:nil]) {
@@ -191,6 +225,8 @@ static NSString *SignInWord(TrackerSignIn state) {
     [self.creating removeObjectForKey:sessionId];
     PanelLog(@"%@ works on %@ %@ now (%@)", sessionId, binding.tracker, key, why);
     [self.unkept addObject:sessionId];
+    // Its project reads your tickets from now on: marked once macOS says where its process works.
+    [self.toMark addObject:sessionId];
     if (read.state && [read.key isEqual:key]) {
         [self took:read for:binding];
         binding.triedAt = NSDate.date;
@@ -292,6 +328,27 @@ static NSString *SignInWord(TrackerSignIn state) {
 
 - (void)rows:(NSArray<Row *> *)rows phase:(RowPhase)phase {
     if (phase != RowPhaseListed) return;
+    NSMutableSet *seen = [NSMutableSet set];
+    for (Row *row in rows) {
+        NSString *project = row.git ? ProjectOfRow(row) : nil;
+        if (project && ![self.core hasEnded:row]) [seen addObject:project];
+    }
+    self.projectsSeen = seen;
+    // Only from a session's own process as the core checks one that asks in its name (whyNot:asksFrom:): never the pid
+    // a record names alone, nor one running inside another listed session's commands. Else it's marked as it next asks.
+    for (Row *row in rows)
+        if ([self.toMark containsObject:row.sessionId]) {
+            if ([self.core hasEnded:row]) [self.toMark removeObject:row.sessionId];
+            else if ([self runs:row] && ![self.core whyNot:row asksFrom:row.pid]) [self mark:row.sessionId from:row.pid];
+        }
+    // A read told, or not asked for again within its time, and those of sessions that have ended, are let go.
+    NSMutableSet *running = [NSMutableSet set];
+    for (Row *row in rows) if (row.sessionId && ![self.core hasEnded:row]) [running addObject:row.sessionId];
+    for (NSString *asked in self.lists.allKeys) {
+        NSMutableDictionary *list = self.lists[asked];
+        if (![running containsObject:list[@"session"]] || (list[@"at"] && [list[@"at"] timeIntervalSinceNow] < -kListKept))
+            [self.lists removeObjectForKey:asked];
+    }
     for (Row *row in rows) {
         NSString *sessionId = row.sessionId;
         if (!sessionId) continue;
@@ -323,6 +380,9 @@ static NSString *SignInWord(TrackerSignIn state) {
         if (runs && self.bound[sessionId]) [self read:sessionId after:kReadEvery ignoringWait:NO];
         row.ticket = TicketShown(self.bound[sessionId], self.offers[sessionId], self.drafts[sessionId],
                                  self.creating[sessionId][@"tracker"]);
+        if (runs && (self.offers[sessionId] || self.drafts[sessionId]))
+            row.ticket = TicketReadsAlso(row.ticket, [self newReader:ProcessFolder(row.pid)].lastPathComponent,
+                                         self.everyTracker.trackerName);
     }
     [self tellTrackers:NO];
 }
@@ -403,7 +463,7 @@ static NSString *SignInWord(TrackerSignIn state) {
 // `ticket --wait`, which waits through its ticket's read and your answer, may be left running in the background: it's
 // this module's own ask waiting on the panel, not the session's work (BackgroundWaits).
 - (NSArray<NSArray<NSString *> *> *)backgroundWaits {
-    return @[@[@"ticket", @"--wait"]];
+    return @[@[@"ticket", @"--wait"], @[@"tickets", @"--wait"]];
 }
 
 - (NSDictionary<NSString *, SessionAsk *> *)sessionAsks {
@@ -426,10 +486,15 @@ static NSString *SignInWord(TrackerSignIn state) {
     SessionAsk *draft = [SessionAsk askShowing:^NSString *(Row *row, pid_t process, NSDictionary *asked) {
         return [weakSelf draft:asked from:row];
     }];
+    // A read of your tickets, for the project it works in: it only reads, and needs no switch, so, as one that only
+    // shows, the process that asks is checked to be the session's own.
+    SessionAsk *list = [SessionAsk askShowing:^NSString *(Row *row, pid_t process, NSDictionary *asked) {
+        return [weakSelf ticketsFor:row process:process asked:asked];
+    }];
     // Each logs the key and how it went itself, never what the ticket, a note, a field, a why or a new ticket says.
-    use.logsItself = ticket.logsItself = move.logsItself = stop.logsItself = draft.logsItself = YES;
+    use.logsItself = ticket.logsItself = move.logsItself = stop.logsItself = draft.logsItself = list.logsItself = YES;
     return @{@"ticket-use": use, @"ticket": ticket, @"ticket-move": move, @"ticket-stop": stop,
-             @"ticket-draft": draft};
+             @"ticket-draft": draft, @"tickets": list};
 }
 
 // ticket-use: the ticket a session asks to work on, by its key or link, shown on its row for your Use It. Nothing is
@@ -809,6 +874,221 @@ static NSString *Decoded64(id value) {
     }];
 }
 
+#pragma mark A project's conversations read your tickets
+
+// The project a folder is in, as Settings ▸ Tickets keys it: its repo's main folder (a worktree's main checkout, so all
+// of a repo's worktrees are one project, as the panel groups them), as a real path; nil for a folder that isn't a
+// repo's, or none.
+static NSString *ProjectIn(NSString *folder) {
+    NSString *root = folder.length ? ProjectRoot(folder) : nil;
+    return root.length ? RealPath(root) ?: root : nil;
+}
+// The project a row says it's in, from its record's folder: only for which projects have a page in Settings ▸ Tickets.
+// Whether one reads is decided by where macOS says the process asking works (ticketsFor:process:asked:).
+static NSString *ProjectOfRow(Row *row) {
+    NSString *root = AsText(row.git[@"mainRoot"]) ?: AsText(row.git[@"root"]);
+    if (!root.length && row.cwd.length) root = ProjectRoot(row.cwd);
+    return root.length ? RealPath(root) ?: root : nil;
+}
+
+// The tracker that reads every ticket you can see: the first that can, signed in first.
+- (id<Tracker>)everyTracker {
+    id<Tracker> any = nil;
+    for (id<Tracker> tracker in self.trackers) {
+        if (![tracker respondsToSelector:@selector(everyTicketSince:done:)]
+            || ![tracker respondsToSelector:@selector(readWhole:site:done:)])
+            continue;
+        if (tracker.signInState == TrackerSignedIn) return tracker;
+        any = any ?: tracker;
+    }
+    return any;
+}
+
+// Marks the project a session given a ticket works in, from its own process's folder as macOS keeps it, never what the
+// session's record says: from then on, it reads your tickets, unless you turned it off. Kept, so it lasts after that
+// session has ended or worked another ticket, and across a restart.
+- (void)mark:(NSString *)sessionId from:(pid_t)process {
+    NSString *folder = ProcessFolder(process);
+    if (!folder) return;  // its process can't be read just now: tried again as its row is next listed
+    [self.toMark removeObject:sessionId];
+    NSString *project = ProjectIn(folder);
+    if (!project || [self.worked containsObject:project]) return;
+    [self.worked addObject:project];
+    if (!TicketReadsWrite(self.readsPath, self.readsOff, self.readsOn, self.worked))
+        LogProblem(@"Couldn't keep which projects read your tickets");
+    PanelLog(@"%@ is a project where your tickets are worked now", project.lastPathComponent);
+    [self.core.page call:@"ticketReadsChanged" with:@[]];
+}
+
+// The project a folder is in when a ticket given there would let its conversations read your tickets: one that reads
+// none yet, and that you haven't turned off (which stays off); nil otherwise. What Use It, Start and Create Ticket say.
+- (NSString *)newReader:(NSString *)folder {
+    NSString *project = ProjectIn(folder);
+    return project && ![self reads:project] && ![self.readsOff containsObject:project] ? project : nil;
+}
+
+- (BOOL)reads:(NSString *)project {
+    return TicketReadsIn(project, self.readsOff, self.readsOn, self.worked);
+}
+
+// Your press of the switch on the project's page in Settings ▸ Tickets: off, its conversations read none, and a read
+// under way for one of them is let go; on, they read again.
+- (void)setReads:(BOOL)on for:(NSString *)project {
+    if (!project.length || [self reads:project] == on) return;
+    [(on ? self.readsOff : self.readsOn) removeObject:project];
+    [(on ? self.readsOn : self.readsOff) addObject:project];
+    for (NSString *asked in self.lists.allKeys)
+        if ([self.lists[asked][@"project"] isEqual:project]) [self.lists removeObjectForKey:asked];
+    if (!TicketReadsWrite(self.readsPath, self.readsOff, self.readsOn, self.worked))
+        LogProblem(@"Couldn't keep which projects read your tickets");
+    PanelLog(@"%@'s conversations read %@ now", project.lastPathComponent, on ? @"your tickets" : @"no tickets");
+    [self.core.page call:@"ticketReadsChanged" with:@[]];
+}
+
+// tickets [--since TIME] [--full KEY]: a session, for the project its process works in (`process`, the one the core
+// checked is that session's Claude Code), once that project reads your tickets: a conversation there has worked one, or
+// you turned reading on for it, and you haven't turned it off. The tickets are read and it's told to ask again, which
+// says them once read, kept ten minutes; --since, only those changed since; --full, one ticket, with its description
+// and moves. It only reads.
+- (NSString *)ticketsFor:(Row *)row process:(pid_t)process asked:(NSDictionary *)asked {
+    NSString *sessionId = row.sessionId;
+    // A session just given a ticket marks its project first, from the very process asking.
+    if ([self.toMark containsObject:sessionId]) [self mark:sessionId from:process];
+    // Where it works is where macOS says its process does, never what it says of itself.
+    NSString *project = ProjectIn(ProcessFolder(process)), *name = project.lastPathComponent;
+    if (!project) {
+        PanelLog(@"%@ asked tickets: not in a project", sessionId);
+        return @"refused: reading tickets through Whozmove is per project, and this folder isn't one: a session reads "
+               @"them from inside a git repository, once a conversation there works one of the user's tickets, or the user turns reading "
+               @"on for it in Settings ▸ Tickets";
+    }
+    // Signed in first: a project's page in Settings ▸ Tickets, where reading is turned on, is there only then.
+    id<Tracker> tracker = self.everyTracker;
+    if (!tracker) return @"refused: Whozmove has no tracker that can list your tickets";
+    if (tracker.signInState != TrackerSignedIn) {
+        PanelLog(@"%@ asked tickets: not signed in", sessionId);
+        return [NSString stringWithFormat:@"can't now: Whozmove isn't signed in to %@: the user signs in on %@'s page "
+                @"on the panel's back", tracker.trackerName, tracker.trackerName];
+    }
+    if (![self reads:project]) {
+        PanelLog(@"%@ asked tickets: its project reads none", sessionId);
+        [self.refused addObject:project];
+        return TicketReadsRefusal(name, [self.readsOff containsObject:project]);
+    }
+    NSString *sinceText = AsText(asked[@"since"]), *full = AsText(asked[@"full"]);
+    NSDate *since = sinceText ? TicketsSince(sinceText) : nil;
+    if (sinceText && !since) return @"refused: give --since as a time that has been, as ISO 8601 (2030-01-06T06:30:00Z): "
+                                    @"the readAt a read of the tickets gave is one";
+    NSMutableDictionary *named = full ? [[self ticketIn:full near:self.bound[sessionId]] mutableCopy] : nil;
+    if (full && ![named[@"tracker"] isEqual:tracker.trackerName]) {
+        PanelLog(@"%@ asked tickets --full: not a ticket", sessionId);
+        return @"refused: --full reads a ticket by its key (PAY-142)";
+    }
+    // The site its line in a list named, given with --site, when it's one the user is signed in to.
+    NSString *site = AsText(asked[@"site"]);
+    if (full && site && ![tracker.sites containsObject:site])
+        return [NSString stringWithFormat:@"refused: the user isn't signed in to %@: give --site as its line in the "
+                @"list says", Clip(site, 100)];
+    if (full && site) named[@"site"] = site;
+    if (full && ![named[@"site"] length])
+        return [NSString stringWithFormat:@"refused: the user is signed in to more than one site, so say which %@ is "
+                @"on with --site, as its line in the list says", full];
+    NSString *words = full ? [NSString stringWithFormat:@"full %@ %@", named[@"key"], named[@"site"]]
+        : sinceText ? [@"since " stringByAppendingString:sinceText] : @"all";
+    // Each read is kept by what it asked for, so two at once from one session don't undo each other.
+    NSString *keptAs = [NSString stringWithFormat:@"%@ %@", sessionId, words];
+    NSMutableDictionary *list = self.lists[keptAs];
+    if (list[@"answer"] && [list[@"at"] timeIntervalSinceNow] > -kListKept) {
+        [self.lists removeObjectForKey:keptAs];
+        return list[@"answer"];
+    }
+    NSString *reading = full ?: @"your tickets";
+    if (list[@"reading"]) return [NSString stringWithFormat:@"waiting: reading %@ just now: ask again in a few seconds", reading];
+    list = [@{@"asked": words, @"reading": @YES, @"project": project ?: @"", @"session": sessionId} mutableCopy];
+    self.lists[keptAs] = list;
+    __weak typeof(self) weakSelf = self;
+    // Only for the read it was asked for: one asked since, or the switch turned off since, takes its place.
+    void (^told)(NSString *, NSString *) = ^(NSString *answer, NSString *logged) {
+        [list removeObjectForKey:@"reading"];
+        if (weakSelf.lists[keptAs] != list) return;
+        list[@"answer"] = answer;
+        list[@"at"] = NSDate.date;
+        PanelLog(@"%@ asked tickets: %@", sessionId, logged);
+    };
+    if (full) {
+        [tracker readWhole:named[@"key"] site:named[@"site"] done:^(Ticket *ticket, TrackerAnswer *answer) {
+            if (ticket) return told(TicketWhole(ticket), [NSString stringWithFormat:@"%@, read whole", named[@"key"]]);
+            told(TicketsNotRead(answer, @[named[@"site"]]),
+                 [NSString stringWithFormat:@"%@, couldn't read it whole (%ld)", named[@"key"], (long)answer.end]);
+        }];
+    } else {
+        NSDate *readAt = NSDate.date;
+        [tracker everyTicketSince:since done:^(NSArray<Ticket *> *tickets, TrackerAnswer *answer) {
+            if (answer.ok) return told(TicketsRead(tickets, readAt, since, answer.more, kListMostBytes),
+                                       [NSString stringWithFormat:@"%lu read%@", (unsigned long)tickets.count,
+                                        answer.more ? @", and more" : @""]);
+            told(TicketsNotRead(answer, tracker.sites), [NSString stringWithFormat:@"couldn't read them (%ld)", (long)answer.end]);
+        }];
+    }
+    return [NSString stringWithFormat:@"waiting: reading %@: ask again in a few seconds, or with --wait", reading];
+}
+
+// On each of those projects' pages in Settings ▸ Tickets: whether its conversations read your tickets, picked after its
+// before and after.
+- (NSArray<NSString *> *)projectsWithSettings {
+    // Those kept (turned off, turned on, or where your tickets are worked) always; those sessions run in now, and those
+    // a conversation was told read none, only once a tracker that reads them is signed in, as nothing reads before.
+    NSMutableSet *projects = [NSMutableSet setWithSet:self.readsOff];
+    [projects unionSet:self.readsOn];
+    [projects unionSet:self.worked];
+    if (self.everyTracker.signInState == TrackerSignedIn) {
+        [projects unionSet:self.projectsSeen ?: [NSSet set]];
+        [projects unionSet:self.refused];
+    }
+    return [projects.allObjects sortedArrayUsingSelector:@selector(compare:)];
+}
+
+- (NSArray<AppGroup *> *)settingsForProject:(NSString *)project {
+    __weak typeof(self) weakSelf = self;
+    NSString *name = project.lastPathComponent, *tracker = self.everyTracker.trackerName ?: @"your tracker";
+    // Off, as it is now: turned off here, or never on, as no conversation there has worked one of your tickets.
+    // On, as it is now, by a conversation there working one of your tickets rather than by your press, says so; off
+    // after, for such a project, says it stays off as tickets are worked there.
+    NSString *(^said)(BOOL, BOOL) = ^NSString *(BOOL on, BOOL now) {
+        BOOL worked = [weakSelf.worked containsObject:project] && ![weakSelf.readsOn containsObject:project];
+        if (on) return [NSString stringWithFormat:@"Conversations in %@ read every ticket you can see, through Whozmove%@",
+                        name, now && worked ? @", as a conversation there has worked one of your tickets" : @""];
+        if (now && ![weakSelf.readsOff containsObject:project])
+            return [NSString stringWithFormat:@"Conversations in %@ read none through Whozmove until you turn this on: "
+                    @"none there has worked one of your tickets", name];
+        return [NSString stringWithFormat:@"Conversations in %@ read none through Whozmove: each that asks is told you "
+                @"turned it off here%@", name, [weakSelf.worked containsObject:project] ? @", and it stays off as tickets are worked there"
+                                                                         : @""];
+    };
+    NSArray *(^choices)(void) = ^NSArray * {
+        return @[@{@"id": @"on", @"name": [NSString stringWithFormat:@"Conversations Read Your %@ Tickets", tracker],
+                   @"help": [NSString stringWithFormat:@"Every ticket you can see, as they need them to plan and work. "
+                             @"They only read: nothing changes in %@.", tracker]},
+                 @{@"id": @"off", @"name": @"They Read None",
+                   @"help": @"Each conversation that asks is told it's off here, and how to turn it on"}];
+    };
+    AppChoice *reads = [AppChoice choiceWithKey:[@"reads:" stringByAppendingString:project] title:name choices:choices
+                                         picked:^NSString * { return [weakSelf reads:project] ? @"on" : @"off"; }
+                                           pick:^(NSString *choice) { [weakSelf setReads:[choice isEqual:@"on"] for:project]; }];
+    reads.confirm = ^NSDictionary *(NSString *choice) {
+        BOOL now = [weakSelf reads:project], after = [choice isEqual:@"on"];
+        if (now == after) return nil;
+        return @{@"before": said(now, YES), @"after": said(after, NO),
+                 @"keep": [NSString stringWithFormat:@"Nothing changes in %@, and nothing they read is kept.", tracker]};
+    };
+    // After the project's own groups (its way, and its folders), so they stay together.
+    // Always said, as Whozmove neither finds nor stops them: what reads here is only what reads through Whozmove. The
+    // title says so, keeping the choices' names short.
+    NSString *foot = [NSString stringWithFormat:@"Other %@ tools in Claude Code or Claude Desktop read with their own "
+                      @"sign-in, not through Whozmove.", self.everyTracker.trackerName ?: @"ticket"];
+    return @[[AppGroup groupWithTitle:@"Reading your tickets through Whozmove" rows:@[reads] foot:foot order:100]];
+}
+
 #pragma mark What the page says
 
 - (NSDictionary<NSString *, void (^)(NSDictionary *message)> *)messages {
@@ -818,6 +1098,9 @@ static NSString *Decoded64(id value) {
         @"ticketSearch": ^(NSDictionary *msg) { [weakSelf search:AsText(msg[@"words"]) asked:msg[@"asked"]]; },
         // A key or link written or pasted on the card: that ticket, read, for its chip.
         @"ticketFind": ^(NSDictionary *msg) { [weakSelf find:AsText(msg[@"text"]) asked:msg[@"asked"]]; },
+        // The card's project, with a ticket on the card: whether Start would also let its conversations read your
+        // tickets, for the line under the card's own.
+        @"ticketReadsAsk": ^(NSDictionary *msg) { [weakSelf readsAsk:AsText(msg[@"folder"]) asked:msg[@"asked"]]; },
         @"ticketSignIn": ^(NSDictionary *msg) {
             id<Tracker> tracker = [weakSelf tracker:AsText(msg[@"tracker"])];
             [tracker signIn:^(TrackerSignIn state, NSString *why) { [weakSelf tellTrackers:YES]; }];
@@ -944,6 +1227,18 @@ static NSString *EndWord(TrackerEnd end) {
         case TrackerEndBlocked: return @"blocked";
         default: return @"failed";
     }
+}
+
+// Said back as {project, tracker} when Start in `folder` would let that project's conversations read your tickets (a
+// repo's folder that reads none yet and isn't turned off, with a tracker that reads them), else {}: as Use It and Create
+// Ticket decide it, signed in or not, as each marks the project either way.
+- (NSDictionary *)readsSaidFor:(NSString *)folder {
+    id<Tracker> tracker = self.everyTracker;
+    NSString *project = folder.isAbsolutePath && folder.length < 1024 && tracker ? [self newReader:folder] : nil;
+    return project ? @{@"project": project.lastPathComponent, @"tracker": tracker.trackerName} : @{};
+}
+- (void)readsAsk:(NSString *)folder asked:(id)asked {
+    [self.core.page call:@"ticketReadsSaid" with:@[AsNumber(asked) ?: @0, [self readsSaidFor:folder]]];
 }
 
 // Tickets found for the card: every signed-in tracker's, together; with none signed in, why.

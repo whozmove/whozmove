@@ -23,9 +23,11 @@ scripts, and the scripts those run in turn), each Makefile target's recipe, and 
 says which files it checks before every run, which programs it runs whose own files decide what they do (those aren't
 checked), what it can't follow (a script run in another folder, say), whether it looks as if it could deploy to
 production (Whozmove never suggests one that does), and the port it gets there (below). The command is saved for that
-project (in Whozmove's folder, never in the project), and from then on the button is always there, for every checkout
-of the project, with a dot when an agent has edited files or built there since the last deploy (a turn that only
-commits, pushes or runs the tests doesn't count). Until then it's offered only after an agent changes something.
+project (in Whozmove's folder, never in the project). If it can't be saved there, the row says "Not saved" and why,
+and the card opens again at its first step with your command, saying why for as long as it's open: once that's put
+right, confirm it again from there. Once saved, the button is always there, for every checkout of the project, with a
+dot when an agent has edited files or built there since the last deploy (a turn that only commits, pushes or runs the
+tests doesn't count). Until then it's offered only after an agent changes something.
 
 A project Whozmove can't work out a command for has no button until you set one up, from any of its sessions: at the
 foot of the session's mode menu, **Let It Deploy** is greyed with **Set Up Deploy…** under it, which opens the same

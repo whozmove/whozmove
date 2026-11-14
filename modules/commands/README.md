@@ -64,9 +64,12 @@ switch at its foot.
   `compact` (`{sessionId, focus}`: the Compact card's choice), `switchAnswer` (`{sessionId, ok, never}`: the answer to "Switch
   model?" asked on the row). The card's button past a terminal's reason sends `wayPast` (`{sessionId}`), which the core
   answers.
-- A pick's note whose reason sends you to the session ("change it there") has Take me there, which opens it, and a
+- A pick's note whose reason sends you to the session ("change it there") has Take Me There, which opens it, and a
   switch's note that couldn't be changed has Open the Menu (`core.noteWays.modeMenu`), which opens the mode menu again
   under the row's mode, where it's pressed again, or where its reason's way past is: only the menu turns a switch on.
+  A pick into Claude Desktop that needs Whozmove allowed in Accessibility has Open Accessibility Settings
+  (`core.noteWays.accessibility`), which sends `accessibilitySettings` (`{}`), and the app opens that pane in System
+  Settings. It takes you out of the panel, so its button has Take Me There's mark (the way's `out`).
 - The app calls `compactNote(sid, text, way)` when a compaction from the card didn't go through, or says why it can't,
   with the words of the button past that reason, or null.
 - "Switch model?" is the row's `switchAsk` (`{from, to, tokens, never}`: `tokens`, how much the conversation holds,

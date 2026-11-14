@@ -1,0 +1,47 @@
+== When a checkout's changes are due a count
+[
+  [
+    "not watched, 1s since the last count, 0s since the latest change, 0s since the first",
+    false
+  ],
+  [
+    "not watched, edits moved, 1s since the last count, 0s since the latest change, 0s since the first",
+    true
+  ],
+  [
+    "not watched, 3s since the last count, 0s since the latest change, 0s since the first",
+    true
+  ],
+  [
+    "watched, unchanged, 3s since the last count, 0s since the latest change, 0s since the first",
+    false
+  ],
+  [
+    "watched, changed, 3s since the last count, 1s since the latest change, 1s since the first",
+    false
+  ],
+  [
+    "watched, changed, edits moved, 3s since the last count, 1s since the latest change, 1s since the first",
+    false
+  ],
+  [
+    "watched, changed, 3s since the last count, 2s since the latest change, 2s since the first",
+    true
+  ],
+  [
+    "watched, changed, 2s since the last count, 2s since the latest change, 2s since the first",
+    false
+  ],
+  [
+    "watched, changed, 11s since the last count, 1s since the latest change, 10s since the first",
+    true
+  ],
+  [
+    "watched, unchanged, 1799s since the last count, 0s since the latest change, 0s since the first",
+    false
+  ],
+  [
+    "watched, unchanged, 1800s since the last count, 0s since the latest change, 0s since the first",
+    true
+  ]
+]

@@ -14,6 +14,7 @@
 #import "Send.h"
 #import "Text.h"
 #import "Files.h"
+#import "Links.h"
 #import "Processes.h"
 #import "Allowed.h"
 #import "CompactTime.h"
@@ -425,6 +426,10 @@ static int PrintCommandLogs(Core *core) {
         @"pick": ^(NSDictionary *msg) { [commands pick:msg]; },
         @"compact": ^(NSDictionary *msg) { [commands compact:msg]; },
         @"switchAnswer": ^(NSDictionary *msg) { [commands answerSwitch:msg]; },
+        // Open Accessibility Settings, on a pick's note when Claude Desktop needs Whozmove allowed there: by your press.
+        @"accessibilitySettings": ^(NSDictionary *msg) {
+            OpenLink(@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility");
+        },
     };
 }
 

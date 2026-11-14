@@ -34,12 +34,15 @@ function slot(name, of) {
 // The line saying what the session is doing while it works: "Thinking" until its first step, then each step as it runs
 // (or that it's compacting), shining, under a label that breathes (`label`, Claude's on a row), with the turn's time
 // ticking (tickTimes) and a module's end after it. A row's Claude's line while it works, and given to the parts and
-// modules that show the same line elsewhere, so it reads the same wherever it's drawn.
-function workLineHTML(s, now, { label = 'Claude', end = '' } = {}) {
+// modules that show the same line elsewhere, so it reads the same wherever it's drawn. `still`: the same words without
+// the shine or the breathing, for a place where the line sits inside a scroller under sticky bars, which WebKit then
+// paints again every frame (One Task's talk): only the time ticks.
+function workLineHTML(s, now, { label = 'Claude', end = '', still = false } = {}) {
   const since = s.compacting || s.lastPromptAt || s.statusUpdatedAt;
   const doing = s.compacting ? 'Compacting the conversation' : s.activity || 'Thinking';
-  return `<div class="claude work" data-mode="work"><span class="who" style="${phase(2800)}">${esc(label)}</span>`
-    + `<span class="what">${shineHTML(doing)}</span>`
+  return `<div class="claude work${still ? ' still' : ''}" data-mode="work"><span class="who"`
+    + `${still ? '' : ` style="${phase(2800)}"`}>${esc(label)}</span>`
+    + `<span class="what">${still ? esc(doing) : shineHTML(doing)}</span>`
     + (since ? `<span class="elapsed" data-since="${since}">${elapsed(now - since)}</span>` : '')
     + (end ? `<span class="chat-end">${end}</span>` : '') + '</div>';
 }
@@ -303,7 +306,8 @@ core.swaps.push(':scope > .main > .line1 .twice');
 const noteTone = (note) => (note.quiet ? '' : note.tone === 'turn' ? ' turn' : ' warn');
 function noteHTML(note, end = '') {
   if (!note) return '';
-  // Take me there, to the session (`out`), has the kit's mark for what takes you out of the panel.
+  // Take Me There, to the session, or a module's way to another app (`out`), has the kit's mark for what takes you out
+  // of the panel.
   const way = note.way ? ` <button class="button small note-way" data-way="${esc(note.sid)}">${esc(note.way)}`
     + `${note.out ? OUT_ICON : ''}</button>` : '';
   const bubble = isAsk(note) ? ` ask-${askLook(note)}` : '';
@@ -314,7 +318,8 @@ function stepLine(row) {
   const note = state.stepNotes[row.s.sessionId];
   if (note && Date.now() - note.at < (note.way ? 20000 : 8000))
     return note.way
-      ? { text: note.text, quiet: note.quiet, way: note.way, sid: row.s.sessionId, out: note.go === 'open' }
+      ? { text: note.text, quiet: note.quiet, way: note.way, sid: row.s.sessionId,
+          out: note.go === 'open' || !!core.noteWays[note.go]?.out }
       : { text: note.text, quiet: note.quiet };
   let turn = null;
   for (const say of core.rowNotes) {

@@ -26,7 +26,11 @@ NSString *TicketKindWord(TicketKind kind) {
 
 @implementation TicketRef
 @end
+@implementation TicketPerson
+@end
 @implementation TicketGroup
+@end
+@implementation TicketMoveMade
 @end
 @implementation TicketField
 @end
@@ -94,6 +98,58 @@ static void Put(NSMutableDictionary *into, NSString *key, id value) {
         [steps addObject:step];
     }
     json[@"steps"] = steps;
+    return json;
+}
+
+- (NSDictionary *)jsonWhole {
+    NSMutableDictionary *json = [[self json] mutableCopy];
+    Put(json, @"assigneeId", self.assignedTo.personId);
+    if (self.reporter.personId || self.reporter.name) {
+        NSMutableDictionary *reporter = [NSMutableDictionary dictionary];
+        Put(reporter, @"id", self.reporter.personId);
+        Put(reporter, @"name", self.reporter.name);
+        json[@"reporter"] = reporter;
+    }
+    if (self.labels.count) json[@"labels"] = self.labels;
+    if (self.links.count) {
+        NSMutableArray *links = [NSMutableArray array];
+        for (TicketRef *l in self.links) {
+            NSMutableDictionary *link = [NSMutableDictionary dictionary];
+            Put(link, @"how", l.how);
+            Put(link, @"key", l.key);
+            Put(link, @"title", l.title);
+            Put(link, @"type", l.type);
+            [links addObject:link];
+        }
+        json[@"links"] = links;
+    }
+    Put(json, @"updated", self.updated);
+    NSMutableArray *groups = [NSMutableArray array];
+    for (NSUInteger i = 0; i < [json[@"groups"] count]; i++) {
+        NSMutableDictionary *group = [json[@"groups"][i] mutableCopy];
+        TicketGroup *g = i < self.groups.count ? self.groups[i] : nil;
+        Put(group, @"sprintStarts", g.sprintStarts);
+        Put(group, @"sprintEnds", g.sprintEnds);
+        [groups addObject:group];
+    }
+    json[@"groups"] = groups;
+    if (self.moves) {
+        NSMutableArray *moves = [NSMutableArray array];
+        for (TicketMoveMade *m in self.moves) {
+            NSMutableDictionary *move = [NSMutableDictionary dictionary];
+            Put(move, @"from", m.from);
+            Put(move, @"to", m.to);
+            Put(move, @"at", m.at);
+            if (m.by.personId || m.by.name) {
+                NSMutableDictionary *by = [NSMutableDictionary dictionary];
+                Put(by, @"id", m.by.personId);
+                Put(by, @"name", m.by.name);
+                move[@"by"] = by;
+            }
+            [moves addObject:move];
+        }
+        json[@"moves"] = moves;
+    }
     return json;
 }
 

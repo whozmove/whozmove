@@ -9,10 +9,11 @@ and Create PR, each asked of the session's agent from its row.
 
 What isn't committed in the session's checkout shows at the end of its work line ("+245 −42"), on the row of the session
 that speaks for the checkout (below), while it's the row you're on (the session in front in its app), counted as git
-counts it: every change since the last commit, staged or not, new files included. Once it's all committed, the numbers
-go. Resting on them opens their details in the row: "Not committed" with the checkout, the numbers, how many files that
-is, and how many are staged and not (a file staged and then changed again counts in both, as `git status` lists it under
-both).
+counts it: every change since the last commit, staged or not, new files included. While files there change, the numbers
+and their details catch up each time the edits pause for 2 seconds, and at least every 10 seconds while they don't. Once
+it's all committed, the numbers go. Resting on them opens their details in the row: "Not committed" with the checkout,
+the numbers, how many files that is, and how many are staged and not (a file staged and then changed again counts in
+both, as `git status` lists it under both).
 
 ## The changes view
 

@@ -56,6 +56,19 @@ extern const NSInteger kJiraSearchMost;
 // too; Whozmove takes only what the row, its card and a session need, and keeps none of them.
 extern NSString *const kJiraReadView;
 
+// Every ticket you can see (Tracker's everyTicketSince:done:): a search on each site you're on (JiraEveryJQL), the
+// most recently changed first, at most kJiraEveryMost a site, a page at a time; for only what changed, `updated >= -Nm`
+// (minutes ago, which needs no time zone). Assumed until a live read confirms them: that the server's search takes a
+// query bounded only by `project IS NOT EMPTY` (Jira's search refuses one with no condition at all), and gives a
+// page's next one as `nextPageToken`, taken back as an input of the same name (the stand-in does both).
+extern const NSInteger kJiraEveryMost;
+NSString *JiraEveryJQL(NSDate *since);
+
+// A ticket's history of moves (Tracker's readWhole:), assumed until a live read confirms it: getJiraIssue with `expand`
+// kJiraHistoryExpand gives `changelog.histories`, each {author{accountId, displayName}, created, items}, and a move is
+// an item for the field kJiraStatusField, {fromString, toString}, as Jira's own API gives it (the stand-in does too).
+extern NSString *const kJiraHistoryExpand, *const kJiraStatusField;
+
 // The most of a ticket's description handed to a session, in characters, and the line put at the end of one cut
 // there. Text is taken as it comes, in the format the answer names (appliedContentFormat: Markdown in the full view);
 // Atlassian's document format, the tree of nodes Jira's own API gives a description as, is turned into its plain text.

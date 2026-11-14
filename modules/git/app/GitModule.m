@@ -34,7 +34,9 @@
 // input a line at a time. Each line names a change the test has just made; once macOS has told what it changed, it
 // notes which checkouts' counts moved since the line before (files, refs, repo), each named by its last path component.
 // Each line after one reading "branches", "<root>\t<branch>", notes whether that branch is on a remote
-// (BranchOnRemote). Then when a git status read is due for sample states (CheckoutReadDue). As JSON, then quit.
+// (BranchOnRemote). Then when a git status read is due for sample states (CheckoutReadDue), how long each checkout is
+// left while nothing in it seems to change (CheckoutQuietEvery), and when a burst of changes has settled for sample
+// times (CheckoutSettled). As JSON, then quit.
 static int PrintWatched(NSArray<NSString *> *roots) {
     StartCheckoutWatch();
     WatchCheckouts(@"print", [NSSet setWithArray:roots]);
@@ -79,17 +81,37 @@ static int PrintWatched(NSArray<NSString *> *roots) {
         [steps addObject:@[line, moved]];
         before = after;
     }
-    // Watched or not, changed or not, a few seconds and minutes after the last read, with a session active there since.
+    // Watched or not, its changes settled or not (which only a watched one goes by), a few seconds and minutes after
+    // the last read, with a session active there since.
     NSMutableArray *due = [NSMutableArray array];
     for (NSArray *c in @[@[@NO, @NO, @3, @YES], @[@NO, @NO, @3, @NO], @[@NO, @NO, @21, @NO], @[@YES, @NO, @21, @YES],
-                         @[@YES, @YES, @1, @YES], @[@YES, @YES, @3, @YES], @[@YES, @YES, @3, @NO],
-                         @[@YES, @YES, @21, @NO], @[@YES, @NO, @299, @NO], @[@YES, @NO, @301, @NO]])
-        [due addObject:@[[NSString stringWithFormat:@"%@, %@, %@s, %@", [c[0] boolValue] ? @"watched" : @"not watched",
-                          [c[1] boolValue] ? @"changed" : @"unchanged", c[2],
+                         @[@YES, @YES, @1, @YES], @[@YES, @YES, @3, @NO], @[@YES, @YES, @21, @NO],
+                         @[@YES, @NO, @3, @YES], @[@YES, @NO, @(kCheckoutQuietLeast - 1), @NO],
+                         @[@YES, @NO, @(kCheckoutQuietLeast + 1), @NO]]) {
+        BOOL told = [c[0] boolValue];
+        NSString *what = told ? [c[1] boolValue] ? @"watched, settled" : @"watched, unsettled" : @"not watched";
+        [due addObject:@[[NSString stringWithFormat:@"%@, %@s, %@", what, c[2],
                           [c[3] boolValue] ? @"active since" : @"quiet"],
-                         @(CheckoutReadDue([c[0] boolValue], [c[1] boolValue], [c[2] doubleValue], [c[3] boolValue],
-                                           300))]];
-    return PrintJSON(@{@"watched": watched, @"steps": steps, @"onRemote": branches, @"due": due});
+                         @(CheckoutReadDue(told, [c[1] boolValue], [c[2] doubleValue], [c[3] boolValue],
+                                           kCheckoutQuietLeast))]];
+    }
+    // When changes since the last read have settled: seconds since the latest change, and since the first unread one.
+    NSMutableArray *settles = [NSMutableArray array];
+    for (NSArray *c in @[@[@0, @0], @[@1, @1], @[@1.9, @9.9], @[@2, @2], @[@1, @10], @[@0.5, @12]])
+        [settles addObject:@[[NSString stringWithFormat:@"%@s since the latest, %@s since the first", c[0], c[1]],
+                            @(CheckoutSettled([c[0] doubleValue], [c[1] doubleValue]))]];
+    // How long each one is left while nothing seems to change: within its half hour and ten minutes, whatever its name.
+    NSMutableArray *quiet = [NSMutableArray array];
+    for (NSString *root in roots) {
+        NSTimeInterval every = CheckoutQuietEvery(root);
+        [quiet addObject:@[root.lastPathComponent, @((BOOL)(every >= kCheckoutQuietLeast
+                                                             && every < kCheckoutQuietLeast + kCheckoutQuietSpread))]];
+    }
+    return PrintJSON(@{@"watched": watched, @"steps": steps, @"onRemote": branches, @"due": due,
+                       @"quietEvery": @{@"least": @(kCheckoutQuietLeast), @"spread": @(kCheckoutQuietSpread),
+                                        @"each within": quiet},
+                       @"settle": @{@"after": @(kCheckoutSettle), @"most": @(kCheckoutSettleMost),
+                                    @"samples": settles}});
 }
 
 // `Whozmove --print-pr-wakes <activity.json> <since>`: what a waiting session would be woken by on a pull request, from

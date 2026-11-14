@@ -27,8 +27,8 @@ compare "Usage on the panel's page" "$HERE/panel.expected.txt" "$panel" "${1:-}"
 
 # When the usage would be asked over sample stretches of time (Whozmove --print-usage-checks), compared with
 # checks.expected.txt.
-T=$(mktemp -d "${TMPDIR:-/tmp}/wz-usage.XXXXXX") || exit 1
-trap 'rm -rf "$T"' EXIT
+T=$(throwaway usage) || exit 1
+leave_nothing "$T"
 APP=$(built_app "$T") || exit 1
 checks=$("$APP" --print-usage-checks "$HERE/checks-cases.json" 2>&1) || { echo "$checks"; exit 1; }
 compare "Usage's checks" "$HERE/checks.expected.txt" "$checks" "${1:-}" || status=1

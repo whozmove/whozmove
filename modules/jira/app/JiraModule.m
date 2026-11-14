@@ -464,6 +464,109 @@ static const NSTimeInterval kPrioritiesKept = 60 * 60, kPrioritiesAgain = 10 * 6
     }];
 }
 
+// Every ticket you can see: each site's search (JiraEveryJQL), at most kJiraEveryMost a site, a page at a time, each
+// ticket placed among its project's priorities; with no site, why, as the card's search says it.
+- (void)everyTicketSince:(NSDate *)since done:(TicketsDone)done {
+    [self loadSites:^(TrackerAnswer *sitesAnswer) {
+        NSArray *sites = self.knownSites;
+        if (!sites.count) return done(@[], self.account.state != TrackerSignedIn
+            ? [TrackerAnswer end:TrackerEndSignIn why:@"Sign in with Atlassian first"]
+            : !sitesAnswer.ok ? sitesAnswer
+            : [TrackerAnswer end:TrackerEndNotFound why:@"The user's Atlassian account reaches no Jira site: they can "
+                                                      @"sign in with another on Jira's page, on the panel's back"]);
+        NSMutableArray *every = [NSMutableArray array];
+        __block TrackerAnswer *last = nil;
+        __block BOOL more = NO;
+        __block NSUInteger left = sites.count;
+        for (NSString *site in sites)
+            [self tickets:JiraEveryJQL(since) site:site after:nil into:[NSMutableArray array]
+                     done:^(NSArray<Ticket *> *tickets, TrackerAnswer *answer) {
+                [every addObjectsFromArray:tickets];
+                if (!answer.ok) last = answer;
+                more = more || answer.more;
+                if (--left) return;
+                // One site's failure fails the read only when none answered; else the list says it's part.
+                if (!every.count && last) return done(@[], last);
+                // The most recently changed first across the sites, as Jira writes a time, which sorts as text.
+                [every sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(Ticket *a, Ticket *b) {
+                    return [b.updated ?: @"" compare:a.updated ?: @""];
+                }];
+                TrackerAnswer *told = [TrackerAnswer done];
+                told.more = more || last;
+                done(every, told);
+            }];
+    }];
+}
+
+// One page of a search, then the next, until the last page or kJiraEveryMost; then each ticket placed.
+- (void)tickets:(NSString *)jql site:(NSString *)site after:(NSString *)page into:(NSMutableArray *)found
+           done:(TicketsDone)done {
+    NSMutableDictionary *arguments = [@{@"cloudId": JiraCloudId(site), @"jql": jql, @"maxResults": @(kJiraSearchMost),
+                                        @"view": kJiraReadView} mutableCopy];
+    if (page) arguments[@"nextPageToken"] = page;
+    [self call:kJiraToolSearch arguments:arguments again:NO done:^(id value, TrackerAnswer *answer) {
+        // A page after the first that fails keeps those read before it, said to be part of the list; the first's
+        // failure is the read's.
+        if (!answer.ok && !page) return done(@[], answer);
+        if (!answer.ok) {
+            TrackerAnswer *part = [TrackerAnswer done];
+            part.more = YES;
+            return done(found, part);
+        }
+        NSMutableArray<NSDictionary *> *issues = [NSMutableArray array];
+        NSMutableSet *keys = [NSMutableSet set];
+        for (Ticket *ticket in found) [keys addObject:ticket.key];
+        BOOL cut = NO;
+        for (NSDictionary *issue in JiraIssuesIn(value)) {
+            Ticket *ticket = JiraTicketFrom(issue, site);
+            // A page given again (a server that didn't take the page's token) adds nothing twice.
+            if (!ticket || [keys containsObject:ticket.key]) continue;
+            if ((NSInteger)found.count >= kJiraEveryMost) {
+                cut = YES;
+                continue;
+            }
+            [keys addObject:ticket.key];
+            [found addObject:ticket];
+            [issues addObject:issue];
+        }
+        NSString *next = JiraNextPageIn(value);
+        // A full page that names no next one and doesn't say it's the last may be followed by more all the same.
+        BOOL unsure = !next && !JiraIsLastPage(value) && JiraIssuesIn(value).count >= (NSUInteger)kJiraSearchMost;
+        // Each placed by its own priority's id, from the issue it came as.
+        __block NSUInteger left = issues.count + 1;
+        void (^placed)(void) = ^{
+            if (--left) return;
+            if (next && (NSInteger)found.count < kJiraEveryMost && ![next isEqual:page] && issues.count)
+                return [self tickets:jql site:site after:next into:found done:done];
+            // Cut at the most it reads, or stopped with a page named and unread, or one that may follow: said, so the
+            // list isn't taken as whole.
+            TrackerAnswer *answer = [TrackerAnswer done];
+            answer.more = cut || next || unsure;
+            done(found, answer);
+        };
+        NSUInteger from = found.count - issues.count;
+        for (NSUInteger i = 0; i < issues.count; i++)
+            [self place:found[from + i] priority:JiraPriorityIdOf(issues[i]) done:placed];
+        placed();
+    }];
+}
+
+// One read, with its history: the issue with its changelog, its moves taken from it and its priority placed. Its next
+// steps aren't read: whoever reads a ticket whole doesn't move it by them.
+- (void)readWhole:(NSString *)key site:(NSString *)site done:(TicketDone)done {
+    if (!JiraIsKey(key) || !JiraIsSite(site))
+        return done(nil, [TrackerAnswer end:TrackerEndNotFound why:@"That isn't a Jira ticket"]);
+    NSDictionary *arguments = @{@"cloudId": JiraCloudId(site), @"issueIdOrKey": key, @"view": kJiraReadView,
+                                @"expand": kJiraHistoryExpand};
+    [self call:kJiraToolIssue arguments:arguments again:NO done:^(id value, TrackerAnswer *read) {
+        NSDictionary *issue = read.ok ? JiraIssueIn(value) : nil;
+        Ticket *ticket = issue ? JiraTicketFrom(issue, site) : nil;
+        if (!ticket) return done(nil, read.ok ? [TrackerAnswer end:TrackerEndFailed why:@"Couldn't read it now"] : read);
+        ticket.moves = JiraMovesIn(issue);
+        [self place:ticket priority:JiraPriorityIdOf(issue) done:^{ done(ticket, [TrackerAnswer done]); }];
+    }];
+}
+
 // ---- Module ----
 
 // Jira on the panel's back: how the sign-in stands, with Sign In with Atlassian, Cancel, Sign Out, Sign In Again (for
@@ -677,6 +780,26 @@ int PrintJiraTalk(NSString *site, NSArray<NSString *> *steps) {
         } else if ([verb isEqualToString:@"read"]) {
             [jira read:rest site:site done:^(Ticket *ticket, TrackerAnswer *answer) {
                 printf("%s\n%s\n", Said(answer).UTF8String, ticket ? Line([ticket json]).UTF8String : "no ticket");
+                if (ticket.about) printf("its description: %s\n", JiraAboutSaid(ticket.about).UTF8String);
+                finished = YES;
+            }];
+        } else if ([verb isEqualToString:@"every"]) {
+            // Every ticket you can see; `every changed`, only those changed in the last hour.
+            NSDate *since = [rest isEqualToString:@"changed"] ? [NSDate dateWithTimeIntervalSinceNow:-3600] : nil;
+            [jira everyTicketSince:since done:^(NSArray<Ticket *> *tickets, TrackerAnswer *answer) {
+                printf("%s, %lu tickets%s\n", Said(answer).UTF8String, (unsigned long)tickets.count,
+                       answer.more ? ", and more" : "");
+                for (Ticket *t in tickets) {
+                    NSMutableDictionary *json = [[t jsonWhole] mutableCopy];
+                    [json removeObjectForKey:@"steps"];
+                    printf("  %s\n", Line(json).UTF8String);
+                }
+                finished = YES;
+            }];
+        } else if ([verb isEqualToString:@"whole"]) {
+            [jira readWhole:rest site:site done:^(Ticket *ticket, TrackerAnswer *answer) {
+                printf("%s; its moves: %s\n", Said(answer).UTF8String,
+                       ticket ? Line([ticket jsonWhole][@"moves"] ?: @[]).UTF8String : "none read");
                 if (ticket.about) printf("its description: %s\n", JiraAboutSaid(ticket.about).UTF8String);
                 finished = YES;
             }];

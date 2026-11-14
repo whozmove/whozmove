@@ -18,6 +18,8 @@ static const NSTimeInterval kAsideDeadline = 300;
 static const NSUInteger kAsideMost = 16384;
 static const NSTimeInterval kAsideKept = 300;
 static const NSUInteger kAsideCarriedMost = 24000;
+// How long an ask waits for its answer after an early empty result (ClaudeAsideEarlyResult), before "Didn't answer".
+static const NSTimeInterval kAsideAfterEarly = 60;
 
 static NSString *Cut(NSString *text) {
     if (text.length <= kAsideMost) return text;
@@ -83,6 +85,23 @@ NSDictionary *ClaudeAsideAnswer(NSArray<NSData *> *lines, BOOL timedOut, BOOL st
         answer[@"state"] = @"noAnswer";
     }
     return answer;
+}
+
+BOOL ClaudeAsideEarlyResult(NSDictionary *result, BOOL said) {
+    if (said || ![result[@"type"] isEqual:@"result"]) return NO;
+    for (id count in AsRecord(result[@"usage"]).allValues)
+        if ([count isKindOfClass:NSNumber.class] && [count doubleValue] > 0) return NO;
+    NSData *line = [NSJSONSerialization dataWithJSONObject:result options:0 error:nil];
+    return line && [ClaudeAsideAnswer(@[line], NO, NO)[@"state"] isEqual:@"noAnswer"];
+}
+
+NSString *ClaudeAsideResultShape(NSDictionary *result, double seconds, BOOL kept, NSString *version) {
+    return [NSString stringWithFormat:@"%@ copy of Claude Code %@, %.1f s after the ask: %@, is_error %@, %@ turns, "
+            "%@ ms, status %@, %lu characters",
+            kept ? @"a kept" : @"a fresh", version ?: @"?", seconds, AsText(result[@"subtype"]) ?: @"no subtype",
+            [result[@"is_error"] isEqual:@YES] ? @"yes" : @"no", AsNumber(result[@"num_turns"]) ?: @"no",
+            AsNumber(result[@"duration_ms"]) ?: @"no", AsNumber(result[@"api_error_status"]) ?: @"none",
+            (unsigned long)AsText(result[@"result"]).length];
 }
 
 static NSString *const kThinking = @"Thinking";
@@ -261,6 +280,11 @@ BOOL ClaudeAsideReuses(NSDictionary *opened, NSDictionary *now) {
 @property (assign) pid_t pid;
 @property (assign) long long started;
 @property (assign) BOOL ending, stopped, heard;
+// Whether its process has said anything for the ask it's answering (an `assistant` line since its message), whether an
+// early empty result came for it (ClaudeAsideEarlyResult), when it was asked, and how many asks it has had.
+@property (assign) BOOL said, early;
+@property (assign) double askedAt;
+@property (assign) NSUInteger asks;
 @property (assign) NSUInteger known;  // the earlier side questions it knows: told as it opened, and answered in it
 @property (copy) NSString *askId;
 @property (copy) void (^done)(NSDictionary *answer);
@@ -290,6 +314,7 @@ BOOL ClaudeAsideReuses(NSDictionary *opened, NSDictionary *now) {
     self.program = program;
     self.copies = [NSMutableDictionary dictionary];
     self.refused = [NSMutableSet set];
+    self.afterEarly = kAsideAfterEarly;
     return self;
 }
 
@@ -319,6 +344,8 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
     copy.told = nil;
     copy.lines = [NSMutableArray array];
     copy.kept = 0;
+    copy.said = NO;
+    copy.early = NO;
     if (done) dispatch_async(dispatch_get_main_queue(), ^{ done(answer); });
 }
 
@@ -340,6 +367,10 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
             open.askId = askId;
             open.done = done;
             open.step = step;
+            open.said = NO;
+            open.early = NO;
+            open.askedAt = NSDate.date.timeIntervalSince1970;
+            open.asks += 1;
             open.pending = LineOf(ClaudeAsideWords(question, nil, NO));
             dispatch_semaphore_signal(open.wake);
             return askId;
@@ -355,6 +386,8 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
         fresh.done = done;
         fresh.step = step;
         fresh.known = earlier.count;
+        fresh.askedAt = NSDate.date.timeIntervalSince1970;
+        fresh.asks = 1;
         fresh.lines = [NSMutableArray array];
         fresh.wake = dispatch_semaphore_create(0);
         self.copies[sessionId] = fresh;
@@ -362,6 +395,7 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
     NSData *first = LineOf(ClaudeAsideWords(question, earlier, YES));
     NSMutableDictionary *copies = self.copies;
     NSString *checker = self.checker, *given = self.program;
+    NSTimeInterval afterEarly = self.afterEarly;
     NSMutableSet *refused = self.refused;
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         // Where Claude Code is comes from your login shell's PATH, which can take a moment the first time; a print
@@ -379,6 +413,8 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
         @synchronized (copies) {
             fresh.program = claude;
         }
+        // Its version: which flags it's asked with, and what the log says of an early result.
+        NSString *version = ClaudeCodeVersionAt(claude);
         NSDictionary *environment = ClaudeAsideEnvironment(ClaudeEnvironment(path), checker, folder);
         NSDictionary *(^run)(NSArray *) = ^NSDictionary *(NSArray *with) {
             return RunConversationOn(claude, with, environment, folder, first, ^BOOL(NSData *each) {
@@ -386,9 +422,15 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
                 @synchronized (copies) {
                     fresh.heard = YES;
                     // Every line is kept until the result's, but no more than an answer needs.
-                    if (fresh.kept < 4 * 1024 * 1024) {
+                    BOOL added = fresh.kept < 4 * 1024 * 1024;
+                    if (added) {
                         [fresh.lines addObject:each];
                         fresh.kept += each.length;
+                    }
+                    // Once it says anything for the ask, an early result's wait is over: its usual time applies.
+                    if ([message[@"type"] isEqual:@"assistant"]) {
+                        fresh.said = YES;
+                        fresh.early = NO;
                     }
                     if (![message[@"type"] isEqual:@"result"]) {
                         // Each new step of the ask it's answering told on the main thread, before its answer.
@@ -398,6 +440,37 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
                             fresh.told = now;
                             dispatch_async(dispatch_get_main_queue(), ^{ told(now); });
                         }
+                        return NO;
+                    }
+                    // A result before the copy has said anything for the ask, with nothing used and nothing to say,
+                    // isn't its answer (seen live with 2.1.319, never against a stand-in API): the ask stays open, its
+                    // live line and Stop with it, and the copy busy, so a later answer can't land on the next
+                    // question; and it leaves the lines kept, so it never stands for the answer. Only its shape is
+                    // logged, never its words. With nothing more said within afterEarly, it's "Didn't answer", and
+                    // the copy ends, so the next question starts a fresh one; once the copy says anything, its usual
+                    // time applies, and a Stop is told as one.
+                    if (!fresh.early && fresh.askId && ClaudeAsideEarlyResult(message, fresh.said)) {
+                        fresh.early = YES;
+                        if (added) {
+                            [fresh.lines removeLastObject];
+                            fresh.kept -= each.length;
+                        }
+                        NSString *ask = fresh.askId;
+                        PanelLog(@"side question for %@: an early result, waiting for its answer (%@)", sessionId,
+                                 ClaudeAsideResultShape(message, NSDate.date.timeIntervalSince1970 - fresh.askedAt,
+                                                        fresh.asks > 1, version));
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(afterEarly * NSEC_PER_SEC)),
+                                       dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+                            @synchronized (copies) {
+                                if (![fresh.askId isEqual:ask] || !fresh.early || fresh.stopped) return;
+                                PanelLog(@"side question for %@: no answer came after its early result, so its "
+                                         "copy ends", sessionId);
+                                Tell(fresh, @{@"state": @"noAnswer"});
+                                fresh.ending = YES;
+                                if (copies[sessionId] == fresh) [copies removeObjectForKey:sessionId];
+                                EndCopy(fresh);
+                            }
+                        });
                         return NO;
                     }
                     Tell(fresh, ClaudeAsideAnswer(fresh.lines, NO, fresh.stopped));
@@ -429,7 +502,6 @@ static void Tell(AsideCopy *copy, NSDictionary *given) {
         // Its thinking's summaries are asked for only from a version they were checked with. One that ends at once,
         // having said nothing, is asked again without them; and if it then answers, the flag was what it turned down,
         // so that version isn't asked for them again while Whozmove runs.
-        NSString *version = ClaudeCodeVersionAt(claude);
         BOOL thinks;
         @synchronized (refused) {
             thinks = ClaudeAsideThinks(version, refused);
